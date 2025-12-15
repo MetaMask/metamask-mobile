@@ -35,4 +35,6 @@ export const tooltipContentRegistry: ContentRegistry = {
   points: undefined,
   market_hours: MarketHoursContent,
   after_hours_trading: MarketHoursContent,
+  oracle_price: undefined,
+  spread: undefined,
 };

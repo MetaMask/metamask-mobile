@@ -95,7 +95,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         getGasFeeEstimates: (...args) =>
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
-          // @ts-expect-error - NetworkController registry type mismatch between peer dependencies
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {

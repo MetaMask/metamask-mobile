@@ -202,5 +202,25 @@ export const appendURLParams = (
   return url;
 };
 
+/**
+ * Builds a Portfolio URL with standard parameters including user tracking consent
+ *
+ * @param baseUrl - Base Portfolio URL string
+ * @param userAcceptedTracking - User's basic usage data tracking consent state (true, false, or null)
+ * @param additionalParams - Optional additional parameters to append
+ * @returns - URL object with all parameters appended
+ */
+export const buildPortfolioUrl = (
+  baseUrl: string,
+  additionalParams?: Record<string, string | boolean | number>,
+): URL => {
+  const params: Record<string, string | boolean | number> = {
+    metamaskEntry: 'mobile',
+    ...additionalParams,
+  };
+
+  return appendURLParams(baseUrl, params);
+};
+
 export const isTokenDiscoveryBrowserEnabled = () =>
   AppConstants.TOKEN_DISCOVERY_BROWSER_ENABLED;

@@ -4,6 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
+// Mock the trendingNetworksList module to avoid getNetworkImageSource errors
+jest.mock('../../utils/trendingNetworksList', () => ({
+  TRENDING_NETWORKS_LIST: [],
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -348,20 +353,7 @@ describe('TrendingTokenRowItem', () => {
 
     const logo = getByTestId('trending-token-logo-ETH');
     expect(logo).toBeTruthy();
-    expect(logo.props['data-size']).toBe(44);
-  });
-
-  it('renders token logo with custom iconSize', () => {
-    const token = createMockToken({ symbol: 'BTC' });
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokenRowItem token={token} iconSize={60} />,
-      { state: mockState },
-      false,
-    );
-
-    const logo = getByTestId('trending-token-logo-BTC');
-    expect(logo.props['data-size']).toBe(60);
+    expect(logo.props['data-size']).toBe(40);
   });
 
   it('renders network badge with default network image source', () => {

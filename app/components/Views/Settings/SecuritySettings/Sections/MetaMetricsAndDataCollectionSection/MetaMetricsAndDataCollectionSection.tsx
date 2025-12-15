@@ -32,6 +32,9 @@ import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthenti
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
+import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
@@ -43,14 +46,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const {
-    trackEvent,
-    enable,
-    addTraitsToUser,
-    isEnabled,
-    createEventBuilder,
-    enableSocialLogin,
-  } = useMetrics();
+  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
+    useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -69,13 +66,12 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     selectSeedlessOnboardingLoginFlow,
   );
 
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
+  const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
+
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
-        enableSocialLogin(false);
-      } else {
-        enable(false);
-      }
+      enable(false);
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
@@ -99,7 +95,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     setAnalyticsEnabled,
     isEnabled,
     enable,
-    enableSocialLogin,
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
@@ -112,11 +107,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
-        await enableSocialLogin(true);
-      } else {
-        await enable();
-      }
+      await enable();
 
       setAnalyticsEnabled(true);
 
@@ -132,12 +123,15 @@ const MetaMetricsAndDataCollectionSection: React.FC<
             .build(),
         );
       });
-    } else {
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
-        await enableSocialLogin(false);
-      } else {
-        await enable(false);
+
+      // If user has not acknowledged PNA25 and is enabling metrics
+      // we count this as an acknowledgement of PNA25
+      // and the PNA25 notice is not shown to them
+      if (isPna25FlagEnabled && !isPna25Acknowledged) {
+        dispatch(storePna25Acknowledged());
       }
+    } else {
+      await enable(false);
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));

@@ -26,6 +26,7 @@ import {
   TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -131,6 +132,7 @@ import type {
   ExtendedAssetMeta,
   ExtendedPerpDex,
 } from '../../types/perps-types';
+import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -268,6 +270,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private cachedAllPerpDexs: Awaited<
     ReturnType<ReturnType<typeof this.clientService.getInfoClient>['perpDexs']>
   > | null = null;
+  // Pending promise to deduplicate concurrent getValidatedDexs() calls
+  private pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
 
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
@@ -353,6 +357,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const wallet = this.walletService.createWalletAdapter();
     this.clientService.initialize(wallet);
 
+    // Set reconnection callback to restore subscriptions when WebSocket reconnects
+    this.clientService.setOnReconnectCallback(async () => {
+      try {
+        // Restore subscription service subscriptions
+        await this.subscriptionService.restoreSubscriptions();
+
+        const streamManager = getStreamManagerInstance();
+        streamManager.clearAllChannels();
+      } catch {
+        // Ignore errors during reconnection
+      }
+    });
+
     // Only set flag AFTER successful initialization
     this.clientsInitialized = true;
 
@@ -419,11 +436,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
-    // If already initializing, wait for that to complete
+    // If already initializing or completed, wait for/return that promise
     // This prevents duplicate initialization flows when multiple methods called concurrently
     if (this.ensureReadyPromise) {
+      DevLogger.log('[ensureReady] Reusing existing initialization promise');
       return this.ensureReadyPromise;
     }
+
+    DevLogger.log('[ensureReady] Starting new initialization');
 
     // Create and track initialization promise
     this.ensureReadyPromise = (async () => {
@@ -465,12 +485,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReferralSet();
     })();
 
-    try {
-      await this.ensureReadyPromise;
-    } finally {
-      // Clean up tracking after completion
-      this.ensureReadyPromise = null;
-    }
+    // Await initialization - keep the promise so subsequent calls resolve immediately
+    // The promise is only reset in disconnect() for clean reconnection
+    await this.ensureReadyPromise;
+    DevLogger.log('[ensureReady] Initialization complete');
   }
 
   /**
@@ -538,6 +556,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return this.cachedValidatedDexs;
     }
 
+    // If a fetch is already in progress, reuse the pending promise
+    // This prevents duplicate perpDexs() API calls from concurrent callers
+    if (this.pendingValidatedDexsPromise !== null) {
+      DevLogger.log(
+        '[getValidatedDexs] Reusing pending promise for perpDexs fetch',
+      );
+      return this.pendingValidatedDexsPromise;
+    }
+
+    // Create and cache the pending promise for deduplication
+    this.pendingValidatedDexsPromise = this.fetchValidatedDexsInternal();
+
+    try {
+      const result = await this.pendingValidatedDexsPromise;
+      return result;
+    } finally {
+      // Clear the pending promise when done (success or error)
+      this.pendingValidatedDexsPromise = null;
+    }
+  }
+
+  /**
+   * Internal method that performs the actual perpDexs fetch and caching
+   * Separated from getValidatedDexs to enable promise deduplication
+   */
+  private async fetchValidatedDexsInternal(): Promise<(string | null)[]> {
     // Kill switch: HIP-3 disabled, return main DEX only
     if (!this.hip3Enabled) {
       DevLogger.log('HyperLiquidProvider: HIP-3 disabled via hip3Enabled flag');
@@ -618,14 +662,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
     skipCache?: boolean;
   }): Promise<MetaResponse> {
     const { dexName, skipCache } = params;
-    const dexKey = dexName || 'main';
+    // Use empty string for main DEX key (consistent with buildAssetMapping cache population)
+    const dexKey = dexName ?? '';
+    const dexDisplayName = dexKey || 'main';
 
     // Skip cache if requested (forces fresh fetch)
     if (!skipCache) {
       const cached = this.cachedMetaByDex.get(dexKey);
       if (cached) {
         DevLogger.log('[getCachedMeta] Using cached meta response', {
-          dex: dexKey,
+          dex: dexDisplayName,
           universeSize: cached.universe.length,
         });
         return cached;
@@ -634,14 +680,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Cache miss or skipCache=true - fetch from API
     const infoClient = this.clientService.getInfoClient();
-    const meta = await infoClient.meta({ dex: dexName ?? '' });
+    const meta = await infoClient.meta({ dex: dexKey });
 
     // Defensive validation before caching
     if (!meta?.universe || !Array.isArray(meta.universe)) {
       throw new Error(
-        `[HyperLiquidProvider] Invalid meta response for DEX ${
-          dexName || 'main'
-        }: universe is ${meta?.universe ? 'not an array' : 'missing'}`,
+        `[HyperLiquidProvider] Invalid meta response for DEX ${dexDisplayName}: universe is ${meta?.universe ? 'not an array' : 'missing'}`,
       );
     }
 
@@ -649,7 +693,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.cachedMetaByDex.set(dexKey, meta);
 
     DevLogger.log('[getCachedMeta] Fetched and cached meta response', {
-      dex: dexKey,
+      dex: dexDisplayName,
       universeSize: meta.universe.length,
       skipCache,
     });
@@ -1247,21 +1291,55 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.blocklistMarkets,
     );
 
-    // Fetch metadata for each DEX in parallel with skipCache (feature flags changed, need fresh data)
+    // Fetch metadata for each DEX in parallel using metaAndAssetCtxs
+    // Optimization: Check cache first - getMarketDataWithPrices may have already fetched
+    // If not cached, fetch via metaAndAssetCtxs and populate cache for other methods
+    const infoClient = this.clientService.getInfoClient();
     const allMetas = await Promise.allSettled(
-      dexsToMap.map((dex) =>
-        this.getCachedMeta({ dexName: dex, skipCache: true })
-          .then((meta) => ({ dex, meta, success: true as const }))
+      dexsToMap.map((dex) => {
+        const dexKey = dex ?? '';
+
+        // Check if already cached (e.g., by getMarketDataWithPrices running in parallel)
+        const cachedMeta = this.cachedMetaByDex.get(dexKey);
+        if (cachedMeta) {
+          DevLogger.log(
+            `[buildAssetMapping] Using cached meta for ${dex || 'main'}`,
+            { universeSize: cachedMeta.universe.length },
+          );
+          return Promise.resolve({
+            dex,
+            meta: cachedMeta,
+            success: true as const,
+          });
+        }
+
+        // Not cached, fetch and populate cache
+        const dexParam = dex || undefined;
+        return infoClient
+          .metaAndAssetCtxs(dexParam ? { dex: dexParam } : undefined)
+          .then((result) => {
+            const meta = result?.[0] || null;
+            const assetCtxs = result?.[1] || [];
+            // Cache meta for later use by getCachedMeta
+            if (meta?.universe) {
+              this.cachedMetaByDex.set(dexKey, meta);
+              // Also populate subscription service cache to avoid redundant API calls
+              this.subscriptionService.setDexMetaCache(dexKey, meta);
+              // Cache assetCtxs for getMarketDataWithPrices (avoids duplicate metaAndAssetCtxs calls)
+              this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
+            }
+            return { dex, meta, success: true as const };
+          })
           .catch((error) => {
             DevLogger.log(
-              `HyperLiquidProvider: Failed to fetch meta for DEX ${
+              `HyperLiquidProvider: Failed to fetch metaAndAssetCtxs for DEX ${
                 dex || 'main'
               }`,
               { error },
             );
             return { dex, meta: null, success: false as const };
-          }),
-      ),
+          });
+      }),
     );
 
     // Build mapping with DEX prefixes for HIP-3 DEXs using the utility function
@@ -3982,9 +4060,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
+      // HyperLiquid API requires startTime to be a number (not undefined)
+      // Default to configured days ago to get recent funding payments
+      // Using 0 (epoch) would return oldest 500 records, missing latest payments
+      const defaultStartTime =
+        Date.now() -
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+          24 *
+          60 *
+          60 *
+          1000;
       const rawFunding = await infoClient.userFunding({
         user: userAddress,
-        startTime: params?.startTime || 0,
+        startTime: params?.startTime ?? defaultStartTime,
         endTime: params?.endTime,
       });
 
@@ -4311,16 +4399,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
-      this.clientService.ensureInitialized();
-
-      // CRITICAL: Build asset mapping on first call to ensure DEX discovery
-      // This must happen BEFORE any WebSocket subscriptions receive data
-      // Otherwise HIP-3 positions will be filtered out due to empty discoveredDexNames
-      if (this.coinToAssetId.size === 0) {
-        await this.buildAssetMapping();
-      }
+      // Ensure full initialization including asset mapping
+      // This is deduplicated - concurrent calls wait for the same promise
+      await this.ensureReady();
 
       // Path 1: Symbol filtering - group by DEX and fetch in parallel
       if (params?.symbols && params.symbols.length > 0) {
@@ -4504,32 +4585,82 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     DevLogger.log('Getting market data with prices via HyperLiquid SDK');
 
-    // Read-only operation: only need client initialization
-    this.ensureClientsInitialized();
-    this.clientService.ensureInitialized();
+    // Ensure asset mapping is built first (populates meta cache)
+    // This guarantees buildAssetMapping has run before we check cache,
+    // eliminating duplicate metaAndAssetCtxs API calls from race conditions
+    await this.ensureReady();
 
     const infoClient = this.clientService.getInfoClient();
 
-    // Get enabled DEXs respecting feature flags
+    // Get enabled DEXs respecting feature flags (uses cached perpDexs)
     const enabledDexs = await this.getValidatedDexs();
 
     // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel
+    // Optimization: Check cache first to avoid redundant API calls when buildAssetMapping
+    // has already fetched, or populate cache for buildAssetMapping to reuse
     const dexDataResults = await Promise.all(
       enabledDexs.map(async (dex) => {
+        const dexKey = dex ?? '';
         const dexParam = dex ?? '';
         try {
-          const [meta, metaAndCtxs, dexAllMids] = await Promise.all([
-            infoClient.meta(dexParam ? { dex: dexParam } : undefined),
-            infoClient.metaAndAssetCtxs(
+          let meta: MetaResponse | null = null;
+          let assetCtxs: PerpsAssetCtx[] = [];
+
+          // Check if meta is already cached (e.g., from previous fetch or buildAssetMapping)
+          const cachedMeta = this.cachedMetaByDex.get(dexKey);
+          if (cachedMeta) {
+            DevLogger.log(
+              `[getMarketDataWithPrices] Using cached meta for ${dex || 'main'}`,
+              { universeSize: cachedMeta.universe.length },
+            );
+            meta = cachedMeta;
+            // Try to get cached assetCtxs from subscription service
+            const cachedCtxs =
+              this.subscriptionService.getDexAssetCtxsCache(dexKey);
+            if (cachedCtxs) {
+              assetCtxs = cachedCtxs;
+            } else {
+              // Need fresh assetCtxs, fetch via metaAndAssetCtxs (meta will be same)
+              const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+                dexParam ? { dex: dexParam } : undefined,
+              );
+              assetCtxs = metaAndCtxs?.[1] || [];
+              // Cache assetCtxs for future calls
+              this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
+            }
+          } else {
+            // Cache miss - fetch and populate cache for buildAssetMapping to reuse
+            DevLogger.log(
+              `[getMarketDataWithPrices] Cache miss for ${dex || 'main'}, fetching`,
+            );
+            const metaAndCtxs = await infoClient.metaAndAssetCtxs(
               dexParam ? { dex: dexParam } : undefined,
-            ),
-            infoClient.allMids(dexParam ? { dex: dexParam } : undefined),
-          ]);
+            );
+            meta = metaAndCtxs?.[0] || null;
+            assetCtxs = metaAndCtxs?.[1] || [];
+
+            // IMPORTANT: Populate cache for buildAssetMapping and other methods to reuse
+            if (meta?.universe) {
+              this.cachedMetaByDex.set(dexKey, meta);
+              this.subscriptionService.setDexMetaCache(dexKey, meta);
+              // Also cache assetCtxs for consistency with buildAssetMapping
+              this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
+              DevLogger.log(
+                `[getMarketDataWithPrices] Cached meta for ${dex || 'main'}`,
+                { universeSize: meta.universe.length },
+              );
+            }
+          }
+
+          // Always fetch fresh allMids for current prices
+          const dexAllMids = await infoClient.allMids(
+            dexParam ? { dex: dexParam } : undefined,
+          );
 
           return {
             dex,
             meta,
-            assetCtxs: metaAndCtxs?.[1] || [],
+            assetCtxs,
             allMids: dexAllMids || {},
             success: true,
           };

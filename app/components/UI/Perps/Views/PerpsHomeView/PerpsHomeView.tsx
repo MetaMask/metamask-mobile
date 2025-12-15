@@ -33,7 +33,11 @@ import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';
-import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  LEARN_MORE_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -245,7 +249,7 @@ const PerpsHomeView = () => {
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           positions={positions}
-          showActionButtons={false}
+          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
         />
 
         {/* Positions Section */}
@@ -254,11 +258,10 @@ const PerpsHomeView = () => {
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}
           showWhenEmpty={false}
-          showActionIcon
           onActionPress={handleCloseAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View style={styles.sectionContent}>
+          <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
                 key={`${position.coin}-${index}`}
@@ -275,11 +278,10 @@ const PerpsHomeView = () => {
           isLoading={isLoading.orders}
           isEmpty={orders.length === 0}
           showWhenEmpty={false}
-          showActionIcon
           onActionPress={handleCancelAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View style={styles.sectionContent}>
+          <View style={styles.positionsOrdersContainer}>
             {orders.map((order) => (
               <PerpsCard
                 key={order.orderId}
@@ -294,6 +296,8 @@ const PerpsHomeView = () => {
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
+          positions={positions}
+          orders={orders}
         />
 
         {/* Crypto Markets List */}
@@ -353,34 +357,37 @@ const PerpsHomeView = () => {
       )}
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
-      {!isBalanceEmpty && !showCloseAllSheet && !showCancelAllSheet && (
-        <View style={fixedFooterStyle}>
-          <View style={styles.footerButtonsContainer}>
-            <View style={styles.footerButton}>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                onPress={handleWithdraw}
-                isFullWidth
-                testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-              >
-                {strings('perps.withdraw')}
-              </Button>
-            </View>
-            <View style={styles.footerButton}>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleAddFunds}
-                isFullWidth
-                testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-              >
-                {strings('perps.add_funds')}
-              </Button>
+      {!isBalanceEmpty &&
+        !showCloseAllSheet &&
+        !showCancelAllSheet &&
+        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
+          <View style={fixedFooterStyle}>
+            <View style={styles.footerButtonsContainer}>
+              <View style={styles.footerButton}>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleWithdraw}
+                  isFullWidth
+                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+                >
+                  {strings('perps.withdraw')}
+                </Button>
+              </View>
+              <View style={styles.footerButton}>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleAddFunds}
+                  isFullWidth
+                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+                >
+                  {strings('perps.add_funds')}
+                </Button>
+              </View>
             </View>
           </View>
-        </View>
-      )}
+        )}
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (

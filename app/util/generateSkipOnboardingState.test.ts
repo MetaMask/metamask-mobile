@@ -1,6 +1,6 @@
 import StorageWrapper from '../store/storage-wrapper';
 import { seedphraseBackedUp } from '../actions/user';
-import { storePrivacyPolicyClickedOrClosed } from '../reducers/legalNotices';
+import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import importAdditionalAccounts from './importAdditionalAccounts';
@@ -13,7 +13,7 @@ import AppConstants from '../core/AppConstants';
 // Mock all dependencies
 jest.mock('../store/storage-wrapper');
 jest.mock('../actions/user');
-jest.mock('../reducers/legalNotices');
+jest.mock('../actions/legalNotices');
 jest.mock('../core');
 jest.mock('../actions/multiSrp');
 jest.mock('./importAdditionalAccounts');

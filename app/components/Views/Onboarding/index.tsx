@@ -28,7 +28,11 @@ import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
+import {
+  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+  storePna25Acknowledged as storePna25AcknowledgedAction,
+} from '../../../actions/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -126,6 +130,7 @@ const Onboarding = () => {
   const loadingMsg = useSelector(
     (state: RootState) => state.user.loadingMsg || '',
   );
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -138,6 +143,10 @@ const Onboarding = () => {
   );
   const saveOnboardingEvent = useCallback(
     (...eventArgs: [ITrackingEvent]) => dispatch(saveEvent(eventArgs)),
+    [dispatch],
+  );
+  const storePna25Acknowledged = useCallback(
+    () => dispatch(storePna25AcknowledgedAction()),
     [dispatch],
   );
 
@@ -318,7 +327,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enableSocialLogin?.(false);
+    await metrics.enable(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
@@ -347,7 +356,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enableSocialLogin?.(false);
+    await metrics.enable(false);
     await hasMetricsConsent();
 
     const action = async () => {
@@ -486,14 +495,19 @@ const Onboarding = () => {
   );
 
   const handleLoginError = useCallback(
-    (error: Error, socialConnectionType: string): void => {
+    async (
+      error: Error,
+      socialConnectionType: string,
+      createWallet: boolean,
+    ): Promise<void> => {
       if (error instanceof OAuthError) {
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError
+          error.code === OAuthErrorType.AppleLoginError ||
+          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
         ) {
           // QA: do not show error sheet if user cancelled
           return;
@@ -501,18 +515,44 @@ const Onboarding = () => {
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
           error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
         ) {
-          // de-escalate google no credential error
-          const errorMessage = 'google_login_no_credential';
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.${errorMessage}_title`),
-              description: strings(`error_sheet.${errorMessage}_description`),
-              descriptionAlign: 'center',
-              buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-              type: 'error',
-            },
-          });
+          // For Android Google, try browser fallback instead of showing error
+          if (Platform.OS === 'android' && socialConnectionType === 'google') {
+            try {
+              setLoading();
+              const fallbackHandler = createLoginHandler(
+                Platform.OS,
+                AuthConnection.Google,
+                true, // Use browser fallback
+              );
+              const result = await OAuthLoginService.handleOAuthLogin(
+                fallbackHandler,
+                !createWallet,
+              );
+              handlePostSocialLogin(
+                result as OAuthLoginResult,
+                createWallet,
+                socialConnectionType,
+              );
+
+              // delay unset loading to avoid flash of loading state
+              setTimeout(() => {
+                unsetLoading();
+              }, 1000);
+              return;
+            } catch (fallbackError) {
+              unsetLoading();
+              if (
+                fallbackError instanceof OAuthError &&
+                (fallbackError.code === OAuthErrorType.UserCancelled ||
+                  fallbackError.code === OAuthErrorType.UserDismissed)
+              ) {
+                return;
+              }
+              if (fallbackError instanceof OAuthError) {
+                handleOAuthLoginError(fallbackError);
+              }
+            }
+          }
           return;
         }
         // unexpected oauth login error
@@ -549,7 +589,13 @@ const Onboarding = () => {
         },
       });
     },
-    [navigation, handleOAuthLoginError],
+    [
+      navigation,
+      handleOAuthLoginError,
+      setLoading,
+      unsetLoading,
+      handlePostSocialLogin,
+    ],
   );
 
   const onPressContinueWithSocialLogin = useCallback(
@@ -584,7 +630,7 @@ const Onboarding = () => {
       navigation.navigate('Onboarding');
 
       // Enable metrics for OAuth users
-      await metrics.enableSocialLogin?.(true);
+      await metrics.enable(true);
       discardBufferedTraces();
       await setupSentry();
 
@@ -615,24 +661,25 @@ const Onboarding = () => {
       const action = async () => {
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
-        const result = await OAuthLoginService.handleOAuthLogin(
-          loginHandler,
-          !createWallet,
-        ).catch((error: Error) => {
-          unsetLoading();
-          handleLoginError(error, provider);
-          return { type: 'error' as const, error, existingUser: false };
-        });
-        handlePostSocialLogin(
-          result as OAuthLoginResult,
-          createWallet,
-          provider,
-        );
+        try {
+          const result = await OAuthLoginService.handleOAuthLogin(
+            loginHandler,
+            !createWallet,
+          );
+          handlePostSocialLogin(
+            result as OAuthLoginResult,
+            createWallet,
+            provider,
+          );
 
-        // delay unset loading to avoid flash of loading state
-        setTimeout(() => {
+          // delay unset loading to avoid flash of loading state
+          setTimeout(() => {
+            unsetLoading();
+          }, 1000);
+        } catch (error) {
           unsetLoading();
-        }, 1000);
+          await handleLoginError(error as Error, provider, createWallet);
+        }
       };
       handleExistingUser(action);
     },
@@ -817,6 +864,14 @@ const Onboarding = () => {
     updateNavBar();
   }, [updateNavBar]);
 
+  useEffect(() => {
+    // When a new user has onboarded and the PNA25 feature flag is on,
+    // set the PNA25 acknowledgement as true to prevent the toast from showing
+    if (isPna25FlagEnabled) {
+      storePna25Acknowledged();
+    }
+  }, [isPna25FlagEnabled, storePna25Acknowledged]);
+
   const { existingUser, errorToThrow, startFoxAnimation } = state;
   const hasFooter = existingUser && !loading;
 
@@ -885,7 +940,9 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        {!isE2E && (
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        )}
 
         <View>{handleSimpleNotification()}</View>
 

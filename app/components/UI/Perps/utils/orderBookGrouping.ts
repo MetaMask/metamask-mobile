@@ -1,6 +1,61 @@
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 
 /**
+ * Maximum API levels to request from Hyperliquid L2Book API.
+ * The API returns at most ~20 levels per side when using nSigFigs aggregation.
+ */
+export const MAX_ORDER_BOOK_LEVELS = 20;
+
+/**
+ * Parameters for Hyperliquid L2Book API aggregation.
+ */
+export interface AggregationParams {
+  nSigFigs: 2 | 3 | 4 | 5;
+  mantissa?: 2 | 5;
+}
+
+/**
+ * Calculate nSigFigs and mantissa based on grouping and price.
+ * These parameters match Hyperliquid's L2Book API aggregation:
+ * - nSigFigs: 5, mantissa: 2 → finest granularity (~$1-2 for BTC)
+ * - nSigFigs: 5, mantissa: 5 → ~$5 increments for BTC
+ * - nSigFigs: 4 → ~$10 increments for BTC
+ * - nSigFigs: 3 → ~$100 increments for BTC
+ * - nSigFigs: 2 → ~$1000 increments for BTC (widest range)
+ *
+ * mantissa is only applicable when nSigFigs is 5.
+ */
+export function calculateAggregationParams(
+  grouping: number,
+  price: number,
+): AggregationParams {
+  // Guard against invalid inputs that would cause Math.log10 to return -Infinity or NaN
+  if (price <= 0 || grouping <= 0) {
+    return { nSigFigs: 5 };
+  }
+
+  const magnitude = Math.floor(Math.log10(price));
+  const groupingMagnitude = Math.floor(Math.log10(grouping));
+  const baseNSigFigs = magnitude - groupingMagnitude + 1;
+
+  if (baseNSigFigs >= 5) {
+    // Finest granularity needs mantissa
+    // Derive mantissa from the first digit of grouping
+    const firstDigit = Math.floor(grouping / Math.pow(10, groupingMagnitude));
+    const mantissa = firstDigit <= 2 ? 2 : 5;
+    return { nSigFigs: 5, mantissa };
+  }
+
+  // Clamp nSigFigs between 2 and 5 (API only supports these values)
+  const clampedNSigFigs = Math.max(2, Math.min(5, baseNSigFigs)) as
+    | 2
+    | 3
+    | 4
+    | 5;
+  return { nSigFigs: clampedNSigFigs };
+}
+
+/**
  * Calculate dynamic grouping options based on asset's mid price.
  * Uses "1-2-5 per decade" scale anchored to price magnitude.
  *

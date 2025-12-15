@@ -71,6 +71,9 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
+
+  // Price deviation threshold (as decimal, 0.1 = 10%)
+  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
 } as const;
 
 /**
@@ -361,6 +364,10 @@ export const DEVELOPMENT_CONFIG = {
  * Controls carousel limits and display settings for the main Perps home screen
  */
 export const HOME_SCREEN_CONFIG = {
+  // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
+  // Can be controlled via feature flag in the future
+  SHOW_HEADER_ACTION_BUTTONS: true,
+
   // Maximum number of items to show in each carousel
   POSITIONS_CAROUSEL_LIMIT: 10,
   ORDERS_CAROUSEL_LIMIT: 10,
@@ -493,7 +500,7 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // ROE (Return on Equity) threshold (percentage)
   // Shows "Set stop loss" banner when ROE drops below this value
-  ROE_THRESHOLD: -20,
+  ROE_THRESHOLD: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
