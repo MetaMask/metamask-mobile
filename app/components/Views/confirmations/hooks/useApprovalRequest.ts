@@ -12,16 +12,14 @@ export type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
-  const pendingApprovalList = Object.values(pendingApprovals ?? {});
+  const pendingApprovalList = useMemo(
+    () => cloneDeep(Object.values(pendingApprovals ?? {})),
+    [pendingApprovals],
+  );
 
-  const firstPendingApproval = pendingApprovalList[0] as
+  const approvalRequest = pendingApprovalList[0] as
     | ApprovalRequestType
     | undefined;
-
-  const approvalRequest = useMemo(
-    () => cloneDeep(firstPendingApproval),
-    [firstPendingApproval],
-  );
 
   const onConfirm = useCallback(
     async (
