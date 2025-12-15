@@ -100,3 +100,26 @@ echo "Android build ID: $ANDROID_WORKFLOW_ID"
 echo "iOS Build ID: $IOS_WORKFLOW_ID"
 echo "Android public link: $ANDROID_PUBLIC_URL"
 echo "Build number: $BUILD_NUMBER"
+
+# Post Slack notification if bot token is configured (fail open - non-critical)
+if [[ -n "${SLACK_BOT_TOKEN:-}" ]]; then
+  echo ""
+  echo "Posting Slack notification..."
+
+  # Export variables for the TypeScript script
+  export SEMVER
+  export BUILD_NUMBER
+  export ANDROID_PUBLIC_URL
+  export BITRISE_PIPELINE_URL="https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG"
+  export SLACK_BOT_TOKEN
+
+  # Run the Slack notification script (fail open - don't fail the build if notification fails)
+  if npx ts-node ./scripts/slack-rc-notification.ts; then
+    echo "Slack notification sent successfully"
+  else
+    echo "⚠️ Slack notification failed, but continuing (non-critical)"
+  fi
+else
+  echo ""
+  echo "Skipping Slack notification (SLACK_BOT_TOKEN not set)"
+fi
