@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
@@ -28,6 +29,13 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   });
 
   useEffect(() => {
+    if (
+      approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS ||
+      !eventSource
+    ) {
+      return;
+    }
+
     const requestData = approvalRequest?.requestData;
 
     if (!requestData?.permissions?.[Caip25EndowmentPermissionName]) return;

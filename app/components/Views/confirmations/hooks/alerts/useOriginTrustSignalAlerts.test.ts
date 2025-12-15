@@ -39,6 +39,7 @@ describe('useOriginTrustSignalAlerts', () => {
       pageMeta: {},
       onConfirm: jest.fn(),
       onReject: jest.fn(),
+      pendingApprovals: {},
     });
   });
 
@@ -211,6 +212,7 @@ describe('useOriginTrustSignalAlerts', () => {
         pageMeta: {},
         onConfirm: jest.fn(),
         onReject: jest.fn(),
+        pendingApprovals: {},
       });
     });
 
@@ -267,6 +269,7 @@ describe('useOriginTrustSignalAlerts', () => {
         pageMeta: {},
         onConfirm: jest.fn(),
         onReject: jest.fn(),
+        pendingApprovals: {},
       });
     });
 
@@ -356,6 +359,7 @@ describe('useOriginTrustSignalAlerts', () => {
         pageMeta: {},
         onConfirm: jest.fn(),
         onReject: jest.fn(),
+        pendingApprovals: {},
       });
 
       const { result } = renderHookWithProvider(
@@ -416,6 +420,7 @@ describe('useOriginTrustSignalAlerts', () => {
         pageMeta: {},
         onConfirm: jest.fn(),
         onReject: jest.fn(),
+        pendingApprovals: {},
       });
 
       const { result } = renderHookWithProvider(
