@@ -57,7 +57,9 @@ export const mockedEngine = {
         subjects: {},
       },
     },
-    PreferencesController: {},
+    PreferencesController: {
+      state: {},
+    },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),
     },
