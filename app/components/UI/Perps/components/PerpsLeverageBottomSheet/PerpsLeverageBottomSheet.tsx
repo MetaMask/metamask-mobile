@@ -771,5 +771,6 @@ export default memo(
     prevProps.leverage === nextProps.leverage &&
     prevProps.minLeverage === nextProps.minLeverage &&
     prevProps.maxLeverage === nextProps.maxLeverage &&
+    prevProps.currentPrice === nextProps.currentPrice &&
     prevProps.direction === nextProps.direction,
 );
