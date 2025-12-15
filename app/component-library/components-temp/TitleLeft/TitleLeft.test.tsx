@@ -22,7 +22,7 @@ describe('TitleLeft', () => {
     it('renders with title', () => {
       const { getByText } = render(<TitleLeft title="$4.42" />);
 
-      expect(getByText('$4.42')).toBeTruthy();
+      expect(getByText('$4.42')).toBeOnTheScreen();
     });
 
     it('renders container with testID when provided', () => {
@@ -30,7 +30,7 @@ describe('TitleLeft', () => {
         <TitleLeft title="Test" testID={TEST_IDS.CONTAINER} />,
       );
 
-      expect(getByTestId(TEST_IDS.CONTAINER)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders title with testID when provided via titleProps', () => {
@@ -38,7 +38,7 @@ describe('TitleLeft', () => {
         <TitleLeft title="$4.42" titleProps={{ testID: TEST_IDS.TITLE }} />,
       );
 
-      expect(getByTestId(TEST_IDS.TITLE)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.TITLE)).toBeOnTheScreen();
     });
   });
 
@@ -46,7 +46,7 @@ describe('TitleLeft', () => {
     it('renders topLabel', () => {
       const { getByText } = render(<TitleLeft title="$4.42" topLabel="Send" />);
 
-      expect(getByText('Send')).toBeTruthy();
+      expect(getByText('Send')).toBeOnTheScreen();
     });
 
     it('renders topLabel with testID when provided via topLabelProps', () => {
@@ -58,7 +58,7 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.TOP_LABEL)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.TOP_LABEL)).toBeOnTheScreen();
     });
 
     it('renders topAccessory when no topLabel', () => {
@@ -66,7 +66,7 @@ describe('TitleLeft', () => {
         <TitleLeft title="$4.42" topAccessory={<Text>Custom Top</Text>} />,
       );
 
-      expect(getByText('Custom Top')).toBeTruthy();
+      expect(getByText('Custom Top')).toBeOnTheScreen();
     });
 
     it('topLabel takes priority over topAccessory', () => {
@@ -78,7 +78,7 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByText('Label Priority')).toBeTruthy();
+      expect(getByText('Label Priority')).toBeOnTheScreen();
       expect(queryByText('Accessory')).toBeNull();
     });
   });
@@ -89,7 +89,7 @@ describe('TitleLeft', () => {
         <TitleLeft title="$4.42" bottomLabel="0.002 ETH" />,
       );
 
-      expect(getByText('0.002 ETH')).toBeTruthy();
+      expect(getByText('0.002 ETH')).toBeOnTheScreen();
     });
 
     it('renders bottomLabel with testID when provided via bottomLabelProps', () => {
@@ -101,7 +101,7 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.BOTTOM_LABEL)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.BOTTOM_LABEL)).toBeOnTheScreen();
     });
 
     it('renders bottomAccessory when no bottomLabel', () => {
@@ -112,7 +112,7 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByText('Custom Bottom')).toBeTruthy();
+      expect(getByText('Custom Bottom')).toBeOnTheScreen();
     });
 
     it('bottomLabel takes priority over bottomAccessory', () => {
@@ -124,7 +124,7 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByText('Label Priority')).toBeTruthy();
+      expect(getByText('Label Priority')).toBeOnTheScreen();
       expect(queryByText('Accessory')).toBeNull();
     });
   });
@@ -135,8 +135,8 @@ describe('TitleLeft', () => {
         <TitleLeft title="$4.42" titleAccessory={<Text>Info</Text>} />,
       );
 
-      expect(getByText('$4.42')).toBeTruthy();
-      expect(getByText('Info')).toBeTruthy();
+      expect(getByText('$4.42')).toBeOnTheScreen();
+      expect(getByText('Info')).toBeOnTheScreen();
     });
   });
 
@@ -146,7 +146,7 @@ describe('TitleLeft', () => {
         <TitleLeft title="$4.42" endAccessory={<Text>NFT</Text>} />,
       );
 
-      expect(getByText('NFT')).toBeTruthy();
+      expect(getByText('NFT')).toBeOnTheScreen();
     });
   });
 
@@ -162,11 +162,11 @@ describe('TitleLeft', () => {
         />,
       );
 
-      expect(getByText('Send')).toBeTruthy();
-      expect(getByText('$4.42')).toBeTruthy();
-      expect(getByText('i')).toBeTruthy();
-      expect(getByText('0.002 ETH')).toBeTruthy();
-      expect(getByTestId('nft-image')).toBeTruthy();
+      expect(getByText('Send')).toBeOnTheScreen();
+      expect(getByText('$4.42')).toBeOnTheScreen();
+      expect(getByText('i')).toBeOnTheScreen();
+      expect(getByText('0.002 ETH')).toBeOnTheScreen();
+      expect(getByTestId('nft-image')).toBeOnTheScreen();
     });
   });
 });
