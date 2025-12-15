@@ -48,7 +48,7 @@ import ButtonIcon from '../Buttons/ButtonIcon';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
-const bottomPadding = 16;
+const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {

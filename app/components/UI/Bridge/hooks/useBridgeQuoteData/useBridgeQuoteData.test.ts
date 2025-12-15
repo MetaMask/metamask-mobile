@@ -101,12 +101,14 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
     };
 
-    // destToken must match the quote's destAsset for destTokenAmount to be calculated
+    // destToken must match the quote's destAsset.assetId for destTokenAmount to be calculated
+    // The address should be in CAIP format to match the quote's assetId
     const bridgeReducerOverrides = {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -650,7 +652,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -750,7 +753,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -788,7 +792,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };

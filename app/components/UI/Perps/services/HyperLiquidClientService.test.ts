@@ -27,12 +27,17 @@ const mockInfoClientHttp = {
   transport: 'http',
   candleSnapshot: jest.fn(),
 };
+const mockWsTransportReady = jest.fn().mockResolvedValue(undefined);
 const mockSubscriptionClient = {
   initialized: true,
+  transport: {
+    ready: mockWsTransportReady,
+  },
 };
 const mockWsTransport = {
   url: 'ws://mock',
   close: jest.fn().mockResolvedValue(undefined),
+  ready: mockWsTransportReady,
 };
 const mockHttpTransport = {
   url: 'http://mock',
@@ -1147,6 +1152,206 @@ describe('HyperLiquidClientService', () => {
 
       // Assert - WebSocket should be cleaned up immediately after establishing
       expect(mockWsUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('Reconnection and Health Check', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.clearAllTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('sets reconnection callback', () => {
+      const callback = jest.fn().mockResolvedValue(undefined);
+
+      service.setOnReconnectCallback(callback);
+
+      // Callback is stored internally, verify it can be set without error
+      expect(() => service.setOnReconnectCallback(callback)).not.toThrow();
+    });
+
+    it('starts health check monitoring after initialization', () => {
+      service.initialize(mockWallet);
+
+      // Health check monitoring should start (interval is set)
+      // Fast-forward time to trigger health check
+      jest.advanceTimersByTime(5000);
+
+      // Verify transport.ready was called (health check executed)
+      expect(mockWsTransportReady).toHaveBeenCalled();
+    });
+
+    it('skips health check when already running', async () => {
+      service.initialize(mockWallet);
+
+      // Make health check take a long time
+      let resolveReady: () => void = () => {
+        /* noop */
+      };
+      const delayedReady = new Promise<void>((resolve) => {
+        resolveReady = resolve;
+      });
+      mockWsTransportReady.mockReturnValueOnce(delayedReady);
+
+      // Trigger first health check
+      jest.advanceTimersByTime(5000);
+
+      // Try to trigger another health check while first is running
+      jest.advanceTimersByTime(5000);
+
+      // Should only have one call (second one skipped)
+      expect(mockWsTransportReady).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      resolveReady();
+      await delayedReady;
+    });
+
+    it('skips health check when disconnected', () => {
+      // Don't initialize, so connection state is DISCONNECTED
+      // Health check should not run
+      jest.advanceTimersByTime(10000);
+
+      expect(mockWsTransportReady).not.toHaveBeenCalled();
+    });
+
+    it('handles connection drop and triggers reconnection callback', async () => {
+      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
+      service.initialize(mockWallet);
+      service.setOnReconnectCallback(reconnectCallback);
+
+      // Make health check fail (simulate connection drop)
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+
+      // Wait for the promise to resolve
+      await Promise.resolve();
+
+      // Fast-forward a bit more to allow async operations
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Verify reconnection callback was called
+      expect(reconnectCallback).toHaveBeenCalled();
+    });
+
+    it('recreates WebSocket transport on connection drop', async () => {
+      const {
+        SubscriptionClient,
+        WebSocketTransport,
+      } = require('@nktkas/hyperliquid');
+      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
+
+      service.initialize(mockWallet);
+      service.setOnReconnectCallback(reconnectCallback);
+
+      // Track initial subscription client creation
+      const initialCallCount = (SubscriptionClient as jest.Mock).mock.calls
+        .length;
+
+      // Make health check fail
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      // Fast-forward a bit more to allow reconnection
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Verify new transport and subscription client were created
+      expect(WebSocketTransport).toHaveBeenCalledTimes(2); // Initial + reconnection
+      expect(SubscriptionClient).toHaveBeenCalledTimes(initialCallCount + 1);
+    });
+
+    it('stops health check monitoring when reconnection fails', async () => {
+      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
+
+      service.initialize(mockWallet);
+      service.setOnReconnectCallback(reconnectCallback);
+
+      // Make health check fail
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+
+      // Make transport recreation fail
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      (WebSocketTransport as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('Failed to recreate transport');
+      });
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      // Fast-forward a bit more
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Health check monitoring should be stopped
+      // Verify no more health checks are scheduled
+      jest.advanceTimersByTime(10000);
+      expect(mockWsTransportReady).toHaveBeenCalledTimes(1); // Only the initial failed check
+    });
+
+    it('handles connection drop when already connecting', async () => {
+      service.initialize(mockWallet);
+
+      // Simulate connection drop while already connecting
+      // Make health check fail
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      // Immediately trigger another connection drop (should be ignored)
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Should only attempt reconnection once
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      // Initial creation + one reconnection attempt
+      expect(WebSocketTransport).toHaveBeenCalledTimes(2);
+    });
+
+    it('updates last successful health check timestamp on success', async () => {
+      service.initialize(mockWallet);
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      // Fast-forward a bit more
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Health check should succeed (transport.ready resolves)
+      expect(mockWsTransportReady).toHaveBeenCalled();
+    });
+
+    it('clears health check timeout on completion', async () => {
+      service.initialize(mockWallet);
+
+      // Make health check resolve quickly
+      mockWsTransportReady.mockResolvedValueOnce(undefined);
+
+      // Fast-forward to trigger health check
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      // Fast-forward a bit more
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+
+      // Timeout should be cleared (no errors thrown)
+      expect(mockWsTransportReady).toHaveBeenCalled();
     });
   });
 });

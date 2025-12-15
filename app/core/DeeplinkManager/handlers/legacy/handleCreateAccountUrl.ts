@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { isCaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
@@ -15,6 +14,7 @@ import {
 } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import NavigationService from '../../../NavigationService';
 
 const getClientType = (chainId: string) => {
   let clientType: WalletClientType;
@@ -33,13 +33,7 @@ const getClientType = (chainId: string) => {
   return clientType;
 };
 
-export function handleCreateAccountUrl({
-  path,
-  navigation,
-}: {
-  path: string;
-  navigation: NavigationProp<ParamListBase>;
-}) {
+export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
 
   if (!chainId || !isCaipChainId(chainId)) {
@@ -57,7 +51,7 @@ export function handleCreateAccountUrl({
 
   if (!hasAccountsInScope) {
     // if there are no accounts in the scope, show the modal to create an account
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ADD_ACCOUNT,
       params: {
         clientType: getClientType(chainId),
@@ -85,7 +79,7 @@ export function handleCreateAccountUrl({
       bridgeViewMode: BridgeViewMode.Unified,
     };
 
-    navigation.navigate(Routes.BRIDGE.ROOT, {
+    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,
     });
@@ -94,7 +88,7 @@ export function handleCreateAccountUrl({
   }
 
   // if there are account in scope bu non of them have funds, navigate to ramps
-  navigation.navigate(Routes.RAMP.BUY, {
+  NavigationService.navigation.navigate(Routes.RAMP.BUY, {
     screen: Routes.RAMP.GET_STARTED,
     params: {
       chainId,

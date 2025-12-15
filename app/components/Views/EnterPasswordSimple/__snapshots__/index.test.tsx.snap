@@ -71,7 +71,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "marginBottom": 15,
                 }
@@ -138,7 +138,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                     null,
                     [
                       {
-                        "fontFamily": "Geist Bold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 14,
                         "textAlign": "center",
                       },

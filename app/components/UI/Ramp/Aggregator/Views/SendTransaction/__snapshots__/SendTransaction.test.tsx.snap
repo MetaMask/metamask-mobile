@@ -224,7 +224,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -504,7 +504,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -519,7 +519,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -558,7 +558,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -695,7 +695,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -742,7 +742,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -792,7 +792,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1043,7 +1043,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1323,7 +1323,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -1338,7 +1338,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1381,7 +1381,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1479,7 +1479,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1529,7 +1529,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1780,7 +1780,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -2060,7 +2060,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2075,7 +2075,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2118,7 +2118,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2255,7 +2255,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2302,7 +2302,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2352,7 +2352,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

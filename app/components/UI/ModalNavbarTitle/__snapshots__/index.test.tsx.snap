@@ -12,7 +12,7 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
   <Text
     style={
       {
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 18,
       }
     }
