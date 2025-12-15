@@ -16,29 +16,35 @@ let cachedChainsListPromise: Promise<SafeChain[]> | null = null;
 async function fetchChainsList(): Promise<SafeChain[]> {
   if (!cachedChainsListPromise) {
     cachedChainsListPromise = (async () => {
-      const response = await fetch('https://chainid.network/chains.json');
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch chains: ${response.status}`);
-      }
-
-      const safeChainsData = await response.json();
-
-      // Validate the structure
-      if (!Array.isArray(safeChainsData)) {
-        throw new Error('Invalid chains data format');
-      }
-
       try {
-        await StorageWrapper.setItem(
-          'SAFE_CHAINS_CACHE',
-          JSON.stringify(safeChainsData),
-        );
-      } catch (cacheError) {
-        Logger.log('Error caching chains data:', cacheError);
-      }
+        const response = await fetch('https://chainid.network/chains.json');
 
-      return safeChainsData;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch chains: ${response.status}`);
+        }
+
+        const safeChainsData = await response.json();
+
+        // Validate the structure
+        if (!Array.isArray(safeChainsData)) {
+          throw new Error('Invalid chains data format');
+        }
+
+        try {
+          await StorageWrapper.setItem(
+            'SAFE_CHAINS_CACHE',
+            JSON.stringify(safeChainsData),
+          );
+        } catch (cacheError) {
+          Logger.log('Error caching chains data:', cacheError);
+        }
+
+        return safeChainsData;
+      } catch (error) {
+        // Clear cache on failure to allow retries
+        cachedChainsListPromise = null;
+        throw error;
+      }
     })();
   }
   return cachedChainsListPromise;

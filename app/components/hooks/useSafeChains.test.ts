@@ -96,6 +96,36 @@ describe('useSafeChains', () => {
     expect(result.current.safeChains).toEqual([]);
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it('should clear cache on failure to allow retries', async () => {
+    (useSelector as jest.Mock).mockReturnValue(true);
+    const mockError = new Error('Network error');
+
+    (global.fetch as jest.Mock)
+      .mockRejectedValueOnce(mockError)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockSafeChains),
+      });
+
+    const { result: firstResult, waitForNextUpdate: firstWait } = renderHook(
+      () => useSafeChains(),
+    );
+
+    await firstWait();
+
+    expect(firstResult.current.error).toBe(mockError);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    const { result: secondResult, waitForNextUpdate: secondWait } = renderHook(
+      () => useSafeChains(),
+    );
+
+    await secondWait();
+
+    expect(secondResult.current.safeChains).toEqual(mockSafeChains);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('rpcIdentifierUtility', () => {
