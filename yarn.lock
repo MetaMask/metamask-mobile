@@ -34567,7 +34567,7 @@ __metadata:
     react-native-screens: "npm:3.37.0"
     react-native-sensors: "npm:5.3.0"
     react-native-share: "npm:7.3.7"
-    react-native-size-matters: "npm:0.4.0"
+    react-native-size-matters: "npm:0.4.2"
     react-native-skeleton-placeholder: "npm:^5.0.0"
     react-native-step-indicator: "npm:^1.0.3"
     react-native-storybook-loader: "npm:^2.0.4"
@@ -39238,12 +39238,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-size-matters@npm:0.4.0":
-  version: 0.4.0
-  resolution: "react-native-size-matters@npm:0.4.0"
+"react-native-size-matters@npm:0.4.2":
+  version: 0.4.2
+  resolution: "react-native-size-matters@npm:0.4.2"
   peerDependencies:
     react-native: "*"
-  checksum: 10/8ad239c76410968cbf8b5a5ded49e8b08d10aa0c775fad0d074adda409efb571332ccdb24562cae8c8fc95b36af5755b280749b8bd093dc13eb8123a3645b03d
+  checksum: 10/65dac50cad8d03bd046c62e327edf1c162c650fa3320613343bb978ca4b83c8e4e61b0f528502a154a1d4e4baa6dc296799a57737177e3d3c77b64750f5d8076
   languageName: node
   linkType: hard
 
