@@ -225,6 +225,69 @@ describe('sentinel-api', () => {
       // Restore Date.now
       Date.now = originalDateNow;
     });
+
+    it('does not cache HTTP error responses and allows retry', async () => {
+      // First call returns HTTP error
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        text: async () => 'Service Unavailable',
+      } as Response);
+
+      // Second call succeeds
+      fetchMock.mockResolvedValueOnce({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      // First call throws error
+      await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
+        'Failed to fetch sentinel network flags: 503 - Service Unavailable',
+      );
+
+      // Second call retries and succeeds (error was not cached)
+      const result = await getSentinelNetworkFlags('0x1' as Hex);
+
+      expect(result).toStrictEqual(MAINNET_BASE);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('propagates HTTP error to all concurrent callers without caching', async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        text: async () => 'Internal Server Error',
+      } as Response);
+
+      // All concurrent calls receive the same error
+      const results = await Promise.allSettled([
+        getSentinelNetworkFlags('0x1' as Hex),
+        getSentinelNetworkFlags('0x89' as Hex),
+        isSendBundleSupported('0x1' as Hex),
+      ]);
+
+      expect(results[0]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+      expect(results[1]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+      expect(results[2]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+
+      // Only one fetch was made (concurrent deduplication worked)
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('isSendBundleSupported', () => {

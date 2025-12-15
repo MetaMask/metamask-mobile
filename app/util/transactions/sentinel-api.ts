@@ -91,6 +91,14 @@ async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
   try {
     const url = `${buildUrl('ethereum-mainnet')}${ENDPOINT_NETWORKS}`;
     const response = await fetch(url);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Failed to fetch sentinel network flags: ${response.status} - ${errorBody}`,
+      );
+    }
+
     const data: SentinelNetworkMap = await response.json();
 
     // Update cache BEFORE clearing pending promise
