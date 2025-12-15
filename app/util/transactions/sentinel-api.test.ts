@@ -175,6 +175,56 @@ describe('sentinel-api', () => {
       await getSentinelNetworkFlags('0x1' as Hex);
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
+
+    it('deduplicates concurrent requests into a single fetch', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      const results = await Promise.all([
+        getSentinelNetworkFlags('0x1' as Hex),
+        getSentinelNetworkFlags('0x89' as Hex),
+        isSendBundleSupported('0x1' as Hex),
+        getSendBundleSupportedChains(['0x1', '0x89']),
+        getSentinelNetworkFlags('0x1' as Hex),
+      ]);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(results[0]).toStrictEqual(MAINNET_BASE);
+      expect(results[1]).toStrictEqual(POLYGON_BASE);
+      expect(results[2]).toBe(true);
+      expect(results[3]).toEqual({ '0x1': true, '0x89': false });
+    });
+
+    it('fetches fresh data after cache TTL expires', async () => {
+      // Mock Date.now to control time
+      const originalDateNow = Date.now;
+      let mockTime = 1000;
+      Date.now = jest.fn(() => mockTime);
+
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      // First call - populates cache
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Call within TTL - uses cache
+      mockTime = 1000 + 299_999; // Just under 5 minutes
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Call after TTL expires - fetches fresh
+      mockTime = 1000 + 300_001; // Just over 5 minutes
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Restore Date.now
+      Date.now = originalDateNow;
+    });
   });
 
   describe('isSendBundleSupported', () => {
