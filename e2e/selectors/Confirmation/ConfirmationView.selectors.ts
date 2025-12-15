@@ -78,7 +78,7 @@ export const ApproveComponentIDs = {
 export const GasFeeTokenSelectorIDs = {
   SELECTED_GAS_FEE_TOKEN_SYMBOL: 'selected-gas-fee-token-symbol',
   SELECTED_GAS_FEE_TOKEN_ARROW: 'selected-gas-fee-token-arrow',
-};
+} as const;
 
 export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_ITEM: 'gas-fee-token-list-item',
@@ -86,4 +86,4 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_BALANCE: 'gas-fee-token-list-item-balance',
   GAS_FEE_TOKEN_SYMBOL: 'gas-fee-token-list-item-symbol',
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
-};
+} as const;

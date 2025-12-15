@@ -20,8 +20,7 @@ class GasFeeTokenModal {
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT}-${symbol}`,
     );
     const amountElementAttributes = await amountElement.getAttributes();
-    const amountElementLabel = (amountElementAttributes as { label: string })
-      .label;
+    const amountElementLabel = this.elementSafe(amountElementAttributes);
     await Assertions.checkIfTextMatches(amountElementLabel, amount);
   }
 
@@ -30,8 +29,7 @@ class GasFeeTokenModal {
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_BALANCE}-${symbol}`,
     );
     const balanceElementAttributes = await balanceElement.getAttributes();
-    const balanceElementLabel = (balanceElementAttributes as { label: string })
-      .label;
+    const balanceElementLabel = this.elementSafe(balanceElementAttributes);
     await Assertions.checkIfTextMatches(balanceElementLabel, balance);
   }
 
@@ -40,10 +38,18 @@ class GasFeeTokenModal {
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
     );
     const amountFiatElementAttributes = await amountFiatElement.getAttributes();
-    const amountFiatElementLabel = (
-      amountFiatElementAttributes as { label: string }
-    ).label;
+    const amountFiatElementLabel = this.elementSafe(
+      amountFiatElementAttributes,
+    );
     await Assertions.checkIfTextMatches(amountFiatElementLabel, amountFiat);
+  }
+
+  private elementSafe(elementAttributes: unknown): string {
+    return (
+      (elementAttributes as { text?: string; label?: string })?.text ??
+      (elementAttributes as { text?: string; label?: string })?.label ??
+      ''
+    );
   }
 }
 

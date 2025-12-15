@@ -271,6 +271,7 @@ describe(
 
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
+            { description: 'Gas Fee Token Arrow' },
           );
 
           await TransactionConfirmView.tapGasFeeTokenPill();
@@ -289,15 +290,19 @@ describe(
 
           await Assertions.expectElementToBeVisible(
             Matchers.getElementByText('USDC'),
+            { description: 'Selected Gas Fee Token is USDC' },
           );
 
           const symbolElement =
             (await RowComponents.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
 
           const symbolElementAttributes = await symbolElement.getAttributes();
-          const symbolElementLabel = (
-            symbolElementAttributes as { label: string }
-          ).label;
+          const symbolElementLabel =
+            (symbolElementAttributes as { text?: string; label?: string })
+              ?.text ??
+            (symbolElementAttributes as { text?: string; label?: string })
+              ?.label ??
+            '';
 
           await Assertions.checkIfTextMatches(symbolElementLabel, 'USDC');
           await Assertions.expectTextDisplayed(usdcValues.fiatAmount);
