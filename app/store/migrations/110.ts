@@ -219,7 +219,7 @@ export default function migrate(versionedState: unknown) {
     }
 
     // If the MegaETH Testnet v1 network configuration exists, then remove it.
-    if (networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]) {
+    if (hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID)) {
       delete networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID];
     }
 
