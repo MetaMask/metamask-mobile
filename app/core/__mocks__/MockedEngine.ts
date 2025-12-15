@@ -57,11 +57,7 @@ export const mockedEngine = {
         subjects: {},
       },
     },
-    PreferencesController: {
-      state: {
-        useNftDetection: false,
-      },
-    },
+    PreferencesController: {},
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),
     },
@@ -109,16 +105,6 @@ export const mockedEngine = {
           ticker: 'ETH',
         }),
       },
-    },
-    NftController: {
-      state: {
-        allNfts: {},
-        allNftContracts: {},
-        ignoredNfts: [],
-      },
-    },
-    NftDetectionController: {
-      detectNfts: jest.fn().mockResolvedValue(undefined),
     },
     TransactionController: {
       addTransaction: jest.fn(),
