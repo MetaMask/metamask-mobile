@@ -20,6 +20,7 @@ export function buildSystemPrompt(): string {
   const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests.`;
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
+Changes to wdio/ or appwright/ directories (separate test frameworks) do not require Detox tags - select none unless app code is also changed.
 Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.

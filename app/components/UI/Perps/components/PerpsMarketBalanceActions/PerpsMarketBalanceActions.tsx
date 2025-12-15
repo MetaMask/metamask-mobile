@@ -31,6 +31,7 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type {
   PerpsNavigationParamList,
@@ -353,7 +354,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
                 }
               >
-                {formatPerpsFiat(availableBalance)} {strings('perps.available')}
+                {formatPerpsFiat(availableBalance, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
+                })}{' '}
+                {strings('perps.available')}
               </Text>
               {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
                 <>
