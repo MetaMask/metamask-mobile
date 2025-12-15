@@ -7,7 +7,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -26,9 +26,8 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#b7bbc8",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
-            "borderWidth": 1.5,
             "padding": 16,
           },
           undefined,
@@ -95,7 +94,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -114,117 +113,46 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
             }
             testID="listitem-gap"
           />
-          <View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+          >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 30,
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "color": "#121314",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "color": "#121314",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 30,
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    {
-                      "fontFamily": "Geist Bold",
-                    },
-                    undefined,
-                    {
-                      "color": "#121314",
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    {
-                      "color": "#121314",
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                  ]
-                }
-              >
-                Change
-              </Text>
-                
-              <Text
-                allowFontScaling={false}
-                selectable={false}
-                style={
-                  [
-                    {
-                      "color": undefined,
-                      "fontSize": 16,
-                    },
-                    {
-                      "color": "#121314",
-                      "marginLeft": 10,
-                    },
-                    {
-                      "fontFamily": "Entypo",
-                      "fontStyle": "normal",
-                      "fontWeight": "normal",
-                    },
-                    {},
-                  ]
-                }
-              >
-                
-              </Text>
+              Change
             </Text>
+            <SvgMock
+              color="#686e7d"
+              fill="currentColor"
+              height={16}
+              name="ArrowDown"
+              style={
+                {
+                  "height": 16,
+                  "marginLeft": 8,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
           </View>
         </View>
       </View>
@@ -287,7 +215,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -306,9 +234,8 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
       style={
         [
           {
-            "borderColor": "#b7bbc8",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
-            "borderWidth": 1.5,
             "padding": 16,
           },
           undefined,
@@ -375,7 +302,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -394,117 +321,46 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
             }
             testID="listitem-gap"
           />
-          <View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+          >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 30,
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "color": "#121314",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "color": "#121314",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 30,
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    {
-                      "fontFamily": "Geist Bold",
-                    },
-                    undefined,
-                    {
-                      "color": "#121314",
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    {
-                      "color": "#121314",
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                  ]
-                }
-              >
-                Change
-              </Text>
-                
-              <Text
-                allowFontScaling={false}
-                selectable={false}
-                style={
-                  [
-                    {
-                      "color": undefined,
-                      "fontSize": 16,
-                    },
-                    {
-                      "color": "#121314",
-                      "marginLeft": 10,
-                    },
-                    {
-                      "fontFamily": "Entypo",
-                      "fontStyle": "normal",
-                      "fontWeight": "normal",
-                    },
-                    {},
-                  ]
-                }
-              >
-                
-              </Text>
+              Change
             </Text>
+            <SvgMock
+              color="#686e7d"
+              fill="currentColor"
+              height={16}
+              name="ArrowDown"
+              style={
+                {
+                  "height": 16,
+                  "marginLeft": 8,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
           </View>
         </View>
       </View>
@@ -538,7 +394,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -557,9 +413,8 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
       style={
         [
           {
-            "borderColor": "#b7bbc8",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 8,
-            "borderWidth": 1.5,
             "padding": 16,
           },
           undefined,
@@ -600,7 +455,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#f3f5f9",
+                    "backgroundColor": "#858b9a14",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -645,7 +500,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#f3f5f9",
+                    "backgroundColor": "#858b9a14",
                     "borderRadius": 30,
                     "padding": 14,
                   },
@@ -691,7 +546,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
           style={
             [
               {
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#858b9a14",
                 "borderRadius": 30,
                 "padding": 14,
               },

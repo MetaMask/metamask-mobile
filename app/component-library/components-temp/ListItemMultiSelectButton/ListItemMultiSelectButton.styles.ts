@@ -33,19 +33,6 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    underlay: {
-      ...StyleSheet.absoluteFillObject,
-      flexDirection: 'row',
-      backgroundColor: colors.primary.muted,
-      width: 4,
-    },
-    underlayBar: {
-      marginVertical: 4,
-      marginLeft: 4,
-      width: 4,
-      borderRadius: 2,
-      backgroundColor: colors.primary.default,
-    },
     listItem: {
       paddingRight: 0,
       paddingTop: 0,
@@ -69,7 +56,7 @@ const styleSheet = (params: {
     },
     container: {
       backgroundColor: isSelected
-        ? colors.primary.muted
+        ? colors.background.muted
         : colors.background.default,
       flexDirection: 'row',
       alignItems: 'center',

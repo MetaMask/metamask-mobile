@@ -364,6 +364,10 @@ export const DEVELOPMENT_CONFIG = {
  * Controls carousel limits and display settings for the main Perps home screen
  */
 export const HOME_SCREEN_CONFIG = {
+  // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
+  // Can be controlled via feature flag in the future
+  SHOW_HEADER_ACTION_BUTTONS: true,
+
   // Maximum number of items to show in each carousel
   POSITIONS_CAROUSEL_LIMIT: 10,
   ORDERS_CAROUSEL_LIMIT: 10,
@@ -496,12 +500,20 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // ROE (Return on Equity) threshold (percentage)
   // Shows "Set stop loss" banner when ROE drops below this value
-  ROE_THRESHOLD: -20,
+  ROE_THRESHOLD: -10,
+
+  // Minimum loss threshold to show ANY banner (percentage)
+  // No banner shown until ROE drops below this value
+  MIN_LOSS_THRESHOLD: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
   // Prevents banner from appearing during temporary price fluctuations
   ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+
+  // Minimum position age before showing any banner (milliseconds)
+  // Prevents banner from appearing immediately after opening a position
+  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry

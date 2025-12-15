@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,21 +17,15 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  lastTrendingScreenRef,
-  updateLastTrendingScreen,
-} from '../../Nav/Main/MainNavigator';
-import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 
-const Stack = createStackNavigator();
-
-const TrendingFeed: React.FC = () => {
+export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -41,14 +34,24 @@ const TrendingFeed: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Update state when returning to TrendingFeed
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      updateLastTrendingScreen('TrendingFeed');
-    });
+  // Track which sections have empty data
+  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
+  const sessionManager = TrendingFeedSessionManager.getInstance();
 
-    return unsubscribe;
-  }, [navigation]);
+  // Initialize session and enable AppState listener on mount
+  useEffect(() => {
+    // Enable AppState listener to detect app backgrounding
+    sessionManager.enableAppStateListener();
+
+    // Start session
+    sessionManager.startSession('trending_feed');
+
+    return () => {
+      // End session and disable listener on unmount
+      sessionManager.endSession();
+      sessionManager.disableAppStateListener();
+    };
+  }, [sessionManager]);
 
   const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
@@ -58,12 +61,32 @@ const TrendingFeed: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+
+  const sectionCallbacks = useMemo(() => {
+    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      callbacks[section.id] = (isEmpty: boolean) => {
+        setEmptySections((prev) => {
+          const next = new Set(prev);
+          if (isEmpty) {
+            next.add(section.id);
+          } else {
+            next.delete(section.id);
+          }
+          return next;
+        });
+      };
+    });
+    return callbacks;
+  }, []);
   const handleBrowserPress = useCallback(() => {
-    updateLastTrendingScreen('TrendingBrowser');
-    navigation.navigate('TrendingBrowser', {
-      newTabUrl: portfolioUrl.href,
-      timestamp: Date.now(),
-      fromTrending: true,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
+      },
     });
   }, [navigation, portfolioUrl.href]);
 
@@ -138,14 +161,25 @@ const TrendingFeed: React.FC = () => {
             />
           }
         >
-          <QuickActions />
+          <QuickActions emptySections={emptySections} />
 
-          {HOME_SECTIONS_ARRAY.map((section) => (
-            <React.Fragment key={section.id}>
-              <SectionHeader sectionId={section.id} />
-              <section.Section refreshTrigger={refreshTrigger} />
-            </React.Fragment>
-          ))}
+          {HOME_SECTIONS_ARRAY.map((section) => {
+            // Hide section visually but keep mounted so it can report when data arrives
+            const isHidden = emptySections.has(section.id);
+
+            return (
+              <Box
+                key={section.id}
+                twClassName={isHidden ? 'hidden' : undefined}
+              >
+                <SectionHeader sectionId={section.id} />
+                <section.Section
+                  refreshTrigger={refreshTrigger}
+                  toggleSectionEmptyState={sectionCallbacks[section.id]}
+                />
+              </Box>
+            );
+          })}
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />
@@ -153,24 +187,3 @@ const TrendingFeed: React.FC = () => {
     </Box>
   );
 };
-
-const TrendingView: React.FC = () => {
-  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
-
-  return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen
-        name={Routes.EXPLORE_SEARCH}
-        component={ExploreSearchScreen}
-      />
-    </Stack.Navigator>
-  );
-};
-
-export default TrendingView;
