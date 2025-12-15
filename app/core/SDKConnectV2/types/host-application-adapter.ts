@@ -26,6 +26,11 @@ export interface IHostApplicationAdapter {
   showConnectionError(conninfo?: ConnectionInfo): void;
 
   /**
+   * Displays a global, non-interactive not found modal.
+   */
+  showNotFoundError(): void;
+
+  /**
    * Displays a global, non-interactive confirmation rejection modal.
    */
   showConfirmationRejectionError(conninfo?: ConnectionInfo): void;

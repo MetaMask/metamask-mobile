@@ -270,6 +270,7 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   isSolanaChainId: jest.fn(),
 }));
 

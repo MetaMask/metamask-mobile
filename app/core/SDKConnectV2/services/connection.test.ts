@@ -61,6 +61,7 @@ const mockHostApp: jest.Mocked<HostApplicationAdapter> = {
   showConnectionLoading: jest.fn(),
   hideConnectionLoading: jest.fn(),
   showConnectionError: jest.fn(),
+  showNotFoundError: jest.fn(),
   showConfirmationRejectionError: jest.fn(),
   showReturnToApp: jest.fn(),
   syncConnectionList: jest.fn(),
