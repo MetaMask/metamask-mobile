@@ -34,13 +34,13 @@ test('Predict Available Balance - Load Time Performance', async ({
   // Login to the app
   await login(device);
   await TabBarModal.tapActionButton();
+  await WalletActionModal.tapPredictButton();
 
   // Timer 1: Navigate to Predict tab and wait for available balance to load
   const timer1 = new TimerHelper(
-    'Time since user taps Predict button until Available Balance is displayed',
+    'Time since user taps Predict button in Action modal until Available Balance is displayed',
   );
   timer1.start();
-  await WalletActionModal.tapPredictButton();
   await PredictMarketListScreen.isBalanceCardDisplayed();
   await PredictMarketListScreen.isAvailableBalanceDisplayed();
   timer1.stop();
