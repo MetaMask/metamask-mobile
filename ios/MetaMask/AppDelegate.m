@@ -5,6 +5,7 @@
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
+#import <IntercomModule.h>
 
 
 @implementation AppDelegate
@@ -30,6 +31,10 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
+
+  // Initialize Intercom
+  [IntercomModule initialize:@"appKey" 
+                   withAppId:@"appId"];
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }

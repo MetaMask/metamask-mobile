@@ -187,6 +187,7 @@
     "@ethersproject/abi": "^5.7.0",
     "@expo/fingerprint": "^0.15.0",
     "@expo/repack-app": "^0.2.9",
+    "@intercom/intercom-react-native": "^9.2.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@lavamoat/react-native-lockdown": "^0.0.2",
