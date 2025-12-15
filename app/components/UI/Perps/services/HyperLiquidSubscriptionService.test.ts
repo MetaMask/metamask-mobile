@@ -44,14 +44,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     orderType: 'limit',
     size: order.sz,
     originalSize: order.sz,
-    price: order.limitPx || '0',
+    price: order.limitPx || order.triggerPx || '0',
     filledSize: '0',
     remainingSize: order.sz,
     status: 'open',
     timestamp: Date.now(),
     detailedOrderType: order.orderType || 'Limit',
-    isTrigger: false,
-    reduceOnly: false,
+    isTrigger: order.isTrigger ?? false,
+    reduceOnly: order.reduceOnly ?? false,
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
     availableBalance: '1000.00',
@@ -2387,6 +2387,156 @@ describe('HyperLiquidSubscriptionService', () => {
           stopLossCount: 0,
         }),
       ]);
+
+      unsubscribe();
+    });
+
+    it('should re-extract TP/SL from cached orders when clearinghouseState updates', async () => {
+      // Arrange
+      const mockCallback = jest.fn();
+      let clearinghouseStateCallback: (data: any) => void;
+
+      // Setup adapter to return positions with coin matching the orders
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      mockAdapter.adaptPositionFromSDK.mockImplementation((assetPos: any) => ({
+        coin: assetPos.position.coin || assetPos.coin,
+        size: assetPos.position.szi,
+        entryPrice: '50000',
+        positionValue: '50000',
+        unrealizedPnl: '5000',
+        marginUsed: '25000',
+        leverage: { type: 'cross', value: 2 },
+        liquidationPrice: '40000',
+        maxLeverage: 100,
+        returnOnEquity: '10.0',
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      }));
+
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          // Store callback for later invocation
+          clearinghouseStateCallback = callback;
+          // Fire first update immediately (before orders are cached)
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+                marginSummary: {
+                  accountValue: '10000',
+                  totalMarginUsed: '500',
+                },
+                withdrawable: '9500',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // openOrders fires at 10ms to cache trigger orders
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              orders: [
+                {
+                  oid: 200,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '60000',
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                  limitPx: '60000',
+                  origSz: '1.0',
+                  timestamp: Date.now(),
+                  isTrigger: true,
+                  triggerCondition: '',
+                  children: [],
+                  tif: null,
+                  cloid: null,
+                },
+                {
+                  oid: 201,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '40000',
+                  orderType: 'Stop Market',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                  limitPx: '40000',
+                  origSz: '1.0',
+                  timestamp: Date.now(),
+                  isTrigger: true,
+                  triggerCondition: '',
+                  children: [],
+                  tif: null,
+                  cloid: null,
+                },
+              ],
+            });
+          }, 10);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Act - subscribe to positions
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      // Wait for openOrders to fire and cache orders
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Simulate a subsequent clearinghouseState update (which will use cached orders)
+      clearinghouseStateCallback({
+        dex: '',
+        clearinghouseState: {
+          assetPositions: [
+            {
+              position: { szi: '1.5', coin: 'BTC' },
+              coin: 'BTC',
+            },
+          ],
+          marginSummary: {
+            accountValue: '11000',
+            totalMarginUsed: '600',
+          },
+          withdrawable: '10400',
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Assert - callback should have been called with TP/SL re-extracted from cached orders
+      const lastCall =
+        mockCallback.mock.calls[mockCallback.mock.calls.length - 1];
+      expect(lastCall[0]).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            takeProfitPrice: '60000',
+            stopLossPrice: '40000',
+            takeProfitCount: 1,
+            stopLossCount: 1,
+          }),
+        ]),
+      );
 
       unsubscribe();
     });
