@@ -2,22 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../constants/network';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
-import axios from 'axios';
-import { SafeChain } from '../useSafeChains';
-
-const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
-
-// Cache for the chains list to avoid repeated API calls
-let cachedChainsListPromise: Promise<SafeChain[]> | null = null;
-
-async function fetchChainsList(): Promise<SafeChain[]> {
-  if (!cachedChainsListPromise) {
-    cachedChainsListPromise = axios
-      .get(CHAIN_ID_NETWORK_URL)
-      .then((res) => res.data);
-  }
-  return cachedChainsListPromise;
-}
+import { useSafeChains } from '../useSafeChains';
 
 /**
  * Hook that check if the used symbol match with the original symbol of given network
@@ -29,6 +14,7 @@ function useIsOriginalNativeTokenSymbol(
   ticker: string | undefined,
   type: string,
 ): boolean | null {
+  const { safeChains: safeChainsList } = useSafeChains();
   const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState<
     boolean | null
   >(null);
@@ -63,10 +49,8 @@ function useIsOriginalNativeTokenSymbol(
         }
 
         // check safety network using a third part
-        const safeChainsList = await fetchChainsList();
-
-        const matchedChain = safeChainsList.find(
-          (network) => parseInt(network.chainId) === parseInt(networkId),
+        const matchedChain = safeChainsList?.find(
+          (network) => network.chainId === parseInt(networkId),
         );
 
         const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
@@ -85,6 +69,7 @@ function useIsOriginalNativeTokenSymbol(
     ticker,
     type,
     useSafeChainsListValidation,
+    safeChainsList,
   ]);
 
   return isOriginalNativeSymbol;

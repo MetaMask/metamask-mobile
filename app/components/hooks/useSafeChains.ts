@@ -5,10 +5,41 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 
 export interface SafeChain {
-  chainId: string;
+  chainId: number;
   name: string;
   nativeCurrency: { symbol: string };
   rpc: string[];
+}
+
+let cachedChainsListPromise: Promise<SafeChain[]> | null = null;
+
+async function fetchChainsList(): Promise<SafeChain[]> {
+  if (!cachedChainsListPromise) {
+    const response = await fetch('https://chainid.network/chains.json');
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch chains: ${response.status}`);
+    }
+
+    const safeChainsData = await response.json();
+
+    // Validate the structure
+    if (!Array.isArray(safeChainsData)) {
+      throw new Error('Invalid chains data format');
+    }
+
+    try {
+      await StorageWrapper.setItem(
+        'SAFE_CHAINS_CACHE',
+        JSON.stringify(safeChainsData),
+      );
+    } catch (cacheError) {
+      Logger.log('Error caching chains data:', cacheError);
+    }
+
+    cachedChainsListPromise = Promise.resolve(safeChainsData);
+  }
+  return cachedChainsListPromise;
 }
 
 export const useSafeChains = () => {
@@ -25,28 +56,7 @@ export const useSafeChains = () => {
     if (useSafeChainsListValidation) {
       const fetchSafeChains = async () => {
         try {
-          const response = await fetch('https://chainid.network/chains.json');
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch chains: ${response.status}`);
-          }
-
-          const safeChainsData = await response.json();
-
-          // Validate the structure
-          if (!Array.isArray(safeChainsData)) {
-            throw new Error('Invalid chains data format');
-          }
-
-          try {
-            await StorageWrapper.setItem(
-              'SAFE_CHAINS_CACHE',
-              JSON.stringify(safeChainsData),
-            );
-          } catch (cacheError) {
-            Logger.log('Error caching chains data:', cacheError);
-          }
-
+          const safeChainsData = await fetchChainsList();
           setSafeChains({ safeChains: safeChainsData });
         } catch (error) {
           setSafeChains({ error });
