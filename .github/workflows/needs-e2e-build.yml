@@ -98,8 +98,6 @@ jobs:
               - 'app/**'                           # Shared app files
               - 'e2e/**'                           # E2E test files (separate from mobile builds)
               - 'sentry*.properties*'              # Sentry configs
-              - 'wdio/**'                          # WebDriver test files
-              - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
               - 'scripts/build.sh'                 # Build script changes
               - 'scripts/setup.mjs'                # Setup script changes
