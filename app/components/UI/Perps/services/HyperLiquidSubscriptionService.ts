@@ -139,7 +139,6 @@ export class HyperLiquidSubscriptionService {
   >(); // Per-DEX asset contexts
   private assetCtxsSubscriptionPromises = new Map<string, Promise<void>>(); // Track in-progress subscriptions
 
-  // Individual subscriptions for user data (primary data source in HIP-3 mode)
   private readonly clearinghouseStateSubscriptions = new Map<
     string,
     Subscription
@@ -991,7 +990,7 @@ export class HyperLiquidSubscriptionService {
             } catch (error) {
               Logger.error(
                 ensureError(error),
-                this.getErrorContext('webData3 callback error (OI caps only)', {
+                this.getErrorContext('webData3 callback error', {
                   user: userAddress,
                   hasPerpDexStates: data?.perpDexStates !== undefined,
                   perpDexStatesLength: data?.perpDexStates?.length ?? 0,
@@ -1012,7 +1011,6 @@ export class HyperLiquidSubscriptionService {
                 dex: dexName,
               }),
             );
-            // Don't reject here - individual subscriptions are more important
           });
 
         subscriptionPromises.push(webData3Promise);
@@ -1034,13 +1032,12 @@ export class HyperLiquidSubscriptionService {
             );
             reject(ensureError(error));
           });
-      } // Close else block for HIP-3
-    }); // Close Promise wrapper
+      }
+    });
   }
 
   /**
    * Ensure clearinghouseState subscription exists for a DEX
-   * Primary data source for positions and account state in HIP-3 mode
    */
   private async ensureClearinghouseStateSubscription(
     userAddress: string,
@@ -1170,7 +1167,6 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Ensure openOrders subscription exists for a DEX
-   * Primary data source for orders in HIP-3 mode
    */
   private async ensureOpenOrdersSubscription(
     userAddress: string,
