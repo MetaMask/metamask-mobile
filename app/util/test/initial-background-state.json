@@ -475,12 +475,16 @@
     "positions": [],
     "accountState": null,
     "depositInProgress": false,
-    "depositRequests": {},
+    "depositRequests": [],
     "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "withdrawInProgress": false,
-    "withdrawalRequests": {},
-    "withdrawalProgress": {},
+    "withdrawalRequests": [],
+    "withdrawalProgress": {
+      "progress": 0,
+      "lastUpdated": 0,
+      "activeWithdrawalId": null
+    },
     "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
@@ -540,6 +544,10 @@
   },
   "TransactionPayController": {
     "transactionData": {}
+  },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
   },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,

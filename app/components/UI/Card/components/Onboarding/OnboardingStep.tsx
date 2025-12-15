@@ -1,8 +1,7 @@
 import React from 'react';
-import { Image, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import MM_CARD_MOCKUP from '../../../../../images/mm-card-mockup.png';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,20 +34,12 @@ const OnboardingStep = ({
         extraScrollHeight={Platform.OS === 'android' ? 20 : 0}
       >
         <Box twClassName="flex-1 items-stretch gap-4 mb-6">
-          {/* Card Mockup Image */}
-          <Box twClassName="items-center">
-            <Image
-              source={MM_CARD_MOCKUP}
-              style={tw.style('w-full h-52')}
-              resizeMode="contain"
-            />
-          </Box>
-          <Box twClassName="gap-2">
+          <Box twClassName="gap-4 my-2">
             {/* Title */}
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.HeadingLg}
               testID="onboarding-step-title"
-              twClassName="text-center text-default"
+              twClassName="text-default"
             >
               {title}
             </Text>
@@ -57,7 +48,7 @@ const OnboardingStep = ({
             <Text
               variant={TextVariant.BodyMd}
               testID="onboarding-step-description"
-              twClassName="text-center"
+              twClassName="text-text-alternative"
             >
               {description}
             </Text>

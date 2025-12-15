@@ -8,7 +8,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { connect } from 'react-redux';
 
 import Text from '../../../Base/Text';
-import InfoModal from './InfoModal';
+import InfoModal from '../../../Base/InfoModal';
 import EditGasFeeLegacy from '../../EditGasFeeLegacy';
 import EditGasFee1559 from '../../EditGasFee1559';
 import {

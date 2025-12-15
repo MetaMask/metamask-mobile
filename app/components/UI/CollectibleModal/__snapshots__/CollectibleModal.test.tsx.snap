@@ -150,7 +150,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 30,
                     "marginVertical": 2,
                   },
@@ -221,7 +221,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -307,14 +307,14 @@ exports[`CollectibleModal renders correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     undefined,
@@ -354,7 +354,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },
@@ -448,7 +448,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -530,14 +530,14 @@ exports[`CollectibleModal renders correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     {
@@ -583,7 +583,7 @@ exports[`CollectibleModal renders correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },

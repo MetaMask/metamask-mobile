@@ -441,7 +441,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             style={
                               {
                                 "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -455,7 +455,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 32,
                                 "letterSpacing": 0,
                                 "lineHeight": 40,
@@ -486,7 +486,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -625,7 +625,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderWidth": 1,
                                               "color": "#686e7d",
                                               "display": "flex",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 66,
@@ -718,7 +718,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderWidth": 1,
                                               "color": "#686e7d",
                                               "display": "flex",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 66,
@@ -748,7 +748,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                   {
                                     "alignSelf": "flex-end",
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -799,7 +799,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
