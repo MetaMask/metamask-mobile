@@ -6535,7 +6535,7 @@
       "confirm_phone_number": {
         "title": "Confirm your phone number",
         "description": "Enter the verification code sent to\n{{phoneNumber}}",
-         "didnt_receive_code": "Didn't receive the code? ",
+        "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
@@ -6753,13 +6753,11 @@
       "solana_not_supported_button_description": "Enable on card.metamask.io"
     },
     "card_authentication": {
-      "title": "Log in to your MetaMask Card account",
+      "title": "Log in to your card account",
       "location_button_text": "International",
-      "location_button_text_us": "US account",
+      "location_button_text_us": "United States",
       "email_label": "Email",
       "password_label": "Password",
-      "email_placeholder": "Enter your email address",
-      "password_placeholder": "Enter your password",
       "login_button": "Log in",
       "signup_button": "I don't have an account",
       "errors": {
@@ -6778,13 +6776,15 @@
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
       "back_to_login_button": "Back to Login",
-      "resend_timer": "Resend code in {{seconds}}s",
-      "resend_code": "Resend code"
+      "didnt_receive_code": "Didn't receive the code? ",
+      "resend_verification": "Resend it",
+      "resend_cooldown": "Resend available in {{seconds}} seconds"
+
     }
   },
   "onboarding_error_fallback": {
