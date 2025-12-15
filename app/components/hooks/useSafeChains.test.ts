@@ -5,6 +5,7 @@ import {
   useSafeChains,
   rpcIdentifierUtility,
   SafeChain,
+  resetChainsListCache,
 } from './useSafeChains';
 
 // Mock dependencies
@@ -38,6 +39,7 @@ describe('useSafeChains', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetChainsListCache();
     global.fetch = jest.fn();
   });
 

@@ -13,6 +13,11 @@ export interface SafeChain {
 
 let cachedChainsListPromise: Promise<SafeChain[]> | null = null;
 
+// Exported for testing purposes only
+export const resetChainsListCache = () => {
+  cachedChainsListPromise = null;
+};
+
 async function fetchChainsList(): Promise<SafeChain[]> {
   if (!cachedChainsListPromise) {
     cachedChainsListPromise = (async () => {
