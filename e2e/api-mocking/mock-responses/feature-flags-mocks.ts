@@ -146,8 +146,13 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
 });
 
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
+  predictEnabled: enabled,
   predictTradingEnabled: {
     enabled,
+    minimumVersion: '7.60.0',
+  },
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
     minimumVersion: '7.60.0',
   },
 });
