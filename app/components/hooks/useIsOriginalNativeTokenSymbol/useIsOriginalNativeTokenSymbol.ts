@@ -14,7 +14,8 @@ function useIsOriginalNativeTokenSymbol(
   ticker: string | undefined,
   type: string,
 ): boolean | null {
-  const { safeChains: safeChainsList } = useSafeChains();
+  const { safeChains: safeChainsList, error: safeChainsError } =
+    useSafeChains();
   const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState<
     boolean | null
   >(null);
@@ -48,6 +49,12 @@ function useIsOriginalNativeTokenSymbol(
           return;
         }
 
+        // If chains API failed, can't verify - assume unsafe
+        if (safeChainsError) {
+          setIsOriginalNativeSymbol(false);
+          return;
+        }
+
         // Wait for safeChainsList to load before checking
         // Keep state as null (loading) to avoid false warnings
         if (!safeChainsList || safeChainsList.length === 0) {
@@ -69,7 +76,14 @@ function useIsOriginalNativeTokenSymbol(
       }
     }
     getNativeTokenSymbol(chainId);
-  }, [chainId, ticker, type, useSafeChainsListValidation, safeChainsList]);
+  }, [
+    chainId,
+    ticker,
+    type,
+    useSafeChainsListValidation,
+    safeChainsList,
+    safeChainsError,
+  ]);
 
   return isOriginalNativeSymbol;
 }

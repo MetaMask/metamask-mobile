@@ -97,7 +97,7 @@ describe('useSafeChains', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('should clear cache on failure to allow retries', async () => {
+  it('clears cache on failure to allow retries', async () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const mockError = new Error('Network error');
 
