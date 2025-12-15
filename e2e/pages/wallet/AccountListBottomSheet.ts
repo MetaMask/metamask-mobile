@@ -232,9 +232,13 @@ class AccountListBottomSheet {
    * Tap the ellipsis menu button for a specific account in V2 multichain accounts
    * @param accountIndex - The index of the account to tap (0-based)
    */
-  async tapAccountEllipsisButtonV2(accountIndex: number): Promise<void> {
+  async tapAccountEllipsisButtonV2(
+    accountIndex: number,
+    { shouldWait = false }: { shouldWait: boolean } = { shouldWait: false },
+  ): Promise<void> {
     await Gestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
+      delay: shouldWait ? 1500 : 0,
     });
   }
 
