@@ -56,7 +56,6 @@ export const createTradingViewChartTemplate = (
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
         window.currentInterval = null; // Track current interval for zoom reset on change
-        window.isCrosshairActive = false; // Track if crosshair/OHLC indicator is currently shown
 
         // Helper function to get date string in user's timezone (YYYY-MM-DD)
         window.getDateString = function(date, userTimezone) {
@@ -716,7 +715,6 @@ export const createTradingViewChartTemplate = (
             window.chart.subscribeCrosshairMove((param) => {
                 if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
                     // Crosshair is outside the chart area - hide legend
-                    window.isCrosshairActive = false;
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'OHLC_DATA',
@@ -750,9 +748,6 @@ export const createTradingViewChartTemplate = (
                             time: param.time
                         };
 
-                        // Mark crosshair as active when showing OHLC data
-                        window.isCrosshairActive = true;
-
                         // Send OHLC data back to React Native
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -763,7 +758,6 @@ export const createTradingViewChartTemplate = (
                         }
                     } else {
                         // No valid OHLC data - hide legend
-                        window.isCrosshairActive = false;
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
                                 type: 'OHLC_DATA',
@@ -774,7 +768,6 @@ export const createTradingViewChartTemplate = (
                     }
                 } else {
                     // No series data - hide legend
-                    window.isCrosshairActive = false;
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'OHLC_DATA',
@@ -784,7 +777,7 @@ export const createTradingViewChartTemplate = (
                     }
                 }
             });
-
+            
             return window.candlestickSeries;
         };
 
@@ -1620,42 +1613,6 @@ export const createTradingViewChartTemplate = (
         document.addEventListener('message', function(event) {
             window.dispatchEvent(new MessageEvent('message', event));
         });
-
-        // Clear crosshair and OHLC bar when touch ends
-        document.addEventListener('touchend', function() {
-            // Always clear crosshair to reset TradingView internal state
-            if (window.chart && window.chart.clearCrosshairPosition) {
-                window.chart.clearCrosshairPosition();
-            }
-            if (window.isCrosshairActive) {
-                window.isCrosshairActive = false;
-                if (window.ReactNativeWebView) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                        type: 'OHLC_DATA',
-                        data: null,
-                        timestamp: new Date().toISOString()
-                    }));
-                }
-            }
-        }, true);
-
-        // Also handle touchcancel
-        document.addEventListener('touchcancel', function() {
-            if (window.chart && window.chart.clearCrosshairPosition) {
-                window.chart.clearCrosshairPosition();
-            }
-            if (window.isCrosshairActive) {
-                window.isCrosshairActive = false;
-                if (window.ReactNativeWebView) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                        type: 'OHLC_DATA',
-                        data: null,
-                        timestamp: new Date().toISOString()
-                    }));
-                }
-            }
-        }, true);
-
         // Start loading after a small delay
         // Library is already loaded inline, so start creating chart
         createChart();
