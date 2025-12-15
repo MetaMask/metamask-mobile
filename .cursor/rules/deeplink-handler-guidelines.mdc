@@ -119,7 +119,7 @@ export const handleYourAction = async ({
 1. **Always use `DevLogger.log`** for debugging (not `console.log`)
 2. **Always wrap in try/catch** with fallback navigation
 3. **Define TypeScript interfaces** for params and navigation
-4. **Document supported URL formats** in JSDoc comments
+4. **Document supported URL formats** in TSDoc comments
 5. **Parse URLSearchParams** from the path (it includes the `?` prefix)
 
 ## Step 3: Add to SUPPORTED_ACTIONS
@@ -370,7 +370,7 @@ adb shell am start -W -a android.intent.action.VIEW \
 ## References
 
 - [Main Deeplink Documentation](../../docs/readme/deeplinking.md)
-- [Visual Flow Diagrams](../../docs/readme/deeplinking-graphs.md)
+- [Visual Flow Diagrams](../../docs/readme/deeplinking-diagrams.md)
 - [Test URLs Reference](../../docs/deeplink-test-urls.md)
 - [Deeplink Constants](../../app/constants/deeplinks.ts)
 - [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)

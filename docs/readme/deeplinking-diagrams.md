@@ -1,4 +1,4 @@
-# Deeplink Processing Visual Flowcharts
+# Deeplink Processing Visual Diagrams
 
 > 📚 **[Back to Main Deeplink Guide](./deeplinking.md)** for detailed explanations, implementation steps, and code examples
 

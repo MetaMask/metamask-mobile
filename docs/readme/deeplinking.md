@@ -1,15 +1,15 @@
 # MetaMask Mobile Deeplink Handling Guide
 
-> 💡 **Visual Learner?** Check out the [Deeplink Visual Flowcharts](./deeplinking-graphs.md) for interactive diagrams of the entire flow!
+> 💡 **Visual Learner?** Check out the [Deeplink Visual Flowcharts](./deeplinking-diagrams.md) for interactive diagrams of the entire flow!
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Link Types](#link-types)
-- [How Link Processing Works](#how-link-processing-works) → [See Visual Flow](./deeplinking-graphs.md#complete-deeplink-flow-with-signature-verification)
+- [How Link Processing Works](#how-link-processing-works) → [See Visual Flow](./deeplinking-diagrams.md#complete-deeplink-flow-with-signature-verification)
 - [Creating New Links](#creating-new-links)
 - [Adding New Handlers](#adding-new-handlers)
-- [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-graphs.md#signature-creation-and-verification-detail)
+- [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
 - [Custom Schemes Explained](#custom-uri-schemes-explained)
@@ -44,7 +44,7 @@ All deeplinks are processed through a unified pipeline that handles security ver
 
 ## Link Types
 
-> 📊 **[View Scenario Examples](./deeplinking-graphs.md#common-scenarios)** - See visual flows for each link type
+> 📊 **[View Scenario Examples](./deeplinking-diagrams.md#common-scenarios)** - See visual flows for each link type
 
 ### 1. Public / Unsigned Links
 
@@ -96,7 +96,7 @@ Links with valid signature but unsupported action in current app version:
 
 ## How Link Processing Works
 
-> 📊 **[View Complete Flow Diagram](./deeplinking-graphs.md#complete-deeplink-flow-with-signature-verification)** - Interactive Mermaid flowchart showing the entire process
+> 📊 **[View Complete Flow Diagram](./deeplinking-diagrams.md#complete-deeplink-flow-with-signature-verification)** - Interactive Mermaid flowchart showing the entire process
 
 ### 1. Entry Points
 
@@ -350,7 +350,7 @@ describe('handleYourAction', () => {
 
 ## Signature Verification
 
-> 📊 **[View Signature Flow Diagrams](./deeplinking-graphs.md#signature-creation-and-verification-detail)** - See how signing and verification work visually
+> 📊 **[View Signature Flow Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)** - See how signing and verification work visually
 
 ### How It Works
 
@@ -392,7 +392,7 @@ describe('handleYourAction', () => {
 
 ### Benefits of Dynamic Signing (sig_params)
 
-> 📊 **[View Dynamic Parameters Diagram](./deeplinking-graphs.md#dynamic-parameters-example)** - See how unsigned params can be added
+> 📊 **[View Dynamic Parameters Diagram](./deeplinking-diagrams.md#dynamic-parameters-example)** - See how unsigned params can be added
 
 - **Selective Signing**: Only critical params need signing
 - **Forward Compatibility**: Add new unsigned params without breaking signatures
