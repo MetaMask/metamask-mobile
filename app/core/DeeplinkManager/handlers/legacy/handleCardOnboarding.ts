@@ -108,13 +108,17 @@ export const handleCardOnboarding = () => {
         }
       }
 
-      // Navigate to Card Home
-      // TODO: Show toast notification after arriving on Card Home, probably add a new route parameter to the CardHome screen to show the toast notification
       destination = CardDeeplinkDestination.CARD_HOME;
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
       setTimeout(() => {
         NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+            params: {
+              showDeeplinkToast: true,
+            },
+          },
         });
       }, 500);
     } else {

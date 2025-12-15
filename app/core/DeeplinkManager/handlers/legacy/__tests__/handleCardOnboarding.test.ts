@@ -344,12 +344,18 @@ describe('handleCardOnboarding', () => {
         ]);
       });
 
-      it('navigates to Card Home', () => {
+      it('navigates to Card Home with showDeeplinkToast param', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+            params: {
+              showDeeplinkToast: true,
+            },
+          },
         });
       });
 
@@ -379,12 +385,18 @@ describe('handleCardOnboarding', () => {
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
       });
 
-      it('navigates to Card Home', () => {
+      it('navigates to Card Home with showDeeplinkToast param', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+            params: {
+              showDeeplinkToast: true,
+            },
+          },
         });
       });
 
@@ -405,12 +417,18 @@ describe('handleCardOnboarding', () => {
         ]);
       });
 
-      it('navigates to Card Home', () => {
+      it('navigates to Card Home with showDeeplinkToast param', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+            params: {
+              showDeeplinkToast: true,
+            },
+          },
         });
       });
 
@@ -546,12 +564,18 @@ describe('handleCardOnboarding', () => {
         );
       });
 
-      it('still navigates to Card Home', () => {
+      it('still navigates to Card Home with showDeeplinkToast param', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+            params: {
+              showDeeplinkToast: true,
+            },
+          },
         });
       });
     });
