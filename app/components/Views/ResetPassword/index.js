@@ -422,7 +422,10 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      await Authentication.reauthenticate();
+      const biometricPassword = await Authentication.getBiometricPassword();
+      if (biometricPassword) {
+        this.tryUnlockWithPassword(biometricPassword);
+      }
     }
 
     this.setState(state);

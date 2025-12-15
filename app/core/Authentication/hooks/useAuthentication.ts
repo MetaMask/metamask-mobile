@@ -5,4 +5,5 @@ import { Authentication } from '../Authentication';
  */
 export default () => ({
   reauthenticate: Authentication.reauthenticate,
+  getBiometricPassword: Authentication.getBiometricPassword,
 });

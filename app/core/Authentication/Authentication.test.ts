@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -3521,45 +3522,58 @@ describe('Authentication', () => {
   });
 
   describe('reauthenticate', () => {
-    it('uses provided password when biometry is not enabled', async () => {
+    it('verifies the provided password', async () => {
       const Engine = jest.requireMock('../Engine');
       const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
       Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
-
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce(null);
 
       await Authentication.reauthenticate('test-password');
 
       expect(mockVerifyPassword).toHaveBeenCalledWith('test-password');
     });
 
-    it('uses stored biometric password when biometry is enabled and credentials exist', async () => {
+    it('verifies with empty string when password is falsy', async () => {
       const Engine = jest.requireMock('../Engine');
       const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
       Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
 
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('true');
+      // @ts-expect-error testing runtime behavior with undefined
+      await Authentication.reauthenticate(undefined);
+
+      expect(mockVerifyPassword).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('getBiometricPassword', () => {
+    beforeEach(async () => {
+      await StorageWrapper.clearAll();
+    });
+
+    it('returns null when biometry choice is not enabled', async () => {
+      const result = await Authentication.getBiometricPassword();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no credentials are stored', async () => {
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, 'true');
+      jest.spyOn(Authentication, 'getPassword').mockResolvedValue(null);
+
+      const result = await Authentication.getBiometricPassword();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns stored biometric password when available', async () => {
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, 'true');
       jest.spyOn(Authentication, 'getPassword').mockResolvedValue({
         username: 'user',
         password: 'biometric-pass',
       } as Keychain.UserCredentials);
 
-      await Authentication.reauthenticate();
+      const result = await Authentication.getBiometricPassword();
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('biometric-pass');
-    });
-
-    it('falls back to provided password when biometry is enabled but no credentials are stored', async () => {
-      const Engine = jest.requireMock('../Engine');
-      const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
-      Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
-
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('true');
-      jest.spyOn(Authentication, 'getPassword').mockResolvedValue(null);
-
-      await Authentication.reauthenticate('fallback-pass');
-
-      expect(mockVerifyPassword).toHaveBeenCalledWith('fallback-pass');
+      expect(result).toBe('biometric-pass');
     });
   });
 });

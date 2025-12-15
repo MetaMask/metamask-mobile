@@ -1373,22 +1373,40 @@ class AuthenticationService {
   }
 
   /**
-   * Reauthenticates the user by verifying the password or using biometrics.
+   * Returns the password stored for biometric authentication, if any.
    *
-   * @param password - The password entered by the user.
+   * @returns The stored biometric password, or null when biometric auth
+   * is disabled or no password is stored.
    */
-  reauthenticate = async (password?: string): Promise<void> => {
+  getBiometricPassword = async (): Promise<string | null> => {
     const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-    const { KeyringController } = Engine.context;
-    let passwordToVerify = password || '';
 
-    if (biometryChoice) {
-      const credentials = await this.getPassword();
-      if (credentials) {
-        passwordToVerify = credentials.password;
+    if (!biometryChoice) {
+      return null;
+    }
+
+    const credentials = await this.getPassword();
+
+    if (credentials && typeof credentials !== 'boolean') {
+      const { password } = credentials;
+
+      if (password) {
+        return password;
       }
     }
-    return await KeyringController.verifyPassword(passwordToVerify);
+
+    return null;
+  };
+
+  /**
+   * Reauthenticates the user by verifying the provided password.
+   *
+   * @param password - The password to verify.
+   */
+  reauthenticate = async (password: string): Promise<void> => {
+    const { KeyringController } = Engine.context;
+
+    return await KeyringController.verifyPassword(password || '');
   };
 }
 

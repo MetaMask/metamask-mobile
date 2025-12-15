@@ -89,6 +89,7 @@ jest.mock('../../../core/Authentication', () => ({
   authData: {
     currentAuthType: 'passcode',
   },
+  getBiometricPassword: jest.fn().mockResolvedValue(null),
   reauthenticate: (password?: string) => mockReauthenticate(password),
 }));
 
