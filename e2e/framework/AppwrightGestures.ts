@@ -32,13 +32,11 @@ export default class AppwrightGestures {
       } catch (error: unknown) {
         lastError = error as Error;
 
-        // Check if it's a "not found" error and we have retries left
-        // This is needed because of the system dialogs that pop up specifically on iOS
-        if (lastError.message.includes('not found') && attempt < maxRetries) {
+        // Retry on any error if we have retries left
+        // This handles system dialogs and other transient issues
+        if (attempt < maxRetries) {
           console.log(
-            `Element not found on attempt ${
-              attempt + 1
-            }, retrying in ${retryDelay}ms...`,
+            `Tap failed on attempt ${attempt + 1}: ${lastError.message}, retrying in ${retryDelay}ms...`,
           );
           await AppwrightGestures.wait(retryDelay);
           continue;
