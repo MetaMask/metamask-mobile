@@ -43,12 +43,12 @@ class AccountListComponent {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
       await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
-      await AppwrightGestures.tap(this.addAccountButton); 
+      await AppwrightGestures.tap(await this.addAccountButton); 
     }
   }
 
   async tapOnAddWalletButton() {
-    await AppwrightGestures.tap(this.addWalletButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.addWalletButton); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
@@ -71,7 +71,7 @@ class AccountListComponent {
   }
 
   async tapOnAccountByName(name) {
-    const account = AppwrightSelectors.getElementByText(this.device, name);
+    const account = await AppwrightSelectors.getElementByText(this.device, name);
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
@@ -81,7 +81,10 @@ class AccountListComponent {
     await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing', 30000);
     
     const discoveringAccountsElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering accounts...');
-    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts', 30000);
+    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts...', 30000);
+
+    const addButton = await this.addAccountButton;
+    expect(addButton).toBeVisible({ timeout: 30000 });
   }
 }
 
