@@ -10,20 +10,20 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'stake.stake_your_trx_cta.title': 'Lend Tron and earn',
       'stake.stake_your_trx_cta.description_start': 'Stake your Tron and earn ',
       'stake.stake_your_trx_cta.description_end': ' annually.',
-      'stake.stake_your_trx_cta.earn_button': 'Earn',
+      'stake.stake_your_trx_cta.learn_more': 'Learn more.',
     };
     return map[key] ?? key;
   },
 }));
 
 describe('TronStakingCta', () => {
-  it('renders title and description without APR or Earn button', () => {
+  it('renders title and description without APR or learn more button', () => {
     const { getByText, queryByText } = renderWithProvider(<TronStakingCta />);
 
     expect(getByText('Lend Tron and earn')).toBeOnTheScreen();
     expect(getByText('Stake your Tron and earn ')).toBeOnTheScreen();
     expect(getByText(' annually.')).toBeOnTheScreen();
-    expect(queryByText('Earn')).toBeNull();
+    expect(queryByText('Learn more.')).toBeNull();
   });
 
   it('renders APR when aprText is provided', () => {
@@ -37,14 +37,14 @@ describe('TronStakingCta', () => {
     expect(getByText(' annually.')).toBeOnTheScreen();
   });
 
-  it('calls onEarn when Earn button is pressed', () => {
+  it('calls onEarn when learn more button is pressed', () => {
     const onEarn = jest.fn();
 
     const { getByText } = renderWithProvider(
       <TronStakingCta onEarn={onEarn} />,
     );
 
-    fireEvent.press(getByText('Earn'));
+    fireEvent.press(getByText('Learn more.'));
 
     expect(onEarn).toHaveBeenCalledTimes(1);
   });
