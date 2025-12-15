@@ -32,8 +32,19 @@ const RememberMeOptionSection = () => {
   const dispatch = useDispatch();
 
   const toggleRememberMe = useCallback(
-    (value: boolean) => {
+    async (value: boolean) => {
       dispatch(setAllowLoginWithRememberMe(value));
+      // If enabling remember me, update the password storage type
+      if (value) {
+        try {
+          await Authentication.updateAuthPreference(
+            AUTHENTICATION_TYPE.REMEMBER_ME,
+          );
+        } catch (error) {
+          // If update fails, revert the flag
+          dispatch(setAllowLoginWithRememberMe(false));
+        }
+      }
     },
     [dispatch],
   );

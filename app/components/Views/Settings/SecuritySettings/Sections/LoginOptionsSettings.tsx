@@ -12,25 +12,24 @@ import {
   PASSCODE_DISABLED,
   TRUE,
 } from '../../../../../constants/storage';
-import { View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 import createStyles from '../SecuritySettings.styles';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+} from '@metamask/design-system-react-native';
 
-interface BiometricOptionSectionProps {
-  onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;
-  onSignWithPasscodeOptionUpdated: (enabled: boolean) => Promise<void>;
-}
-
-const LoginOptionsSettings = ({
-  onSignWithBiometricsOptionUpdated,
-  onSignWithPasscodeOptionUpdated,
-}: BiometricOptionSectionProps) => {
+const LoginOptionsSettings = () => {
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC | undefined
   >(undefined);
   const [biometryChoice, setBiometryChoice] = useState<boolean>(false);
   const [passcodeChoice, setPasscodeChoice] = useState<boolean>(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState<boolean>(false);
+  const [isPasscodeLoading, setIsPasscodeLoading] = useState<boolean>(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -65,48 +64,92 @@ const LoginOptionsSettings = ({
     getOptions();
   }, []);
 
-  const onBiometricsOptionUpdated = useCallback(
-    async (enabled: boolean) => {
-      await onSignWithBiometricsOptionUpdated(enabled);
+  const onBiometricsOptionUpdated = useCallback(async (enabled: boolean) => {
+    setIsBiometricLoading(true);
+    try {
+      if (enabled) {
+        await Authentication.updateAuthPreference(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+      } else {
+        // Disabling: switch to password (storePassword will handle storage flags)
+        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSWORD);
+      }
       setBiometryChoice(enabled);
-    },
-    [onSignWithBiometricsOptionUpdated],
-  );
-  const onPasscodeOptionUpdated = useCallback(
-    async (enabled: boolean) => {
-      await onSignWithPasscodeOptionUpdated(enabled);
+    } catch (error) {
+      // On error, revert the toggle state
+      setBiometryChoice(!enabled);
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  }, []);
+  const onPasscodeOptionUpdated = useCallback(async (enabled: boolean) => {
+    setIsPasscodeLoading(true);
+    try {
+      if (enabled) {
+        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSCODE);
+      } else {
+        // Disabling: switch to password (storePassword will handle storage flags)
+        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSWORD);
+      }
       setPasscodeChoice(enabled);
-    },
-    [onSignWithPasscodeOptionUpdated],
-  );
+    } catch (error) {
+      // On error, revert the toggle state
+      setPasscodeChoice(!enabled);
+    } finally {
+      setIsPasscodeLoading(false);
+    }
+  }, []);
 
   return (
-    <View testID={LOGIN_OPTIONS}>
+    <Box testID={LOGIN_OPTIONS}>
       {biometryType ? (
-        <View style={styles.setting}>
-          <SecurityOptionToggle
-            title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-            value={biometryChoice}
-            onOptionUpdated={onBiometricsOptionUpdated}
-            testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
-          />
-        </View>
+        <Box style={styles.setting}>
+          {isBiometricLoading ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="justify-center py-4"
+            >
+              <ActivityIndicator size="small" color={colors.primary.default} />
+            </Box>
+          ) : (
+            <SecurityOptionToggle
+              title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
+              value={biometryChoice}
+              onOptionUpdated={onBiometricsOptionUpdated}
+              testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
+              disabled={isPasscodeLoading}
+            />
+          )}
+        </Box>
       ) : null}
       {biometryType && !biometryChoice ? (
-        <View style={styles.setting}>
-          <SecurityOptionToggle
-            title={
-              Device.isIos()
-                ? strings(`biometrics.enable_device_passcode_ios`)
-                : strings(`biometrics.enable_device_passcode_android`)
-            }
-            value={passcodeChoice}
-            onOptionUpdated={onPasscodeOptionUpdated}
-            testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
-          />
-        </View>
+        <Box style={styles.setting}>
+          {isPasscodeLoading ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="justify-center py-4"
+            >
+              <ActivityIndicator size="small" color={colors.primary.default} />
+            </Box>
+          ) : (
+            <SecurityOptionToggle
+              title={
+                Device.isIos()
+                  ? strings(`biometrics.enable_device_passcode_ios`)
+                  : strings(`biometrics.enable_device_passcode_android`)
+              }
+              value={passcodeChoice}
+              onOptionUpdated={onPasscodeOptionUpdated}
+              testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
+              disabled={isBiometricLoading}
+            />
+          )}
+        </Box>
       ) : null}
-    </View>
+    </Box>
   );
 };
 

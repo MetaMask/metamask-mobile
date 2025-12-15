@@ -259,9 +259,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             rememberMe,
           );
           try {
-            await Authentication.storePassword(
-              password,
+            await Authentication.updateAuthPreference(
               authData.currentAuthType,
+              password,
             );
             navigation.replace(
               ...createRestoreWalletNavDetailsNested({

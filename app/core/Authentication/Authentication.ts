@@ -351,6 +351,20 @@ class AuthenticationService {
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
+    // Remember me should take priority over biometric/passcode
+    const existingUser = selectExistingUser(ReduxService.store.getState());
+    const allowLoginWithRememberMe =
+      ReduxService.store.getState().security?.allowLoginWithRememberMe;
+    if (existingUser && allowLoginWithRememberMe) {
+      const credentials = await SecureKeychain.getGenericPassword();
+      if (credentials && credentials.password) {
+        return {
+          currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          availableBiometryType,
+        };
+      }
+    }
+
     if (
       availableBiometryType &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
@@ -359,7 +373,9 @@ class AuthenticationService {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
-    } else if (
+    }
+    // Then check passcode
+    if (
       availableBiometryType &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
@@ -368,15 +384,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = selectExistingUser(ReduxService.store.getState());
-    if (existingUser) {
-      if (await SecureKeychain.getGenericPassword()) {
-        return {
-          currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
-          availableBiometryType,
-        };
-      }
-    }
+    // Default to password
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,
@@ -397,39 +405,57 @@ class AuthenticationService {
   };
 
   /**
-   * Stores a user password in the secure keychain with a specific auth type
+   * Stores a user password in the secure keychain with a specific auth type.
+   * This is the single source of truth for password persistence and manages
+   * all related storage flags to ensure authentication types are mutually exclusive.
+   *
    * @param password - password provided by user
    * @param authType - type of authentication required to fetch password from keychain
+   * @protected
    */
-  storePassword = async (
+  protected storePassword = async (
     password: string,
     authType: AUTHENTICATION_TYPE,
   ): Promise<void> => {
     try {
+      // Store password in keychain with appropriate type
       switch (authType) {
         case AUTHENTICATION_TYPE.BIOMETRIC:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
+          await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
           break;
         case AUTHENTICATION_TYPE.PASSCODE:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
+          await StorageWrapper.removeItem(PASSCODE_DISABLED);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
+          // SecureKeychain.setGenericPassword handles flag management for REMEMBER_ME
+          // (sets BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED to disable biometric/passcode)
           break;
         case AUTHENTICATION_TYPE.PASSWORD:
           await SecureKeychain.setGenericPassword(password, undefined);
+          // Password only: disable both biometrics and passcode
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
+          // Default to password behavior: disable both
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
     } catch (error) {
@@ -1377,80 +1403,81 @@ class AuthenticationService {
   }
 
   /**
-   * Stores credentials with the specified authentication preference.
-   * This method handles password validation, storage, and authentication preference updates.
+   * Updates the authentication preference for the user.
+   * If password is provided, uses it directly. Otherwise, gets password from keychain.
+   * Validates the password and stores it with the new auth type.
+   * Manages storage flags (BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED) based on auth type.
+   * If password is not found in keychain and not provided, navigates to password entry screen.
    *
-   * @param password - password provided by user
-   * @param enabled - whether the authentication method is enabled
-   * @param authChoice - authentication choice string ('passcodeChoice' or 'biometryChoice')
-   * @param setLoading - callback to update loading state
+   * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
+   * @param password - optional password to use. If not provided, gets from keychain.
    * @returns {Promise<void>}
    */
-  storeCredentialsWithAuthPreference = async (
-    password: string,
-    enabled: boolean,
-    authChoice: string,
-    setLoading: (loading: boolean) => void,
+  updateAuthPreference = async (
+    authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
+    password?: string,
   ): Promise<void> => {
-    const PASSCODE_CHOICE_STRING = 'passcodeChoice';
-    const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+    let passwordToUse = password;
 
-    try {
-      await this.resetPassword();
-
-      await Engine.context.KeyringController.exportSeedPhrase(password);
-
-      if (!enabled) {
-        setLoading(false);
-        if (authChoice === PASSCODE_CHOICE_STRING) {
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-        }
-
-        return;
+    // If password not provided, try to get it from keychain
+    if (!passwordToUse) {
+      const credentials = await this.getPassword();
+      if (
+        credentials &&
+        credentials.password &&
+        credentials.password.length > 0
+      ) {
+        passwordToUse = credentials.password;
       }
+    }
 
+    if (passwordToUse && passwordToUse.length > 0) {
+      // Password found or provided. Validate and update the auth preference.
       try {
-        let authType;
-        if (authChoice === BIOMETRY_CHOICE_STRING) {
-          authType = AUTHENTICATION_TYPE.BIOMETRIC;
-        } else if (authChoice === PASSCODE_CHOICE_STRING) {
-          authType = AUTHENTICATION_TYPE.PASSCODE;
-        } else {
-          authType = AUTHENTICATION_TYPE.PASSWORD;
+        await this.resetPassword();
+        await Engine.context.KeyringController.exportSeedPhrase(passwordToUse);
+        // storePassword handles all storage flag management internally
+        await this.storePassword(passwordToUse, authType);
+
+        ReduxService.store.dispatch(passwordSet());
+
+        const lockTime = ReduxService.store.getState().settings.lockTime;
+        if (lockTime === -1) {
+          ReduxService.store.dispatch(
+            setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
+          );
         }
-        await this.storePassword(password, authType);
-      } catch (error) {
-        Logger.error(error as unknown as Error, {});
+      } catch (e) {
+        const errorWithMessage = e as { message: string };
+        if (errorWithMessage.message === 'Invalid password') {
+          Alert.alert(
+            strings('app_settings.invalid_password'),
+            strings('app_settings.invalid_password_message'),
+          );
+          trackErrorAsAnalytics(
+            'SecuritySettings: Invalid password',
+            errorWithMessage?.message,
+            '',
+          );
+        } else {
+          Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
+        }
+        throw e;
       }
-
-      ReduxService.store.dispatch(passwordSet());
-
-      const lockTime = ReduxService.store.getState().settings.lockTime;
-      if (lockTime === -1) {
-        ReduxService.store.dispatch(
-          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-        );
-      }
-      setLoading(false);
-    } catch (e) {
-      const errorWithMessage = e as { message: string };
-      if (errorWithMessage.message === 'Invalid password') {
-        Alert.alert(
-          strings('app_settings.invalid_password'),
-          strings('app_settings.invalid_password_message'),
-        );
-        trackErrorAsAnalytics(
-          'SecuritySettings: Invalid password',
-          errorWithMessage?.message,
-          '',
-        );
-      } else {
-        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
-      }
-      setLoading(false);
+    } else {
+      // Password not found. Navigate to password entry and request the user to enter their password.
+      NavigationService.navigation?.navigate('EnterPasswordSimple', {
+        onPasswordSet: (enteredPassword: string) => {
+          this.updateAuthPreference(authType, enteredPassword).catch(
+            (error) => {
+              Logger.error(
+                error as unknown as Error,
+                'Failed to update auth preference',
+              );
+            },
+          );
+        },
+      });
     }
   };
 }

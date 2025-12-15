@@ -1,19 +1,11 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Switch,
-  ScrollView,
-  View,
-  ActivityIndicator,
-  Keyboard,
-  Linking,
-} from 'react-native';
+import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
@@ -21,7 +13,6 @@ import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { Authentication } from '../../../../core';
 import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
@@ -45,9 +36,7 @@ import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
-  BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
-  PASSCODE_CHOICE_STRING,
   SDK_SECTION,
 } from './SecuritySettings.constants';
 import Text, {
@@ -94,7 +83,6 @@ const Settings: React.FC = () => {
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
     useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -239,48 +227,6 @@ const Settings: React.FC = () => {
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
     }
-  };
-
-  const storeCredentials = async (
-    password: string,
-    enabled: boolean,
-    authChoice: string,
-  ) => {
-    await Authentication.storeCredentialsWithAuthPreference(
-      password,
-      enabled,
-      authChoice,
-      setLoading,
-    );
-  };
-
-  const setPassword = async (enabled: boolean, passwordType: string) => {
-    setLoading(true);
-    let credentials;
-    try {
-      credentials = await Authentication.getPassword();
-    } catch (error) {
-      Logger.error(error as unknown as Error, {});
-    }
-
-    if (credentials && credentials.password !== '') {
-      storeCredentials(credentials.password, enabled, passwordType);
-    } else {
-      setLoading(false);
-      navigation.navigate('EnterPasswordSimple', {
-        onPasswordSet: (password: string) => {
-          storeCredentials(password, enabled, passwordType);
-        },
-      });
-    }
-  };
-
-  const onSignInWithPasscode = async (enabled: boolean) => {
-    await setPassword(enabled, PASSCODE_CHOICE_STRING);
-  };
-
-  const onSingInWithBiometrics = async (enabled: boolean) => {
-    await setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   const goToSDKSessionManager = () => {
@@ -446,14 +392,6 @@ const Settings: React.FC = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   const modalLoading = disableNotificationsLoading;
   const modalError = disableNotificationsError;
 
@@ -472,10 +410,7 @@ const Settings: React.FC = () => {
         />
         <ChangePassword />
         <AutoLock />
-        <LoginOptionsSettings
-          onSignWithBiometricsOptionUpdated={onSingInWithBiometrics}
-          onSignWithPasscodeOptionUpdated={onSignInWithPasscode}
-        />
+        <LoginOptionsSettings />
         <View style={styles.setting}>
           <RememberMeOptionSection />
         </View>
