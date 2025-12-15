@@ -71,6 +71,7 @@ describe('handleCardOnboarding', () => {
   const mockCardholderAddress = '0x1234567890abcdef1234567890abcdef12345678';
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
 
     (ReduxService.store.getState as jest.Mock) = mockGetState;
@@ -95,6 +96,7 @@ describe('handleCardOnboarding', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -344,6 +346,7 @@ describe('handleCardOnboarding', () => {
 
       it('navigates to Card Home', () => {
         handleCardOnboarding();
+        jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
@@ -378,6 +381,7 @@ describe('handleCardOnboarding', () => {
 
       it('navigates to Card Home', () => {
         handleCardOnboarding();
+        jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
@@ -403,6 +407,7 @@ describe('handleCardOnboarding', () => {
 
       it('navigates to Card Home', () => {
         handleCardOnboarding();
+        jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
@@ -543,6 +548,7 @@ describe('handleCardOnboarding', () => {
 
       it('still navigates to Card Home', () => {
         handleCardOnboarding();
+        jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
@@ -552,14 +558,13 @@ describe('handleCardOnboarding', () => {
 
     describe('when fallback navigation fails', () => {
       const mainError = new Error('Main error');
-      const navError = new Error('Navigation error');
 
       beforeEach(() => {
         mockGetState.mockImplementation(() => {
           throw mainError;
         });
         mockNavigate.mockImplementation(() => {
-          throw navError;
+          throw new Error('Navigation error');
         });
       });
 
@@ -567,7 +572,7 @@ describe('handleCardOnboarding', () => {
         handleCardOnboarding();
 
         expect(mockLoggerError).toHaveBeenCalledWith(
-          navError,
+          expect.objectContaining({ message: 'Navigation error' }),
           '[handleCardOnboarding] Failed to navigate to fallback screen',
         );
       });

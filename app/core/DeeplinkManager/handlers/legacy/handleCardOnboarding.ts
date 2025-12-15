@@ -112,9 +112,11 @@ export const handleCardOnboarding = () => {
       // TODO: Show toast notification after arriving on Card Home, probably add a new route parameter to the CardHome screen to show the toast notification
       destination = CardDeeplinkDestination.CARD_HOME;
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-      });
+      setTimeout(() => {
+        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+        });
+      }, 500);
     } else {
       // User is not logged in AND has no card-linked account
       // Navigate to Card Welcome/onboarding screen
