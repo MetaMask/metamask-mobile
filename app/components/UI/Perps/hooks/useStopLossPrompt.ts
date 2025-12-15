@@ -91,7 +91,11 @@ export const useStopLossPrompt = ({
   // Visibility orchestration state
   // Tracks fade-out animation when banner conditions no longer met
   const [isDismissing, setIsDismissing] = useState(false);
+  // Preserve variant during fade-out so banner can still render with correct content
+  const [dismissingVariant, setDismissingVariant] =
+    useState<StopLossPromptVariant | null>(null);
   const prevShouldShowBannerRef = useRef(false);
+  const prevVariantRef = useRef<StopLossPromptVariant | null>(null);
 
   // Calculate liquidation distance
   const liquidationDistance = useMemo(() => {
@@ -375,33 +379,52 @@ export const useStopLossPrompt = ({
 
   // Handle visibility orchestration - detect transitions and trigger fade-out
   // When shouldShowBanner transitions from true → false, trigger dismissing state
+  // Also capture the variant so banner can continue rendering during animation
   useEffect(() => {
-    const prevValue = prevShouldShowBannerRef.current;
+    const prevShouldShow = prevShouldShowBannerRef.current;
+    const prevVariant = prevVariantRef.current;
+
+    // Update refs for next render
     prevShouldShowBannerRef.current = shouldShowBanner;
+    prevVariantRef.current = variant;
 
     // Transition from showing to hidden → trigger fade-out animation
-    if (prevValue && !shouldShowBanner && !isDismissing) {
+    if (prevShouldShow && !shouldShowBanner && !isDismissing) {
       setIsDismissing(true);
+      // Capture the variant that was showing so it's preserved during fade-out
+      setDismissingVariant(prevVariant);
     }
-  }, [shouldShowBanner, isDismissing]);
+
+    // Reset dismissing state if conditions worsen again (banner needs to show)
+    if (shouldShowBanner && isDismissing) {
+      setIsDismissing(false);
+      setDismissingVariant(null);
+    }
+  }, [shouldShowBanner, isDismissing, variant]);
 
   // Reset visibility orchestration when position changes
   useEffect(() => {
     setIsDismissing(false);
+    setDismissingVariant(null);
     prevShouldShowBannerRef.current = false;
+    prevVariantRef.current = null;
   }, [position?.coin]);
 
   // Callback when fade-out animation completes
   const onDismissComplete = useCallback(() => {
     setIsDismissing(false);
+    setDismissingVariant(null);
   }, []);
 
   // Banner is visible when conditions are met OR when dismissing (for animation)
   const isVisible = shouldShowBanner || isDismissing;
 
+  // Use preserved variant during fade-out so banner can still render with correct content
+  const effectiveVariant = isDismissing ? dismissingVariant : variant;
+
   return {
     shouldShowBanner,
-    variant,
+    variant: effectiveVariant,
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
