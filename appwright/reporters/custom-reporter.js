@@ -119,19 +119,24 @@ class CustomReporter {
           }
         }
 
-        // Validate quality gates
+        // Validate quality gates using thresholds from timers
         if (metricsEntry.steps && metricsEntry.steps.length > 0) {
-          const qualityGatesResult = this.qualityGatesValidator.validate(
+          const qualityGatesResult = this.qualityGatesValidator.validateMetrics(
             test.title,
             metricsEntry.steps,
             metricsEntry.total || 0,
+            metricsEntry.totalThreshold || null,
           );
           metricsEntry.qualityGates = qualityGatesResult;
 
           // Log quality gates result to console
-          console.log(
-            this.qualityGatesValidator.formatConsoleReport(qualityGatesResult),
-          );
+          if (qualityGatesResult.hasThresholds) {
+            console.log(
+              this.qualityGatesValidator.formatConsoleReport(
+                qualityGatesResult,
+              ),
+            );
+          }
         }
 
         this.metrics.push(metricsEntry);

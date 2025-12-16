@@ -68,30 +68,32 @@ test('Account creation after fresh install', async ({
 
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
+    1500,
   );
   const screen2Timer = new TimerHelper(
     'Time since the user clicks on "Create account" button until the account is in the account list',
+    1500,
   );
   const screen3Timer = new TimerHelper(
     'Time since the user clicks on new account created until the Token list is visible',
+    40000,
   );
 
   await WalletMainScreen.tapIdenticon();
-  screen1Timer.start();
-  await AccountListComponent.isComponentDisplayed();
-  screen1Timer.stop();
+  await screen1Timer.measure(() => AccountListComponent.isComponentDisplayed());
+
   await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapCreateAccountButton();
-  screen2Timer.start();
-  await AccountListComponent.isAccountDisplayed('Account 2', 30000);
-  screen2Timer.stop();
+  await screen2Timer.measure(() =>
+    AccountListComponent.isAccountDisplayed('Account 2', 30000),
+  );
+
   await AccountListComponent.tapOnAccountByName('Account 2');
-  screen3Timer.start();
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
-  screen3Timer.stop();
-  performanceTracker.addTimer(screen1Timer);
-  performanceTracker.addTimer(screen2Timer);
-  performanceTracker.addTimer(screen3Timer);
+  await screen3Timer.measure(async () => {
+    await WalletMainScreen.isTokenVisible('ETH');
+    await WalletMainScreen.isTokenVisible('SOL');
+  });
+
+  performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);
   await performanceTracker.attachToTest(testInfo);
 });

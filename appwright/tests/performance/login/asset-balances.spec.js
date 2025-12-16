@@ -21,10 +21,9 @@ test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user navigates to wallet tab until the balance stabilizes',
   );
 
-  balanceStableTimer.start();
-
-  await WalletMainScreen.waitForBalanceToStabilize();
-  balanceStableTimer.stop();
+  await balanceStableTimer.measure(() =>
+    WalletMainScreen.waitForBalanceToStabilize(),
+  );
 
   performanceTracker.addTimer(balanceStableTimer);
   // Quality gates validation is performed by the reporter when generating reports

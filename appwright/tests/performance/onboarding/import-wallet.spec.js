@@ -63,14 +63,11 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   );
 
   await OnboardingScreen.tapHaveAnExistingWallet();
-  timer3.start();
-  await OnboardingSheet.isVisible();
-  timer3.stop();
+  await timer3.measure(() => OnboardingSheet.isVisible());
 
   await OnboardingSheet.tapImportSeedButton();
-  timer4.start();
-  await ImportFromSeedScreen.isScreenTitleVisible();
-  timer4.stop();
+  await timer4.measure(() => ImportFromSeedScreen.isScreenTitleVisible());
+
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(
     process.env.TEST_SRP_3,
     true,
@@ -78,41 +75,35 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
 
   await ImportFromSeedScreen.tapContinueButton();
-  timer5.start();
-  await CreatePasswordScreen.isVisible();
-  timer5.stop();
+  await timer5.measure(() => CreatePasswordScreen.isVisible());
+
   await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.reEnterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
-  timer6.start();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  timer6.stop();
+  await timer6.measure(() => MetaMetricsScreen.isScreenTitleVisible());
 
   await MetaMetricsScreen.tapIAgreeButton();
-  timer7.start();
-  await OnboardingSucessScreen.isVisible();
-  timer7.stop();
+  await timer7.measure(() => OnboardingSucessScreen.isVisible());
 
   await OnboardingSucessScreen.tapDone();
-  timer8.start();
-  await checkPredictionsModalIsVisible(device);
-  timer8.stop();
+  await timer8.measure(() => checkPredictionsModalIsVisible(device));
 
   await dissmissPredictionsModal(device);
-  timer9.start();
+  await timer9.measure(async () => {
+    await WalletMainScreen.isTokenVisible('ETH');
+    await WalletMainScreen.isTokenVisible('SOL');
+  });
 
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
-  timer9.stop();
-
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-  performanceTracker.addTimer(timer5);
-  performanceTracker.addTimer(timer6);
-  performanceTracker.addTimer(timer7);
-  performanceTracker.addTimer(timer8);
-  performanceTracker.addTimer(timer9);
+  performanceTracker.addTimers(
+    timer3,
+    timer4,
+    timer5,
+    timer6,
+    timer7,
+    timer8,
+    timer9,
+  );
   await performanceTracker.attachToTest(testInfo);
 });

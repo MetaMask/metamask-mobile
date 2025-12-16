@@ -49,31 +49,21 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
   await WalletActionModal.tapSendButton();
-  timer1.start();
-  await SendScreen.assetsListIsDisplayed();
-  timer1.stop();
+  await timer1.measure(() => SendScreen.assetsListIsDisplayed());
+
   await SendScreen.typeTokenName('Link\n');
   await SendScreen.clickOnFirstTokenBadge();
-  timer2.start();
+  await timer2.measure(() => AmountScreen.isVisible());
 
-  await AmountScreen.isVisible();
-  timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
   await AmountScreen.tapOnNextButton();
-  timer3.start();
-  await SendScreen.isSelectAddressScreenDisplayed();
-  timer3.stop();
+  await timer3.measure(() => SendScreen.isSelectAddressScreenDisplayed());
+
   await SendScreen.typeAddressInSendAddressField(ethAddress);
   await SendScreen.clickOnReviewButton();
-  timer4.start();
-  await ConfirmationScreen.isVisible();
-  timer4.stop();
+  await timer4.measure(() => ConfirmationScreen.isVisible());
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-
+  performanceTracker.addTimers(timer1, timer2, timer3, timer4);
   await performanceTracker.attachToTest(testInfo);
 });
 
@@ -106,31 +96,21 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
   await WalletActionModal.tapSendButton();
-  timer1.start();
-  await SendScreen.assetsListIsDisplayed();
-  timer1.stop();
+  await timer1.measure(() => SendScreen.assetsListIsDisplayed());
+
   await SendScreen.typeTokenName('Solana\n');
   await SendScreen.clickOnFirstTokenBadge();
-  timer2.start();
+  await timer2.measure(() => AmountScreen.isVisible());
 
-  await AmountScreen.isVisible();
-  timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.SOLANA);
 
   await AmountScreen.tapOnNextButton();
-  timer3.start();
-  await SendScreen.isSelectAddressScreenDisplayed();
-  timer3.stop();
+  await timer3.measure(() => SendScreen.isSelectAddressScreenDisplayed());
+
   await SendScreen.typeAddressInSendAddressField(solanaAddress);
   await SendScreen.clickOnReviewButton();
-  timer4.start();
-  await ConfirmationScreen.isVisible('Solana', 180000);
-  timer4.stop();
+  await timer4.measure(() => ConfirmationScreen.isVisible('Solana', 180000));
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-
+  performanceTracker.addTimers(timer1, timer2, timer3, timer4);
   await performanceTracker.attachToTest(testInfo);
 });

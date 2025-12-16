@@ -6,6 +6,12 @@ export class PerformanceTracker {
     this.timers = [];
   }
 
+  addTimers(...timers) {
+    timers.forEach((timer) => {
+      this.addTimer(timer);
+    });
+  }
+
   addTimer(timer) {
     if (this.timers.find((existingTimer) => existingTimer.id === timer.id)) {
       return;
@@ -115,22 +121,36 @@ export class PerformanceTracker {
       steps: [],
     };
     let totalSeconds = 0;
+    let totalThresholdMs = 0;
+    let allHaveThresholds = true;
 
     for (const timer of this.timers) {
       const duration = timer.getDuration();
       const durationInSeconds = timer.getDurationInSeconds();
 
       if (duration !== null && !isNaN(duration) && duration > 0) {
-        // Create a step object with the timer id as key and duration as value
-        const stepObject = {};
-        stepObject[timer.id] = duration;
+        // Create a step object with timer info including thresholds
+        const stepObject = {
+          name: timer.id,
+          duration,
+          baseThreshold: timer.baseThreshold,
+          threshold: timer.threshold, // Includes +10% margin
+        };
         metrics.steps.push(stepObject);
 
         totalSeconds += durationInSeconds;
+
+        if (timer.threshold !== null) {
+          totalThresholdMs += timer.threshold;
+        } else {
+          allHaveThresholds = false;
+        }
       }
     }
 
     metrics.total = totalSeconds;
+    metrics.totalThreshold = allHaveThresholds ? totalThresholdMs : null;
+    metrics.hasThresholds = this.timers.some((t) => t.hasThreshold());
 
     // Safely get device info with fallbacks
     const deviceInfo = testInfo?.project?.use?.device;

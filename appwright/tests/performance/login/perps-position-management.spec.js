@@ -63,22 +63,17 @@ test('Perps open position and close it', async ({
 
   await TabBarModal.tapActionButton();
 
-  selectPerpsMainScreenTimer.start();
-  await WalletActionModal.tapPerpsButton();
-  selectPerpsMainScreenTimer.stop();
-  performanceTracker.addTimer(selectPerpsMainScreenTimer);
+  await selectPerpsMainScreenTimer.measure(() =>
+    WalletActionModal.tapPerpsButton(),
+  );
 
   // Skip tutorial
-  skipTutorialTimer.start();
-  await PerpsTutorialScreen.tapSkip();
-  skipTutorialTimer.stop();
-  performanceTracker.addTimer(skipTutorialTimer);
+  await skipTutorialTimer.measure(() => PerpsTutorialScreen.tapSkip());
 
-  selectMarketTimer.start();
   // Selecting BTC market
-  await PerpsMarketListView.selectMarket('BTC');
-  selectMarketTimer.stop();
-  performanceTracker.addTimer(selectMarketTimer);
+  await selectMarketTimer.measure(() =>
+    PerpsMarketListView.selectMarket('BTC'),
+  );
 
   // TODO: Add a check to see if the position is open
   // If position open, fail the test
@@ -87,27 +82,28 @@ test('Perps open position and close it', async ({
   }
 
   // Open Position
-  openOrderScreenTimer.start();
-  await PerpsMarketDetailsView.tapLongButton();
-  openOrderScreenTimer.stop();
-  performanceTracker.addTimer(openOrderScreenTimer);
+  await openOrderScreenTimer.measure(() =>
+    PerpsMarketDetailsView.tapLongButton(),
+  );
 
   // Set leverage to 40x
-  setLeverageTimer.start();
-  await PerpsOrderView.setLeverage(40);
-  setLeverageTimer.stop();
-  performanceTracker.addTimer(setLeverageTimer);
+  await setLeverageTimer.measure(() => PerpsOrderView.setLeverage(40));
 
-  openPositionTimer.start();
-  await PerpsOrderView.tapPlaceOrder();
-  openPositionTimer.stop();
-  performanceTracker.addTimer(openPositionTimer);
+  await openPositionTimer.measure(() => PerpsOrderView.tapPlaceOrder());
 
   // Close Position
-  closePositionTimer.start();
-  await PerpsPositionDetailsView.closePositionWithRetry();
-  closePositionTimer.stop();
-  performanceTracker.addTimer(closePositionTimer);
+  await closePositionTimer.measure(() =>
+    PerpsPositionDetailsView.closePositionWithRetry(),
+  );
 
+  performanceTracker.addTimers(
+    selectPerpsMainScreenTimer,
+    skipTutorialTimer,
+    selectMarketTimer,
+    openOrderScreenTimer,
+    setLeverageTimer,
+    openPositionTimer,
+    closePositionTimer,
+  );
   await performanceTracker.attachToTest(testInfo);
 });

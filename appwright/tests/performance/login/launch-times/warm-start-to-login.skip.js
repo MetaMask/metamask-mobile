@@ -33,11 +33,12 @@ test('Measure Warm Start: Warm Start to Login Screen', async ({
     'Time since the user open the app again and the login screen appears',
   );
   await AppwrightGestures.backgroundApp(device, 30);
-  timer1.start();
-  await AppwrightGestures.activateApp(device);
-  await dismissMultichainAccountsIntroModal(device);
-  await LoginScreen.waitForScreenToDisplay();
-  timer1.stop();
+  await timer1.measure(async () => {
+    await AppwrightGestures.activateApp(device);
+    await dismissMultichainAccountsIntroModal(device);
+    await LoginScreen.waitForScreenToDisplay();
+  });
+
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });

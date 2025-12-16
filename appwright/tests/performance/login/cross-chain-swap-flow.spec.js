@@ -39,9 +39,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   );
 
   await WalletMainScreen.tapSwapButton();
-  timer1.start();
-  await BridgeScreen.isVisible();
-  timer1.stop();
+  await timer1.measure(() => BridgeScreen.isVisible());
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
   await BridgeScreen.enterSourceTokenAmount('1');
@@ -50,10 +48,8 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     'Time since the user enters the amount until the quote is displayed',
   );
 
-  timer2.start();
-  await BridgeScreen.isQuoteDisplayed();
-  timer2.stop();
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
+  await timer2.measure(() => BridgeScreen.isQuoteDisplayed());
+
+  performanceTracker.addTimers(timer1, timer2);
   await performanceTracker.attachToTest(testInfo);
 });

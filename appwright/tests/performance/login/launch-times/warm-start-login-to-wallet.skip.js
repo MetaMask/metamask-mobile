@@ -54,9 +54,8 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',
   );
-  timer1.start();
-  await WalletMainScreen.isMainWalletViewVisible();
-  timer1.stop();
+  await timer1.measure(() => WalletMainScreen.isMainWalletViewVisible());
+
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });

@@ -64,11 +64,11 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   await NetworksScreen.selectNetwork('Ethereum');
 
   await WalletMainScreen.tapOnToken('USDC');
-  assetViewScreen.start();
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  await TokenOverviewScreen.isTodaysChangeVisible();
-  await TokenOverviewScreen.isSendButtonVisible();
-  assetViewScreen.stop();
+  await assetViewScreen.measure(async () => {
+    await TokenOverviewScreen.isTokenOverviewVisible();
+    await TokenOverviewScreen.isTodaysChangeVisible();
+    await TokenOverviewScreen.isSendButtonVisible();
+  });
 
   performanceTracker.addTimer(assetViewScreen);
 

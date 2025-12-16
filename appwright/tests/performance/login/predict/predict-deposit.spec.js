@@ -48,58 +48,54 @@ test('Predict Deposit - Complete Flow Performance', async ({
   const timer1 = new TimerHelper(
     'Time since user taps Predict button until Predict Market List is displayed',
   );
-  timer1.start();
-  await WalletActionModal.tapPredictButton();
-  await PredictMarketListScreen.isContainerDisplayed();
-  timer1.stop();
+  await timer1.measure(async () => {
+    await WalletActionModal.tapPredictButton();
+    await PredictMarketListScreen.isContainerDisplayed();
+  });
 
   // Timer 2: Open deposit screen
   const timer2 = new TimerHelper(
     'Time since user taps Add Funds button until Deposit screen is displayed',
   );
-  timer2.start();
-  await PredictMarketListScreen.tapAddFundsButton();
-  await PredictDepositScreen.isAmountInputVisible();
-  timer2.stop();
+  await timer2.measure(async () => {
+    await PredictMarketListScreen.tapAddFundsButton();
+    await PredictDepositScreen.isAmountInputVisible();
+  });
 
   // Timer 3: Change default asset
   const timer3 = new TimerHelper(
     'Time since user taps Pay With button until select payment method modal appears',
   );
-  timer3.start();
-  await PredictDepositScreen.tapPayWith();
-  // Wait for asset selection modal to appear
-  await PredictDepositScreen.isSelectPaymentVisible();
-  timer3.stop();
+  await timer3.measure(async () => {
+    await PredictDepositScreen.tapPayWith();
+    // Wait for asset selection modal to appear
+    await PredictDepositScreen.isSelectPaymentVisible();
+  });
 
   // Timer 4: Search, select and enter amount for asseet to pay
   const timer4 = new TimerHelper(
     'Time user search, select and enter amount for asseet to pay',
   );
-  timer4.start();
-  // Search for USDC and select the first visible option
-  await PredictDepositScreen.searchToken('USDC');
-  await PredictDepositScreen.tapEthereumFilter();
-  await PredictDepositScreen.tapFirstUsdc('USDC');
-  await PredictDepositScreen.fillUsdAmount('1');
-  timer4.stop();
+  await timer4.measure(async () => {
+    // Search for USDC and select the first visible option
+    await PredictDepositScreen.searchToken('USDC');
+    await PredictDepositScreen.tapEthereumFilter();
+    await PredictDepositScreen.tapFirstUsdc('USDC');
+    await PredictDepositScreen.fillUsdAmount('1');
+  });
 
   // Timer 5: Proceed to confirmation screen
   const timer5 = new TimerHelper(
     'Time since user taps Continue until Confirmation screen is displayed',
   );
-  timer5.start();
-  await PredictDepositScreen.tapContinue();
-  await PredictConfirmationScreen.verifyDepositAmount('1');
-  await PredictConfirmationScreen.verifyFeesDisplayed();
-  timer5.stop();
+  await timer5.measure(async () => {
+    await PredictDepositScreen.tapContinue();
+    await PredictConfirmationScreen.verifyDepositAmount('1');
+    await PredictConfirmationScreen.verifyFeesDisplayed();
+  });
 
   // Add all timers to performance tracker
-  await performanceTracker.addTimer(timer1);
-  await performanceTracker.addTimer(timer2);
-  await performanceTracker.addTimer(timer3);
-  await performanceTracker.addTimer(timer4);
-  await performanceTracker.addTimer(timer5);
+  performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer5);
 
   // Attach performance metrics to test report
   await performanceTracker.attachToTest(testInfo);

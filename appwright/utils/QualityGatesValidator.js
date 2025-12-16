@@ -1,42 +1,18 @@
 /**
  * Quality Gates Validator
  *
- * Validates performance metrics against thresholds defined in quality-gates.json.
+ * Validates performance metrics against thresholds defined in TimerHelper instances.
+ * Each timer can have its own threshold (base + 10% margin).
  * Designed to be used in the reporter when generating reports.
  */
-
-/* eslint-disable import/no-nodejs-modules */
-import fs from 'fs';
-import path from 'path';
-
-/**
- * Load quality gates configuration from JSON file
- * @returns {Object} Quality gates configuration
- */
-function loadQualityGatesConfig() {
-  // Build path relative to the appwright directory
-  const configPath = path.join(
-    process.cwd(),
-    'appwright',
-    'config',
-    'quality-gates.json',
-  );
-
-  if (!fs.existsSync(configPath)) {
-    console.warn('⚠️ Quality gates config not found:', configPath);
-    return { defaults: {}, tests: {} };
-  }
-
-  const configContent = fs.readFileSync(configPath, 'utf-8');
-  return JSON.parse(configContent);
-}
 
 /**
  * @typedef {Object} StepResult
  * @property {number} index - Step index (0-based)
  * @property {string} name - Step name/description
  * @property {number} duration - Actual duration in ms
- * @property {number|null} threshold - Applied threshold in ms
+ * @property {number|null} threshold - Applied threshold in ms (with 10% margin)
+ * @property {number|null} baseThreshold - Original threshold without margin
  * @property {boolean} passed - Whether this step passed
  * @property {number|null} exceeded - Amount exceeded (null if passed)
  * @property {string|null} percentOver - Percentage over threshold
@@ -45,7 +21,7 @@ function loadQualityGatesConfig() {
 /**
  * @typedef {Object} QualityGatesResult
  * @property {boolean} passed - Whether all thresholds passed
- * @property {boolean} hasThresholds - Whether thresholds are defined for this test
+ * @property {boolean} hasThresholds - Whether any timer has thresholds defined
  * @property {Array<StepResult>} steps - All steps with their validation results
  * @property {Object} totalResult - Total duration validation result
  * @property {Array<Object>} violations - List of threshold violations
@@ -53,41 +29,25 @@ function loadQualityGatesConfig() {
  */
 
 class QualityGatesValidator {
-  constructor() {
-    this.config = loadQualityGatesConfig();
-  }
-
   /**
-   * Check if quality gates are defined for a test
-   * @param {string} testName - The test title
+   * Check if any timer has quality gates defined
+   * @param {Array<Object>} timers - Array of TimerHelper instances
    * @returns {boolean}
    */
-  hasQualityGates(testName) {
-    return testName in this.config.tests;
+  hasQualityGates(timers) {
+    return timers.some((timer) => timer.hasThreshold());
   }
 
   /**
-   * Get thresholds for a specific test
+   * Validate timers against their defined thresholds
    * @param {string} testName - The test title
-   * @returns {Object|null}
-   */
-  getTestThresholds(testName) {
-    return this.config.tests[testName] || null;
-  }
-
-  /**
-   * Validate metrics from a test against quality gate thresholds
-   * @param {string} testName - The test title
-   * @param {Array<Object>} steps - Array of step objects [{stepName: duration}, ...]
-   * @param {number} totalDuration - Total duration in seconds
-   * @param {Object} options - Validation options
+   * @param {Array<Object>} timers - Array of TimerHelper instances
    * @returns {QualityGatesResult}
    */
-  validate(testName, steps, totalDuration, options = {}) {
-    const { useDefaults = true } = options;
+  validateTimers(testName, timers) {
+    const hasThresholds = this.hasQualityGates(timers);
 
-    // Check if quality gates are defined for this test
-    if (!this.hasQualityGates(testName)) {
+    if (!hasThresholds) {
       return {
         passed: true,
         hasThresholds: false,
@@ -96,31 +56,28 @@ class QualityGatesValidator {
         violations: [],
         summary: {
           testName,
-          message: 'No quality gates defined for this test',
+          message: 'No thresholds defined for any timer in this test',
         },
       };
     }
 
-    const testThresholds = this.getTestThresholds(testName);
-    const defaults = this.config.defaults;
     const violations = [];
     const stepResults = [];
+    let totalDurationMs = 0;
+    let totalThresholdMs = 0;
+    let allTimersHaveThresholds = true;
 
-    // Convert total duration from seconds to ms for comparison
-    const totalDurationMs = totalDuration * 1000;
+    // Validate each timer
+    timers.forEach((timer, index) => {
+      const duration = timer.getDuration() || 0;
+      const threshold = timer.threshold;
+      const baseThreshold = timer.baseThreshold;
 
-    // Validate each step
-    steps.forEach((stepObject, index) => {
-      const [stepName, duration] = Object.entries(stepObject)[0];
-
-      // Determine threshold for this step
-      let threshold = null;
-      if (testThresholds.stepThresholds?.[index] !== undefined) {
-        threshold = testThresholds.stepThresholds[index];
-      } else if (testThresholds.maxStepDuration !== undefined) {
-        threshold = testThresholds.maxStepDuration;
-      } else if (useDefaults && defaults.maxStepDuration) {
-        threshold = defaults.maxStepDuration;
+      totalDurationMs += duration;
+      if (threshold !== null) {
+        totalThresholdMs += threshold;
+      } else {
+        allTimersHaveThresholds = false;
       }
 
       const passed = threshold === null || duration <= threshold;
@@ -130,9 +87,10 @@ class QualityGatesValidator {
 
       const stepResult = {
         index,
-        name: stepName,
+        name: timer.id,
         duration,
         threshold,
+        baseThreshold,
         passed,
         exceeded,
         percentOver,
@@ -144,9 +102,10 @@ class QualityGatesValidator {
         violations.push({
           type: 'step',
           stepIndex: index,
-          stepName,
+          stepName: timer.id,
           actual: duration,
           threshold,
+          baseThreshold,
           exceeded,
           percentOver,
           message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
@@ -154,25 +113,21 @@ class QualityGatesValidator {
       }
     });
 
-    // Validate total duration
+    // Calculate total threshold only if all timers have thresholds
     let totalResult = null;
-    const totalThreshold =
-      testThresholds.totalThreshold ||
-      (useDefaults ? defaults.maxTotalDuration : null);
-
-    if (totalThreshold) {
-      const totalPassed = totalDurationMs <= totalThreshold;
+    if (allTimersHaveThresholds && totalThresholdMs > 0) {
+      const totalPassed = totalDurationMs <= totalThresholdMs;
       const totalExceeded = !totalPassed
-        ? totalDurationMs - totalThreshold
+        ? totalDurationMs - totalThresholdMs
         : null;
       const totalPercentOver =
         totalExceeded !== null
-          ? ((totalExceeded / totalThreshold) * 100).toFixed(1)
+          ? ((totalExceeded / totalThresholdMs) * 100).toFixed(1)
           : null;
 
       totalResult = {
         duration: totalDurationMs,
-        threshold: totalThreshold,
+        threshold: totalThresholdMs,
         passed: totalPassed,
         exceeded: totalExceeded,
         percentOver: totalPercentOver,
@@ -182,10 +137,10 @@ class QualityGatesValidator {
         violations.push({
           type: 'total',
           actual: totalDurationMs,
-          threshold: totalThreshold,
+          threshold: totalThresholdMs,
           exceeded: totalExceeded,
           percentOver: totalPercentOver,
-          message: `Total duration exceeded: ${totalDurationMs}ms > ${totalThreshold}ms (+${totalExceeded}ms / +${totalPercentOver}%)`,
+          message: `Total duration exceeded: ${totalDurationMs}ms > ${totalThresholdMs}ms (+${totalExceeded}ms / +${totalPercentOver}%)`,
         });
       }
     }
@@ -204,7 +159,7 @@ class QualityGatesValidator {
         passedSteps,
         failedSteps: stepResults.length - passedSteps,
         totalDurationMs,
-        totalThreshold,
+        totalThreshold: allTimersHaveThresholds ? totalThresholdMs : null,
       },
     };
   }
@@ -236,7 +191,9 @@ class QualityGatesValidator {
 
     for (const step of result.steps) {
       const status = step.passed ? '✅' : '❌';
-      const thresholdStr = step.threshold ? `${step.threshold}ms` : 'N/A';
+      const thresholdStr = step.threshold
+        ? `${step.threshold}ms (base: ${step.baseThreshold}ms +10%)`
+        : 'N/A';
       lines.push(
         `${status} Step ${step.index + 1}: ${step.duration}ms [threshold: ${thresholdStr}]`,
       );
@@ -292,7 +249,9 @@ class QualityGatesValidator {
       .map((step) => {
         const stepStatus = step.passed ? '✅' : '❌';
         const rowStyle = step.passed ? '' : 'background-color: #ffebee;';
-        const thresholdStr = step.threshold ? `${step.threshold}ms` : 'N/A';
+        const thresholdStr = step.threshold
+          ? `${step.threshold}ms<br><small style="color: #666;">(base: ${step.baseThreshold}ms)</small>`
+          : 'N/A';
         const exceededStr =
           step.exceeded !== null
             ? `<br><small style="color: #dc3545;">+${step.exceeded}ms (+${step.percentOver}%)</small>`
@@ -338,12 +297,15 @@ class QualityGatesValidator {
           <p style="margin: 5px 0 0 0;">
             Steps: ${result.summary.passedSteps}/${result.summary.totalSteps} passed
           </p>
+          <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #666;">
+            Thresholds include +10% margin
+          </p>
         </div>
         <table style="border-collapse: collapse; width: 100%;">
           <tr>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Step</th>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Duration</th>
-            <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Threshold</th>
+            <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Threshold (+10%)</th>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Result</th>
           </tr>
           ${stepsHtml}
@@ -365,6 +327,123 @@ class QualityGatesValidator {
   }
 
   /**
+   * Validate metrics from the reporter (steps already include thresholds)
+   * @param {string} testName - The test title
+   * @param {Array<Object>} steps - Array of step objects with name, duration, threshold, baseThreshold
+   * @param {number} totalDuration - Total duration in seconds
+   * @param {number|null} totalThreshold - Total threshold in ms (sum of all thresholds)
+   * @returns {QualityGatesResult}
+   */
+  validateMetrics(testName, steps, totalDuration, totalThreshold) {
+    const hasThresholds = steps.some((step) => step.threshold !== null);
+
+    if (!hasThresholds) {
+      return {
+        passed: true,
+        hasThresholds: false,
+        steps: [],
+        totalResult: null,
+        violations: [],
+        summary: {
+          testName,
+          message: 'No thresholds defined for any step in this test',
+        },
+      };
+    }
+
+    const violations = [];
+    const stepResults = [];
+    const totalDurationMs = totalDuration * 1000;
+
+    // Validate each step
+    steps.forEach((step, index) => {
+      const { name, duration, threshold, baseThreshold } = step;
+
+      const passed = threshold === null || duration <= threshold;
+      const exceeded = !passed ? duration - threshold : null;
+      const percentOver =
+        exceeded !== null ? ((exceeded / threshold) * 100).toFixed(1) : null;
+
+      const stepResult = {
+        index,
+        name,
+        duration,
+        threshold,
+        baseThreshold,
+        passed,
+        exceeded,
+        percentOver,
+      };
+
+      stepResults.push(stepResult);
+
+      if (!passed) {
+        violations.push({
+          type: 'step',
+          stepIndex: index,
+          stepName: name,
+          actual: duration,
+          threshold,
+          baseThreshold,
+          exceeded,
+          percentOver,
+          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
+        });
+      }
+    });
+
+    // Validate total duration
+    let totalResult = null;
+    if (totalThreshold !== null) {
+      const totalPassed = totalDurationMs <= totalThreshold;
+      const totalExceeded = !totalPassed
+        ? totalDurationMs - totalThreshold
+        : null;
+      const totalPercentOver =
+        totalExceeded !== null
+          ? ((totalExceeded / totalThreshold) * 100).toFixed(1)
+          : null;
+
+      totalResult = {
+        duration: totalDurationMs,
+        threshold: totalThreshold,
+        passed: totalPassed,
+        exceeded: totalExceeded,
+        percentOver: totalPercentOver,
+      };
+
+      if (!totalPassed) {
+        violations.push({
+          type: 'total',
+          actual: totalDurationMs,
+          threshold: totalThreshold,
+          exceeded: totalExceeded,
+          percentOver: totalPercentOver,
+          message: `Total duration exceeded: ${totalDurationMs}ms > ${totalThreshold}ms (+${totalExceeded}ms / +${totalPercentOver}%)`,
+        });
+      }
+    }
+
+    const passedSteps = stepResults.filter((s) => s.passed).length;
+
+    return {
+      passed: violations.length === 0,
+      hasThresholds: true,
+      steps: stepResults,
+      totalResult,
+      violations,
+      summary: {
+        testName,
+        totalSteps: stepResults.length,
+        passedSteps,
+        failedSteps: stepResults.length - passedSteps,
+        totalDurationMs,
+        totalThreshold,
+      },
+    };
+  }
+
+  /**
    * Generate CSV rows for quality gates result
    * @param {QualityGatesResult} result
    * @returns {Array<string>}
@@ -377,19 +456,21 @@ class QualityGatesValidator {
       return rows;
     }
 
-    rows.push('---,---,---,---');
-    rows.push('QUALITY GATES VALIDATION,,,');
+    rows.push('---,---,---,---,---');
+    rows.push('QUALITY GATES VALIDATION,,,,');
     rows.push(
-      `Status,${result.passed ? 'PASSED' : 'FAILED'},Steps Passed,${result.summary.passedSteps}/${result.summary.totalSteps}`,
+      `Status,${result.passed ? 'PASSED' : 'FAILED'},Steps Passed,${result.summary.passedSteps}/${result.summary.totalSteps},`,
     );
-    rows.push('Step,Duration (ms),Threshold (ms),Result');
+    rows.push(
+      'Step,Duration (ms),Base Threshold (ms),Effective Threshold (+10%),Result',
+    );
 
     for (const step of result.steps) {
       const resultStr = step.passed
         ? 'Pass'
         : `Fail (+${step.exceeded}ms / +${step.percentOver}%)`;
       rows.push(
-        `"Step ${step.index + 1}: ${step.name}",${step.duration},${step.threshold || 'N/A'},${resultStr}`,
+        `"Step ${step.index + 1}: ${step.name}",${step.duration},${step.baseThreshold || 'N/A'},${step.threshold || 'N/A'},${resultStr}`,
       );
     }
 
@@ -398,7 +479,7 @@ class QualityGatesValidator {
         ? 'Pass'
         : `Fail (+${result.totalResult.exceeded}ms / +${result.totalResult.percentOver}%)`;
       rows.push(
-        `TOTAL,${result.totalResult.duration},${result.totalResult.threshold},${totalResultStr}`,
+        `TOTAL,${result.totalResult.duration},-,${result.totalResult.threshold},${totalResultStr}`,
       );
     }
 
@@ -407,7 +488,7 @@ class QualityGatesValidator {
 
   /**
    * Static method to validate timers directly from the fixture
-   * Converts timers to steps format and validates
+   * Uses thresholds defined in each timer
    * @param {string} testName - The test title
    * @param {Array<Object>} timers - Array of TimerHelper instances
    * @throws {Error} If any threshold is exceeded
@@ -415,25 +496,12 @@ class QualityGatesValidator {
   static assertThresholds(testName, timers) {
     const validator = new QualityGatesValidator();
 
-    if (!validator.hasQualityGates(testName)) {
-      console.log(`⚠️ No quality gates defined for: ${testName}`);
+    if (!validator.hasQualityGates(timers)) {
+      console.log(`⚠️ No thresholds defined for any timer in: ${testName}`);
       return;
     }
 
-    // Convert timers to steps format
-    const steps = timers.map((timer) => {
-      const duration = timer.getDuration();
-      return { [timer.id]: duration };
-    });
-
-    // Calculate total duration in seconds
-    const totalDurationMs = timers.reduce((sum, timer) => {
-      const duration = timer.getDuration();
-      return sum + (duration || 0);
-    }, 0);
-    const totalDurationSec = totalDurationMs / 1000;
-
-    const result = validator.validate(testName, steps, totalDurationSec);
+    const result = validator.validateTimers(testName, timers);
 
     console.log(validator.formatConsoleReport(result));
 
@@ -450,13 +518,13 @@ class QualityGatesValidator {
 }
 
 /**
- * Check if quality gates are defined for a test (standalone function for imports)
- * @param {string} testName - The test title
+ * Check if any timer has quality gates defined (standalone function for imports)
+ * @param {Array<Object>} timers - Array of TimerHelper instances
  * @returns {boolean}
  */
-export function hasQualityGates(testName) {
+export function hasQualityGates(timers) {
   const validator = new QualityGatesValidator();
-  return validator.hasQualityGates(testName);
+  return validator.hasQualityGates(timers);
 }
 
 export default QualityGatesValidator;
