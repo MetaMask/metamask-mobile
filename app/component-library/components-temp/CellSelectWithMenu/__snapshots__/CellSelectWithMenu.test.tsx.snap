@@ -299,7 +299,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
   <View
     style={
       {
-        "paddingRight": 4,
+        "paddingRight": 8,
       }
     }
   >

@@ -72,7 +72,7 @@ const styleSheet = (params: {
       paddingTop: 32,
     },
     buttonIcon: {
-      paddingRight: 4,
+      paddingRight: 8,
     },
   });
 };

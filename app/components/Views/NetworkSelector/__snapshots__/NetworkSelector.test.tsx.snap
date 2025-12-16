@@ -2224,7 +2224,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >
@@ -2442,7 +2442,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >
@@ -2660,7 +2660,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >
@@ -2878,7 +2878,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >
@@ -3096,7 +3096,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >
@@ -3317,7 +3317,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 4,
+                                        "paddingRight": 8,
                                       }
                                     }
                                   >

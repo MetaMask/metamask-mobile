@@ -53,7 +53,7 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
   <View
     style={
       {
-        "paddingRight": 4,
+        "paddingRight": 8,
       }
     }
   >
