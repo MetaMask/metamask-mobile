@@ -441,7 +441,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                   "paddingVertical": 0,
                                 },
                               ]
@@ -1002,7 +1002,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                   "paddingVertical": 0,
                                 },
                               ]

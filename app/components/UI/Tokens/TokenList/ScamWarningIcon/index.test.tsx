@@ -78,4 +78,22 @@ describe('ScamWarningIcon', () => {
 
     expect(toJSON()).toBeNull();
   });
+
+  it('renders null when token validation is loading', () => {
+    (useIsOriginalNativeTokenSymbol as jest.Mock).mockReturnValue(null);
+
+    const asset = {
+      chainId: '0x1',
+      isETH: true,
+    } as unknown as TokenI & { chainId: string };
+
+    const { toJSON } = renderWithProvider(
+      <ScamWarningIcon
+        asset={asset}
+        setShowScamWarningModal={mockSetShowScamWarningModal}
+      />,
+    );
+
+    expect(toJSON()).toBeNull();
+  });
 });
