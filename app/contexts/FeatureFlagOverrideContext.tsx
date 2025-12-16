@@ -86,8 +86,8 @@ export const FeatureFlagOverrideProvider: React.FC<
   const featureFlags = useMemo(() => {
     // Get all unique keys from both raw and overridden flags
     const allKeys = new Set([
-      ...Object.keys(rawFeatureFlags),
-      ...Object.keys(featureFlagsWithOverrides),
+      ...Object.keys(rawFeatureFlags || {}),
+      ...Object.keys(featureFlagsWithOverrides || {}),
     ]);
     const allFlags: { [key: string]: FeatureFlagInfo } = {};
 
