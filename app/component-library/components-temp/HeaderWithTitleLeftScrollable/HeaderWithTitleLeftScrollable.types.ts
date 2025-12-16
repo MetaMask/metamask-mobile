@@ -66,11 +66,6 @@ export interface UseHeaderWithTitleLeftScrollableOptions {
    */
   expandedHeight?: number;
   /**
-   * Height of the header in its collapsed (compact) state.
-   * @default 48
-   */
-  collapsedHeight?: number;
-  /**
    * Scroll position at which the header fully collapses.
    * @default expandedHeight
    */

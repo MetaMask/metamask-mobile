@@ -64,7 +64,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-container')).toBeTruthy();
+      expect(getByTestId('test-container')).toBeOnTheScreen();
     });
   });
 
@@ -83,7 +83,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-back-button')).toBeTruthy();
+      expect(getByTestId('test-back-button')).toBeOnTheScreen();
     });
 
     it('renders back button when backButtonProps provided', () => {
@@ -102,7 +102,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-back-button')).toBeTruthy();
+      expect(getByTestId('test-back-button')).toBeOnTheScreen();
     });
   });
 
@@ -120,7 +120,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByText('Custom Content')).toBeTruthy();
+      expect(getByText('Custom Content')).toBeOnTheScreen();
     });
 
     it('titleLeft takes priority over titleLeftProps', () => {
@@ -137,7 +137,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByText('Custom Node')).toBeTruthy();
+      expect(getByText('Custom Node')).toBeOnTheScreen();
       expect(queryByText('Props Title')).toBeNull();
     });
   });
@@ -156,7 +156,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('custom-header')).toBeTruthy();
+      expect(getByTestId('custom-header')).toBeOnTheScreen();
     });
 
     it('accepts custom scrollTriggerPosition', () => {
@@ -173,7 +173,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-container')).toBeTruthy();
+      expect(getByTestId('test-container')).toBeOnTheScreen();
     });
   });
 });
