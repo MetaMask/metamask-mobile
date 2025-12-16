@@ -117,8 +117,11 @@ export class PerformanceTracker {
   }
 
   async attachToTest(testInfo) {
+    const THRESHOLD_MARGIN_PERCENT = 10;
     const metrics = {
       steps: [],
+      timestamp: new Date().toISOString(),
+      thresholdMarginPercent: THRESHOLD_MARGIN_PERCENT,
     };
     let totalSeconds = 0;
     let totalThresholdMs = 0;
@@ -129,12 +132,28 @@ export class PerformanceTracker {
       const durationInSeconds = timer.getDurationInSeconds();
 
       if (duration !== null && !isNaN(duration) && duration > 0) {
-        // Create a step object with timer info including thresholds
+        const hasThreshold = timer.threshold !== null;
+        const passed = !hasThreshold || duration <= timer.threshold;
+        const exceeded =
+          hasThreshold && !passed ? duration - timer.threshold : null;
+        const percentOver =
+          exceeded !== null
+            ? ((exceeded / timer.threshold) * 100).toFixed(1)
+            : null;
+
+        // Create a step object with timer info including thresholds and validation
         const stepObject = {
           name: timer.id,
           duration,
           baseThreshold: timer.baseThreshold,
           threshold: timer.threshold, // Includes +10% margin
+          validation: hasThreshold
+            ? {
+                passed,
+                exceeded,
+                percentOver: percentOver ? `${percentOver}%` : null,
+              }
+            : null,
         };
         metrics.steps.push(stepObject);
 
@@ -151,6 +170,27 @@ export class PerformanceTracker {
     metrics.total = totalSeconds;
     metrics.totalThreshold = allHaveThresholds ? totalThresholdMs : null;
     metrics.hasThresholds = this.timers.some((t) => t.hasThreshold());
+
+    // Add total validation if all steps have thresholds
+    if (allHaveThresholds && totalThresholdMs > 0) {
+      const totalDurationMs = totalSeconds * 1000;
+      const totalPassed = totalDurationMs <= totalThresholdMs;
+      const totalExceeded = !totalPassed
+        ? totalDurationMs - totalThresholdMs
+        : null;
+      const totalPercentOver =
+        totalExceeded !== null
+          ? ((totalExceeded / totalThresholdMs) * 100).toFixed(1)
+          : null;
+
+      metrics.totalValidation = {
+        passed: totalPassed,
+        exceeded: totalExceeded,
+        percentOver: totalPercentOver ? `${totalPercentOver}%` : null,
+      };
+    } else {
+      metrics.totalValidation = null;
+    }
 
     // Safely get device info with fallbacks
     const deviceInfo = testInfo?.project?.use?.device;

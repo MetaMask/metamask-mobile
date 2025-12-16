@@ -484,19 +484,52 @@ class CustomReporter {
               <table>
                 <tr>
                   <th>Steps</th>
-                  <th>Time (ms)</th>
+                  <th>Duration</th>
+                  <th>Threshold</th>
+                  <th>Status</th>
                 </tr>
                 ${
                   test.steps && Array.isArray(test.steps)
-                    ? // New array structure with steps
-                      test.steps
+                    ? test.steps
                         .map((stepObject) => {
+                          // Handle new format with threshold info
+                          if (stepObject.name !== undefined) {
+                            const { name, duration, threshold, baseThreshold } =
+                              stepObject;
+                            const hasThreshold =
+                              threshold !== null && threshold !== undefined;
+                            const passed =
+                              !hasThreshold || duration <= threshold;
+                            const statusIcon = hasThreshold
+                              ? passed
+                                ? '✅'
+                                : '❌'
+                              : '—';
+                            const rowStyle =
+                              hasThreshold && !passed
+                                ? 'background-color: #ffebee;'
+                                : '';
+                            const thresholdStr = hasThreshold
+                              ? `${threshold}ms<br><small style="color: #666;">(base: ${baseThreshold}ms)</small>`
+                              : '—';
+                            return `
+                        <tr style="${rowStyle}">
+                          <td>${name}</td>
+                          <td>${duration} ms</td>
+                          <td>${thresholdStr}</td>
+                          <td>${statusIcon}</td>
+                        </tr>
+                      `;
+                          }
+                          // Handle old format {stepName: duration}
                           const [stepName, duration] =
                             Object.entries(stepObject)[0];
                           return `
                         <tr>
                           <td>${stepName}</td>
                           <td>${duration} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `;
                         })
@@ -509,6 +542,8 @@ class CustomReporter {
                         <tr>
                           <td>${stepName}</td>
                           <td>${duration} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `,
                           )
@@ -531,6 +566,8 @@ class CustomReporter {
                         <tr>
                           <td>${key}</td>
                           <td>${value} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `,
                           )
@@ -539,6 +576,8 @@ class CustomReporter {
                 <tr class="total">
                   <td>TOTAL TIME</td>
                   <td>${test.total} s</td>
+                  <td>${test.totalThreshold ? `${(test.totalThreshold / 1000).toFixed(2)} s` : '—'}</td>
+                  <td>${test.totalThreshold ? (test.total * 1000 <= test.totalThreshold ? '✅' : '❌') : '—'}</td>
                 </tr>
                 ${
                   test.testFailed
