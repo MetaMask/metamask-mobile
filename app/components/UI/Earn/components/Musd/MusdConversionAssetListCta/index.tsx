@@ -19,6 +19,8 @@ import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
@@ -29,9 +31,8 @@ import {
 import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
+import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
+import { useSelector } from 'react-redux';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -39,6 +40,9 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -64,6 +68,10 @@ const MusdConversionAssetListCta = () => {
     shouldShowBuyGetMusdCta();
 
   const networkName = useNetworkName(selectedChainId ?? undefined);
+
+  const navigation = useNavigation();
+
+  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   const buttonText =
     variant === BUY_GET_MUSD_CTA_VARIANT.BUY
@@ -128,6 +136,13 @@ const MusdConversionAssetListCta = () => {
     }
 
     try {
+      if (isQuickConvertEnabled) {
+        navigation.navigate(Routes.EARN.ROOT, {
+          screen: Routes.EARN.MUSD.QUICK_CONVERT,
+        });
+        return;
+      }
+
       await initiateConversion({
         preferredPaymentToken: paymentToken,
       });
