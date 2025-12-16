@@ -69,7 +69,6 @@ jest.mock('../../../core/Authentication', () => ({
     currentAuthType: 'passcode',
     availableBiometryType: null,
   }),
-  getPassword: jest.fn().mockResolvedValue(null),
   resetPassword: jest.fn().mockResolvedValue(undefined),
   storePassword: jest.fn().mockResolvedValue(undefined),
   storePasswordWithFallback: jest.fn().mockResolvedValue(undefined),
@@ -85,6 +84,11 @@ jest.mock('../../../core/Authentication', () => ({
     ),
   checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   lockApp: jest.fn().mockResolvedValue(undefined),
+  reauthenticate: jest
+    .fn()
+    .mockImplementation((password?: string) =>
+      Promise.resolve(password ?? 'CurrentPassword123'),
+    ),
   authData: {
     currentAuthType: 'passcode',
   },
