@@ -161,11 +161,11 @@ describe('HeaderWithTitleLeft', () => {
     });
 
     it('does not render back button when neither onBack nor backButtonProps provided', () => {
-      const { queryByTestId } = render(
+      const { queryByLabelText } = render(
         <HeaderWithTitleLeft titleLeftProps={{ title: 'Test' }} />,
       );
 
-      expect(queryByTestId(TEST_IDS.BACK_BUTTON)).toBeNull();
+      expect(queryByLabelText('Arrow Left')).toBeNull();
     });
   });
 
