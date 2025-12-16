@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, renderHook } from '@testing-library/react-native';
 import { useSharedValue, SharedValue } from 'react-native-reanimated';
 import { Text } from 'react-native';
 
@@ -37,7 +37,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
 
   describe('rendering', () => {
     it('renders with title', () => {
-      const { getByText } = render(
+      const { getAllByText } = render(
         <TestWrapper>
           {(scrollYValue) => (
             <HeaderWithTitleLeftScrollable
@@ -48,7 +48,7 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByText('Test Title')).toBeTruthy();
+      expect(getAllByText('Test Title').length).toBeGreaterThan(0);
     });
 
     it('renders container with testID when provided', () => {
@@ -180,41 +180,47 @@ describe('HeaderWithTitleLeftScrollable', () => {
 
 describe('useHeaderWithTitleLeftScrollable', () => {
   it('returns onScroll handler', () => {
-    const result = useHeaderWithTitleLeftScrollable();
+    const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.onScroll).toBeDefined();
+    expect(result.current.onScroll).toBeDefined();
   });
 
   it('returns scrollY shared value', () => {
-    const result = useHeaderWithTitleLeftScrollable();
+    const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.scrollY).toBeDefined();
-    expect(result.scrollY.value).toBe(0);
+    expect(result.current.scrollY).toBeDefined();
+    expect(result.current.scrollY.value).toBe(0);
   });
 
   it('returns expandedHeight', () => {
-    const result = useHeaderWithTitleLeftScrollable();
+    const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.expandedHeight).toBe(140);
+    expect(result.current.expandedHeight).toBe(140);
   });
 
   it('returns scrollTriggerPosition defaulting to expandedHeight', () => {
-    const result = useHeaderWithTitleLeftScrollable();
+    const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.scrollTriggerPosition).toBe(result.expandedHeight);
+    expect(result.current.scrollTriggerPosition).toBe(
+      result.current.expandedHeight,
+    );
   });
 
   it('uses custom scrollTriggerPosition when provided', () => {
-    const result = useHeaderWithTitleLeftScrollable({
-      scrollTriggerPosition: 80,
-    });
+    const { result } = renderHook(() =>
+      useHeaderWithTitleLeftScrollable({
+        scrollTriggerPosition: 80,
+      }),
+    );
 
-    expect(result.scrollTriggerPosition).toBe(80);
+    expect(result.current.scrollTriggerPosition).toBe(80);
   });
 
   it('uses custom expandedHeight when provided', () => {
-    const result = useHeaderWithTitleLeftScrollable({ expandedHeight: 200 });
+    const { result } = renderHook(() =>
+      useHeaderWithTitleLeftScrollable({ expandedHeight: 200 }),
+    );
 
-    expect(result.expandedHeight).toBe(200);
+    expect(result.current.expandedHeight).toBe(200);
   });
 });
