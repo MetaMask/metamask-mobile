@@ -549,11 +549,11 @@ describe('Perps Feature Flag Selectors', () => {
       },
     });
 
-    describe('default behavior (enabled by default)', () => {
-      it('returns true when remote flag is not set and local env var is not set', () => {
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set and local env var is not set', () => {
         delete process.env.MM_PERPS_ORDER_BOOK_ENABLED;
         const result = selectPerpsOrderBookEnabledFlag(createEmptyFlagsState());
-        expect(result).toBe(true);
+        expect(result).toBe(false);
       });
 
       it('returns true when local env var is explicitly true', () => {
@@ -648,7 +648,7 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(false);
       });
 
-      it('falls back to local flag (true by default) when remote flag is invalid', () => {
+      it('falls back to local flag (false by default) when remote flag is invalid', () => {
         delete process.env.MM_PERPS_ORDER_BOOK_ENABLED;
 
         const stateWithInvalidRemoteFlag = {
@@ -670,7 +670,7 @@ describe('Perps Feature Flag Selectors', () => {
         const result = selectPerpsOrderBookEnabledFlag(
           stateWithInvalidRemoteFlag,
         );
-        expect(result).toBe(true);
+        expect(result).toBe(false);
       });
 
       it('falls back to local flag (false) when remote flag is null and env is false', () => {
@@ -707,7 +707,7 @@ describe('Perps Feature Flag Selectors', () => {
         const result = selectPerpsOrderBookEnabledFlag(
           stateWithUndefinedController,
         );
-        expect(result).toBe(true);
+        expect(result).toBe(false);
       });
     });
   });
