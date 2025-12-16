@@ -12,7 +12,6 @@ const createStyles = (params: {
     // custom network styles
     container: {
       flex: 1,
-      paddingVertical: 12,
     },
     scrollContentContainer: {
       paddingBottom: 100,
@@ -32,6 +31,9 @@ const createStyles = (params: {
       height: 32,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    networkItem: {
+      alignItems: 'center',
     },
   });
 };
