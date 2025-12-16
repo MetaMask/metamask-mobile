@@ -15,10 +15,7 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from './../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from './../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconName,
   IconSize,
@@ -28,7 +25,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
-import Device from '../../../util/device';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
@@ -79,6 +75,15 @@ const CustomNetworkSelector = ({
     });
   }, [navigate]);
 
+  const createAvatarProps = useCallback(
+    (item: CustomNetworkItem) => ({
+      variant: AvatarVariant.Network as const,
+      name: item.name,
+      imageSource: item.imageSource as ImageSourcePropType,
+    }),
+    [],
+  );
+
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
       const {
@@ -122,12 +127,7 @@ const CustomNetworkSelector = ({
             onTextClick={() =>
               openRpcModal && openRpcModal({ chainId, networkName: name })
             }
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource: item.imageSource as ImageSourcePropType,
-              size: AvatarSize.Md,
-            }}
+            avatarProps={createAvatarProps(item)}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
               onButtonClick: handleMenuPress,
@@ -136,11 +136,19 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
+            style={styles.networkItem}
           />
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal, openRpcModal],
+    [
+      selectCustomNetwork,
+      openModal,
+      dismissModal,
+      openRpcModal,
+      createAvatarProps,
+      styles.networkItem,
+    ],
   );
 
   const renderFooter = useCallback(
@@ -177,8 +185,7 @@ const CustomNetworkSelector = ({
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          paddingBottom:
-            safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+          paddingBottom: safeAreaInsets.bottom,
         }}
       />
     </ScrollView>
