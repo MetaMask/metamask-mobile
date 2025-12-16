@@ -233,6 +233,10 @@ const RevealPrivateCredential = ({
     ],
   );
 
+  const revealCredentialWithPassword = () => {
+    revealCredential(password);
+  };
+
   useEffect(() => {
     updateNavBar();
     // Track SRP Reveal screen rendered
@@ -549,7 +553,7 @@ const RevealPrivateCredential = ({
               })}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              onPress={() => revealCredential(password)}
+              onPress={revealCredentialWithPassword}
               style={styles.revealButton}
               testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
             />
@@ -560,7 +564,7 @@ const RevealPrivateCredential = ({
                   ? strings('reveal_credential.private_key_text')
                   : strings('reveal_credential.srp_abbreviation_text'),
               })}
-              onLongPress={() => revealCredential(password)}
+              onLongPress={revealCredentialWithPassword}
             />
           )}
         </>
