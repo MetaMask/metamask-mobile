@@ -88,8 +88,6 @@ import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffe
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import Routes from '../../../constants/navigation/Routes';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import {
   useNetworksByNamespace,
@@ -128,40 +126,10 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    const checkIsSeedlessPasswordOutdated = async () => {
-      if (isSeedlessPasswordOutdated) {
-        // Check for latest seedless password outdated state
-        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated =
-          await Authentication.checkIsSeedlessPasswordOutdated(false);
-        if (!isOutdated) {
-          return;
-        }
-
-        // show seedless password outdated modal and force user to lock app
-        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings('login.seedless_password_outdated_modal_title'),
-            description: strings(
-              'login.seedless_password_outdated_modal_content',
-            ),
-            primaryButtonLabel: strings(
-              'login.seedless_password_outdated_modal_confirm',
-            ),
-            type: 'error',
-            icon: IconName.Danger,
-            isInteractable: false,
-            onPrimaryButtonPress: async () => {
-              await Authentication.lockApp({ locked: true });
-            },
-            closeOnPrimaryButtonPress: true,
-          },
-        });
-      }
-    };
-    checkIsSeedlessPasswordOutdated();
-  }, [isSeedlessPasswordOutdated, props.navigation]);
+    Authentication.checkAndShowSeedlessPasswordOutdatedModal(
+      isSeedlessPasswordOutdated,
+    );
+  }, [isSeedlessPasswordOutdated]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 

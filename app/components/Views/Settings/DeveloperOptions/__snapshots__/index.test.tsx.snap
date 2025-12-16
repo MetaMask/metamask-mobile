@@ -234,7 +234,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     }
                   }
                 >
-                  Developer Options
+                  Developer options
                 </Text>
               </Text>
             </View>
@@ -462,7 +462,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             }
                           }
                         >
-                          Generate a Developer Test Sentry trace.
+                          Generate a developer test Sentry trace.
                         </Text>
                         <TouchableOpacity
                           accessibilityRole="button"
@@ -500,7 +500,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Generate Trace Test
+                            Generate trace test
                           </Text>
                         </TouchableOpacity>
                         <Text
@@ -569,7 +569,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Navigate to Sample Feature
+                            Navigate to sample feature
                           </Text>
                         </TouchableOpacity>
                         <View
