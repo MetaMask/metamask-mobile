@@ -66,6 +66,10 @@ describe('sentinel-api', () => {
     clearSentinelNetworkCache();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('buildUrl', () => {
     it('builds the correct sentinel API URL for a subdomain', () => {
       expect(buildUrl('my-chain')).toBe(
@@ -198,7 +202,7 @@ describe('sentinel-api', () => {
     });
 
     it('fetches fresh data after cache TTL expires', async () => {
-      // Use jest.spyOn so cleanup happens via jest.clearAllMocks() in beforeEach
+      // Spy is restored via jest.restoreAllMocks() in afterEach
       let mockTime = 1000;
       jest.spyOn(Date, 'now').mockImplementation(() => mockTime);
 
