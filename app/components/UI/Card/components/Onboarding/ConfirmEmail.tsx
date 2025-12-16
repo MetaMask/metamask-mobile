@@ -146,7 +146,7 @@ const ConfirmEmail = () => {
         password,
         verificationCode: confirmCode,
         contactVerificationId,
-        countryOfResidence: selectedCountry,
+        countryOfResidence: selectedCountry?.key || '',
         allowMarketing: true,
         allowSms: true,
       });
@@ -314,6 +314,7 @@ const ConfirmEmail = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-email-continue-button"
     />
   );
