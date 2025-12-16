@@ -440,7 +440,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1376,7 +1376,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2312,7 +2312,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -3248,7 +3248,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

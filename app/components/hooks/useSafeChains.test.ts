@@ -5,6 +5,7 @@ import {
   useSafeChains,
   rpcIdentifierUtility,
   SafeChain,
+  resetChainsListCache,
 } from './useSafeChains';
 
 // Mock dependencies
@@ -23,13 +24,13 @@ jest.mock('../../util/Logger', () => ({
 describe('useSafeChains', () => {
   const mockSafeChains: SafeChain[] = [
     {
-      chainId: '1',
+      chainId: 1,
       name: 'Ethereum Mainnet',
       nativeCurrency: { symbol: 'ETH' },
       rpc: ['https://mainnet.infura.io/v3/123'],
     },
     {
-      chainId: '137',
+      chainId: 137,
       name: 'Polygon Mainnet',
       nativeCurrency: { symbol: 'MATIC' },
       rpc: ['https://polygon-rpc.com'],
@@ -38,6 +39,7 @@ describe('useSafeChains', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetChainsListCache();
     global.fetch = jest.fn();
   });
 
@@ -96,18 +98,48 @@ describe('useSafeChains', () => {
     expect(result.current.safeChains).toEqual([]);
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it('clears cache on failure to allow retries', async () => {
+    (useSelector as jest.Mock).mockReturnValue(true);
+    const mockError = new Error('Network error');
+
+    (global.fetch as jest.Mock)
+      .mockRejectedValueOnce(mockError)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockSafeChains),
+      });
+
+    const { result: firstResult, waitForNextUpdate: firstWait } = renderHook(
+      () => useSafeChains(),
+    );
+
+    await firstWait();
+
+    expect(firstResult.current.error).toBe(mockError);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    const { result: secondResult, waitForNextUpdate: secondWait } = renderHook(
+      () => useSafeChains(),
+    );
+
+    await secondWait();
+
+    expect(secondResult.current.safeChains).toEqual(mockSafeChains);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('rpcIdentifierUtility', () => {
   const mockSafeChains: SafeChain[] = [
     {
-      chainId: '1',
+      chainId: 1,
       name: 'Ethereum Mainnet',
       nativeCurrency: { symbol: 'ETH' },
       rpc: ['https://mainnet.infura.io/v3/123'],
     },
     {
-      chainId: '137',
+      chainId: 137,
       name: 'Polygon Mainnet',
       nativeCurrency: { symbol: 'MATIC' },
       rpc: ['https://polygon-rpc.com'],
