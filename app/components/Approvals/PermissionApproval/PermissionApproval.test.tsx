@@ -17,6 +17,8 @@ import {
 import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics.types';
 import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { selectPendingApprovals } from '../../../selectors/approvalController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useMetrics');
@@ -57,6 +59,23 @@ const NAV_DETAILS_MOCK = [
   },
 ];
 
+const useSelectorMocks = {
+  selectPendingApprovals: jest.fn().mockReturnValue({}),
+  selectAccountsLength: jest.fn().mockReturnValue(0),
+};
+
+(useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(
+  (selector: unknown): unknown => {
+    if (selector === selectPendingApprovals) {
+      return useSelectorMocks.selectPendingApprovals();
+    }
+    if (selector === selectAccountsLength) {
+      return useSelectorMocks.selectAccountsLength();
+    }
+    return undefined;
+  },
+);
+
 // TODO: Replace "any" with type
 const mockApprovalRequest = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,11 +83,13 @@ const mockApprovalRequest = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApprovals?: Record<string, ApprovalRequest<any>>,
 ) => {
+  useSelectorMocks.selectPendingApprovals.mockReturnValue(
+    pendingApprovals || {},
+  );
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
-    pendingApprovals: pendingApprovals || {},
     onConfirm: jest.fn(),
     onReject: jest.fn(),
     pageMeta: {},
@@ -90,9 +111,7 @@ const mockCreateAccountConnectNavDetails = (details: any) => {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockAccountsLength = (accountsLength: number) => {
-  (useSelector as jest.MockedFn<typeof useSelector>).mockReturnValue(
-    accountsLength,
-  );
+  useSelectorMocks.selectAccountsLength.mockReturnValue(accountsLength);
 };
 
 const mockTrackEvent = jest.fn();
