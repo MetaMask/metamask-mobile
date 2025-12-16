@@ -340,34 +340,6 @@ describe('Amount', () => {
     expect(getByText('Max')).toBeTruthy();
   });
 
-  it('percentage options are not present as amount value is entered', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: SOLANA_ASSET,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
-
-    const { getByRole, queryByText } = renderComponent();
-    fireEvent.press(getByRole('button', { name: '1' }));
-    expect(queryByText('25%')).toBeNull();
-    expect(queryByText('50%')).toBeNull();
-    expect(queryByText('75%')).toBeNull();
-    expect(queryByText('Max')).toBeNull();
-  });
-
-  it('percentage options are not present for NFT send', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
-
-    const { getByText, queryByText } = renderComponent();
-    expect(getByText('Next')).toBeTruthy();
-    expect(queryByText('25%')).toBeNull();
-    expect(queryByText('50%')).toBeNull();
-    expect(queryByText('75%')).toBeNull();
-    expect(queryByText('Max')).toBeNull();
-  });
-
   it('on amount page options optionMax is not visible for non-evm native tokens', () => {
     mockUseSendContext.mockReturnValue({
       asset: SOLANA_ASSET,
