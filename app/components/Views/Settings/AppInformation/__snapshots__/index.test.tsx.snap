@@ -586,7 +586,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   }
                                 }
                               >
-                                Visit our Support Center
+                                Visit our support center
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -620,7 +620,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   }
                                 }
                               >
-                                Contact Us
+                                Contact us
                               </Text>
                             </TouchableOpacity>
                           </View>

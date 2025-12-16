@@ -185,9 +185,8 @@ const AssetStackFlow = (props) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = (props) => (
+const AssetNavigator = (props) => (
   <Stack.Navigator
-    mode={'modal'}
     initialRouteName={'AssetStackFlow'}
     screenOptions={clearStackNavigatorOptions}
   >
@@ -1038,7 +1037,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="Asset"
+        component={AssetNavigator}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
@@ -1080,10 +1097,43 @@ const MainNavigator = () => {
         component={NotificationsModeView}
       />
       <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-      <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+      <Stack.Screen
+        name="NftDetails"
+        component={NftDetailsModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
@@ -1108,7 +1158,26 @@ const MainNavigator = () => {
         component={BridgeModalStack}
         options={clearStackNavigatorOptions}
       />
-      <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+      <Stack.Screen
+        name="StakeScreens"
+        component={StakeScreenStack}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
@@ -1257,6 +1326,19 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{
           headerShown: true,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       {

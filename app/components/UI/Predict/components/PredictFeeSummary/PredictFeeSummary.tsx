@@ -20,9 +20,10 @@ import { TooltipSizes } from '../../../../../component-library/components-temp/K
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
-import { formatPrice } from '../../utils/format';
+import { formatPercentage, formatPrice } from '../../utils/format';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
@@ -59,6 +60,18 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
 
   return (
     <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+      {/* Slippage Row  */}
+      <Box twClassName="flex-row justify-between items-center">
+        <Box twClassName="flex-row gap-2 items-center">
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {strings('predict.fee_summary.slippage')}
+          </Text>
+        </Box>
+        <Text color={TextColor.Alternative}>
+          {formatPercentage(SLIPPAGE_BUY * 100)}
+        </Text>
+      </Box>
+
       {/* Fees Row with Info Icon */}
       <Box twClassName="flex-row justify-between items-center">
         <Box twClassName="flex-row items-center">

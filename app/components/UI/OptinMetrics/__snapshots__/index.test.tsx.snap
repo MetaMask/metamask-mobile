@@ -213,8 +213,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "paddingBottom": 16,
-                          "paddingTop": 24,
+                          "paddingTop": 40,
                         }
                       }
                     >
@@ -227,8 +226,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingBottom": 16,
-                            "paddingTop": 24,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -245,6 +243,26 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               }
                             }
                           >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 180,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -260,28 +278,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help improve MetaMask
+                              Improve MetaMask
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
-                              }
-                            >
-                              <Image
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "alignSelf": "center",
-                                    "height": 150,
-                                    "width": 200,
-                                  }
-                                }
-                              />
-                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -318,10 +316,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -370,28 +390,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       />
                                     </View>
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Gather basic usage data
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -448,10 +446,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -482,28 +502,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       }
                                     />
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Marketing updates
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -530,7 +528,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         style={
                           {
                             "flexDirection": "row",
-                            "padding": 16,
+                            "paddingHorizontal": 16,
+                            "paddingTop": 16,
                           }
                         }
                       >
@@ -905,8 +904,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "paddingBottom": 16,
-                          "paddingTop": 24,
+                          "paddingTop": 40,
                         }
                       }
                     >
@@ -919,8 +917,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingBottom": 16,
-                            "paddingTop": 24,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -937,6 +934,26 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               }
                             }
                           >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 180,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -952,28 +969,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help improve MetaMask
+                              Improve MetaMask
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
-                              }
-                            >
-                              <Image
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "alignSelf": "center",
-                                    "height": 150,
-                                    "width": 200,
-                                  }
-                                }
-                              />
-                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -1010,10 +1007,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -1062,28 +1081,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       />
                                     </View>
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Gather basic usage data
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -1140,10 +1137,32 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -1174,28 +1193,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       }
                                     />
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Marketing updates
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -1222,7 +1219,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         style={
                           {
                             "flexDirection": "row",
-                            "padding": 16,
+                            "paddingHorizontal": 16,
+                            "paddingTop": 16,
                           }
                         }
                       >
@@ -1709,8 +1707,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "paddingBottom": 16,
-                          "paddingTop": 24,
+                          "paddingTop": 40,
                         }
                       }
                     >
@@ -1723,8 +1720,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingBottom": 16,
-                            "paddingTop": 24,
+                            "paddingTop": 40,
                           }
                         }
                         testID="meta-metrics-container"
@@ -1741,6 +1737,26 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               }
                             }
                           >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 180,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -1756,28 +1772,8 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help improve MetaMask
+                              Improve MetaMask
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "marginVertical": 12,
-                                }
-                              }
-                            >
-                              <Image
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "alignSelf": "center",
-                                    "height": 150,
-                                    "width": 200,
-                                  }
-                                }
-                              />
-                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -1814,10 +1810,32 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -1866,28 +1884,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       />
                                     </View>
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Gather basic usage data
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -1944,10 +1940,32 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 16,
-                                      "marginRight": 25,
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
@@ -1978,28 +1996,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       }
                                     />
                                   </TouchableOpacity>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Marketing updates
-                                    </Text>
-                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -2026,7 +2022,8 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         style={
                           {
                             "flexDirection": "row",
-                            "padding": 16,
+                            "paddingHorizontal": 16,
+                            "paddingTop": 16,
                           }
                         }
                       >
