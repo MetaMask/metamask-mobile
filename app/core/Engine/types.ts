@@ -322,6 +322,11 @@ import type {
   ErrorReportingService,
   ErrorReportingServiceActions,
 } from '@metamask/error-reporting-service';
+import type {
+  StorageService,
+  StorageServiceActions,
+  StorageServiceEvents,
+} from '@metamask/storage-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -389,6 +394,7 @@ type RequiredControllers = Omit<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -400,6 +406,7 @@ type OptionalControllers = Pick<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -493,6 +500,7 @@ type GlobalActions =
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
+  | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
@@ -538,6 +546,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | StorageServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -641,6 +650,7 @@ export type Controllers = {
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
+  StorageService: StorageService;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -816,6 +826,7 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'ErrorReportingService'
+  | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
