@@ -49,6 +49,9 @@ import { resetProviderToken as depositResetProviderToken } from '../../component
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import Logger from '../../util/Logger';
+import Routes from '../../constants/navigation/Routes';
+import { strings } from '../../../locales/i18n';
+import { IconName } from '../../component-library/components/Icons/Icon';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -143,9 +146,23 @@ jest.mock('../Engine/Engine', () => ({
   },
 }));
 
+const mockNavigate = jest.fn();
+const mockReset = jest.fn();
+
+const mockNavigation = {
+  reset: mockReset,
+  navigate: mockNavigate,
+};
+
 jest.mock('../NavigationService', () => ({
-  navigation: {
-    reset: jest.fn(),
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigation;
+    },
+    set navigation(value) {
+      // Mock setter - does nothing but prevents errors
+    },
   },
 }));
 
@@ -3517,6 +3534,166 @@ describe('Authentication', () => {
         error,
         'Failed to reset existingUser state in Redux',
       );
+    });
+  });
+
+  describe('checkAndShowSeedlessPasswordOutdatedModal', () => {
+    let Engine: typeof import('../Engine').default;
+    let mockIsOutdated: boolean = false;
+    let mockCheckIsSeedlessPasswordOutdated: jest.SpyInstance;
+    let mockLockApp: jest.SpyInstance;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn(() => Promise.resolve(mockIsOutdated)),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      mockCheckIsSeedlessPasswordOutdated = jest.spyOn(
+        Authentication,
+        'checkIsSeedlessPasswordOutdated',
+      );
+      mockLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+
+      mockNavigate.mockClear();
+      mockReset.mockClear();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns early when isSeedlessPasswordOutdated is false', async () => {
+      // Arrange
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(false);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
+      // Arrange
+      mockIsOutdated = false;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to modal when password is outdated', async () => {
+      // Arrange
+      mockIsOutdated = true;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
+          primaryButtonLabel: strings(
+            'login.seedless_password_outdated_modal_confirm',
+          ),
+          type: 'error',
+          icon: IconName.Danger,
+          isInteractable: false,
+          onPrimaryButtonPress: expect.any(Function),
+          closeOnPrimaryButtonPress: true,
+        },
+      });
+    });
+
+    it('calls lockApp when primary button is pressed', async () => {
+      // Arrange
+      mockIsOutdated = true;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalled();
+      const navigateCall = mockNavigate.mock.calls[0];
+      const modalParams = navigateCall[1];
+      const onPrimaryButtonPress = modalParams.params.onPrimaryButtonPress;
+
+      // Call the button press handler
+      await onPrimaryButtonPress();
+
+      // Assert lockApp was called
+      expect(mockLockApp).toHaveBeenCalledWith({ locked: true });
     });
   });
 });
