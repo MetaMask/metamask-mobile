@@ -34,11 +34,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
-import {
-  KEEP_SRP_SAFE_URL,
-  NON_CUSTODIAL_WALLET_URL,
-  SRP_GUIDE_URL,
-} from '../../../constants/urls';
+import { KEEP_SRP_SAFE_URL, SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
@@ -602,15 +598,6 @@ const RevealPrivateCredential = ({
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
       <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
-      {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-      <Text
-        color={colors.primary.default}
-        onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
-      >
-        {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-      </Text>
-      {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
     </Text>
   );
 

@@ -29,8 +29,13 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
       paddingHorizontal: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       color: colors.text.default,
+    },
+    closeButtonContainer: {
+      position: 'absolute',
+      right: 20,
+      top: 15,
     },
     closeIcon: {
       color: colors.text.default,
@@ -147,13 +152,15 @@ function InfoModal({
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
           {title && <Title>{title}</Title>}
-          <InfoView
-            message={message}
-            urlText={urlText}
-            url={url}
-            onClose={toggleModal}
-            style={styles}
-          />
+          <View style={styles.closeButtonContainer}>
+            <InfoView
+              message={message}
+              urlText={urlText}
+              url={url}
+              onClose={toggleModal}
+              style={styles}
+            />
+          </View>
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
