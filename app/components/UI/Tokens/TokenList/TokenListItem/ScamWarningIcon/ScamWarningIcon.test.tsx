@@ -13,7 +13,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock(
-  '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  '../../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
   () => ({
     __esModule: true,
     default: jest.fn(),

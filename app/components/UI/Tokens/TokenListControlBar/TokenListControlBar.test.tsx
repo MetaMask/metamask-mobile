@@ -134,20 +134,6 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-// Mock the styles
-jest.mock('../styles', () => ({
-  __esModule: true,
-  default: () => ({
-    actionBarWrapper: {},
-    controlButtonOuterWrapper: {},
-    controlButtonInnerWrapper: {},
-    controlButton: {},
-    controlButtonDisabled: {},
-    controlButtonText: {},
-    controlIconButton: {},
-  }),
-}));
-
 const mockStore = configureMockStore();
 
 describe('TokenListControlBar', () => {

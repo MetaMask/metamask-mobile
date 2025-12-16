@@ -51,7 +51,7 @@ jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
 }));
 
 // Mock child components
-jest.mock('./TokenListItem', () => ({
+jest.mock('./TokenListItem/TokenListItem', () => ({
   TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {
     const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
