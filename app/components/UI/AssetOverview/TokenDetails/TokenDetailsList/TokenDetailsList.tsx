@@ -1,19 +1,15 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
 import { showAlert } from '../../../../../actions/alert';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import styleSheet from '../TokenDetails.styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { TokenDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
@@ -26,7 +22,8 @@ interface TokenDetailsListProps {
 const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   tokenDetails,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet);
   const dispatch = useDispatch();
 
   const handleShowAlert = (config: {
@@ -49,7 +46,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
 
   return (
     <View>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMD} style={tw`py-2`}>
         {strings('token.token_details')}
       </Text>
       <View style={styles.listWrapper}>
@@ -59,18 +56,13 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
             style={[styles.listItem, styles.firstChild]}
           >
             <TouchableOpacity
-              style={styles.copyButton}
+              style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
-              <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
+              <Text variant={TextVariant.BodySM}>
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-                style={styles.icon}
-              />
+              <Icon name={IconName.Copy} size={IconSize.Sm} />
             </TouchableOpacity>
           </TokenDetailsListItem>
         )}
