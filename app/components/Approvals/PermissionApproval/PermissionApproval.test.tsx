@@ -289,7 +289,7 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('does not navigate if still processing', async () => {
+  it('re-runs effect when pendingApprovals changes', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -304,24 +304,40 @@ describe('PermissionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const pendingApprovals = {
+    const pendingApprovals1 = {
       [PERMISSION_REQUEST_ID_MOCK]: approvalRequest,
     };
 
-    mockApprovalRequest(approvalRequest, pendingApprovals);
+    mockApprovalRequest(approvalRequest, pendingApprovals1);
 
     const { rerender } = render(
       <PermissionApproval navigation={navigationMock} />,
     );
 
-    mockApprovalRequest(approvalRequest, pendingApprovals);
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+
+    const anotherApprovalRequest = {
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+      id: 'anotherRequestId',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const pendingApprovals2 = {
+      [PERMISSION_REQUEST_ID_MOCK]: approvalRequest,
+      anotherRequestId: anotherApprovalRequest,
+    };
+
+    mockApprovalRequest(approvalRequest, pendingApprovals2);
 
     rerender(<PermissionApproval navigation={navigationMock} />);
 
-    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+    // Effect should re-run when pendingApprovals content changes, causing navigation again
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(2);
   });
 
-  it('navigates if previous processing finished', async () => {
+  it('navigates when new approval added after queue cleared', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -346,7 +362,7 @@ describe('PermissionApproval', () => {
       <PermissionApproval navigation={navigationMock} />,
     );
 
-    // Clear pending approvals (previous processing finished)
+    // Clear pending approvals (approval was processed/removed)
     mockApprovalRequest(undefined, {});
 
     rerender(<PermissionApproval navigation={navigationMock} />);
