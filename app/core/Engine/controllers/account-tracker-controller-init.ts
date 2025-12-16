@@ -35,7 +35,7 @@ export const accountTrackerControllerInit: ControllerInitFunction<
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
-    isOnboarded: () => selectCompletedOnboarding(getState()),
+    isOnboarded: () => selectCompletedOnboarding(getState()) ?? false,
   });
 
   return {

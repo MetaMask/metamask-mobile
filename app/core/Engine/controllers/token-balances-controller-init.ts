@@ -35,7 +35,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
     platform: 'mobile',
-    isOnboarded: () => selectCompletedOnboarding(getState()),
+    isOnboarded: () => selectCompletedOnboarding(getState()) ?? false,
   });
 
   return {
