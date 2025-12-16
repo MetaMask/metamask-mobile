@@ -323,7 +323,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           },
                           false,
                           {
-                            "padding": 16,
+                            "paddingHorizontal": 16,
                           },
                         ]
                       }
