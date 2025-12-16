@@ -21,8 +21,19 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Logger from '../../../../../util/Logger';
+import AuthenticationError from '../../../../../core/Authentication/AuthenticationError';
+import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 
 const LoginOptionsSettings = () => {
+  const navigation = useNavigation();
+  const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.security?.allowLoginWithRememberMe,
+  );
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC | undefined
   >(undefined);
@@ -64,42 +75,164 @@ const LoginOptionsSettings = () => {
     getOptions();
   }, []);
 
-  const onBiometricsOptionUpdated = useCallback(async (enabled: boolean) => {
-    setIsBiometricLoading(true);
-    try {
-      if (enabled) {
-        await Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.BIOMETRIC,
+  const onBiometricsOptionUpdated = useCallback(
+    async (enabled: boolean) => {
+      // Prevent toggling biometrics when remember me is enabled
+      if (allowLoginWithRememberMe) {
+        return;
+      }
+
+      setIsBiometricLoading(true);
+      try {
+        const authType = enabled
+          ? AUTHENTICATION_TYPE.BIOMETRIC
+          : AUTHENTICATION_TYPE.PASSWORD;
+
+        await Authentication.updateAuthPreference(authType);
+
+        // Only update UI if operation completed successfully
+        setBiometryChoice(enabled);
+      } catch (error) {
+        // Check if error is "password required" - navigate to password entry
+        const isPasswordRequiredError =
+          error instanceof AuthenticationError &&
+          error.customErrorMessage ===
+            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+
+        if (isPasswordRequiredError) {
+          // Navigate to password entry
+          const authType = enabled
+            ? AUTHENTICATION_TYPE.BIOMETRIC
+            : AUTHENTICATION_TYPE.PASSWORD;
+
+          navigation.navigate('EnterPasswordSimple', {
+            onPasswordSet: async (enteredPassword: string) => {
+              try {
+                await Authentication.updateAuthPreference(
+                  authType,
+                  enteredPassword,
+                );
+
+                // Update UI state after successful password entry and update
+                setBiometryChoice(enabled);
+
+                // Re-fetch to ensure UI matches actual state
+                const currentAuthType = await Authentication.getType();
+                const previouslyDisabled = await StorageWrapper.getItem(
+                  BIOMETRY_CHOICE_DISABLED,
+                );
+                setBiometryChoice(
+                  currentAuthType.currentAuthType ===
+                    AUTHENTICATION_TYPE.BIOMETRIC &&
+                    !(previouslyDisabled && previouslyDisabled === TRUE),
+                );
+              } catch (updateError) {
+                // On error, revert UI state
+                setBiometryChoice(!enabled);
+                Logger.error(
+                  updateError as Error,
+                  'Failed to update auth preference after password entry',
+                );
+              } finally {
+                setIsBiometricLoading(false);
+              }
+            },
+          });
+          // Don't update UI state here - wait for callback
+          return;
+        }
+        // Other error - revert toggle state
+        Logger.error(
+          error as Error,
+          'Failed to update auth preference after password entry',
         );
-      } else {
-        // Disabling: switch to password (storePassword will handle storage flags)
-        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSWORD);
+        setBiometryChoice(!enabled);
+      } finally {
+        setIsBiometricLoading(false);
       }
-      setBiometryChoice(enabled);
-    } catch (error) {
-      // On error, revert the toggle state
-      setBiometryChoice(!enabled);
-    } finally {
-      setIsBiometricLoading(false);
-    }
-  }, []);
-  const onPasscodeOptionUpdated = useCallback(async (enabled: boolean) => {
-    setIsPasscodeLoading(true);
-    try {
-      if (enabled) {
-        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSCODE);
-      } else {
-        // Disabling: switch to password (storePassword will handle storage flags)
-        await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSWORD);
+    },
+    [navigation, allowLoginWithRememberMe],
+  );
+  const onPasscodeOptionUpdated = useCallback(
+    async (enabled: boolean) => {
+      // Prevent toggling passcode when remember me is enabled
+      if (allowLoginWithRememberMe) {
+        return;
       }
-      setPasscodeChoice(enabled);
-    } catch (error) {
-      // On error, revert the toggle state
-      setPasscodeChoice(!enabled);
-    } finally {
-      setIsPasscodeLoading(false);
-    }
-  }, []);
+
+      setIsPasscodeLoading(true);
+      try {
+        const authType = enabled
+          ? AUTHENTICATION_TYPE.PASSCODE
+          : AUTHENTICATION_TYPE.PASSWORD;
+
+        await Authentication.updateAuthPreference(authType);
+
+        // Only update UI if operation completed successfully
+        setPasscodeChoice(enabled);
+      } catch (error) {
+        // Check if error is "password required" - navigate to password entry
+        const isPasswordRequiredError =
+          error instanceof AuthenticationError &&
+          error.customErrorMessage ===
+            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+
+        if (isPasswordRequiredError) {
+          // Navigate to password entry
+          const authType = enabled
+            ? AUTHENTICATION_TYPE.PASSCODE
+            : AUTHENTICATION_TYPE.PASSWORD;
+
+          navigation.navigate('EnterPasswordSimple', {
+            onPasswordSet: async (enteredPassword: string) => {
+              try {
+                await Authentication.updateAuthPreference(
+                  authType,
+                  enteredPassword,
+                );
+
+                // Update UI state after successful password entry and update
+                setPasscodeChoice(enabled);
+
+                // Re-fetch to ensure UI matches actual state
+                const currentAuthType = await Authentication.getType();
+                const passcodePreviouslyDisabled =
+                  await StorageWrapper.getItem(PASSCODE_DISABLED);
+                setPasscodeChoice(
+                  currentAuthType.currentAuthType ===
+                    AUTHENTICATION_TYPE.PASSCODE &&
+                    !(
+                      passcodePreviouslyDisabled &&
+                      passcodePreviouslyDisabled === TRUE
+                    ),
+                );
+              } catch (updateError) {
+                // On error, revert UI state
+                setPasscodeChoice(!enabled);
+                Logger.error(
+                  updateError as Error,
+                  'Failed to update auth preference after password entry',
+                );
+              } finally {
+                setIsPasscodeLoading(false);
+              }
+            },
+          });
+          // Don't update UI state here - wait for callback
+          return;
+        }
+        // Other error - revert toggle state
+        Logger.error(
+          error as Error,
+          'Failed to update auth preference after password entry',
+        );
+        setPasscodeChoice(!enabled);
+      } finally {
+        setIsPasscodeLoading(false);
+      }
+    },
+    [navigation, allowLoginWithRememberMe],
+  );
 
   return (
     <Box testID={LOGIN_OPTIONS}>
@@ -119,7 +252,7 @@ const LoginOptionsSettings = () => {
               value={biometryChoice}
               onOptionUpdated={onBiometricsOptionUpdated}
               testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
-              disabled={isPasscodeLoading}
+              disabled={allowLoginWithRememberMe || isPasscodeLoading}
             />
           )}
         </Box>
@@ -144,7 +277,7 @@ const LoginOptionsSettings = () => {
               value={passcodeChoice}
               onOptionUpdated={onPasscodeOptionUpdated}
               testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
-              disabled={isBiometricLoading}
+              disabled={allowLoginWithRememberMe || isBiometricLoading}
             />
           )}
         </Box>

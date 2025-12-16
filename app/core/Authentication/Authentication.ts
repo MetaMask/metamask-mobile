@@ -7,6 +7,7 @@ import {
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
   OPTIN_META_METRICS_UI_SEEN,
+  PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -438,7 +439,19 @@ class AuthenticationService {
           await StorageWrapper.removeItem(PASSCODE_DISABLED);
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           break;
-        case AUTHENTICATION_TYPE.REMEMBER_ME:
+        case AUTHENTICATION_TYPE.REMEMBER_ME: {
+          // Store the current auth type before switching to remember me
+          const currentAuthData = await this.checkAuthenticationMethod();
+          // Only store if we're not already on remember me
+          if (
+            currentAuthData.currentAuthType !== AUTHENTICATION_TYPE.REMEMBER_ME
+          ) {
+            await StorageWrapper.setItem(
+              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+              currentAuthData.currentAuthType,
+            );
+          }
+
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
@@ -446,12 +459,24 @@ class AuthenticationService {
           // SecureKeychain.setGenericPassword handles flag management for REMEMBER_ME
           // (sets BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED to disable biometric/passcode)
           break;
-        case AUTHENTICATION_TYPE.PASSWORD:
+        }
+        case AUTHENTICATION_TYPE.PASSWORD: {
           await SecureKeychain.setGenericPassword(password, undefined);
           // Password only: disable both biometrics and passcode
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+          // If remember me is enabled, clear the stored previous auth type
+          // because the user is disabling biometrics/passcode, so we shouldn't restore to them
+          const allowLoginWithRememberMe =
+            ReduxService.store.getState().security?.allowLoginWithRememberMe;
+          if (allowLoginWithRememberMe) {
+            await StorageWrapper.removeItem(
+              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+            );
+          }
           break;
+        }
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
           // Default to password behavior: disable both
@@ -1449,12 +1474,14 @@ class AuthenticationService {
    * If password is provided, uses it directly. Otherwise, gets password from keychain.
    * Validates the password and stores it with the new auth type.
    * Manages storage flags (BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED) based on auth type.
-   * If password is not found in keychain and not provided, navigates to password entry screen.
+   * Throws AuthenticationError if password is not found in keychain and not provided.
+   * Callers should handle navigation to password entry screen when this error is thrown.
    *
    * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
    * @param password - optional password to use. If not provided, gets from keychain.
    * @param skipValidation - optional flag to skip password validation (used in vault corruption recovery where vault is corrupted)
    * @returns {Promise<void>}
+   * @throws {AuthenticationError} when password is not found and not provided
    */
   updateAuthPreference = async (
     authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
@@ -1514,19 +1541,12 @@ class AuthenticationService {
         throw e;
       }
     } else {
-      // Password not found. Navigate to password entry and request the user to enter their password.
-      NavigationService.navigation?.navigate('EnterPasswordSimple', {
-        onPasswordSet: (enteredPassword: string) => {
-          this.updateAuthPreference(authType, enteredPassword).catch(
-            (error) => {
-              Logger.error(
-                error as unknown as Error,
-                'Failed to update auth preference',
-              );
-            },
-          );
-        },
-      });
+      // Password not found. Throw error - let caller handle navigation.
+      throw new AuthenticationError(
+        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        this.authData,
+      );
     }
   };
 }
