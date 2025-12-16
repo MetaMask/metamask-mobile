@@ -151,6 +151,7 @@ interface ButtonsProps {
   onHandleActionClick: (callback: () => void) => void;
   styles: Record<string, ViewStyle>;
   isConfirmed: boolean;
+  isDangerAlert: boolean;
 }
 
 const Buttons: React.FC<ButtonsProps> = ({
@@ -159,33 +160,54 @@ const Buttons: React.FC<ButtonsProps> = ({
   styles,
   onHandleActionClick,
   isConfirmed,
-}) => (
-  <View style={styles.buttonsContainer}>
-    <Button
-      onPress={hideAlertModal}
-      label={strings('alert_system.alert_modal.got_it_btn')}
-      style={styles.footerButton}
-      size={ButtonSize.Lg}
-      variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
-      width={ButtonWidthTypes.Full}
-      isDisabled={!isConfirmed}
-      testID="alert-modal-got-it-button"
-    />
-    {action ? (
-      <>
-        <View style={styles.buttonDivider} />
-        <Button
-          onPress={() => onHandleActionClick(action.callback)}
-          label={action.label}
-          style={styles.footerButton}
-          size={ButtonSize.Lg}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
-      </>
-    ) : null}
-  </View>
-);
+  isDangerAlert,
+}) => {
+  const primaryButtonLabel = isDangerAlert
+    ? strings('alert_system.alert_modal.acknowledge_btn')
+    : strings('alert_system.alert_modal.got_it_btn');
+
+  return (
+    <View style={styles.buttonsContainer}>
+      {isDangerAlert && (
+        <>
+          <Button
+            onPress={hideAlertModal}
+            label={strings('alert_system.alert_modal.close_btn')}
+            style={styles.footerButton}
+            size={ButtonSize.Lg}
+            variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
+            testID="alert-modal-close-button"
+          />
+          <View style={styles.buttonDivider} />
+        </>
+      )}
+      <Button
+        onPress={hideAlertModal}
+        label={primaryButtonLabel}
+        style={styles.footerButton}
+        size={ButtonSize.Lg}
+        variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDangerAlert && !isConfirmed}
+        testID="alert-modal-acknowledge-button"
+      />
+      {action ? (
+        <>
+          <View style={styles.buttonDivider} />
+          <Button
+            onPress={() => onHandleActionClick(action.callback)}
+            label={action.label}
+            style={styles.footerButton}
+            size={ButtonSize.Lg}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+          />
+        </>
+      ) : null}
+    </View>
+  );
+};
 
 interface AlertModalProps {
   headerAccessory?: React.ReactNode;
@@ -277,7 +299,11 @@ const AlertModal: React.FC<AlertModalProps> = ({
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
-          isConfirmed={selectedAlert.isBlocking ? isConfirmed : true}
+          isConfirmed={isConfirmed}
+          isDangerAlert={
+            selectedAlert.severity === Severity.Danger &&
+            !selectedAlert.isBlocking
+          }
         />
       </View>
     </BottomModal>

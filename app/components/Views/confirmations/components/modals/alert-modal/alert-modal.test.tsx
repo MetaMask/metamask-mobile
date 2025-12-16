@@ -141,7 +141,7 @@ describe('AlertModal', () => {
     expect(hideAlertModal).toHaveBeenCalled();
   });
 
-  it('closes modal when `Got It` button pressed', async () => {
+  it('closes modal when `Got It` button pressed for non-danger alerts', async () => {
     const hideAlertModal = jest.fn();
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
@@ -150,6 +150,58 @@ describe('AlertModal', () => {
     const { getByText } = render(<AlertModal />);
     await act(async () => {
       fireEvent.press(getByText('Got it'));
+    });
+    expect(hideAlertModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders Acknowledge and Close buttons for Danger severity alerts', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertKey: 'alert2',
+    });
+    const { getByText, getByTestId } = render(<AlertModal />);
+
+    expect(getByText('Acknowledge')).toBeDefined();
+    expect(getByText('Close')).toBeDefined();
+    expect(getByTestId('alert-modal-acknowledge-button')).toBeDefined();
+    expect(getByTestId('alert-modal-close-button')).toBeDefined();
+  });
+
+  it('disables Acknowledge button when checkbox is not checked for Danger alerts', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertKey: 'alert2',
+      isAlertConfirmed: jest.fn().mockReturnValue(false),
+    });
+    const { getByTestId } = render(<AlertModal />);
+
+    const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
+    expect(acknowledgeButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('enables Acknowledge button when checkbox is checked for Danger alerts', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertKey: 'alert2',
+      isAlertConfirmed: jest.fn().mockReturnValue(true),
+    });
+    const { getByTestId } = render(<AlertModal />);
+
+    const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
+    expect(acknowledgeButton.props.accessibilityState.disabled).toBe(false);
+  });
+
+  it('closes modal when Close button pressed for Danger alerts', async () => {
+    const hideAlertModal = jest.fn();
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertKey: 'alert2',
+      hideAlertModal,
+    });
+    const { getByTestId } = render(<AlertModal />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('alert-modal-close-button'));
     });
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
@@ -234,11 +286,11 @@ describe('AlertModal', () => {
 
   it('calls onAcknowledgeClick when modal is closed', async () => {
     const onAcknowledgeClick = jest.fn();
-    const { getByText } = render(
+    const { getByTestId } = render(
       <AlertModal onAcknowledgeClick={onAcknowledgeClick} />,
     );
     await act(async () => {
-      fireEvent.press(getByText('Got it'));
+      fireEvent.press(getByTestId('alert-modal-acknowledge-button'));
     });
     expect(onAcknowledgeClick).toHaveBeenCalled();
   });
