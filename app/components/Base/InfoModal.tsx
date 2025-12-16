@@ -29,10 +29,19 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
       paddingHorizontal: 20,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
+      color: colors.text.default,
+    },
+    titleCentered: {
+      width: '100%',
+      paddingVertical: 15,
+      paddingHorizontal: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'center',
       color: colors.text.default,
     },
-    closeButtonContainer: {
+    closeButtonAbsolute: {
       position: 'absolute',
       right: 20,
       top: 15,
@@ -150,9 +159,9 @@ function InfoModal({
       testID={testID}
     >
       <SafeAreaView style={styles.modalView}>
-        <View style={styles.title}>
+        <View style={message ? styles.title : styles.titleCentered}>
           {title && <Title>{title}</Title>}
-          <View style={styles.closeButtonContainer}>
+          {message ? (
             <InfoView
               message={message}
               urlText={urlText}
@@ -160,7 +169,11 @@ function InfoModal({
               onClose={toggleModal}
               style={styles}
             />
-          </View>
+          ) : (
+            <View style={styles.closeButtonAbsolute}>
+              <CloseButton onPress={toggleModal} style={styles} />
+            </View>
+          )}
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
