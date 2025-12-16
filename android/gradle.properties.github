@@ -9,7 +9,7 @@ org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1Hea
 # Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
 org.gradle.caching=true
-org.gradle.daemon=true
+org.gradle.daemon=false
 org.gradle.workers.max=2
 org.gradle.vfs.watch=false
 
