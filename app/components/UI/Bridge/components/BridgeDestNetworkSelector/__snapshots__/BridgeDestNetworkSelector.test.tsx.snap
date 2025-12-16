@@ -441,7 +441,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

@@ -323,7 +323,7 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                           },
                           false,
                           {
-                            "padding": 16,
+                            "paddingHorizontal": 16,
                           },
                         ]
                       }
