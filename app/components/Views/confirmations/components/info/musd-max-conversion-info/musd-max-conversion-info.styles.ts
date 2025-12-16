@@ -7,9 +7,18 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      paddingHorizontal: 16,
+      flex: 1,
     },
-    // Asset header section (icon + symbol + fiat amount)
+    loadingContainer: {
+      paddingVertical: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    errorContainer: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
     assetHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -19,7 +28,6 @@ const styleSheet = (params: { theme: Theme }) => {
     assetInfo: {
       flex: 1,
     },
-    // Details section with background
     detailsSection: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
@@ -31,30 +39,8 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 16,
       gap: 12,
     },
-    loadingContainer: {
-      paddingVertical: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-    },
-    rowContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    errorContainer: {
-      paddingVertical: 16,
-      alignItems: 'center',
-    },
     buttonContainer: {
-      flexDirection: 'row',
-      gap: 16,
-      paddingHorizontal: 16,
-      paddingBottom: 16,
-    },
-    button: {
-      flex: 1,
+      paddingTop: 16,
     },
   });
 };
