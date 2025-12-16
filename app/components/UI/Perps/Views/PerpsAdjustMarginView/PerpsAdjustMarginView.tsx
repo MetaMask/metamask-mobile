@@ -142,6 +142,13 @@ const PerpsAdjustMarginView: React.FC = () => {
     [account],
   );
 
+  // Get position leverage and unrealized PnL for margin calculations
+  const positionLeverage = position?.leverage?.value || maxLeverage;
+  const unrealizedPnl = useMemo(
+    () => parseFloat(position?.unrealizedPnl || '0'),
+    [position],
+  );
+
   // Calculate maximum amount based on mode
   const maxAmount = useMemo(() => {
     if (isAddMode) {
@@ -152,7 +159,8 @@ const PerpsAdjustMarginView: React.FC = () => {
       positionSize,
       entryPrice,
       currentPrice,
-      maxLeverage,
+      positionLeverage,
+      unrealizedPnl,
     });
   }, [
     isAddMode,
@@ -161,7 +169,8 @@ const PerpsAdjustMarginView: React.FC = () => {
     positionSize,
     entryPrice,
     currentPrice,
-    maxLeverage,
+    positionLeverage,
+    unrealizedPnl,
   ]);
 
   // Calculate new values after adjustment
