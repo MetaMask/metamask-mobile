@@ -140,9 +140,14 @@ jobs:
             exit 1
           fi
           
+          # Write outputs using multiline format to handle JSON arrays properly
           {
-            echo "android_matrix=$ANDROID_MATRIX"
-            echo "ios_matrix=$IOS_MATRIX"
+            echo "android_matrix<<EOF"
+            echo "$ANDROID_MATRIX"
+            echo "EOF"
+            echo "ios_matrix<<EOF"
+            echo "$IOS_MATRIX"
+            echo "EOF"
           } >> "$GITHUB_OUTPUT"
           
           echo "Device matrix: $ANDROID_COUNT Android, $IOS_COUNT iOS"
