@@ -5861,6 +5861,13 @@
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
+      "fetching_quote": "Fetching quote...",
+      "you_convert": "You convert",
+      "you_receive": "You receive",
+      "network_fee": "Network fee",
+      "earning": "Earning",
+      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
+      "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
@@ -5878,7 +5885,10 @@
       "get_musd": "Get mUSD",
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
-      "powered_by_relay": "Powered by Relay"
+      "powered_by_relay": "Powered by Relay",
+      "earn_rewards_when": "Earn rewards when",
+      "you_convert_to": "you convert to",
+      "max": "Max"
     },
     "bonus_claim": {
       "toasts": {
