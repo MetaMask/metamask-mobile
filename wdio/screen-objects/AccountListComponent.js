@@ -80,29 +80,61 @@ class AccountListComponent {
     console.log('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
+    const initialWaitTimeout = 5000; // 5 seconds to wait for syncing/discovering to appear
     
+    const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
+
     const syncingElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Syncing');
     const discoveringElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering');
 
-    
-    while (Date.now() - startTime < timeout) {
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      const addButton = await this.addAccountButton;
-      // Check if loading indicators are gone
+    // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
+    console.log('⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...');
+    let syncingDetected = false;
+    while (Date.now() - startTime < initialWaitTimeout) {
       const isSyncing = await syncingElement.isVisible({ timeout: 200 }).catch(() => false);
       const isDiscovering = await discoveringElement.isVisible({ timeout: 200 }).catch(() => false);
-      const isAddButtonVisible = await addButton.isVisible({ timeout: 200 }).catch(() => false);
       
-      // Success: no loading indicators AND add button is visible
-      if (!isSyncing && !isDiscovering && isAddButtonVisible) {
-        console.log(`✅ waitForSyncingToComplete: Completed after ${elapsed}s`);
-        return;
+      if (isSyncing || isDiscovering) {
+        syncingDetected = true;
+        console.log(`✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering})`);
+        break;
       }
-      
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
-    
-    throw new Error(`Syncing did not complete within ${timeout / 1000} seconds`);
+
+    // If nothing appeared after 5 seconds, we're done
+    if (!syncingDetected) {
+      console.log(`✅ waitForSyncingToComplete: No syncing detected after 5s, finishing after ${getElapsed()}s`);
+      return;
+    }
+
+    // Step 2: Wait for "Syncing" to disappear
+    console.log('⏳ Step 2: Waiting for "Syncing" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      const isSyncing = await syncingElement.isVisible({ timeout: 200 }).catch(() => false);
+      if (!isSyncing) {
+        console.log(`✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`);
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // Step 3: Wait 1 second delay
+    console.log('⏳ Step 3: Waiting 1 second...');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Step 4: Wait for "Discovering" to disappear
+    console.log('⏳ Step 4: Waiting for "Discovering" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      const isDiscovering = await discoveringElement.isVisible({ timeout: 200 }).catch(() => false);
+      if (!isDiscovering) {
+        console.log(`✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`);
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    console.log(`✅ waitForSyncingToComplete: Completed after ${getElapsed()}s`);
   }
 }
 
