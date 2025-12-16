@@ -96,9 +96,7 @@ const PersonalDetails = () => {
       } else {
         setDateOfBirth('');
       }
-      setOnValueChange(() => {
-        setNationalityKey(userData.countryOfNationality || '');
-      });
+      setNationalityKey(userData.countryOfNationality || '');
       setSSN(userData.ssn || '');
     }
   }, [userData]);
