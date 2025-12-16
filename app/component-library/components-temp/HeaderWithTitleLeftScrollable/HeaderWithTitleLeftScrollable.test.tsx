@@ -1,0 +1,220 @@
+// Third party dependencies.
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import { useSharedValue, SharedValue } from 'react-native-reanimated';
+import { Text } from 'react-native';
+
+// Internal dependencies.
+import HeaderWithTitleLeftScrollable from './HeaderWithTitleLeftScrollable';
+import useHeaderWithTitleLeftScrollable from './useHeaderWithTitleLeftScrollable';
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.useSharedValue = jest.fn((initial) => ({
+    value: initial,
+  }));
+  Reanimated.useAnimatedStyle = jest.fn((fn) => fn());
+  Reanimated.interpolate = jest.fn(
+    (_value, _inputRange, outputRange) => outputRange[0],
+  );
+  Reanimated.Extrapolation = { CLAMP: 'clamp' };
+  return Reanimated;
+});
+
+// Test wrapper component that provides scrollY
+const TestWrapper: React.FC<{
+  children: (scrollYValue: SharedValue<number>) => React.ReactNode;
+}> = ({ children }) => {
+  const scrollYValue = useSharedValue(0);
+  return <>{children(scrollYValue)}</>;
+};
+
+describe('HeaderWithTitleLeftScrollable', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('rendering', () => {
+    it('renders with title', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Test Title')).toBeTruthy();
+    });
+
+    it('renders container with testID when provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-container')).toBeTruthy();
+    });
+  });
+
+  describe('back button', () => {
+    it('renders back button when onBack provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              onBack={jest.fn()}
+              backButtonProps={{ testID: 'test-back-button' }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-back-button')).toBeTruthy();
+    });
+
+    it('renders back button when backButtonProps provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              backButtonProps={{
+                onPress: jest.fn(),
+                testID: 'test-back-button',
+              }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-back-button')).toBeTruthy();
+    });
+  });
+
+  describe('titleLeft and titleLeftProps', () => {
+    it('renders custom titleLeft node', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              titleLeft={<Text>Custom Content</Text>}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Content')).toBeTruthy();
+    });
+
+    it('titleLeft takes priority over titleLeftProps', () => {
+      const { getByText, queryByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              titleLeft={<Text>Custom Node</Text>}
+              titleLeftProps={{ title: 'Props Title' }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Node')).toBeTruthy();
+      expect(queryByText('Props Title')).toBeNull();
+    });
+  });
+
+  describe('props', () => {
+    it('accepts custom testID', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              testID="custom-header"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('custom-header')).toBeTruthy();
+    });
+
+    it('accepts custom scrollTriggerPosition', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              scrollTriggerPosition={60}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-container')).toBeTruthy();
+    });
+  });
+});
+
+describe('useHeaderWithTitleLeftScrollable', () => {
+  it('returns onScroll handler', () => {
+    const result = useHeaderWithTitleLeftScrollable();
+
+    expect(result.onScroll).toBeDefined();
+  });
+
+  it('returns scrollY shared value', () => {
+    const result = useHeaderWithTitleLeftScrollable();
+
+    expect(result.scrollY).toBeDefined();
+    expect(result.scrollY.value).toBe(0);
+  });
+
+  it('returns expandedHeight', () => {
+    const result = useHeaderWithTitleLeftScrollable();
+
+    expect(result.expandedHeight).toBe(140);
+  });
+
+  it('returns scrollTriggerPosition defaulting to expandedHeight', () => {
+    const result = useHeaderWithTitleLeftScrollable();
+
+    expect(result.scrollTriggerPosition).toBe(result.expandedHeight);
+  });
+
+  it('uses custom scrollTriggerPosition when provided', () => {
+    const result = useHeaderWithTitleLeftScrollable({
+      scrollTriggerPosition: 80,
+    });
+
+    expect(result.scrollTriggerPosition).toBe(80);
+  });
+
+  it('uses custom expandedHeight when provided', () => {
+    const result = useHeaderWithTitleLeftScrollable({ expandedHeight: 200 });
+
+    expect(result.expandedHeight).toBe(200);
+  });
+});

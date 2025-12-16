@@ -48,6 +48,7 @@ const getStories = () => {
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
     "./app/component-library/components-temp/HeaderCenter/HeaderCenter.stories.tsx": require("../app/component-library/components-temp/HeaderCenter/HeaderCenter.stories.tsx"),
+    "./app/component-library/components-temp/HeaderWithTitleLeftScrollable/HeaderWithTitleLeftScrollable.stories.tsx": require("../app/component-library/components-temp/HeaderWithTitleLeftScrollable/HeaderWithTitleLeftScrollable.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
     "./app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx"),
     "./app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx"),
