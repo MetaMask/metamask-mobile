@@ -3,7 +3,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -20,6 +20,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
@@ -34,6 +35,7 @@ import {
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
+import type { PerpsMarketData } from '../../controllers/types';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -46,6 +48,16 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
+
+  // Create a minimal market object from transaction asset for navigation
+  // This is used to navigate to the market details page without requiring the stream provider
+  const market = useMemo<Partial<PerpsMarketData> | undefined>(
+    () =>
+      transaction?.asset
+        ? { symbol: transaction.asset, name: transaction.asset }
+        : undefined,
+    [transaction?.asset],
+  );
 
   navigation.setOptions(
     getPerpsTransactionsDetailsNavbar(
@@ -77,6 +89,19 @@ const PerpsPositionTransactionView: React.FC = () => {
       screen: 'SimpleWebview',
       params: {
         url: explorerUrl,
+      },
+    });
+  };
+
+  const handleTradeAgain = () => {
+    if (!market) {
+      return;
+    }
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market,
+        source: 'trade_details',
       },
     });
   };
@@ -211,6 +236,16 @@ const PerpsPositionTransactionView: React.FC = () => {
           </View>
 
           <View style={styles.buttonsContainer}>
+            {/* Trade again button */}
+            {market && (
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.transactions.trade_again')}
+                onPress={handleTradeAgain}
+              />
+            )}
             {/* Block explorer button */}
             <Button
               variant={ButtonVariants.Secondary}

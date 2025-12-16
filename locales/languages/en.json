@@ -1860,6 +1860,7 @@
         "rate": "Rate"
       },
       "view_on_explorer": "View on block explorer",
+      "trade_again": "Trade again",
       "empty_state": {
         "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
