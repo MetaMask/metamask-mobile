@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
+  PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -588,6 +589,7 @@ describe('Authentication', () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: mockDispatch,
         getState: () => ({
+          user: { existingUser: true },
           settings: { lockTime: 30000 },
           security: { allowLoginWithRememberMe: true },
         }),
@@ -608,6 +610,12 @@ describe('Authentication', () => {
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockResolvedValue(undefined);
+
+      // Mock SecureKeychain methods needed by checkAuthenticationMethod
+      SecureKeychain.getSupportedBiometryType = jest
+        .fn()
+        .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
+      SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
     });
 
     afterEach(() => {
@@ -662,8 +670,22 @@ describe('Authentication', () => {
         mockPassword,
         SecureKeychain.TYPES.REMEMBER_ME,
       );
-      expect(removeItemSpy).not.toHaveBeenCalled();
-      expect(setItemSpy).not.toHaveBeenCalled();
+      // Should not remove or set biometric/passcode flags directly
+      expect(removeItemSpy).not.toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
+      expect(removeItemSpy).not.toHaveBeenCalledWith(PASSCODE_DISABLED);
+      expect(setItemSpy).not.toHaveBeenCalledWith(
+        BIOMETRY_CHOICE_DISABLED,
+        expect.anything(),
+      );
+      expect(setItemSpy).not.toHaveBeenCalledWith(
+        PASSCODE_DISABLED,
+        expect.anything(),
+      );
+      // But can store previous auth type (expected behavior)
+      expect(setItemSpy).toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+        expect.any(String),
+      );
     });
 
     it('stores password with PASSWORD and disables both biometric and passcode', async () => {

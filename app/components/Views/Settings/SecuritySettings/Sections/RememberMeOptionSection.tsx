@@ -162,7 +162,7 @@ const RememberMeOptionSection = () => {
         }
       }
       // Otherwise, proceed with normal toggle
-      toggleRememberMe(enabled);
+      await toggleRememberMe(enabled);
     },
     [allowLoginWithRememberMe, navigate, toggleRememberMe],
   );
