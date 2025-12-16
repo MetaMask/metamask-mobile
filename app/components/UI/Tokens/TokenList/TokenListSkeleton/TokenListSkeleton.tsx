@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useTheme } from '../../../../util/theme';
-import createStyles from '../styles';
+import { useTheme } from '../../../../../util/theme';
+import createStyles from '../../styles';
 
 const TokenListSkeleton = () => {
   const { colors } = useTheme();

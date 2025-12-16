@@ -22,8 +22,8 @@ import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
-import { ScamWarningIcon } from '../ScamWarningIcon';
-import { FlashListAssetKey } from '..';
+import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
+import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectIsMusdConversionFlowEnabledFlag,
@@ -53,7 +53,7 @@ interface TokenListItemProps {
   isFullView?: boolean;
 }
 
-export const TokenListItemBip44 = React.memo(
+export const TokenListItem = React.memo(
   ({
     assetKey,
     showRemoveMenu,
@@ -245,4 +245,4 @@ export const TokenListItemBip44 = React.memo(
   },
 );
 
-TokenListItemBip44.displayName = 'TokenListItemBip44';
+TokenListItem.displayName = 'TokenListItem';

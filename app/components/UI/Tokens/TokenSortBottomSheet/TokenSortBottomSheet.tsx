@@ -17,11 +17,18 @@ import currencySymbols from '../../../../util/currency-symbols.json';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
 
 enum SortOption {
   FiatAmount = 0,
   Alphabetical = 1,
 }
+
+export const createTokensBottomSheetNavDetails = createNavigationDetails(
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.SHEET.TOKEN_SORT,
+);
 
 const TokenSortBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);

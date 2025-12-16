@@ -1,11 +1,8 @@
 import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  ACCOUNT_TYPE_LABEL_TEST_ID,
-  TokenListItemBip44,
-} from './TokenListItemBip44';
-import { FlashListAssetKey } from '..';
+import { ACCOUNT_TYPE_LABEL_TEST_ID, TokenListItem } from './TokenListItem';
+import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
 import { formatWithThreshold } from '../../../../../util/assets';
@@ -211,7 +208,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         const selectorString = selector.toString();
 
-        // TokenListItemBip44 selectors
+        // TokenListItem selectors
         if (selectorString.includes('selectAsset')) {
           return asset;
         }
@@ -265,7 +262,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { getByText } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
@@ -293,7 +290,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { getByTestId } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
@@ -320,7 +317,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { queryByTestId } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
@@ -344,7 +341,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { queryByTestId } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
@@ -368,7 +365,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { queryByTestId } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
@@ -393,7 +390,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       };
 
       const { queryByTestId } = renderWithProvider(
-        <TokenListItemBip44
+        <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}

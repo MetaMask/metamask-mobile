@@ -1,10 +1,10 @@
 import React from 'react';
-import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
-import { TokenI } from '../../types';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { ScamWarningIcon } from '.';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import useIsOriginalNativeTokenSymbol from '../../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+import { TokenI } from '../../../types';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { ScamWarningIcon } from './ScamWarningIcon';
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({

@@ -4,7 +4,7 @@ import { useTheme } from '../../../../../util/theme';
 import createStyles from '../../styles';
 import Box from '../../../Ramp/Aggregator/components/Box';
 import { View } from 'react-native';
-import SheetHeader from '../../../../../../app/component-library/components/Sheet/SheetHeader';
+import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
 import Button, {
