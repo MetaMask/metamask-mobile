@@ -4,7 +4,6 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
-  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -25,46 +24,10 @@ import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
-import type { RemoteFeatureFlagController } from '@metamask/remote-feature-flag-controller';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
 }
-
-// Extended interface for controller methods not in the base type definition
-// These methods exist at runtime in the mobile app's version of RemoteFeatureFlagController
-// but are not included in the @metamask/remote-feature-flag-controller type definitions
-export interface ExtendedRemoteFeatureFlagController
-  extends RemoteFeatureFlagController {
-  setFlagOverride: (key: string, value: Json) => void;
-  clearFlagOverride: (key: string) => void;
-  getAllFlags: () => FeatureFlagOverrides;
-  clearAllOverrides: () => void;
-}
-
-// Helper to safely access the RemoteFeatureFlagController with proper typing
-const getRemoteFeatureFlagController = ():
-  | ExtendedRemoteFeatureFlagController
-  | undefined =>
-  Engine.context?.RemoteFeatureFlagController as
-    | ExtendedRemoteFeatureFlagController
-    | undefined;
-
-// Helper to safely execute controller methods with error handling
-const withRemoteFeatureFlagController = (
-  fn: (controller: ExtendedRemoteFeatureFlagController) => void,
-  errorMessage: string,
-): void => {
-  const controller = getRemoteFeatureFlagController();
-  if (!controller) {
-    return;
-  }
-  try {
-    fn(controller);
-  } catch (error) {
-    console.error(errorMessage, error);
-  }
-};
 
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
@@ -100,51 +63,19 @@ export const FeatureFlagOverrideProvider: React.FC<
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
-  // Subscribe to controller state changes to ensure we stay in sync
-  useEffect(() => {
-    const handler = () => {
-      // State change will trigger Redux update via selector
-      // No need to do anything here as Redux will handle the update
-    };
-
-    try {
-      Engine.controllerMessenger?.subscribe(
-        'RemoteFeatureFlagController:stateChange',
-        handler,
-      );
-    } catch (error) {
-      // Engine might not be fully initialized yet, ignore error
-      console.warn(
-        'Failed to subscribe to RemoteFeatureFlagController state changes:',
-        error,
-      );
-    }
-
-    return () => {
-      // Note: Messenger subscribe doesn't return unsubscribe, but the subscription
-      // will be cleaned up when the component unmounts
-    };
-  }, []);
-
   const setOverride = useCallback((key: string, value: unknown) => {
-    withRemoteFeatureFlagController((controller) => {
-      // Use the controller's setFlagOverride method which properly updates localOverrides in state
-      controller.setFlagOverride(key, value as Json);
-    }, 'Failed to set feature flag override:');
+    Engine.context?.RemoteFeatureFlagController?.setFlagOverride(
+      key,
+      value as Json,
+    );
   }, []);
 
   const removeOverride = useCallback((key: string) => {
-    withRemoteFeatureFlagController(
-      (controller) => controller.clearFlagOverride(key),
-      'Failed to remove feature flag override:',
-    );
+    Engine.context?.RemoteFeatureFlagController?.removeFlagOverride(key);
   }, []);
 
   const clearAllOverrides = useCallback(() => {
-    withRemoteFeatureFlagController(
-      (controller) => controller.clearAllOverrides(),
-      'Failed to clear feature flag overrides:',
-    );
+    Engine.context?.RemoteFeatureFlagController?.clearAllFlagOverrides();
   }, []);
 
   const hasOverride = useCallback(
