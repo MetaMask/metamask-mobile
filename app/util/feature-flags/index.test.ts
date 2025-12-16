@@ -1,11 +1,7 @@
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
-import {
-  getFeatureFlagType,
-  getFeatureFlagDescription,
-  isMinimumRequiredVersionSupported,
-} from './index';
+import { getFeatureFlagType, isMinimumRequiredVersionSupported } from './index';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
@@ -162,112 +158,6 @@ describe('Feature Flags Utility Functions', () => {
       const result = getFeatureFlagType({});
 
       expect(result).toBe('object');
-    });
-  });
-
-  describe('getFeatureFlagDescription', () => {
-    it('returns correct description for confirmation_redesign', () => {
-      const result = getFeatureFlagDescription('confirmation_redesign');
-
-      expect(result).toBe('Controls redesigned confirmation flows');
-    });
-
-    it('returns correct description for sendRedesign', () => {
-      const result = getFeatureFlagDescription('sendRedesign');
-
-      expect(result).toBe('Controls redesigned send flow');
-    });
-
-    it('returns correct description for bridgeConfigV2', () => {
-      const result = getFeatureFlagDescription('bridgeConfigV2');
-
-      expect(result).toBe('Bridge configuration and supported chains');
-    });
-
-    it('returns correct description for enableMultichainAccounts', () => {
-      const result = getFeatureFlagDescription('enableMultichainAccounts');
-
-      expect(result).toBe('Multichain account functionality');
-    });
-
-    it('returns correct description for enableMultichainAccountsState2', () => {
-      const result = getFeatureFlagDescription(
-        'enableMultichainAccountsState2',
-      );
-
-      expect(result).toBe('Enhanced multichain account features');
-    });
-
-    it('returns correct description for assetsDefiPositionsEnabled', () => {
-      const result = getFeatureFlagDescription('assetsDefiPositionsEnabled');
-
-      expect(result).toBe('DeFi positions tracking');
-    });
-
-    it('returns correct description for assetsAccountApiBalancesEnabled', () => {
-      const result = getFeatureFlagDescription(
-        'assetsAccountApiBalancesEnabled',
-      );
-
-      expect(result).toBe('Account API balance fetching');
-    });
-
-    it('returns correct description for bitcoinTestnetsEnabled', () => {
-      const result = getFeatureFlagDescription('bitcoinTestnetsEnabled');
-
-      expect(result).toBe('Bitcoin testnet support');
-    });
-
-    it('returns correct description for solanaTestnetsEnabled', () => {
-      const result = getFeatureFlagDescription('solanaTestnetsEnabled');
-
-      expect(result).toBe('Solana testnet support');
-    });
-
-    it('returns correct description for walletFrameworkRpcFailoverEnabled', () => {
-      const result = getFeatureFlagDescription(
-        'walletFrameworkRpcFailoverEnabled',
-      );
-
-      expect(result).toBe('RPC failover functionality');
-    });
-
-    it('returns correct description for trxStakingEnabled', () => {
-      const result = getFeatureFlagDescription('trxStakingEnabled');
-
-      expect(result).toBe('TRON staking features');
-    });
-
-    it('returns correct description for tokenSearchDiscoveryEnabled', () => {
-      const result = getFeatureFlagDescription('tokenSearchDiscoveryEnabled');
-
-      expect(result).toBe('Token search and discovery');
-    });
-
-    it('returns correct description for productSafetyDappScanningEnabled', () => {
-      const result = getFeatureFlagDescription(
-        'productSafetyDappScanningEnabled',
-      );
-
-      expect(result).toBe('DApp security scanning');
-    });
-
-    it('returns correct description for minimumAppVersion', () => {
-      const result = getFeatureFlagDescription('minimumAppVersion');
-
-      expect(result).toBe('Minimum app version requirements');
-    });
-
-    it('returns undefined for unknown feature flag keys', () => {
-      const result = getFeatureFlagDescription('unknownFeatureFlag');
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined for empty string keys', () => {
-      const result = getFeatureFlagDescription('');
-
-      expect(result).toBeUndefined();
     });
   });
 
