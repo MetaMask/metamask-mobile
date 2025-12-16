@@ -390,6 +390,9 @@ export const isSportEvent = (event: PolymarketApiEvent): boolean =>
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
+
+export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
+  market.sportsMarketType?.toLowerCase().includes('moneyline') ?? false;
 /**
  * Sort markets within a sports market type group by liquidity + volume (descending)
  */
@@ -420,6 +423,10 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
     return market.groupItemTitle.replace(/-(?=\d)/, '');
+  }
+
+  if (isMoneylineMarket(market)) {
+    return market.groupItemTitle || market.question;
   }
   return market.groupItemTitle;
 };
