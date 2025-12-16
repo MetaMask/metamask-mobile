@@ -20,7 +20,7 @@ jest.mock('react-native-device-info', () => ({
 
 const selectedAddress = '0x123';
 
-jest.mock('./TokensBottomSheet/TokenSortBottomSheet', () => ({
+jest.mock('./TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 

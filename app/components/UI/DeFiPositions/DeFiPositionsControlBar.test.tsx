@@ -83,7 +83,7 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
-jest.mock('../Tokens/TokensBottomSheet/TokenSortBottomSheet', () => ({
+jest.mock('../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: () => [
     'RootModalFlow',
     { screen: 'TokensBottomSheet' },

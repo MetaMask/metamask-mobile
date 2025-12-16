@@ -71,7 +71,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 
 // Mock the navigation details creators
-jest.mock('../TokensBottomSheet/TokenSortBottomSheet', () => ({
+jest.mock('../TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
