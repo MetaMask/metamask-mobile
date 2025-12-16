@@ -152,6 +152,28 @@ jobs:
           
           echo "Device matrix: $ANDROID_COUNT Android, $IOS_COUNT iOS"
 
+  determine-branch-name:
+    name: Determine Branch Name for Bitrise
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.get-branch.outputs.branch_name }}
+    steps:
+      - name: Get correct branch name
+        id: get-branch
+        run: |
+          # For PRs, use the source branch (head_ref), not the merge ref
+          # For other events (schedule, workflow_dispatch), use ref_name
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+            echo "PR detected - using source branch: $BRANCH_NAME"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+            echo "Using ref_name: $BRANCH_NAME"
+          fi
+
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          echo "Branch name for Bitrise: $BRANCH_NAME"
+
   set-build-names:
     name: Set Unified BrowserStack Build Names
     runs-on: ubuntu-latest
@@ -171,13 +193,19 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    with:
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    with:
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
     secrets: inherit
 
   # =============================================================================
