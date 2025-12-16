@@ -208,22 +208,34 @@ jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {
   const { TextInput } = jest.requireActual('react-native');
 
   return ({
-    testID,
     onChangeText,
     value,
     ...props
   }: {
-    testID?: string;
     onChangeText?: (text: string) => void;
     value?: string;
   }) =>
     React.createElement(TextInput, {
-      testID,
+      testID: 'personal-details-date-of-birth-input',
       onChangeText,
       value,
       ...props,
     });
 });
+
+// Mock RegionSelectorModal - setOnValueChange should immediately invoke the callback
+const mockSetOnValueChange = jest.fn(
+  (callback: (region: { key: string }) => void) => {
+    // Immediately invoke with a mock region
+    callback({ key: 'US' });
+  },
+);
+jest.mock('./RegionSelectorModal', () => ({
+  setOnValueChange: (callback: (region: { key: string }) => void) =>
+    mockSetOnValueChange(callback),
+  clearOnValueChange: jest.fn(),
+  createRegionSelectorModalNavigationDetails: jest.fn(() => ['MockRoute', {}]),
+}));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: (value: string) => value,
@@ -315,6 +327,7 @@ const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockRegisterPersonalDetails = jest.fn();
 const mockSetUser = jest.fn();
+const mockFetchUserData = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -368,6 +381,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   isLoading: false,
   user: null,
   setUser: mockSetUser,
+  fetchUserData: mockFetchUserData,
   logoutFromProvider: jest.fn(),
 });
 
@@ -403,6 +417,12 @@ describe('PersonalDetails Component', () => {
 
       expect(queryByTestId('personal-details-ssn-error')).toBeNull();
       expect(queryByTestId('personal-details-error')).toBeNull();
+    });
+
+    it('calls fetchUserData on mount', () => {
+      render(<PersonalDetails />);
+
+      expect(mockFetchUserData).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -575,6 +595,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -597,6 +618,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -620,6 +642,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -640,6 +663,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -660,6 +684,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -680,6 +705,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -700,6 +726,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -736,6 +763,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -775,10 +803,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -805,10 +841,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -826,6 +870,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: null,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -903,6 +948,7 @@ describe('PersonalDetails Component', () => {
       (useCardSDK as jest.Mock).mockReturnValue({
         user: mockUserData,
         setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
         logoutFromProvider: jest.fn(),
       });
 
@@ -948,10 +994,18 @@ describe('PersonalDetails Component', () => {
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
+      const dateOfBirthInput = getByTestId(
+        'personal-details-date-of-birth-input',
+      );
+      const nationalitySelect = getByTestId(
+        'personal-details-nationality-select',
+      );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       fireEvent.changeText(firstNameInput, 'John');
       fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
+      fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
       fireEvent.changeText(ssnInput, '123456789');
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -965,6 +1019,7 @@ describe('PersonalDetails Component', () => {
           onboardingId: 'test-onboarding-id',
           firstName: 'John',
           lastName: 'Doe',
+          dateOfBirth: expect.any(String),
         }),
       );
     });

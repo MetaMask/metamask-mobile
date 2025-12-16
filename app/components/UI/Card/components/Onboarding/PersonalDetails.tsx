@@ -50,7 +50,7 @@ import { TouchableOpacity } from 'react-native';
 const PersonalDetails = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { setUser, user: userData } = useCardSDK();
+  const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -64,6 +64,10 @@ const PersonalDetails = () => {
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   // If user data is available, set the state values
   useEffect(() => {
@@ -92,7 +96,9 @@ const PersonalDetails = () => {
       } else {
         setDateOfBirth('');
       }
-      setNationalityKey(userData.countryOfNationality || '');
+      setOnValueChange(() => {
+        setNationalityKey(userData.countryOfNationality || '');
+      });
       setSSN(userData.ssn || '');
     }
   }, [userData]);
