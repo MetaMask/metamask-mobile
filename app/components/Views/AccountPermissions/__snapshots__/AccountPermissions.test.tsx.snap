@@ -641,7 +641,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             }
           }
         >
-          Manage Permissions
+          Manage permissions
         </Text>
       </TouchableOpacity>
     </View>

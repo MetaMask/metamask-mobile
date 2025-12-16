@@ -175,7 +175,7 @@ describe('Approve', () => {
       fireEvent.press(await findByTestId('view-transaction-details'));
     });
 
-    expect(await findByText('Transaction Details')).toBeTruthy();
+    expect(await findByText('Transaction details')).toBeTruthy();
     expect(await findByText('Approve asset:')).toBeTruthy();
     expect(await findByText('undefined (#1110)')).toBeTruthy();
   });
