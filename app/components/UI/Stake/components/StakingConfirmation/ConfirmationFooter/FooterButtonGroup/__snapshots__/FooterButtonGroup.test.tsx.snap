@@ -75,6 +75,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "opacity": 0.5,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -164,6 +165,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "opacity": 0.5,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
