@@ -102,15 +102,6 @@ export default function migrate(versionedState: unknown) {
       return state;
     }
 
-    if (!hasProperty(networkState, 'selectedNetworkClientId')) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: Invalid NetworkController state: missing selectedNetworkClientId property`,
-        ),
-      );
-      return state;
-    }
-
     if (
       typeof networkState.selectedNetworkClientId !== 'string'
     ) {
