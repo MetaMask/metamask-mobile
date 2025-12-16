@@ -9034,20 +9034,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller::locator=metamask%40workspace%3A.":
-  version: 3.0.0
-  resolution: "@metamask/remote-feature-flag-controller@file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller#/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller::hash=731dfb&locator=metamask%40workspace%3A."
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.16.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^11.8.1"
-    uuid: "npm:^8.3.2"
-  checksum: 10/6528470a09a2c8cf6c14fc9f03a6b5577945ab28ad9105c4aa4816ea6edbdd84f570e737f49068559146f9c3bbe58843b570f8d5e174184288305aeb9b688455
-  languageName: node
-  linkType: hard
-
-"@metamask/remote-feature-flag-controller@npm:^3.0.0":
+"@metamask/remote-feature-flag-controller@npm:3.0.0":
   version: 3.0.0
   resolution: "@metamask/remote-feature-flag-controller@npm:3.0.0"
   dependencies:
@@ -9057,6 +9044,19 @@ __metadata:
     "@metamask/utils": "npm:^11.8.1"
     uuid: "npm:^8.3.2"
   checksum: 10/50cb1f01ba96de56a79313477f84791fdf40ec1551ab2a7d609ae5097967df4798d3c12a9bfc9b580a3555cae69bf516e4f77aaddc0412a1ee00630b5af50b45
+  languageName: node
+  linkType: hard
+
+"@metamask/remote-feature-flag-controller@npm:@metamask-previews/remote-feature-flag-controller@3.0.0-preview-c208c1a":
+  version: 3.0.0-preview-c208c1a
+  resolution: "@metamask-previews/remote-feature-flag-controller@npm:3.0.0-preview-c208c1a"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.16.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+    uuid: "npm:^8.3.2"
+  checksum: 10/1923b2a08228edac6f5cdd185b9a1baf64130df0d2f29a09646e8c5f81e42c232bfed84d2535c899b8218d058967f8cd7f528f5e9fd7da25b5223a75e722dba8
   languageName: node
   linkType: hard
 
@@ -34307,7 +34307,7 @@ __metadata:
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
-    "@metamask/remote-feature-flag-controller": "file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller"
+    "@metamask/remote-feature-flag-controller": "npm:3.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
