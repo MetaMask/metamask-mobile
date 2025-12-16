@@ -141,26 +141,26 @@ describe(`migration #${migrationVersion}`, () => {
     {
       state: {
         engine: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              [MEGAETH_TESTNET_V1_CHAIN_ID]: {
-                chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
-                name: 'Mega Testnet',
-                nativeCurrency: 'MegaETH',
-                blockExplorerUrls: ['https://explorer.com'],
-                defaultRpcEndpointIndex: 0,
-                defaultBlockExplorerUrlIndex: 0,
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'megaeth-testnet',
-                    type: RpcEndpointType.Custom,
-                    url: 'https://rpc.com',
-                  },
-                ],
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  blockExplorerUrls: ['https://explorer.com'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: RpcEndpointType.Custom,
+                      url: 'https://rpc.com',
+                    },
+                  ],
+                },
               },
             },
-          },
-          backgroundState: {
             NetworkEnablementController: {
               enabledNetworkMap: { [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID  },
             },
@@ -172,27 +172,27 @@ describe(`migration #${migrationVersion}`, () => {
     {
       state: {
         engine: {
-          NetworkController: {
-            selectedNetworkClientId: {},
-            networkConfigurationsByChainId: {
-              [MEGAETH_TESTNET_V1_CHAIN_ID]: {
-                chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
-                name: 'Mega Testnet',
-                nativeCurrency: 'MegaETH',
-                blockExplorerUrls: ['https://explorer.com'],
-                defaultRpcEndpointIndex: 0,
-                defaultBlockExplorerUrlIndex: 0,
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'megaeth-testnet',
-                    type: RpcEndpointType.Custom,
-                    url: 'https://rpc.com',
-                  },
-                ],
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: {},
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  blockExplorerUrls: ['https://explorer.com'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: RpcEndpointType.Custom,
+                      url: 'https://rpc.com',
+                    },
+                  ],
+                },
               },
             },
-          },
-          backgroundState: {
             NetworkEnablementController: {
               enabledNetworkMap: { [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID  },
             },
