@@ -125,6 +125,18 @@ jobs:
               '',
               `🖥️ [Open in Cursor](https://cursor.com/bg/${chatId}) · 🌐 [Open in Web](https://cursor.com/chat/${chatId})`,
               '',
+              '---',
+              '📊 **Rate this analysis**',
+              '',
+              'React to this comment:',
+              '- 1️⃣ Not helpful / Incorrect',
+              '- 2️⃣ Mostly unhelpful',
+              '- 3️⃣ Somewhat helpful',
+              '- 4️⃣ Helpful / Minor issues',
+              '- 5️⃣ Very helpful / Accurate',
+              '',
+              '*Leave a comment for detailed feedback*',
+              '',
               '*Automated analysis by Cursor CLI*'
             ].join('\n');
 
