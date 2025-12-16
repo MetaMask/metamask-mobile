@@ -3872,6 +3872,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get historical user fills (trade executions)
+   * Supports time-based pagination via startTime/endTime params
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     try {
@@ -3886,10 +3887,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      const rawFills = await infoClient.userFills({
-        user: userAddress,
-        aggregateByTime: params?.aggregateByTime || false,
-      });
+      // Use time-based pagination when startTime is provided (for infinite scroll)
+      // Otherwise fall back to userFills for initial load
+      let rawFills;
+      if (params?.startTime !== undefined) {
+        rawFills = await infoClient.userFillsByTime({
+          user: userAddress,
+          startTime: params.startTime,
+          endTime: params.endTime,
+          aggregateByTime: params?.aggregateByTime || false,
+        });
+      } else {
+        rawFills = await infoClient.userFills({
+          user: userAddress,
+          aggregateByTime: params?.aggregateByTime || false,
+        });
+      }
 
       DevLogger.log('User fills received:', rawFills);
 

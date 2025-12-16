@@ -11,6 +11,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -22,14 +23,18 @@ interface UsePerpsTransactionHistoryParams {
 interface UsePerpsTransactionHistoryResult {
   transactions: PerpsTransaction[];
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  loadMore: () => Promise<void>;
 }
 
 /**
  * Comprehensive hook to fetch and combine all perps transaction data
  * Includes trades, orders, funding, and user history (deposits/withdrawals)
  * Uses HyperLiquid user history as the single source of truth for withdrawals
+ * Supports infinite scroll via loadMore() for pagination
  */
 export const usePerpsTransactionHistory = ({
   startTime,
@@ -37,9 +42,19 @@ export const usePerpsTransactionHistory = ({
   accountId,
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
+  // Transactions currently displayed (paginated subset)
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Store ALL fetched transactions for client-side pagination
+  // HyperLiquid API doesn't support proper pagination for orders/funding,
+  // so we fetch everything once and paginate locally
+  const allFetchedTransactionsRef = useRef<PerpsTransaction[]>([]);
+  // Track how many transactions are currently displayed
+  const displayedCountRef = useRef<number>(0);
 
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
@@ -130,8 +145,26 @@ export const usePerpsTransactionHistory = ({
         return acc;
       }, [] as PerpsTransaction[]);
 
-      DevLogger.log('Combined transactions:', uniqueTransactions);
-      setTransactions(uniqueTransactions);
+      // Store ALL transactions for client-side pagination
+      allFetchedTransactionsRef.current = uniqueTransactions;
+
+      // Display only PAGE_SIZE initially for faster rendering
+      const initialDisplayCount =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.PAGE_SIZE;
+      const initialTransactions = uniqueTransactions.slice(
+        0,
+        initialDisplayCount,
+      );
+      displayedCountRef.current = initialTransactions.length;
+
+      // Determine if there are more transactions to load
+      setHasMore(uniqueTransactions.length > initialDisplayCount);
+
+      DevLogger.log('Combined transactions:', {
+        total: uniqueTransactions.length,
+        displayed: initialTransactions.length,
+      });
+      setTransactions(initialTransactions);
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -145,7 +178,52 @@ export const usePerpsTransactionHistory = ({
     }
   }, [startTime, endTime, accountId]);
 
+  /**
+   * Load more transactions for infinite scroll
+   * Uses client-side pagination from already-fetched data
+   * (HyperLiquid API doesn't support proper pagination for orders/funding)
+   */
+  const loadMore = useCallback(async () => {
+    // Prevent loading if already loading or no more data
+    if (isLoadingMore || !hasMore) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+
+    // Use setTimeout to allow UI to show loading indicator
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const allTransactions = allFetchedTransactionsRef.current;
+    const currentCount = displayedCountRef.current;
+    const pageSize = PERPS_TRANSACTIONS_HISTORY_CONSTANTS.PAGE_SIZE;
+
+    // Calculate next slice
+    const nextCount = currentCount + pageSize;
+    const nextTransactions = allTransactions.slice(0, nextCount);
+
+    DevLogger.log('Loading more transactions (client-side):', {
+      previousCount: currentCount,
+      newCount: nextTransactions.length,
+      totalAvailable: allTransactions.length,
+    });
+
+    // Update displayed count
+    displayedCountRef.current = nextTransactions.length;
+
+    // Check if we have more to show
+    setHasMore(nextTransactions.length < allTransactions.length);
+
+    // Update state with expanded transactions
+    setTransactions(nextTransactions);
+    setIsLoadingMore(false);
+  }, [isLoadingMore, hasMore]);
+
   const refetch = useCallback(async () => {
+    // Reset pagination state on refetch
+    allFetchedTransactionsRef.current = [];
+    displayedCountRef.current = 0;
+    setHasMore(true);
     // Fetch user history first, then fetch all transactions
     const freshUserHistory = await refetchUserHistory();
     userHistoryRef.current = freshUserHistory;
@@ -218,13 +296,17 @@ export const usePerpsTransactionHistory = ({
     ];
 
     // Sort by timestamp descending
+    // Note: We don't cap here anymore - infinite scroll handles the limit
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
   }, [liveFills, transactions]);
 
   return {
     transactions: mergedTransactions,
     isLoading: combinedIsLoading,
+    isLoadingMore,
+    hasMore,
     error: combinedError,
     refetch,
+    loadMore,
   };
 };

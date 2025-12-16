@@ -12,4 +12,20 @@ export const PERPS_TRANSACTIONS_HISTORY_CONSTANTS = {
    * Can be increased if users need older funding data.
    */
   DEFAULT_FUNDING_HISTORY_DAYS: 365,
+  /**
+   * Maximum number of transactions to display per filter tab.
+   * Caps the number of transactions stored in state to reduce rendering overhead.
+   * This is Step 1 of performance optimization - future steps include API limits and caching.
+   */
+  TRANSACTIONS_HISTORY_LIMIT: 100,
+  /**
+   * Number of transactions to fetch per page for infinite scroll.
+   * Used for time-based pagination with the HyperLiquid API.
+   */
+  PAGE_SIZE: 50,
+  /**
+   * Threshold for triggering onEndReached in FlashList.
+   * 0.5 means load more when user is 50% away from the end.
+   */
+  ON_END_REACHED_THRESHOLD: 0.5,
 } as const;
