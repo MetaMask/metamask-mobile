@@ -69,6 +69,7 @@ jest.mock('../../../core/Authentication', () => ({
     currentAuthType: 'passcode',
     availableBiometryType: null,
   }),
+  getPassword: jest.fn().mockResolvedValue(null),
   resetPassword: jest.fn().mockResolvedValue(undefined),
   storePassword: jest.fn().mockResolvedValue(undefined),
   storePasswordWithFallback: jest.fn().mockResolvedValue(undefined),
