@@ -5,8 +5,8 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
 /**
  * Default slippage for market orders.
  */
-export const SLIPPAGE_BUY = 0.015; // 1.5%
-export const SLIPPAGE_SELL = 0.03; // 3%
+export const SLIPPAGE_BUY = 0.03; // 3%
+export const SLIPPAGE_SELL = 0.05; // 5%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 

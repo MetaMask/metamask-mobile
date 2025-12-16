@@ -19,7 +19,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -1304,6 +1304,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        twClassName="h-auto"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}
@@ -2257,14 +2258,15 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(
+export function getCloseOnlyNavbar({
   navigation,
   themeColors,
+  backgroundColor = themeColors.background.default,
   onClose = undefined,
-) {
+}) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },

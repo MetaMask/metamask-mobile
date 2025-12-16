@@ -95,6 +95,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import {
   usePerpsLiveAccount,
   usePerpsLivePrices,
@@ -162,6 +163,10 @@ interface PerpsOrderViewContentProps {
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
 }) => {
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -835,6 +840,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           feeDiscountPercentage: feeResults.feeDiscountPercentage,
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
+          source,
         },
       };
 
@@ -891,6 +897,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
+    source,
     isButtonColorTestEnabled,
     buttonColorVariant,
   ]);

@@ -4,8 +4,9 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
 <RCTScrollView
   style={
     {
-      "padding": 24,
       "paddingBottom": 48,
+      "paddingLeft": 16,
+      "paddingRight": 16,
     }
   }
 >
