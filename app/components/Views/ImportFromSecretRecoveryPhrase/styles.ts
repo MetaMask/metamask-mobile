@@ -226,6 +226,15 @@ const createStyles = (colors: any) =>
         default: 16,
       }),
     },
+    stepContainer: {
+      flex: 1,
+    },
+    hiddenStep: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+    },
   });
 
 export default createStyles;

@@ -74,6 +74,7 @@ describe('TokenBalancesControllerInit', () => {
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
+      isOnboarded: expect.any(Function),
     });
   });
 
@@ -92,6 +93,7 @@ describe('TokenBalancesControllerInit', () => {
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
+      isOnboarded: expect.any(Function),
     });
   });
 
@@ -111,6 +113,7 @@ describe('TokenBalancesControllerInit', () => {
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
+      isOnboarded: expect.any(Function),
     });
   });
 });
