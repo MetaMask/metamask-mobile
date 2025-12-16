@@ -25,8 +25,8 @@ export interface CalculateMaxRemovableMarginParams {
   currentPrice: number;
   /** The actual leverage of the position (not the asset's max leverage) */
   positionLeverage: number;
-  /** Unrealized PnL - for isolated positions, positive PnL adds to effective margin */
-  unrealizedPnl?: number;
+  /** Optional pre-calculated notional value (e.g., from position.positionValue) for immediate display before live prices load */
+  notionalValue?: number;
 }
 
 export interface CalculateNewLiquidationPriceParams {
@@ -98,7 +98,7 @@ export function assessMarginRemovalRisk(
  * For example, a position opened at 10x leverage requires 10% initial margin,
  * not 2% (which would be for 50x max leverage).
  *
- * @param params - Current margin, position size, prices, position leverage, and unrealized PnL
+ * @param params - Current margin, position size, prices, and position leverage
  * @returns Maximum removable margin amount in USD
  */
 export function calculateMaxRemovableMargin(
@@ -109,25 +109,38 @@ export function calculateMaxRemovableMargin(
     positionSize,
     currentPrice,
     positionLeverage,
-    unrealizedPnl = 0,
+    notionalValue: providedNotionalValue,
   } = params;
 
   // Validate inputs
   if (
     isNaN(currentMargin) ||
-    isNaN(positionSize) ||
-    isNaN(currentPrice) ||
     isNaN(positionLeverage) ||
     currentMargin <= 0 ||
-    positionSize <= 0 ||
-    currentPrice <= 0 ||
     positionLeverage <= 0
   ) {
     return 0;
   }
 
-  // Use mark price (current price) per Hyperliquid documentation
-  const notionalValue = positionSize * currentPrice;
+  // Use provided notional value (e.g., from position.positionValue) or calculate from price
+  // This allows immediate display before live prices load
+  let notionalValue = providedNotionalValue;
+  if (
+    notionalValue === undefined ||
+    isNaN(notionalValue) ||
+    notionalValue <= 0
+  ) {
+    // Fall back to calculating from price if not provided or invalid
+    if (
+      isNaN(positionSize) ||
+      isNaN(currentPrice) ||
+      positionSize <= 0 ||
+      currentPrice <= 0
+    ) {
+      return 0;
+    }
+    notionalValue = positionSize * currentPrice;
+  }
 
   // Hyperliquid's transfer margin requirement formula:
   // transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
@@ -145,13 +158,11 @@ export function calculateMaxRemovableMargin(
     tenPercentMargin,
   );
 
-  // For isolated positions, positive unrealized PnL adds to effective margin
-  // (negative PnL is already reflected in margin)
-  const effectiveMargin = currentMargin + Math.max(0, unrealizedPnl);
-
-  // Maximum removable = effective margin - required (must be non-negative)
-  // No additional safety buffer - match Hyperliquid's exact formula
-  return Math.max(0, effectiveMargin - transferMarginRequired);
+  // Note: Unrealized PnL is NOT counted as part of "remaining margin" for withdrawals
+  // Per Hyperliquid docs, unrealized PnL helps prevent liquidation but doesn't
+  // increase your available withdrawal limit for margin transfers
+  // Maximum removable = current margin - required (must be non-negative)
+  return Math.max(0, currentMargin - transferMarginRequired);
 }
 
 /**

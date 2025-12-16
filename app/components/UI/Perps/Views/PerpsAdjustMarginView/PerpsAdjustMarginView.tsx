@@ -136,32 +136,49 @@ const PerpsAdjustMarginView: React.FC = () => {
     [position],
   );
 
+  // Position value from Hyperliquid (for fallback when live price not yet loaded)
+  const positionValue = useMemo(
+    () => parseFloat(position?.positionValue || '0'),
+    [position],
+  );
+
   // Available balance for add mode
   const availableBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0'),
     [account],
   );
 
-  // Get position leverage and unrealized PnL for margin calculations
+  // Get position leverage for margin calculations
   const positionLeverage = position?.leverage?.value || maxLeverage;
-  const unrealizedPnl = useMemo(
-    () => parseFloat(position?.unrealizedPnl || '0'),
-    [position],
-  );
+
+  // Effective notional value: use live calculation when available, otherwise fall back to position's stored value
+  // This ensures accurate display immediately when opening the view, before live prices load
+  const effectiveNotionalValue = useMemo(() => {
+    if (currentPrice > 0 && positionSize > 0) {
+      return positionSize * currentPrice;
+    }
+    // Fallback to position's stored positionValue when live price not yet available
+    return positionValue;
+  }, [currentPrice, positionSize, positionValue]);
 
   // Calculate maximum amount based on mode
+  // Floor to 2 decimal places to match Hyperliquid's display and avoid rounding issues
   const maxAmount = useMemo(() => {
+    let amount: number;
     if (isAddMode) {
-      return Math.max(0, availableBalance);
+      amount = Math.max(0, availableBalance);
+    } else {
+      amount = calculateMaxRemovableMargin({
+        currentMargin,
+        positionSize,
+        entryPrice,
+        currentPrice,
+        positionLeverage,
+        notionalValue: effectiveNotionalValue,
+      });
     }
-    return calculateMaxRemovableMargin({
-      currentMargin,
-      positionSize,
-      entryPrice,
-      currentPrice,
-      positionLeverage,
-      unrealizedPnl,
-    });
+    // Floor to 2 decimal places to match Hyperliquid behavior
+    return Math.floor(amount * 100) / 100;
   }, [
     isAddMode,
     availableBalance,
@@ -170,7 +187,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     entryPrice,
     currentPrice,
     positionLeverage,
-    unrealizedPnl,
+    effectiveNotionalValue,
   ]);
 
   // Calculate new values after adjustment
@@ -233,12 +250,13 @@ const PerpsAdjustMarginView: React.FC = () => {
   );
 
   const handleSliderChange = useCallback((value: number) => {
-    // Keep 2 decimal places for precision with small amounts
-    setMarginAmountString(value.toFixed(2));
+    // Floor to 2 decimal places to match Hyperliquid behavior
+    const flooredValue = Math.floor(value * 100) / 100;
+    setMarginAmountString(flooredValue.toFixed(2));
   }, []);
 
   const handleMaxPress = useCallback(() => {
-    // Keep 2 decimal places for precision with small amounts
+    // maxAmount is already floored to 2 decimal places
     setMarginAmountString(maxAmount.toFixed(2));
   }, [maxAmount]);
 
@@ -251,6 +269,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     ({ value }: { value: string }) => {
       const numValue = parseFloat(value) || 0;
       // Clamp to maxAmount for remove mode to prevent invalid submissions
+      // maxAmount is already floored to 2 decimal places
       if (!isAddMode && numValue > maxAmount) {
         setMarginAmountString(maxAmount.toFixed(2));
       } else {
@@ -266,9 +285,10 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      // Keep 2 decimal places for precision with small amounts
+      // maxAmount is already floored, floor the percentage result too
       const amount = maxAmount * percentage;
-      setMarginAmountString(amount.toFixed(2));
+      const flooredAmount = Math.floor(amount * 100) / 100;
+      setMarginAmountString(flooredAmount.toFixed(2));
     },
     [maxAmount],
   );

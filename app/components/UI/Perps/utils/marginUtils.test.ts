@@ -105,44 +105,25 @@ describe('marginUtils', () => {
       expect(result).toBe(0);
     });
 
-    it('includes positive unrealized PnL in effective margin', () => {
-      // Position with positive unrealized PnL
+    it('does not include unrealized PnL in withdrawal calculation', () => {
+      // Per Hyperliquid docs: unrealized PnL helps prevent liquidation
+      // but doesn't increase withdrawal limits
+      // Position at exact initial margin - nothing removable
       const result = calculateMaxRemovableMargin({
         currentMargin: 100,
         positionSize: 0.01,
         entryPrice: 100000,
         currentPrice: 100000,
         positionLeverage: 10,
-        unrealizedPnl: 50, // Positive PnL adds to effective margin
       });
 
       // notionalValue = 0.01 * 100000 = 1000
       // initialMarginRequired = 1000 / 10 = 100
       // tenPercentMargin = 1000 * 0.1 = 100
       // transferMarginRequired = max(100, 100) = 100
-      // effectiveMargin = 100 + 50 = 150
-      // maxRemovable = 150 - 100 = 50
-      expect(result).toBe(50);
-    });
-
-    it('ignores negative unrealized PnL (already reflected in margin)', () => {
-      // Position with negative unrealized PnL
-      const result = calculateMaxRemovableMargin({
-        currentMargin: 150,
-        positionSize: 0.01,
-        entryPrice: 100000,
-        currentPrice: 100000,
-        positionLeverage: 10,
-        unrealizedPnl: -50, // Negative PnL is ignored (already reflected)
-      });
-
-      // notionalValue = 0.01 * 100000 = 1000
-      // initialMarginRequired = 1000 / 10 = 100
-      // tenPercentMargin = 1000 * 0.1 = 100
-      // transferMarginRequired = max(100, 100) = 100
-      // effectiveMargin = 150 + max(0, -50) = 150 + 0 = 150
-      // maxRemovable = 150 - 100 = 50
-      expect(result).toBe(50);
+      // maxRemovable = 100 - 100 = 0
+      // Even if position has positive unrealized PnL, it's not withdrawable
+      expect(result).toBe(0);
     });
 
     it('returns 0 for negative margin values', () => {
@@ -181,7 +162,7 @@ describe('marginUtils', () => {
       expect(result).toBe(0);
     });
 
-    it('returns 0 when current price is 0', () => {
+    it('returns 0 when current price is 0 and no notionalValue provided', () => {
       const result = calculateMaxRemovableMargin({
         currentMargin: 500,
         positionSize: 10,
@@ -191,6 +172,58 @@ describe('marginUtils', () => {
       });
 
       expect(result).toBe(0);
+    });
+
+    it('uses provided notionalValue when currentPrice is 0', () => {
+      // Simulates when live price hasn't loaded yet but we have position.positionValue
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 0, // Live price not loaded
+        positionLeverage: 50,
+        notionalValue: 20000, // From position.positionValue
+      });
+
+      // notionalValue = 20000 (provided)
+      // initialMarginRequired = 20000 / 50 = 400 (2%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(400, 2000) = 2000
+      // maxRemovable = 3000 - 2000 = 1000
+      expect(result).toBe(1000);
+    });
+
+    it('uses calculated notionalValue when provided value is 0', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 3000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2000,
+        positionLeverage: 50,
+        notionalValue: 0, // Invalid, should fall back to calculated
+      });
+
+      // Falls back to: notionalValue = 10 * 2000 = 20000
+      // Same calculation as above
+      expect(result).toBe(1000);
+    });
+
+    it('prefers provided notionalValue over calculated when both available', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 5000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2500, // Would give notional of 25000
+        positionLeverage: 5,
+        notionalValue: 20000, // Provided value takes precedence
+      });
+
+      // Uses provided notionalValue = 20000
+      // initialMarginRequired = 20000 / 5 = 4000 (20%)
+      // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
+      // transferMarginRequired = max(4000, 2000) = 4000
+      // maxRemovable = 5000 - 4000 = 1000
+      expect(result).toBe(1000);
     });
   });
 
