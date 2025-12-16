@@ -9,9 +9,6 @@ on:
       apk-uploaded:
         description: 'Whether the APK was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.apk-uploaded }}
-      aab-uploaded:
-        description: 'Whether the AAB was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.aab-uploaded }}
     inputs:
       build_type:
         description: 'The type of build to perform'
@@ -32,17 +29,15 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl # Bumped from lg to xl to prevent Daemon disappearance issue (Daemon OOM issue in CI)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # lg runner: 16 vCPUs, 48GB RAM
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
-      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
-      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
@@ -56,7 +51,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
           setup-simulator: false
@@ -88,14 +83,12 @@ jobs:
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
               echo "artifact_name=app-flask-release"
             } >> "$GITHUB_OUTPUT"
           elif [[ "${{ inputs.build_type }}" == "main" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/prod/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
               echo "artifact_name=app-prod-release"
             } >> "$GITHUB_OUTPUT"
           else
@@ -110,7 +103,6 @@ jobs:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           # Include Gradle properties in key to force rebuild when properties change
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
           # - "Cache Gradle dependencies"
@@ -122,6 +114,7 @@ jobs:
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -134,6 +127,7 @@ jobs:
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -156,7 +150,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -182,6 +175,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
@@ -205,7 +199,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -240,7 +233,6 @@ jobs:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
           # - "Check and restore cached APKs if Fingerprint is found"
           # - "Cache Gradle dependencies"
@@ -263,13 +255,3 @@ jobs:
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
-
-      - name: Upload Android AAB
-        id: upload-aab
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
-          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true

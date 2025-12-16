@@ -547,6 +547,8 @@ generateAndroidBinary() {
 	local reactNativeArchitecturesArg=""
 	# Define Test build type arg
 	local testBuildTypeArg=""
+	# Define Gradle debug flags
+	local gradleDebugFlags=""
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -572,14 +574,19 @@ generateAndroidBinary() {
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 			# Only build for x86_64 for E2E builds
 			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			# Enable Gradle debugging flags for E2E builds to investigate Daemon disappearance issues
+			gradleDebugFlags="--stacktrace --info"
+			echo "📊 E2E build: Enabling Gradle debugging flags (--stacktrace --info)"
 		fi
 	fi
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleDebugFlags
 
-	if [ "$configuration" = "Release" ] ; then		
+	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
+	# and is only needed for Play Store distribution
+	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" != "e2e" ] ; then		
 		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
@@ -620,6 +627,55 @@ generateAndroidBinary() {
 
 	# Change directory back out
 	cd ..
+}
+
+buildExpoUpdate() {
+		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+
+		if [ -z "${EXPO_TOKEN}" ]; then
+			echo "EXPO_TOKEN is NOT set in build.sh env"
+		else
+			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+		fi
+
+		# Validate required Expo Update environment variables
+		if [ -z "${EXPO_CHANNEL}" ]; then
+			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+			exit 1
+		fi
+
+		if [ -z "${EXPO_KEY_PRIV}" ]; then
+			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+			exit 1
+		fi
+
+		# Prepare Expo update signing key
+		mkdir -p keys
+		echo "Writing Expo private key to ./keys/private-key.pem"
+		printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
+
+		if [ ! -f keys/private-key.pem ]; then
+			echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
+			exit 1
+		fi
+
+		echo "🚀 Publishing EAS update..."
+
+		echo "ℹ️ Git head: $(git rev-parse HEAD)"
+		echo "ℹ️ Checking for eas script in package.json..."
+		if ! grep -q '"eas": "eas"' package.json; then
+			echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
+			exit 1
+		fi
+
+		echo "ℹ️ Available yarn scripts containing eas:"
+		yarn run --json | grep '"name":"eas"' || true
+
+		yarn run eas update \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "${UPDATE_MESSAGE}" \
+			--non-interactive
 }
 
 buildAndroid() {
@@ -805,8 +861,11 @@ elif [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main"
 fi
 
 # Update Expo channel configuration based on environment
-echo "Updating Expo channel configuration..."
-node "${__DIRNAME__}/update-expo-channel.js"
+# Skip when running Expo updates, as channel is managed externally in that flow
+if [ "$PLATFORM" != "expo-update" ]; then
+	echo "Updating Expo channel configuration..."
+	node "${__DIRNAME__}/update-expo-channel.js"
+fi
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
@@ -822,6 +881,9 @@ elif [ "$PLATFORM" == "android" ]; then
 	else
 		envFileMissing $ANDROID_ENV_FILE
 	fi
+elif [ "$PLATFORM" == "expo-update" ]; then
+	# we don't care about env file in CI
+	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi

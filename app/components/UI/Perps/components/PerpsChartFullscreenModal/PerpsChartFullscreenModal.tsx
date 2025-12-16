@@ -2,11 +2,6 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  lockAsync,
-  unlockAsync,
-  OrientationLock,
-} from 'expo-screen-orientation';
 import { useStyles } from '../../../../../component-library/hooks';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -26,6 +21,7 @@ import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartInter
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
+import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -60,34 +56,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   // Track OHLCV bar height to subtract from chart height
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
 
-  // Auto-follow device orientation when modal is open
-  useEffect(() => {
-    const handleOrientationChange = async () => {
-      try {
-        if (isVisible) {
-          // Unlock orientation to follow device
-          await unlockAsync();
-        } else {
-          // Lock back to portrait when closing
-          await lockAsync(OrientationLock.PORTRAIT_UP);
-        }
-      } catch (error) {
-        // Silent error handling - orientation lock failures are non-critical
-      }
-    };
-
-    handleOrientationChange();
-
-    // Cleanup only if component unmounts while modal is visible
-    // No need to lock again on visibility change as it's handled above
-    return () => {
-      if (isVisible) {
-        lockAsync(OrientationLock.PORTRAIT_UP).catch(() => {
-          // Silent error handling
-        });
-      }
-    };
-  }, [isVisible]);
+  // Allow landscape orientation when modal is visible
+  // Automatically locks back to portrait when modal closes or unmounts
+  useScreenOrientation({ allowLandscape: isVisible });
 
   // Reset OHLCV height when OHLCV bar disappears
   useEffect(() => {
@@ -116,29 +87,16 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     }
   }, [candleData, selectedInterval, visibleCandleCount]);
 
-  const handleClose = useCallback(async () => {
-    try {
-      // Lock orientation back to portrait before closing
-      await lockAsync(OrientationLock.PORTRAIT_UP);
-    } catch (error) {
-      // Silent error handling - orientation lock failures are non-critical
-    } finally {
-      // Always call onClose even if orientation lock fails
-      onClose();
-    }
+  // Close handler - orientation is automatically restored by the hook
+  // when isVisible becomes false
+  const handleClose = useCallback(() => {
+    onClose();
   }, [onClose]);
 
-  // Handle chart errors by restoring orientation and closing modal
-  const handleChartError = useCallback(async () => {
-    try {
-      // Restore orientation lock on error to prevent getting stuck
-      await lockAsync(OrientationLock.PORTRAIT_UP);
-    } catch (error) {
-      // Silent error handling - orientation lock failures are non-critical
-    } finally {
-      // Close modal even if orientation lock fails
-      onClose();
-    }
+  // Handle chart errors by closing modal
+  // Orientation is automatically restored by the hook
+  const handleChartError = useCallback(() => {
+    onClose();
   }, [onClose]);
 
   return (

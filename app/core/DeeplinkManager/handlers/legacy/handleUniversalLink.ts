@@ -1,7 +1,7 @@
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
 import AppConstants from '../../../AppConstants';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../../DeeplinkManager';
+import { DeeplinkManager } from '../../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import {
   hasSignature,
@@ -79,13 +79,10 @@ const interstitialWhitelistUrls = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
 
-// remember this is only for the INTERSTITIAL
-// "Redirecting you to MetaMask..." modal
-// NOT THE "proceed with caution" modal
-const interstitialWhitelistSources = [
+// This is used when links originate from within the app itself
+const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-  AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
 ] as string[];
@@ -115,6 +112,13 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
+  // Skip handling deeplinks that do not have a pathname or query
+  // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
+  if (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) {
+    handled();
+    return;
+  }
+
   let isPrivateLink = false;
   let isInvalidLink = false;
 
@@ -131,7 +135,6 @@ async function handleUniversalLink({
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
     handleMetaMaskDeeplink({
-      instance,
       handled,
       wcURL,
       origin: source,
@@ -220,14 +223,18 @@ async function handleUniversalLink({
         return;
       }
 
-      // bypass if link originated from within this app
-      if (interstitialWhitelistSources.includes(source)) {
+      // bypass redirect modalif link originated from within this app AND is signed
+      const linkInstanceType = linkType();
+      if (
+        inAppLinkSources.includes(source) &&
+        linkInstanceType === DeepLinkModalLinkType.PRIVATE
+      ) {
         resolve(true);
         return;
       }
 
       handleDeepLinkModalDisplay({
-        linkType: linkType(),
+        linkType: linkInstanceType,
         pageTitle,
         onContinue: () => resolve(true),
         onBack: () => resolve(false),
@@ -242,97 +249,98 @@ async function handleUniversalLink({
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
-  if (
-    action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
-    action === SUPPORTED_ACTIONS.BUY
-  ) {
-    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleRampUrl({
-      rampPath,
-      navigation: instance.navigation,
-      rampType: RampType.BUY,
-    });
-  } else if (
-    action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
-    action === SUPPORTED_ACTIONS.SELL
-  ) {
-    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleRampUrl({
-      rampPath,
-      navigation: instance.navigation,
-      rampType: RampType.SELL,
-    });
-  } else if (action === SUPPORTED_ACTIONS.DEPOSIT) {
-    const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleDepositCashUrl({
-      depositPath: depositCashPath,
-      navigation: instance.navigation,
-    });
-  } else if (action === SUPPORTED_ACTIONS.HOME) {
-    const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
-    navigateToHomeUrl({ homePath });
-    return;
-  } else if (action === SUPPORTED_ACTIONS.SWAP) {
-    const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleSwapUrl({
-      swapPath,
-    });
-    return;
-  } else if (action === SUPPORTED_ACTIONS.DAPP) {
-    const deeplinkUrl = urlObj.href.replace(
-      `${BASE_URL_ACTION}/`,
-      PREFIXES[ACTIONS.DAPP],
-    );
-    handleBrowserUrl({
-      deeplinkManager: instance,
-      url: deeplinkUrl,
-      callback: browserCallBack,
-    });
-  } else if (action === SUPPORTED_ACTIONS.SEND) {
-    const deeplinkUrl = urlObj.href
-      .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
-      .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
-    // loops back to open the link with the right protocol
-    instance.parse(deeplinkUrl, { origin: source });
-    return;
-  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
-    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleCreateAccountUrl({
-      path: deeplinkUrl,
-      navigation: instance.navigation,
-    });
-  } else if (
-    action === SUPPORTED_ACTIONS.PERPS ||
-    action === SUPPORTED_ACTIONS.PERPS_MARKETS
-  ) {
-    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handlePerpsUrl({
-      perpsPath,
-    });
-  } else if (action === SUPPORTED_ACTIONS.REWARDS) {
-    const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleRewardsUrl({
-      rewardsPath,
-    });
-  } else if (action === SUPPORTED_ACTIONS.PREDICT) {
-    const predictPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handlePredictUrl({
-      predictPath,
-      origin: source,
-    });
-  } else if (action === SUPPORTED_ACTIONS.WC) {
-    const { params } = extractURLParams(urlObj.href);
-    const wcURL = params?.uri;
+  const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
 
-    if (wcURL) {
-      instance.parse(wcURL, { origin: source });
+  switch (action) {
+    case SUPPORTED_ACTIONS.BUY_CRYPTO:
+    case SUPPORTED_ACTIONS.BUY:
+    case SUPPORTED_ACTIONS.SELL_CRYPTO:
+    case SUPPORTED_ACTIONS.SELL: {
+      const buyActions = [SUPPORTED_ACTIONS.BUY_CRYPTO, SUPPORTED_ACTIONS.BUY];
+      const rampType = buyActions.includes(action)
+        ? RampType.BUY
+        : RampType.SELL;
+      handleRampUrl({
+        rampPath: actionBasedRampPath,
+        rampType,
+      });
+      break;
     }
-    return;
-  } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
-    const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    handleFastOnboarding({ onboardingPath });
-  } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
-    handleEnableCardButton();
+    case SUPPORTED_ACTIONS.DEPOSIT:
+      handleDepositCashUrl({
+        depositPath: actionBasedRampPath,
+      });
+      break;
+    case SUPPORTED_ACTIONS.HOME:
+      navigateToHomeUrl({ homePath: actionBasedRampPath });
+      return;
+    case SUPPORTED_ACTIONS.SWAP:
+      handleSwapUrl({
+        swapPath: actionBasedRampPath,
+      });
+      return;
+    case SUPPORTED_ACTIONS.DAPP: {
+      const deeplinkUrl = urlObj.href.replace(
+        `${BASE_URL_ACTION}/`,
+        PREFIXES[ACTIONS.DAPP],
+      );
+      handleBrowserUrl({
+        url: deeplinkUrl,
+        callback: browserCallBack,
+      });
+      return;
+    }
+    case SUPPORTED_ACTIONS.SEND: {
+      const deeplinkUrl = urlObj.href
+        .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
+        .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
+      // loops back to open the link with the right protocol
+      instance.parse(deeplinkUrl, { origin: source });
+      return;
+    }
+    case SUPPORTED_ACTIONS.CREATE_ACCOUNT: {
+      handleCreateAccountUrl({
+        path: actionBasedRampPath,
+      });
+      return;
+    }
+    case SUPPORTED_ACTIONS.PERPS:
+    case SUPPORTED_ACTIONS.PERPS_MARKETS: {
+      handlePerpsUrl({
+        perpsPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.REWARDS: {
+      handleRewardsUrl({
+        rewardsPath: actionBasedRampPath,
+      });
+      return;
+    }
+    case SUPPORTED_ACTIONS.PREDICT: {
+      handlePredictUrl({
+        predictPath: actionBasedRampPath,
+        origin: source,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.WC: {
+      const { params } = extractURLParams(urlObj.href);
+      const wcURL = params?.uri;
+
+      if (wcURL) {
+        instance.parse(wcURL, { origin: source });
+      }
+      return;
+    }
+    case SUPPORTED_ACTIONS.ONBOARDING: {
+      handleFastOnboarding({ onboardingPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON: {
+      handleEnableCardButton();
+      break;
+    }
   }
 }
 

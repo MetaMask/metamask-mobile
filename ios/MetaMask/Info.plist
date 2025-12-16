@@ -87,16 +87,16 @@
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>MM Poly Regular.otf</string>
-		<string>MM Sans Bold.otf</string>
-		<string>MM Sans Medium.otf</string>
-		<string>MM Sans Regular.otf</string>
-		<string>Geist Bold Italic.otf</string>
-		<string>Geist Bold.otf</string>
-		<string>Geist Medium Italic.otf</string>
-		<string>Geist Medium.otf</string>
-		<string>Geist Regular Italic.otf</string>
-		<string>Geist Regular.otf</string>
+		<string>MMPoly-Regular.otf</string>
+		<string>MMSans-Bold.otf</string>
+		<string>MMSans-Medium.otf</string>
+		<string>MMSans-Regular.otf</string>
+		<string>Geist-BoldItalic.otf</string>
+		<string>Geist-Bold.otf</string>
+		<string>Geist-MediumItalic.otf</string>
+		<string>Geist-Medium.otf</string>
+		<string>Geist-RegularItalic.otf</string>
+		<string>Geist-Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

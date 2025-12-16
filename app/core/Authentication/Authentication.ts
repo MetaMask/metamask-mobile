@@ -6,6 +6,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -16,6 +17,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
+import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
@@ -73,6 +75,10 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import MetaMetrics from '../Analytics/MetaMetrics';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { strings } from '../../../locales/i18n';
+import { IconName } from '../../component-library/components/Icons/Icon';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1282,6 +1288,47 @@ class AuthenticationService {
   };
 
   /**
+   * Checks if the seedless password is outdated and shows a modal if it is.
+   * This method verifies the outdated state and navigates to show the password outdated modal.
+   *
+   * @param {boolean} isSeedlessPasswordOutdated - whether the seedless password is marked as outdated in state
+   * @returns {Promise<void>}
+   */
+  checkAndShowSeedlessPasswordOutdatedModal = async (
+    isSeedlessPasswordOutdated: boolean,
+  ): Promise<void> => {
+    if (!isSeedlessPasswordOutdated) {
+      return;
+    }
+
+    // Check for latest seedless password outdated state
+    // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false);
+    if (!isOutdated) {
+      return;
+    }
+
+    // show seedless password outdated modal and force user to lock app
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('login.seedless_password_outdated_modal_title'),
+        description: strings('login.seedless_password_outdated_modal_content'),
+        primaryButtonLabel: strings(
+          'login.seedless_password_outdated_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: false,
+        onPrimaryButtonPress: async () => {
+          await this.lockApp({ locked: true });
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
+
+  /**
    * Syncs the keyring encryption key with the seedless onboarding controller.
    *
    * @returns {Promise<void>}
@@ -1294,6 +1341,78 @@ class AuthenticationService {
       keyringEncryptionKey,
     );
   };
+
+  /**
+   * Deletes the wallet by resetting wallet state and deleting user data.
+   * This is the main public method for wallet deletion/reset flows.
+   * It calls resetWalletState() followed by deleteUser(), and also clears
+   * metrics opt-in UI state and resets onboarding completion status.
+   *
+   * @returns {Promise<void>}
+   */
+  deleteWallet = async (): Promise<void> => {
+    await this.resetWalletState();
+    await this.deleteUser();
+    // Clear metrics opt-in UI state and reset onboarding completion
+    await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
+    ReduxService.store.dispatch(setCompletedOnboarding(false));
+  };
+
+  /**
+   * Resets the wallet state by creating a new wallet and clearing all related state.
+   * This is used during wallet deletion/reset flows.
+   * Protected method - use deleteWallet() instead for complete wallet deletion.
+   *
+   * @returns {Promise<void>}
+   */
+  protected async resetWalletState(): Promise<void> {
+    try {
+      // Clear vault backups BEFORE creating temporary wallet
+      await clearAllVaultBackups();
+
+      // CRITICAL: Disable automatic vault backups during wallet RESET
+      // This prevents the temporary wallet (created during reset) from being backed up
+      EngineClass.disableAutomaticVaultBackup = true;
+
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+
+        Engine.context.SeedlessOnboardingController.clearState();
+
+        await depositResetProviderToken();
+
+        await Engine.controllerMessenger.call('RewardsController:resetAll');
+
+        // Lock the app and navigate to onboarding
+        await this.lockApp({ navigateToLogin: false });
+      } finally {
+        // ALWAYS re-enable automatic vault backups, even if error occurs
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+    } catch (error) {
+      const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
+      Logger.log(error, errorMsg);
+    }
+  }
+
+  /**
+   * Deletes user data by setting existing user state to false and creating a data deletion task.
+   * This is used during wallet deletion flows.
+   * Protected method - use deleteWallet() instead for complete wallet deletion.
+   *
+   * @returns {Promise<void>}
+   */
+  protected async deleteUser(): Promise<void> {
+    try {
+      ReduxService.store.dispatch(setExistingUser(false));
+      await MetaMetrics.getInstance().createDataDeletionTask();
+    } catch (error) {
+      const errorMsg = `Failed to reset existingUser state in Redux`;
+      Logger.log(error, errorMsg);
+    }
+  }
 }
 
 export const Authentication = new AuthenticationService();

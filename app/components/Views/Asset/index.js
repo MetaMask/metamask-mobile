@@ -14,7 +14,6 @@ import AppConstants from '../../../core/AppConstants';
 import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
-  selectChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
@@ -53,8 +52,13 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import {
@@ -150,7 +154,11 @@ class Asset extends PureComponent {
     */
     selectedInternalAccount: PropTypes.object,
     /**
-     * The chain ID for the current selected network
+     * The selected address for the asset's chain (handles both EVM and non-EVM)
+     */
+    selectedAddressForAsset: PropTypes.string,
+    /**
+     * The chain ID for the asset being viewed
      */
     chainId: PropTypes.string,
     /**
@@ -201,9 +209,11 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = isHexAddress(this.props.selectedInternalAccount?.address)
-    ? safeToChecksumAddress(this.props.selectedInternalAccount?.address)
-    : this.props.selectedInternalAccount?.address;
+  // Use the selectedAddressForAsset which is already computed in mapStateToProps
+  // to be the correct address for the asset's chain (EVM or non-EVM)
+  selectedAddress = isHexAddress(this.props.selectedAddressForAsset)
+    ? safeToChecksumAddress(this.props.selectedAddressForAsset)
+    : this.props.selectedAddressForAsset;
 
   updateNavBar = (contentOffset = 0) => {
     const {
@@ -273,10 +283,18 @@ class Asset extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
+    // Update selectedAddress if the address for the asset's chain has changed
+    if (
+      prevProps.selectedAddressForAsset !== this.props.selectedAddressForAsset
+    ) {
+      this.selectedAddress = isHexAddress(this.props.selectedAddressForAsset)
+        ? safeToChecksumAddress(this.props.selectedAddressForAsset)
+        : this.props.selectedAddressForAsset;
+    }
+
     if (
       prevProps.chainId !== this.props.chainId ||
-      prevProps.selectedInternalAccount.address !==
-        this.props.selectedInternalAccount?.address
+      prevProps.selectedAddressForAsset !== this.props.selectedAddressForAsset
     ) {
       this.showLoaderAndNormalize();
     } else {
@@ -617,6 +635,7 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
             tokenChainId={asset.chainId}
+            skipScrollOnClick
           />
         )}
       </View>
@@ -633,6 +652,23 @@ const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
   const asset = route.params;
+
+  // Get the correct selected address for the asset's chain
+  // For non-EVM assets (like Solana), we need to get the address from the account
+  // that matches the asset's chain scope
+  let selectedAddressForAsset;
+
+  if (asset?.chainId) {
+    const caipChainId = formatChainIdToCaip(asset.chainId);
+    const accountByScope =
+      selectSelectedInternalAccountByScope(state)(caipChainId);
+    selectedAddressForAsset = accountByScope?.address;
+  }
+
+  // Fallback to the standard selected account address
+  if (!selectedAddressForAsset) {
+    selectedAddressForAsset = selectSelectedInternalAccountAddress(state);
+  }
 
   let allTransactions = evmTransactions;
 
@@ -742,17 +778,18 @@ const mapStateToProps = (state, { route }) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     selectedInternalAccount,
-    chainId: selectChainId(state),
+    selectedAddressForAsset,
+    chainId: route.params.chainId,
     tokens: selectTokens(state),
     transactions: allTransactions,
     rpcUrl: selectRpcUrl(state),
     networkConfigurations: selectNetworkConfigurations(state),
     isNetworkRampSupported: isNetworkRampSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isDepositEnabled: (() => {

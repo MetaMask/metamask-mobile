@@ -43,7 +43,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import type { ServiceContext } from './services/ServiceContext';
 import {
   getStreamManagerInstance,
-  type PerpsStreamManager,
+  type PerpsStreamChannelKey,
 } from '../providers/PerpsStreamManager';
 import type {
   AccountState,
@@ -679,6 +679,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  /**
+   * Version counter for blocked region list.
+   * Used to prevent race conditions where stale eligibility checks
+   * (started with fallback config) overwrite results from newer checks
+   * (started with remote config).
+   */
+  private blockedRegionListVersion = 0;
+
   // Store HIP-3 configuration (mutable for runtime updates from remote flags)
   private hip3Enabled: boolean;
   private hip3AllowlistMarkets: string[];
@@ -781,6 +789,7 @@ export class PerpsController extends BaseController<
           newSource: 'remote' | 'fallback',
         ) => {
           this.blockedRegionList = { list: newList, source: newSource };
+          this.blockedRegionListVersion += 1;
         },
         refreshEligibility: () => this.refreshEligibility(),
       }),
@@ -807,6 +816,7 @@ export class PerpsController extends BaseController<
             source: 'remote' | 'fallback',
           ) => {
             this.blockedRegionList = { list, source };
+            this.blockedRegionListVersion += 1;
           },
           refreshEligibility: () => this.refreshEligibility(),
           getHip3Config: () => ({
@@ -869,10 +879,10 @@ export class PerpsController extends BaseController<
    */
   private async withStreamPause<T>(
     operation: () => Promise<T>,
-    channels: (keyof PerpsStreamManager)[],
+    channels: PerpsStreamChannelKey[],
   ): Promise<T> {
     const streamManager = getStreamManagerInstance();
-    const pausedChannels: (keyof PerpsStreamManager)[] = [];
+    const pausedChannels: PerpsStreamChannelKey[] = [];
 
     // Pause emission on specified channels (WebSocket stays connected)
     // Track which channels successfully paused to ensure proper cleanup
@@ -1235,10 +1245,7 @@ export class PerpsController extends BaseController<
         getOpenOrders: () => this.getOpenOrders(),
       }),
       withStreamPause: <T>(operation: () => Promise<T>, channels: string[]) =>
-        this.withStreamPause(
-          operation,
-          channels as (keyof PerpsStreamManager)[],
-        ),
+        this.withStreamPause(operation, channels as PerpsStreamChannelKey[]),
     });
   }
 
@@ -2175,12 +2182,24 @@ export class PerpsController extends BaseController<
    * Refresh eligibility status
    */
   async refreshEligibility(): Promise<void> {
-    try {
-      DevLogger.log('PerpsController: Refreshing eligibility');
+    // Capture the current version before starting the async operation.
+    // This prevents race conditions where stale eligibility checks
+    // (started with fallback config) overwrite results from newer checks
+    // (started with remote config after it was fetched).
+    const versionAtStart = this.blockedRegionListVersion;
 
+    try {
+      // TODO: It would be good to have this location before we call this async function to avoid the race condition
       const isEligible = await EligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
+
+      // Only update state if the blocked region list hasn't changed while we were awaiting.
+      // This prevents stale fallback-based eligibility checks from overwriting
+      // results from remote-based checks.
+      if (this.blockedRegionListVersion !== versionAtStart) {
+        return;
+      }
 
       this.update((state) => {
         state.isEligible = isEligible;
@@ -2190,10 +2209,14 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
-      // Default to eligible on error
-      this.update((state) => {
-        state.isEligible = true;
-      });
+
+      // Only update on error if version is still current
+      if (this.blockedRegionListVersion === versionAtStart) {
+        // Default to eligible on error
+        this.update((state) => {
+          state.isEligible = true;
+        });
+      }
     }
   }
 
