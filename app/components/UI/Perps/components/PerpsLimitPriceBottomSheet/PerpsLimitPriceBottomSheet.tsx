@@ -23,7 +23,7 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import {
   PERPS_CONSTANTS,
   LIMIT_PRICE_CONFIG,
@@ -46,7 +46,7 @@ interface PerpsLimitPriceBottomSheetProps {
  * Modal for setting limit order prices with direction-specific presets
  *
  * Features:
- * - Direction-aware presets (Long: -1%, -2%, -5%, -10% | Short: +1%, +2%, +5%, +10%)
+ * - Direction-aware presets (Long: Mid, Bid, -1%, -2% | Short: Mid, Ask, +1%, +2%)
  * - Custom keypad for price input
  * - Real-time current market price display
  * - Automatic preset calculation based on current price
@@ -84,6 +84,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const currentPrice = currentPriceData?.price
     ? parseFloat(currentPriceData.price)
     : passedCurrentPrice;
+
+  // Get top of book (bid/ask) data for Mid/Bid/Ask preset buttons
+  const topOfBook = usePerpsTopOfBook({ symbol: isVisible ? asset : '' });
+  const bidPrice = topOfBook?.bestBid;
+  const askPrice = topOfBook?.bestAsk;
 
   useEffect(() => {
     if (isVisible) {
@@ -334,11 +339,48 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>
 
-        {/* Quick percentage buttons - Direction-specific presets using config */}
+        {/* Quick preset buttons - Mid/Bid/Ask + percentage presets */}
         <View style={styles.percentageButtonsRow}>
+          {/* Mid price button - same for both directions */}
+          <TouchableOpacity
+            style={styles.percentageButton}
+            onPress={() => {
+              if (currentPrice) {
+                setLimitPrice(
+                  formatWithSignificantDigits(currentPrice, 4).value.toString(),
+                );
+              }
+            }}
+          >
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.order.limit_price_modal.mid_price')}
+            </Text>
+          </TouchableOpacity>
+
           {direction === 'long' ? (
-            // For long orders: buy below market using LONG_PRESETS
+            // For long orders: Mid, Bid, -1%, -2%
             <>
+              {/* Bid price button */}
+              <TouchableOpacity
+                style={styles.percentageButton}
+                onPress={() => {
+                  const price = bidPrice || currentPriceData?.price;
+                  if (price) {
+                    setLimitPrice(
+                      formatWithSignificantDigits(
+                        parseFloat(price),
+                        4,
+                      ).value.toString(),
+                    );
+                  }
+                }}
+              >
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('perps.order.limit_price_modal.bid_price')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.LONG_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
@@ -360,14 +402,40 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               ))}
             </>
           ) : (
-            // For short orders: sell above market using SHORT_PRESETS
+            // For short orders: Mid, Ask, +1%, +2%
             <>
+              {/* Ask price button */}
+              <TouchableOpacity
+                style={styles.percentageButton}
+                onPress={() => {
+                  const price = askPrice || currentPriceData?.price;
+                  if (price) {
+                    setLimitPrice(
+                      formatWithSignificantDigits(
+                        parseFloat(price),
+                        4,
+                      ).value.toString(),
+                    );
+                  }
+                }}
+              >
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('perps.order.limit_price_modal.ask_price')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.SHORT_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
                   onPress={() =>
-                    setLimitPrice(calculatePriceForPercentage(percentage))
+                    setLimitPrice(
+                      formatWithSignificantDigits(
+                        parseFloat(calculatePriceForPercentage(percentage)),
+                        4,
+                      ).value.toString(),
+                    )
                   }
                 >
                   <Text variant={TextVariant.BodyMD}>
