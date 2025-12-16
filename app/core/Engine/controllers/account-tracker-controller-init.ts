@@ -5,6 +5,7 @@ import {
 } from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 
 /**
  * Initialize the accountTracker controller.
@@ -34,6 +35,7 @@ export const accountTrackerControllerInit: ControllerInitFunction<
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
+    isOnboarded: () => selectCompletedOnboarding(getState()),
   });
 
   return {
