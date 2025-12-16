@@ -176,7 +176,7 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
-    expect(acknowledgeButton.props.accessibilityState.disabled).toBe(true);
+    expect(acknowledgeButton).toHaveProp('disabled', true);
   });
 
   it('enables Acknowledge button when checkbox is checked for Danger alerts', () => {
@@ -188,7 +188,7 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
-    expect(acknowledgeButton.props.accessibilityState.disabled).toBe(false);
+    expect(acknowledgeButton).toHaveProp('disabled', false);
   });
 
   it('closes modal when Close button pressed for Danger alerts', async () => {
