@@ -48,6 +48,7 @@ import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-label
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { BridgeToken } from '../../../Bridge/types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -82,7 +83,7 @@ export const TokenListItemBip44 = React.memo(
       }),
     );
 
-    const { isAssetStockToken } = useRWAToken();
+    const { isStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
 
@@ -243,7 +244,7 @@ export const TokenListItemBip44 = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
-            {isAssetStockToken(asset) && (
+            {isStockToken(asset as BridgeToken) && (
               <View style={styles.stockBadge}>
                 <Icon
                   name={IconName.Clock}

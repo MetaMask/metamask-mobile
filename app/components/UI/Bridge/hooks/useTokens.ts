@@ -101,17 +101,18 @@ export function useTokens({
 
         //TODO hack the metadata for ondo tokens only
         if (token.aggregators.includes('Ondo')) {
-          token.metadata = {
-            assetType: 'stock',
-            containsProfanity: false,
+          token.rwaData = {
+            instrumentType: 'stock',
+            ticker: token.name?.split(' ')[0] ?? '',
             market: {
-              // TODO change the  opening hour
-              openingHour: new Date(new Date().setHours(9, 0, 0, 0)),
-              closingHour: new Date(new Date().setHours(16, 0, 0, 0)),
+              nextOpen: new Date(new Date().setHours(9, 0, 0, 0)),
+              nextClose: new Date(new Date().setHours(16, 0, 0, 0)),
             },
-            isPaused: false,
-            restrictedCountries: [],
-          } as BridgeToken['metadata'];
+            nextPause: {
+              start: null,
+              end: null,
+            },
+          } as BridgeToken['rwaData'];
         }
 
         const tokenKey = getTokenKey(token);

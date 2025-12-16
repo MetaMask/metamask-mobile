@@ -169,7 +169,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const isNative = token.address === ethers.constants.AddressZero;
 
   // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
-  const { isAssetStockToken } = useRWAToken();
+  const { isStockToken } = useRWAToken();
 
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
@@ -257,7 +257,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
-            {isAssetStockToken(token) && (
+            {isStockToken(token) && (
               <View style={styles.stockBadge}>
                 <Icon
                   name={IconName.Clock}

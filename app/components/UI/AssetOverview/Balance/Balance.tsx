@@ -56,6 +56,7 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -216,7 +217,7 @@ const Balance = ({
     ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
 
-  const { isAssetStockToken } = useRWAToken();
+  const { isStockToken } = useRWAToken();
 
   return (
     <View style={styles.wrapper}>
@@ -271,7 +272,7 @@ const Balance = ({
                 {secondaryBalance}
               </SensitiveText>
             )}
-            {isAssetStockToken(asset) && (
+            {isStockToken(asset as BridgeToken) && (
               <View style={styles.stockBadge}>
                 <Icon
                   name={IconName.Clock}

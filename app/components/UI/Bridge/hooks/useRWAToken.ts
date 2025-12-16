@@ -3,9 +3,17 @@ import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagControlle
 import { BridgeToken } from '../types';
 import { useSelector } from 'react-redux';
 
+export type DateLike = string | null | undefined | Date;
+
 export function useRWAToken() {
   // Check remote feature flag for RWA token enablement
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
+
+  function toMs(v: DateLike): number | null {
+    if (!v) return null;
+    const ms = new Date(v as string).getTime();
+    return Number.isFinite(ms) ? ms : null;
+  }
 
   /**
    * Checks if the token is trading open
@@ -18,17 +26,27 @@ export function useRWAToken() {
         return true;
       }
       // compare the current time against the token metadata
-      const currentTime = new Date();
-      const openingHour = token.metadata?.market.openingHour;
-      const closingHour = token.metadata?.market.closingHour;
-      if (
-        openingHour &&
-        closingHour &&
-        (currentTime < openingHour || currentTime > closingHour)
-      ) {
-        return false;
+      if (!token.rwaData) {
+        return true;
       }
-      return true;
+      const nextOpenMs = toMs(token.rwaData?.market?.nextOpen);
+      const nextCloseMs = toMs(token.rwaData?.market?.nextClose);
+      if (nextOpenMs == null || nextCloseMs == null) return false;
+
+      const nowMs = new Date().getTime();
+
+      const marketIsOpen = nextCloseMs < nextOpenMs && nowMs < nextCloseMs;
+
+      const pauseStartMs = toMs(token.rwaData?.nextPause?.start);
+      const pauseEndMs = toMs(token.rwaData?.nextPause?.end);
+
+      const inPause =
+        (pauseStartMs != null &&
+          nowMs >= pauseStartMs &&
+          (pauseEndMs == null || nowMs < pauseEndMs)) ||
+        (pauseStartMs == null && pauseEndMs != null && nowMs < pauseEndMs);
+
+      return marketIsOpen && !inPause;
     },
     [isRWAEnabled],
   );
@@ -44,19 +62,13 @@ export function useRWAToken() {
         return false;
       }
 
-      return Boolean(token.metadata?.assetType === 'stock');
+      return Boolean(token.rwaData?.instrumentType === 'stock');
     },
     [isRWAEnabled],
-  );
-
-  const isAssetStockToken = useCallback(
-    (asset: unknown) => Boolean((asset as BridgeToken).name?.includes('Ondo')),
-    [],
   );
 
   return {
     isStockToken,
     isTokenTradingOpen,
-    isAssetStockToken,
   };
 }

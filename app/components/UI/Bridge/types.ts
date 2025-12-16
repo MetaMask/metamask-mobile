@@ -19,16 +19,17 @@ export interface BridgeToken {
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
   aggregators: string[];
   accountType?: Asset['accountType'];
-  metadata?: {
-    assetType?: 'stock';
-    containsProfanity: boolean;
+  rwaData?: {
+    instrumentType?: 'stock';
+    ticker: string;
     market: {
-      openingHour: Date;
-      closingHour: Date;
+      nextOpen: Date;
+      nextClose: Date;
     };
-    assetNamespace?: string;
-    isPaused: boolean;
-    restrictedCountries: string[];
+    nextPause: {
+      start: Date | null;
+      end: Date | null;
+    };
   };
 }
 

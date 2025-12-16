@@ -24,14 +24,16 @@ export interface TokenI {
   ticker?: string;
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
-  metadata?: {
-    assetType?: 'stock';
-    containsProfanity: boolean;
+  rwaData?: {
+    instrumentType?: 'stock';
+    ticker: string;
     market: {
-      openingHour: Date;
-      closingHour: Date;
+      nextOpen: Date;
+      nextClose: Date;
     };
-    isPaused: boolean;
-    restrictedCountries: string[];
+    nextPause: {
+      start: Date | null;
+      end: Date | null;
+    };
   };
 }
