@@ -5,6 +5,8 @@ name: Build Apps and Run Performance E2E Tests
 on:
   schedule:
     - cron: '0 */3 * * 1-6'
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       description:
@@ -77,33 +79,73 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Read device matrix
+      - name: Determine Matrix Mode
+        id: matrix-mode
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            MATRIX_MODE="full"
+            MODE_DESC="Full (all devices) - Scheduled run"
+          else
+            MATRIX_MODE="pr"
+            MODE_DESC="Single device - $EVENT_NAME event"
+          fi
+          
+          echo "matrix_mode=$MATRIX_MODE" >> "$GITHUB_OUTPUT"
+          echo "Event: $EVENT_NAME → Matrix mode: $MODE_DESC"
+
+      - name: Select Devices
         id: read-matrix
         run: |
-          echo "Reading device matrix from appwright/device-matrix.json"
-          # Extract Android devices
-          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          # Extract iOS devices
-          IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-
+          MATRIX_MODE="${{ steps.matrix-mode.outputs.matrix_mode }}"
+          MATRIX_FILE="appwright/device-matrix.json"
+          
+          select_device() {
+            local platform=$1
+            local devices=$(jq ".${platform}_devices" "$MATRIX_FILE")
+            
+            local low=$(echo "$devices" | jq 'map(select(.category == "low")) | .[0] // empty')
+            local medium=$(echo "$devices" | jq 'map(select(.category == "medium")) | .[0] // empty')
+            local first=$(echo "$devices" | jq '.[0] // empty')
+            
+            if [ -n "$low" ] && [ "$low" != "null" ] && [ "$low" != "" ]; then
+              echo "$low"
+            elif [ -n "$medium" ] && [ "$medium" != "null" ] && [ "$medium" != "" ]; then
+              echo "$medium"
+            else
+              echo "$first"
+            fi
+          }
+          
+          if [ "$MATRIX_MODE" = "pr" ]; then
+            ANDROID_DEVICE=$(select_device "android")
+            IOS_DEVICE=$(select_device "ios")
+            
+            ANDROID_MATRIX=$(echo "$ANDROID_DEVICE" | jq -s '.')
+            IOS_MATRIX=$(echo "$IOS_DEVICE" | jq -s '.')
+            
+            echo "Selected Android: $(echo "$ANDROID_DEVICE" | jq -r '.name // "none"')"
+            echo "Selected iOS: $(echo "$IOS_DEVICE" | jq -r '.name // "none"')"
+          else
+            ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" "$MATRIX_FILE")
+            IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" "$MATRIX_FILE")
+          fi
+          
+          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
+          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
+          
+          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
+            echo "Error: No devices found"
+            exit 1
+          fi
+          
           {
             echo "android_matrix=$ANDROID_MATRIX"
             echo "ios_matrix=$IOS_MATRIX"
           } >> "$GITHUB_OUTPUT"
-
-          echo "Android matrix: $ANDROID_MATRIX"
-          echo "iOS matrix: $IOS_MATRIX"
-
-          # Validate that we have devices
-          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
-          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
-
-          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
-
-          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
-            echo "Error: No devices found in device-matrix.json"
-            exit 1
-          fi
+          
+          echo "Device matrix: $ANDROID_COUNT Android, $IOS_COUNT iOS"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
