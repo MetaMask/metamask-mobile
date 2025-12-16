@@ -63,6 +63,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
+import { usePerpsLivePrices } from '../../hooks';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -331,7 +332,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   leverage: initialLeverage,
   minLeverage,
   maxLeverage,
-  currentPrice,
   direction,
   asset = '',
   limitPrice,
@@ -346,7 +346,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
 
-  // Dynamically calculate liquidation price based on tempLeverage
+  const currentLivePrice = usePerpsLivePrices({
+    symbols: [asset],
+    throttleMs: 1000,
+  });
+
+  const currentPrice = parseFloat(currentLivePrice[asset]?.price);
+
+  // // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
   const entryPrice = useMemo(
     () =>
@@ -355,6 +362,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         : currentPrice,
     [orderType, limitPrice, currentPrice],
   );
+  // const entryPrice = 0;
 
   // Always use tempLeverage for precise API calls (debounced)
   const { liquidationPrice: apiLiquidationPrice, isCalculating } =
@@ -771,6 +779,5 @@ export default memo(
     prevProps.leverage === nextProps.leverage &&
     prevProps.minLeverage === nextProps.minLeverage &&
     prevProps.maxLeverage === nextProps.maxLeverage &&
-    prevProps.currentPrice === nextProps.currentPrice &&
     prevProps.direction === nextProps.direction,
 );
