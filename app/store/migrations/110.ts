@@ -93,12 +93,30 @@ export default function migrate(versionedState: unknown) {
       return state;
     }
 
+    if (!hasProperty(networkState, 'selectedNetworkClientId')) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController state: missing selectedNetworkClientId property`,
+        ),
+      );
+      return state;
+    }
+
+    if (!hasProperty(networkState, 'selectedNetworkClientId')) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController state: missing selectedNetworkClientId property`,
+        ),
+      );
+      return state;
+    }
+
     if (
-      !hasProperty(state.engine.backgroundState, 'NetworkEnablementController')
+      typeof networkState.selectedNetworkClientId !== 'string'
     ) {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Invalid NetworkEnablementController state structure: missing required properties`,
+          `Migration ${migrationVersion}: Invalid NetworkController state: '${typeof networkState.selectedNetworkClientId}'`,
         ),
       );
       return state;
@@ -110,7 +128,7 @@ export default function migrate(versionedState: unknown) {
     if (!isObject(networkEnablementState)) {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: '${typeof state.engine.backgroundState.NetworkEnablementController}'`,
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: '${typeof networkEnablementState}'`,
         ),
       );
       return state;
@@ -166,10 +184,6 @@ export default function migrate(versionedState: unknown) {
       enabledNetworkMap: { [KnownCaipNamespace.Eip155]: eip155NetworkMap },
     } = networkEnablementState;
 
-    const megaethTestnetV1Configuration = networkConfigurationsByChainId[
-      MEGAETH_TESTNET_V1_CHAIN_ID
-    ] as unknown as NetworkConfiguration;
-
     // Add the MegaETH Testnet v2 network configuration.
     networkConfigurationsByChainId[MEGAETH_TESTNET_V2_CONFIG.chainId] =
       MEGAETH_TESTNET_V2_CONFIG;
@@ -177,50 +191,61 @@ export default function migrate(versionedState: unknown) {
     // Add the MegaETH Testnet v2 network configuration to the enabled network map.
     eip155NetworkMap[MEGAETH_TESTNET_V2_CONFIG.chainId] = false;
 
-    // If the selected network is the MegaETH Testnet v1,
-    // then update it to the mainnet
-    if (
-      hasProperty(networkState, 'selectedNetworkClientId') &&
-      typeof networkState.selectedNetworkClientId === 'string' &&
-      megaethTestnetV1Configuration &&
-      isObject(megaethTestnetV1Configuration) &&
-      hasProperty(megaethTestnetV1Configuration, 'rpcEndpoints') &&
-      Array.isArray(megaethTestnetV1Configuration.rpcEndpoints) &&
-      isObject(eip155NetworkMap) &&
-      hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V1_CHAIN_ID)
-    ) {
-      const isMegaethTestnetV1Enabled =
-        hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V1_CHAIN_ID) &&
-        eip155NetworkMap[MEGAETH_TESTNET_V1_CHAIN_ID] === true;
+    const isValidMegaEthTestnetV1Configuration = hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID) &&
+      isObject(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]);
 
-      // Edge case in mobile, after reload
-      // the selected network client id may fallback to mainnet,
-      // but the enablement map is not sync.
-      // Hence, we should force to switch to mainnet when:
-      // 1. The MegaETH Testnet v1 is enabled or
-      // 2. The selected network client id is megaeth testnet v1
-      if (
-        isMegaethTestnetV1Enabled ||
-        megaethTestnetV1Configuration.rpcEndpoints.some(
+    const isValidMegaEthTestnetV1RpcEndpoints = hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID) &&
+    isObject(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]) &&
+      hasProperty(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID], 'rpcEndpoints') &&
+      Array.isArray(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID].rpcEndpoints);
+
+    const isMegaEthTestnetV1EnablementMapExists = hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V1_CHAIN_ID);
+
+    const isMegaEthTestnetV1Enabled =
+      isMegaEthTestnetV1EnablementMapExists &&
+      eip155NetworkMap[MEGAETH_TESTNET_V1_CHAIN_ID] === true;
+
+    // cast to NetworkConfiguration to access the rpcEndpoints property easier.
+    const megaEthTestnetV1Configuration = networkConfigurationsByChainId[
+      MEGAETH_TESTNET_V1_CHAIN_ID
+    ] as unknown as NetworkConfiguration;
+
+    // Edge case in mobile, after reload
+    // the selected network client id may fallback to mainnet,
+    // but the enablement map is not sync.
+    // Hence, we should force to switch to mainnet when:
+    // 1. The MegaETH Testnet v1 is enabled or
+    // 2. The selected network client id is megaeth testnet v1 or
+    // 3. The selected network client id is the same as one of the megaeth testnet v1 rpc endpoint network client id
+    if (
+      isMegaEthTestnetV1Enabled ||
+      networkState.selectedNetworkClientId === 'megaeth-testnet' ||
+      (
+        isValidMegaEthTestnetV1Configuration &&
+        isValidMegaEthTestnetV1RpcEndpoints &&
+        megaEthTestnetV1Configuration.rpcEndpoints.some(
           (rpcEndpoint) =>
             rpcEndpoint.networkClientId ===
             networkState.selectedNetworkClientId,
-        )
-      ) {
-        networkState.selectedNetworkClientId = 'mainnet';
-        // force mainnet to be enabled
-        eip155NetworkMap['0x1'] = true;
-      }
+        ))
+    ) {
+      networkState.selectedNetworkClientId = 'mainnet';
+      // force mainnet to be enabled
+      eip155NetworkMap['0x1'] = true;
+    }
 
-      // It is safe to remove the MegaETH Testnet v1 network configuration,
-      // because we already verify in above condition.
-      // If the MegaETH Testnet v1 network configuration is exist, then remove it.
+    // It is safe to remove the MegaETH Testnet v1 network configuration,
+    // if MegaETH Testnet v1 is enabled, then it will be switched to mainnet.
+    // if MegaETH Testnet v1 is not enabled, then there is no concern to remove it.
+    if (
+      isMegaEthTestnetV1EnablementMapExists
+    ) {
       delete eip155NetworkMap[MEGAETH_TESTNET_V1_CHAIN_ID];
     }
 
-    // If the MegaETH Testnet v1 network configuration exists, then remove it.
+    // It is safe to remove the MegaETH Testnet v1 network configuration,
     if (
-      hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID)
+      isValidMegaEthTestnetV1Configuration
     ) {
       delete networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID];
     }
