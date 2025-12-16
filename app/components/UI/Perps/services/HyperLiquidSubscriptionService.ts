@@ -1011,6 +1011,7 @@ export class HyperLiquidSubscriptionService {
                 dex: dexName,
               }),
             );
+            throw error;
           });
 
         subscriptionPromises.push(webData3Promise);
