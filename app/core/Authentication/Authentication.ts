@@ -999,7 +999,12 @@ class AuthenticationService {
       shouldCreateSocialBackup: true,
       shouldSelectAccount: true,
     },
-  ): Promise<void> => {
+  ): Promise<boolean> => {
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    if (isPasswordOutdated) {
+      return false;
+    }
+
     trace({
       name: TraceName.ImportEvmAccount,
       op: TraceOperation.ImportAccount,
@@ -1039,6 +1044,7 @@ class AuthenticationService {
     endTrace({
       name: TraceName.ImportEvmAccount,
     });
+    return true;
   };
 
   /**
@@ -1413,28 +1419,6 @@ class AuthenticationService {
       Logger.log(error, errorMsg);
     }
   }
-
-  /**
-   * Imports an account from a private key, after checking whether the
-   * seedless password is outdated. If the password is outdated, the
-   * import is skipped and the function resolves with `false`. Callers
-   * do not need to handle this case explicitly, as the outdated state
-   * will trigger a modal that forces the user to log out.
-   *
-   * @param privateKey - Hex string corresponding to a private key.
-   * @returns Promise resolving to true if the account was imported, false if skipped.
-   */
-  importPrivateKeyWithSeedlessPasswordCheck = async (
-    privateKey: string,
-  ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
-    if (isPasswordOutdated) {
-      return false;
-    }
-
-    await this.importAccountFromPrivateKey(privateKey);
-    return true;
-  };
 }
 
 export const Authentication = new AuthenticationService();

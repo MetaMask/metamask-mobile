@@ -14,7 +14,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
-const mockImportPrivateKeyWithSeedlessPasswordCheck = jest.fn();
+const mockImportAccountFromPrivateKey = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -38,8 +38,8 @@ jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: () =>
       mockCheckIsSeedlessPasswordOutdated(),
-    importPrivateKeyWithSeedlessPasswordCheck: (privateKey: string) =>
-      mockImportPrivateKeyWithSeedlessPasswordCheck(privateKey),
+    importAccountFromPrivateKey: (privateKey: string) =>
+      mockImportAccountFromPrivateKey(privateKey),
   },
 }));
 
@@ -224,7 +224,7 @@ describe('ImportPrivateKey', () => {
     });
 
     it('successfully imports private key and navigates to success screen', async () => {
-      mockImportPrivateKeyWithSeedlessPasswordCheck.mockResolvedValue(true);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByTestId } = renderScreen(
         ImportPrivateKey,
@@ -247,9 +247,7 @@ describe('ImportPrivateKey', () => {
       fireEvent.press(importButton);
 
       await waitFor(() => {
-        expect(
-          mockImportPrivateKeyWithSeedlessPasswordCheck,
-        ).toHaveBeenCalledWith(
+        expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
           '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
         );
         expect(mockNavigate).toHaveBeenCalledWith('ImportPrivateKeyView', {
@@ -260,7 +258,7 @@ describe('ImportPrivateKey', () => {
     });
 
     it('shows error alert when import fails', async () => {
-      mockImportPrivateKeyWithSeedlessPasswordCheck.mockRejectedValue(
+      mockImportAccountFromPrivateKey.mockRejectedValue(
         new Error('Import failed'),
       );
 
@@ -295,7 +293,7 @@ describe('ImportPrivateKey', () => {
 
   describe('onScanSuccess function', () => {
     it('imports private key when scanned data contains private_key', async () => {
-      mockImportPrivateKeyWithSeedlessPasswordCheck.mockResolvedValue(true);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByText } = renderScreen(
         ImportPrivateKey,
@@ -323,9 +321,7 @@ describe('ImportPrivateKey', () => {
         });
       });
 
-      expect(
-        mockImportPrivateKeyWithSeedlessPasswordCheck,
-      ).toHaveBeenCalledWith(
+      expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
         '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       );
     });

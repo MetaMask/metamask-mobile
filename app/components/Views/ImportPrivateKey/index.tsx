@@ -106,14 +106,10 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      // check if seedless pwd is outdated skip cache before importing Private Key
-      const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      const isImported =
+        await Authentication.importAccountFromPrivateKey(privateKeyToProcess);
       // no need to handle error here, password outdated state will trigger modal that force user to log out
-      if (!isSeedlessPwdOutdated) {
-        await Authentication.importPrivateKeyWithSeedlessPasswordCheck(
-          privateKeyToProcess,
-        );
+      if (isImported) {
         navigation.navigate('ImportPrivateKeyView', {
           screen: 'ImportPrivateKeySuccess',
         });

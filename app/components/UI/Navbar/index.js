@@ -983,7 +983,7 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await Authentication.importPrivateKeyWithSeedlessPasswordCheck(
+                await Authentication.importAccountFromPrivateKey(
                   data.private_key,
                 );
                 navigation.navigate('ImportPrivateKeyView', {
