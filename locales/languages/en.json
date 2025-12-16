@@ -6020,12 +6020,12 @@
     "personal_sign_tooltip": "This site is asking for your signature",
     "transaction_tooltip": "This site is asking for your transaction",
     "details": "Details",
-    "qr_get_sign": "Get Signature",
+    "qr_get_sign": "Get signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
     "smart_account": "Smart Account",
     "smart_contract": "Smart contract",
-    "standard_account": "Standard Account",
+    "standard_account": "Standard account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -6059,7 +6059,7 @@
     },
     "7702_functionality": {
       "smartAccountLabel": "Smart Account",
-      "standardAccountLabel": "Standard Account",
+      "standardAccountLabel": "Standard account",
       "switch": "Switch",
       "switchBack": "Switch back",
       "splashpage": {
@@ -6154,15 +6154,15 @@
     "network_fee": "Network fee",
     "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
-    "estimated_time": "Estimated Time",
+    "estimated_time": "Estimated time",
     "quote": "Quote",
     "rate": "Rate",
-    "quote_details": "Quote Details",
+    "quote_details": "Quote details",
     "price_impact": "Price impact",
     "time": "Time",
     "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
     "quote_info_title": "Rate",
-    "network_fee_info_title": "Network Fee",
+    "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "Est. points",
@@ -6193,7 +6193,7 @@
     "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
-    "price_impact_info_title": "Price Impact",
+    "price_impact_info_title": "Price impact",
     "price_impact_info_description": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
     "slippage_info_title": "Slippage",
@@ -6204,7 +6204,7 @@
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
-    "minimum_received_tooltip_title": "Minimum Received",
+    "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
     "verified_token": "Verified token",
     "price": "Price",
@@ -6234,9 +6234,9 @@
     "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
     "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
+    "view_on_block_explorer": "View on block explorer",
     "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
+    "transaction_details": "Transaction details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
@@ -6284,9 +6284,9 @@
     "error_matches_password": "You cannot use your password as a hint"
   },
   "protect_your_wallet": {
-    "title": "Wallet Recovery",
-    "login_with_social": "Log in with Social Accounts",
-    "setup": "Set Up",
+    "title": "Wallet recovery",
+    "login_with_social": "Log in with social accounts",
+    "setup": "Set up",
     "secret_recovery_phrase": "Secret recovery phrase {{num}}",
     "back_up": "Back up",
     "reveal": "Reveal",
@@ -6361,10 +6361,10 @@
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
     "account_details": {
-      "header_title": "Account Details",
-      "account_name": "Account Name",
+      "header_title": "Account details",
+      "account_name": "Account name",
       "networks": "Networks",
-      "account_address": "Account Address",
+      "account_address": "Account address",
       "wallet": "Wallet",
       "private_key": "Private key",
       "private_keys": "Private keys",
@@ -6396,13 +6396,13 @@
       "details": "Details"
     },
     "wallet_details": {
-      "wallet_name": "Wallet Name",
+      "wallet_name": "Wallet name",
       "balance": "Balance",
       "create_account": "Add account",
       "creating_account": "Adding account...",
       "discovering_accounts": "Discovering accounts...",
       "back_up": "Back up",
-      "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
+      "reveal_recovery_phrase_with_index": "Reveal recovery phrase {{index}}"
     },
     "smart_account": {
       "title": "Use smart account",
@@ -6410,7 +6410,7 @@
       "learn_more": "Learn more"
     },
     "edit_account_name": {
-      "title": "Edit Account Name",
+      "title": "Edit account name",
       "account_name": "Account name",
       "confirm_button": "Confirm",
       "name": "Name",
@@ -6420,7 +6420,7 @@
       "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
-      "title": "Remove Account",
+      "title": "Remove account",
       "warning_title": "This account will be removed from MetaMask.",
       "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
       "remove_button": "Remove",
@@ -6428,10 +6428,10 @@
       "error": "Failed to delete account"
     },
     "share_address": {
-      "title": "Share Address",
+      "title": "Share address",
       "copy_address": "Copy address",
       "view_on_explorer_button": "View on {{explorer}}",
-      "view_on_block_explorer": "View on Block Explorer"
+      "view_on_block_explorer": "View on block explorer"
     },
     "share_address_qr": {
       "title": "{{networkName}} Address",
@@ -6651,8 +6651,8 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
-      "enable_card_button_label": "Enable Card",
-      "enable_assets_button_label": "Enable Assets",
+      "enable_card_button_label": "Enable card",
+      "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
       "logout_description": "Log out from your MetaMask Card account",
@@ -6691,16 +6691,16 @@
           "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
         },
         "rejected": {
-          "title": "Verification Not Approved",
+          "title": "Verification not approved",
           "description": "We were unable to verify your identity. Please contact support for assistance.",
           "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
         },
         "unverified": {
-          "title": "Verification Required",
+          "title": "Verification required",
           "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
         },
         "error": {
-          "title": "Verification Status Unavailable",
+          "title": "Verification status unavailable",
           "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
         },
         "ok_button": "OK"
@@ -6816,11 +6816,11 @@
     "close": "Close"
   },
   "rewards": {
-    "auth_fail_title": "Unknown Error.",
+    "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with the rewards program. Please try again later.",
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "Coming soon",
-    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_implemented_season_summary": "Season summary coming soon",
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
@@ -6950,7 +6950,7 @@
       "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication Failed",
+      "auth_fail_title": "Authentication failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
@@ -6999,7 +6999,7 @@
       }
     },
     "settings": {
-      "title": "Rewards Settings",
+      "title": "Rewards settings",
       "subtitle": "Accounts",
       "description": "Add multiple accounts to combine your points and unlock rewards faster.",
       "tab_linked_accounts": "Added ({{count}})",
