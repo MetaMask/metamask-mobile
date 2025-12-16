@@ -106,14 +106,21 @@ export const CardSDKProvider = ({
     }
   }, [sdk, onboardingId, dispatch]);
 
-  // Fetch user data on mount if onboardingId exists
+  // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
+  const [hasInitialOnboardingId] = useState(() => !!onboardingId);
+
+  // Fetch user data ONLY on initial mount if onboardingId already exists.
+  // This prevents fetching when onboardingId is newly set during email verification,
+  // which could cause race conditions and navigation issues.
   useEffect(() => {
-    if (!sdk || !onboardingId) {
+    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
       return;
     }
 
     fetchUserData();
-  }, [sdk, onboardingId, fetchUserData]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {

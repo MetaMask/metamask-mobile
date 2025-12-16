@@ -787,4 +787,98 @@ describe('CardSDK Context', () => {
       expect(result.current.user).toBe(null);
     });
   });
+
+  describe('hasInitialOnboardingId - Race Condition Prevention', () => {
+    const mockUserResponse: UserResponse = {
+      id: 'test-user-id',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      phoneNumber: '+1234567890',
+      phoneCountryCode: '+1',
+      verificationState: 'VERIFIED',
+      dateOfBirth: '1990-01-01',
+      addressLine1: '123 Main St',
+      city: 'Anytown',
+      usState: 'CA',
+      zip: '12345',
+      countryOfResidence: 'US',
+    };
+
+    it('does not auto-fetch user data when onboardingId is set after mount', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result, rerender } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+
+      setupMockUseSelector(mockCardFeatureFlag, null, 'new-onboarding-id');
+      rerender(undefined);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+      expect(result.current.user).toBe(null);
+    });
+
+    it('auto-fetches user data when onboardingId exists at mount', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'existing-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'existing-onboarding-id',
+      );
+      expect(result.current.user).toEqual(mockUserResponse);
+    });
+
+    it('allows manual fetchUserData call regardless of initial onboardingId state', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      mockGetRegistrationStatus.mockClear();
+
+      await act(async () => {
+        await result.current.fetchUserData();
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(result.current.user).toEqual(mockUserResponse);
+    });
+  });
 });
