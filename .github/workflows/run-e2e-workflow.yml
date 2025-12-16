@@ -56,6 +56,7 @@ jobs:
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
     env:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
@@ -130,12 +131,14 @@ jobs:
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
               echo "artifact_name=app-flask-release"
             } >> "$GITHUB_OUTPUT"
           elif [[ "${{ inputs.build_type }}" == "main" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/prod/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
               echo "artifact_name=app-prod-release"
             } >> "$GITHUB_OUTPUT"
           else
@@ -149,6 +152,7 @@ jobs:
           echo "🏗 Setting up Android artifacts from build job..."
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          mkdir -p ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' }}

@@ -441,7 +441,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1249,7 +1249,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1841,7 +1841,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2541,7 +2541,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

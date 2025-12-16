@@ -141,7 +141,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
               },
               false,
               {
-                "padding": 16,
+                "paddingHorizontal": 16,
               },
             ]
           }
