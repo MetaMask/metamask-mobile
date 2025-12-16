@@ -135,7 +135,7 @@ export async function checkPredictionsModalIsVisible(device) {
   await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
-export async function importSRPFlow(device, srp, dismissModals = true) {
+export async function importSRPFlow(device, srp, dismissModals = false) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -183,7 +183,7 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login', dismissModals = true } = options;
+  const { scenarioType = 'login', dismissModals = false } = options;
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
