@@ -1443,10 +1443,53 @@ class AuthenticationService {
           passwordToVerify = credentials.password;
         }
       }
+
+      // If there is no biometric choice configured or no stored credentials,
+      // return gracefully instead of attempting to verify an empty password.
+      if (!passwordToVerify) {
+        return { password: undefined };
+      }
     }
 
     await KeyringController.verifyPassword(passwordToVerify);
     return { password: passwordToVerify };
+  };
+
+  /**
+   * Reveals the secret recovery phrase (SRP) for the specified keyring
+   * after verifying the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param keyringId - The identifier of the keyring whose SRP will be exported.
+   * @returns The mnemonic SRP associated with the provided keyring.
+   */
+  revealSRP = async (password: string, keyringId?: string): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const rawSeedPhrase = await KeyringController.exportSeedPhrase(
+      password,
+      keyringId,
+    );
+    const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
+    return seedPhrase;
+  };
+
+  /**
+   * Reveals the private key for the given account address after verifying
+   * the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param address - The account address whose private key will be exported.
+   * @returns The hex-encoded private key for the specified address.
+   */
+  revealPrivateKey = async (
+    password: string,
+    address: string,
+  ): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const privateKey = await KeyringController.exportAccount(password, address);
+    return privateKey;
   };
 }
 

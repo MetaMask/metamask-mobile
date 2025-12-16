@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
@@ -18,7 +17,6 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 import { store } from '../../../store';
-import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -41,12 +39,9 @@ import {
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
-import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
-import { Authentication } from '../../../core/';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
@@ -122,16 +117,13 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const passwordInputRef = useRef<TextInput>(null);
+  const { reauthenticate, revealSRP, revealPrivateKey } = useAuthentication();
 
   const keyringId = route?.params?.keyringId;
 
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
 
@@ -164,13 +156,11 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const tryUnlockWithPassword = useCallback(
-    async (pswd: string, privCredentialName?: string) => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { KeyringController } = Engine.context as any;
+  const revealCredential = useCallback(
+    async (pswd?: string) => {
+      setIsModalVisible(false);
+      const privCredentialName = credentialName || route?.params.credentialName;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
-
       // This will trigger after the user hold-pressed the button, we want to trace the actual
       // keyring operation of extracting the credential
       const traceName = isPrivateKeyReveal
@@ -183,17 +173,24 @@ const RevealPrivateCredential = ({
       });
 
       try {
+        let passwordToUse = pswd;
+
+        if (!passwordToUse) {
+          const { password: verifiedPassword } = await reauthenticate();
+
+          if (!verifiedPassword) {
+            // Let user stay in the “enter password” flow; nothing to catch.
+            return;
+          }
+          passwordToUse = verifiedPassword;
+        }
         let privateCredential;
         if (!isPrivateKeyReveal) {
-          const uint8ArraySeed = await KeyringController.exportSeedPhrase(
-            pswd,
-            keyringId,
-          );
-          privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
+          privateCredential = await revealSRP(passwordToUse, keyringId);
         } else {
-          privateCredential = await KeyringController.exportAccount(
-            pswd,
-            selectedAddress,
+          privateCredential = await revealPrivateKey(
+            passwordToUse,
+            selectedAddress as string,
           );
         }
 
@@ -223,7 +220,15 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [selectedAddress, keyringId],
+    [
+      selectedAddress,
+      keyringId,
+      credentialName,
+      route?.params.credentialName,
+      reauthenticate,
+      revealSRP,
+      revealPrivateKey,
+    ],
   );
 
   useEffect(() => {
@@ -235,23 +240,7 @@ const RevealPrivateCredential = ({
       );
     }
 
-    const unlockWithBiometrics = async () => {
-      // Try to use biometrics to unlock
-      const { availableBiometryType } = await Authentication.getType();
-      if (!passwordSet) {
-        tryUnlockWithPassword('');
-      } else if (availableBiometryType) {
-        const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
-          const credentials = await Authentication.getPassword();
-          if (credentials) {
-            tryUnlockWithPassword(credentials.password);
-          }
-        }
-      }
-    };
-
-    unlockWithBiometrics();
+    revealCredential();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -286,11 +275,8 @@ const RevealPrivateCredential = ({
   };
 
   const tryUnlock = async () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController } = Engine.context as any;
     try {
-      await KeyringController.verifyPassword(password);
+      await reauthenticate(password);
     } catch {
       const msg = strings('reveal_credential.warning_incorrect_password');
       setWarningIncorrectPassword(msg);
@@ -358,17 +344,6 @@ const RevealPrivateCredential = ({
       }),
     );
   };
-
-  const revealCredential = useCallback(() => {
-    const credential = credentialName || route?.params.credentialName;
-    tryUnlockWithPassword(password, credential);
-    setIsModalVisible(false);
-  }, [
-    credentialName,
-    password,
-    route?.params.credentialName,
-    tryUnlockWithPassword,
-  ]);
 
   const renderTabBar = () => <TabBar />;
 
@@ -572,7 +547,7 @@ const RevealPrivateCredential = ({
               })}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              onPress={revealCredential}
+              onPress={() => revealCredential(password)}
               style={styles.revealButton}
               testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
             />
@@ -583,7 +558,7 @@ const RevealPrivateCredential = ({
                   ? strings('reveal_credential.private_key_text')
                   : strings('reveal_credential.srp_abbreviation_text'),
               })}
-              onLongPress={revealCredential}
+              onLongPress={() => revealCredential(password)}
             />
           )}
         </>
