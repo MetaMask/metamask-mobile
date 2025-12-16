@@ -8,7 +8,8 @@ const stylesheet = () =>
       flex: 1,
     },
     scrollContentContainer: {
-      paddingBottom: 16,
+      // Buffer for the sheet/modal, so the network items are not cut off at the bottom
+      paddingBottom: 100,
     },
     // custom network
     customNetworkContainer: {
