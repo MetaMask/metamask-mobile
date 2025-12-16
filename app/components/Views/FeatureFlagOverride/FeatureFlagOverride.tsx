@@ -328,10 +328,8 @@ const FeatureFlagOverride: React.FC = () => {
 
     // Apply search filter
     if (searchQuery.trim()) {
-      flags = flags.filter(
-        (flag) =>
-          flag.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          flag.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      flags = flags.filter((flag) =>
+        flag.key.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 

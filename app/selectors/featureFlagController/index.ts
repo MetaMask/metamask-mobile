@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 // Access the controller state directly
 export const selectRemoteFeatureFlagControllerState = (
@@ -9,20 +8,13 @@ export const selectRemoteFeatureFlagControllerState = (
 
 export const selectRawFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (
-    remoteFeatureFlagControllerState:
-      | RemoteFeatureFlagControllerState
-      | undefined,
-  ) => remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
 
 export const selectRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (
-    remoteFeatureFlagControllerState:
-      | RemoteFeatureFlagControllerState
-      | undefined,
-  ) => {
+  (remoteFeatureFlagControllerState) => {
     const localOverrides =
       remoteFeatureFlagControllerState?.localOverrides ?? {};
     const remoteFeatureFlags =
@@ -36,18 +28,12 @@ export const selectRemoteFeatureFlags = createSelector(
 
 export const selectLocalOverrides = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (
-    remoteFeatureFlagControllerState:
-      | RemoteFeatureFlagControllerState
-      | undefined,
-  ) => remoteFeatureFlagControllerState?.localOverrides ?? {},
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.localOverrides ?? {},
 );
 
 export const selectRawRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (
-    remoteFeatureFlagControllerState:
-      | RemoteFeatureFlagControllerState
-      | undefined,
-  ) => remoteFeatureFlagControllerState?.rawRemoteFeatureFlags ?? {},
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.rawRemoteFeatureFlags ?? {},
 );

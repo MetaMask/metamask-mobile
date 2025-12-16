@@ -8,6 +8,7 @@ import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import {
   FeatureFlagInfo,
+  FeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../../../util/feature-flags';
 import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
@@ -86,43 +87,46 @@ describe('FeatureFlagOverride', () => {
     value: mockValue,
     originalValue?: mockValue,
     isOverridden = false,
-    description?: string,
   ): FeatureFlagInfo => ({
     key,
     value,
     originalValue: originalValue ?? value,
     type,
-    description,
     isOverridden,
   });
 
   const createMockFeatureFlags = (): FeatureFlagInfo[] => [
     createMockFeatureFlag(
       'booleanFlag',
-      'boolean',
+      FeatureFlagType.FeatureFlagBoolean,
       true,
       false,
       true,
-      'Boolean flag description',
     ),
     createMockFeatureFlag(
       'stringFlag',
-      'string',
+      FeatureFlagType.FeatureFlagString,
       'test value',
       'original',
       true,
-      'String flag description',
     ),
-    createMockFeatureFlag('numberFlag', 'number', 42),
-    createMockFeatureFlag('arrayFlag', 'array', ['item1', 'item2']),
-    createMockFeatureFlag('objectFlag', 'object', {
+    createMockFeatureFlag('numberFlag', FeatureFlagType.FeatureFlagNumber, 42),
+    createMockFeatureFlag('arrayFlag', FeatureFlagType.FeatureFlagArray, [
+      'item1',
+      'item2',
+    ]),
+    createMockFeatureFlag('objectFlag', FeatureFlagType.FeatureFlagObject, {
       key: 'value',
       nested: { prop: 'data' },
     }),
-    createMockFeatureFlag('versionFlag', 'boolean with minimumVersion', {
-      enabled: true,
-      minimumVersion: '1.0.0',
-    }),
+    createMockFeatureFlag(
+      'versionFlag',
+      FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    ),
   ];
 
   beforeEach(() => {
@@ -201,7 +205,7 @@ describe('FeatureFlagOverride', () => {
       const searchInput = screen.getByPlaceholderText(
         'Search feature flags...',
       );
-      fireEvent.changeText(searchInput, 'boolean');
+      fireEvent.changeText(searchInput, FeatureFlagType.FeatureFlagBoolean);
 
       expect(screen.getByText('booleanFlag')).toBeTruthy();
       expect(screen.queryByText('stringFlag')).toBeNull();
@@ -251,7 +255,7 @@ describe('FeatureFlagOverride', () => {
       const searchInput = screen.getByPlaceholderText(
         'Search feature flags...',
       );
-      fireEvent.changeText(searchInput, 'BOOLEAN');
+      fireEvent.changeText(searchInput, FeatureFlagType.FeatureFlagBoolean);
 
       expect(screen.getByText('booleanFlag')).toBeTruthy();
     });
@@ -306,7 +310,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('onlyString', 'string', 'value'),
+          createMockFeatureFlag(
+            'onlyString',
+            FeatureFlagType.FeatureFlagString,
+            'value',
+          ),
         ],
       });
 
@@ -393,7 +401,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: mockSetOverride,
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('testBool', 'boolean', false)],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'testBool',
+            FeatureFlagType.FeatureFlagBoolean,
+            false,
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -411,7 +425,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('testString', 'string', 'initial'),
+          createMockFeatureFlag(
+            'testString',
+            FeatureFlagType.FeatureFlagString,
+            'initial',
+          ),
         ],
       });
 
@@ -433,7 +451,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: mockSetOverride,
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('testNumber', 'number', 5)],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'testNumber',
+            FeatureFlagType.FeatureFlagNumber,
+            5,
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -451,7 +475,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: mockSetOverride,
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('testNumber', 'number', 5)],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'testNumber',
+            FeatureFlagType.FeatureFlagNumber,
+            5,
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -470,7 +500,13 @@ describe('FeatureFlagOverride', () => {
         removeOverride: mockRemoveOverride,
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('testFlag', 'boolean', true, false, true),
+          createMockFeatureFlag(
+            'testFlag',
+            FeatureFlagType.FeatureFlagBoolean,
+            true,
+            false,
+            true,
+          ),
         ],
       });
 
@@ -512,7 +548,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: jest.fn(),
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('noDesc', 'boolean', true)],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'noDesc',
+            FeatureFlagType.FeatureFlagBoolean,
+            true,
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -526,7 +568,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: jest.fn(),
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('nullFlag', 'string', null)],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'nullFlag',
+            FeatureFlagType.FeatureFlagString,
+            null,
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -540,7 +588,13 @@ describe('FeatureFlagOverride', () => {
         setOverride: jest.fn(),
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [createMockFeatureFlag('emptyObj', 'object', {})],
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'emptyObj',
+            FeatureFlagType.FeatureFlagObject,
+            {},
+          ),
+        ],
       });
 
       render(<FeatureFlagOverride />);
@@ -554,7 +608,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('unknownType', 'boolean', true),
+          createMockFeatureFlag(
+            'unknownType',
+            FeatureFlagType.FeatureFlagBoolean,
+            true,
+          ),
         ],
       });
 
@@ -604,7 +662,7 @@ describe('FeatureFlagOverride', () => {
 
       const versionFlag = createMockFeatureFlag(
         'unsupportedVersionFlag',
-        'boolean with minimumVersion',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
         {
           enabled: true,
           minimumVersion: '2.0.0',
@@ -632,7 +690,7 @@ describe('FeatureFlagOverride', () => {
 
       const versionFlag = createMockFeatureFlag(
         'supportedVersionFlag',
-        'boolean with minimumVersion',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
         {
           enabled: true,
           minimumVersion: '1.0.0',
@@ -660,7 +718,7 @@ describe('FeatureFlagOverride', () => {
 
       const versionFlag = createMockFeatureFlag(
         FeatureFlagNames.rewardsEnabled,
-        'boolean with minimumVersion',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
         {
           enabled: true,
           minimumVersion: '2.0.0',
@@ -697,7 +755,7 @@ describe('FeatureFlagOverride', () => {
         featureFlagsList: [
           createMockFeatureFlag(
             'versionFlag',
-            'boolean with minimumVersion',
+            FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
             versionFlagValue,
           ),
         ],
@@ -720,7 +778,7 @@ describe('FeatureFlagOverride', () => {
 
       const versionFlag = createMockFeatureFlag(
         'versionFlag',
-        'boolean with minimumVersion',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
         {
           enabled: true,
           minimumVersion: '1.0.0',
@@ -744,7 +802,7 @@ describe('FeatureFlagOverride', () => {
 
       const versionFlag = createMockFeatureFlag(
         'versionFlag',
-        'boolean with minimumVersion',
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
         {
           enabled: true,
           minimumVersion: '2.0.0',
@@ -771,7 +829,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('unknownBooleanFlag', 'boolean', false),
+          createMockFeatureFlag(
+            'unknownBooleanFlag',
+            FeatureFlagType.FeatureFlagBoolean,
+            false,
+          ),
         ],
       });
 
@@ -790,7 +852,7 @@ describe('FeatureFlagOverride', () => {
         featureFlagsList: [
           createMockFeatureFlag(
             FeatureFlagNames.rewardsEnabled,
-            'boolean',
+            FeatureFlagType.FeatureFlagBoolean,
             false,
           ),
         ],
@@ -811,7 +873,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('onlyString', 'string', 'value'),
+          createMockFeatureFlag(
+            'onlyString',
+            FeatureFlagType.FeatureFlagString,
+            'value',
+          ),
         ],
       });
 
@@ -836,7 +902,11 @@ describe('FeatureFlagOverride', () => {
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
         featureFlagsList: [
-          createMockFeatureFlag('onlyString', 'string', 'value'),
+          createMockFeatureFlag(
+            'onlyString',
+            FeatureFlagType.FeatureFlagString,
+            'value',
+          ),
         ],
       });
 
@@ -914,7 +984,7 @@ describe('FeatureFlagOverride', () => {
       const searchInput = screen.getByPlaceholderText(
         'Search feature flags...',
       );
-      fireEvent.changeText(searchInput, 'boolean');
+      fireEvent.changeText(searchInput, FeatureFlagType.FeatureFlagBoolean);
 
       expect(screen.getByText('Showing: 1 flags')).toBeTruthy();
     });

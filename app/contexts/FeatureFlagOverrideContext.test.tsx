@@ -13,7 +13,7 @@ import {
   useFeatureFlagOverride,
 } from './FeatureFlagOverrideContext';
 import {
-  getFeatureFlagDescription,
+  FeatureFlagType,
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
@@ -60,9 +60,6 @@ jest.mock('../components/hooks/useMetrics/useMetrics', () => ({
 
 describe('FeatureFlagOverrideContext', () => {
   let mockUseSelector: jest.MockedFunction<typeof useSelector>;
-  let mockGetFeatureFlagDescription: jest.MockedFunction<
-    typeof getFeatureFlagDescription
-  >;
   let mockGetFeatureFlagType: jest.MockedFunction<typeof getFeatureFlagType>;
   let mockIsMinimumRequiredVersionSupported: jest.MockedFunction<
     typeof isMinimumRequiredVersionSupported
@@ -72,7 +69,6 @@ describe('FeatureFlagOverrideContext', () => {
     jest.clearAllMocks();
     mockAddTraitsToUser.mockClear();
     mockUseSelector = jest.mocked(useSelector);
-    mockGetFeatureFlagDescription = jest.mocked(getFeatureFlagDescription);
     mockGetFeatureFlagType = jest.mocked(getFeatureFlagType);
     mockIsMinimumRequiredVersionSupported = jest.mocked(
       isMinimumRequiredVersionSupported,
@@ -80,17 +76,16 @@ describe('FeatureFlagOverrideContext', () => {
 
     // Default mock implementations
     mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-    mockGetFeatureFlagDescription.mockImplementation(
-      (key: string) => `Description for ${key}`,
-    );
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockGetFeatureFlagType.mockImplementation((value: any) => {
-      if (typeof value === 'boolean') return 'boolean';
-      if (typeof value === 'string') return 'string';
-      if (typeof value === 'number') return 'number';
-      if (Array.isArray(value)) return 'array';
-      if (typeof value === 'object' && value !== null) return 'object';
-      return 'string';
+      if (typeof value === 'boolean') return FeatureFlagType.FeatureFlagBoolean;
+      if (typeof value === 'string') return FeatureFlagType.FeatureFlagString;
+      if (typeof value === 'number') return FeatureFlagType.FeatureFlagNumber;
+      if (Array.isArray(value)) return FeatureFlagType.FeatureFlagArray;
+      if (typeof value === 'object' && value !== null)
+        return FeatureFlagType.FeatureFlagObject;
+      return FeatureFlagType.FeatureFlagString;
     });
   });
 
@@ -124,7 +119,9 @@ describe('FeatureFlagOverrideContext', () => {
     it('returns flag value directly from getFeatureFlag', () => {
       const mockFlags = { testFlag: true };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBoolean,
+      );
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -177,7 +174,7 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       expect(result.current.hasOverride('testFlag')).toBe(true);
-      expect(result.current.getOverride('testFlag')).toBe(false);
+      expect(result.current.overrides.testFlag).toBe(false);
       expect(result.current.getOverrideCount()).toBe(1);
       expect(result.current.getFeatureFlag('testFlag')).toBe(false);
       expect(result.current.featureFlags.testFlag.isOverridden).toBe(true);
@@ -195,7 +192,7 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       expect(result.current.hasOverride('newFlag')).toBe(true);
-      expect(result.current.getOverride('newFlag')).toBe('new value');
+      expect(result.current.overrides.newFlag).toBe('new value');
       expect(result.current.getFeatureFlag('newFlag')).toBe('new value');
       expect(result.current.featureFlags.newFlag.originalValue).toBeUndefined();
       expect(result.current.featureFlags.newFlag.isOverridden).toBe(true);
@@ -220,7 +217,7 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       expect(result.current.hasOverride('testFlag')).toBe(false);
-      expect(result.current.getOverride('testFlag')).toBeUndefined();
+      expect(result.current.overrides.testFlag).toBeUndefined();
       expect(result.current.getFeatureFlag('testFlag')).toBe(true);
       expect(result.current.featureFlags.testFlag.isOverridden).toBe(false);
     });
@@ -313,40 +310,16 @@ describe('FeatureFlagOverrideContext', () => {
         result.current.setOverride('flag2', 'value2');
       });
 
-      const overrides = result.current.getAllOverrides();
-      expect(overrides).toEqual({ flag1: 'value1', flag2: 'value2' });
-
-      // Verify it's a copy, not the same reference
-      overrides.flag3 = 'modified';
-      expect(result.current.getAllOverrides()).toEqual({
+      expect(result.current.overrides).toEqual({
         flag1: 'value1',
         flag2: 'value2',
       });
-    });
 
-    it('applyOverrides merges original flags with overrides', () => {
-      mockUseSelector.mockReturnValue({});
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      act(() => {
-        result.current.setOverride('override1', 'overridden');
-        result.current.setOverride('original1', 'modified');
-      });
-
-      const originalFlags = {
-        original1: 'original',
-        original2: 'untouched',
-      };
-
-      const applied = result.current.applyOverrides(originalFlags);
-
-      expect(applied).toEqual({
-        original1: 'modified', // overridden
-        original2: 'untouched', // preserved
-        override1: 'overridden', // added
+      // Verify it's a copy, not the same reference
+      result.current.setOverride('flag3', 'modified');
+      expect(result.current.overrides).toEqual({
+        flag1: 'value1',
+        flag2: 'value2',
       });
     });
 
@@ -374,7 +347,7 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
-      expect(result.current.getOverride('nonExistent')).toBeUndefined();
+      expect(result.current.overrides.nonExistent).toBeUndefined();
 
       act(() => {
         result.current.setOverride('stringFlag', 'string value');
@@ -383,10 +356,10 @@ describe('FeatureFlagOverrideContext', () => {
         result.current.setOverride('nullFlag', null);
       });
 
-      expect(result.current.getOverride('stringFlag')).toBe('string value');
-      expect(result.current.getOverride('numberFlag')).toBe(42);
-      expect(result.current.getOverride('booleanFlag')).toBe(false);
-      expect(result.current.getOverride('nullFlag')).toBeNull();
+      expect(result.current.overrides.stringFlag).toBe('string value');
+      expect(result.current.overrides.numberFlag).toBe(42);
+      expect(result.current.overrides.booleanFlag).toBe(false);
+      expect(result.current.overrides.nullFlag).toBeNull();
     });
 
     it('getOverrideCount returns correct count', () => {
@@ -446,23 +419,13 @@ describe('FeatureFlagOverrideContext', () => {
       expect(mockGetFeatureFlagType).toHaveBeenCalledWith([1, 2, 3]);
       expect(mockGetFeatureFlagType).toHaveBeenCalledWith({ key: 'value' });
 
-      expect(result.current.featureFlags.booleanFlag.type).toBe('boolean');
+      expect(result.current.featureFlags.booleanFlag.type).toBe(
+        FeatureFlagType.FeatureFlagBoolean,
+      );
       expect(result.current.featureFlags.stringFlag.type).toBe('string');
       expect(result.current.featureFlags.numberFlag.type).toBe('number');
       expect(result.current.featureFlags.arrayFlag.type).toBe('array');
       expect(result.current.featureFlags.objectFlag.type).toBe('object');
-    });
-
-    it('calls getFeatureFlagDescription for each flag', () => {
-      const mockFlags = { flag1: true, flag2: false };
-      mockUseSelector.mockReturnValue(mockFlags);
-
-      renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(mockGetFeatureFlagDescription).toHaveBeenCalledWith('flag1');
-      expect(mockGetFeatureFlagDescription).toHaveBeenCalledWith('flag2');
     });
 
     it('handles flags with null/undefined values', () => {
@@ -630,7 +593,9 @@ describe('FeatureFlagOverrideContext', () => {
         testFlag: { enabled: true, minimumVersion: '1.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -645,7 +610,9 @@ describe('FeatureFlagOverrideContext', () => {
         testFlag: { enabled: false, minimumVersion: '1.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -666,7 +633,9 @@ describe('FeatureFlagOverrideContext', () => {
         testFlag: { enabled: true, minimumVersion: '99.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -692,7 +661,9 @@ describe('FeatureFlagOverrideContext', () => {
         testFlag: { enabled: true, minimumVersion: '99.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -712,7 +683,9 @@ describe('FeatureFlagOverrideContext', () => {
         testFlag: { enabled: false, minimumVersion: '99.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -730,9 +703,9 @@ describe('FeatureFlagOverrideContext', () => {
       };
       mockUseSelector.mockReturnValue(mockFlags);
       mockGetFeatureFlagType
-        .mockReturnValueOnce('string')
-        .mockReturnValueOnce('number')
-        .mockReturnValueOnce('boolean');
+        .mockReturnValueOnce(FeatureFlagType.FeatureFlagString)
+        .mockReturnValueOnce(FeatureFlagType.FeatureFlagNumber)
+        .mockReturnValueOnce(FeatureFlagType.FeatureFlagBoolean);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -828,7 +801,9 @@ describe('FeatureFlagOverrideContext', () => {
           myFeatureFlag: { enabled: true, minimumVersion: '10.0.0' },
         };
         mockUseSelector.mockReturnValue(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+        mockGetFeatureFlagType.mockReturnValue(
+          FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+        );
         mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
         const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -848,7 +823,9 @@ describe('FeatureFlagOverrideContext', () => {
           supportedFlag: { enabled: true, minimumVersion: '1.0.0' },
         };
         mockUseSelector.mockReturnValue(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+        mockGetFeatureFlagType.mockReturnValue(
+          FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+        );
         mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
 
         const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -863,7 +840,9 @@ describe('FeatureFlagOverrideContext', () => {
           stringFlag: 'test value',
         };
         mockUseSelector.mockReturnValue(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue('string');
+        mockGetFeatureFlagType.mockReturnValue(
+          FeatureFlagType.FeatureFlagString,
+        );
         mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
         const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -879,7 +858,9 @@ describe('FeatureFlagOverrideContext', () => {
     it('takes snapshot when getFeatureFlag is called for boolean flag', async () => {
       const mockFlags = { testBooleanFlag: true };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBoolean,
+      );
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -901,7 +882,9 @@ describe('FeatureFlagOverrideContext', () => {
         testVersionFlag: { enabled: true, minimumVersion: '1.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -926,7 +909,9 @@ describe('FeatureFlagOverrideContext', () => {
         flag3: true,
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBoolean,
+      );
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -972,8 +957,8 @@ describe('FeatureFlagOverrideContext', () => {
       };
       mockUseSelector.mockReturnValue(mockFlags);
       mockGetFeatureFlagType
-        .mockReturnValueOnce('string')
-        .mockReturnValueOnce('number');
+        .mockReturnValueOnce(FeatureFlagType.FeatureFlagString)
+        .mockReturnValueOnce(FeatureFlagType.FeatureFlagNumber);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -995,7 +980,9 @@ describe('FeatureFlagOverrideContext', () => {
     it('updates snapshot when same boolean flag is accessed with different value after override', async () => {
       const mockFlags = { testFlag: true };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBoolean,
+      );
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
@@ -1037,7 +1024,9 @@ describe('FeatureFlagOverrideContext', () => {
         testVersionFlag: { enabled: true, minimumVersion: '99.0.0' },
       };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockGetFeatureFlagType.mockReturnValue(
+        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
+      );
       mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
 
       const { result } = renderHook(() => useFeatureFlagOverride(), {
@@ -1063,7 +1052,7 @@ describe('FeatureFlagOverrideContext', () => {
     it('does not call addTraitsToUser when no snapshots are taken', () => {
       const mockFlags = { stringFlag: 'test' };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('string');
+      mockGetFeatureFlagType.mockReturnValue(FeatureFlagType.FeatureFlagString);
 
       renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
