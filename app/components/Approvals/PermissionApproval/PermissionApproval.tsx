@@ -12,6 +12,8 @@ import {
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { selectPendingApprovals } from '../../../selectors/approvalController';
+import { isEqual } from 'lodash';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -21,7 +23,8 @@ export interface PermissionApprovalProps {
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { approvalRequest, pendingApprovals } = useApprovalRequest();
+  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+  const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
 
   const eventSource = useOriginSource({

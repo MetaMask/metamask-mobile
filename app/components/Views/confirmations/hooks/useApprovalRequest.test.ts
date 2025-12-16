@@ -87,19 +87,6 @@ describe('useApprovalRequest', () => {
     });
   });
 
-  describe('pendingApprovals', () => {
-    it('returns the pending approvals', () => {
-      mockSelector({
-        [APPROVAL_REQUEST.id]: APPROVAL_REQUEST,
-        [APPROVAL_REQUEST_2.id]: APPROVAL_REQUEST_2,
-      });
-      expect(useApprovalRequest().pendingApprovals).toEqual({
-        [APPROVAL_REQUEST.id]: APPROVAL_REQUEST,
-        [APPROVAL_REQUEST_2.id]: APPROVAL_REQUEST_2,
-      });
-    });
-  });
-
   describe('pageMeta', () => {
     it('set to pageMeta property in request data if set', () => {
       mockSelector({
