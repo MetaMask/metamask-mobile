@@ -49,7 +49,7 @@ const CustomNetworkSelector = ({
   openRpcModal,
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, { colors });
+  const { styles } = useStyles(createStyles, {});
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -157,14 +157,15 @@ const CustomNetworkSelector = ({
         style={styles.addNetworkButtonContainer}
         onPress={goToNetworkSettings}
       >
-        <Icon
-          name={IconName.Add}
-          size={IconSize.Lg}
-          color={colors.icon.alternative}
-          style={styles.iconContainer}
-        />
+        <View style={styles.iconContainer}>
+          <Icon
+            name={IconName.Add}
+            size={IconSize.Md}
+            color={colors.primary.default}
+          />
+        </View>
 
-        <Text variant={TextVariant.BodyMD} color={colors.text.default}>
+        <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>

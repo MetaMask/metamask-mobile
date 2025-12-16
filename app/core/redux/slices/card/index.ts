@@ -15,10 +15,11 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
+import { Region } from '../../../../components/UI/Card/components/Onboarding/RegionSelectorModal';
 
 export interface OnboardingState {
   onboardingId: string | null;
-  selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
+  selectedCountry: Region | null;
   contactVerificationId: string | null;
   consentSetId: string | null;
 }
@@ -137,7 +138,7 @@ const slice = createSlice({
     setOnboardingId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.onboardingId = action.payload;
     },
-    setSelectedCountry: (state, action: PayloadAction<string | null>) => {
+    setSelectedCountry: (state, action: PayloadAction<Region | null>) => {
       state.onboarding.selectedCountry = action.payload;
     },
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {

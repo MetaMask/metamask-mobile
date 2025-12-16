@@ -146,31 +146,31 @@ const OnboardingNavigator: React.FC = () => {
     // Priority 2: Use cached user data if available
     if (user?.verificationState && onboardingId) {
       if (user.verificationState === 'UNVERIFIED') {
-        if (!user?.email) {
-          return Routes.CARD.ONBOARDING.SIGN_UP;
-        }
+        return Routes.CARD.ONBOARDING.SIGN_UP;
+      }
 
+      if (user.verificationState === 'PENDING') {
         if (!user?.phoneNumber) {
           return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+        }
+
+        if (
+          !user.firstName ||
+          !user.lastName ||
+          !user.countryOfNationality ||
+          !user.dateOfBirth
+        ) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
+
+        if (!user?.addressLine1 || !user?.city || !user?.zip) {
+          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
         }
 
         return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
       }
 
-      if (user.verificationState === 'PENDING') {
-        if (!user.firstName || !user.countryOfNationality) {
-          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
-        }
-
-        return Routes.CARD.ONBOARDING.VALIDATING_KYC;
-      }
-
       if (user.verificationState === 'VERIFIED') {
-        if (!user?.firstName || !user?.countryOfNationality) {
-          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-        } else if (!user?.addressLine1) {
-          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
-        }
         return Routes.CARD.ONBOARDING.COMPLETE;
       }
     }
