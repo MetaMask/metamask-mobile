@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -121,6 +122,7 @@ jest.mock('../Engine', () => ({
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
       removeAccount: jest.fn(),
+      verifyPassword: jest.fn(),
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
@@ -3694,6 +3696,55 @@ describe('Authentication', () => {
 
       // Assert lockApp was called
       expect(mockLockApp).toHaveBeenCalledWith({ locked: true });
+    });
+  });
+
+  describe('reauthenticate', () => {
+    let Engine: typeof import('../Engine').default;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    it('verifies provided password and returns it', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+
+      const result = await Authentication.reauthenticate('test-password');
+
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('test-password');
+      expect(result).toBe('test-password');
+    });
+
+    it('uses stored biometric password when no password is provided', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      const getPasswordSpy = jest
+        .spyOn(Authentication, 'getPassword')
+        .mockResolvedValue({
+          password: 'stored-password',
+        } as unknown as Keychain.UserCredentials);
+
+      const result = await Authentication.reauthenticate();
+
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(BIOMETRY_CHOICE);
+      expect(getPasswordSpy).toHaveBeenCalled();
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('stored-password');
+      expect(result).toBe('stored-password');
+    });
+
+    it('propagates error when password verification fails', async () => {
+      const error = new Error('Invalid password');
+
+      jest
+        .spyOn(Engine.context.KeyringController, 'verifyPassword')
+        .mockRejectedValueOnce(error);
+
+      await expect(Authentication.reauthenticate('bad-password')).rejects.toBe(
+        error,
+      );
     });
   });
 });
