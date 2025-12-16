@@ -83,7 +83,6 @@ const LoginOptionsSettings = () => {
       }
 
       setIsBiometricLoading(true);
-      let shouldClearLoading = true; // Track if we should clear loading in finally
       try {
         const authType = enabled
           ? AUTHENTICATION_TYPE.BIOMETRIC
@@ -106,12 +105,10 @@ const LoginOptionsSettings = () => {
             ? AUTHENTICATION_TYPE.BIOMETRIC
             : AUTHENTICATION_TYPE.PASSWORD;
 
-          // Don't clear loading - let the callback handle it
-          shouldClearLoading = false;
-
           navigation.navigate('EnterPasswordSimple', {
             onPasswordSet: async (enteredPassword: string) => {
-              // Loading is already true from the outer function
+              // Set loading back to true when callback is invoked
+              setIsBiometricLoading(true);
               try {
                 await Authentication.updateAuthPreference(
                   authType,
@@ -154,10 +151,7 @@ const LoginOptionsSettings = () => {
         );
         setBiometryChoice(!enabled);
       } finally {
-        // Only clear loading if we didn't navigate to password entry
-        if (shouldClearLoading) {
-          setIsBiometricLoading(false);
-        }
+        setIsBiometricLoading(false);
       }
     },
     [navigation, allowLoginWithRememberMe],
@@ -170,7 +164,6 @@ const LoginOptionsSettings = () => {
       }
 
       setIsPasscodeLoading(true);
-      let shouldClearLoading = true; // Track if we should clear loading in finally
       try {
         const authType = enabled
           ? AUTHENTICATION_TYPE.PASSCODE
@@ -193,12 +186,10 @@ const LoginOptionsSettings = () => {
             ? AUTHENTICATION_TYPE.PASSCODE
             : AUTHENTICATION_TYPE.PASSWORD;
 
-          // Don't clear loading - let the callback handle it
-          shouldClearLoading = false;
-
           navigation.navigate('EnterPasswordSimple', {
             onPasswordSet: async (enteredPassword: string) => {
-              // Loading is already true from the outer function
+              // Set loading back to true when callback is invoked
+              setIsPasscodeLoading(true);
               try {
                 await Authentication.updateAuthPreference(
                   authType,
@@ -243,10 +234,7 @@ const LoginOptionsSettings = () => {
         );
         setPasscodeChoice(!enabled);
       } finally {
-        // Only clear loading if we didn't navigate to password entry
-        if (shouldClearLoading) {
-          setIsPasscodeLoading(false);
-        }
+        setIsPasscodeLoading(false);
       }
     },
     [navigation, allowLoginWithRememberMe],
