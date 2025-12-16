@@ -2355,6 +2355,7 @@
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
+      "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
@@ -6614,7 +6615,11 @@
       "confirm_button": "Confirm",
       "retry_button": "Try again",
       "close_button": "Got it",
+      "region_selector": {
+        "title": "Select your Region"
+      },
       "errors": {
+        "no_region_results": "No region matches {{searchString}}",
         "email_already_exists": "Email already exists. Please use a different email.",
         "invalid_email_format": "Invalid email format. Please check your email and try again.",
         "invalid_verification_code": "Invalid verification code. Please check your code and try again.",

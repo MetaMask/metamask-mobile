@@ -6,6 +6,7 @@ import { CardError, CardErrorType } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import AppConstants from '../../../../core/AppConstants';
 import { CardSDK } from '../sdk/CardSDK';
+import { Region } from '../components/Onboarding/RegionSelectorModal';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -35,6 +36,20 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
   typeof getErrorMessage
 >;
 
+// Mock Region objects for testing
+const MOCK_REGION_US: Region = {
+  key: 'US',
+  name: 'United States',
+  emoji: '🇺🇸',
+};
+const MOCK_REGION_CA: Region = { key: 'CA', name: 'Canada', emoji: '🇨🇦' };
+const MOCK_REGION_GB: Region = {
+  key: 'GB',
+  name: 'United Kingdom',
+  emoji: '🇬🇧',
+};
+const MOCK_REGION_DE: Region = { key: 'DE', name: 'Germany', emoji: '🇩🇪' };
+
 describe('useRegisterUserConsent', () => {
   const mockCreateOnboardingConsent = jest.fn();
   const mockLinkUserToConsent = jest.fn();
@@ -62,7 +77,7 @@ describe('useRegisterUserConsent', () => {
       sdk: mockSDK,
     });
 
-    mockUseSelector.mockReturnValue('US'); // selectedCountry
+    mockUseSelector.mockReturnValue(MOCK_REGION_US); // selectedCountry
 
     mockGetErrorMessage.mockReturnValue('Mocked error message');
     mockCreateOnboardingConsent.mockResolvedValue(mockConsentResponse);
@@ -171,7 +186,7 @@ describe('useRegisterUserConsent', () => {
   describe('createOnboardingConsent function', () => {
     describe('successful consent creation', () => {
       it('creates consent record for US users with eSignAct consent', async () => {
-        mockUseSelector.mockReturnValue('US');
+        mockUseSelector.mockReturnValue(MOCK_REGION_US);
         const { result } = renderHook(() => useRegisterUserConsent());
 
         let returnedConsentSetId = '';
@@ -234,7 +249,7 @@ describe('useRegisterUserConsent', () => {
       });
 
       it('creates consent record for international users without eSignAct', async () => {
-        mockUseSelector.mockReturnValue('CA');
+        mockUseSelector.mockReturnValue(MOCK_REGION_CA);
         const { result } = renderHook(() => useRegisterUserConsent());
 
         await act(async () => {
@@ -716,26 +731,26 @@ describe('useRegisterUserConsent', () => {
   describe('country-specific behavior', () => {
     const countryTestCases = [
       {
-        country: 'US',
+        country: MOCK_REGION_US,
         expectedPolicy: 'us',
         description: 'US users',
       },
       {
-        country: 'CA',
+        country: MOCK_REGION_CA,
         expectedPolicy: 'global',
         description: 'Canadian users',
       },
       {
-        country: 'GB',
+        country: MOCK_REGION_GB,
         expectedPolicy: 'global',
         description: 'UK users',
       },
       {
-        country: 'DE',
+        country: MOCK_REGION_DE,
         expectedPolicy: 'global',
         description: 'German users',
       },
-    ] as const;
+    ];
 
     it.each(countryTestCases)(
       'uses correct policy for $description',
