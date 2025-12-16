@@ -5,4 +5,3 @@ export type {
   UseHeaderWithTitleLeftScrollableOptions,
   UseHeaderWithTitleLeftScrollableReturn,
 } from './HeaderWithTitleLeftScrollable.types';
-
