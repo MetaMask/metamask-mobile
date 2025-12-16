@@ -114,6 +114,8 @@ export const useMusdConversionStatus = () => {
         return;
       }
 
+      console.log('transactionMeta: ', transactionMeta);
+
       const { id: transactionId, status, metamaskPay } = transactionMeta;
       const { chainId: payChainId, tokenAddress: payTokenAddress } =
         metamaskPay || {};
