@@ -78,7 +78,10 @@ import {
 } from '../../hooks/stream';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import {
+  selectPerpsButtonColorTestVariant,
+  selectPerpsOrderBookEnabledFlag,
+} from '../../selectors/featureFlags';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -183,6 +186,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [hideBannerAfterSuccess, setHideBannerAfterSuccess] = useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
+
+  // Feature flag for Order Book visibility
+  const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -1040,7 +1046,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               dexName={market?.marketSource || undefined}
-              onOrderBookPress={handleOrderBookPress}
+              onOrderBookPress={
+                isOrderBookEnabled ? handleOrderBookPress : undefined
+              }
             />
           </View>
 

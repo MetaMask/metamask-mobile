@@ -55,6 +55,24 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Order Book feature flag
+ * Controls visibility of the Order Book navigation in Market Details view
+ *
+ * @returns boolean - true if Order Book should be shown, false otherwise
+ */
+export const selectPerpsOrderBookEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to true if no flag is set (enabled by default)
+    const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED !== 'false';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *
