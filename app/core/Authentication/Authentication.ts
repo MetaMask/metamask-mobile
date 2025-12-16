@@ -1428,10 +1428,13 @@ class AuthenticationService {
    * @returns The verified password string, or `undefined` if verification fails before
    * a password can be determined.
    */
-  reauthenticate = async (password?: string): Promise<string | undefined> => {
+  reauthenticate = async (
+    password?: string,
+  ): Promise<{ password: string | undefined }> => {
     let passwordToVerify = password || '';
     const { KeyringController } = Engine.context;
 
+    // if no password is provided, try to use the stored biometric/remember-me password
     if (!passwordToVerify) {
       const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
       if (biometryChoice) {
@@ -1443,7 +1446,7 @@ class AuthenticationService {
     }
 
     await KeyringController.verifyPassword(passwordToVerify);
-    return passwordToVerify;
+    return { password: passwordToVerify };
   };
 }
 

@@ -422,7 +422,7 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      this.tryUnlockWithPassword();
+      this.reauthenticate();
     }
 
     this.setState(state);
@@ -644,7 +644,7 @@ class ResetPassword extends PureComponent {
     await KeyringController.exportSeedPhrase(password);
   };
 
-  tryUnlockWithPassword = async (password) => {
+  reauthenticate = async (password) => {
     this.setState({ ready: false });
     try {
       const verifiedPassword = await Authentication.reauthenticate(password);
@@ -663,9 +663,9 @@ class ResetPassword extends PureComponent {
     }
   };
 
-  tryUnlock = () => {
+  reauthenticateWithPassword = () => {
     const { password } = this.state;
-    this.tryUnlockWithPassword(password);
+    this.reauthenticate(password);
   };
 
   onPasswordChange = (val) => {
@@ -810,9 +810,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
-                onSubmitEditing={() =>
-                  this.tryUnlockWithPassword(this.state.password)
-                }
+                onSubmitEditing={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
                 autoComplete="current-password"
@@ -823,7 +821,7 @@ class ResetPassword extends PureComponent {
               <Button
                 {...getCommonButtonProps()}
                 label={strings('manual_backup_step_1.confirm')}
-                onPress={() => this.tryUnlockWithPassword(this.state.password)}
+                onPress={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 isDisabled={!this.state.password}
               />

@@ -3715,7 +3715,7 @@ describe('Authentication', () => {
       const result = await Authentication.reauthenticate('test-password');
 
       expect(verifyPasswordSpy).toHaveBeenCalledWith('test-password');
-      expect(result).toBe('test-password');
+      expect(result.password).toBe('test-password');
     });
 
     it('uses stored biometric password when no password is provided', async () => {
@@ -3732,7 +3732,7 @@ describe('Authentication', () => {
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(BIOMETRY_CHOICE);
       expect(getPasswordSpy).toHaveBeenCalled();
       expect(verifyPasswordSpy).toHaveBeenCalledWith('stored-password');
-      expect(result).toBe('stored-password');
+      expect(result.password).toBe('stored-password');
     });
 
     it('propagates error when password verification fails', async () => {
