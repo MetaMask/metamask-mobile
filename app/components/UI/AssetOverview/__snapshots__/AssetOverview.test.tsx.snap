@@ -854,7 +854,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
-                "paddingVertical": 8,
+                "paddingBottom": 8,
+                "paddingTop": 8,
               }
             }
           >
