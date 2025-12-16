@@ -37,9 +37,12 @@ jest.mock('@metamask/chain-agnostic-permission', () => ({
   getAllScopesFromPermission: jest.fn(),
 }));
 
-jest.mock('../../../util/metrics/MultichainAPI/getApiAnalyticsProperties', () => ({
-  getApiAnalyticsProperties: jest.fn(),
-}));
+jest.mock(
+  '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties',
+  () => ({
+    getApiAnalyticsProperties: jest.fn(),
+  }),
+);
 
 const PERMISSION_REQUEST_ID_MOCK = 'testId';
 
@@ -55,9 +58,10 @@ const NAV_DETAILS_MOCK = [
 ];
 
 // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   approvalRequest?: ApprovalRequest<any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApprovals?: Record<string, ApprovalRequest<any>>,
 ) => {
   (
