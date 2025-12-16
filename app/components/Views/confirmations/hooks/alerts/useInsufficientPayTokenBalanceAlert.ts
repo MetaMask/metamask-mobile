@@ -140,6 +140,31 @@ export function useInsufficientPayTokenBalanceAlert({
     ],
   );
 
+  // TODO: Remove before opening PR.
+  console.log('[useInsufficientPayTokenBalanceAlert] FULL DEBUG:', {
+    // Which alerts are true?
+    isInsufficientForInput,
+    isInsufficientForFees,
+    isInsufficientForSourceNetwork,
+
+    // Check 1: USD comparison
+    totalAmountUsd: totalAmountUsd.toString(),
+    balanceUsd,
+    usdDiff: totalAmountUsd.minus(balanceUsd ?? '0').toString(),
+
+    // Check 2: Raw amount comparison (MOST LIKELY CULPRIT)
+    'totals.sourceAmount.raw': totals?.sourceAmount?.raw,
+    'payToken.balanceRaw': balanceRaw,
+    totalSourceAmountRaw: totalSourceAmountRaw.toString(),
+    rawDiff: totalSourceAmountRaw.minus(balanceRaw ?? '0').toString(),
+
+    // Other state
+    isLoading,
+    isPendingAlert,
+    isPayTokenNative,
+    isSourceGasFeeToken,
+  });
+
   return useMemo(() => {
     const baseAlert = {
       field: RowAlertKey.Amount,

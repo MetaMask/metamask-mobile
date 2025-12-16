@@ -1,11 +1,13 @@
 import { Hex } from '@metamask/utils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
+import Routes from '../../../../constants/navigation/Routes';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
@@ -28,6 +30,7 @@ export interface MaxConversionResult {
  * Determines the output chain ID for mUSD conversion.
  * Uses same-chain if mUSD is deployed there, otherwise defaults to Ethereum mainnet.
  */
+// TODO: Use the useMusdConversionTokens hook to get the output chain ID instead of duplicating it here.
 const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
   const mUsdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[paymentTokenChainId];
   if (mUsdAddress) {
@@ -43,9 +46,10 @@ const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains.
  *
- * This hook creates a transaction with the user's full token balance and sets
- * the payment token to trigger automatic Relay quote fetching. It does NOT
- * navigate - the caller (e.g., MusdMaxConvertSheet) handles the UI.
+ * This hook handles transaction creation and navigation:
+ * 1. Creates the transaction first (ensures approvalRequest exists)
+ * 2. Sets the payment token to trigger automatic Relay quote fetching
+ * 3. Navigates to the confirmation modal after transaction is ready
  *
  * The TransactionPayController will automatically fetch Relay quotes when:
  * 1. The transaction is added
@@ -54,13 +58,13 @@ const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
  * @example
  * const { createMaxConversion, isLoading, error } = useMusdMaxConversion();
  *
- * const result = await createMaxConversion(token); // token is AssetType
- *
- * // result.transactionId can be used to read quotes from selectors
+ * await createMaxConversion(token); // Creates transaction then navigates
  */
+// TODO: Consider combining this hook with useMusdConversion.
 export const useMusdMaxConversion = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation();
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -68,15 +72,19 @@ export const useMusdMaxConversion = () => {
   const selectedAddress = selectedAccount?.address;
 
   /**
-   * Creates a max-amount mUSD conversion transaction and sets the payment token.
-   * Returns the transaction ID for the caller to use with selectors.
+   * Creates a max-amount mUSD conversion transaction and navigates to the confirmation screen.
+   * Transaction is created first to ensure approvalRequest exists when the modal renders.
    */
-  // TODO: Decide later if we want navigation to the MusdMaxConvertSheet here or in the caller.
   const createMaxConversion = useCallback(
     async (token: AssetType): Promise<MaxConversionResult> => {
       // TODO: Double-check if assertions are necessary here.
       const tokenAddress = token.address as Hex;
       const tokenChainId = token.chainId as Hex;
+
+      // TODO: Consider using the useMusdConversionTokens hook to get the output chain ID instead of duplicating it here.
+      // Determine output chain (same-chain if mUSD exists, else mainnet)
+      const outputChainId = getOutputChainId(tokenChainId);
+
       try {
         setIsLoading(true);
         setError(null);
@@ -98,9 +106,6 @@ export const useMusdMaxConversion = () => {
           TransactionController,
           TransactionPayController,
         } = Engine.context;
-
-        // Determine output chain (same-chain if mUSD exists, else mainnet)
-        const outputChainId = getOutputChainId(tokenChainId);
 
         const networkClientId =
           NetworkController.findNetworkClientIdByChainId(outputChainId);
@@ -126,7 +131,6 @@ export const useMusdMaxConversion = () => {
           amount: token.rawBalance,
         });
 
-        // Create transaction with ALL required options for Relay to work
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             to: mUSDTokenAddress,
@@ -141,19 +145,16 @@ export const useMusdMaxConversion = () => {
             networkClientId,
             origin: MMM_ORIGIN,
             type: TransactionType.musdConversion,
-            // CRITICAL: nestedTransactions is required for Relay to work
-            // TODO: This won't be needed in the near future once the following PR is merged: https://github.com/MetaMask/metamask-mobile/pull/23704
-            nestedTransactions: [
-              {
-                to: mUSDTokenAddress,
-                data: transferData as Hex,
-                value: '0x0',
-              },
-            ],
           },
         );
 
         // Set payment token - this triggers automatic Relay quote fetching
+        Logger.log('[mUSD Max Conversion] Setting payment token:', {
+          transactionId: transactionMeta.id,
+          tokenAddress,
+          chainId: tokenChainId,
+        });
+
         TransactionPayController.updatePaymentToken({
           transactionId: transactionMeta.id,
           tokenAddress,
@@ -163,6 +164,18 @@ export const useMusdMaxConversion = () => {
         Logger.log(
           `[mUSD Max Conversion] Created transaction ${transactionMeta.id} for ${token.symbol ?? tokenAddress}`,
         );
+
+        // Navigate to modal stack AFTER transaction is created
+        // This ensures approvalRequest exists when the confirmation screen renders
+        navigation.navigate(Routes.EARN.MODALS.ROOT, {
+          screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
+          params: {
+            // maxValueMode required to display mUSD max conversion bottom sheet confirmation.
+            maxValueMode: true,
+            outputChainId,
+            token,
+          },
+        });
 
         return {
           transactionId: transactionMeta.id,
@@ -180,12 +193,13 @@ export const useMusdMaxConversion = () => {
         );
 
         setError(errorMessage);
+
         throw err;
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedAddress],
+    [navigation, selectedAddress],
   );
 
   /**

@@ -2,6 +2,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
@@ -28,6 +29,7 @@ import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { MusdMaxConversionInfo } from '../info/musd-max-conversion-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -88,6 +90,7 @@ const Info = ({ route }: InfoProps) => {
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
+  const { maxValueMode } = useParams<{ maxValueMode?: boolean }>();
 
   if (!approvalRequest?.type) {
     return null;
@@ -112,6 +115,9 @@ const Info = ({ route }: InfoProps) => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
+    if (maxValueMode) {
+      return <MusdMaxConversionInfo />;
+    }
     return <MusdConversionInfo />;
   }
 
