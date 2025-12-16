@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import {
   MUSD_BUYABLE_CHAIN_IDS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -11,6 +12,7 @@ import {
   useNetworksByCustomNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
+import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
 
 /**
  * Hook to determine visibility and network icon display for the MUSD CTA.
@@ -21,6 +23,7 @@ import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
  * - selectedChainId: the selected chain ID for the network badge (null if all networks)
  */
 export const useMusdCtaVisibility = () => {
+  const isMusdCtaEnabled = useSelector(selectIsMusdCtaEnabledFlag);
   const { enabledNetworks } = useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
@@ -63,6 +66,15 @@ export const useMusdCtaVisibility = () => {
   );
 
   const { shouldShowCta, showNetworkIcon, selectedChainId } = useMemo(() => {
+    // If the mUSD CTA feature flag is disabled, don't show the CTA
+    if (!isMusdCtaEnabled) {
+      return {
+        shouldShowCta: false,
+        showNetworkIcon: false,
+        selectedChainId: null,
+      };
+    }
+
     // Get selected chains from enabled networks
     const selectedChains = enabledNetworks
       .filter((network) => network.enabled)
@@ -115,6 +127,7 @@ export const useMusdCtaVisibility = () => {
       selectedChainId: chainId,
     };
   }, [
+    isMusdCtaEnabled,
     areAllNetworksSelected,
     enabledNetworks,
     hasMusdBalance,

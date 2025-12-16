@@ -7,11 +7,19 @@ import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
+import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('./useHasMusdBalance');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+jest.mock('../selectors/featureFlags');
+
+import { useSelector } from 'react-redux';
 
 const mockUseHasMusdBalance = useHasMusdBalance as jest.MockedFunction<
   typeof useHasMusdBalance
@@ -26,6 +34,7 @@ const mockUseNetworksByCustomNamespace =
 const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useMusdCtaVisibility', () => {
   const defaultNetworkInfo = {
@@ -74,8 +83,17 @@ describe('useMusdCtaVisibility', () => {
     error: null,
   };
 
+  let mockIsMusdCtaEnabled = true;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMusdCtaEnabled = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsMusdCtaEnabledFlag) {
+        return mockIsMusdCtaEnabled;
+      }
+      return undefined;
+    });
     mockUseHasMusdBalance.mockReturnValue({
       hasMusdBalance: false,
       balancesByChain: {},
@@ -103,6 +121,92 @@ describe('useMusdCtaVisibility', () => {
       expect(result.current).toHaveProperty('shouldShowCta');
       expect(result.current).toHaveProperty('showNetworkIcon');
       expect(result.current).toHaveProperty('selectedChainId');
+    });
+  });
+
+  describe('feature flag', () => {
+    it('returns shouldShowCta false when feature flag is disabled', () => {
+      mockIsMusdCtaEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsMusdCtaEnabledFlag) {
+          return mockIsMusdCtaEnabled;
+        }
+        return undefined;
+      });
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        ...defaultNetworkInfo,
+        enabledNetworks: [
+          { chainId: CHAIN_IDS.MAINNET, enabled: true },
+          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      expect(result.current.shouldShowCta).toBe(false);
+      expect(result.current.showNetworkIcon).toBe(false);
+      expect(result.current.selectedChainId).toBeNull();
+    });
+
+    it('returns shouldShowCta true when feature flag is enabled and conditions are met', () => {
+      mockIsMusdCtaEnabled = true;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsMusdCtaEnabledFlag) {
+          return mockIsMusdCtaEnabled;
+        }
+        return undefined;
+      });
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        ...defaultNetworkInfo,
+        enabledNetworks: [
+          { chainId: CHAIN_IDS.MAINNET, enabled: true },
+          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+        ],
+      });
+      mockUseHasMusdBalance.mockReturnValue({
+        hasMusdBalance: false,
+        balancesByChain: {},
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      expect(result.current.shouldShowCta).toBe(true);
+    });
+
+    it('returns shouldShowCta false when feature flag is disabled even on supported single chain', () => {
+      mockIsMusdCtaEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsMusdCtaEnabledFlag) {
+          return mockIsMusdCtaEnabled;
+        }
+        return undefined;
+      });
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: false,
+      });
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        ...defaultNetworkInfo,
+        enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+      });
+      mockUseHasMusdBalance.mockReturnValue({
+        hasMusdBalance: false,
+        balancesByChain: {},
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      expect(result.current.shouldShowCta).toBe(false);
+      expect(result.current.showNetworkIcon).toBe(false);
+      expect(result.current.selectedChainId).toBeNull();
     });
   });
 
