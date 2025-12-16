@@ -600,7 +600,11 @@ const CardAuthentication = () => {
                 disabled={isLoginDisabled || loading}
               />
               <TouchableOpacity
-                onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
+                onPress={() =>
+                  navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+                    screen: Routes.CARD.ONBOARDING.SIGN_UP,
+                  })
+                }
               >
                 <Text
                   testID={CardAuthenticationSelectors.SIGNUP_BUTTON}

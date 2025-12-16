@@ -403,6 +403,7 @@ const Routes = {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
+      REGION_SELECTION: 'CardRegionSelectionModal',
     },
   },
   SEND: {
