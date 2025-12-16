@@ -147,31 +147,40 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
 
 interface ButtonsProps {
   action?: { label: string; callback: () => void };
-  hideAlertModal: () => void;
+  onClose: () => void;
+  onAcknowledge: () => void;
   onHandleActionClick: (callback: () => void) => void;
   styles: Record<string, ViewStyle>;
   isConfirmed: boolean;
   isDangerAlert: boolean;
+  isBlocking: boolean;
 }
 
 const Buttons: React.FC<ButtonsProps> = ({
-  hideAlertModal,
+  onClose,
+  onAcknowledge,
   action,
   styles,
   onHandleActionClick,
   isConfirmed,
   isDangerAlert,
+  isBlocking,
 }) => {
   const primaryButtonLabel = isDangerAlert
     ? strings('alert_system.alert_modal.acknowledge_btn')
     : strings('alert_system.alert_modal.got_it_btn');
+
+  // Button is disabled for:
+  // - Blocking alerts (must use action to proceed)
+  // - Danger alerts where checkbox is not confirmed
+  const isButtonDisabled = isBlocking || (isDangerAlert && !isConfirmed);
 
   return (
     <View style={styles.buttonsContainer}>
       {isDangerAlert && (
         <>
           <Button
-            onPress={hideAlertModal}
+            onPress={onClose}
             label={strings('alert_system.alert_modal.close_btn')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
@@ -183,13 +192,13 @@ const Buttons: React.FC<ButtonsProps> = ({
         </>
       )}
       <Button
-        onPress={hideAlertModal}
+        onPress={onAcknowledge}
         label={primaryButtonLabel}
         style={styles.footerButton}
         size={ButtonSize.Lg}
         variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
         width={ButtonWidthTypes.Full}
-        isDisabled={isDangerAlert && !isConfirmed}
+        isDisabled={isButtonDisabled}
         testID="alert-modal-acknowledge-button"
       />
       {action ? (
@@ -236,13 +245,17 @@ const AlertModal: React.FC<AlertModalProps> = ({
     }
   }, [alertModalVisible, trackAlertRendered]);
 
-  const handleClose = useCallback(() => {
+  const handleAcknowledge = useCallback(() => {
     if (onAcknowledgeClick) {
       onAcknowledgeClick();
       return;
     }
     hideAlertModal();
   }, [hideAlertModal, onAcknowledgeClick]);
+
+  const handleClose = useCallback(() => {
+    hideAlertModal();
+  }, [hideAlertModal]);
 
   const handleCheckboxClick = useCallback(
     (selectedAlertKey: string, isConfirmed: boolean) => {
@@ -295,7 +308,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
           />
         </View>
         <Buttons
-          hideAlertModal={handleClose}
+          onClose={handleClose}
+          onAcknowledge={handleAcknowledge}
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
@@ -304,6 +318,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
             selectedAlert.severity === Severity.Danger &&
             !selectedAlert.isBlocking
           }
+          isBlocking={selectedAlert.isBlocking ?? false}
         />
       </View>
     </BottomModal>
