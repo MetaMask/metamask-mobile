@@ -259,9 +259,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             rememberMe,
           );
           try {
+            // Skip validation in vault corruption recovery - vault in KeyringController is corrupted so exportSeedPhrase will fail
             await Authentication.updateAuthPreference(
               authData.currentAuthType,
               password,
+              true, // skipValidation = true
             );
             navigation.replace(
               ...createRestoreWalletNavDetailsNested({

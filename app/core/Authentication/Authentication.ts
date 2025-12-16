@@ -1453,11 +1453,13 @@ class AuthenticationService {
    *
    * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
    * @param password - optional password to use. If not provided, gets from keychain.
+   * @param skipValidation - optional flag to skip password validation (used in vault corruption recovery where vault is corrupted)
    * @returns {Promise<void>}
    */
   updateAuthPreference = async (
     authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
     password?: string,
+    skipValidation = false,
   ): Promise<void> => {
     let passwordToUse = password;
 
@@ -1477,7 +1479,12 @@ class AuthenticationService {
       // Password found or provided. Validate and update the auth preference.
       try {
         await this.resetPassword();
-        await Engine.context.KeyringController.exportSeedPhrase(passwordToUse);
+        // Skip validation in vault corruption recovery scenarios where vault is corrupted
+        if (!skipValidation) {
+          await Engine.context.KeyringController.exportSeedPhrase(
+            passwordToUse,
+          );
+        }
         // storePassword handles all storage flag management internally
         await this.storePassword(passwordToUse, authType);
 

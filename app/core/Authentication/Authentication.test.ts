@@ -3925,6 +3925,31 @@ describe('Authentication', () => {
 
       alertSpy.mockRestore();
     });
+
+    it('skips password validation when skipValidation is true', async () => {
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+      const exportSeedPhraseSpy = jest.spyOn(
+        Engine.context.KeyringController,
+        'exportSeedPhrase',
+      );
+
+      await Authentication.updateAuthPreference(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+        mockPassword,
+        true, // skipValidation = true
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(exportSeedPhraseSpy).not.toHaveBeenCalled();
+      expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
+        mockPassword,
+        SecureKeychain.TYPES.BIOMETRICS,
+      );
+      expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
   });
   describe('checkAndShowSeedlessPasswordOutdatedModal', () => {
     let Engine: typeof import('../Engine').default;
