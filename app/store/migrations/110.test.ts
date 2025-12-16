@@ -104,12 +104,13 @@ describe(`migration #${migrationVersion}`, () => {
       analyticsId,
       { emitEvent: false },
     );
-    // Legacy keys were cleaned up
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METAMETRICS_ID,
-    );
+    // MIXPANEL_METAMETRICS_ID is deleted (already deprecated)
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
       MIXPANEL_METAMETRICS_ID,
+    );
+    // METAMETRICS_ID is kept (MetaMetrics still uses it)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
+      METAMETRICS_ID,
     );
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
@@ -184,7 +185,7 @@ describe(`migration #${migrationVersion}`, () => {
     );
   });
 
-  it('uses MIXPANEL_METAMETRICS_ID as fallback when METAMETRICS_ID is null', async () => {
+  it('uses MIXPANEL_METAMETRICS_ID as fallback when METAMETRICS_ID is null and deletes it', async () => {
     const state = createValidState();
     const analyticsId = createValidUUIDv4();
     mockedEnsureValidState.mockReturnValue(true);
@@ -203,10 +204,15 @@ describe(`migration #${migrationVersion}`, () => {
 
     await migrate(state);
 
+    // Analytics ID was migrated from MIXPANEL_METAMETRICS_ID
     expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
       ANALYTICS_ID,
       analyticsId,
       { emitEvent: false },
+    );
+    // MIXPANEL_METAMETRICS_ID is deleted after migration
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      MIXPANEL_METAMETRICS_ID,
     );
   });
 
@@ -297,7 +303,7 @@ describe(`migration #${migrationVersion}`, () => {
     ).toBeUndefined();
   });
 
-  it('cleans up legacy storage keys after migration', async () => {
+  it('deletes MIXPANEL_METAMETRICS_ID but keeps METAMETRICS_ID after migration', async () => {
     const state = createValidState();
     const analyticsId = createValidUUIDv4();
     mockedEnsureValidState.mockReturnValue(true);
@@ -308,44 +314,41 @@ describe(`migration #${migrationVersion}`, () => {
       if (key === METRICS_OPT_IN) {
         return Promise.resolve(AGREED);
       }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null);
+      }
       return Promise.resolve(null);
     });
 
-    await migrate(state);
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
 
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METAMETRICS_ID,
-    );
+    // MIXPANEL_METAMETRICS_ID is deleted (already deprecated)
     expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
       MIXPANEL_METAMETRICS_ID,
     );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+    // METAMETRICS_ID is kept (MetaMetrics still uses it)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
+      METAMETRICS_ID,
+    );
+    // METRICS_OPT_IN is kept (backward compatibility)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
       METRICS_OPT_IN,
     );
-  });
-
-  it('continues migration even when cleanup fails', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
-    mockedStorageWrapper.removeItem.mockRejectedValue(
-      new Error('Cleanup failed'),
+    // Analytics ID was migrated to new key
+    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      analyticsId,
+      { emitEvent: false },
     );
-
-    const migratedState = await migrate(state);
-
-    // Migration completed successfully despite cleanup failure
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    // Opt-in was migrated to AnalyticsController state
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: true,
+    });
   });
 });

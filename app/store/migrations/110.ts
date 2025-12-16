@@ -26,11 +26,14 @@ const isValidUUIDv4 = (id: string | null): id is string => {
  * Migration 110: Migrate legacy analytics storage values
  *
  * This migration:
- * - Reads legacy storage values (METAMETRICS_ID, METRICS_OPT_IN)
+ * - Reads legacy storage values (METAMETRICS_ID, MIXPANEL_METAMETRICS_ID, METRICS_OPT_IN)
  * - Migrates analytics ID to new MMKV key (ANALYTICS_ID) - not stored in state to prevent corruption
  * - Migrates opt-in preference to AnalyticsController state (optedIn)
  * - Validates UUIDv4 format for analytics ID
- * - Cleans up legacy storage keys after successful migration
+ * - Deletes MIXPANEL_METAMETRICS_ID (already deprecated, MetaMetrics no longer uses it)
+ * - Keeps METAMETRICS_ID intact (MetaMetrics still relies on it)
+ * - Keeps METRICS_OPT_IN intact (may still be used for backward compatibility)
+ * - METAMETRICS_ID will be cleaned up in a future migration after MetaMetrics is fully deprecated
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, 110)) {
@@ -90,13 +93,22 @@ const migration = async (state: unknown): Promise<unknown> => {
       }
     }
 
-    // Clean up legacy storage keys after successful migration
-    // Use Promise.allSettled to ensure all cleanup attempts complete even if some fail
-    await Promise.allSettled([
-      StorageWrapper.removeItem(METAMETRICS_ID),
-      StorageWrapper.removeItem(MIXPANEL_METAMETRICS_ID),
-      StorageWrapper.removeItem(METRICS_OPT_IN),
-    ]);
+    // Delete MIXPANEL_METAMETRICS_ID - it's already deprecated and MetaMetrics no longer uses it
+    // (MetaMetrics migrates it to METAMETRICS_ID when it reads it, but we've already migrated to ANALYTICS_ID)
+    try {
+      await StorageWrapper.removeItem(MIXPANEL_METAMETRICS_ID);
+    } catch (error) {
+      // Non-critical - log but don't fail migration
+      captureException(
+        new Error(
+          `Migration 110: Failed to delete MIXPANEL_METAMETRICS_ID: ${error}`,
+        ),
+      );
+    }
+
+    // NOTE: METAMETRICS_ID is kept intact because MetaMetrics still relies on it.
+    // METRICS_OPT_IN is also kept for backward compatibility.
+    // These will be cleaned up in a future migration after MetaMetrics is fully deprecated.
   } catch (error) {
     // Migration failures should not break the app
     // Log error but continue - defaults will be used

@@ -1,6 +1,7 @@
-import type {
-  AnalyticsEventProperties,
-  AnalyticsUserTraits,
+import {
+  type AnalyticsEventProperties,
+  type AnalyticsUserTraits,
+  analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
 import Engine from '../../core/Engine/Engine';
 import { whenEngineReady } from '../../core/Analytics/whenEngineReady';
@@ -109,8 +110,15 @@ const getAnalyticsId = async (): Promise<string> =>
  */
 const isEnabled = (): boolean => {
   try {
-    const enabled = selectAnalyticsEnabled(store.getState());
-    return enabled ?? false;
+    const reduxState = store.getState();
+    const enabled = selectAnalyticsEnabled(reduxState);
+    // Also check Engine state directly as fallback (in case Redux hasn't synced yet)
+    const engineState = Engine.state?.AnalyticsController;
+    const engineEnabled =
+      engineState && analyticsControllerSelectors.selectEnabled(engineState);
+
+    // Use Engine state as fallback if Redux state is not available
+    return enabled ?? engineEnabled ?? false;
   } catch (error) {
     Logger.log(
       'Analytics: Failed to check if analytics is enabled - returning false',
