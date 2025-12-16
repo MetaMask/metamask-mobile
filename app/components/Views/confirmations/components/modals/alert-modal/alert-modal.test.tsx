@@ -154,6 +154,18 @@ describe('AlertModal', () => {
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
 
+  it('does not render Close button for non-danger alerts', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertKey: 'alert1', // Warning severity
+    });
+    const { queryByTestId, queryByText } = render(<AlertModal />);
+
+    expect(queryByTestId('alert-modal-close-button')).toBeNull();
+    expect(queryByText('Close')).toBeNull();
+    expect(queryByText('Got it')).toBeOnTheScreen();
+  });
+
   it('renders Acknowledge and Close buttons for Danger severity alerts', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
