@@ -153,12 +153,6 @@ jest.mock('../../../../../constants/popular-networks', () => ({
   POPULAR_NETWORK_CHAIN_IDS: new Set(['0x1', '0xe708']),
 }));
 
-jest.mock('./CustomNetworkNativeImgMapping', () => ({
-  CustomNetworkNativeImgMapping: {
-    '0x89': { uri: 'polygon-native.png' },
-  },
-}));
-
 // Mock useSelector to return controlled data
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

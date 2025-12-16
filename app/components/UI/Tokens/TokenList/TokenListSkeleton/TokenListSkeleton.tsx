@@ -1,8 +1,27 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTheme } from '../../../../../util/theme';
-import createStyles from '../../styles';
+import { Colors } from '../../../../../util/theme/models';
+
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    wrapperSkeleton: {
+      backgroundColor: colors.background.default,
+    },
+    skeletonItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    skeletonTextContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    skeletonValueContainer: {
+      alignItems: 'flex-end',
+    },
+  });
 
 const TokenListSkeleton = () => {
   const { colors } = useTheme();
