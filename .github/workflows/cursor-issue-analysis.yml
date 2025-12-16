@@ -81,7 +81,7 @@ jobs:
           ISSUE_CONTENT=$(printf '%s' "$ISSUE_CONTENT_B64" | base64 -d)
 
           # Load prompt template
-          PROMPT=$(cat .github/cursorPrompts/issue-analysis.md)
+          PROMPT=$(cat .github/cursor/prompts/issue-analysis.md)
 
           # Build full prompt - using printf %s for explicit safety
           # This ensures ISSUE_CONTENT is treated as literal data, not shell code
