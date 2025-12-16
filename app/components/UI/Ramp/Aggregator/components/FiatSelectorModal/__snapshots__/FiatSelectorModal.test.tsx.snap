@@ -433,32 +433,36 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -476,13 +480,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 Select Region Currency
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1371,32 +1369,36 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -1414,13 +1416,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 Select Region Currency
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -2309,32 +2305,36 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -2352,13 +2352,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 Select Region Currency
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -3247,32 +3241,36 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -3290,13 +3288,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 Select Region Currency
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >

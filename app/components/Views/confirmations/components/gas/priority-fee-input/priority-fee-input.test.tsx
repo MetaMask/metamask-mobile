@@ -43,7 +43,7 @@ describe('PriorityFeeInput', () => {
       },
     );
 
-    expect(getByText('Priority Fee')).toBeOnTheScreen();
+    expect(getByText('Priority fee')).toBeOnTheScreen();
     expect(getByTestId('priority-fee-input')).toBeOnTheScreen();
     expect(getByTestId('priority-fee-input')).toHaveProp(
       'value',

@@ -138,6 +138,7 @@ mockUseMusdConversionTokens.mockReturnValue({
   isConversionToken: jest.fn().mockReturnValue(false),
   tokenFilter: jest.fn(),
   isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+  getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
   tokens: [],
 });
 
@@ -495,6 +496,7 @@ describe('StakeButton', () => {
         isConversionToken: jest.fn().mockReturnValue(false),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
     });
@@ -514,6 +516,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -546,6 +549,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -589,6 +593,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -627,6 +632,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
