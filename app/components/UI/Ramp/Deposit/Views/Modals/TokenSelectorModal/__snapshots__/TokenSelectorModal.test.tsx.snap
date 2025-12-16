@@ -440,7 +440,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1394,7 +1394,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2548,7 +2548,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
