@@ -353,7 +353,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const currentPrice = parseFloat(currentLivePrice[asset]?.price);
 
-  // // Dynamically calculate liquidation price based on tempLeverage
+  // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
   const entryPrice = useMemo(
     () =>
@@ -362,7 +362,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         : currentPrice,
     [orderType, limitPrice, currentPrice],
   );
-  // const entryPrice = 0;
 
   // Always use tempLeverage for precise API calls (debounced)
   const { liquidationPrice: apiLiquidationPrice, isCalculating } =
