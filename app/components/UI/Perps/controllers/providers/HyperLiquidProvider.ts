@@ -15,6 +15,7 @@ import {
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
+  TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDH_CONFIG,
@@ -635,8 +636,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
       },
     );
 
-    // Return all DEXs - market filtering is applied at subscription data layer
-    // webData3 automatically connects to ALL DEXs
+    // Testnet-specific filtering: Limit DEXs to avoid subscription overload
+    // On testnet, there are many HIP-3 DEXs (test deployments) that cause instability
+    if (this.clientService.isTestnetMode()) {
+      const { ENABLED_DEXS, AUTO_DISCOVER_ALL } = TESTNET_HIP3_CONFIG;
+
+      if (!AUTO_DISCOVER_ALL) {
+        if (ENABLED_DEXS.length === 0) {
+          // Main DEX only - no HIP-3 DEXs on testnet
+          DevLogger.log(
+            'HyperLiquidProvider: Testnet - using main DEX only (HIP-3 DEXs filtered)',
+            {
+              availableHip3Dexs: availableHip3Dexs.length,
+              reason: 'TESTNET_HIP3_CONFIG.ENABLED_DEXS is empty',
+            },
+          );
+          this.cachedValidatedDexs = [null];
+          return this.cachedValidatedDexs;
+        }
+
+        // Filter to specific allowed DEXs on testnet
+        const filteredDexs = availableHip3Dexs.filter((dex) =>
+          ENABLED_DEXS.includes(dex),
+        );
+        DevLogger.log(
+          'HyperLiquidProvider: Testnet - filtered to allowed DEXs',
+          {
+            allowedDexs: ENABLED_DEXS,
+            filteredDexs,
+            availableHip3Dexs: availableHip3Dexs.length,
+          },
+        );
+        this.cachedValidatedDexs = [null, ...filteredDexs];
+        return this.cachedValidatedDexs;
+      }
+
+      // AUTO_DISCOVER_ALL is true - proceed with all DEXs (not recommended for testnet)
+      DevLogger.log(
+        'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
+        { totalDexCount: availableHip3Dexs.length + 1 },
+      );
+    }
+
+    // Mainnet (or testnet with AUTO_DISCOVER_ALL): Return all DEXs
+    // Market filtering is applied at subscription data layer
     DevLogger.log(
       'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
       {
