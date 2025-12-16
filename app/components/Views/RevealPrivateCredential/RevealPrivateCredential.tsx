@@ -42,6 +42,7 @@ import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { passwordRequirementsMet } from '../../../util/password';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
@@ -161,29 +162,26 @@ const RevealPrivateCredential = ({
       setIsModalVisible(false);
       const privCredentialName = credentialName || route?.params.credentialName;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
-      // This will trigger after the user hold-pressed the button, we want to trace the actual
-      // keyring operation of extracting the credential
       const traceName = isPrivateKeyReveal
         ? TraceName.RevealPrivateKey
         : TraceName.RevealSrp;
-      trace({
-        name: traceName,
-        op: TraceOperation.RevealPrivateCredential,
-        tags: getTraceTags(store.getState()),
-      });
+
+      let passwordToUse = pswd;
 
       try {
-        let passwordToUse = pswd;
-
         if (!passwordToUse) {
           const { password: verifiedPassword } = await reauthenticate();
-
-          if (!verifiedPassword) {
-            // Let user stay in the “enter password” flow; nothing to catch.
-            return;
-          }
           passwordToUse = verifiedPassword;
         }
+
+        // This will trigger after the user has been authenticated, we want to trace the actual
+        // keyring operation of extracting the credential.
+        trace({
+          name: traceName,
+          op: TraceOperation.RevealPrivateCredential,
+          tags: getTraceTags(store.getState()),
+        });
+
         let privateCredential;
         if (!isPrivateKeyReveal) {
           privateCredential = await revealSRP(passwordToUse, keyringId);
@@ -206,6 +204,10 @@ const RevealPrivateCredential = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
+        // we should not show the error message if the error is because biometric is not enabled
+        if (e.message.includes(ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED)) {
+          return;
+        }
         let msg = strings('reveal_credential.warning_incorrect_password');
         if (selectedAddress && isHardwareAccount(selectedAddress)) {
           msg = strings('reveal_credential.hardware_error');

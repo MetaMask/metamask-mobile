@@ -80,6 +80,7 @@ import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { strings } from '../../../locales/i18n';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { ReauthenticateErrorType } from './types';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1425,12 +1426,10 @@ class AuthenticationService {
    *
    * @param password - Optional password to verify. When omitted, the method
    * attempts to use the stored biometric/remember-me password instead.
-   * @returns The verified password string, or `undefined` if verification fails before
-   * a password can be determined.
+   * @returns The verified password string. Throws an error if verification fails
+   * before a password can be determined.
    */
-  reauthenticate = async (
-    password?: string,
-  ): Promise<{ password: string | undefined }> => {
+  reauthenticate = async (password?: string): Promise<{ password: string }> => {
     let passwordToVerify = password || '';
     const { KeyringController } = Engine.context;
 
@@ -1445,9 +1444,12 @@ class AuthenticationService {
       }
 
       // If there is no biometric choice configured or no stored credentials,
-      // return gracefully instead of attempting to verify an empty password.
+      // throw a specific error instead of attempting to verify an empty password.
       if (!passwordToVerify) {
-        return { password: undefined };
+        const biometricNotEnabledErrorMessage = 'Biometric is not enabled';
+        throw new Error(
+          `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: ${biometricNotEnabledErrorMessage}`,
+        );
       }
     }
 

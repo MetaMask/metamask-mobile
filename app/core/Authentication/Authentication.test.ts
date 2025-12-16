@@ -53,6 +53,7 @@ import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { ReauthenticateErrorType } from './types';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -3718,7 +3719,7 @@ describe('Authentication', () => {
       expect(result.password).toBe('test-password');
     });
 
-    it('returns undefined password and skips verification when no biometric credentials are available', async () => {
+    it('throws PASSWORD_REQUIRED error when no biometric credentials are available', async () => {
       const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
       const getItemSpy = jest
         .spyOn(StorageWrapper, 'getItem')
@@ -3727,12 +3728,13 @@ describe('Authentication', () => {
         .spyOn(Authentication, 'getPassword')
         .mockResolvedValueOnce(null);
 
-      const result = await Authentication.reauthenticate();
+      await expect(Authentication.reauthenticate()).rejects.toThrow(
+        ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+      );
 
       expect(getItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE);
       expect(getPasswordSpy).not.toHaveBeenCalled();
       expect(verifyPasswordSpy).not.toHaveBeenCalled();
-      expect(result.password).toBeUndefined();
     });
 
     it('uses stored biometric password when no password is provided', async () => {
