@@ -14,6 +14,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
+import { useMusdMaxConversion } from '../../hooks/useMusdMaxConversion';
 import {
   selectMusdConversionStatuses,
   createTokenChainKey,
@@ -28,7 +29,6 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
 } from '../../constants/musd';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
-import MusdMaxConvertSheet from '../../components/Musd/MusdMaxConvertSheet';
 import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
 
@@ -57,6 +57,11 @@ const MusdQuickConvertView = () => {
   const { colors } = theme;
   const navigation = useNavigation();
   const { initiateConversion } = useMusdConversion();
+  const { createMaxConversion, isLoading: isMaxConversionLoading } =
+    useMusdMaxConversion();
+
+  // Track which token is currently loading for max conversion
+  const [loadingTokenKey, setLoadingTokenKey] = useState<string | null>(null);
 
   // Feature flags
   const isMusdFlowEnabled = useSelector(selectIsMusdConversionFlowEnabledFlag);
@@ -67,10 +72,6 @@ const MusdQuickConvertView = () => {
 
   // Get conversion statuses from TransactionController
   const conversionStatuses = useSelector(selectMusdConversionStatuses);
-
-  // State for the Max convert bottom sheet
-  const [selectedToken, setSelectedToken] = useState<AssetType | null>(null);
-  const [isMaxSheetVisible, setIsMaxSheetVisible] = useState(false);
 
   // TODO: Circle back to ensure the header looks like designs.
   // Set up navigation header
@@ -86,15 +87,24 @@ const MusdQuickConvertView = () => {
     }, [navigation, colors]),
   );
 
-  // Handle Max button press - open bottom sheet
-  const handleMaxPress = useCallback((token: AssetType) => {
-    if (!token.rawBalance) {
-      // Can't proceed without raw balance
-      return;
-    }
-    setSelectedToken(token);
-    setIsMaxSheetVisible(true);
-  }, []);
+  // Handle Max button press - navigate to max conversion confirmation
+  const handleMaxPress = useCallback(
+    async (token: AssetType) => {
+      if (!token.rawBalance) {
+        return;
+      }
+      const tokenKey = createTokenChainKey(token.address, token.chainId ?? '');
+      setLoadingTokenKey(tokenKey);
+      try {
+        await createMaxConversion(token);
+      } finally {
+        // Clear loading state after navigation (transaction created successfully)
+        // or if an error occurred
+        setLoadingTokenKey(null);
+      }
+    },
+    [createMaxConversion],
+  );
 
   // Handle Edit button press - navigate to existing confirmation screen
   const handleEditPress = useCallback(
@@ -112,20 +122,21 @@ const MusdQuickConvertView = () => {
     [initiateConversion],
   );
 
-  // Handle Max sheet close
-  const handleMaxSheetClose = useCallback(() => {
-    setIsMaxSheetVisible(false);
-    setSelectedToken(null);
-  }, []);
-
   // Get status for a token
   const getTokenStatus = useCallback(
     (token: AssetType) => {
       const key = createTokenChainKey(token.address, token.chainId ?? '');
+
+      // If this token is currently being loaded (transaction being created),
+      // show pending state to give immediate feedback
+      if (isMaxConversionLoading && loadingTokenKey === key) {
+        return 'pending';
+      }
+
       const statusInfo = conversionStatuses[key] ?? null;
       return deriveConversionUIStatus(statusInfo);
     },
-    [conversionStatuses],
+    [conversionStatuses, isMaxConversionLoading, loadingTokenKey],
   );
 
   // Filter tokens to only show those with balance > 0
@@ -225,15 +236,6 @@ const MusdQuickConvertView = () => {
         showsVerticalScrollIndicator={false}
         testID={MusdQuickConvertViewTestIds.TOKEN_LIST}
       />
-
-      {/* Max Convert Bottom Sheet */}
-      {/* TODO: Test thoroughly on Android. Android has history of issues with bottom sheets. */}
-      {isMaxSheetVisible && selectedToken && (
-        <MusdMaxConvertSheet
-          token={selectedToken}
-          onClose={handleMaxSheetClose}
-        />
-      )}
     </SafeAreaView>
   );
 };

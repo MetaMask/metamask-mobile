@@ -135,6 +135,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   }, [approvalRequest]);
 
   // Show spinner if there is no approvalRequest
+  // TODO: Figure out how to show loading state for bottom sheet confirmations.
   if (!approvalRequest) {
     return <Loader />;
   }
