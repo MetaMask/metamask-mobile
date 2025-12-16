@@ -65,6 +65,7 @@ const getStories = () => {
     "./app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx": require("../app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx"),
     "./app/component-library/components-temp/Tabs/Tabs.stories.tsx": require("../app/component-library/components-temp/Tabs/Tabs.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
+    "./app/component-library/components-temp/TitleLeft/TitleLeft.stories.tsx": require("../app/component-library/components-temp/TitleLeft/TitleLeft.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/Accordion.stories.tsx": require("../app/component-library/components/Accordions/Accordion/Accordion.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx": require("../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/Avatar.stories.tsx": require("../app/component-library/components/Avatars/Avatar/Avatar.stories.tsx"),
