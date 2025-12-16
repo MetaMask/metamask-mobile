@@ -8,26 +8,22 @@ import {
   Icon,
   IconName,
   IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../app/util/theme';
-import { StyleProp, ViewStyle } from 'react-native';
 
 interface BasicFunctionalityEmptyStateProps {
   title?: string;
   iconName?: IconName;
-  style?: StyleProp<ViewStyle>;
 }
 
 const BasicFunctionalityEmptyState = ({
   title,
   iconName,
-  style,
 }: BasicFunctionalityEmptyStateProps) => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
 
   const handleEnableBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -39,14 +35,13 @@ const BasicFunctionalityEmptyState = ({
     <Box
       testID="basic-functionality-empty-state"
       twClassName="flex-col justify-center items-center gap-3 flex-1"
-      style={style}
     >
       <Box twClassName="flex-col w-[337px] items-stretch">
         {iconName && (
           <Box twClassName="items-center mb-4">
             <Icon
               name={iconName}
-              color={IconColor.muted}
+              color={IconColor.IconMuted}
               size={IconSize.Xl}
             />
           </Box>
