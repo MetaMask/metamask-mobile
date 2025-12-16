@@ -647,7 +647,8 @@ class ResetPassword extends PureComponent {
   reauthenticate = async (password) => {
     this.setState({ ready: false });
     try {
-      const verifiedPassword = await Authentication.reauthenticate(password);
+      const { password: verifiedPassword } =
+        await Authentication.reauthenticate(password);
       this.setState({
         password: null,
         originalPassword: verifiedPassword,
