@@ -43,7 +43,7 @@ export const selectLocalOverrides = createSelector(
   ) => remoteFeatureFlagControllerState?.localOverrides ?? {},
 );
 
-export const selectrawRemoteFeatureFlags = createSelector(
+export const selectRawRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
   (
     remoteFeatureFlagControllerState:

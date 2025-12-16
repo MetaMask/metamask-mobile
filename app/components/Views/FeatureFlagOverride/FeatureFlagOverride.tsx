@@ -31,7 +31,7 @@ import {
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import {
-  selectrawRemoteFeatureFlags,
+  selectRawRemoteFeatureFlags,
   selectLocalOverrides,
 } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
@@ -45,8 +45,13 @@ export interface MinimumVersionFlagValue {
   enabled: boolean;
   minimumVersion: string;
 }
+interface AbTestType {
+  name: string;
+  value: unknown;
+}
+
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
-  const rawRemoteFeatureFlags = useSelector(selectrawRemoteFeatureFlags);
+  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
   const override = useSelector(selectLocalOverrides);
   const tw = useTailwind();
   const theme = useTheme();
@@ -131,16 +136,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case FeatureFlagType.FeatureFlagAbTest: {
-        interface AbTestType {
-          name: string;
-          value: unknown;
-        }
-        const abTestOptions: AbTestType[] = Array.isArray(
-          rawRemoteFeatureFlags[flag.key],
-        )
-          ? (rawRemoteFeatureFlags[flag.key] as AbTestType[])
-          : [];
-        const flagValue = flag.value as AbTestType;
+        const abTestOptions = rawRemoteFeatureFlags[
+          flag.key
+        ] as unknown as AbTestType[];
 
         const handleSelectOption = (name: string) => {
           const selectedOption = abTestOptions.find(
@@ -158,7 +156,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                 value: option.name,
               }))}
               label={flag.key}
-              defaultValue={flagValue.name}
+              defaultValue={(localValue as AbTestType).name}
               onValueChange={handleSelectOption}
               selectedValue={(localValue as AbTestType).name}
             />
