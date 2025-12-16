@@ -440,7 +440,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1581,7 +1581,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2722,7 +2722,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
