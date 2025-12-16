@@ -25,6 +25,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
+  FeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
@@ -77,7 +78,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 
   const renderValueEditor = () => {
     switch (flag.type) {
-      case 'boolean with minimumVersion':
+      case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion:
         return (
           <Box twClassName="items-end">
             <Switch
@@ -113,7 +114,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             </Text>
           </Box>
         );
-      case 'boolean':
+      case FeatureFlagType.FeatureFlagBoolean:
         return (
           <Switch
             value={localValue as boolean}
@@ -129,7 +130,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ios_backgroundColor={theme.colors.border.muted}
           />
         );
-      case 'abTest': {
+      case FeatureFlagType.FeatureFlagAbTest: {
         interface AbTestType {
           name: string;
           value: unknown;
@@ -164,8 +165,8 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           </Box>
         );
       }
-      case 'string':
-      case 'number':
+      case FeatureFlagType.FeatureFlagString:
+      case FeatureFlagType.FeatureFlagNumber:
         return (
           <Box twClassName="flex-1 ml-2">
             <TextInput
@@ -191,7 +192,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           </Box>
         );
 
-      case 'object':
+      case FeatureFlagType.FeatureFlagObject:
         return (
           <View>
             {Object.keys(localValue as object).map((itemKey: string) => (
@@ -204,7 +205,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ))}
           </View>
         );
-      case 'array':
+      case FeatureFlagType.FeatureFlagArray:
         return (
           <Button
             variant={ButtonVariant.Secondary}
@@ -255,10 +256,6 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           >
             <Text variant={TextVariant.BodyMd}>{flag.key}</Text>
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            Type: {flag.type}
-            {flag.description && ` • ${flag.description}`}
-          </Text>
           {flag.isOverridden && flag.originalValue !== undefined && (
             <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
               Original: {JSON.stringify(flag.originalValue)}

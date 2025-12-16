@@ -14,7 +14,6 @@ import {
 } from '../selectors/featureFlagController';
 import {
   FeatureFlagInfo,
-  getFeatureFlagDescription,
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
@@ -46,7 +45,8 @@ export interface ExtendedRemoteFeatureFlagController
 // Helper to safely access the RemoteFeatureFlagController with proper typing
 const getRemoteFeatureFlagController = ():
   | ExtendedRemoteFeatureFlagController
-  | undefined => Engine.context?.RemoteFeatureFlagController as
+  | undefined =>
+  Engine.context?.RemoteFeatureFlagController as
     | ExtendedRemoteFeatureFlagController
     | undefined;
 
@@ -171,7 +171,6 @@ export const FeatureFlagOverrideProvider: React.FC<
         value: currentValue,
         originalValue,
         type: getFeatureFlagType(currentValue ?? originalValue),
-        description: getFeatureFlagDescription(key),
         isOverridden,
       };
       allFlags[key] = flagValue;
