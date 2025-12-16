@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-
+import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Button, {
@@ -133,9 +133,9 @@ export const AmountKeyboard = ({
           : ADDITIONAL_KAYBOARD_BUTTONS
       }
       additionalRow={
-        amount.length > 0 || isNFT ? (
+        <View style={styles.additionalRowContainer}>
           <Button
-            disabled={Boolean(amountError) || !amount}
+            disabled={Boolean(amountError) || !amount || amount.trim() === '0'}
             label={
               amountError ??
               (isNFT ? strings('send.next') : strings('send.continue'))
@@ -146,7 +146,7 @@ export const AmountKeyboard = ({
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
           />
-        ) : undefined
+        </View>
       }
       enableEmptyValueString
       hideDoneButton
