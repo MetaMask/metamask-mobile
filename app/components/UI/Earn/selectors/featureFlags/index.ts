@@ -83,6 +83,28 @@ export const selectIsMusdCtaEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for the mUSD Quick Convert feature flag.
+ * This flag enables the Quick Convert Token List screen where users can
+ * quickly convert their existing tokens to mUSD via Max or Edit flows.
+ *
+ * IMPORTANT: Both this flag AND selectIsMusdConversionFlowEnabledFlag must be
+ * enabled to show the Quick Convert feature. Use selectIsMusdQuickConvertFullyEnabled
+ * for convenience.
+ */
+// TODO: Reminder: create LaunchDarkly flag for quick convert feature.
+export const selectMusdQuickConvertEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MUSD_QUICK_CONVERT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdQuickConvertEnabled as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
  * Returns a mapping of chain IDs to arrays of token addresses that users can pay with to convert to mUSD.
  *
