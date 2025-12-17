@@ -63,7 +63,6 @@ const useHeaderWithTitleLeftScrollable = (
   return {
     onScroll,
     scrollY: scrollYValue,
-    headerHeight: expandedHeight,
     expandedHeight,
     setExpandedHeight,
     scrollTriggerPosition: effectiveScrollTriggerPosition,

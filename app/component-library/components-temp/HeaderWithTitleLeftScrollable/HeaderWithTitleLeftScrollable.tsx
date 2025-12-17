@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useMemo, useState, useCallback } from 'react';
-import { StyleSheet, View, LayoutChangeEvent } from 'react-native';
+import { View, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -12,32 +12,22 @@ import Animated, {
 
 // External dependencies.
 import {
+  Box,
   Text,
   TextVariant,
   FontWeight,
   IconName,
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import HeaderBase from '../../components/HeaderBase';
 import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftScrollableProps } from './HeaderWithTitleLeftScrollable.types';
+
 const DEFAULT_EXPANDED_HEIGHT = 140;
 const DEFAULT_COLLAPSED_HEIGHT = 48;
-
-const styles = StyleSheet.create({
-  absoluteContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  overflowHidden: {
-    overflow: 'hidden',
-  },
-});
 
 /**
  * HeaderWithTitleLeftScrollable is a collapsing header component that transitions
@@ -89,6 +79,8 @@ const HeaderWithTitleLeftScrollable: React.FC<
   testID,
   ...headerBaseProps
 }) => {
+  const tw = useTailwind();
+
   // Measure actual content height for dynamic sizing
   const [measuredHeight, setMeasuredHeight] = useState(DEFAULT_EXPANDED_HEIGHT);
   const animatedMeasuredHeight = useSharedValue(DEFAULT_EXPANDED_HEIGHT);
@@ -98,7 +90,7 @@ const HeaderWithTitleLeftScrollable: React.FC<
       const { height } = e.nativeEvent.layout;
       if (height > 0 && height !== measuredHeight) {
         setMeasuredHeight(height);
-        animatedMeasuredHeight.value = withTiming(height, { duration: 0 });
+        animatedMeasuredHeight.value = height;
         onExpandedHeightChange?.(height);
       }
     },
@@ -143,9 +135,10 @@ const HeaderWithTitleLeftScrollable: React.FC<
 
   // Derived value: triggers timed animation when large content is fully hidden
   const compactTitleProgress = useDerivedValue(() => {
-    const largeContentHeight =
-      animatedMeasuredHeight.value - DEFAULT_COLLAPSED_HEIGHT;
-    const isFullyHidden = scrollY.value >= largeContentHeight;
+    // Use effectiveScrollTriggerPosition to sync with header collapse animation
+    const triggerPosition =
+      effectiveScrollTriggerPosition - DEFAULT_COLLAPSED_HEIGHT;
+    const isFullyHidden = scrollY.value >= triggerPosition;
 
     // Animate to 1 when hidden, 0 when visible (with timing)
     return withTiming(isFullyHidden ? 1 : 0, { duration: 150 });
@@ -190,7 +183,10 @@ const HeaderWithTitleLeftScrollable: React.FC<
 
   return (
     <Animated.View
-      style={[styles.absoluteContainer, headerAnimatedStyle]}
+      style={[
+        tw.style('absolute top-0 left-0 right-0 z-10'),
+        headerAnimatedStyle,
+      ]}
       testID={testID}
     >
       {/* Header content - measured for dynamic height */}
@@ -199,7 +195,7 @@ const HeaderWithTitleLeftScrollable: React.FC<
         <HeaderBase
           startButtonIconProps={resolvedStartButtonIconProps}
           twClassName={
-            twClassName ? `bg-default px-2 ${twClassName}` : 'bg-default px-2'
+            twClassName ? `${twClassName} bg-default px-2` : 'bg-default px-2'
           }
           {...headerBaseProps}
         >
@@ -216,11 +212,11 @@ const HeaderWithTitleLeftScrollable: React.FC<
         </HeaderBase>
 
         {/* Large header content - clips as it moves up behind header */}
-        <View style={styles.overflowHidden}>
+        <Box twClassName="overflow-hidden">
           <Animated.View style={largeContentAnimatedStyle}>
             {renderLargeContent()}
           </Animated.View>
-        </View>
+        </Box>
       </View>
     </Animated.View>
   );

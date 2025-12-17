@@ -89,11 +89,8 @@ export interface UseHeaderWithTitleLeftScrollableReturn {
    */
   scrollY: SharedValue<number>;
   /**
-   * Current header height (animated).
-   */
-  headerHeight: number;
-  /**
    * Expanded header height for initial padding.
+   * Use this for ScrollView's contentContainerStyle paddingTop.
    */
   expandedHeight: number;
   /**
