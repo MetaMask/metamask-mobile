@@ -87,10 +87,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
-  const { isConversionToken, isMusdSupportedOnChain } =
-    useMusdConversionTokens();
+  const { initiateConversion } = useMusdConversion();
+  const { isConversionToken, getMusdOutputChainId } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -224,33 +222,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
       const assetChainId = toHex(asset.chainId);
 
-      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
-
-      if (!isSupportedChain) {
-        throw new Error('Chain is not supported for mUSD conversion');
-      }
-
-      const config = {
-        outputChainId: assetChainId,
+      await initiateConversion({
+        outputChainId: getMusdOutputChainId(assetChainId),
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: assetChainId,
         },
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -265,14 +244,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset.address,
-    asset.chainId,
-    hasSeenConversionEducationScreen,
-    initiateConversion,
-    isMusdSupportedOnChain,
-    navigation,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion, getMusdOutputChainId]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {

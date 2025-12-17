@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -49,6 +50,9 @@ import { resetProviderToken as depositResetProviderToken } from '../../component
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import Logger from '../../util/Logger';
+import Routes from '../../constants/navigation/Routes';
+import { strings } from '../../../locales/i18n';
+import { IconName } from '../../component-library/components/Icons/Icon';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -118,6 +122,7 @@ jest.mock('../Engine', () => ({
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
       removeAccount: jest.fn(),
+      verifyPassword: jest.fn(),
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
@@ -143,9 +148,23 @@ jest.mock('../Engine/Engine', () => ({
   },
 }));
 
+const mockNavigate = jest.fn();
+const mockReset = jest.fn();
+
+const mockNavigation = {
+  reset: mockReset,
+  navigate: mockNavigate,
+};
+
 jest.mock('../NavigationService', () => ({
-  navigation: {
-    reset: jest.fn(),
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigation;
+    },
+    set navigation(value) {
+      // Mock setter - does nothing but prevents errors
+    },
   },
 }));
 
@@ -1549,7 +1568,7 @@ describe('Authentication', () => {
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(true);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
@@ -2480,6 +2499,24 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
+    it('returns false when seedless password is outdated', async () => {
+      // Arrange
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+
+      // Act
+      const result =
+        await Authentication.importAccountFromPrivateKey(mockPrivateKey);
+
+      // Assert
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(result).toBe(false);
+      expect(
+        Engine.context.KeyringController.importAccountWithStrategy,
+      ).not.toHaveBeenCalled();
+    });
+
     it('import account from private key without seedless flow', async () => {
       // Arrange
       const options = {
@@ -2916,7 +2953,7 @@ describe('Authentication', () => {
       // Mock Authentication methods
       jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
         .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
@@ -3516,6 +3553,215 @@ describe('Authentication', () => {
       expect(loggerSpy).toHaveBeenCalledWith(
         error,
         'Failed to reset existingUser state in Redux',
+      );
+    });
+  });
+
+  describe('checkAndShowSeedlessPasswordOutdatedModal', () => {
+    let Engine: typeof import('../Engine').default;
+    let mockIsOutdated: boolean = false;
+    let mockCheckIsSeedlessPasswordOutdated: jest.SpyInstance;
+    let mockLockApp: jest.SpyInstance;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn(() => Promise.resolve(mockIsOutdated)),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      mockCheckIsSeedlessPasswordOutdated = jest.spyOn(
+        Authentication,
+        'checkIsSeedlessPasswordOutdated',
+      );
+      mockLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+
+      mockNavigate.mockClear();
+      mockReset.mockClear();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns early when isSeedlessPasswordOutdated is false', async () => {
+      // Arrange
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(false);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
+      // Arrange
+      mockIsOutdated = false;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to modal when password is outdated', async () => {
+      // Arrange
+      mockIsOutdated = true;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
+          primaryButtonLabel: strings(
+            'login.seedless_password_outdated_modal_confirm',
+          ),
+          type: 'error',
+          icon: IconName.Danger,
+          isInteractable: false,
+          onPrimaryButtonPress: expect.any(Function),
+          closeOnPrimaryButtonPress: true,
+        },
+      });
+    });
+
+    it('calls lockApp when primary button is pressed', async () => {
+      // Arrange
+      mockIsOutdated = true;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalled();
+      const navigateCall = mockNavigate.mock.calls[0];
+      const modalParams = navigateCall[1];
+      const onPrimaryButtonPress = modalParams.params.onPrimaryButtonPress;
+
+      // Call the button press handler
+      await onPrimaryButtonPress();
+
+      // Assert lockApp was called
+      expect(mockLockApp).toHaveBeenCalledWith({ locked: true });
+    });
+  });
+
+  describe('reauthenticate', () => {
+    let Engine: typeof import('../Engine').default;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    it('verifies provided password and returns it', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+
+      const result = await Authentication.reauthenticate('test-password');
+
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('test-password');
+      expect(result.password).toBe('test-password');
+    });
+
+    it('uses stored biometric password when no password is provided', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      const getPasswordSpy = jest
+        .spyOn(Authentication, 'getPassword')
+        .mockResolvedValue({
+          password: 'stored-password',
+        } as unknown as Keychain.UserCredentials);
+
+      const result = await Authentication.reauthenticate();
+
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(BIOMETRY_CHOICE);
+      expect(getPasswordSpy).toHaveBeenCalled();
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('stored-password');
+      expect(result.password).toBe('stored-password');
+    });
+
+    it('propagates error when password verification fails', async () => {
+      const error = new Error('Invalid password');
+
+      jest
+        .spyOn(Engine.context.KeyringController, 'verifyPassword')
+        .mockRejectedValueOnce(error);
+
+      await expect(Authentication.reauthenticate('bad-password')).rejects.toBe(
+        error,
       );
     });
   });

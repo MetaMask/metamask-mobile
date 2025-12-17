@@ -1,4 +1,4 @@
-import { SafeChain } from '../components/UI/NetworkModal';
+import { SafeChain } from '../components/hooks/useSafeChains';
 import StorageWrapper from '../store/storage-wrapper';
 import Engine from '../core/Engine';
 import Logger from './Logger';

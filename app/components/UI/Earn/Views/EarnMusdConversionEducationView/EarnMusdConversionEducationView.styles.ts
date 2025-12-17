@@ -8,27 +8,31 @@ export const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background.default,
-      gap: 24,
+      backgroundColor: theme.brandColors.indigo100,
+    },
+    imageContainer: {
+      flex: 1,
+      minHeight: 100,
     },
     backgroundImage: {
       width: '100%',
-      height: 438,
-      resizeMode: 'cover',
+      height: '100%',
+      resizeMode: 'contain',
     },
     content: {
       paddingHorizontal: 16,
-      justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
+      paddingVertical: 24,
     },
     heading: {
-      marginBottom: 8,
+      marginBottom: 16,
       fontFamily: 'MMSans-Regular',
+      color: colors.accent04.dark,
+      fontWeight: 500,
     },
     bodyText: {
-      marginBottom: 32,
       textAlign: 'center',
+      color: colors.accent04.dark,
     },
     continueButton: {
       alignSelf: 'stretch',

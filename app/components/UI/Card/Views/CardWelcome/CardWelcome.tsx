@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import { Image, View } from 'react-native';
+import { Image, View, useWindowDimensions } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -28,7 +28,8 @@ const CardWelcome = () => {
   const { navigate } = useNavigation();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const dimensions = useWindowDimensions();
+  const styles = createStyles(theme, dimensions);
 
   useEffect(() => {
     trackEvent(
