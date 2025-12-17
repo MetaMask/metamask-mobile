@@ -19,7 +19,8 @@ exports[`TokenDetails should render correctly 1`] = `
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
-          "paddingVertical": 8,
+          "paddingBottom": 8,
+          "paddingTop": 8,
         }
       }
     >
@@ -66,11 +67,8 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#4459ff1a",
-              "borderRadius": 20,
               "flexDirection": "row",
-              "marginLeft": 8,
-              "paddingHorizontal": 8,
+              "gap": 4,
             }
           }
         >
@@ -78,7 +76,7 @@ exports[`TokenDetails should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#4459ff",
+                "color": "#121314",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -89,18 +87,18 @@ exports[`TokenDetails should render correctly 1`] = `
             0x6B175...71d0F
           </Text>
           <SvgMock
-            color="#4459ff"
             fill="currentColor"
-            height={16}
             name="Copy"
             style={
-              {
-                "height": 16,
-                "marginLeft": 4,
-                "width": 16,
-              }
+              [
+                {
+                  "color": "#121314",
+                  "height": 16,
+                  "width": 16,
+                },
+                undefined,
+              ]
             }
-            width={16}
           />
         </TouchableOpacity>
       </View>
@@ -237,7 +235,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Market Cap
+          Market cap
         </Text>
         <Text
           accessibilityRole="text"
@@ -275,7 +273,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Total Volume (24h)
+          Total volume (24h)
         </Text>
         <Text
           accessibilityRole="text"
@@ -313,7 +311,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Volume / Market Cap
+          Volume / market cap
         </Text>
         <Text
           accessibilityRole="text"

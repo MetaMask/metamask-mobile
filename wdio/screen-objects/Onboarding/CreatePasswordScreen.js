@@ -97,7 +97,7 @@ class CreatePasswordScreen {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
         await AppwrightGestures.hideKeyboard(this._device);
-        await AppwrightGestures.tap(this.iUnderstandCheckbox); 
+        await AppwrightGestures.tap(await this.iUnderstandCheckbox); 
     }
   }
 
@@ -105,7 +105,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      await AppwrightGestures.tap(this.submitButton); 
+      await AppwrightGestures.tap(await this.submitButton); 
     }
   }
 

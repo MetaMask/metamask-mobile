@@ -212,42 +212,6 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 
 ---
 
-## Local Development
-
-### Environment Variables
-
-```bash
-# Main feature toggle
-export MM_PERPS_ENABLED="true"
-
-# Service interruption banner
-export MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED="false"
-
-# GTM onboarding modal
-export MM_PERPS_GTM_MODAL_ENABLED="true"
-
-# Order Book feature
-export MM_PERPS_ORDER_BOOK_ENABLED="true"
-```
-
-### Testing Flag States
-
-**Test disabled state:**
-
-```bash
-export MM_PERPS_ORDER_BOOK_ENABLED="false"
-```
-
-**Test enabled state (when default is disabled):**
-
-```bash
-export MM_PERPS_MY_FEATURE_ENABLED="true"
-```
-
-**Override remote flag:** Set `isRemoteFeatureFlagOverrideActivated` in debug settings.
-
----
-
 ## Troubleshooting
 
 ### Flag Not Taking Effect
@@ -285,25 +249,3 @@ export MM_PERPS_MY_FEATURE_ENABLED="true"
 - [Perps A/B Testing Framework](./perps-ab-testing.md)
 - [Perps Connection Architecture](./perps-connection-architecture.md)
 - [Perps MetaMetrics Reference](./perps-metametrics-reference.md)
-
----
-
-## FAQ
-
-**Q: What happens if LaunchDarkly is down?**
-A: The selector falls back to the local environment variable value.
-
-**Q: How do I test a disabled flag?**
-A: Set the environment variable to `'false'` (e.g., `MM_PERPS_ORDER_BOOK_ENABLED="false"`).
-
-**Q: When should I use a feature flag vs A/B test?**
-A: Feature flags for on/off toggles; A/B tests for comparing multiple variants with analytics.
-
-**Q: How do I do a gradual rollout?**
-A: Use LaunchDarkly percentage rollout rules while keeping version gating.
-
-**Q: Can I have different versions for iOS and Android?**
-A: Yes, use LaunchDarkly targeting rules to segment by platform with different `minimumVersion` values.
-
-**Q: What's the difference between disabled by default and enabled by default?**
-A: Disabled by default (`=== 'true'`) requires explicit opt-in. Enabled by default (`!== 'false'`) shows the feature unless explicitly disabled. Use disabled by default for new/experimental features.

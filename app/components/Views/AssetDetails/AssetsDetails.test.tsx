@@ -198,11 +198,11 @@ describe('AssetDetails', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Token')).toBeDefined();
-    expect(getByText('Token Amount')).toBeDefined();
+    expect(getByText('Token amount')).toBeDefined();
     expect(getByText('Token contract address')).toBeDefined();
     expect(getByText('Token decimal')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
-    expect(getByText('Token Lists')).toBeDefined();
+    expect(getByText('Token lists')).toBeDefined();
   });
 
   it('copies address to clipboard and shows alert', async () => {
