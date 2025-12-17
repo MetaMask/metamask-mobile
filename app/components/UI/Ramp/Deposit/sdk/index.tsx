@@ -33,7 +33,7 @@ import {
   setFiatOrdersPaymentMethodDeposit,
 } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { DepositNavigationParams } from '../types';
 
@@ -73,6 +73,7 @@ export const DEPOSIT_ENVIRONMENT = environment;
 export const DepositSDKNoAuth = new NativeRampsSdk(
   {
     context,
+    locale: I18n.locale,
   },
   environment,
 );
@@ -151,6 +152,7 @@ export const DepositSDKProvider = ({
         {
           apiKey: providerApiKey,
           context,
+          locale: I18n.locale,
         },
         environment,
       );
