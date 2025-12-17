@@ -34,6 +34,7 @@ interface RewardItemProps {
   isLocked?: boolean;
   canPressToNavigateToInfo?: boolean;
   isEndOfSeasonReward?: boolean;
+  compact?: boolean;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
@@ -43,6 +44,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   canPressToNavigateToInfo = true,
   isLocked = true,
   isEndOfSeasonReward = false,
+  compact = false,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const timeRemaining = (reward?.claim?.data as PointsBoostRewardData)
@@ -257,7 +259,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       onPress={handleRewardItemPress}
     >
       <Box
-        twClassName={`flex-row items-center py-3 px-4 gap-4 ${
+        twClassName={`flex-row items-center ${compact ? 'py-2' : 'py-3 px-4'} gap-4 ${
           !isLast ? 'border-b border-muted' : ''
         }`}
       >

@@ -1,12 +1,7 @@
 import { strings } from '../../../../../../locales/i18n';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import PreviousSeasonSummaryTile from './PreviousSeasonSummaryTile';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -54,11 +49,7 @@ const PreviousSeasonReferralDetails = () => {
       loadingHeight={72}
     >
       <Box twClassName="flex-row gap-2 items-center">
-        <Text
-          twClassName="text-default"
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Bold}
-        >
+        <Text twClassName="text-default" variant={TextVariant.HeadingSm}>
           {totalReferees}
         </Text>
         <Text twClassName="text-alternative">
@@ -67,11 +58,7 @@ const PreviousSeasonReferralDetails = () => {
       </Box>
 
       <Box twClassName="flex-row gap-2 items-center">
-        <Text
-          twClassName="text-default"
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Bold}
-        >
+        <Text twClassName="text-default" variant={TextVariant.HeadingSm}>
           {referralPoints}
         </Text>
         <Text twClassName="text-alternative">
