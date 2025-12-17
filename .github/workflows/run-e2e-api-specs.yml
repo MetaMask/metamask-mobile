@@ -35,7 +35,6 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref }}
           clean: true
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
