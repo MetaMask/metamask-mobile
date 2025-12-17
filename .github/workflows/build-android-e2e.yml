@@ -116,9 +116,6 @@ jobs:
           # - "Cache Gradle dependencies"
           # - "Cache build artifacts"
           key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
-            android-apk-
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4

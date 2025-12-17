@@ -46,7 +46,7 @@ class BridgeScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+        return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
         return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
       }
@@ -92,14 +92,14 @@ class BridgeScreen {
 
   async tapGetQuotes(network){
     if (network == 'Ethereum'){
-    const quotesButton = this.getETHQuotesButton;
+    const quotesButton = await this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(quotesButton);
     }
   }
 
   async enterDestinationTokenAmount(amount) {
-    const element = this.destTokenInput;
+    const element = await this.destTokenInput;
     await AppwrightGestures.typeText(element, amount);
   }
 
