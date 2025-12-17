@@ -170,6 +170,7 @@ jobs:
         with:
           path: artifacts/
           run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
