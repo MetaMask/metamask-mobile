@@ -220,6 +220,7 @@ export const PerpsHomeViewSelectorsIDs = {
   SCROLL_CONTENT: 'scroll-content',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
+  POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
