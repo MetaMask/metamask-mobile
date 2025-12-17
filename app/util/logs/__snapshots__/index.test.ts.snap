@@ -575,6 +575,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -1346,6 +1348,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
