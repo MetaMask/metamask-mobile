@@ -12,6 +12,7 @@ on:
           description: 'Workflow run ID of an existing build to reuse (skips build step if provided)'
           required: false
           type: string
+  push:
 
 permissions:
   contents: read
