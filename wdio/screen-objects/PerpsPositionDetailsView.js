@@ -24,8 +24,8 @@ class PerpsPositionDetailsView {
   }
 
   async tapClosePositionButton() {
-    await AppwrightGestures.tap(this.closePositionButton);
-    await AppwrightGestures.tap(this.confirmClosePositionButton);
+    await AppwrightGestures.tap(await this.closePositionButton);
+    await AppwrightGestures.tap(await this.confirmClosePositionButton);
   }
 
   async isPositionOpen() {
