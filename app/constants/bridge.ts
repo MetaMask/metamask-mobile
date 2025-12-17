@@ -1,6 +1,10 @@
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BRIDGE_PROD_API_BASE_URL,
+} from '@metamask/bridge-controller';
 
 /**
  * Swaps testnet chain ID (1337 in decimal)
@@ -56,10 +60,10 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [TrxScope.Mainnet]: 'Tron',
 };
 
-// export const BRIDGE_API_BASE_URL =
-//   process.env.BRIDGE_USE_DEV_APIS === 'true'
-//     ? BRIDGE_DEV_API_BASE_URL
-//     : BRIDGE_PROD_API_BASE_URL;
+export const BRIDGE_API_BASE_URL =
+  process.env.BRIDGE_USE_DEV_APIS === 'true'
+    ? BRIDGE_DEV_API_BASE_URL
+    : BRIDGE_PROD_API_BASE_URL;
 
 //TODO link to dev bridge API. Update to prod bridge API when ready.
-export const BRIDGE_API_BASE_URL = 'http://localhost:3000';
+// export const BRIDGE_API_BASE_URL = 'http://localhost:3000';
