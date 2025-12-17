@@ -675,7 +675,10 @@ describe('usePerpsTransactionHistory', () => {
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'Combined transactions:',
-        expect.any(Array),
+        expect.objectContaining({
+          total: expect.any(Number),
+          displayed: expect.any(Number),
+        }),
       );
     });
   });
