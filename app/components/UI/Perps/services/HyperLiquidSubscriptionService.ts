@@ -405,16 +405,18 @@ export class HyperLiquidSubscriptionService {
   private cachedAccountHash = '';
 
   /**
-   * Extract TP/SL data from open orders and process orders
-   * DRY helper used by both webData2 and clearinghouseState callbacks
+   * Extract TP/SL from orders and optionally convert raw SDK orders to Order format.
+   * DRY helper used by both webData2 and clearinghouseState callbacks.
    *
    * @param orders - Raw SDK orders from WebSocket event
    * @param positions - Current positions for TP/SL matching
+   * @param cachedProcessedOrders - Optional pre-processed orders (skips conversion if provided)
    * @returns Maps for TP/SL prices and counts, plus processed Order array
    */
   private extractTPSLFromOrders(
     orders: FrontendOpenOrdersResponse,
     positions: Position[],
+    cachedProcessedOrders?: Order[],
   ): {
     tpslMap: Map<string, { takeProfitPrice?: string; stopLossPrice?: string }>;
     tpslCountMap: Map<
@@ -433,6 +435,45 @@ export class HyperLiquidSubscriptionService {
       { takeProfitCount?: number; stopLossCount?: number }
     >();
 
+    // If cached processed orders provided, extract TP/SL from them directly
+    if (cachedProcessedOrders) {
+      cachedProcessedOrders.forEach((order) => {
+        if (order.isTrigger && order.price) {
+          const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
+          const isStop = order.detailedOrderType?.includes('Stop');
+          const currentTakeProfitCount =
+            tpslCountMap.get(order.symbol)?.takeProfitCount || 0;
+          const currentStopLossCount =
+            tpslCountMap.get(order.symbol)?.stopLossCount || 0;
+
+          tpslCountMap.set(order.symbol, {
+            takeProfitCount: isTakeProfit
+              ? currentTakeProfitCount + 1
+              : currentTakeProfitCount,
+            stopLossCount: isStop
+              ? currentStopLossCount + 1
+              : currentStopLossCount,
+          });
+
+          const matchingPosition = positions.find(
+            (p) => p.coin === order.symbol,
+          );
+          if (matchingPosition) {
+            const existing = tpslMap.get(order.symbol) || {};
+            if (isTakeProfit) {
+              existing.takeProfitPrice = order.price;
+            } else if (isStop) {
+              existing.stopLossPrice = order.price;
+            }
+            tpslMap.set(order.symbol, existing);
+          }
+        }
+      });
+
+      return { tpslMap, tpslCountMap, processedOrders: cachedProcessedOrders };
+    }
+
+    // Process raw SDK orders
     const processedOrders: Order[] = [];
 
     orders.forEach((order) => {
@@ -1080,54 +1121,12 @@ export class HyperLiquidSubscriptionService {
             // This ensures TP/SL data persists across clearinghouseState updates
             let positionsWithTPSL = positions;
             if (cachedOrders.length > 0) {
-              // Build TP/SL maps from cached orders
-              const tpslMap = new Map<
-                string,
-                { takeProfitPrice?: string; stopLossPrice?: string }
-              >();
-              const tpslCountMap = new Map<
-                string,
-                { takeProfitCount?: number; stopLossCount?: number }
-              >();
+              const { tpslMap, tpslCountMap } = this.extractTPSLFromOrders(
+                [],
+                positions,
+                cachedOrders,
+              );
 
-              cachedOrders.forEach((order) => {
-                // Check if this is a trigger order (TP/SL) by checking isTrigger flag
-                // For trigger orders, the price field contains the trigger price
-                if (order.isTrigger && order.price) {
-                  const isTakeProfit =
-                    order.detailedOrderType?.includes('Take Profit');
-                  const isStop = order.detailedOrderType?.includes('Stop');
-                  const currentTakeProfitCount =
-                    tpslCountMap.get(order.symbol)?.takeProfitCount || 0;
-                  const currentStopLossCount =
-                    tpslCountMap.get(order.symbol)?.stopLossCount || 0;
-
-                  tpslCountMap.set(order.symbol, {
-                    takeProfitCount: isTakeProfit
-                      ? currentTakeProfitCount + 1
-                      : currentTakeProfitCount,
-                    stopLossCount: isStop
-                      ? currentStopLossCount + 1
-                      : currentStopLossCount,
-                  });
-
-                  // Find matching position for TP/SL assignment
-                  const matchingPosition = positions.find(
-                    (p) => p.coin === order.symbol,
-                  );
-                  if (matchingPosition) {
-                    const existing = tpslMap.get(order.symbol) || {};
-                    if (isTakeProfit) {
-                      existing.takeProfitPrice = order.price;
-                    } else if (isStop) {
-                      existing.stopLossPrice = order.price;
-                    }
-                    tpslMap.set(order.symbol, existing);
-                  }
-                }
-              });
-
-              // Merge TP/SL into positions
               positionsWithTPSL = this.mergeTPSLIntoPositions(
                 positions,
                 tpslMap,
