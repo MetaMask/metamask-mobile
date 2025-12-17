@@ -947,7 +947,7 @@ describe('usePerpsTransactionHistory', () => {
   });
 
   describe('loadMore functionality', () => {
-    // Helper to create multiple mock transactions
+    // Helper to create multiple mock transactions with unique assets to avoid dedup
     const createMockTransactions = (count: number) =>
       Array.from({ length: count }, (_, i) => ({
         id: `tx-${i}`,
@@ -956,8 +956,16 @@ describe('usePerpsTransactionHistory', () => {
         title: `Trade ${i}`,
         subtitle: `${i} ETH`,
         timestamp: 1640995200000 - i * 1000, // Descending timestamps
-        asset: 'ETH',
+        asset: `ETH-${i}`, // Unique asset per transaction to avoid dedup in mergedTransactions
       }));
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
     it('returns isLoadingMore as false initially', async () => {
       mockTransformFillsToTransactions.mockReturnValue([]);
@@ -980,6 +988,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -999,6 +1011,10 @@ describe('usePerpsTransactionHistory', () => {
       mockTransformUserHistoryToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -1020,16 +1036,24 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for initial fetch to complete
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       // Initially should have PAGE_SIZE transactions
       expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(true);
 
-      // Load more
+      // Load more - must advance timers for the setTimeout in loadMore
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       // After loadMore, should have all 75 transactions
@@ -1048,23 +1072,26 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Call loadMore twice rapidly without awaiting
-      let loadMorePromise1: Promise<void>;
-      let loadMorePromise2: Promise<void>;
-
+      // Call loadMore twice rapidly - the second call should be blocked
       await act(async () => {
-        loadMorePromise1 = result.current.loadMore();
-        loadMorePromise2 = result.current.loadMore();
+        const loadMorePromise1 = result.current.loadMore();
+        // Second call should return early because isLoadingMore is true
+        const loadMorePromise2 = result.current.loadMore();
+        await jest.runAllTimersAsync();
         await loadMorePromise1;
         await loadMorePromise2;
       });
 
-      // Should only have loaded one additional page (100 total, after one loadMore: 100)
-      // First load: 50, second concurrent call blocked, so result is 100
+      // Should only have loaded one additional page (50 + 50 = 100)
+      // Second concurrent call was blocked by isLoadingMore check
       expect(result.current.transactions.length).toBe(100);
     });
 
@@ -1080,6 +1107,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -1088,11 +1119,14 @@ describe('usePerpsTransactionHistory', () => {
 
       const transactionsBeforeLoadMore = result.current.transactions.length;
 
+      // loadMore should return early when hasMore is false
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
-      // Should not have changed
+      // Should not have changed - loadMore returned early
       expect(result.current.transactions.length).toBe(
         transactionsBeforeLoadMore,
       );
@@ -1109,16 +1143,32 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       expect(result.current.isLoadingMore).toBe(false);
 
+      // Start loadMore and check isLoadingMore is true during loading
+      let loadMorePromise: Promise<void>;
       await act(async () => {
-        await result.current.loadMore();
+        loadMorePromise = result.current.loadMore();
       });
 
+      // During the setTimeout, isLoadingMore should be true
+      expect(result.current.isLoadingMore).toBe(true);
+
+      // Advance timers and complete loadMore
+      await act(async () => {
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
+      });
+
+      // After completion, isLoadingMore should be false
       expect(result.current.isLoadingMore).toBe(false);
     });
 
@@ -1134,6 +1184,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -1143,7 +1197,9 @@ describe('usePerpsTransactionHistory', () => {
 
       // Load second page
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(result.current.transactions.length).toBe(100);
@@ -1151,7 +1207,9 @@ describe('usePerpsTransactionHistory', () => {
 
       // Load third page
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(result.current.transactions.length).toBe(150);
@@ -1169,6 +1227,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -1176,7 +1238,9 @@ describe('usePerpsTransactionHistory', () => {
       jest.clearAllMocks();
 
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -1200,13 +1264,19 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       // Load more to display all 100
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(result.current.transactions.length).toBe(100);
@@ -1214,12 +1284,94 @@ describe('usePerpsTransactionHistory', () => {
 
       // Refetch should reset pagination
       await act(async () => {
-        await result.current.refetch();
+        const refetchPromise = result.current.refetch();
+        await jest.runAllTimersAsync();
+        await refetchPromise;
       });
 
       // After refetch, should be back to PAGE_SIZE
       expect(result.current.transactions.length).toBe(50);
       expect(result.current.hasMore).toBe(true);
+    });
+
+    it('updates displayedCountRef correctly after loadMore', async () => {
+      // Create 75 transactions to test displayedCount tracking
+      const manyTransactions = createMockTransactions(75);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // First 50 displayed
+      expect(result.current.transactions.length).toBe(50);
+
+      // Load more should update displayedCount and show 75
+      await act(async () => {
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
+      });
+
+      expect(result.current.transactions.length).toBe(75);
+      expect(result.current.hasMore).toBe(false);
+      expect(result.current.isLoadingMore).toBe(false);
+    });
+
+    it('slices transactions correctly from allFetchedTransactionsRef', async () => {
+      // Create exactly 120 transactions (needs PAGE_SIZE slices of 50, 50, 20)
+      const manyTransactions = createMockTransactions(120);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initial: 50 transactions
+      expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(true);
+
+      // First loadMore: 50 + 50 = 100 transactions
+      await act(async () => {
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
+      });
+
+      expect(result.current.transactions.length).toBe(100);
+      expect(result.current.hasMore).toBe(true);
+
+      // Second loadMore: 100 + 20 = 120 transactions (all remaining)
+      await act(async () => {
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
+      });
+
+      expect(result.current.transactions.length).toBe(120);
+      expect(result.current.hasMore).toBe(false);
     });
   });
 
@@ -1555,6 +1707,14 @@ describe('usePerpsTransactionHistory', () => {
   });
 
   describe('pagination edge cases', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('handles empty transaction list', async () => {
       mockTransformFillsToTransactions.mockReturnValue([]);
       mockTransformOrdersToTransactions.mockReturnValue([]);
@@ -1563,6 +1723,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -1570,9 +1734,11 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.transactions).toEqual([]);
       expect(result.current.hasMore).toBe(false);
 
-      // loadMore should not error on empty list
+      // loadMore should not error on empty list and return early
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(result.current.transactions).toEqual([]);
@@ -1586,7 +1752,7 @@ describe('usePerpsTransactionHistory', () => {
         title: `Trade ${i}`,
         subtitle: `${i} ETH`,
         timestamp: 1640995200000 - i * 1000,
-        asset: 'ETH',
+        asset: `ETH-${i}`, // Unique asset to avoid dedup
       }));
 
       mockTransformFillsToTransactions.mockImplementation((fills) =>
@@ -1597,6 +1763,10 @@ describe('usePerpsTransactionHistory', () => {
       mockTransformUserHistoryToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -1614,7 +1784,7 @@ describe('usePerpsTransactionHistory', () => {
         title: `Trade ${i}`,
         subtitle: `${i} ETH`,
         timestamp: 1640995200000 - i * 1000,
-        asset: 'ETH',
+        asset: `ETH-${i}`, // Unique asset to avoid dedup
       }));
 
       mockTransformFillsToTransactions.mockImplementation((fills) =>
@@ -1626,6 +1796,10 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
@@ -1634,7 +1808,9 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.hasMore).toBe(true);
 
       await act(async () => {
-        await result.current.loadMore();
+        const loadMorePromise = result.current.loadMore();
+        await jest.runAllTimersAsync();
+        await loadMorePromise;
       });
 
       expect(result.current.transactions.length).toBe(51);
