@@ -65,7 +65,7 @@ describe('AddActivationKey', () => {
     const validKey = 'valid-key';
     render(ActivationKeyForm);
     const textInput = screen.getByPlaceholderText(
-      'Paste or type an Activation Key',
+      'Paste or type an activation key',
     );
     fireEvent.changeText(textInput, validKey);
     const addButton = screen.getByRole('button', { name: 'Add' });
@@ -77,7 +77,7 @@ describe('AddActivationKey', () => {
     const invalidKey = 'invalid-key!!';
     render(ActivationKeyForm);
     const textInput = screen.getByPlaceholderText(
-      'Paste or type an Activation Key',
+      'Paste or type an activation key',
     );
     fireEvent.changeText(textInput, invalidKey);
     const addButton = screen.getByRole('button', { name: 'Add' });

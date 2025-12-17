@@ -398,31 +398,35 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
+                                "height": "auto",
                               },
                               {
                                 "marginTop": 0,
+                              },
+                              {
+                                "alignItems": "center",
                               },
                             ]
                           }
                           testID="header"
                         >
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             />
                           </View>
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <Image
@@ -436,13 +440,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               }
                             />
                           </View>
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             >
@@ -522,7 +520,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -538,7 +536,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -586,7 +584,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,

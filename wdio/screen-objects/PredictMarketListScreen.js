@@ -85,6 +85,19 @@ class PredictMarketListScreen {
       await AppwrightGestures.tap(tabElement);
     }
   }
+
+  async tapAddFundsButton() {
+    if (!this._device) {
+      const addFundsButton = await Selectors.getXpathElementByText('Add funds');
+      await Gestures.waitAndTap(addFundsButton);
+    } else {
+      const addFundsButton = await AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        'Add funds',
+      );
+      await AppwrightGestures.tap(addFundsButton);
+    }
+  }
 }
 
 export default new PredictMarketListScreen();

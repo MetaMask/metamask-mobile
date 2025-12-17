@@ -109,7 +109,6 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
 import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
@@ -471,8 +470,9 @@ class Amount extends PureComponent {
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
     /**
      * Boolean that indicates if the swap is live
+     * @deprecated SwapsLiveness service is deprecated and removed.
      */
-    swapsIsLive: PropTypes.bool,
+    // swapsIsLive: PropTypes.bool,
     /**
      * String that indicates the current chain id
      */
@@ -1270,7 +1270,8 @@ class Amount extends PureComponent {
       selectedAsset,
       navigation,
       isNetworkBuyNativeTokenSupported,
-      swapsIsLive,
+      // SwapsLiveness service is deprecated and removed.
+      // swapsIsLive,
       globalChainId,
       ticker,
     } = this.props;
@@ -1291,7 +1292,8 @@ class Amount extends PureComponent {
     const isSwappable =
       !isNativeToken(selectedAsset) &&
       AppConstants.SWAPS.ACTIVE &&
-      swapsIsLive &&
+      // SwapsLiveness service is deprecated and removed.
+      // swapsIsLive &&
       isSwapsAllowed(globalChainId) &&
       amountError === strings('transaction.insufficient');
 
@@ -1612,7 +1614,8 @@ const mapStateToProps = (state, ownProps) => {
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
-    swapsIsLive: selectIsSwapsLive(state, globalChainId),
+    // SwapsLiveness service is deprecated and removed.
+    // swapsIsLive: selectIsSwapsLive(state, globalChainId),
     globalChainId,
     globalNetworkClientId,
   };

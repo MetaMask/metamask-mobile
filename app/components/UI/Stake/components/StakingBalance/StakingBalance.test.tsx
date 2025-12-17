@@ -21,10 +21,7 @@ import {
   getMockUseEarnTokens,
 } from '../../../Earn/__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
@@ -52,8 +49,8 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
 >;
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -180,22 +177,12 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
-
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    ...actual,
-    useFeatureFlag: jest.fn(),
-  };
-});
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -204,12 +191,9 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
     (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
       (_token: TokenI) => {
         const experienceType =
@@ -312,12 +296,9 @@ describe('StakingBalance', () => {
   });
 
   it('should not render stake cta if pooled staking is disabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -363,12 +344,9 @@ describe('StakingBalance', () => {
 
   // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
   it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,

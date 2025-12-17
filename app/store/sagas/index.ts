@@ -22,7 +22,7 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -32,7 +32,6 @@ import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 
@@ -263,7 +262,7 @@ export function* startAppServices() {
   yield call(EngineService.start);
 
   // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
+  SharedDeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();

@@ -14,31 +14,35 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../UI/Perps/selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: jest.fn(),
 }));
 
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(),
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    perpsPerpTradingEnabled: 'perpsPerpTradingEnabled',
-    predictTradingEnabled: 'predictTradingEnabled',
-    earnPooledStakingEnabled: 'earnPooledStakingEnabled',
-  },
+jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../selectors/earnController/earn', () => ({
@@ -124,7 +128,6 @@ jest.mock('../../../reducers/swaps', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
-  selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -239,10 +242,6 @@ const mockInitialState: DeepPartial<RootState> = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
-
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -271,8 +270,6 @@ describe('WalletActions', () => {
   beforeEach(() => {
     // Clear all mocks first for test isolation
     jest.clearAllMocks();
-    // Default mock: all feature flags disabled
-    mockUseFeatureFlag.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -366,12 +363,11 @@ describe('WalletActions', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
 
     (
       earnSelectors.selectEarnTokens as jest.MockedFunction<
@@ -408,12 +404,11 @@ describe('WalletActions', () => {
   });
 
   it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -425,12 +420,11 @@ describe('WalletActions', () => {
   });
 
   it('should navigate to Perps markets when returning user presses Perpetuals button', async () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
     (
       selectIsFirstTimePerpsUser as jest.MockedFunction<
         typeof selectIsFirstTimePerpsUser
@@ -458,12 +452,11 @@ describe('WalletActions', () => {
   });
 
   it('should navigate to Perps tutorial when first-time user presses Perpetuals button', async () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
     (
       selectIsFirstTimePerpsUser as jest.MockedFunction<
         typeof selectIsFirstTimePerpsUser
@@ -486,12 +479,11 @@ describe('WalletActions', () => {
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.predictTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -503,12 +495,11 @@ describe('WalletActions', () => {
   });
 
   it('should call the onPredict function when the Predict button is pressed', async () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.predictTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -536,16 +527,21 @@ describe('WalletActions', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (
-        flagName === FeatureFlagNames.earnPooledStakingEnabled ||
-        flagName === FeatureFlagNames.perpsPerpTradingEnabled ||
-        flagName === FeatureFlagNames.predictTradingEnabled
-      ) {
-        return true;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
 
     // Import and mock selectIsSwapsEnabled to return false when can't sign

@@ -78,7 +78,10 @@ import {
 } from '../../hooks/stream';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import {
+  selectPerpsButtonColorTestVariant,
+  selectPerpsOrderBookEnabledFlag,
+} from '../../selectors/featureFlags';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -177,12 +180,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
-  // Stop loss prompt banner state
+  // Stop loss prompt banner state - for loading/success when setting stop loss via banner
   const [isSettingStopLoss, setIsSettingStopLoss] = useState(false);
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
-  const [hideBannerAfterSuccess, setHideBannerAfterSuccess] = useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
+
+  // Feature flag for Order Book visibility
+  const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -409,21 +414,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [existingPosition, currentPrice]);
 
   // Stop loss prompt banner logic
+  // Hook handles visibility orchestration including fade-out animation
   const {
-    shouldShowBanner,
     variant: bannerVariant,
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
+    isVisible: isBannerVisible,
+    isDismissing: isBannerDismissing,
+    onDismissComplete: handleBannerDismissComplete,
   } = useStopLossPrompt({
     position: existingPosition,
     currentPrice,
     positionOpenedTimestamp,
   });
 
-  // Reset stop loss banner state when market or position changes
+  // Reset stop loss success state when market or position changes
   useEffect(() => {
-    setHideBannerAfterSuccess(false);
     setIsStopLossSuccess(false);
   }, [market?.symbol, existingPosition?.coin]);
 
@@ -799,10 +806,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Handler for when banner fade-out animation completes
   const handleBannerFadeOutComplete = useCallback(() => {
-    setHideBannerAfterSuccess(true);
     // Reset success state for potential future displays
     setIsStopLossSuccess(false);
-  }, []);
+    // Notify hook that dismiss animation is complete
+    handleBannerDismissComplete();
+  }, [handleBannerDismissComplete]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
@@ -984,7 +992,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-          {shouldShowBanner && bannerVariant && !hideBannerAfterSuccess && (
+          {/* Uses hook's isVisible which includes fade-out animation state */}
+          {isBannerVisible && bannerVariant && (
             <PerpsStopLossPromptBanner
               variant={bannerVariant}
               liquidationDistance={liquidationDistance ?? 0}
@@ -993,7 +1002,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onSetStopLoss={handleSetStopLossFromBanner}
               onAddMargin={handleAddMarginFromBanner}
               isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess}
+              isSuccess={isStopLossSuccess || isBannerDismissing}
               onFadeOutComplete={handleBannerFadeOutComplete}
               testID={
                 PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
@@ -1040,7 +1049,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               dexName={market?.marketSource || undefined}
-              onOrderBookPress={handleOrderBookPress}
+              onOrderBookPress={
+                isOrderBookEnabled ? handleOrderBookPress : undefined
+              }
             />
           </View>
 
@@ -1132,7 +1143,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
                     label={strings('perps.market.long')}
@@ -1157,7 +1168,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
                     label={strings('perps.market.short')}

@@ -108,6 +108,7 @@ const Routes = {
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
+    PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
@@ -405,6 +406,7 @@ const Routes = {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
+      REGION_SELECTION: 'CardRegionSelectionModal',
     },
   },
   SEND: {
