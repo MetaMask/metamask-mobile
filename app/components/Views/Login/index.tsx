@@ -165,13 +165,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    Authentication.lockApp({ reset: false });
     return false;
   };
 
   const updateBiometryChoice = useCallback(
     async (newBiometryChoice: boolean) => {
-      await updateAuthTypeStorageFlags(newBiometryChoice);
       setBiometryChoice(newBiometryChoice);
     },
     [setBiometryChoice],
@@ -402,6 +401,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
         async () => {
           await Authentication.userEntryAuth(password, authType);
+          await updateAuthTypeStorageFlags(biometryChoice);
         },
       );
 
