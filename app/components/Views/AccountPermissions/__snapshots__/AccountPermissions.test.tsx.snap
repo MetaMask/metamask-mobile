@@ -513,7 +513,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 20,
+                    "paddingRight": 8,
                   }
                 }
               >
@@ -641,7 +641,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             }
           }
         >
-          Manage Permissions
+          Manage permissions
         </Text>
       </TouchableOpacity>
     </View>

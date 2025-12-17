@@ -26,7 +26,8 @@ export const ScamWarningIcon = ({
     asset.ticker,
     type,
   );
-  if (!isOriginalNativeTokenSymbol && asset.isETH) {
+  // Only show warning if explicitly false (not null/loading)
+  if (isOriginalNativeTokenSymbol === false && asset.isETH) {
     return (
       <ButtonIcon
         iconName={IconName.Danger}

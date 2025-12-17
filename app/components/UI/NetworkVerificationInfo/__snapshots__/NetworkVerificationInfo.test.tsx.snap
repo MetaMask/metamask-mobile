@@ -15,7 +15,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }
@@ -554,7 +554,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }

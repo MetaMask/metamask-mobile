@@ -51,6 +51,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
       </Text>
       <Text
         accessibilityRole="text"
+        allowFontScaling={false}
         style={
           {
             "color": "#121314",
@@ -61,78 +62,43 @@ exports[`AssetOverview should render native balances when non evm network is sel
           }
         }
       >
-        <View
+        <Text
+          accessibilityRole="text"
+          allowFontScaling={false}
           style={
             {
-              "flexDirection": "row",
-              "flexWrap": "nowrap",
-              "overflow": "hidden",
+              "color": "#457a39",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
+          +
+          $151.23
+           (
+          +
+          Infinity
+          %)
+           
           <Text
             accessibilityRole="text"
-            adjustsFontSizeToFit={true}
-            minimumFontScale={0.5}
-            numberOfLines={1}
+            allowFontScaling={false}
             style={
               {
-                "color": "#457a39",
-                "flexShrink": 1,
+                "color": "#686e7d",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
             }
+            testID="price-label"
           >
-            <Text
-              allowFontScaling={false}
-              selectable={false}
-              style={
-                [
-                  {
-                    "color": undefined,
-                    "fontSize": 16,
-                  },
-                  {
-                    "marginTop": 10,
-                  },
-                  {
-                    "fontFamily": "Feather",
-                    "fontStyle": "normal",
-                    "fontWeight": "normal",
-                  },
-                  {},
-                ]
-              }
-            >
-              
-            </Text>
-             
-            $151.23
-             (
-            +
-            Infinity
-            %)
-             
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-              testID="price-label"
-            >
-              Today
-            </Text>
+            Today
           </Text>
-        </View>
+        </Text>
       </Text>
     </View>
     <View
@@ -888,7 +854,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
-                "paddingVertical": 8,
+                "paddingBottom": 8,
+                "paddingTop": 8,
               }
             }
           >

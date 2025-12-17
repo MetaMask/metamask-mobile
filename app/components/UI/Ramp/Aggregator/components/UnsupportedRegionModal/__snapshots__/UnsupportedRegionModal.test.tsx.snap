@@ -420,7 +420,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1016,7 +1016,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

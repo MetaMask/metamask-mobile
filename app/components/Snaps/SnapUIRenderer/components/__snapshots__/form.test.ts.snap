@@ -947,7 +947,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                               },
                               false,
                               {
-                                "padding": 16,
+                                "paddingHorizontal": 16,
                               },
                             ]
                           }
@@ -1680,7 +1680,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                               },
                               false,
                               {
-                                "padding": 16,
+                                "paddingHorizontal": 16,
                               },
                             ]
                           }

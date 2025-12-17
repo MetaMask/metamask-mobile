@@ -7,6 +7,7 @@ import {
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -79,6 +80,7 @@ import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { strings } from '../../../locales/i18n';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { ReauthenticateErrorType } from './types';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -999,7 +1001,12 @@ class AuthenticationService {
       shouldCreateSocialBackup: true,
       shouldSelectAccount: true,
     },
-  ): Promise<void> => {
+  ): Promise<boolean> => {
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    if (isPasswordOutdated) {
+      return false;
+    }
+
     trace({
       name: TraceName.ImportEvmAccount,
       op: TraceOperation.ImportAccount,
@@ -1039,6 +1046,7 @@ class AuthenticationService {
     endTrace({
       name: TraceName.ImportEvmAccount,
     });
+    return true;
   };
 
   /**
@@ -1413,6 +1421,84 @@ class AuthenticationService {
       Logger.log(error, errorMsg);
     }
   }
+
+  /**
+   * If a password is provided, it is verified directly. Otherwise, this method
+   * attempts to read the biometric preference from storage and, when enabled,
+   * retrieves the stored credentials via `getPassword` and verifies the stored password.
+   *
+   * The method resolves with the verified password string on success and
+   * propagates any error thrown by `KeyringController.verifyPassword`.
+   *
+   * @param password - Optional password to verify. When omitted, the method
+   * attempts to use the stored biometric/remember-me password instead.
+   * @returns The verified password string. Throws an error if verification fails
+   * before a password can be determined.
+   */
+  reauthenticate = async (password?: string): Promise<{ password: string }> => {
+    let passwordToVerify = password || '';
+    const { KeyringController } = Engine.context;
+
+    // if no password is provided, try to use the stored biometric/remember-me password
+    if (!passwordToVerify) {
+      const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+      if (biometryChoice) {
+        const credentials = await this.getPassword();
+        if (credentials) {
+          passwordToVerify = credentials.password;
+        }
+      }
+
+      // If there is no biometric choice configured or no stored credentials,
+      // throw a specific error instead of attempting to verify an empty password.
+      if (!passwordToVerify) {
+        const biometricNotEnabledErrorMessage = 'Biometric is not enabled';
+        throw new Error(
+          `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: ${biometricNotEnabledErrorMessage}`,
+        );
+      }
+    }
+
+    await KeyringController.verifyPassword(passwordToVerify);
+    return { password: passwordToVerify };
+  };
+
+  /**
+   * Reveals the secret recovery phrase (SRP) for the specified keyring
+   * after verifying the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param keyringId - The identifier of the keyring whose SRP will be exported.
+   * @returns The mnemonic SRP associated with the provided keyring.
+   */
+  revealSRP = async (password: string, keyringId?: string): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const rawSeedPhrase = await KeyringController.exportSeedPhrase(
+      password,
+      keyringId,
+    );
+    const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
+    return seedPhrase;
+  };
+
+  /**
+   * Reveals the private key for the given account address after verifying
+   * the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param address - The account address whose private key will be exported.
+   * @returns The hex-encoded private key for the specified address.
+   */
+  revealPrivateKey = async (
+    password: string,
+    address: string,
+  ): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const privateKey = await KeyringController.exportAccount(password, address);
+    return privateKey;
+  };
 }
 
 export const Authentication = new AuthenticationService();

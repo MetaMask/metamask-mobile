@@ -56,7 +56,6 @@ test('Cold Start after importing a wallet', async ({
   await login(device, {
     scenarioType: 'onboarding',
     skipIntro: true,
-    dismissModals: false,
   }); // Skip intro screens on second login
 
   const timer1 = await WalletMainScreen.isMenuButtonVisible();

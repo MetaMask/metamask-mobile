@@ -78,7 +78,10 @@ import {
 } from '../../hooks/stream';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import {
+  selectPerpsButtonColorTestVariant,
+  selectPerpsOrderBookEnabledFlag,
+} from '../../selectors/featureFlags';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -182,6 +185,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
+
+  // Feature flag for Order Book visibility
+  const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -709,21 +715,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, []);
 
   // Order book handler - navigates to order book view
-  // Temporarily disabled - uncomment to re-enable order book entry point
-  // const handleOrderBookPress = useCallback(() => {
-  //   if (!market?.symbol) return;
+  const handleOrderBookPress = useCallback(() => {
+    if (!market?.symbol) return;
 
-  //   track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-  //     [PerpsEventProperties.INTERACTION_TYPE]:
-  //       PerpsEventValues.INTERACTION_TYPE.TAP,
-  //     [PerpsEventProperties.ASSET]: market.symbol,
-  //   });
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.TAP,
+      [PerpsEventProperties.ASSET]: market.symbol,
+    });
 
-  //   navigation.navigate(Routes.PERPS.ORDER_BOOK, {
-  //     symbol: market.symbol,
-  //     marketData: market,
-  //   });
-  // }, [market, navigation, track]);
+    navigation.navigate(Routes.PERPS.ORDER_BOOK, {
+      symbol: market.symbol,
+      marketData: market,
+    });
+  }, [market, navigation, track]);
 
   // Close position handler
   const handleClosePosition = useCallback(() => {
@@ -1044,8 +1049,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               dexName={market?.marketSource || undefined}
-              // Temporarily disabled - uncomment to re-enable order book entry point
-              // onOrderBookPress={handleOrderBookPress}
+              onOrderBookPress={
+                isOrderBookEnabled ? handleOrderBookPress : undefined
+              }
             />
           </View>
 
