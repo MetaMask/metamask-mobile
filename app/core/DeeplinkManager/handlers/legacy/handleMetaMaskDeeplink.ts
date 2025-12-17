@@ -28,18 +28,6 @@ export function handleMetaMaskDeeplink({
 }) {
   handled();
 
-  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-    DevLogger.log(
-      `DeeplinkManager:: metamask launched via android sdk deeplink`,
-    );
-    SDKConnect.getInstance()
-      .bindAndroidSDK()
-      .catch((err) => {
-        Logger.error(err, 'DeepLinkManager failed to connect');
-      });
-    return;
-  }
-
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       SDKConnect.getInstance().state.navigation?.navigate(
