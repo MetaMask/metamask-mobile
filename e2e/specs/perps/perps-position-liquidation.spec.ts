@@ -38,7 +38,10 @@ describe(RegressionTrade('Perps Position'), () => {
           throw new Error('Command queue server not found');
         }
         logger.info('💰 Using E2E mock balance - no wallet import needed');
+        logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
+
+        await device.disableSynchronization();
 
         // Navigate to Perps tab using manual sync management
         await PerpsHelpers.navigateToPerpsTab();
@@ -47,8 +50,6 @@ describe(RegressionTrade('Perps Position'), () => {
         await TabBarComponent.tapActions();
 
         await WalletActionsBottomSheet.tapPerpsButton();
-
-        await device.disableSynchronization();
 
         await PerpsMarketListView.selectMarket('ETH');
 
@@ -66,7 +67,7 @@ describe(RegressionTrade('Perps Position'), () => {
         await PerpsE2EModifiers.updateMarketPriceServer(
           commandQueueServer,
           'BTC',
-          '30000.00',
+          '80000.00',
         );
         await PerpsE2EModifiers.triggerLiquidationServer(
           commandQueueServer,
