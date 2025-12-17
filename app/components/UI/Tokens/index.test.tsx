@@ -186,7 +186,7 @@ describe('Tokens', () => {
   it('displays loading skeleton', async () => {
     // Force mockInteraction to not run immediately to test the skeleton
     const { mockRunAfterInteractions } = arrangeMockInteractionManager();
-    mockRunAfterInteractions.mockReset();
+    mockRunAfterInteractions.mockRestore();
 
     const { getByTestId } = renderComponent();
 

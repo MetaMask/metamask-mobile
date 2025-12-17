@@ -31,8 +31,7 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
   }, [onClose]);
 
   const handleRemove = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-    onRemove();
+    sheetRef.current?.onCloseBottomSheet(() => onRemove());
   }, [onRemove]);
 
   if (!isVisible) return null;
