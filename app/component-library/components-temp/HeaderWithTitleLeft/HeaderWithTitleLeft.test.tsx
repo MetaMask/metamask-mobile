@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text } from '@metamask/design-system-react-native';
+import { Text, IconName } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import HeaderWithTitleLeft from './HeaderWithTitleLeft';
@@ -176,7 +176,7 @@ describe('HeaderWithTitleLeft', () => {
           onBack={jest.fn()}
           endButtonIconProps={[
             {
-              iconName: 'Close' as never,
+              iconName: IconName.Close,
               onPress: jest.fn(),
               testID: TEST_IDS.HEADER_BASE_END_ACCESSORY,
             },
@@ -204,7 +204,7 @@ describe('HeaderWithTitleLeft', () => {
       const { getByTestId } = render(
         <HeaderWithTitleLeft
           startButtonIconProps={{
-            iconName: 'Menu' as never,
+            iconName: IconName.Menu,
             onPress,
             testID: 'custom-start-button',
           }}
