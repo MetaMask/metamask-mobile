@@ -147,7 +147,7 @@ describe('InfoModal', () => {
         />,
       );
 
-      expect(getByText(/Test message/)).toBeOnTheScreen();
+      expect(getByText('Test message')).toBeOnTheScreen();
     });
 
     it('renders urlText link when provided with message', () => {
@@ -183,8 +183,8 @@ describe('InfoModal', () => {
 
       expect(getByText('Full Title')).toBeOnTheScreen();
       expect(getByText('Full Body')).toBeOnTheScreen();
-      expect(getByText(/Full Message/)).toBeOnTheScreen();
-      expect(getByText(/Full Link/)).toBeOnTheScreen();
+      expect(getByText('Full Message')).toBeOnTheScreen();
+      expect(getByText('Full Link')).toBeOnTheScreen();
     });
   });
 
