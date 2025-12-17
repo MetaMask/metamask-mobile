@@ -505,7 +505,7 @@ const CardAuthentication = () => {
               onPress={() => performLogin()}
               loading={loading}
               width={ButtonWidthTypes.Full}
-              disabled={isLoginDisabled || loading}
+              isDisabled={isLoginDisabled || loading}
             />
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
