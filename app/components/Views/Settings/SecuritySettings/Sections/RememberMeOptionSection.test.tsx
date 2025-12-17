@@ -90,11 +90,6 @@ describe('RememberMeOptionSection', () => {
     mockGetType = AuthenticationMock.__mockGetType;
     mockUpdateAuthPreference = AuthenticationMock.__mockUpdateAuthPreference;
 
-    // Get the mocked AuthenticationError class
-    AuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     mockGetType.mockResolvedValue({
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
