@@ -1758,7 +1758,8 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -3377,7 +3378,8 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -3424,11 +3426,8 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                 style={
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#4459ff1a",
-                                                    "borderRadius": 20,
                                                     "flexDirection": "row",
-                                                    "marginLeft": 8,
-                                                    "paddingHorizontal": 8,
+                                                    "gap": 4,
                                                   }
                                                 }
                                               >
@@ -3436,7 +3435,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#4459ff",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
@@ -3447,18 +3446,18 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   Unknown...dress
                                                 </Text>
                                                 <SvgMock
-                                                  color="#4459ff"
                                                   fill="currentColor"
-                                                  height={16}
                                                   name="Copy"
                                                   style={
-                                                    {
-                                                      "height": 16,
-                                                      "marginLeft": 4,
-                                                      "width": 16,
-                                                    }
+                                                    [
+                                                      {
+                                                        "color": "#121314",
+                                                        "height": 16,
+                                                        "width": 16,
+                                                      },
+                                                      undefined,
+                                                    ]
                                                   }
-                                                  width={16}
                                                 />
                                               </TouchableOpacity>
                                             </View>
@@ -5099,7 +5098,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -6749,7 +6749,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -8368,7 +8369,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -8415,11 +8417,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#4459ff1a",
-                                                    "borderRadius": 20,
                                                     "flexDirection": "row",
-                                                    "marginLeft": 8,
-                                                    "paddingHorizontal": 8,
+                                                    "gap": 4,
                                                   }
                                                 }
                                               >
@@ -8427,7 +8426,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#4459ff",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
@@ -8438,18 +8437,18 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   EPjFWdd...TDt1v
                                                 </Text>
                                                 <SvgMock
-                                                  color="#4459ff"
                                                   fill="currentColor"
-                                                  height={16}
                                                   name="Copy"
                                                   style={
-                                                    {
-                                                      "height": 16,
-                                                      "marginLeft": 4,
-                                                      "width": 16,
-                                                    }
+                                                    [
+                                                      {
+                                                        "color": "#121314",
+                                                        "height": 16,
+                                                        "width": 16,
+                                                      },
+                                                      undefined,
+                                                    ]
                                                   }
-                                                  width={16}
                                                 />
                                               </TouchableOpacity>
                                             </View>
@@ -10090,7 +10089,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -12268,7 +12268,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
@@ -13918,7 +13919,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
-                                                "paddingVertical": 8,
+                                                "paddingBottom": 8,
+                                                "paddingTop": 8,
                                               }
                                             }
                                           >
