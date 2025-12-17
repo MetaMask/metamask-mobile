@@ -26,7 +26,6 @@ import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectMusdConversionPaymentTokensAllowlist,
   selectIsMusdConversionFlowEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
@@ -41,7 +40,7 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -88,27 +87,11 @@ export const TokenListItemBip44 = React.memo(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
-    const musdConversionPaymentTokensAllowlist = useSelector(
-      selectMusdConversionPaymentTokensAllowlist,
-    );
 
-    const isConvertibleStablecoin = useMemo(
-      () =>
-        isMusdConversionFlowEnabled &&
-        asset?.chainId &&
-        asset?.address &&
-        isMusdConversionPaymentToken(
-          asset.address,
-          asset.chainId,
-          musdConversionPaymentTokensAllowlist,
-        ),
-      [
-        isMusdConversionFlowEnabled,
-        asset?.chainId,
-        asset?.address,
-        musdConversionPaymentTokensAllowlist,
-      ],
-    );
+    const { isConversionToken } = useMusdConversionTokens();
+
+    const isConvertibleStablecoin =
+      isMusdConversionFlowEnabled && isConversionToken(asset);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 

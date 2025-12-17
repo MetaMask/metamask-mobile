@@ -3,6 +3,7 @@ import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview, PreviewOrderParams } from '../providers/types';
 import { Side } from '../types';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 
 jest.mock('./usePredictTrading');
 
@@ -25,6 +26,8 @@ describe('usePredictOrderPreview', () => {
       metamaskFee: 1,
       providerFee: 1,
       totalFee: 2,
+      totalFeePercentage: 4,
+      collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
     },
   };
 
@@ -57,6 +60,7 @@ describe('usePredictOrderPreview', () => {
 
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
     });
 
@@ -84,6 +88,7 @@ describe('usePredictOrderPreview', () => {
 
       expect(result.current.preview).toEqual(mockPreview);
       expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
@@ -131,6 +136,110 @@ describe('usePredictOrderPreview', () => {
         expect.objectContaining({ side: Side.SELL }),
       );
       expect(result.current.preview?.side).toBe(Side.SELL);
+    });
+  });
+
+  describe('isLoading state', () => {
+    it('returns true when preview is null, no error, and is calculating', async () => {
+      let resolvePreview: ((value: OrderPreview) => void) | undefined;
+      const previewPromise = new Promise<OrderPreview>((resolve) => {
+        resolvePreview = resolve;
+      });
+      mockPreviewOrder.mockReturnValue(previewPromise);
+
+      const { result } = renderHook(() =>
+        usePredictOrderPreview(defaultParams),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // During calculation: preview is null, no error, isCalculating is true
+      expect(result.current.preview).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(result.current.isCalculating).toBe(true);
+      expect(result.current.isLoading).toBe(true);
+
+      // Resolve the promise
+      await act(async () => {
+        if (resolvePreview) {
+          resolvePreview(mockPreview);
+        }
+        await previewPromise;
+      });
+
+      // After calculation: preview exists, isLoading should be false
+      expect(result.current.preview).toEqual(mockPreview);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('returns false when preview exists', async () => {
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(defaultParams),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(result.current.preview).toEqual(mockPreview);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('returns false when error exists', async () => {
+      mockPreviewOrder.mockRejectedValue(new Error('API Error'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Suppress console.error output during test
+        });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(defaultParams),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(result.current.preview).toBeNull();
+      expect(result.current.error).toBe('Failed to preview order');
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('returns true when preview is null and no error', () => {
+      const { result } = renderHook(() =>
+        usePredictOrderPreview(defaultParams),
+      );
+
+      expect(result.current.preview).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns true when size is invalid', () => {
+      const params = { ...defaultParams, size: 0 };
+      const { result } = renderHook(() => usePredictOrderPreview(params));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(result.current.preview).toBeNull();
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(true);
     });
   });
 
@@ -318,6 +427,7 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
 
       consoleErrorSpy.mockRestore();
     });
@@ -343,6 +453,7 @@ describe('usePredictOrderPreview', () => {
 
       expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
 
       consoleErrorSpy.mockRestore();
     });
@@ -367,6 +478,7 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to preview order');
 
       consoleErrorSpy.mockRestore();

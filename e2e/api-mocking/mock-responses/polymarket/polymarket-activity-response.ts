@@ -399,3 +399,31 @@ export const POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE = [
     profileImageOptimized: '',
   },
 ];
+export const POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: Math.floor(Date.now() / 1000), // Current timestamp
+    conditionId:
+      '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
+    type: 'TRADE',
+    size: 11.904758, // Shares received
+    usdcSize: 10, // Amount spent
+    transactionHash:
+      '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+    price: 0.84, // Price per share
+    asset:
+      '51851880223290407825872150827934296608070009371891114025629582819868766043137',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Celtics vs. Nets',
+    slug: 'nba-bos-bkn-2025-11-18',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+    eventSlug: 'nba-bos-bkn-2025-11-18',
+    outcome: 'Celtics',
+    name: 'cropMaster',
+    pseudonym: 'cropMaster',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+];

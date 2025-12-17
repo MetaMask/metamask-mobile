@@ -49,6 +49,7 @@ import Logger from '../../../../../../util/Logger';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useRegions } from '../../hooks/useRegions';
+import type { AxiosError } from 'axios';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -230,31 +231,34 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      // Check for Transak error code 2020 (phone already registered)
-      // API returns: { error: { errorCode: 2020, message: "..." } }
-      const errorWithCode = submissionError as unknown as {
-        error?: { errorCode?: number; message?: string };
-      };
-      const isPhoneError = errorWithCode?.error?.errorCode === 2020;
+      const axiosError = submissionError as AxiosError;
+      const apiError = (
+        axiosError?.response?.data as {
+          error?: { errorCode?: number; message?: string };
+        }
+      )?.error;
 
+      const isPhoneError = apiError?.errorCode === 2020;
       setIsPhoneRegisteredError(isPhoneError);
 
-      // For error code 2020, extract email from message and format it
-      let errorMessage = '';
-      if (isPhoneError && errorWithCode?.error?.message) {
-        // Extract email from message like "...created with k****@pedalsup.com..."
-        const emailMatch = errorWithCode.error.message.match(
-          /[\w*]+@[\w*]+(?:\.[\w*]+)*/,
-        );
+      const errorMessageText =
+        submissionError instanceof Error && submissionError.message
+          ? submissionError.message
+          : strings('deposit.basic_info.unexpected_error');
+
+      let errorMessage = errorMessageText;
+      if (isPhoneError && errorMessageText) {
+        // Extract email from message for error code 2020 (phone already registered)
+        const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
         const email = emailMatch ? emailMatch[0] : '';
-        errorMessage = email
-          ? strings('deposit.basic_info.phone_already_registered', { email })
-          : errorWithCode.error.message;
-      } else {
-        errorMessage =
-          submissionError instanceof Error && submissionError.message
-            ? submissionError.message
-            : strings('deposit.basic_info.unexpected_error');
+        if (email) {
+          errorMessage = strings(
+            'deposit.basic_info.phone_already_registered',
+            {
+              email,
+            },
+          );
+        }
       }
 
       setError(errorMessage);

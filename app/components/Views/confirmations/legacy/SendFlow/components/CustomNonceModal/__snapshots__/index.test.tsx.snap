@@ -120,11 +120,12 @@ exports[`CustomNonceModal renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 36,
                 "marginHorizontal": 24,
+                "maxWidth": 200,
+                "minWidth": 80,
                 "textAlign": "center",
-                "width": 80,
               }
             }
             value="26"

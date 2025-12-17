@@ -40,7 +40,7 @@ export function handleGrepCodebase(input: ToolInput, baseDir: string): string {
 
     // Use grep -E for extended regex (supports |, +, ?, etc.)
     // -E: extended regex, -r: recursive, -n: line numbers, -i: case insensitive
-    const command = `grep -Erni --include="${filePattern}" "${pattern}" app/ | head -${maxResults}`;
+    const command = `grep -Erni --include="${filePattern}" --exclude-dir=node_modules "${pattern}" app/ e2e/ .github/ scripts/ appwright/ 2>/dev/null | head -${maxResults}`;
 
     const result = execSync(command, {
       encoding: 'utf-8',

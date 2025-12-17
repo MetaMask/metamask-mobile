@@ -43,6 +43,9 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
+// Margin adjustment hook
+export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
+
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
@@ -54,6 +57,7 @@ export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
+export { usePositionManagement } from './usePositionManagement';
 // Removed from barrel: usePerpsHomeActions imports Engine-dependent hooks
 // Import directly: import { usePerpsHomeActions } from './hooks/usePerpsHomeActions';
 export { useHasExistingPosition } from './useHasExistingPosition';
@@ -62,6 +66,7 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
 export { default as usePerpsToasts } from './usePerpsToasts';

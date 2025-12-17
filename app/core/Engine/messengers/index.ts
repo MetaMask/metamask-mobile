@@ -111,6 +111,7 @@ import {
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
+import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
@@ -122,6 +123,8 @@ import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
 } from './transaction-pay-controller-messenger';
+import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -217,6 +220,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
+    getInitMessenger: noop,
+  },
+  StorageService: {
+    getMessenger: getStorageServiceMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
@@ -395,6 +402,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsController: {
+    getMessenger: getProfileMetricsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsService: {
+    getMessenger: getProfileMetricsServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;

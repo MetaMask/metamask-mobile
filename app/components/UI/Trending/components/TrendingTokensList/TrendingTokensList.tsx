@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
@@ -13,6 +14,10 @@ export interface TrendingTokensListProps {
    * Selected time option to determine which price change field to display
    */
   selectedTimeOption: TimeOption;
+  /**
+   * Refresh control for pull-to-refresh functionality
+   */
+  refreshControl?: React.ReactElement<typeof RefreshControl>;
 }
 
 /**
@@ -22,7 +27,7 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, selectedTimeOption }) => {
+  ({ trendingTokens, selectedTimeOption, refreshControl }) => {
     const renderItem = useCallback(
       ({ item }: { item: TrendingAsset }) => (
         <TrendingTokenRowItem
@@ -44,6 +49,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
+        refreshControl={refreshControl as React.ReactElement}
         testID="trending-tokens-list"
       />
     );

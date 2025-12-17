@@ -1,29 +1,13 @@
 import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AddRewardsAccount from './AddRewardsAccount';
 import { useLinkAccountAddress } from '../../hooks/useLinkAccountAddress';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 
 // Mock dependencies
-jest.mock('react-redux', () => {
-  const actual = jest.requireActual('react-redux');
-  return {
-    ...actual,
-    useSelector: jest.fn(),
-  };
-});
-
 jest.mock('../../hooks/useLinkAccountAddress', () => ({
   useLinkAccountAddress: jest.fn(),
-}));
-
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToCaip: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -40,14 +24,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(),
-}));
-
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectSourceToken: jest.fn(),
 }));
 
 // Mock SVG - override the global SVG mock for this specific file
@@ -139,24 +115,12 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseLinkAccountAddress = useLinkAccountAddress as jest.MockedFunction<
   typeof useLinkAccountAddress
 >;
-const mockFormatChainIdToCaip = formatChainIdToCaip as jest.MockedFunction<
-  typeof formatChainIdToCaip
->;
-const mockSelectSourceToken = selectSourceToken as jest.MockedFunction<
-  typeof selectSourceToken
->;
-const mockSelectSelectedInternalAccountByScope =
-  selectSelectedInternalAccountByScope as jest.MockedFunction<
-    typeof selectSelectedInternalAccountByScope
-  >;
 
 describe('AddRewardsAccount', () => {
   const mockLinkAccountAddress = jest.fn();
-  const mockGetSelectedAccountByScope = jest.fn();
 
   const mockAccount: InternalAccount = {
     id: 'test-account-id',
@@ -174,13 +138,6 @@ describe('AddRewardsAccount', () => {
     },
   };
 
-  const mockSourceToken = {
-    chainId: '0x1',
-    address: '0xTokenAddress',
-    symbol: 'ETH',
-    decimals: 18,
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -190,23 +147,6 @@ describe('AddRewardsAccount', () => {
       isLoading: false,
       isError: false,
     });
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectSourceToken) {
-        return mockSourceToken;
-      }
-      if (selector === mockSelectSelectedInternalAccountByScope) {
-        return mockGetSelectedAccountByScope;
-      }
-      return undefined;
-    });
-
-    mockFormatChainIdToCaip.mockImplementation(
-      (chainId: string | number) =>
-        `eip155:${parseInt(chainId as string, 16)}` as `${string}:${string}`,
-    );
-
-    mockGetSelectedAccountByScope.mockReturnValue(mockAccount);
   });
 
   describe('Rendering', () => {
@@ -218,48 +158,10 @@ describe('AddRewardsAccount', () => {
       expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
     });
 
-    it('renders button when accountScope is derived from sourceToken', () => {
-      const { getByTestId } = renderWithProvider(<AddRewardsAccount />);
-
-      expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
-    });
-
-    it('returns null when no accountScope is available', () => {
-      mockGetSelectedAccountByScope.mockReturnValue(undefined);
-
-      const { queryByTestId } = renderWithProvider(<AddRewardsAccount />);
-
-      expect(queryByTestId('add-rewards-account')).toBeNull();
-    });
-
-    it('returns null when sourceToken is undefined', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === mockSelectSourceToken) {
-          return undefined;
-        }
-        if (selector === mockSelectSelectedInternalAccountByScope) {
-          return mockGetSelectedAccountByScope;
-        }
-        return undefined;
-      });
-
-      const { queryByTestId } = renderWithProvider(<AddRewardsAccount />);
-
-      expect(queryByTestId('add-rewards-account')).toBeNull();
-    });
-
-    it('returns null when sourceToken chainId is undefined', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === mockSelectSourceToken) {
-          return { ...mockSourceToken, chainId: undefined };
-        }
-        if (selector === mockSelectSelectedInternalAccountByScope) {
-          return mockGetSelectedAccountByScope;
-        }
-        return undefined;
-      });
-
-      const { queryByTestId } = renderWithProvider(<AddRewardsAccount />);
+    it('returns null when account is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AddRewardsAccount account={null as unknown as InternalAccount} />,
+      );
 
       expect(queryByTestId('add-rewards-account')).toBeNull();
     });
@@ -273,54 +175,11 @@ describe('AddRewardsAccount', () => {
 
       expect(getByTestId(customTestID)).toBeOnTheScreen();
     });
-  });
 
-  describe('Account Scope Resolution', () => {
-    it('uses account prop when provided', () => {
-      const customAccount: InternalAccount = {
-        ...mockAccount,
-        id: 'custom-account-id',
-        address: '0xCustomAddress',
-      };
+    it('calls useLinkAccountAddress with true parameter', () => {
+      renderWithProvider(<AddRewardsAccount account={mockAccount} />);
 
-      renderWithProvider(<AddRewardsAccount account={customAccount} />);
-
-      // Verify that linkAccountAddress would be called with custom account
-      // This is tested indirectly through button press
-      const { getByTestId } = renderWithProvider(
-        <AddRewardsAccount account={customAccount} />,
-      );
-
-      fireEvent.press(getByTestId('add-rewards-account'));
-
-      expect(mockLinkAccountAddress).toHaveBeenCalledWith(customAccount);
-    });
-
-    it('derives accountScope from sourceToken when account prop is not provided', () => {
-      const derivedAccount: InternalAccount = {
-        ...mockAccount,
-        id: 'derived-account-id',
-      };
-      mockGetSelectedAccountByScope.mockReturnValue(derivedAccount);
-
-      const { getByTestId } = renderWithProvider(<AddRewardsAccount />);
-
-      fireEvent.press(getByTestId('add-rewards-account'));
-
-      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith('0x1');
-      expect(mockGetSelectedAccountByScope).toHaveBeenCalledWith('eip155:1');
-      expect(mockLinkAccountAddress).toHaveBeenCalledWith(derivedAccount);
-    });
-
-    it('handles formatChainIdToCaip conversion correctly', () => {
-      mockFormatChainIdToCaip.mockReturnValue(
-        'eip155:137' as `${string}:${string}`,
-      );
-
-      renderWithProvider(<AddRewardsAccount />);
-
-      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith('0x1');
-      expect(mockGetSelectedAccountByScope).toHaveBeenCalledWith('eip155:137');
+      expect(mockUseLinkAccountAddress).toHaveBeenCalledWith(true);
     });
   });
 
@@ -339,10 +198,10 @@ describe('AddRewardsAccount', () => {
       expect(mockLinkAccountAddress).toHaveBeenCalledWith(mockAccount);
     });
 
-    it('does not call linkAccountAddress when accountScope is undefined', () => {
-      mockGetSelectedAccountByScope.mockReturnValue(undefined);
-
-      const { queryByTestId } = renderWithProvider(<AddRewardsAccount />);
+    it('does not call linkAccountAddress when account is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AddRewardsAccount account={null as unknown as InternalAccount} />,
+      );
 
       expect(queryByTestId('add-rewards-account')).toBeNull();
       expect(mockLinkAccountAddress).not.toHaveBeenCalled();
@@ -357,6 +216,8 @@ describe('AddRewardsAccount', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId('add-rewards-account'));
+        // Wait for promise to settle and state update
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       // Component should return null after successful link
@@ -430,17 +291,17 @@ describe('AddRewardsAccount', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles accountScope becoming undefined after initial render', () => {
+    it('handles account becoming null after initial render', () => {
       const { rerender, queryByTestId } = renderWithProvider(
         <AddRewardsAccount account={mockAccount} />,
       );
 
       expect(queryByTestId('add-rewards-account')).toBeOnTheScreen();
 
-      // Simulate accountScope becoming undefined
-      mockGetSelectedAccountByScope.mockReturnValue(undefined);
-
-      rerender(<AddRewardsAccount />);
+      // Simulate account becoming null
+      rerender(
+        <AddRewardsAccount account={null as unknown as InternalAccount} />,
+      );
 
       expect(queryByTestId('add-rewards-account')).toBeNull();
     });

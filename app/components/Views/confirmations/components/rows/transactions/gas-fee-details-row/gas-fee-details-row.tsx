@@ -36,6 +36,7 @@ import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
+import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -56,6 +57,7 @@ const EstimationInfo = ({
   feeCalculations,
   fiatOnly,
   isGasFeeSponsored,
+  isBatch = false,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations:
@@ -63,6 +65,7 @@ const EstimationInfo = ({
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  isBatch?: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
   const { styles } = useStyles(styleSheet, {});
@@ -76,6 +79,7 @@ const EstimationInfo = ({
     hideFiatForTestnet || !fiatValue
       ? styles.primaryValue
       : styles.secondaryValue;
+
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, simulationData, networkClientId } =
     (transactionMetadata as TransactionMeta) ?? {};
@@ -84,7 +88,9 @@ const EstimationInfo = ({
     simulationData,
     networkClientId,
   });
-  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
+
+  const isSimulationLoading =
+    !isBatch && (!simulationData || balanceChangesResult.pending);
 
   return (
     <View style={styles.estimationContainer}>
@@ -139,6 +145,7 @@ const BatchEstimateInfo = ({
   const feeCalculations = useFeeCalculationsTransactionBatch(
     transactionBatchesMetadata as TransactionBatchMeta,
   );
+  const isBatch = Boolean(transactionBatchesMetadata);
 
   return (
     <EstimationInfo
@@ -146,6 +153,7 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      isBatch={isBatch}
     />
   );
 };
@@ -273,6 +281,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
+          tooltipColor={IconColor.Alternative}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>

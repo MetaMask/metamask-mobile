@@ -182,13 +182,32 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Mock usePerpsConnection hook directly to ensure all hooks that import it get the mock
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: () => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
+  }),
+}));
+
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
 }));
 
@@ -221,6 +240,23 @@ const mockUsePerpsOpenOrdersImpl = jest.fn(() => ({
 
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
+}));
+
+const mockUsePerpsOrderFillsImpl = jest.fn<
+  ReturnType<
+    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+  >,
+  []
+>(() => ({
+  orderFills: [],
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  isRefreshing: false,
+}));
+
+jest.mock('../../hooks/usePerpsOrderFills', () => ({
+  usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -266,12 +302,28 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsPrices', () => ({
+  usePerpsPrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
+  useIsPriceDeviatedAboveThreshold: jest.fn(() => ({
+    isDeviatedAboveThreshold: false,
+    isLoading: false,
+  })),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
   usePerpsOpenOrders: () => ({
     orders: [],
@@ -319,6 +371,37 @@ jest.mock('../../hooks', () => ({
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
+  usePositionManagement: jest.fn(() => ({
+    showModifyActionSheet: false,
+    showAdjustMarginActionSheet: false,
+    showReversePositionSheet: false,
+    modifyActionSheetRef: { current: null },
+    adjustMarginActionSheetRef: { current: null },
+    reversePositionSheetRef: { current: null },
+    openModifySheet: jest.fn(),
+    closeModifySheet: jest.fn(),
+    openAdjustMarginSheet: jest.fn(),
+    closeAdjustMarginSheet: jest.fn(),
+    openReversePositionSheet: jest.fn(),
+    closeReversePositionSheet: jest.fn(),
+    handleReversePosition: jest.fn(),
+  })),
+}));
+
+// Mock usePerpsABTest to return default variant
+jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
+  usePerpsABTest: () => ({
+    variantName: 'semantic',
+    isEnabled: false,
+  }),
+}));
+
+// Mock usePerpsOICap to return not at cap by default
+jest.mock('../../hooks/usePerpsOICap', () => ({
+  usePerpsOICap: () => ({
+    isAtCap: false,
+    capPercentage: 50,
+  }),
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -494,6 +577,15 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+
+    // Reset order fills mock to default
+    mockUsePerpsOrderFillsImpl.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   // Clean up mocks after each test
@@ -686,7 +778,7 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
-    it('renders long/short buttons when user has balance and existing position', () => {
+    it('renders modify/close buttons when user has balance and existing position', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
@@ -723,7 +815,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: jest.fn(),
       });
 
-      const { getByTestId, queryByText } = renderWithProvider(
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -732,13 +824,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Shows long/short buttons even with existing position
+      // Shows modify/close buttons when existing position exists (not long/short buttons)
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON),
       ).toBeTruthy();
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
       ).toBeTruthy();
+
+      // Long/short buttons should NOT be shown when position exists
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
 
       // Does not show add funds message
       expect(queryByText('Add funds to start trading perps')).toBeNull();
@@ -829,7 +929,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
-    it('refreshes statistics data when statistics tab is active', async () => {
+    it('refreshes statistics data via WebSocket', async () => {
       // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
@@ -856,7 +956,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: mockRefreshPosition,
       });
 
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -864,10 +964,6 @@ describe('PerpsMarketDetailsView', () => {
           state: initialState,
         },
       );
-
-      // Act - Switch to statistics tab
-      const statisticsTab = getByText('Overview');
-      fireEvent.press(statisticsTab);
 
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
@@ -1572,6 +1668,97 @@ describe('PerpsMarketDetailsView', () => {
         expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
         expect(getByTestId('fullscreen-chart')).toBeTruthy();
       });
+    });
+  });
+
+  describe('Position opened timestamp calculation', () => {
+    it('computes position opened timestamp from order fills data', () => {
+      // Arrange
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          coin: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      mockUsePerpsOrderFillsImpl.mockReturnValue({
+        orderFills: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: timestamp - 2000,
+            size: '0.3',
+            price: '43000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-2',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp,
+            size: '0.5',
+            price: '44000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-3',
+            symbol: 'ETH',
+            side: 'sell',
+            direction: 'Open Short',
+            timestamp: timestamp - 1000,
+            size: '1.0',
+            price: '3000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+      expect(mockUsePerpsOrderFillsImpl).toHaveBeenCalled();
     });
   });
 

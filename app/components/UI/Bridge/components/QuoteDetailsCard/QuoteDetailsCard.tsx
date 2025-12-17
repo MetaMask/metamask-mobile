@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -29,7 +29,8 @@ import {
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -38,6 +39,9 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
 
 if (
   Platform.OS === 'android' &&
@@ -50,11 +54,6 @@ const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
-
-  const locale = I18n.locale;
-  const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumSignificantDigits: 8,
-  });
 
   const {
     formattedQuoteData,
@@ -71,10 +70,50 @@ const QuoteDetailsCard: React.FC = () => {
     shouldShowRewardsRow,
     hasError: hasRewardsError,
     accountOptedIn,
+    rewardsAccountScope,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
   });
+
+  const gasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
+
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  const nativeTokenName = useMemo(() => {
+    const chainId = sourceToken?.chainId;
+    if (!chainId) return undefined;
+    const native = getNativeSourceToken(chainId);
+    return native?.symbol ?? sourceToken?.symbol ?? '';
+  }, [sourceToken?.chainId, sourceToken?.symbol]);
+
+  const isCurrentNetworkGasSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !gasFeesSponsoredNetworkEnabled) {
+      return false;
+    }
+    return gasFeesSponsoredNetworkEnabled(sourceToken.chainId);
+  }, [sourceToken?.chainId, gasFeesSponsoredNetworkEnabled]);
+
+  const shouldShowGasSponsored = useMemo(() => {
+    const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
+  }, [
+    activeQuote?.quote?.gasSponsored,
+    insufficientBal,
+    isCurrentNetworkGasSponsored,
+  ]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -95,9 +134,11 @@ const QuoteDetailsCard: React.FC = () => {
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
-  const formattedMinToTokenAmount = intlNumberFormatter.format(
-    parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
+  const formattedMinToTokenAmount = formatMinimumReceived(
+    activeQuote?.minToTokenAmount?.amount || '0',
   );
 
   return (
@@ -141,7 +182,29 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
+        {shouldShowGasSponsored ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_sponsored', {
+                  nativeToken: nativeTokenName,
+                }),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: strings('bridge.gas_fees_sponsored'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        ) : isGasless ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -265,7 +328,7 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
+                content: isGasless
                   ? strings('bridge.price_impact_info_gasless_description')
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
@@ -323,8 +386,13 @@ const QuoteDetailsCard: React.FC = () => {
                               : RewardAnimationState.Idle
                         }
                       />
+                    ) : rewardsAccountScope ? (
+                      <AddRewardsAccount
+                        testID="bridge-add-rewards-account"
+                        account={rewardsAccountScope}
+                      />
                     ) : (
-                      <AddRewardsAccount testID="bridge-add-rewards-account" />
+                      <></>
                     )}
                   </Box>
                 ),

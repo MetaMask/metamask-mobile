@@ -50,7 +50,6 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
-  FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
@@ -96,6 +95,7 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
+import { PredictFeeCollection } from '../../types/flags';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -868,7 +868,10 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & { signer?: Signer },
+    params: Omit<PreviewOrderParams, 'providerId'> & {
+      signer: Signer;
+      feeCollection?: PredictFeeCollection;
+    },
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
@@ -1062,7 +1065,7 @@ export class PolymarketProvider implements PredictProvider {
           safeAddress,
           signer,
           amount: feeAmountInUsdc,
-          to: FEE_COLLECTOR_ADDRESS,
+          to: fees.collector,
         });
       }
 
@@ -1080,7 +1083,11 @@ export class PolymarketProvider implements PredictProvider {
           outcomeTokenId,
         });
         if (error.includes(`order couldn't be fully filled`)) {
-          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+          throw new Error(
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+          );
         }
         if (
           error.includes(`not available in your region`) ||

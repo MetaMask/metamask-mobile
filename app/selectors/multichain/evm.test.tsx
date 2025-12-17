@@ -156,7 +156,7 @@ describe('Multichain Selectors', () => {
         '0x1': {
           balance: '0x1',
           stakedBalance: '0x2',
-          isStaked: true,
+          isStaked: false,
           name: '',
         },
         '0x89': {
@@ -500,11 +500,13 @@ describe('Multichain Selectors', () => {
       } as unknown as RootState;
 
       const result = selectEvmTokensWithZeroBalanceFilter(testState);
-
       expect(result).toBeDefined();
       expect(result.every((token) => token.isNative === true)).toBeTruthy();
       expect(result.every((token) => token.balance === '0')).toBeTruthy();
-      expect(result.length).toBe(2); // Native tokens should remain
+      expect(
+        result.some((token) => token.name === 'Staked Ethereum'),
+      ).toBeTruthy();
+      expect(result.length).toBe(3); // Native tokens should remain and Staked Ethereum
     });
   });
 

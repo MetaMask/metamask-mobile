@@ -68,17 +68,21 @@ export const PerpsChartFullscreenModalSelectorsIDs = {
 
 export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
-  // Test mock selectors (for component testing)
-  COIN: 'position-card-coin',
-  SIZE: 'position-card-size',
-  PNL: 'position-card-pnl',
-  CLOSE_BUTTON: 'position-card-close',
-  EDIT_BUTTON: 'position-card-edit',
+  HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
-  TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-view-orders',
-  TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-got-it',
+  PNL_CARD: 'position-card-pnl',
+  PNL_VALUE: 'position-card-pnl-value',
+  RETURN_CARD: 'position-card-return',
+  RETURN_VALUE: 'position-card-return-value',
+  SIZE_CONTAINER: 'position-card-size',
+  SIZE_VALUE: 'position-card-size-value',
+  FLIP_ICON: 'position-card-flip-icon',
+  MARGIN_CONTAINER: 'position-card-margin',
+  MARGIN_VALUE: 'position-card-margin-value',
+  MARGIN_CHEVRON: 'position-card-margin-chevron',
+  AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
+  DETAILS_SECTION: 'position-card-details',
+  DIRECTION_VALUE: 'position-card-direction-value',
 };
 
 // ========================================
@@ -333,6 +337,12 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
+  CLOSE_BUTTON: 'perps-market-details-close-button',
+  MODIFY_BUTTON: 'perps-market-details-modify-button',
+  SHARE_BUTTON: 'perps-market-details-share-button',
+  ADD_TPSL_BUTTON: 'perps-market-details-add-tpsl-button',
+  MODIFY_ACTION_SHEET: 'perps-market-details-modify-action-sheet',
+  ADJUST_MARGIN_ACTION_SHEET: 'perps-market-details-adjust-margin-action-sheet',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
@@ -343,6 +353,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_INFO_BUTTON: 'perps-market-hours-banner-info-button',
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
+  STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
 };
 
 // ========================================
@@ -445,9 +456,21 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
+  LEARN_MORE_BUTTON: 'perps-tutorial-learn-more-button',
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
+} as const;
+
+// ========================================
+// PERPS STOP LOSS PROMPT BANNER SELECTORS
+// ========================================
+
+export const PerpsStopLossPromptSelectorsIDs = {
+  CONTAINER: 'perps-stop-loss-prompt-container',
+  ADD_MARGIN_BUTTON: 'perps-stop-loss-prompt-add-margin-button',
+  TOGGLE: 'perps-stop-loss-prompt-toggle',
+  LOADING: 'perps-stop-loss-prompt-loading',
 } as const;
 
 // ========================================
@@ -593,4 +616,44 @@ export const PerpsGeneralSelectorsIDs = {
   // Common action buttons that may appear in flows (keep for E2E compatibility)
   CONTINUE_BUTTON: 'continue-button',
   DONE_BUTTON: 'done-button',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderBookViewSelectorsIDs = {
+  CONTAINER: 'perps-order-book-view',
+  BACK_BUTTON: 'perps-order-book-back-button',
+  SCROLL_VIEW: 'perps-order-book-scroll-view',
+  DEPTH_CHART: 'perps-order-book-depth-chart',
+  TABLE: 'perps-order-book-table',
+  LONG_BUTTON: 'perps-order-book-long-button',
+  SHORT_BUTTON: 'perps-order-book-short-button',
+  DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
+  DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
+  UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
+  UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
+  SPREAD_INFO_BUTTON: 'perps-order-book-spread-info-button',
+  BOTTOM_SHEET_TOOLTIP: 'perps-order-book-tooltip',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK TABLE SELECTORS
+// ========================================
+
+export const PerpsOrderBookTableSelectorsIDs = {
+  CONTAINER: 'perps-order-book-table',
+  UNIT_TOGGLE: 'perps-order-book-unit-toggle',
+  BID_ROW: 'perps-order-book-bid-row',
+  ASK_ROW: 'perps-order-book-ask-row',
+  SPREAD: 'perps-order-book-spread',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK DEPTH CHART SELECTORS
+// ========================================
+
+export const PerpsOrderBookDepthChartSelectorsIDs = {
+  CONTAINER: 'perps-order-book-depth-chart',
 } as const;

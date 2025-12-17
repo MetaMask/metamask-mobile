@@ -23,7 +23,12 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -88,6 +93,13 @@ import { createAddFundsModalNavigationDetails } from '../../components/AddFundsB
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 
 /**
+ * Route params for CardHome screen
+ */
+interface CardHomeRouteParams {
+  showDeeplinkToast?: boolean;
+}
+
+/**
  * CardHome Component
  *
  * Main view for the MetaMask Card feature that displays:
@@ -111,11 +123,14 @@ const CardHome = () => {
   const isComponentUnmountedRef = useRef(false);
   const hasShownKYCAlertRef = useRef(false);
   const hasShownKYCErrorAlertRef = useRef(false);
+  const hasShownDeeplinkToast = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
   ] = useState(true);
 
+  const route =
+    useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -160,7 +175,8 @@ const CardHome = () => {
 
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
+    useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -258,6 +274,25 @@ const CardHome = () => {
     createEventBuilder,
     isSDKLoading,
   ]);
+
+  // Show toast notification when navigating from deeplink
+  useEffect(() => {
+    if (
+      route.params?.showDeeplinkToast &&
+      !hasShownDeeplinkToast.current &&
+      toastRef?.current
+    ) {
+      hasShownDeeplinkToast.current = true;
+      toastRef.current.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_button_already_enabled_toast') },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Info,
+      });
+    }
+  }, [route.params?.showDeeplinkToast, toastRef]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -992,15 +1027,35 @@ const CardHome = () => {
           onPress={navigateToCardPage}
           testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
         />
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.travel_title')}
+          description={strings(
+            'card.card_home.manage_card_options.travel_description',
+          )}
+          rightIcon={IconName.Export}
+          onPress={navigateToTravelPage}
+          testID={CardHomeSelectors.TRAVEL_ITEM}
+        />
       </View>
 
       {isAuthenticated && (
-        <ManageCardListItem
-          title={strings('card.card_home.logout')}
-          description={strings('card.card_home.logout_description')}
-          rightIcon={IconName.Logout}
-          onPress={logoutAction}
-        />
+        <>
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.card_tos_title')}
+            description={strings(
+              'card.card_home.manage_card_options.card_tos_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToCardTosPage}
+            testID={CardHomeSelectors.CARD_TOS_ITEM}
+          />
+          <ManageCardListItem
+            title={strings('card.card_home.logout')}
+            description={strings('card.card_home.logout_description')}
+            rightIcon={IconName.Logout}
+            onPress={logoutAction}
+          />
+        </>
       )}
     </ScrollView>
   );

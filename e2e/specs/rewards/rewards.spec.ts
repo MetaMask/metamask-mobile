@@ -13,10 +13,8 @@ import {
   setUpRewardsOnboardingMocks,
 } from './rewards.mocks';
 
-describe(SmokeRewards('Rewards Feature Test'), () => {
-  // This test should not have been affected by BIP-44 but it is failing
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('should opt-in to rewards successfully', async () => {
+describe.skip(SmokeRewards('Rewards Feature Test'), () => {
+  it('should opt-in to rewards successfully', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setUpRewardsOnboardingMocks(mockServer);
     };

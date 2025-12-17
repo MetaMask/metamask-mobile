@@ -37,6 +37,8 @@ import {
   Recurrence,
   Side,
 } from '../../types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
@@ -739,6 +741,8 @@ describe('PolymarketProvider', () => {
         metamaskFee: 0.02,
         providerFee: 0.02,
         totalFee: 0.04,
+        totalFeePercentage: 0.04,
+        collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
       },
       ...overrides,
     };
@@ -1102,6 +1106,54 @@ describe('PolymarketProvider', () => {
       expect(result.error).toBe('Maker address not found');
     });
 
+    it('returns BUY_ORDER_NOT_FULLY_FILLED error when buy order cannot be fully filled', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: false,
+        response: undefined,
+        error: `order couldn't be fully filled`,
+      });
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+    });
+
+    it('returns SELL_ORDER_NOT_FULLY_FILLED error when sell order cannot be fully filled', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: false,
+        response: undefined,
+        error: `order couldn't be fully filled`,
+      });
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+      );
+    });
+
     it('fetches account state when not cached during placeOrder', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({ side: Side.BUY });
@@ -1162,6 +1214,11 @@ describe('PolymarketProvider', () => {
   describe('previewOrder', () => {
     it('calls previewOrder utility function with correct parameters', async () => {
       const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
       const mockParams = {
         marketId: 'market-123',
         outcomeId: 'outcome-456',
@@ -1169,6 +1226,7 @@ describe('PolymarketProvider', () => {
         side: Side.BUY,
         amount: 100,
         size: 100,
+        signer: mockSigner,
       };
 
       await provider.previewOrder(mockParams);
@@ -1309,7 +1367,13 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1325,7 +1389,13 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1346,7 +1416,13 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1367,7 +1443,13 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1394,11 +1476,17 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
+    it('uses collector from fees as recipient', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1423,7 +1511,13 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+        fees: {
+          metamaskFee: 0,
+          providerFee: 0,
+          totalFee: 0,
+          totalFeePercentage: 0,
+          collector: '0x0',
+        },
       });
 
       await provider.placeOrder({
@@ -3379,6 +3473,8 @@ describe('PolymarketProvider', () => {
             metamaskFee: 0.5,
             providerFee: 0.5,
             totalFee: 1,
+            totalFeePercentage: 1,
+            collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
           },
         });
       };
@@ -3405,21 +3501,6 @@ describe('PolymarketProvider', () => {
         });
 
         expect(sellPreview.rateLimited).toBe(true);
-      });
-
-      it('does not set rateLimited when signer is not provided', async () => {
-        setupPreviewOrderMock();
-        const { provider } = setupPlaceOrderTest();
-
-        const preview = await provider.previewOrder({
-          marketId: 'market-1',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: '0',
-          side: Side.BUY,
-          size: 10,
-        });
-
-        expect(preview.rateLimited).toBeUndefined();
       });
 
       it('does not set rateLimited when address has never placed an order', async () => {

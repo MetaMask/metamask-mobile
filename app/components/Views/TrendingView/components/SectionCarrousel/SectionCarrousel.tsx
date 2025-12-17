@@ -1,6 +1,6 @@
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Dimensions } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
@@ -13,15 +13,34 @@ const CARD_HEIGHT = 220;
 
 export interface SectionCarrouselProps {
   sectionId: SectionId;
+  refreshTrigger?: number;
+  toggleSectionEmptyState?: (isEmpty: boolean) => void;
 }
 
-const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
+const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
+  sectionId,
+  refreshTrigger,
+  toggleSectionEmptyState,
+}) => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading } = section.useSectionData();
+  const { data, isLoading, refetch } = section.useSectionData();
+
+  // Notify parent when data empty state changes (only after loading completes)
+  useEffect(() => {
+    if (!isLoading && toggleSectionEmptyState) {
+      toggleSectionEmptyState(data.length === 0);
+    }
+  }, [data.length, isLoading, toggleSectionEmptyState]);
+
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0 && refetch) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const skeletonCount = 3;
   const skeletonData = Array.from({ length: skeletonCount });
@@ -53,7 +72,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
         keyExtractor={
           isLoading
             ? (_, index) => `skeleton-${index}`
-            : (item) => section.keyExtractor(item)
+            : (_, index) => `${section.id}-${index}`
         }
         horizontal
         pagingEnabled={false}

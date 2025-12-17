@@ -149,6 +149,11 @@ export interface PerpsToastOptionsConfig {
       updateTPSLSuccess: PerpsToastOptions;
       updateTPSLError: (error?: string) => PerpsToastOptions;
     };
+    margin: {
+      addSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
+      removeSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
+      adjustmentFailed: (error?: string) => PerpsToastOptions;
+    };
   };
   formValidation: {
     orderForm: {
@@ -813,6 +818,37 @@ const usePerpsToasts = (): {
               ...perpsBaseToastOptions.error,
               labelOptions: getPerpsToastLabels(
                 strings('perps.position.tpsl.update_failed'),
+                errorMessage,
+              ),
+            };
+          },
+        },
+        margin: {
+          addSuccess: (assetSymbol: string, amount: string) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.add_success', {
+                amount,
+                asset: assetSymbol,
+              }),
+            ),
+          }),
+          removeSuccess: (assetSymbol: string, amount: string) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.remove_success', {
+                amount,
+                asset: assetSymbol,
+              }),
+            ),
+          }),
+          adjustmentFailed: (error?: string) => {
+            const errorMessage = error || strings('perps.errors.unknown');
+
+            return {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.position.margin.adjustment_failed'),
                 errorMessage,
               ),
             };

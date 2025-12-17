@@ -24,6 +24,7 @@ export const backgroundState: EngineState =
 
 const initialRootState: RootState = {
   legalNotices: {
+    isPna25Acknowledged: false,
     newPrivacyPolicyToastClickedOrClosed: false,
     newPrivacyPolicyToastShownDate: null,
   },

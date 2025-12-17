@@ -73,7 +73,12 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'linea-us' | 'solana';
+export type CardNetwork = 'linea' | 'linea-us' | 'solana' | 'base';
+
+export interface CardNetworkInfo {
+  caipChainId: CaipChainId;
+  rpcUrl?: string;
+}
 
 export interface CardLoginResponse {
   phase: CardUserPhase | null;

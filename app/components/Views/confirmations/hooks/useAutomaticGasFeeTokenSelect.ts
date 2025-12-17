@@ -4,12 +4,11 @@ import { updateSelectedGasFeeToken } from '../../../../util/transaction-controll
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { useIsInsufficientBalance } from './useIsInsufficientBalance';
+import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 
 export function useAutomaticGasFeeTokenSelect() {
-  const { isSupported: isGaslessSupported, isSmartTransaction } =
-    useIsGaslessSupported();
-  const hasInsufficientBalance = useIsInsufficientBalance();
+  const { isSmartTransaction } = useIsGaslessSupported();
+  const { hasInsufficientBalance } = useHasInsufficientBalance();
   const transactionMeta =
     (useTransactionMetadataRequest() as TransactionMeta) ??
     ({} as TransactionMeta);
@@ -36,7 +35,6 @@ export function useAutomaticGasFeeTokenSelect() {
 
   const shouldSelect =
     !checked &&
-    isGaslessSupported &&
     hasInsufficientBalance &&
     !selectedGasFeeToken &&
     Boolean(firstGasFeeTokenAddress);

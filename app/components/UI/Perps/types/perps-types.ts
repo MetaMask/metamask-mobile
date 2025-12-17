@@ -87,3 +87,33 @@ export interface ReconnectOptions {
    */
   force?: boolean;
 }
+
+/**
+ * Extended asset metadata including Growth Mode fields not in SDK types.
+ * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+ */
+export interface ExtendedAssetMeta {
+  name: string;
+  szDecimals: number;
+  maxLeverage: number;
+  /** Per-asset Growth Mode status - "enabled" means 90% fee reduction */
+  growthMode?: 'enabled' | null;
+  /** ISO timestamp of last Growth Mode change */
+  lastGrowthModeChangeTime?: string;
+}
+
+/**
+ * Extended perp DEX info including fee scale fields not in SDK types.
+ * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+ */
+export interface ExtendedPerpDex {
+  name: string;
+  fullName?: string;
+  deployer?: string;
+  /** DEX-level fee scale (e.g., "1.0" for xyz DEX) - determines HIP-3 multiplier */
+  deployerFeeScale?: string;
+  /** ISO timestamp of last fee scale change */
+  lastDeployerFeeScaleChangeTime?: string;
+}

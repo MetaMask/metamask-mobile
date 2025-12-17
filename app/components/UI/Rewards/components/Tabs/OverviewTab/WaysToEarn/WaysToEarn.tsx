@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FlatList, Linking } from 'react-native';
 import {
   Box,
@@ -25,12 +25,15 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
+import { toCaipAssetType } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
+import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import {
   useFeatureFlag,
   FeatureFlagNames,
@@ -41,6 +44,8 @@ import {
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
+import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -50,6 +55,7 @@ export enum WayToEarnType {
   PREDICT = 'predict',
   CARD = 'card',
   DEPOSIT_MUSD = 'deposit_musd',
+  HOLD_MUSD = 'hold_musd',
 }
 
 interface WayToEarn {
@@ -100,6 +106,12 @@ const waysToEarn: WayToEarn[] = [
     type: WayToEarnType.DEPOSIT_MUSD,
     title: strings('rewards.ways_to_earn.deposit_musd.title'),
     description: strings('rewards.ways_to_earn.deposit_musd.description'),
+    icon: IconName.Coin,
+  },
+  {
+    type: WayToEarnType.HOLD_MUSD,
+    title: strings('rewards.ways_to_earn.hold_musd.title'),
+    description: strings('rewards.ways_to_earn.hold_musd.description'),
     icon: IconName.Coin,
   },
 ];
@@ -225,6 +237,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
       };
+    case WayToEarnType.HOLD_MUSD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.hold_musd.sheet.title')}
+            points={strings('rewards.ways_to_earn.hold_musd.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.hold_musd.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.hold_musd.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -234,10 +261,11 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
+  const isMusdHoldingEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnableMusdHolding,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -245,6 +273,16 @@ export const WaysToEarn = () => {
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
   });
+
+  // Create CAIP-19 assetId for mUSD to use with buy page
+  const musdAssetId = useMemo(() => {
+    const chainId = NETWORKS_CHAIN_ID.LINEA_MAINNET;
+    const address = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const decimalChainId = getDecimalChainId(chainId);
+    return toCaipAssetType('eip155', decimalChainId, 'erc20', address);
+  }, []);
+
+  const { goToBuy } = useRampNavigation();
 
   const goToPerps = useCallback(() => {
     if (isFirstTimePerpsUser) {
@@ -289,6 +327,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.DEPOSIT_MUSD:
         Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
+      case WayToEarnType.HOLD_MUSD:
+        goToBuy({ assetId: musdAssetId });
+        break;
     }
   };
 
@@ -307,7 +348,8 @@ export const WaysToEarn = () => {
       case WayToEarnType.PERPS:
       case WayToEarnType.PREDICT:
       case WayToEarnType.CARD:
-      case WayToEarnType.DEPOSIT_MUSD: {
+      case WayToEarnType.DEPOSIT_MUSD:
+      case WayToEarnType.HOLD_MUSD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -354,6 +396,9 @@ export const WaysToEarn = () => {
               wte.type === WayToEarnType.DEPOSIT_MUSD &&
               !isMusdDepositEnabled
             ) {
+              return false;
+            }
+            if (wte.type === WayToEarnType.HOLD_MUSD && !isMusdHoldingEnabled) {
               return false;
             }
             return true;

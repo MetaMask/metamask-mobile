@@ -23,6 +23,7 @@ import Logger from '../../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../../components/MenuItem';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { useRampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
@@ -39,6 +40,7 @@ function ConfigurationModal() {
   const { goToAggregator } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
+  const buttonClickData = useRampsButtonClickData();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -60,10 +62,20 @@ function ConfigurationModal() {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: selectedRegion?.isoCode as string,
+      ramp_routing: buttonClickData.ramp_routing,
+      is_authenticated: buttonClickData.is_authenticated,
+      preferred_provider: buttonClickData.preferred_provider,
+      order_count: buttonClickData.order_count,
     });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
     goToAggregator();
-  }, [navigation, selectedRegion?.isoCode, trackEvent, goToAggregator]);
+  }, [
+    navigation,
+    selectedRegion?.isoCode,
+    trackEvent,
+    goToAggregator,
+    buttonClickData,
+  ]);
 
   const handleLogOut = useCallback(async () => {
     try {

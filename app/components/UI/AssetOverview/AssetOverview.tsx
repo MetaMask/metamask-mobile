@@ -96,10 +96,14 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  selectAsset,
+} from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -167,11 +171,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const strxBandwidth = tronResources.find(
     (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
   );
+
+  // Use selector to get live Tron asset balance (not static navigation params)
+  const isTronChain = String(asset.chainId).startsWith('tron:');
+  const liveAsset = useSelector((state: RootState) =>
+    isTronChain && asset.address && asset.chainId
+      ? selectAsset(state, {
+          address: asset.address,
+          chainId: asset.chainId,
+          isStaked: false,
+        })
+      : undefined,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
-
+  const rampsButtonClickData = useRampsButtonClickData();
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -314,7 +330,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
 
-    navigateToSendPage(InitSendLocation.AssetOverview, asset);
+    navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
   };
 
   const onBuy = () => {
@@ -340,18 +356,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToBuy({ assetId });
-
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'BUY',
           region: rampGeodetectedRegion,
+          ramp_routing: rampsButtonClickData.ramp_routing,
+          is_authenticated: rampsButtonClickData.is_authenticated,
+          preferred_provider: rampsButtonClickData.preferred_provider,
+          order_count: rampsButtonClickData.order_count,
         })
         .build(),
     );
+
+    goToBuy({ assetId });
   };
 
   const goToBrowserUrl = (url: string) => {
@@ -491,13 +512,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && asset.balance != null) {
+  // Determine the balance source - prefer live data for Tron, otherwise use asset prop
+  let balanceSource = asset.balance;
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (isTronChain && liveAsset?.balance != null) {
+    balanceSource = liveAsset.balance;
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  if (isMultichainAccountsState2Enabled && balanceSource != null) {
     // When state2 is enabled and asset has balance, use it directly
-    balance = asset.balance;
+    balance = balanceSource;
   } else if (isMultichainAsset) {
-    balance = asset.balance
+    balance = balanceSource
       ? formatWithThreshold(
-          parseFloat(asset.balance),
+          parseFloat(balanceSource),
           minimumDisplayThreshold,
           I18n.locale,
           { minimumFractionDigits: 0, maximumFractionDigits: 5 },
@@ -562,7 +591,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
-  let mainBalance = asset.balanceFiat || '';
+  let balanceFiatSource = asset.balanceFiat;
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (isTronChain && liveAsset?.balanceFiat != null) {
+    balanceFiatSource = liveAsset.balanceFiat;
+  }
+  ///: END:ONLY_INCLUDE_IF
+  let mainBalance = balanceFiatSource || '';
   if (!mainBalance && balance != null) {
     // Convert balance to number for calculations
     const balanceNumber =

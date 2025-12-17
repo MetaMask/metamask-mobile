@@ -95,7 +95,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         getGasFeeEstimates: (...args) =>
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
-          // @ts-expect-error - NetworkController registry type mismatch between peer dependencies
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
@@ -131,7 +130,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           updateTransactions: true,
         },
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
-          const { chainId } = transactionMeta;
+          const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
 
           const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
@@ -143,8 +142,13 @@ export const TransactionControllerInit: ControllerInitFunction<
 
           // EIP7702 gas fee tokens are enabled when:
           // - Smart transactions are NOT enabled, OR
-          // - Send bundle is NOT supported
-          return !isSmartTransactionEnabled || !isSendBundleSupportedChain;
+          // - Send bundle is NOT supported, OR
+          // - Gas fee token was provided when creating transaction
+          return (
+            !isSmartTransactionEnabled ||
+            !isSendBundleSupportedChain ||
+            Boolean(isExternalSign)
+          );
         },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
@@ -214,7 +218,9 @@ async function publishHook({
     return payResult;
   }
 
-  if (!shouldUseSmartTransaction || !sendBundleSupport) {
+  const { isExternalSign } = transactionMeta;
+
+  if (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,

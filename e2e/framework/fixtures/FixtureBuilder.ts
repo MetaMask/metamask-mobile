@@ -184,6 +184,7 @@ class FixtureBuilder {
     this.fixture = {
       state: {
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),
         },
@@ -799,6 +800,7 @@ class FixtureBuilder {
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
+        '@MetaMask:predictGTMModalShown': 'true',
       },
     };
     return this;

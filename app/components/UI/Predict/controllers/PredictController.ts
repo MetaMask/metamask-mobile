@@ -80,6 +80,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
+import { PredictFeeCollection } from '../types/flags';
 
 /**
  * State shape for PredictController
@@ -1265,9 +1267,16 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const feeCollection =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictFeeCollection as unknown as
+          | PredictFeeCollection
+          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
+
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({ ...params, signer, feeCollection });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1659,6 +1668,10 @@ export class PredictController extends BaseController<
             country: geoBlockResponse.country,
           });
           geoBlockResponse.isEligible = !isLocallyGeoblocked;
+        }
+        if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+          geoBlockResponse.isEligible = true;
+          geoBlockResponse.country = 'N/A';
         }
         this.update((state) => {
           state.eligibility[providerId] = {
@@ -2112,7 +2125,7 @@ export class PredictController extends BaseController<
         newParams,
         networkClientId,
       );
-      updatedGas = estimateResult.gas;
+      updatedGas = estimateResult.gas as Hex;
     } catch (error) {
       // Log the error but continue - we'll use the original gas values
       DevLogger.log(

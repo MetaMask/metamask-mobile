@@ -50,7 +50,6 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     >;
 
     const shouldShowTopItems = !debouncedQuery.trim();
-    const searchTerm = debouncedQuery.toLowerCase();
 
     // Process each section generically
     SECTIONS_ARRAY.forEach((section) => {
@@ -64,9 +63,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
         data[section.id] = sectionData.data.slice(0, 3);
       } else {
         // Filter items based on section's searchable text
-        data[section.id] = sectionData.data.filter((item) =>
-          section.getSearchableText(item).includes(searchTerm),
-        );
+        data[section.id] = sectionData.data;
       }
     });
 

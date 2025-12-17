@@ -49,7 +49,7 @@ export const styleSheet = (params: {
     },
     currencyTag: {
       alignSelf: 'center',
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       color: theme.colors.text.alternative,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
@@ -64,7 +64,7 @@ export const styleSheet = (params: {
     inputText: {
       fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
-      fontFamily: 'Geist Medium',
+      fontFamily: 'Geist-Medium',
     },
     inputWrapper: {
       alignItems: 'center',

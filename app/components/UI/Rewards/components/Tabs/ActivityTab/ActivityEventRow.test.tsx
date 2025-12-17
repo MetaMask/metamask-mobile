@@ -1,14 +1,21 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { ActivityEventRow } from './ActivityEventRow';
-import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  CardEventPayload,
+  PerpsEventPayload,
+  PointsEventDto,
+  SeasonActivityTypeDto,
+  SwapEventPayload,
+} from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { formatRewardsDate } from '../../../utils/formatUtils';
 import { getEventDetails } from '../../../utils/eventDetailsUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import TEST_ADDRESS from '../../../../../../constants/address';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import { selectSeasonActivityTypes } from '../../../../../../reducers/rewards/selectors';
 
 // Mock the utility functions
 jest.mock('../../../utils/formatUtils', () => ({
@@ -76,6 +83,53 @@ const mockUseActivityDetailsConfirmAction =
   useActivityDetailsConfirmAction as jest.MockedFunction<
     typeof useActivityDetailsConfirmAction
   >;
+jest.mock('../../../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(),
+}));
+
+jest.mock('@metamask/utils', () => ({
+  parseCaipAssetType: jest.fn(),
+}));
+
+jest.mock('./EventDetails/ActivityDetailsSheet', () => ({
+  openActivityDetailsSheet: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import { parseCaipAssetType } from '@metamask/utils';
+import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
+import { ModalAction } from '../../RewardsBottomSheetModal';
+jest.mock(
+  '../../../../../../component-library/components/Badges/Badge',
+  () => ({
+    __esModule: true,
+    default: ({ children }: { children?: React.ReactNode }) => children ?? null,
+    BadgeVariant: { Network: 'Network' },
+  }),
+);
+
+jest.mock(
+  '../../../../../../component-library/components/Badges/BadgeWrapper',
+  () => ({
+    __esModule: true,
+    default: ({ children }: { children?: React.ReactNode }) => children ?? null,
+    BadgePosition: { BottomRight: 'BottomRight' },
+  }),
+);
+
+jest.mock(
+  '../../../../../../component-library/components/Avatars/Avatar',
+  () => ({
+    __esModule: true,
+    AvatarSize: { Sm: 'Sm' },
+  }),
+);
 
 describe('ActivityEventRow', () => {
   // Helper to create a valid PointsEventDto for all event types
@@ -253,11 +307,31 @@ describe('ActivityEventRow', () => {
     icon: IconName.Star,
   };
 
+  const mockActivityTypes: SeasonActivityTypeDto[] = [
+    {
+      type: 'SWAP',
+      title: 'Swap',
+      description: 'Swap desc',
+      icon: 'SwapVertical',
+    },
+    {
+      type: 'CARD',
+      title: 'Card spend',
+      description: 'Spend',
+      icon: 'Card',
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetEventDetails.mockReturnValue(defaultEventDetails);
     mockFormatRewardsDate.mockReturnValue('Sep 9, 2025');
-    mockUseSelector.mockReturnValue({});
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSeasonActivityTypes) {
+        return mockActivityTypes;
+      }
+      return {} as unknown;
+    });
     mockUseActivityDetailsConfirmAction.mockReturnValue(undefined);
   });
 
@@ -459,7 +533,11 @@ describe('ActivityEventRow', () => {
       expect(getByText('Opened position')).toBeOnTheScreen();
       expect(getByText('Opened SHORT BIO position')).toBeOnTheScreen();
       expect(getByText('+1')).toBeOnTheScreen();
-      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
+      expect(mockGetEventDetails).toHaveBeenCalledWith(
+        event,
+        mockActivityTypes,
+        TEST_ADDRESS,
+      );
     });
 
     it('should render SIGN_UP_BONUS event correctly', () => {
@@ -562,7 +640,11 @@ describe('ActivityEventRow', () => {
       expect(getByText('43.25 USDC')).toBeOnTheScreen();
       expect(getByText('+15')).toBeOnTheScreen();
       expect(getByText('+50%')).toBeOnTheScreen();
-      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
+      expect(mockGetEventDetails).toHaveBeenCalledWith(
+        event,
+        mockActivityTypes,
+        TEST_ADDRESS,
+      );
     });
 
     it('renders PREDICT event without description', () => {
@@ -734,7 +816,11 @@ describe('ActivityEventRow', () => {
 
       // Assert
       expect(getByText('Test Event')).toBeOnTheScreen();
-      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
+      expect(mockGetEventDetails).toHaveBeenCalledWith(
+        event,
+        mockActivityTypes,
+        TEST_ADDRESS,
+      );
     });
 
     it('should handle formatRewardsDate returning different date formats', () => {
@@ -762,6 +848,8 @@ describe('ActivityEventRow', () => {
         details: 'Swapped USDC for ETH',
         icon: IconName.SwapHorizontal,
       });
+      (parseCaipAssetType as jest.Mock).mockReturnValue({ chainId: '59144' });
+      (getNetworkImageSource as jest.Mock).mockReturnValue({ uri: 'net.png' });
 
       // Act
       const { getByText } = render(
@@ -771,6 +859,10 @@ describe('ActivityEventRow', () => {
       // Assert - Component should render without error
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Swapped USDC for ETH')).toBeOnTheScreen();
+      expect(parseCaipAssetType).toHaveBeenCalledWith(
+        (event.payload as unknown as SwapEventPayload).srcAsset.type,
+      );
+      expect(getNetworkImageSource).toHaveBeenCalledWith({ chainId: '59144' });
     });
 
     it('should extract chainId from PERPS event asset type', () => {
@@ -781,6 +873,8 @@ describe('ActivityEventRow', () => {
         details: 'Opened SHORT BIO position',
         icon: IconName.Candlestick,
       });
+      (parseCaipAssetType as jest.Mock).mockReturnValue({ chainId: '999' });
+      (getNetworkImageSource as jest.Mock).mockReturnValue({ uri: 'p.png' });
 
       // Act
       const { getByText } = render(
@@ -790,6 +884,10 @@ describe('ActivityEventRow', () => {
       // Assert - Component should render without error
       expect(getByText('Opened position')).toBeOnTheScreen();
       expect(getByText('Opened SHORT BIO position')).toBeOnTheScreen();
+      expect(parseCaipAssetType).toHaveBeenCalledWith(
+        (event.payload as unknown as PerpsEventPayload).asset.type,
+      );
+      expect(getNetworkImageSource).toHaveBeenCalledWith({ chainId: '999' });
     });
 
     it('should extract chainId from CARD event asset type', () => {
@@ -800,6 +898,8 @@ describe('ActivityEventRow', () => {
         details: '43.25 USDC',
         icon: IconName.Card,
       });
+      (parseCaipAssetType as jest.Mock).mockReturnValue({ chainId: '1' });
+      (getNetworkImageSource as jest.Mock).mockReturnValue({ uri: 'c.png' });
 
       // Act
       const { getByText } = render(
@@ -809,6 +909,10 @@ describe('ActivityEventRow', () => {
       // Assert - Component should render without error
       expect(getByText('Card spend')).toBeOnTheScreen();
       expect(getByText('43.25 USDC')).toBeOnTheScreen();
+      expect(parseCaipAssetType).toHaveBeenCalledWith(
+        (event.payload as unknown as CardEventPayload).asset.type,
+      );
+      expect(getNetworkImageSource).toHaveBeenCalledWith({ chainId: '1' });
     });
 
     it('should handle CARD event without asset type gracefully', () => {
@@ -840,6 +944,8 @@ describe('ActivityEventRow', () => {
       // Assert - Component should render without error
       expect(getByText('Card spend')).toBeOnTheScreen();
       expect(getByText('50 USDC')).toBeOnTheScreen();
+      expect(parseCaipAssetType).not.toHaveBeenCalled();
+      expect(getNetworkImageSource).not.toHaveBeenCalled();
     });
 
     it('should handle events without payload gracefully', () => {
@@ -859,6 +965,8 @@ describe('ActivityEventRow', () => {
       // Assert - Component should render without error
       expect(getByText('Sign up bonus')).toBeOnTheScreen();
       expect(getByText('Welcome bonus')).toBeOnTheScreen();
+      expect(parseCaipAssetType).not.toHaveBeenCalled();
+      expect(getNetworkImageSource).not.toHaveBeenCalled();
     });
 
     it('should handle CARD event with missing payload fields', () => {
@@ -880,6 +988,54 @@ describe('ActivityEventRow', () => {
 
       // Assert - Component should render without error
       expect(getByText('Card spend')).toBeOnTheScreen();
+      expect(parseCaipAssetType).not.toHaveBeenCalled();
+      expect(getNetworkImageSource).not.toHaveBeenCalled();
+    });
+
+    it('handles error when asset parsing throws without crashing', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'SWAP' });
+      (parseCaipAssetType as jest.Mock).mockImplementation(() => {
+        throw new Error('bad parse');
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert
+      expect(getByText('Swap Event')).toBeOnTheScreen();
+    });
+  });
+
+  describe('openActivityDetailsSheet', () => {
+    it('opens details sheet with activityTypes and confirmAction on press', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'CARD' });
+      const confirmAction = jest.fn();
+      mockUseActivityDetailsConfirmAction.mockReturnValue(
+        confirmAction as unknown as ModalAction,
+      );
+
+      // Act
+      const { getByTestId } = render(
+        <ActivityEventRow
+          event={event}
+          accountName={TEST_ADDRESS}
+          testID="row-1"
+        />,
+      );
+      const row = getByTestId('row-1');
+      fireEvent.press(row);
+
+      // Assert
+      expect(openActivityDetailsSheet).toHaveBeenCalledWith(expect.anything(), {
+        event,
+        accountName: TEST_ADDRESS,
+        activityTypes: mockActivityTypes,
+        confirmAction,
+      });
     });
   });
 });

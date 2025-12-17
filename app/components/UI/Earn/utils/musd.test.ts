@@ -1,9 +1,11 @@
 import { Hex } from '@metamask/utils';
 import {
+  areValidAllowedPaymentTokens,
   convertSymbolAllowlistToAddresses,
   isMusdConversionPaymentToken,
 } from './musd';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../constants/musd';
 
 describe('convertSymbolAllowlistToAddresses', () => {
   let consoleWarnSpy: jest.SpyInstance;
@@ -143,11 +145,89 @@ describe('convertSymbolAllowlistToAddresses', () => {
   });
 });
 
+describe('areValidAllowedPaymentTokens', () => {
+  it('returns true for valid Record<Hex, Hex[]>', () => {
+    const validInput: Record<Hex, Hex[]> = {
+      '0x1': ['0xabc' as Hex, '0xdef' as Hex],
+      '0x2': ['0x123' as Hex],
+    };
+
+    const result = areValidAllowedPaymentTokens(validInput);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for null', () => {
+    const result = areValidAllowedPaymentTokens(null);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    const result = areValidAllowedPaymentTokens(undefined);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for arrays', () => {
+    const result = areValidAllowedPaymentTokens(['0x1', '0x2']);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when keys are not hex strings', () => {
+    const invalidInput = {
+      notHex: ['0xabc' as Hex],
+    };
+
+    const result = areValidAllowedPaymentTokens(invalidInput);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when values are not arrays', () => {
+    const invalidInput = {
+      '0x1': '0xabc',
+    };
+
+    const result = areValidAllowedPaymentTokens(invalidInput);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when array elements are not hex strings', () => {
+    const invalidInput = {
+      '0x1': ['notHex'],
+    };
+
+    const result = areValidAllowedPaymentTokens(invalidInput);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true for empty object', () => {
+    const result = areValidAllowedPaymentTokens({});
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for object with empty arrays', () => {
+    const validInput: Record<Hex, Hex[]> = {
+      '0x1': [],
+    };
+
+    const result = areValidAllowedPaymentTokens(validInput);
+
+    expect(result).toBe(true);
+  });
+});
+
 describe('isMusdConversionPaymentToken', () => {
   describe('supported chains with valid tokens', () => {
     it('returns true for USDC on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -157,6 +237,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns true for DAI on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0x6b175474e89094c44da98b954eedeac495271d0f',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -168,6 +249,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns true for mixed case USDC address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xA0B86991c6218B36c1d19D4a2e9Eb0cE3606eB48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -179,6 +261,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for valid token on unsupported chain', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '0x999' as Hex,
       );
 
@@ -188,6 +271,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for Polygon chain', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '0x89' as Hex,
       );
 
@@ -199,6 +283,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for random address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0x1234567890123456789012345678901234567890',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -208,6 +293,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for WETH address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -225,8 +311,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0x1234567890123456789012345678901234567890',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(true);
@@ -241,8 +327,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(false);
@@ -253,8 +339,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(false);
@@ -265,6 +351,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for empty address', () => {
       const result = isMusdConversionPaymentToken(
         '',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -274,6 +361,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for empty chain ID', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '',
       );
 

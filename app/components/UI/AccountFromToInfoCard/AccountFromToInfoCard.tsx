@@ -13,7 +13,7 @@ import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';

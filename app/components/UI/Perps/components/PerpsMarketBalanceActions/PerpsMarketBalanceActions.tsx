@@ -31,6 +31,7 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type {
   PerpsNavigationParamList,
@@ -47,6 +48,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 interface PerpsMarketBalanceActionsProps {
   positions?: Position[];
@@ -81,11 +83,42 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { isDepositInProgress } = usePerpsDepositProgress();
 
-  // Get withdrawal requests from controller state
-  const withdrawalRequests = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
-  );
+  // Get current selected account address
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
+
+  // Get withdrawal requests from controller state and filter by current account
+  const withdrawalRequests = useSelector((state: RootState) => {
+    const allWithdrawals =
+      state.engine.backgroundState.PerpsController?.withdrawalRequests || [];
+
+    // If no selected address, return empty array (don't show potentially wrong account's data)
+    if (!selectedAddress) {
+      DevLogger.log(
+        'PerpsMarketBalanceActions: No selected address, returning empty array',
+        { totalCount: allWithdrawals.length },
+      );
+      return [];
+    }
+
+    // Filter by current account, normalizing addresses for comparison
+    const filtered = allWithdrawals.filter(
+      (req) =>
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
+    );
+
+    DevLogger.log(
+      'PerpsMarketBalanceActions: Filtered withdrawals by account',
+      {
+        selectedAddress,
+        totalCount: allWithdrawals.length,
+        filteredCount: filtered.length,
+      },
+    );
+
+    return filtered;
+  });
 
   // State for transaction amount
   const [transactionAmountWei, setTransactionAmountWei] = useState<
@@ -303,7 +336,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             </Button>
           </Box>
         ) : (
-          <Box twClassName="px-4 pt-4 pb-2">
+          <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <Text
                 variant={TextVariant.DisplayMD}
@@ -313,7 +346,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 {formatPerpsFiat(totalBalance)}
               </Text>
             </Animated.View>
-            <Box twClassName="flex-row items-center mt-2">
+            <Box twClassName="flex-row items-center mt-1">
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
@@ -321,7 +354,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
                 }
               >
-                {formatPerpsFiat(availableBalance)} {strings('perps.available')}
+                {formatPerpsFiat(availableBalance, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
+                })}{' '}
+                {strings('perps.available')}
               </Text>
               {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
                 <>
@@ -343,7 +380,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             </Box>
             {/* Action Buttons */}
             {showActionButtons && (
-              <Box twClassName="gap-3" flexDirection={BoxFlexDirection.Row}>
+              <Box
+                twClassName="gap-3 mt-4"
+                flexDirection={BoxFlexDirection.Row}
+              >
                 <Box twClassName="flex-1">
                   <Button
                     variant={ButtonVariant.Secondary}

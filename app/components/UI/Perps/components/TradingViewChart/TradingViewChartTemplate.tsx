@@ -52,9 +52,26 @@ export const createTradingViewChartTemplate = (
         window.volumeSeries = null; // Volume histogram series
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        window.visibleCandleCount = 45; // Default visible candle count
+        window.visibleCandleCount = 30; // Default visible candle count (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
+        window.currentInterval = null; // Track current interval for zoom reset on change
+
+        // Helper function to get date string in user's timezone (YYYY-MM-DD)
+        window.getDateString = function(date, userTimezone) {
+            const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+            const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: userTimezone });
+            const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: userTimezone });
+            return year + '-' + month + '-' + day;
+        };
+        
+        // Helper function to check if a date is today in user's timezone
+        window.isToday = function(date, userTimezone) {
+            const now = new Date();
+            const todayString = window.getDateString(now, userTimezone);
+            const dateString = window.getDateString(date, userTimezone);
+            return todayString === dateString;
+        };
 
         // Cache for Intl.NumberFormat instances to avoid expensive recreation
         // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
@@ -200,25 +217,46 @@ export const createTradingViewChartTemplate = (
                                 timeZone: userTimezone
                             });
                         case 'DayOfMonth':
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
+                            // Always show month/day for DayOfMonth tick type (e.g., 1D candles)
+                            // Format: "11/6" (MM/DD numeric format)
+                            const dayOfMonthMonth = date.toLocaleString('en-US', {
+                                month: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const dayOfMonthDay = date.toLocaleString('en-US', {
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
+                            return dayOfMonthMonth + '/' + dayOfMonthDay;
                         case 'Hour':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
                         case 'Minute':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const hourMinuteMonth = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const hourMinuteDay = date.toLocaleString('en-US', {
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return hourMinuteMonth + '/' + hourMinuteDay + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         case 'Second':
                             return date.toLocaleString('en-US', { 
                                 hour: '2-digit', 
@@ -241,46 +279,95 @@ export const createTradingViewChartTemplate = (
                         const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
 
                         if (timeSpanHours <= 24) {
-                            // Less than 24 hours: show time only
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Less than 24 hours: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const fb24Month = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fb24Day = date.toLocaleString('en-US', {
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fb24TimeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return fb24Month + '/' + fb24Day + ' ' + fb24TimeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else if (timeSpanHours <= 24 * 7) {
-                            // Less than a week: show date only
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
-                        } else if (timeSpanHours <= 24 * 30) {
-                            // Less than a month: show date only
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
+                           // Less than a week: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const fbWeekMonth = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fbWeekDay = date.toLocaleString('en-US', {
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fbWeekTimeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return fbWeekMonth + '/' + fbWeekDay + ' ' + fbWeekTimeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else {
-                            // More than a month: show month only
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
+                            // Longer ranges: always show month/day (e.g., "11/6")
+                            // This is especially important for 1D candles
+                            const fbLongMonth = date.toLocaleString('en-US', {
+                                month: 'numeric',
                                 timeZone: userTimezone
                             });
+                            const fbLongDay = date.toLocaleString('en-US', {
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            return fbLongMonth + '/' + fbLongDay;
                         }
                     }
                 }
                 
                 // Final fallback: show date and time
-                return date.toLocaleString('en-US', { 
-                    month: 'short',
+                // Format: "11/17 00:15" (MM/DD + time)
+                const finalMonth = date.toLocaleString('en-US', {
+                    month: 'numeric',
+                    timeZone: userTimezone
+                });
+                const finalDay = date.toLocaleString('en-US', {
                     day: 'numeric',
-                    hour: '2-digit', 
+                    timeZone: userTimezone
+                });
+                const finalTimeStr = date.toLocaleString('en-US', {
+                    hour: '2-digit',
                     minute: '2-digit',
                     hour12: false,
                     timeZone: userTimezone
                 });
+
+                return finalMonth + '/' + finalDay + ' ' + finalTimeStr;
             }
         };
         
@@ -288,7 +375,7 @@ export const createTradingViewChartTemplate = (
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 45 // Default visible candles
+            DEFAULT_CANDLES: 30 // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         };
         
         // Performance optimization variables
@@ -416,6 +503,14 @@ export const createTradingViewChartTemplate = (
 
                             if (price === 0) return '0';
                             if (isNaN(price)) return '0';
+
+                            // For the current price line label, use universal formatting to match header
+                            // TradingView ignores axisLabelFormatter on price lines, so we detect the
+                            // current price value here and apply consistent formatting
+                            if (window.currentPriceNumeric !== undefined &&
+                                Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
+                                return window.formatPriceUniversal(price);
+                            }
 
                             const absPrice = Math.abs(price);
 
@@ -766,8 +861,10 @@ export const createTradingViewChartTemplate = (
                     return;
                 }
 
-                // Get total chart height
-                const totalHeight = window.chart.options().height || window.innerHeight;
+                // Use actual container height for accurate measurement during orientation changes
+                // This fixes race conditions where window.chart.options().height may be stale
+                const container = document.getElementById('container');
+                const totalHeight = container ? container.clientHeight : (window.chart.options().height || window.innerHeight);
 
                 // Calculate heights with 80/20 split
                 // Note: TradingView has a minimum pane height of ~30px
@@ -858,18 +955,23 @@ export const createTradingViewChartTemplate = (
                     // Silent error handling
                 }
                 window.priceLines.currentPrice = null;
+                window.currentPriceNumeric = undefined;
             }
 
             // Create new current price line if price is valid
             if (currentPrice && !isNaN(parseFloat(currentPrice))) {
                 try {
+                    const priceNumeric = parseFloat(currentPrice);
+                    // Store numeric value so priceFormatter can detect and use universal formatting
+                    window.currentPriceNumeric = priceNumeric;
+
                     const priceLine = window.candlestickSeries.createPriceLine({
-                        price: parseFloat(currentPrice),
+                        price: priceNumeric,
                         color: '${theme.colors.background.muted}',
                         lineWidth: 2,
                         lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
-                        title: ''
+                        title: '',
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
@@ -881,8 +983,10 @@ export const createTradingViewChartTemplate = (
 
         // Optimized resize handler with throttling
         let resizeTimeout;
+        let finalResizeTimeout; // Debounced final call to ensure pane heights are correct after all resize events
         window.addEventListener('resize', function() {
             if (resizeTimeout) clearTimeout(resizeTimeout);
+            if (finalResizeTimeout) clearTimeout(finalResizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (window.chart) {
                     // With autoSize: true, chart automatically resizes to container
@@ -941,6 +1045,14 @@ export const createTradingViewChartTemplate = (
                         window.updateVisiblePriceRange();
                     }
                 }
+
+                // Schedule a final pane height enforcement after resize events fully settle
+                // This fixes race conditions during orientation changes where multiple resize events fire
+                finalResizeTimeout = setTimeout(() => {
+                    if (window.chart && window.volumeSeries && window.setPaneHeights) {
+                        window.setPaneHeights();
+                    }
+                }, 300); // Wait for resize events to fully settle
             }, 100); // Throttle resize to prevent excessive redraws
         });
         
@@ -948,6 +1060,9 @@ export const createTradingViewChartTemplate = (
         window.cleanupChartEventListeners = function() {
             if (resizeTimeout) {
                 clearTimeout(resizeTimeout);
+            }
+            if (finalResizeTimeout) {
+                clearTimeout(finalResizeTimeout);
             }
         };
         // Store price lines for management
@@ -1057,34 +1172,40 @@ export const createTradingViewChartTemplate = (
             if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
                 return;
             }
-            
+
             // Simple zoom without interaction restrictions
             const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
             const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
-            
-            // Get the last N candles to display (most recent data)
-            const startIndex = Math.max(0, window.allCandleData.length - actualCandleCount);
-            const visibleData = window.allCandleData.slice(startIndex);
-            
-            if (window.candlestickSeries && visibleData.length > 0) {
-                const firstTime = visibleData[0].time;
-                const lastTime = visibleData[visibleData.length - 1].time;
 
-                try {
-                    window.chart.timeScale().setVisibleRange({
-                        from: firstTime,
-                        to: lastTime,
-                    });
-                } catch (error) {
-                    console.error('TradingView: Error setting visible range:', error);
-                    // Fallback to fit content if setVisibleRange fails
-                    window.chart.timeScale().fitContent();
+            const dataLength = window.allCandleData.length;
+
+            try {
+                // Use setVisibleLogicalRange for consistent bar width control
+                // Logical range uses bar indices: from = first visible bar, to = last visible bar
+                // We want to show the last N candles, so:
+                // - from = dataLength - actualCandleCount (first visible bar index)
+                // - to = dataLength - 1 + small offset for right padding
+                const fromIndex = Math.max(0, dataLength - actualCandleCount);
+                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+
+                window.chart.timeScale().setVisibleLogicalRange({
+                    from: fromIndex,
+                    to: toIndex,
+                });
+
+                // Scroll to real-time to ensure latest candles are visible at the right edge
+                if (forceReset) {
+                    window.chart.timeScale().scrollToRealTime();
                 }
+            } catch (error) {
+                console.error('TradingView: Error setting visible logical range:', error);
+                // Fallback to fitContent if setVisibleLogicalRange fails
+                window.chart.timeScale().fitContent();
             }
-            
+
             window.visibleCandleCount = actualCandleCount;
-            
+
             // Update visible price range for dynamic formatting after zoom
             window.updateVisiblePriceRange();
         };
@@ -1262,6 +1383,14 @@ export const createTradingViewChartTemplate = (
                                             }));
 
                                             window.volumeSeries.setData(volumeData);
+
+                                            // Enforce pane heights after volume data is set
+                                            // This ensures the 80/20 split is maintained after data refresh
+                                            setTimeout(() => {
+                                                if (window.setPaneHeights) {
+                                                    window.setPaneHeights();
+                                                }
+                                            }, 50);
                                         } catch (error) {
                                             // Silent error handling
                                         }
@@ -1272,28 +1401,29 @@ export const createTradingViewChartTemplate = (
                                 if (message.visibleCandleCount) {
                                     window.visibleCandleCount = message.visibleCandleCount;
                                 }
-                                
-                                // Simple auto-scale logic: ONLY on initial load
-                                const shouldAutoscale = window.isInitialDataLoad;
-                                
+
+                                // Detect interval change for zoom reset
+                                const intervalChanged = message.interval && window.currentInterval !== message.interval;
+                                if (message.interval) {
+                                    window.currentInterval = message.interval;
+                                }
+
+                                // Auto-scale on initial load OR when interval changes
+                                const shouldAutoscale = window.isInitialDataLoad || intervalChanged;
+
                                 if (shouldAutoscale) {
-                                    // Apply zoom to show only 45 candles on initial load
+                                    // Apply zoom to show configured candle count
                                     window.applyZoom(window.visibleCandleCount, true);
                                 }
-                                
+
                                 // Update visible price range for dynamic formatting
                                 window.updateVisiblePriceRange();
-                                
+
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
-                                
-                                // Update current price line with the latest candle's close price
-                                if (message.data && message.data.length > 0) {
-                                    const latestCandle = message.data[message.data.length - 1];
-                                    if (latestCandle && latestCandle.close) {
-                                        window.updateCurrentPriceLine(latestCandle.close.toString());
-                                    }
-                                }
+
+                                // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
+                                // Do NOT use candle close price here - it differs from header's mark price
                             }
                         }
                         break;

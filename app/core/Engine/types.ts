@@ -322,6 +322,11 @@ import type {
   ErrorReportingService,
   ErrorReportingServiceActions,
 } from '@metamask/error-reporting-service';
+import type {
+  StorageService,
+  StorageServiceActions,
+  StorageServiceEvents,
+} from '@metamask/storage-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -352,6 +357,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+import {
+  ProfileMetricsController,
+  ProfileMetricsControllerActions,
+  ProfileMetricsControllerEvents,
+  ProfileMetricsControllerState,
+  ProfileMetricsService,
+  ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
+} from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -380,6 +394,7 @@ type RequiredControllers = Omit<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -391,6 +406,7 @@ type OptionalControllers = Pick<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -484,9 +500,12 @@ type GlobalActions =
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
+  | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | ProfileMetricsControllerActions
+  | ProfileMetricsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -527,6 +546,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | StorageServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -555,7 +575,9 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -628,6 +650,7 @@ export type Controllers = {
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
+  StorageService: StorageService;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -665,6 +688,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  ProfileMetricsController: ProfileMetricsController;
+  ProfileMetricsService: ProfileMetricsService;
 };
 
 /**
@@ -739,6 +764,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  ProfileMetricsController: ProfileMetricsControllerState;
 };
 
 /** Controller names */
@@ -800,6 +826,7 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'ErrorReportingService'
+  | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
@@ -838,7 +865,9 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'ProfileMetricsController'
+  | 'ProfileMetricsService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
