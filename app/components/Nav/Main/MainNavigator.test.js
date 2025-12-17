@@ -220,7 +220,7 @@ describe('MainNavigator', () => {
   it('shows Activity tab in tab bar', () => {
     const { getByTestId } = render(<MainNavigator />);
 
-    expect(getByTestId('tab-bar-item-Activity')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
   });
 
   it('shows all core tabs when no feature flags are enabled', () => {
@@ -229,16 +229,16 @@ describe('MainNavigator', () => {
 
     const { getByTestId } = render(<MainNavigator />);
 
-    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Activity')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Wallet')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Browser')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Trade')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeOnTheScreen();
   });
 
   it('renders main-navigator container', () => {
     const { getByTestId } = render(<MainNavigator />);
 
-    expect(getByTestId('main-navigator')).toBeDefined();
+    expect(getByTestId('main-navigator')).toBeOnTheScreen();
   });
 });
