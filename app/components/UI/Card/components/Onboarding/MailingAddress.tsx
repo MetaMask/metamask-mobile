@@ -116,7 +116,7 @@ const MailingAddress = () => {
       !onboardingId ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
+      (!state && selectedCountry?.key === 'US') ||
       !zipCode,
     [
       registerLoading,
@@ -135,7 +135,7 @@ const MailingAddress = () => {
       !onboardingId ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
+      (!state && selectedCountry?.key === 'US') ||
       !zipCode
     ) {
       return;
@@ -164,7 +164,7 @@ const MailingAddress = () => {
 
       if (accessToken && updatedUser?.id) {
         // Store the access token for immediate authentication
-        const location = mapCountryToLocation(selectedCountry);
+        const location = mapCountryToLocation(selectedCountry?.key || null);
         const accessTokenExpiresIn = extractTokenExpiration(accessToken);
 
         const storeResult = await storeCardBaanxToken({

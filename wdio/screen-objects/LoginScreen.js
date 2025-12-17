@@ -115,7 +115,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      await AppwrightGestures.tap(this.resetWalletButton); 
+      await AppwrightGestures.tap(await this.resetWalletButton); 
     }
   }
 
@@ -136,7 +136,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      await AppwrightGestures.tap(this.unlockButton); 
+      await AppwrightGestures.tap(await this.unlockButton); 
     }
   }
 
@@ -144,7 +144,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      await AppwrightGestures.tap(this.title); 
+      await AppwrightGestures.tap(await this.title); 
     }
   }
 
@@ -152,7 +152,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      await AppwrightGestures.tap(this.rememberMeToggle); 
+      await AppwrightGestures.tap(await this.rememberMeToggle); 
     }
   }
 }
