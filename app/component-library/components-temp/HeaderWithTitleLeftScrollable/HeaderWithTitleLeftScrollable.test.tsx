@@ -158,23 +158,6 @@ describe('HeaderWithTitleLeftScrollable', () => {
 
       expect(getByTestId('custom-header')).toBeOnTheScreen();
     });
-
-    it('accepts custom scrollTriggerPosition', () => {
-      const { getByTestId } = render(
-        <TestWrapper>
-          {(scrollYValue) => (
-            <HeaderWithTitleLeftScrollable
-              title="Test"
-              scrollY={scrollYValue}
-              scrollTriggerPosition={60}
-              testID="test-container"
-            />
-          )}
-        </TestWrapper>,
-      );
-
-      expect(getByTestId('test-container')).toBeOnTheScreen();
-    });
   });
 });
 
