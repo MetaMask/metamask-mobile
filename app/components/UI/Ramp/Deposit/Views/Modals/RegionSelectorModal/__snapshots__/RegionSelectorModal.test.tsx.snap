@@ -440,7 +440,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -1152,7 +1152,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -2060,7 +2060,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -3200,7 +3200,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -3953,7 +3953,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -4794,7 +4794,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -5934,7 +5934,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
@@ -7074,7 +7074,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

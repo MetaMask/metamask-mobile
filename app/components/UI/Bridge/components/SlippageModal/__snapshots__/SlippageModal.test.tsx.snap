@@ -140,7 +140,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               },
               false,
               {
-                "padding": 16,
+                "paddingHorizontal": 16,
               },
             ]
           }

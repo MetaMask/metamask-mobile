@@ -195,6 +195,13 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await WalletView.tapPredictPosition(positions.Won);
 
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.container,
+          {
+            description: 'Winning position details page should be visible',
+          },
+        );
+
         await PredictDetailsPage.tapClaimWinningsButton();
 
         await PredictClaimPage.tapClaimConfirmButton();
