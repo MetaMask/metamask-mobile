@@ -13,6 +13,10 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardController,
+  AndroidSoftInputModes,
+} from 'react-native-keyboard-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -199,6 +203,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && !isE2E) {
+      KeyboardController.setInputMode(
+        AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
+      );
+
+      return () => {
+        KeyboardController.setDefaultMode();
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -512,10 +528,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
-          resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
           extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
+          enableOnAndroid
           enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
