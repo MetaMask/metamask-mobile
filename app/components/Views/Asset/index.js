@@ -2,6 +2,17 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
@@ -33,7 +44,6 @@ import {
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import {
@@ -129,6 +139,92 @@ const createStyles = (colors) =>
     },
   });
 
+// Styles for inline header
+const inlineHeaderStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    gap: 16,
+  },
+  leftButton: {
+    marginLeft: 16,
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightButton: {
+    marginRight: 16,
+  },
+  rightPlaceholder: {
+    marginRight: 16,
+    width: 24,
+  },
+});
+
+/**
+ * Inline header component for instant rendering during transitions
+ */
+const AssetInlineHeader = ({
+  title,
+  networkName,
+  onBackPress,
+  onOptionsPress,
+  colors,
+}) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={[
+        inlineHeaderStyles.container,
+        { marginTop: insets.top, backgroundColor: colors.background.default },
+      ]}
+    >
+      <ButtonIcon
+        style={inlineHeaderStyles.leftButton}
+        onPress={onBackPress}
+        size={ButtonIconSize.Lg}
+        iconName={IconName.ArrowLeft}
+        iconColor={IconColor.Default}
+      />
+      <View style={inlineHeaderStyles.titleWrapper}>
+        <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
+          {title}
+        </Text>
+        {networkName ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            numberOfLines={1}
+          >
+            {networkName}
+          </Text>
+        ) : null}
+      </View>
+      {onOptionsPress ? (
+        <ButtonIcon
+          style={inlineHeaderStyles.rightButton}
+          onPress={onOptionsPress}
+          size={ButtonIconSize.Lg}
+          iconName={IconName.MoreVertical}
+          iconColor={IconColor.Default}
+        />
+      ) : (
+        <View style={inlineHeaderStyles.rightPlaceholder} />
+      )}
+    </View>
+  );
+};
+
+AssetInlineHeader.propTypes = {
+  title: PropTypes.string,
+  networkName: PropTypes.string,
+  onBackPress: PropTypes.func,
+  onOptionsPress: PropTypes.func,
+  colors: PropTypes.object,
+};
+
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -215,60 +311,12 @@ class Asset extends PureComponent {
     ? safeToChecksumAddress(this.props.selectedAddressForAsset)
     : this.props.selectedAddressForAsset;
 
-  updateNavBar = (contentOffset = 0) => {
-    const {
-      route: { params },
-      navigation,
-      route,
-      chainId,
-      rpcUrl,
-      networkConfigurations,
-    } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const isNativeToken = route.params.isNative ?? route.params.isETH;
-    const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = isNonEvmChainId(chainId)
-      ? findBlockExplorerForNonEvmChainId(chainId)
-      : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
-
-    const shouldShowMoreOptionsInNavBar =
-      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
-    const asset = navigation && params;
-    const currentNetworkName =
-      this.props.networkConfigurations[asset.chainId]?.name;
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        route.params?.symbol ?? '',
-        false,
-        navigation,
-        colors,
-        // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar
-          ? () =>
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: 'AssetOptions',
-                params: {
-                  isNativeCurrency: isNativeToken,
-                  address: route.params?.address,
-                  chainId: route.params?.chainId || '0x1',
-                  asset,
-                },
-              })
-          : undefined,
-        true,
-        contentOffset,
-        currentNetworkName,
-      ),
-    );
-  };
-
-  onScrollThroughContent = (contentOffset = 0) => {
-    this.updateNavBar(contentOffset);
+  // No-op: inline header doesn't need scroll updates
+  onScrollThroughContent = () => {
+    // Intentionally empty - inline header doesn't respond to scroll
   };
 
   componentDidMount() {
-    this.updateNavBar();
-
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -576,8 +624,43 @@ class Asset extends PureComponent {
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
+    // Inline header props
+    const isNativeToken = params.isNative ?? params.isETH;
+    const isMainnet = isMainnetByChainId(chainId);
+    const blockExplorer = isNonEvmChainId(chainId)
+      ? findBlockExplorerForNonEvmChainId(chainId)
+      : findBlockExplorerForRpc(
+          this.props.rpcUrl,
+          this.props.networkConfigurations,
+        );
+    const shouldShowMoreOptionsInNavBar =
+      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
+    const currentNetworkName =
+      this.props.networkConfigurations[asset.chainId]?.name;
+
+    const openAssetOptions = () => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: 'AssetOptions',
+        params: {
+          isNativeCurrency: isNativeToken,
+          address: params?.address,
+          chainId: params?.chainId || '0x1',
+          asset,
+        },
+      });
+    };
+
     return (
       <View style={styles.wrapper}>
+        <AssetInlineHeader
+          title={params?.symbol ?? ''}
+          networkName={currentNetworkName}
+          onBackPress={() => navigation.pop()}
+          onOptionsPress={
+            shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          }
+          colors={colors}
+        />
         {loading ? (
           this.renderLoader()
         ) : isNonEvmAsset ? (
