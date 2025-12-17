@@ -13,7 +13,8 @@ import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
-import { errorCodes } from '@metamask/rpc-errors';
+import { errorCodes, providerErrors } from '@metamask/rpc-errors';
+import Engine from '../../Engine';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -38,6 +39,26 @@ export class Connection {
 
     this.client.on('message', (payload) => {
       logger.debug('Received message:', this.id, payload);
+
+      if (
+        payload &&
+        typeof payload === 'object' &&
+        'name' in payload &&
+        payload.name === 'metamask-multichain-provider' &&
+        'data' in payload &&
+        payload.data &&
+        typeof payload.data === 'object' &&
+        'method' in payload.data &&
+        payload.data.method === 'wallet_createSession'
+      ) {
+        Engine.context.ApprovalController.clear(
+          providerErrors.userRejectedRequest({
+            data: {
+              cause: 'rejectAllApprovals',
+            },
+          }),
+        );
+      }
 
       this.bridge.send(payload);
     });
