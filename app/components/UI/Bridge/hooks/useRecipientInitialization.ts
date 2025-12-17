@@ -56,13 +56,12 @@ export const useRecipientInitialization = (
       return;
     }
 
-    // Only initialize in these specific cases:
-    // 1. Never initialized AND no destAddress set
+    // Initialize/reinitialize in these cases:
+    // 1. No destAddress is set (missing or cleared)
     // 2. destAddress is not valid for the current destination chain (user switched networks)
     //    This handles switching between different non-EVM chains (e.g., BTC → SOL)
-    const shouldInitialize =
-      (!hasInitializedRecipient.current && !destAddress) ||
-      (destAddress && !isDestAddressValidForDestChain);
+    // Note: isDestAddressValidForDestChain returns false when destAddress is falsy,
+    const shouldInitialize = !isDestAddressValidForDestChain;
 
     if (shouldInitialize) {
       // Find an account from the currently selected account group that supports the destination network
