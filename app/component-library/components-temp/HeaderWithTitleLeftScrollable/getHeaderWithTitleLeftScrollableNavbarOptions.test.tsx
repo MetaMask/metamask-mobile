@@ -7,18 +7,17 @@ import { useSharedValue, SharedValue } from 'react-native-reanimated';
 import getHeaderWithTitleLeftScrollableNavbarOptions from './getHeaderWithTitleLeftScrollableNavbarOptions';
 
 // Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  Reanimated.useSharedValue = jest.fn((initial) => ({
-    value: initial,
-  }));
-  Reanimated.useAnimatedStyle = jest.fn((fn) => fn());
-  Reanimated.interpolate = jest.fn(
-    (_value, _inputRange, outputRange) => outputRange[0],
-  );
-  Reanimated.Extrapolation = { CLAMP: 'clamp' };
-  return Reanimated;
-});
+jest.mock('react-native-reanimated', () => ({
+  useSharedValue: jest.fn((initial) => ({ value: initial })),
+  useAnimatedStyle: jest.fn(() => ({})),
+  useDerivedValue: jest.fn((fn) => ({ value: fn() })),
+  withTiming: jest.fn((value) => value),
+  interpolate: jest.fn((_value, _inputRange, outputRange) => outputRange[0]),
+  Extrapolation: { CLAMP: 'clamp' },
+  default: {
+    View: 'Animated.View',
+  },
+}));
 
 const CONTAINER_TEST_ID = 'header-scrollable-container';
 const BACK_BUTTON_TEST_ID = 'header-scrollable-back-button';
@@ -55,9 +54,9 @@ describe('getHeaderWithTitleLeftScrollableNavbarOptions', () => {
         scrollY: mockScrollY as SharedValue<number>,
       });
 
-      const element = options.header();
+      const headerElement = options.header();
 
-      expect(React.isValidElement(element)).toBe(true);
+      expect(React.isValidElement(headerElement)).toBe(true);
     });
   });
 

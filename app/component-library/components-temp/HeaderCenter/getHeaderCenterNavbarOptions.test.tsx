@@ -25,9 +25,9 @@ describe('getHeaderCenterNavbarOptions', () => {
     it('returns React element when header function is called', () => {
       const options = getHeaderCenterNavbarOptions({ title: 'Test' });
 
-      const element = options.header();
+      const headerElement = options.header();
 
-      expect(React.isValidElement(element)).toBe(true);
+      expect(React.isValidElement(headerElement)).toBe(true);
     });
   });
 

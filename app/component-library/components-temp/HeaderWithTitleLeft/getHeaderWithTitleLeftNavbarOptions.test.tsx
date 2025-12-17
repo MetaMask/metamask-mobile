@@ -24,9 +24,9 @@ describe('getHeaderWithTitleLeftNavbarOptions', () => {
     it('returns React element when header function is called', () => {
       const options = getHeaderWithTitleLeftNavbarOptions({});
 
-      const element = options.header();
+      const headerElement = options.header();
 
-      expect(React.isValidElement(element)).toBe(true);
+      expect(React.isValidElement(headerElement)).toBe(true);
     });
   });
 
@@ -97,4 +97,3 @@ describe('getHeaderWithTitleLeftNavbarOptions', () => {
     });
   });
 });
-

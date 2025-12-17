@@ -36,4 +36,3 @@ const getHeaderWithTitleLeftScrollableNavbarOptions = (
 });
 
 export default getHeaderWithTitleLeftScrollableNavbarOptions;
-

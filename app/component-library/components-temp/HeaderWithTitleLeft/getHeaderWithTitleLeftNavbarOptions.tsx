@@ -32,4 +32,3 @@ const getHeaderWithTitleLeftNavbarOptions = (
 });
 
 export default getHeaderWithTitleLeftNavbarOptions;
-
