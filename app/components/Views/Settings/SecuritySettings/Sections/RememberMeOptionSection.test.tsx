@@ -33,6 +33,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import RememberMeOptionSection from './RememberMeOptionSection';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -209,5 +210,129 @@ describe('RememberMeOptionSection', () => {
 
     const toggle = getByTestId(TURN_ON_REMEMBER_ME);
     expect(toggle.props.value).toBe(true);
+  });
+
+  it('navigates to password entry when password is required for enabling remember me', async () => {
+    const MockedAuthenticationError = jest.requireMock(
+      '../../../../../core/Authentication/AuthenticationError',
+    ).default;
+
+    mockUpdateAuthPreference.mockRejectedValueOnce(
+      new MockedAuthenticationError(
+        'Password required',
+        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+      ),
+    );
+
+    const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
+      state: initialState,
+    });
+
+    const toggle = getByTestId(TURN_ON_REMEMBER_ME);
+    fireEvent(toggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('EnterPasswordSimple', {
+        onPasswordSet: expect.any(Function),
+      });
+    });
+  });
+
+  it('updates auth preference when password is provided via callback when enabling', async () => {
+    const MockedAuthenticationError = jest.requireMock(
+      '../../../../../core/Authentication/AuthenticationError',
+    ).default;
+
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    mockNavigate.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
+      state: initialState,
+    });
+
+    const toggle = getByTestId(TURN_ON_REMEMBER_ME);
+    fireEvent(toggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.REMEMBER_ME,
+          'test-password',
+        );
+      });
+    }
+  });
+
+  it('reverts flag when password entry callback fails when enabling', async () => {
+    const MockedAuthenticationError = jest.requireMock(
+      '../../../../../core/Authentication/AuthenticationError',
+    ).default;
+
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockRejectedValueOnce(new Error('Update failed'));
+
+    mockNavigate.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
+      state: initialState,
+    });
+
+    const toggle = getByTestId(TURN_ON_REMEMBER_ME);
+    fireEvent(toggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.REMEMBER_ME,
+          'test-password',
+        );
+      });
+    }
   });
 });
