@@ -7,8 +7,10 @@ import {
 import { Hex } from '@metamask/utils';
 import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../../constants/musd';
 import {
-  areValidAllowedPaymentTokens,
+  isValidPaymentTokenMap,
   convertSymbolAllowlistToAddresses,
+  isValidWildcardBlocklist,
+  WildcardBlocklist,
 } from '../../utils/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
@@ -80,6 +82,9 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
  *
  * If both remote and local are unavailable, allows all supported payment tokens.
  */
+// TODO: Update: Should represent a list of tokens to have conversion CTAs (spotlight)
+// TODO: Update: Break out duplicated parsing logic for allowlist and blocklist into helper.
+// TODO: Delete if no longer needed. Will be replaced by CTA tokens list.
 export const selectMusdConversionPaymentTokensAllowlist = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): Record<Hex, Hex[]> => {
@@ -90,7 +95,7 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
       if (localEnvValue) {
         const parsed = JSON.parse(localEnvValue);
         const converted = convertSymbolAllowlistToAddresses(parsed);
-        if (areValidAllowedPaymentTokens(converted)) {
+        if (isValidPaymentTokenMap(converted)) {
           localAllowlist = converted;
         } else {
           console.warn(
@@ -123,7 +128,7 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
           const converted = convertSymbolAllowlistToAddresses(
             parsedRemote as Record<string, string[]>,
           );
-          if (areValidAllowedPaymentTokens(converted)) {
+          if (isValidPaymentTokenMap(converted)) {
             return converted;
           }
           console.warn(
@@ -140,5 +145,76 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
     }
 
     return localAllowlist || CONVERTIBLE_STABLECOINS_BY_CHAIN;
+  },
+);
+
+/**
+ * Selects the blocked payment tokens for mUSD conversion from remote config or local fallback.
+ * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
+ *
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: blocks all tokens on that chain
+ *
+ * Examples:
+ * - { "*": ["USDC"] }           - Block USDC on ALL chains
+ * - { "0x1": ["*"] }            - Block ALL tokens on Ethereum mainnet
+ * - { "0xa4b1": ["USDT", "DAI"] } - Block specific tokens on specific chain
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (no blocking).
+ */
+export const selectMusdConversionPaymentTokensBlocklist = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardBlocklist => {
+    // Try remote flag first (takes precedence)
+    const remoteBlocklist =
+      remoteFeatureFlags?.earnMusdConvertibleTokensBlocklist;
+
+    if (remoteBlocklist) {
+      try {
+        const parsedRemote =
+          typeof remoteBlocklist === 'string'
+            ? JSON.parse(remoteBlocklist)
+            : remoteBlocklist;
+
+        if (isValidWildcardBlocklist(parsedRemote)) {
+          return parsedRemote;
+        }
+        console.warn(
+          'Remote earnMusdConvertibleTokensBlocklist produced invalid structure. ' +
+            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
+        );
+      } catch (error) {
+        console.warn(
+          'Failed to parse remote earnMusdConvertibleTokensBlocklist:',
+          error,
+        );
+      }
+    }
+
+    // Fallback to local env var
+    try {
+      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST;
+
+      if (localEnvValue) {
+        const parsed = JSON.parse(localEnvValue);
+        if (isValidWildcardBlocklist(parsed)) {
+          return parsed;
+        }
+        console.warn(
+          'Local MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST produced invalid structure. ' +
+            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
+        );
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST:',
+        error,
+      );
+    }
+
+    // Default: no blocking
+    return {};
   },
 );

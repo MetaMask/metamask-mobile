@@ -20,7 +20,7 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { tokenFilter: musdTokenFilter } = useMusdConversionTokens();
+  const { filterBlockedTokens } = useMusdConversionTokens();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -49,12 +49,12 @@ export function PayWithModal() {
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {
-        return musdTokenFilter(availableTokens);
+        return filterBlockedTokens(availableTokens);
       }
 
       return availableTokens;
     },
-    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
+    [filterBlockedTokens, payToken, requiredTokens, transactionMeta],
   );
 
   return (
