@@ -42,6 +42,14 @@ describe('usePerpsAdjustMarginData', () => {
     unrealizedPnl: '500',
     returnOnEquity: '10',
     leverage: { value: 10, type: 'isolated' as const },
+    maxLeverage: 50,
+    cumulativeFunding: {
+      allTime: '0',
+      sinceOpen: '0',
+      sinceChange: '0',
+    },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   const mockAccount = {
@@ -55,13 +63,14 @@ describe('usePerpsAdjustMarginData', () => {
   const mockMarkets = [
     {
       symbol: 'BTC',
-      maxLeverage: '50x',
       name: 'Bitcoin',
-      price: '100000',
-      change24h: '2.5%',
-      volume24h: '$1B',
-      fundingRate: '0.01%',
+      maxLeverage: '50x',
+      price: '$100,000',
+      change24h: '+$2,500',
+      change24hPercent: '2.5%',
+      volume: '$1B',
       openInterest: '$500M',
+      volumeNumber: 1000000000,
     },
   ];
 
@@ -79,14 +88,15 @@ describe('usePerpsAdjustMarginData', () => {
     });
 
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '100000', symbol: 'BTC' },
+      BTC: { price: '100000', coin: 'BTC', timestamp: Date.now() },
     });
 
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarkets,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
   });
 
@@ -302,7 +312,7 @@ describe('usePerpsAdjustMarginData', () => {
 
     it('returns 0 when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '0', symbol: 'BTC' },
+        BTC: { price: '0', coin: 'BTC', timestamp: Date.now() },
       });
 
       const { result } = renderHook(() =>
@@ -356,12 +366,12 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.positionLeverage).toBe(10);
     });
 
-    it('falls back to market max leverage when position leverage not available', () => {
+    it('falls back to market max leverage when position leverage value is 0', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [
           {
             ...mockPosition,
-            leverage: undefined,
+            leverage: { value: 0, type: 'cross' as const },
           },
         ],
         isInitialLoading: false,
