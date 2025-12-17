@@ -53,7 +53,8 @@ test.skip('Measure Warm Start: Login To Wallet Screen', async ({
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',
-    1000,
+    { ios: 1000, android: 1000 },
+    device,
   );
   await timer1.measure(() => WalletMainScreen.isVisible());
 

@@ -237,6 +237,7 @@ Performance tests track various timing metrics, including:
 Example timer from tests:
 
 ```javascript
+// Timer without threshold (no validation)
 const timer = new TimerHelper(
   'Time since user clicks button until screen is visible',
 );
@@ -245,6 +246,15 @@ await SomeScreen.tapButton();
 await NextScreen.isVisible();
 timer.stop();
 performanceTracker.addTimer(timer);
+
+// Timer with platform-specific thresholds
+const timerWithThreshold = new TimerHelper(
+  'Time since user clicks button until screen is visible',
+  { ios: 1500, android: 2000 }, // Different thresholds per platform
+  device,
+);
+await timerWithThreshold.measure(() => SomeScreen.isVisible());
+performanceTracker.addTimer(timerWithThreshold);
 ```
 
 ## Best Practices
@@ -276,15 +286,18 @@ test('My Performance Test', async ({
   // Login
   await login(device);
 
-  // Create timer for tracked action
-  const timer = new TimerHelper('Description of what is being measured');
-  timer.start();
+  // Create timer with platform-specific thresholds
+  const timer = new TimerHelper(
+    'Description of what is being measured',
+    { ios: 1500, android: 2000 },
+    device,
+  );
 
-  // Perform action
-  await WalletMainScreen.tapSomeButton();
-  await WalletMainScreen.isSomeElementVisible();
-
-  timer.stop();
+  // Perform action using measure()
+  await timer.measure(async () => {
+    await WalletMainScreen.tapSomeButton();
+    await WalletMainScreen.isSomeElementVisible();
+  });
 
   // Add timer to performance tracker
   performanceTracker.addTimer(timer);

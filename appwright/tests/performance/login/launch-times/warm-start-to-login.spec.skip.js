@@ -32,7 +32,8 @@ test('Measure Warm Start: Warm Start to Login Screen', async ({
 
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',
-    1500,
+    { ios: 1500, android: 1500 },
+    device,
   );
   await AppwrightGestures.backgroundApp(device, 30);
   await AppwrightGestures.activateApp(device);

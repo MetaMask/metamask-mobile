@@ -39,31 +39,38 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   CreatePasswordScreen.device = device;
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-    1200,
+    { ios: 1200, android: 1200 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-    1200,
+    { ios: 1200, android: 1200 },
+    device,
   );
   const timer5 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-    1000,
+    { ios: 1000, android: 1000 },
+    device,
   );
   const timer6 = new TimerHelper(
     'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-    1100,
+    { ios: 1100, android: 1100 },
+    device,
   );
   const timer7 = new TimerHelper(
     'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
-    1500,
+    { ios: 1500, android: 1500 },
+    device,
   );
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until feature sheet is visible',
-    1700,
+    { ios: 1700, android: 1700 },
+    device,
   );
   const timer9 = new TimerHelper(
     'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-    40000,
+    { ios: 40000, android: 40000 },
+    device,
   );
 
   await OnboardingScreen.tapHaveAnExistingWallet();

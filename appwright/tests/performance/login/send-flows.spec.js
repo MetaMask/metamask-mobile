@@ -37,11 +37,13 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await login(device);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
-    1700,
+    { ios: 1700, android: 1700 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
-    800,
+    { ios: 800, android: 800 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
@@ -86,19 +88,23 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await login(device);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
-    1800,
+    { ios: 1800, android: 1800 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
-    1100,
+    { ios: 1100, android: 1100 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
-    500,
+    { ios: 500, android: 500 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
-    7500,
+    { ios: 7500, android: 7500 },
+    device,
   );
   await WalletActionModal.tapSendButton();
   await timer1.measure(() => SendScreen.assetsListIsDisplayed());

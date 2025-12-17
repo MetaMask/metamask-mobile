@@ -33,10 +33,19 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
-    1800,
+    { ios: 1800, android: 1800 },
+    device,
   );
-  const openAddFundsTimer = new TimerHelper('Open Add Funds', 5500);
-  const getQuoteTimer = new TimerHelper('Get Quote', 11000);
+  const openAddFundsTimer = new TimerHelper(
+    'Open Add Funds',
+    { ios: 5500, android: 5500 },
+    device,
+  );
+  const getQuoteTimer = new TimerHelper(
+    'Get Quote',
+    { ios: 11000, android: 11000 },
+    device,
+  );
   await screensSetup(device);
 
   await login(device);

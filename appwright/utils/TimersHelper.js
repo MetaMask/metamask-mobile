@@ -1,17 +1,52 @@
 import Timers from './Timers';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 
 const THRESHOLD_MARGIN = 0.1; // 10% margin
 
+/**
+ * @typedef {Object} PlatformThreshold
+ * @property {number} ios - Threshold for iOS in ms
+ * @property {number} android - Threshold for Android in ms
+ */
+
 class TimerHelper {
   /**
-   * Creates a new timer with optional threshold
+   * Creates a new timer with optional platform-specific thresholds
    * @param {string} id - Timer description/identifier
-   * @param {number} [threshold] - Base threshold in ms (effective threshold = base + 10%)
+   * @param {PlatformThreshold} [threshold] - Platform-specific thresholds in ms (effective threshold = base + 10%)
+   * @param {import('appwright').Device} [device] - The device instance to determine platform
    */
-  constructor(id, threshold) {
+  constructor(id, threshold, device) {
     this._id = id;
-    this._baseThreshold = threshold;
+    this._device = device;
+    this._thresholdConfig = threshold;
+    this._baseThreshold = this._resolveThreshold(threshold, device);
     Timers.createTimer(this.id);
+  }
+
+  /**
+   * Resolves the appropriate threshold based on platform
+   * @param {PlatformThreshold} [threshold] - Platform-specific thresholds
+   * @param {import('appwright').Device} [device] - The device instance
+   * @returns {number|null}
+   */
+  _resolveThreshold(threshold, device) {
+    if (!threshold) {
+      return null;
+    }
+
+    if (!device) {
+      console.warn(
+        'TimerHelper: device not provided, cannot determine platform for threshold',
+      );
+      return null;
+    }
+
+    if (AppwrightSelectors.isAndroid(device)) {
+      return threshold.android;
+    }
+
+    return threshold.ios;
   }
 
   start() {
