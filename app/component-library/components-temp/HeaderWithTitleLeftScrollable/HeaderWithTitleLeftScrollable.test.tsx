@@ -165,13 +165,12 @@ describe('useHeaderWithTitleLeftScrollable', () => {
   it('returns onScroll handler', () => {
     const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.current.onScroll).toBeDefined();
+    expect(typeof result.current.onScroll).toBe('function');
   });
 
-  it('returns scrollY shared value', () => {
+  it('returns scrollY shared value with initial value of 0', () => {
     const { result } = renderHook(() => useHeaderWithTitleLeftScrollable());
 
-    expect(result.current.scrollY).toBeDefined();
     expect(result.current.scrollY.value).toBe(0);
   });
 
