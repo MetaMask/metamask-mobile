@@ -13,6 +13,7 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
 import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 /**
  * Hook to determine visibility and network icon display for the MUSD CTA.
@@ -49,7 +50,7 @@ export const useMusdCtaVisibility = () => {
 
       const musdToken = allTokens.find(
         (token) =>
-          token.assetId === musdAssetId.toLowerCase() &&
+          toLowerCaseEquals(token.assetId, musdAssetId) &&
           token.tokenSupported === true,
       );
 
