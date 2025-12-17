@@ -262,7 +262,7 @@ describe('PerpsTutorialCarousel', () => {
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
     });
 
-    it('enables skip button on last screen for eligible users', async () => {
+    it("shows Learn more and Let's go buttons on last screen", async () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate to the last screen
@@ -273,9 +273,14 @@ describe('PerpsTutorialCarousel', () => {
         screen.getByText(strings('perps.tutorial.ready_to_trade.title')),
       ).toBeOnTheScreen();
 
-      // Skip button should be enabled on last screen for eligible users
-      const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-      expect(skipButton.props.disabled).toBe(false);
+      // Skip button is hidden on last screen
+      expect(screen.queryByTestId('perps-tutorial-skip-button')).toBeNull();
+
+      // Learn more button should be visible on last screen
+      const learnMoreButton = screen.getByTestId(
+        'perps-tutorial-learn-more-button',
+      );
+      expect(learnMoreButton).toBeOnTheScreen();
 
       // Main "Let's go" button should be visible
       const continueButton = screen.getByTestId(
@@ -375,7 +380,7 @@ describe('PerpsTutorialCarousel', () => {
         }
       });
 
-      it('shows "Got it" button on last screen for eligible users', async () => {
+      it('shows "Let\'s go" and "Learn more" buttons on last screen for eligible users', async () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens to get to last screen
@@ -392,9 +397,14 @@ describe('PerpsTutorialCarousel', () => {
         );
         expect(continueButton).toBeOnTheScreen();
 
-        // Skip button should be enabled for eligible users on last screen
-        const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-        expect(skipButton.props.disabled).toBe(false);
+        // Learn more button should be visible on last screen
+        const learnMoreButton = screen.getByTestId(
+          'perps-tutorial-learn-more-button',
+        );
+        expect(learnMoreButton).toBeOnTheScreen();
+
+        // Skip button is hidden on last screen
+        expect(screen.queryByTestId('perps-tutorial-skip-button')).toBeNull();
       });
 
       it('navigates to perps home when eligible user completes tutorial', async () => {
@@ -509,7 +519,7 @@ describe('PerpsTutorialCarousel', () => {
         ).not.toBeOnTheScreen();
       });
 
-      it('shows "Let\'s go" button and disables skip button on last screen for non-eligible users', async () => {
+      it('shows "Let\'s go" button and hides skip button on last screen for non-eligible users', async () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens to get to last screen (4 clicks for 5 screens)
@@ -526,9 +536,8 @@ describe('PerpsTutorialCarousel', () => {
         );
         expect(continueButton).toBeOnTheScreen();
 
-        // Skip button should be disabled on last screen
-        const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-        expect(skipButton.props.disabled).toBe(true);
+        // Skip button is hidden on last screen (for both eligible and non-eligible users)
+        expect(screen.queryByTestId('perps-tutorial-skip-button')).toBeNull();
       });
 
       it('shows skip button for non-eligible users on non-last screens', () => {

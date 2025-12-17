@@ -55,4 +55,9 @@ enum CardActions {
   NAVIGATE_TO_CARD_PAGE = 'NAVIGATE_TO_CARD_PAGE',
 }
 
-export { CardScreens, CardActions };
+enum CardDeeplinkActions {
+  CARD_ONBOARDING = 'CARD_ONBOARDING',
+  CARD_HOME = 'CARD_HOME',
+}
+
+export { CardScreens, CardActions, CardDeeplinkActions };

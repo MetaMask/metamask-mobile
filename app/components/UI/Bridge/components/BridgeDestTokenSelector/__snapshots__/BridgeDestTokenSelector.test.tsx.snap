@@ -441,7 +441,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
