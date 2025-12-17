@@ -28,6 +28,8 @@ import {
   type DiscoverSeasonsDto,
   type SeasonMetadataDto,
   type SeasonStateDto,
+  type SignedRedeemDelegationDto,
+  type LineaTokenRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -504,6 +506,10 @@ export class RewardsController extends BaseController<
       this.claimReward.bind(this),
     );
     this.messenger.registerActionHandler(
+      'RewardsController:claimLineaTokenReward',
+      this.claimLineaTokenReward.bind(this),
+    );
+    this.messenger.registerActionHandler(
       'RewardsController:isOptInSupported',
       this.isOptInSupported.bind(this),
     );
@@ -518,6 +524,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:resetAll',
       this.resetAll.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getLineaRewardTokens',
+      this.getLineaRewardTokens.bind(this),
     );
   }
 
@@ -2942,6 +2952,78 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to claim reward:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Claim a LINEA token reward and get the delegation data for on-chain redemption.
+   * @param rewardId - The reward ID
+   * @param recipientAddress - The Ethereum address to receive the reward (must be one of the user's internal accounts)
+   * @returns The signed redeem delegation DTO containing chain ID, call data, and contract address.
+   */
+  async claimLineaTokenReward(
+    rewardId: string,
+    recipientAddress: string,
+  ): Promise<SignedRedeemDelegationDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    const candidateSubscriptionId = await this.getCandidateSubscriptionId();
+    if (!candidateSubscriptionId) {
+      throw new Error(
+        'No candidate subscription found for claiming LINEA token reward',
+      );
+    }
+
+    // Validate that the recipient address is one of the user's internal EVM accounts
+    const allAccounts = await this.messenger.call(
+      'AccountsController:listMultichainAccounts',
+    );
+    const isValidInternalAccount = allAccounts.find(
+      (account: InternalAccount) =>
+        account.address.toLowerCase() === recipientAddress.toLowerCase(),
+    );
+    if (!isValidInternalAccount) {
+      throw new Error('Recipient address is not a valid internal account');
+    }
+
+    const delegationData = await this.messenger.call(
+      'RewardsDataService:claimLineaTokenReward',
+      rewardId,
+      candidateSubscriptionId,
+      recipientAddress,
+    );
+
+    return delegationData;
+  }
+
+  /**
+   * Get the LINEA token rewards balance for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The LINEA token reward DTO containing subscription ID and amount, or null if disabled.
+   */
+  async getLineaRewardTokens(
+    subscriptionId: string,
+  ): Promise<LineaTokenRewardDto | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    try {
+      const lineaTokenReward = await this.messenger.call(
+        'RewardsDataService:getLineaRewardTokens',
+        subscriptionId,
+      );
+
+      return lineaTokenReward;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get LINEA reward tokens:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

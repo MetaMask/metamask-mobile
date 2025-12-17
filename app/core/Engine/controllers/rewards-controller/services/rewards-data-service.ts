@@ -22,6 +22,8 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  SignedRedeemDelegationDto,
+  LineaTokenRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -178,6 +180,16 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
   handler: RewardsDataService['getSeasonMetadata'];
 }
 
+export interface RewardsDataServiceClaimLineaTokenRewardAction {
+  type: `${typeof SERVICE_NAME}:claimLineaTokenReward`;
+  handler: RewardsDataService['claimLineaTokenReward'];
+}
+
+export interface RewardsDataServiceGetLineaRewardTokensAction {
+  type: `${typeof SERVICE_NAME}:getLineaRewardTokens`;
+  handler: RewardsDataService['getLineaRewardTokens'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -197,7 +209,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetUnlockedRewardsAction
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
-  | RewardsDataServiceGetSeasonMetadataAction;
+  | RewardsDataServiceGetSeasonMetadataAction
+  | RewardsDataServiceClaimLineaTokenRewardAction
+  | RewardsDataServiceGetLineaRewardTokensAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -315,6 +329,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonMetadata`,
       this.getSeasonMetadata.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:claimLineaTokenReward`,
+      this.claimLineaTokenReward.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getLineaRewardTokens`,
+      this.getLineaRewardTokens.bind(this),
     );
   }
 
@@ -988,5 +1010,56 @@ export class RewardsDataService {
     }
 
     return data as SeasonMetadataDto;
+  }
+
+  /**
+   * Claim a LINEA token reward and get the delegation data for on-chain redemption.
+   * @param rewardId - The ID of the reward to claim.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param recipientAddress - The Ethereum address to receive the reward.
+   * @returns The signed redeem delegation DTO containing chain ID, call data, and contract address.
+   */
+  async claimLineaTokenReward(
+    rewardId: string,
+    subscriptionId: string,
+    recipientAddress: string,
+  ): Promise<SignedRedeemDelegationDto> {
+    const response = await this.makeRequest(
+      `/wr/rewards/season-1/linea-token/${rewardId}/claim`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ recipientAddress }),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to claim LINEA token reward: ${response.status}`);
+    }
+
+    return (await response.json()) as SignedRedeemDelegationDto;
+  }
+
+  /**
+   * Get the LINEA token rewards balance for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The LINEA token reward DTO containing subscription ID and amount.
+   */
+  async getLineaRewardTokens(
+    subscriptionId: string,
+  ): Promise<LineaTokenRewardDto> {
+    const response = await this.makeRequest(
+      '/rewards/season-1/linea-tokens',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get LINEA reward tokens: ${response.status}`);
+    }
+
+    return (await response.json()) as LineaTokenRewardDto;
   }
 }

@@ -35,6 +35,7 @@ interface RewardItemProps {
   canPressToNavigateToInfo?: boolean;
   isEndOfSeasonReward?: boolean;
   compact?: boolean;
+  onPress?: (rewardId: string) => void;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
@@ -45,6 +46,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   isLocked = true,
   isEndOfSeasonReward = false,
   compact = false,
+  onPress,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const isSeasonRewardClaimExpired = useMemo(() => {
@@ -294,6 +296,12 @@ const RewardItem: React.FC<RewardItemProps> = ({
 
   const handleRewardItemPress = useCallback(() => {
     if (!canPressToNavigateToInfo || isSeasonRewardClaimExpired) return;
+
+    if (onPress) {
+      onPress(reward?.id as string);
+      return;
+    }
+
     navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
       title: seasonReward.name,
       icon: getIconName(seasonReward.iconName),
@@ -310,6 +318,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [
     canPressToNavigateToInfo,
     isSeasonRewardClaimExpired,
+    onPress,
     navigation,
     seasonReward.name,
     seasonReward.iconName,

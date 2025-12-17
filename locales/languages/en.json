@@ -6867,6 +6867,16 @@
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
+    "linea_token_claim": {
+      "title": "Claim your reward",
+      "reward_earned": "You earned {{amount}} $LINEA",
+      "account_description": "This will claim your reward to {{accountName}}. If you want to claim to a different account, go back and switch accounts.",
+      "eth_reminder": "Make sure you have some ETH in your account so you can claim your reward.",
+      "claim_button": "Claim",
+      "error_title": "Failed to claim reward",
+      "loading_balance": "Loading balance...",
+      "balance_error": "Failed to load reward balance. Please try again."
+    },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",

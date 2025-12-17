@@ -542,6 +542,47 @@ export interface ClaimRewardDto {
   data?: Record<string, string>;
 }
 
+/**
+ * Response DTO for getting LINEA token rewards balance
+ */
+export interface LineaTokenRewardDto {
+  /**
+   * The subscription ID
+   * @example 'example-uuid'
+   */
+  subscriptionId: string;
+
+  /**
+   * The amount of Linea tokens (as string since it's a bigint from the API)
+   * @example '1000'
+   */
+  amount: string;
+}
+
+/**
+ * Response DTO for claiming LINEA token rewards
+ * Contains the delegation data needed to redeem the reward on-chain
+ */
+export interface SignedRedeemDelegationDto {
+  /**
+   * The chain ID for the delegation
+   * @example 59144
+   */
+  chainId: number;
+
+  /**
+   * The encoded call data to redeem the delegation
+   * @example '0x...'
+   */
+  redeemDelegationCallData: string;
+
+  /**
+   * The delegation manager contract address
+   * @example '0x...'
+   */
+  contractAddress: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
@@ -1013,6 +1054,25 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for claiming LINEA token reward
+ */
+export interface RewardsControllerClaimLineaTokenRewardAction {
+  type: 'RewardsController:claimLineaTokenReward';
+  handler: (
+    rewardId: string,
+    recipientAddress: string,
+  ) => Promise<SignedRedeemDelegationDto>;
+}
+
+/**
+ * Action for getting LINEA token rewards balance
+ */
+export interface RewardsControllerGetLineaRewardTokensAction {
+  type: 'RewardsController:getLineaRewardTokens';
+  handler: (subscriptionId: string) => Promise<LineaTokenRewardDto | null>;
+}
+
+/**
  * Action for resetting controller state
  */
 export interface RewardsControllerResetAllAction {
@@ -1049,6 +1109,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerClaimLineaTokenRewardAction
+  | RewardsControllerGetLineaRewardTokensAction
   | RewardsControllerResetAllAction;
 
 /**

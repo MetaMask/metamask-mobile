@@ -13,6 +13,7 @@ import {
   BoxJustifyContent,
   Icon,
 } from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   MM_APP_STORE_LINK,
@@ -42,12 +43,16 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardItem from '../RewardItem/RewardItem';
 import { useTheme } from '../../../../../util/theme';
 import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const LINEA_TOKEN_REWARD_NAME = 'Your $LINEA is waiting';
 
 const PreviousSeasonUnlockedRewards = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { fetchUnlockedRewards } = useUnlockedRewards();
   const tw = useTailwind();
   const theme = useTheme();
+  const navigation = useNavigation();
   const unlockedRewards = useSelector(selectUnlockedRewards);
   const unlockedRewardsLoading = useSelector(selectUnlockedRewardLoading);
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
@@ -59,6 +64,20 @@ const PreviousSeasonUnlockedRewards = () => {
     () =>
       seasonMinimumVersion && !hasMinimumRequiredVersion(seasonMinimumVersion),
     [seasonMinimumVersion],
+  );
+
+  const handleRewardPress = useCallback(
+    (rewardId: string, seasonReward: SeasonRewardDto) => {
+      if (
+        seasonReward.name?.toLowerCase() ===
+        LINEA_TOKEN_REWARD_NAME.toLowerCase()
+      ) {
+        navigation.navigate(Routes.MODAL.LINEA_TOKEN_CLAIM_BOTTOM_SHEET, {
+          rewardId,
+        });
+      }
+    },
+    [navigation],
   );
 
   const openAppStore = useCallback(() => {
@@ -146,24 +165,28 @@ const PreviousSeasonUnlockedRewards = () => {
                 twClassName="gap-4 w-full"
               >
                 <Box twClassName="flex-col">
-                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => (
-                    <RewardItem
-                      key={unlockedReward.id}
-                      reward={unlockedReward}
-                      seasonReward={
-                        seasonTiers
-                          ?.flatMap((tier) => tier.rewards)
-                          ?.find(
-                            (sr) => sr.id === unlockedReward.seasonRewardId,
-                          ) as SeasonRewardDto
-                      }
-                      canPressToNavigateToInfo={false}
-                      isLast={unlockedReward === endOfSeasonRewards.at(-1)}
-                      isEndOfSeasonReward
-                      compact
-                      isLocked={false}
-                    />
-                  ))}
+                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => {
+                    const seasonReward = seasonTiers
+                      ?.flatMap((tier) => tier.rewards)
+                      ?.find(
+                        (sr) => sr.id === unlockedReward.seasonRewardId,
+                      ) as SeasonRewardDto;
+                    return (
+                      <RewardItem
+                        key={unlockedReward.id}
+                        reward={unlockedReward}
+                        seasonReward={seasonReward}
+                        canPressToNavigateToInfo
+                        isLast={unlockedReward === endOfSeasonRewards.at(-1)}
+                        isEndOfSeasonReward
+                        compact
+                        isLocked={false}
+                        onPress={(rewardId) =>
+                          handleRewardPress(rewardId, seasonReward)
+                        }
+                      />
+                    );
+                  })}
                 </Box>
 
                 <Box twClassName="flex-row justify-center items-center w-full">
