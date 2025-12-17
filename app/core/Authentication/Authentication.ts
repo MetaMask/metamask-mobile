@@ -85,6 +85,7 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import AppConstants from '../AppConstants';
 import { setLockTime } from '../../actions/settings';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { ReauthenticateErrorType } from './types';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1545,12 +1546,10 @@ class AuthenticationService {
    *
    * @param password - Optional password to verify. When omitted, the method
    * attempts to use the stored biometric/remember-me password instead.
-   * @returns The verified password string, or `undefined` if verification fails before
-   * a password can be determined.
+   * @returns The verified password string. Throws an error if verification fails
+   * before a password can be determined.
    */
-  reauthenticate = async (
-    password?: string,
-  ): Promise<{ password: string | undefined }> => {
+  reauthenticate = async (password?: string): Promise<{ password: string }> => {
     let passwordToVerify = password || '';
     const { KeyringController } = Engine.context;
 
@@ -1563,10 +1562,56 @@ class AuthenticationService {
           passwordToVerify = credentials.password;
         }
       }
+
+      // If there is no biometric choice configured or no stored credentials,
+      // throw a specific error instead of attempting to verify an empty password.
+      if (!passwordToVerify) {
+        const biometricNotEnabledErrorMessage = 'Biometric is not enabled';
+        throw new Error(
+          `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: ${biometricNotEnabledErrorMessage}`,
+        );
+      }
     }
 
     await KeyringController.verifyPassword(passwordToVerify);
     return { password: passwordToVerify };
+  };
+
+  /**
+   * Reveals the secret recovery phrase (SRP) for the specified keyring
+   * after verifying the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param keyringId - The identifier of the keyring whose SRP will be exported.
+   * @returns The mnemonic SRP associated with the provided keyring.
+   */
+  revealSRP = async (password: string, keyringId?: string): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const rawSeedPhrase = await KeyringController.exportSeedPhrase(
+      password,
+      keyringId,
+    );
+    const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
+    return seedPhrase;
+  };
+
+  /**
+   * Reveals the private key for the given account address after verifying
+   * the provided password via `reauthenticate`.
+   *
+   * @param password - The password used to authenticate the user.
+   * @param address - The account address whose private key will be exported.
+   * @returns The hex-encoded private key for the specified address.
+   */
+  revealPrivateKey = async (
+    password: string,
+    address: string,
+  ): Promise<string> => {
+    const { KeyringController } = Engine.context;
+    await this.reauthenticate(password);
+    const privateKey = await KeyringController.exportAccount(password, address);
+    return privateKey;
   };
 }
 

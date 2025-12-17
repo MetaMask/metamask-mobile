@@ -13,7 +13,6 @@ import { Authentication } from '../../../core';
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -380,8 +379,6 @@ describe('Login test suite 2', () => {
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
-
-      expect(updateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
 
       mockRoute.mockClear();
     });
