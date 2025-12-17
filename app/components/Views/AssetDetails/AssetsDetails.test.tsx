@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import AssetDetails from '.';
 import configureMockStore from 'redux-mock-store';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
@@ -36,11 +37,12 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     setOptions: jest.fn(),
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: mockGoBack,
   })),
 }));
@@ -251,6 +253,48 @@ describe('AssetDetails', () => {
         Engine.context.TokensController.ignoreTokens,
       ).not.toHaveBeenCalled();
     });
+  });
+
+  it('hides token and navigates to WalletView when onConfirm is called', async () => {
+    const runAfterInteractionsSpy = jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
+
+    const { getByText } = renderComponent();
+
+    fireEvent.press(getByText('Hide token'));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'AssetHideConfirmation',
+          params: expect.objectContaining({
+            onConfirm: expect.any(Function),
+          }),
+        }),
+      );
+    });
+
+    const onConfirmCallback = mockNavigate.mock.calls[0][1].params.onConfirm;
+    onConfirmCallback();
+
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
+      ['0xAddress'],
+      'mainnet',
+    );
+
+    runAfterInteractionsSpy.mockRestore();
   });
 
   it('renders warning banner if balance is undefined', () => {
