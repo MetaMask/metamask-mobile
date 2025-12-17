@@ -15,6 +15,7 @@ import logger from './logger';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { errorCodes, providerErrors } from '@metamask/rpc-errors';
 import Engine from '../../Engine';
+import NavigationService from '../../NavigationService';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -37,10 +38,10 @@ export class Connection {
     this.hostApp = hostApp;
     this.bridge = new RPCBridgeAdapter(this.info);
 
-    this.client.on('message', (payload) => {
+    this.client.on('message', async (payload) => {
       logger.debug('Received message:', this.id, payload);
 
-      if (
+      const isWalletCreateSessionRequest =
         payload &&
         typeof payload === 'object' &&
         'name' in payload &&
@@ -49,8 +50,19 @@ export class Connection {
         payload.data &&
         typeof payload.data === 'object' &&
         'method' in payload.data &&
-        payload.data.method === 'wallet_createSession'
+        payload.data.method === 'wallet_createSession';
+
+      // If the request is a wallet_createSession request and there are pending approval requests, clear those pending approvals before
+      // showing the wallet_createSession approval. We do this to prevent the user from seeing a stale wallet_createSession approval in the
+      // scenario where they make a connection request, but leave the wallet before approving or rejecting the request, return to the dapp
+      // to make a new connection request, and then finally return to the wallet to approve or reject the new connection request.
+      if (
+        isWalletCreateSessionRequest &&
+        Engine.context.ApprovalController.getTotalApprovalCount() > 0
       ) {
+        // We must manually navigate away from the currently open approval request, otherwise an approval component may be rendered
+        // with an approval request prop that it cannot handle and cause the wallet to throw an exception.
+        NavigationService.navigation.goBack();
         Engine.context.ApprovalController.clear(
           providerErrors.userRejectedRequest({
             data: {
