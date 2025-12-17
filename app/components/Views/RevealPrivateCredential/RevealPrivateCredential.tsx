@@ -423,9 +423,6 @@ const RevealPrivateCredential = ({
           tabLabel={strings(`reveal_credential.text`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
           <View style={styles.seedPhraseView}>
             <TextInput
               value={clipboardPrivateCredential}
