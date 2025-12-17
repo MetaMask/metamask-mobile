@@ -27,6 +27,7 @@ jest.mock('../selectors/featureFlagController', () => ({
 }));
 
 jest.mock('../util/feature-flags', () => ({
+  ...jest.requireActual('../util/feature-flags'),
   getFeatureFlagDescription: jest.fn(),
   getFeatureFlagType: jest.fn(),
   isMinimumRequiredVersionSupported: jest.fn(),

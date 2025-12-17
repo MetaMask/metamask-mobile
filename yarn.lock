@@ -9034,16 +9034,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:@metamask-previews/remote-feature-flag-controller@3.0.0-preview-c208c1a":
-  version: 3.0.0-preview-c208c1a
-  resolution: "@metamask-previews/remote-feature-flag-controller@npm:3.0.0-preview-c208c1a"
+"@metamask/remote-feature-flag-controller@npm:^3.0.0, @metamask/remote-feature-flag-controller@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:3.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.16.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/1923b2a08228edac6f5cdd185b9a1baf64130df0d2f29a09646e8c5f81e42c232bfed84d2535c899b8218d058967f8cd7f528f5e9fd7da25b5223a75e722dba8
+  checksum: 10/38963a2e0980db9bb02a845c84118f558a30426c93fa2f8b0b7870b9c0f9317b8867f363df76dd80cd3a3ed41324b58aa049ae9a705362b0f73e829010980e4c
   languageName: node
   linkType: hard
 
@@ -34294,7 +34294,7 @@ __metadata:
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
-    "@metamask/remote-feature-flag-controller": "npm:^3.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^3.1.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
