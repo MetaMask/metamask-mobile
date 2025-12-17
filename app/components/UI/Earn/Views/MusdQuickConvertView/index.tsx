@@ -29,6 +29,7 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
 } from '../../constants/musd';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
+import MusdQuickConvertLearnMoreCta from '../../components/Musd/MusdQuickConvertLearnMoreCta';
 import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
 
@@ -216,14 +217,13 @@ const MusdQuickConvertView = () => {
       edges={['bottom']}
       testID={MusdQuickConvertViewTestIds.CONTAINER}
     >
+      <Text variant={TextVariant.HeadingLG}>Convert</Text>
       {/* Header section */}
       <View
         style={styles.headerContainer}
         testID={MusdQuickConvertViewTestIds.HEADER}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.quick_convert_description')}
-        </Text>
+        <MusdQuickConvertLearnMoreCta />
       </View>
 
       {/* Token list */}
@@ -235,6 +235,20 @@ const MusdQuickConvertView = () => {
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         testID={MusdQuickConvertViewTestIds.TOKEN_LIST}
+        ListHeaderComponent={
+          <View style={styles.listHeaderContainer}>
+            {/* TODO: Cleanup and replace hardcoded strings */}
+            <Text variant={TextVariant.BodyMDMedium}>Stablecoins</Text>
+            <View style={styles.noFeesTag}>
+              <Text
+                variant={TextVariant.BodyXSMedium}
+                color={TextColor.Alternative}
+              >
+                No fees
+              </Text>
+            </View>
+          </View>
+        }
       />
     </SafeAreaView>
   );

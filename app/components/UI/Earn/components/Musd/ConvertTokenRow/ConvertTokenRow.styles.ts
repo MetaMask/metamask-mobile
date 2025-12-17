@@ -1,18 +1,21 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 12,
-      paddingHorizontal: 16,
     },
     left: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: 16,
       flex: 1,
     },
     tokenInfo: {
@@ -23,6 +26,10 @@ const styleSheet = () =>
       alignItems: 'center',
       gap: 8,
       paddingLeft: 12,
+    },
+    editButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
     },
     actionButton: {
       paddingHorizontal: 12,
@@ -35,5 +42,6 @@ const styleSheet = () =>
       justifyContent: 'center',
     },
   });
+};
 
 export default styleSheet;
