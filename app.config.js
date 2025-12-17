@@ -67,7 +67,10 @@ module.exports = {
         : 'io.metamask', // Required for @expo/repack-app Android repacking
   },
   ios: {
-    bundleIdentifier: 'io.metamask.MetaMask',
+    bundleIdentifier:
+      process.env.METAMASK_BUILD_TYPE === 'flask'
+        ? 'io.metamask.MetaMask-Flask'
+        : 'io.metamask.MetaMask',
     usesAppleSignIn: true,
     jsEngine: 'hermes',
   },

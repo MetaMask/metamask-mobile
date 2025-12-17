@@ -2,6 +2,22 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
+    inputs:
+      build_type:
+        description: 'The build type to build'
+        required: true
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The metamask environment to build'
+        required: true
+        default: 'qa'
+        type: string
+      target:
+        description: 'The target to use to sign the app'
+        required: true
+        default: 'qa'
+        type: string
 
 permissions:
   contents: read
@@ -20,8 +36,8 @@ jobs:
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
       PLATFORM: ios
-      METAMASK_ENVIRONMENT: qa
-      METAMASK_BUILD_TYPE: main
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       IS_TEST: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -71,6 +87,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          target: ${{ inputs.target }} # qa for taget=main and flask for target=flask
 
       - name: Print iOS tool versions
         run: |
@@ -119,6 +136,22 @@ jobs:
           restore-keys: |
             ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
             ios-app-
+        
+      - name: Determine App Name
+        id: determine-app-name
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "app-name=MetaMask-Flask.app"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "app-name=MetaMask.app"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
@@ -126,33 +159,45 @@ jobs:
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          yarn build:ios:main:e2e
+          yarn build:ios:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: main
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-
           NODE_OPTIONS: '--max_old_space_size=4096' # Increase memory limit for build
-
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
           SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-
           MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
           MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
           MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
@@ -161,12 +206,12 @@ jobs:
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
-          yarn build:repack:ios
-          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+          APP_NAME=${{ steps.determine-app-name.outputs.app-name }} yarn build:repack:ios
+          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/${{ steps.determine-app-name.outputs.app-name }}" | cut -f1)"
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -201,7 +246,7 @@ jobs:
         uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         with:
           path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+            ios/build/Build/Products/Release-iphonesimulator/${{ steps.determine-app-name.outputs.app-name }}
           key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Upload the iOS .app file that works in simulators
@@ -209,8 +254,8 @@ jobs:
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          name: ${{ steps.determine-app-name.outputs.app-name }}
+          path: ios/build/Build/Products/Release-iphonesimulator/${{ steps.determine-app-name.outputs.app-name }}
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
