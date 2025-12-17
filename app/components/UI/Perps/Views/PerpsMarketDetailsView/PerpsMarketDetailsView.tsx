@@ -914,6 +914,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onFullscreenPress={handleFullscreenChartOpen}
           isFavorite={isWatchlist}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+          currentPrice={chartCurrentPrice}
         />
       </View>
 
