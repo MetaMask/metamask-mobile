@@ -116,7 +116,7 @@ class SwapScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    await AppwrightGestures.typeText(this.destTokenInput, amount);
+    await AppwrightGestures.typeText(await this.destTokenInput, amount);
   }
 
   async isVisible() {

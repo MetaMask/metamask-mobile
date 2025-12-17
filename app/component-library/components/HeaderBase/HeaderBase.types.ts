@@ -1,7 +1,15 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { ViewProps, StyleProp, ViewStyle } from 'react-native';
+import { ReactNode } from 'react';
 
-// Enums
+// External dependencies.
+import { ButtonIconProps } from '@metamask/design-system-react-native';
+
+/**
+ * Variant options for HeaderBase component.
+ * - Compact: Center-aligned title with HeadingSm text (default)
+ * - Display: Left-aligned title with HeadingLg text
+ */
 export enum HeaderBaseVariant {
   Display = 'display',
   Compact = 'compact',
@@ -14,25 +22,44 @@ export interface HeaderBaseProps extends ViewProps {
   /**
    * Title of the HeaderBase.
    */
-  children?: React.ReactNode | string;
+  children?: ReactNode | string;
+  /**
+   * Optional style for the header container.
+   */
+  style?: StyleProp<ViewStyle>;
   /**
    * Optional prop to include content to be displayed before the title.
+   * Takes priority over startButtonIconProps if both are provided.
    */
-  startAccessory?: React.ReactNode;
+  startAccessory?: ReactNode;
   /**
    * Optional prop to include content to be displayed after the title.
+   * Takes priority over endButtonIconProps if both are provided.
    */
-  endAccessory?: React.ReactNode;
+  endAccessory?: ReactNode;
+  /**
+   * Optional ButtonIcon props to render a ButtonIcon as the start accessory.
+   * Only used if startAccessory is not provided.
+   * @default size: ButtonIconSize.Md
+   */
+  startButtonIconProps?: ButtonIconProps;
+  /**
+   * Optional array of ButtonIcon props to render multiple ButtonIcons as end accessories.
+   * Rendered in reverse order (first item appears rightmost).
+   * Only used if endAccessory is not provided.
+   * @default size: ButtonIconSize.Md for each
+   */
+  endButtonIconProps?: ButtonIconProps[];
   /**
    * Optional prop to include the top inset to make sure the header is visible
-   * below device's knob
-   * @default: false
+   * below device's knob.
+   * @default false
    */
   includesTopInset?: boolean;
   /**
-   * Optional prop to set the variant of the header (controls alignment and text size).
-   * Display: left aligned with HeadingLG text.
-   * Compact: center aligned with HeadingSM text.
+   * Optional variant to control alignment and text size.
+   * - Compact: center-aligned with HeadingSm text (default)
+   * - Display: left-aligned with HeadingLg text
    * @default HeaderBaseVariant.Compact
    */
   variant?: HeaderBaseVariant;
@@ -44,15 +71,12 @@ export interface HeaderBaseProps extends ViewProps {
    * Optional props to pass to the end accessory wrapper View.
    */
   endAccessoryWrapperProps?: ViewProps;
+  /**
+   * Optional test ID for the header container.
+   */
+  testID?: string;
+  /**
+   * Optional Tailwind class names for the header container.
+   */
+  twClassName?: string;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type HeaderBaseStyleSheetVars = Pick<
-  HeaderBaseProps,
-  'style' | 'variant'
-> & {
-  startAccessorySize: { width: number; height: number } | null;
-  endAccessorySize: { width: number; height: number } | null;
-};

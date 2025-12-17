@@ -30,7 +30,6 @@ export function getBridgeStatusControllerMessenger(
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getState',
-      'BridgeController:getBridgeERC20Allowance',
       'BridgeController:stopPollingForQuotes',
       'BridgeController:trackUnifiedSwapBridgeEvent',
       'GasFeeController:getState',

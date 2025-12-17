@@ -64,6 +64,7 @@ export class BrowserStackConfigBuilder {
           appProfiling: 'true',
           selfHeal: 'true',
           networkProfile: '4g-lte-advanced-good',
+          geoLocation: 'FR',
         },
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
