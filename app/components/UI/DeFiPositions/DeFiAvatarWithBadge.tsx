@@ -29,7 +29,7 @@ const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
     <AvatarToken
       name={avatarName}
       imageSource={{ uri: avatarIconUrl }}
-      size={AvatarSize.Md}
+      size={AvatarSize.Lg}
     />
   </BadgeWrapper>
 );

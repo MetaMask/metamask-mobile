@@ -29,6 +29,7 @@ import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBotto
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { colors } from '../../../../styles/common';
 import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
+import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -155,6 +156,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ASSET_SELECTION}
       component={AssetSelectionBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.REGION_SELECTION}
+      component={RegionSelectorModal}
     />
   </ModalsStack.Navigator>
 );
