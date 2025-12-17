@@ -2312,7 +2312,7 @@
     "deposit_button": "Deposit",
     "copy_address": "Copy",
     "collectible_action_title": "Collectible options",
-    "remove_token_title": "Do you want to hide this token?",
+    "remove_token_title": "Hide token?",
     "remove_collectible_title": "Do you want to remove this collectible?",
     "refresh_metadata": "Refresh metadata",
     "token_removal_issue_title": "Issue removing token.",
