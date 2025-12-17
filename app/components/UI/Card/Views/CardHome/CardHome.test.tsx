@@ -3217,7 +3217,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Not Approved'),
+            expect.stringContaining('Verification not approved'),
             expect.stringContaining('contact our support team'),
             expect.any(Array),
           );
@@ -3238,7 +3238,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Required'),
+            expect.stringContaining('Verification required'),
             expect.stringContaining('complete identity verification'),
             expect.any(Array),
           );
