@@ -28,7 +28,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.CONTAINER)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders title section when titleLeftProps provided', () => {
@@ -39,7 +39,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.TITLE_SECTION)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.TITLE_SECTION)).toBeOnTheScreen();
     });
 
     it('renders TitleLeft with props when titleLeftProps provided', () => {
@@ -53,9 +53,9 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByText('Send')).toBeTruthy();
-      expect(getByText('$4.42')).toBeTruthy();
-      expect(getByTestId(TEST_IDS.TITLE_LEFT)).toBeTruthy();
+      expect(getByText('Send')).toBeOnTheScreen();
+      expect(getByText('$4.42')).toBeOnTheScreen();
+      expect(getByTestId(TEST_IDS.TITLE_LEFT)).toBeOnTheScreen();
     });
 
     it('renders custom titleLeft node when provided', () => {
@@ -63,7 +63,7 @@ describe('HeaderWithTitleLeft', () => {
         <HeaderWithTitleLeft titleLeft={<Text>Custom Title Section</Text>} />,
       );
 
-      expect(getByText('Custom Title Section')).toBeTruthy();
+      expect(getByText('Custom Title Section')).toBeOnTheScreen();
     });
 
     it('titleLeft takes priority over titleLeftProps', () => {
@@ -74,7 +74,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByText('Custom Node')).toBeTruthy();
+      expect(getByText('Custom Node')).toBeOnTheScreen();
       expect(queryByText('Props Title')).toBeNull();
     });
 
@@ -100,7 +100,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.BACK_BUTTON)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.BACK_BUTTON)).toBeOnTheScreen();
     });
 
     it('renders back button when backButtonProps provided', () => {
@@ -111,7 +111,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.BACK_BUTTON)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.BACK_BUTTON)).toBeOnTheScreen();
     });
 
     it('calls onBack when back button pressed', () => {
@@ -185,7 +185,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId(TEST_IDS.HEADER_BASE_END_ACCESSORY)).toBeTruthy();
+      expect(getByTestId(TEST_IDS.HEADER_BASE_END_ACCESSORY)).toBeOnTheScreen();
     });
 
     it('accepts custom testID', () => {
@@ -196,7 +196,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId('custom-header')).toBeTruthy();
+      expect(getByTestId('custom-header')).toBeOnTheScreen();
     });
 
     it('forwards startButtonIconProps directly when provided', () => {
@@ -212,7 +212,7 @@ describe('HeaderWithTitleLeft', () => {
         />,
       );
 
-      expect(getByTestId('custom-start-button')).toBeTruthy();
+      expect(getByTestId('custom-start-button')).toBeOnTheScreen();
     });
   });
 });
