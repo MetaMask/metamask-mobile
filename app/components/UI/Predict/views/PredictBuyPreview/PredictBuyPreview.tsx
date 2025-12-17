@@ -196,20 +196,10 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
-  const minimumBetFees = useMemo(
-    () => (MINIMUM_BET * (preview?.fees?.totalFeePercentage ?? 0)) / 100,
-    [preview?.fees?.totalFeePercentage],
-  );
-
-  // Validation constants and states
-  const minimumBetWithFees = useMemo(
-    () => MINIMUM_BET + minimumBetFees,
-    [minimumBetFees],
-  );
   const hasInsufficientFunds = total > balance;
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const canPlaceBet =
-    currentValue >= minimumBetWithFees &&
+    currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
     !isLoading &&

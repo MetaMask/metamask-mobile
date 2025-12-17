@@ -31,6 +31,7 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type {
   PerpsNavigationParamList,
@@ -345,7 +346,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 {formatPerpsFiat(totalBalance)}
               </Text>
             </Animated.View>
-            <Box twClassName="flex-row items-center mt-2">
+            <Box twClassName="flex-row items-center mt-1">
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
@@ -353,7 +354,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
                 }
               >
-                {formatPerpsFiat(availableBalance)} {strings('perps.available')}
+                {formatPerpsFiat(availableBalance, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
+                })}{' '}
+                {strings('perps.available')}
               </Text>
               {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
                 <>
@@ -375,7 +380,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             </Box>
             {/* Action Buttons */}
             {showActionButtons && (
-              <Box twClassName="gap-3" flexDirection={BoxFlexDirection.Row}>
+              <Box
+                twClassName="gap-3 mt-4"
+                flexDirection={BoxFlexDirection.Row}
+              >
                 <Box twClassName="flex-1">
                   <Button
                     variant={ButtonVariant.Secondary}

@@ -22,6 +22,7 @@ import {
 import { TEST_NETWORK_IDS } from '../../constants/network';
 import type { AccountGroupWithInternalAccounts } from './accounts.type';
 import { sortNetworkAddressItems } from '../../component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.utils';
+import { toFormattedAddress } from '../../util/address';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -289,12 +290,14 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
             account.type === EthAccountType.Eoa
               ? ethereumNetworkIds
               : account.scopes || [];
+          // Format address once: checksummed for EVM, raw for non-EVM
+          const formattedAddress = toFormattedAddress(account.address);
           // Filter out testnets from scopes and map each scope to an account-scope object
           return filterTestnets(
             scopes as CaipChainId[],
             networkConfigurations,
           ).map((scope: CaipChainId) => ({
-            account,
+            account: { ...account, address: formattedAddress },
             scope,
             networkName:
               networkConfigurations[scope]?.name || 'Unknown Network',

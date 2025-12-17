@@ -45,7 +45,6 @@ describe('ExecutionServiceInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       setupSnapProvider: expect.any(Function),
-      pingTimeout: expect.any(Number),
     });
   });
 
