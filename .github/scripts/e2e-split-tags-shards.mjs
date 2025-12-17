@@ -142,8 +142,8 @@ function findMatchingFiles(baseDir, tag, singleTest = '') {
     if (!fs.existsSync(singleTestFile)) throw new Error(`❌ No test file found: ${singleTest}`);
     console.log(`Found matching spec file to run: ${singleTestFile}`);
     duplicateSpecFile(singleTestFile);
-    applyFlakinessDetection([singleTestFile]);
-    return [path.relative(process.cwd(), singleTestFile)];
+    const flakinessDetectedFiles = applyFlakinessDetection([singleTestFile]);
+    return flakinessDetectedFiles;
   }
 
   const resolvedBase = path.resolve(baseDir);
