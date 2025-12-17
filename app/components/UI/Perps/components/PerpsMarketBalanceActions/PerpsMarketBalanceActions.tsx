@@ -47,8 +47,7 @@ import PerpsEmptyStateIcon from '../../../../../images/perps-home-empty-state.pn
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
-import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perpsController';
 
 interface PerpsMarketBalanceActionsProps {
   positions?: Position[];
@@ -83,42 +82,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { isDepositInProgress } = usePerpsDepositProgress();
 
-  // Get current selected account address
-  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  )?.address;
-
-  // Get withdrawal requests from controller state and filter by current account
-  const withdrawalRequests = useSelector((state: RootState) => {
-    const allWithdrawals =
-      state.engine.backgroundState.PerpsController?.withdrawalRequests || [];
-
-    // If no selected address, return empty array (don't show potentially wrong account's data)
-    if (!selectedAddress) {
-      DevLogger.log(
-        'PerpsMarketBalanceActions: No selected address, returning empty array',
-        { totalCount: allWithdrawals.length },
-      );
-      return [];
-    }
-
-    // Filter by current account, normalizing addresses for comparison
-    const filtered = allWithdrawals.filter(
-      (req) =>
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
-    );
-
-    DevLogger.log(
-      'PerpsMarketBalanceActions: Filtered withdrawals by account',
-      {
-        selectedAddress,
-        totalCount: allWithdrawals.length,
-        filteredCount: filtered.length,
-      },
-    );
-
-    return filtered;
-  });
+  // Get withdrawal requests filtered by current account using memoized selector
+  const withdrawalRequests = useSelector(
+    selectWithdrawalRequestsBySelectedAccount,
+  );
 
   // State for transaction amount
   const [transactionAmountWei, setTransactionAmountWei] = useState<
