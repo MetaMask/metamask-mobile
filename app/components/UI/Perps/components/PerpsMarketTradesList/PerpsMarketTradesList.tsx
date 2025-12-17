@@ -138,7 +138,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
         {strings('perps.market.recent_trades')}
       </Text>
       {!isLoading && (
-        <TouchableOpacity onPress={handleSeeAll}>
+        <TouchableOpacity testID="see-all-button" onPress={handleSeeAll}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>
