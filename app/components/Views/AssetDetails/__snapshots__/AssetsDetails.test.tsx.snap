@@ -153,7 +153,7 @@ exports[`AssetDetails renders correctly 1`] = `
         ]
       }
     >
-      Token Amount
+      Token amount
     </Text>
     <View
       style={
@@ -325,7 +325,7 @@ exports[`AssetDetails renders correctly 1`] = `
         ]
       }
     >
-      Token Lists
+      Token lists
     </Text>
     <Text
       style={

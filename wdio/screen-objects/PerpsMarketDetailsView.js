@@ -19,11 +19,11 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
-    await AppwrightGestures.tap(this.longButton);
+    await AppwrightGestures.tap(await this.longButton);
   }
 
   async tapShortButton() {
-    await AppwrightGestures.tap(this.shortButton);
+    await AppwrightGestures.tap(await this.shortButton);
   }
 }
 
