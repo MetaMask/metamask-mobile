@@ -192,8 +192,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-          run_id: ${{ inputs.artifact_run_id || github.run_id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
