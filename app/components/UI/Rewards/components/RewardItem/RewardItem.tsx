@@ -260,7 +260,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
     >
       <Box
         twClassName={`flex-row items-center ${compact ? 'py-2' : 'py-3 px-4'} gap-4 ${
-          !isLast ? 'border-b border-muted' : ''
+          isLast || compact ? '' : 'border-b border-muted'
         }`}
       >
         {/* Reward Icon */}

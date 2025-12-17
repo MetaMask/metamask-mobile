@@ -6816,6 +6816,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "season_error":{
+      "error_fetching_title": "Season couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "season_status_error": {
       "error_fetching_title": "Season balance couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
