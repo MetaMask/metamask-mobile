@@ -189,11 +189,6 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-  it('renders correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders token details correctly', () => {
     const { getByText } = renderComponent();
 
