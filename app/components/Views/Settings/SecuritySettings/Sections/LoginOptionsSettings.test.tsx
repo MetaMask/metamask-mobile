@@ -503,4 +503,317 @@ describe('LoginOptionsSettings', () => {
       });
     }
   });
+
+  it('navigates to password entry when password is required for passcode', async () => {
+    mockGetType.mockResolvedValue({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    mockUpdateAuthPreference.mockRejectedValueOnce(
+      new MockedAuthenticationError(
+        'Password required',
+        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+      ),
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const passcodeToggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+    );
+    fireEvent(passcodeToggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalledWith('EnterPasswordSimple', {
+        onPasswordSet: expect.any(Function),
+      });
+    });
+  });
+
+  it('updates auth preference when password is provided via callback for passcode', async () => {
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+
+    // Initial load: PASSWORD with FaceID available (shows passcode toggle)
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    // After password entry: PASSCODE
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: 'FaceID',
+    });
+
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    // Mock getItem for the re-fetch after password entry
+    mockGetItem
+      .mockResolvedValueOnce(null) // Initial load
+      .mockResolvedValueOnce(null); // After password entry
+
+    mockNavigateFn.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    // Wait for component to load and passcode toggle to appear
+    const passcodeToggle = await waitFor(
+      () => getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      { timeout: 3000 },
+    );
+
+    fireEvent(passcodeToggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.PASSCODE,
+          'test-password',
+        );
+      });
+    }
+  });
+
+  it('reverts toggle state when passcode password entry callback fails', async () => {
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+    mockGetType.mockResolvedValue({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockRejectedValueOnce(new Error('Update failed'));
+
+    mockNavigateFn.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const passcodeToggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+    );
+    fireEvent(passcodeToggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
+          AUTHENTICATION_TYPE.PASSCODE,
+          'test-password',
+        );
+      });
+    }
+  });
+
+  it('re-fetches auth type after successful password entry for biometrics', async () => {
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    // First call: initial load in useEffect
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    // Second call: after password entry (re-fetch)
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      availableBiometryType: 'FaceID',
+    });
+
+    // Mock getItem for initial load and re-fetch after password entry
+    mockGetItem
+      .mockResolvedValueOnce(null) // Initial load
+      .mockResolvedValueOnce(null); // After password entry (re-fetch)
+
+    mockNavigateFn.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const toggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+    );
+    fireEvent(toggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(
+        () => {
+          // Should re-fetch auth type after successful update
+          // Call 1: initial load in useEffect
+          // Call 2: re-fetch after password entry
+          expect(mockGetType).toHaveBeenCalledTimes(2);
+        },
+        { timeout: 3000 },
+      );
+    }
+  });
+
+  it('re-fetches auth type after successful password entry for passcode', async () => {
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+
+    // First call: initial load in useEffect
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    // Second call: after password entry (re-fetch)
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: 'FaceID',
+    });
+
+    mockUpdateAuthPreference
+      .mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    // Mock getItem for initial load (BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED)
+    // and re-fetch after password entry (PASSCODE_DISABLED)
+    mockGetItem
+      .mockResolvedValueOnce(null) // Initial load: BIOMETRY_CHOICE_DISABLED
+      .mockResolvedValueOnce(null) // Initial load: PASSCODE_DISABLED
+      .mockResolvedValueOnce(null); // After password entry: PASSCODE_DISABLED
+
+    mockNavigateFn.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    // Wait for component to load and passcode toggle to appear
+    const passcodeToggle = await waitFor(
+      () => getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      { timeout: 3000 },
+    );
+
+    fireEvent(passcodeToggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalled();
+    });
+
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(
+        () => {
+          // Should re-fetch auth type after successful update
+          // Call 1: initial load in useEffect
+          // Call 2: re-fetch after password entry
+          expect(mockGetType).toHaveBeenCalledTimes(2);
+        },
+        { timeout: 3000 },
+      );
+    }
+  });
+
+  it('handles error when updating passcode auth preference fails', async () => {
+    mockGetType.mockResolvedValue({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: 'FaceID',
+    });
+
+    const error = new Error('Update failed');
+    mockUpdateAuthPreference.mockRejectedValueOnce(error);
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const passcodeToggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+    );
+    fireEvent(passcodeToggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(mockUpdateAuthPreference).toHaveBeenCalled();
+    });
+  });
 });
