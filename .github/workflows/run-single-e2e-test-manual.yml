@@ -21,7 +21,7 @@ permissions:
 jobs:
   build-ios-apps:
       name: 'Build iOS Apps'
-      if: ${{ inputs.artifact_run_id == '' }}
+      if: ${{ false }}
       permissions:
         contents: read
         id-token: write
