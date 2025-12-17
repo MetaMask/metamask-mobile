@@ -5,6 +5,11 @@ import Authentication from './';
  */
 export function useAuthentication() {
   return {
-    lockApp: Authentication.lockApp,
+    lockApp: (options?: {
+      allowRememberMe?: boolean;
+      reset?: boolean;
+      locked?: boolean;
+      navigateToLogin?: boolean;
+    }) => Authentication.lockApp(options),
   };
 }
