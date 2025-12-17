@@ -53,8 +53,8 @@ on:
         required: false
         type: string
         default: ''
-      artifact_run_id:
-        description: 'Run ID of an existing build to reuse (skips build step if provided)'
+      artifact_id:
+        description: 'Artifact ID of an existing build to reuse (skips build step if provided)'
         required: false
         type: string
         default: ''
@@ -192,7 +192,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          artifact-ids: ${{ inputs.artifact_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🧪 Run E2E tests
@@ -201,7 +201,7 @@ jobs:
           echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
           echo "Using TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}"
-          echo "Using ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id || github.run_id }}"
+          echo "Using ARTIFACT_ID: ${{ inputs.artifact_id }}"
           echo "Single test: ${{ inputs.single_test }}"
 
           # Always use the splitting script (handles both split and non-split cases)
