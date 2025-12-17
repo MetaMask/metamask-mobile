@@ -573,6 +573,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "initialEnqueueCompleted": false,
         "syncQueue": {},
       },
+      "RampsController": {
+        "geolocation": null,
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -1343,6 +1346,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "ProfileMetricsController": {
         "initialEnqueueCompleted": false,
         "syncQueue": {},
+      },
+      "RampsController": {
+        "geolocation": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
