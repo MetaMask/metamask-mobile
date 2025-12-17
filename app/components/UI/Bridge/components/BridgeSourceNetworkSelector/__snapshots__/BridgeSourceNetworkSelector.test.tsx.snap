@@ -441,7 +441,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

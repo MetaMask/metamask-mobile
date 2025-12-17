@@ -7,6 +7,7 @@ import {
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -999,7 +1000,12 @@ class AuthenticationService {
       shouldCreateSocialBackup: true,
       shouldSelectAccount: true,
     },
-  ): Promise<void> => {
+  ): Promise<boolean> => {
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    if (isPasswordOutdated) {
+      return false;
+    }
+
     trace({
       name: TraceName.ImportEvmAccount,
       op: TraceOperation.ImportAccount,
@@ -1039,6 +1045,7 @@ class AuthenticationService {
     endTrace({
       name: TraceName.ImportEvmAccount,
     });
+    return true;
   };
 
   /**
@@ -1413,6 +1420,40 @@ class AuthenticationService {
       Logger.log(error, errorMsg);
     }
   }
+
+  /**
+   * If a password is provided, it is verified directly. Otherwise, this method
+   * attempts to read the biometric preference from storage and, when enabled,
+   * retrieves the stored credentials via `getPassword` and verifies the stored password.
+   *
+   * The method resolves with the verified password string on success and
+   * propagates any error thrown by `KeyringController.verifyPassword`.
+   *
+   * @param password - Optional password to verify. When omitted, the method
+   * attempts to use the stored biometric/remember-me password instead.
+   * @returns The verified password string, or `undefined` if verification fails before
+   * a password can be determined.
+   */
+  reauthenticate = async (
+    password?: string,
+  ): Promise<{ password: string | undefined }> => {
+    let passwordToVerify = password || '';
+    const { KeyringController } = Engine.context;
+
+    // if no password is provided, try to use the stored biometric/remember-me password
+    if (!passwordToVerify) {
+      const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+      if (biometryChoice) {
+        const credentials = await this.getPassword();
+        if (credentials) {
+          passwordToVerify = credentials.password;
+        }
+      }
+    }
+
+    await KeyringController.verifyPassword(passwordToVerify);
+    return { password: passwordToVerify };
+  };
 }
 
 export const Authentication = new AuthenticationService();

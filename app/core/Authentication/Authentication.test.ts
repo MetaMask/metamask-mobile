@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -121,6 +122,7 @@ jest.mock('../Engine', () => ({
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
       removeAccount: jest.fn(),
+      verifyPassword: jest.fn(),
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
@@ -1566,7 +1568,7 @@ describe('Authentication', () => {
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(true);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
@@ -2497,6 +2499,24 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
+    it('returns false when seedless password is outdated', async () => {
+      // Arrange
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+
+      // Act
+      const result =
+        await Authentication.importAccountFromPrivateKey(mockPrivateKey);
+
+      // Assert
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(result).toBe(false);
+      expect(
+        Engine.context.KeyringController.importAccountWithStrategy,
+      ).not.toHaveBeenCalled();
+    });
+
     it('import account from private key without seedless flow', async () => {
       // Arrange
       const options = {
@@ -2933,7 +2953,7 @@ describe('Authentication', () => {
       // Mock Authentication methods
       jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
         .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
@@ -3694,6 +3714,55 @@ describe('Authentication', () => {
 
       // Assert lockApp was called
       expect(mockLockApp).toHaveBeenCalledWith({ locked: true });
+    });
+  });
+
+  describe('reauthenticate', () => {
+    let Engine: typeof import('../Engine').default;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    it('verifies provided password and returns it', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+
+      const result = await Authentication.reauthenticate('test-password');
+
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('test-password');
+      expect(result.password).toBe('test-password');
+    });
+
+    it('uses stored biometric password when no password is provided', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      const getPasswordSpy = jest
+        .spyOn(Authentication, 'getPassword')
+        .mockResolvedValue({
+          password: 'stored-password',
+        } as unknown as Keychain.UserCredentials);
+
+      const result = await Authentication.reauthenticate();
+
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(BIOMETRY_CHOICE);
+      expect(getPasswordSpy).toHaveBeenCalled();
+      expect(verifyPasswordSpy).toHaveBeenCalledWith('stored-password');
+      expect(result.password).toBe('stored-password');
+    });
+
+    it('propagates error when password verification fails', async () => {
+      const error = new Error('Invalid password');
+
+      jest
+        .spyOn(Engine.context.KeyringController, 'verifyPassword')
+        .mockRejectedValueOnce(error);
+
+      await expect(Authentication.reauthenticate('bad-password')).rejects.toBe(
+        error,
+      );
     });
   });
 });
