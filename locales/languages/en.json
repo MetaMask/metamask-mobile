@@ -5686,7 +5686,6 @@
       "network_fee": "Network fee",
       "earning": "Earning",
       "convert": "Convert",
-      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
       "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
@@ -5704,7 +5703,11 @@
       "get_musd": "Get mUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to",
-      "max": "Max"
+      "max": "Max",
+      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
+      "learn_more": "Learn more",
+      "tooltip_title": "Earn yield with mUSD",
+      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold."
     },
     "rewards": {
       "rewards_tag_label": "Rewards",

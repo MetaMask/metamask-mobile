@@ -72,3 +72,6 @@ export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
   }
   return result;
 })();
+
+// Temp: Until we have actual APY.
+export const MUSD_APY = '2%';
