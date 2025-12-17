@@ -1486,74 +1486,52 @@ class AuthenticationService {
    *
    * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
    * @param password - optional password to use. If not provided, gets from keychain.
-   * @param skipValidation - optional flag to skip password validation (used in vault corruption recovery where vault is corrupted)
    * @returns {Promise<void>}
    * @throws {AuthenticationError} when password is not found and not provided
    */
   updateAuthPreference = async (
     authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
     password?: string,
-    skipValidation = false,
   ): Promise<void> => {
-    let passwordToUse = password;
-
-    // If password not provided, try to get it from keychain
-    if (!passwordToUse) {
-      const credentials = await this.getPassword();
-      if (
-        credentials &&
-        credentials.password &&
-        credentials.password.length > 0
-      ) {
-        passwordToUse = credentials.password;
+    // Password found or provided. Validate and update the auth preference.
+    try {
+      const passwordToUse = await this.reauthenticate(password);
+      if (!passwordToUse.password) {
+        throw new AuthenticationError(
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          this.authData,
+        );
       }
-    }
+      await this.resetPassword();
 
-    if (passwordToUse && passwordToUse.length > 0) {
-      // Password found or provided. Validate and update the auth preference.
-      try {
-        await this.resetPassword();
-        // Skip validation in vault corruption recovery scenarios where vault is corrupted
-        if (!skipValidation) {
-          await Engine.context.KeyringController.exportSeedPhrase(
-            passwordToUse,
-          );
-        }
-        // storePassword handles all storage flag management internally
-        await this.storePassword(passwordToUse, authType);
+      // storePassword handles all storage flag management internally
+      await this.storePassword(passwordToUse.password, authType);
 
-        ReduxService.store.dispatch(passwordSet());
+      ReduxService.store.dispatch(passwordSet());
 
-        const lockTime = ReduxService.store.getState().settings.lockTime;
-        if (lockTime === -1) {
-          ReduxService.store.dispatch(
-            setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-          );
-        }
-      } catch (e) {
-        const errorWithMessage = e as { message: string };
-        if (errorWithMessage.message === 'Invalid password') {
-          Alert.alert(
-            strings('app_settings.invalid_password'),
-            strings('app_settings.invalid_password_message'),
-          );
-          trackErrorAsAnalytics(
-            'SecuritySettings: Invalid password',
-            errorWithMessage?.message,
-            '',
-          );
-        } else {
-          Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
-        }
-        throw e;
+      const lockTime = ReduxService.store.getState().settings.lockTime;
+      if (lockTime === -1) {
+        ReduxService.store.dispatch(
+          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
+        );
       }
-    } else {
-      // Password not found. Throw error - let caller handle navigation.
-      throw new AuthenticationError(
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        this.authData,
-      );
+    } catch (e) {
+      const errorWithMessage = e as { message: string };
+      if (errorWithMessage.message === 'Invalid password') {
+        Alert.alert(
+          strings('app_settings.invalid_password'),
+          strings('app_settings.invalid_password_message'),
+        );
+        trackErrorAsAnalytics(
+          'SecuritySettings: Invalid password',
+          errorWithMessage?.message,
+          '',
+        );
+      } else {
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
+      }
+      throw e;
     }
   };
 

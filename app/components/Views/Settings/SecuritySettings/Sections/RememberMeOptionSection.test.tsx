@@ -1,9 +1,17 @@
-import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import RememberMeOptionSection from './RememberMeOptionSection';
-import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+const mockGetItem = jest.fn();
+const mockRemoveItem = jest.fn();
+jest.mock('../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: mockGetItem,
+    removeItem: mockRemoveItem,
+  },
+}));
+
+// Mock locales/i18n to prevent it from using StorageWrapper during import
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
 
 // Mock Authentication
 jest.mock('../../../../../core', () => {
@@ -18,6 +26,13 @@ jest.mock('../../../../../core', () => {
     __mockUpdateAuthPreference: mockUpdateAuthPreferenceFn,
   };
 });
+
+import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import RememberMeOptionSection from './RememberMeOptionSection';
+import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
+import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -42,6 +57,29 @@ jest.mock(
   }),
 );
 
+// Mock AuthenticationError
+jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
+  class AuthenticationError extends Error {
+    customErrorMessage: string;
+
+    constructor(message: string, code: string) {
+      super(message);
+      this.customErrorMessage = code;
+      this.name = 'AuthenticationError';
+    }
+  }
+
+  return {
+    __esModule: true,
+    default: AuthenticationError,
+  };
+});
+
+// Mock Logger
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 describe('RememberMeOptionSection', () => {
   let mockGetType: jest.Mock;
   let mockUpdateAuthPreference: jest.Mock;
@@ -52,10 +90,17 @@ describe('RememberMeOptionSection', () => {
     mockGetType = AuthenticationMock.__mockGetType;
     mockUpdateAuthPreference = AuthenticationMock.__mockUpdateAuthPreference;
 
+    // Get the mocked AuthenticationError class
+    AuthenticationError = jest.requireMock(
+      '../../../../../core/Authentication/AuthenticationError',
+    ).default;
+
     mockGetType.mockResolvedValue({
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
     mockUpdateAuthPreference.mockResolvedValue(undefined);
+    mockGetItem.mockResolvedValue(null);
+    mockRemoveItem.mockResolvedValue(undefined);
   });
 
   const initialState = {
@@ -71,14 +116,23 @@ describe('RememberMeOptionSection', () => {
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
   });
 
-  it('checks if already using remember me on mount', async () => {
+  it('calls getType when attempting to disable remember me', async () => {
     mockGetType.mockResolvedValue({
       currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
     });
 
-    renderWithProvider(<RememberMeOptionSection />, {
-      state: initialState,
+    const stateWithRememberMe = {
+      security: {
+        allowLoginWithRememberMe: true,
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
+      state: stateWithRememberMe,
     });
+
+    const toggle = getByTestId(TURN_ON_REMEMBER_ME);
+    fireEvent(toggle, 'onValueChange', false);
 
     await waitFor(() => {
       expect(mockGetType).toHaveBeenCalled();
@@ -88,11 +142,6 @@ describe('RememberMeOptionSection', () => {
   it('calls updateAuthPreference when enabling remember me', async () => {
     const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
       state: initialState,
-    });
-
-    // Wait for initial mount and getType call
-    await waitFor(() => {
-      expect(mockGetType).toHaveBeenCalled();
     });
 
     const toggle = getByTestId(TURN_ON_REMEMBER_ME);
@@ -120,11 +169,6 @@ describe('RememberMeOptionSection', () => {
       state: stateWithRememberMe,
     });
 
-    // Wait for initial mount
-    await waitFor(() => {
-      expect(mockGetType).toHaveBeenCalled();
-    });
-
     const toggle = getByTestId(TURN_ON_REMEMBER_ME);
     fireEvent(toggle, 'onValueChange', false);
 
@@ -141,11 +185,6 @@ describe('RememberMeOptionSection', () => {
 
     const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
       state: initialState,
-    });
-
-    // Wait for initial mount
-    await waitFor(() => {
-      expect(mockGetType).toHaveBeenCalled();
     });
 
     const toggle = getByTestId(TURN_ON_REMEMBER_ME);
