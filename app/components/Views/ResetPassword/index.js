@@ -32,7 +32,6 @@ import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  BIOMETRY_CHOICE,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -398,17 +397,6 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  unlockWithBiometrics = async () => {
-    // Try to use biometrics to unlock
-    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-    if (biometryChoice) {
-      const credentials = await Authentication.getPassword();
-      if (credentials) {
-        this.tryUnlockWithPassword(credentials.password);
-      }
-    }
-  };
-
   async componentDidMount() {
     this.updateNavBar();
 
@@ -434,7 +422,7 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      this.unlockWithBiometrics();
+      this.reauthenticate();
     }
 
     this.setState(state);
@@ -656,14 +644,14 @@ class ResetPassword extends PureComponent {
     await KeyringController.exportSeedPhrase(password);
   };
 
-  tryUnlockWithPassword = async (password) => {
+  reauthenticate = async (password) => {
     this.setState({ ready: false });
     try {
-      // Just try
-      await this.tryExportSeedPhrase(password);
+      const { password: verifiedPassword } =
+        await Authentication.reauthenticate(password);
       this.setState({
         password: null,
-        originalPassword: password,
+        originalPassword: verifiedPassword,
         ready: true,
         view: RESET_PASSWORD,
       });
@@ -676,9 +664,9 @@ class ResetPassword extends PureComponent {
     }
   };
 
-  tryUnlock = () => {
+  reauthenticateWithPassword = () => {
     const { password } = this.state;
-    this.tryUnlockWithPassword(password);
+    this.reauthenticate(password);
   };
 
   onPasswordChange = (val) => {
@@ -823,7 +811,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
-                onSubmitEditing={this.tryUnlock}
+                onSubmitEditing={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
                 autoComplete="current-password"
@@ -834,7 +822,7 @@ class ResetPassword extends PureComponent {
               <Button
                 {...getCommonButtonProps()}
                 label={strings('manual_backup_step_1.confirm')}
-                onPress={this.tryUnlock}
+                onPress={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 isDisabled={!this.state.password}
               />
