@@ -33,17 +33,17 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
-    { ios: 1800, android: 1800 },
+    { ios: 1500, android: 1500 },
     device,
   );
   const openAddFundsTimer = new TimerHelper(
     'Open Add Funds',
-    { ios: 5500, android: 5500 },
+    { ios: 1000, android: 1000 },
     device,
   );
   const getQuoteTimer = new TimerHelper(
     'Get Quote',
-    { ios: 11000, android: 11000 },
+    { ios: 6000, android: 6000 },
     device,
   );
   await screensSetup(device);
@@ -59,15 +59,15 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   // Skip tutorial
   await PerpsTutorialScreen.tapSkip();
 
+  await PerpsTutorialScreen.tapAddFunds();
   // Open Add Funds flow
   await openAddFundsTimer.measure(async () => {
-    await PerpsTutorialScreen.tapAddFunds();
     await PerpsDepositScreen.isAmountInputVisible();
   });
 
+  await PerpsDepositScreen.fillUsdAmount(5);
   // Get quote
   await getQuoteTimer.measure(async () => {
-    await PerpsDepositScreen.fillUsdAmount(5);
     await PerpsDepositScreen.isAddFundsVisible();
     await PerpsDepositScreen.isTotalVisible();
   });
