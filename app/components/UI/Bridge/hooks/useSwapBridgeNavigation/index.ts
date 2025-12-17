@@ -47,16 +47,19 @@ export enum SwapBridgeNavigationLocation {
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
  * @param sourceToken token object containing address and chainId we want to set as source.
+ * @param destToken optional token object to set as destination. If not provided, or matches source, defaults to computed destination token.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  sourceToken: tokenBase,
+  sourceToken: sourceTokenBase,
+  destToken: destTokenBase,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -68,15 +71,21 @@ export const useSwapBridgeNavigation = ({
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
-    (bridgeViewMode: BridgeViewMode, tokenOverride?: BridgeToken) => {
+    (
+      bridgeViewMode: BridgeViewMode,
+      sourceTokenOverride?: BridgeToken,
+      destTokenOverride?: BridgeToken,
+    ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
-      const effectiveTokenBase = tokenOverride ?? tokenBase;
+      const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
+      // Use destTokenOverride if provided, otherwise fall back to destTokenBase
+      const effectiveDestTokenBase = destTokenOverride ?? destTokenBase;
 
       // Determine effective chain ID - use home page filter network when no sourceToken provided
-      const getEffectiveChainId = (): CaipChainId | Hex => {
-        if (effectiveTokenBase) {
+      const getEffectiveSourceChainId = (): CaipChainId | Hex => {
+        if (effectiveSourceTokenBase) {
           // If specific token provided, use its chainId
-          return effectiveTokenBase.chainId;
+          return effectiveSourceTokenBase.chainId;
         }
 
         // No token provided - check home page filter network
@@ -92,12 +101,14 @@ export const useSwapBridgeNavigation = ({
         return homePageFilterNetwork.caipChainId as CaipChainId;
       };
 
-      const effectiveChainId = getEffectiveChainId();
+      const effectiveSourceChainId = getEffectiveSourceChainId();
 
       let bridgeSourceNativeAsset;
       try {
-        if (!effectiveTokenBase) {
-          bridgeSourceNativeAsset = getNativeAssetForChainId(effectiveChainId);
+        if (!effectiveSourceTokenBase) {
+          bridgeSourceNativeAsset = getNativeAssetForChainId(
+            effectiveSourceChainId,
+          );
         }
       } catch (error) {
         // Suppress error as it's expected when the chain is not supported
@@ -111,15 +122,17 @@ export const useSwapBridgeNavigation = ({
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: isNonEvmChainId(effectiveChainId)
-                ? effectiveChainId
-                : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
+              chainId: isNonEvmChainId(effectiveSourceChainId)
+                ? effectiveSourceChainId
+                : formatChainIdToHex(effectiveSourceChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }
           : undefined;
 
       const candidateSourceToken =
-        effectiveTokenBase ?? bridgeNativeSourceTokenFormatted;
-      const isBridgeEnabledSource = getIsBridgeEnabledSource(effectiveChainId);
+        effectiveSourceTokenBase ?? bridgeNativeSourceTokenFormatted;
+      const isBridgeEnabledSource = getIsBridgeEnabledSource(
+        effectiveSourceChainId,
+      );
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
@@ -137,18 +150,29 @@ export const useSwapBridgeNavigation = ({
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
-      const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
-      // Make sure source and dest tokens are different
+      // Use provided destToken if available and different from sourceToken, otherwise compute default
       if (
-        defaultDestToken &&
-        !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        effectiveDestTokenBase &&
+        !areAddressesEqual(sourceToken.address, effectiveDestTokenBase.address)
       ) {
-        dispatch(setDestToken(defaultDestToken));
+        dispatch(setDestToken(effectiveDestTokenBase));
       } else {
-        // Fall back to native token if default dest is same as source
-        const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
-        if (!areAddressesEqual(sourceToken.address, nativeDestToken.address)) {
-          dispatch(setDestToken(nativeDestToken));
+        // Either no destToken provided, or it's the same as sourceToken - use default logic
+        const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+        // Make sure source and dest tokens are different
+        if (
+          defaultDestToken &&
+          !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        ) {
+          dispatch(setDestToken(defaultDestToken));
+        } else {
+          // Fall back to native token if default dest is same as source
+          const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
+          if (
+            !areAddressesEqual(sourceToken.address, nativeDestToken.address)
+          ) {
+            dispatch(setDestToken(nativeDestToken));
+          }
         }
       }
 
@@ -201,7 +225,8 @@ export const useSwapBridgeNavigation = ({
     [
       navigation,
       dispatch,
-      tokenBase,
+      sourceTokenBase,
+      destTokenBase,
       sourcePage,
       trackEvent,
       createEventBuilder,
@@ -213,8 +238,12 @@ export const useSwapBridgeNavigation = ({
   const { networkModal } = useAddNetwork();
 
   const goToSwaps = useCallback(
-    (tokenOverride?: BridgeToken) => {
-      goToNativeBridge(BridgeViewMode.Unified, tokenOverride);
+    (tokenOverride?: BridgeToken, destTokenOverride?: BridgeToken) => {
+      goToNativeBridge(
+        BridgeViewMode.Unified,
+        tokenOverride,
+        destTokenOverride,
+      );
     },
     [goToNativeBridge],
   );

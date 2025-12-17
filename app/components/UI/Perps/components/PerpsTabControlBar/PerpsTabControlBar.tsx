@@ -179,6 +179,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               >
                 {formatPerpsFiat(totalBalance, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
                 })}
               </Text>
               <Icon

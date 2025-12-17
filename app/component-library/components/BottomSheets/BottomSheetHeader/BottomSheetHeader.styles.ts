@@ -24,7 +24,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        padding: 16,
+        paddingHorizontal: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
