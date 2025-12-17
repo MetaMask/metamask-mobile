@@ -53,6 +53,10 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      branch_name:
+        description: 'Branch name to use for build names (defaults to auto-detection)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -79,68 +83,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Determine Matrix Mode
-        id: matrix-mode
-        run: |
-          EVENT_NAME="${{ github.event_name }}"
-          
-          if [ "$EVENT_NAME" = "schedule" ]; then
-            MATRIX_MODE="full"
-            MODE_DESC="Full (all devices) - Scheduled run"
-          else
-            MATRIX_MODE="pr"
-            MODE_DESC="Single device - $EVENT_NAME event"
-          fi
-          
-          echo "matrix_mode=$MATRIX_MODE" >> "$GITHUB_OUTPUT"
-          echo "Event: $EVENT_NAME → Matrix mode: $MODE_DESC"
-
       - name: Select Devices
         id: read-matrix
         run: |
-          MATRIX_MODE="${{ steps.matrix-mode.outputs.matrix_mode }}"
-          MATRIX_FILE="appwright/device-matrix.json"
-          
-          select_device() {
-            local platform=$1
-            local devices=$(jq ".${platform}_devices" "$MATRIX_FILE")
-            
-            local low=$(echo "$devices" | jq 'map(select(.category == "low")) | .[0] // empty')
-            local medium=$(echo "$devices" | jq 'map(select(.category == "medium")) | .[0] // empty')
-            local first=$(echo "$devices" | jq '.[0] // empty')
-            
-            if [ -n "$low" ] && [ "$low" != "null" ] && [ "$low" != "" ]; then
-              echo "$low"
-            elif [ -n "$medium" ] && [ "$medium" != "null" ] && [ "$medium" != "" ]; then
-              echo "$medium"
-            else
-              echo "$first"
-            fi
-          }
-          
-          if [ "$MATRIX_MODE" = "pr" ]; then
-            ANDROID_DEVICE=$(select_device "android")
-            IOS_DEVICE=$(select_device "ios")
-            
-            ANDROID_MATRIX=$(echo "$ANDROID_DEVICE" | jq -s '.')
-            IOS_MATRIX=$(echo "$IOS_DEVICE" | jq -s '.')
-            
-            echo "Selected Android: $(echo "$ANDROID_DEVICE" | jq -r '.name // "none"')"
-            echo "Selected iOS: $(echo "$IOS_DEVICE" | jq -r '.name // "none"')"
+          FILE="appwright/device-matrix.json"
+
+          # PR: Use first low/medium device (fallback to first)
+          # Other: Use all devices
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            FILTER='[first(.[] | select(.category == "low" or .category == "medium")) // .[0]]'
+            echo "PR mode: 1 device per platform"
           else
-            ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" "$MATRIX_FILE")
-            IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" "$MATRIX_FILE")
+            FILTER='.'
+            echo "Full mode: All devices"
           fi
-          
-          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
-          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
-          
-          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
-            echo "Error: No devices found"
-            exit 1
-          fi
-          
-          # Write outputs using multiline format to handle JSON arrays properly
+
+          ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
+          IOS_MATRIX=$(jq ".ios_devices | $FILTER" "$FILE")
+
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
@@ -149,8 +109,8 @@ jobs:
             echo "$IOS_MATRIX"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-          
-          echo "Device matrix: $ANDROID_COUNT Android, $IOS_COUNT iOS"
+
+          echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
 
   determine-branch-name:
     name: Determine Branch Name for Bitrise
@@ -161,11 +121,19 @@ jobs:
       - name: Get correct branch name
         id: get-branch
         run: |
-          # For PRs, use the source branch (head_ref), not the merge ref
-          # For other events (schedule, workflow_dispatch), use ref_name
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH_NAME="${{ github.head_ref }}"
-            echo "PR detected - using source branch: $BRANCH_NAME"
+          # Priority: explicit input > PR head_ref > ref_name
+          # When called from ci.yml on PRs, branch_name input will be provided
+          # When triggered directly, use head_ref for PRs or ref_name for others
+          INPUT_BRANCH="${{ inputs.branch_name }}"
+          EVENT_NAME="${{ github.event_name }}"
+          HEAD_REF="${{ github.head_ref }}"
+          
+          if [ -n "$INPUT_BRANCH" ]; then
+            BRANCH_NAME="$INPUT_BRANCH"
+            echo "Using explicit branch name from input: $BRANCH_NAME"
+          elif [ "$EVENT_NAME" = "pull_request" ] || [ -n "$HEAD_REF" ]; then
+            BRANCH_NAME="$HEAD_REF"
+            echo "PR context detected - using source branch: $BRANCH_NAME"
           else
             BRANCH_NAME="${{ github.ref_name }}"
             echo "Using ref_name: $BRANCH_NAME"
@@ -177,6 +145,7 @@ jobs:
   set-build-names:
     name: Set Unified BrowserStack Build Names
     runs-on: ubuntu-latest
+    needs: [determine-branch-name]
     outputs:
       android_build_name: ${{ steps.set-builds.outputs.android_build_name }}
       ios_build_name: ${{ steps.set-builds.outputs.ios_build_name }}
@@ -184,11 +153,12 @@ jobs:
       - name: Set unified build names
         id: set-builds
         run: |
-          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
-          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          BRANCH_NAME="${{ needs.determine-branch-name.outputs.branch_name }}"
+          echo "android_build_name=Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
           echo "Set unified build names:"
-          echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
-          echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
+          echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
+          echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
