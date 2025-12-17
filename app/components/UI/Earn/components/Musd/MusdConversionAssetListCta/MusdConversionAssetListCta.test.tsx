@@ -33,6 +33,7 @@ import { EARN_TEST_IDS } from '../../../constants/testIds';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -473,7 +474,7 @@ describe('MusdConversionAssetListCta', () => {
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
       ).toBeOnTheScreen();
       // Badge wrapper is not rendered when showNetworkIcon is false
-      expect(queryByTestId('badge-wrapper')).toBeNull();
+      expect(queryByTestId(BADGE_WRAPPER_BADGE_TEST_ID)).toBeNull();
     });
 
     it('renders with network badge when showNetworkIcon is true and mainnet selected', () => {
