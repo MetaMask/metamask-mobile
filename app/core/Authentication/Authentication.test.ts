@@ -53,6 +53,7 @@ import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { ReauthenticateErrorType } from './types';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -1568,7 +1569,7 @@ describe('Authentication', () => {
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(true);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
@@ -2499,6 +2500,24 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
+    it('returns false when seedless password is outdated', async () => {
+      // Arrange
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+
+      // Act
+      const result =
+        await Authentication.importAccountFromPrivateKey(mockPrivateKey);
+
+      // Assert
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(result).toBe(false);
+      expect(
+        Engine.context.KeyringController.importAccountWithStrategy,
+      ).not.toHaveBeenCalled();
+    });
+
     it('import account from private key without seedless flow', async () => {
       // Arrange
       const options = {
@@ -2935,7 +2954,7 @@ describe('Authentication', () => {
       // Mock Authentication methods
       jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
         .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
@@ -3718,6 +3737,24 @@ describe('Authentication', () => {
       expect(result.password).toBe('test-password');
     });
 
+    it('throws PASSWORD_REQUIRED error when no biometric credentials are available', async () => {
+      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
+      const getItemSpy = jest
+        .spyOn(StorageWrapper, 'getItem')
+        .mockResolvedValueOnce(null as never);
+      const getPasswordSpy = jest
+        .spyOn(Authentication, 'getPassword')
+        .mockResolvedValueOnce(null);
+
+      await expect(Authentication.reauthenticate()).rejects.toThrow(
+        ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+      );
+
+      expect(getItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE);
+      expect(getPasswordSpy).not.toHaveBeenCalled();
+      expect(verifyPasswordSpy).not.toHaveBeenCalled();
+    });
+
     it('uses stored biometric password when no password is provided', async () => {
       const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
       await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
@@ -3745,6 +3782,60 @@ describe('Authentication', () => {
       await expect(Authentication.reauthenticate('bad-password')).rejects.toBe(
         error,
       );
+    });
+  });
+
+  describe('revealSRP', () => {
+    let Engine: typeof import('../Engine').default;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue(new Uint8Array([1, 2, 3]));
+      jest.spyOn(Authentication, 'reauthenticate').mockResolvedValue({
+        password: 'valid-password',
+      });
+    });
+
+    it('calls reauthenticate and exports SRP with the provided password and keyringId', async () => {
+      const reauthSpy = jest.spyOn(Authentication, 'reauthenticate');
+      const exportSeedPhraseSpy =
+        Engine.context.KeyringController.exportSeedPhrase;
+      const keyringId = 'keyring-id';
+
+      await Authentication.revealSRP('valid-password', keyringId);
+
+      expect(reauthSpy).toHaveBeenCalledWith('valid-password');
+      expect(exportSeedPhraseSpy).toHaveBeenCalledWith(
+        'valid-password',
+        keyringId,
+      );
+    });
+  });
+
+  describe('revealPrivateKey', () => {
+    let Engine: typeof import('../Engine').default;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      Engine.context.KeyringController.exportAccount = jest
+        .fn()
+        .mockResolvedValue('0xprivatekey');
+      jest.spyOn(Authentication, 'reauthenticate').mockResolvedValue({
+        password: 'valid-password',
+      });
+    });
+
+    it('calls reauthenticate and exports private key with the provided password and address', async () => {
+      const reauthSpy = jest.spyOn(Authentication, 'reauthenticate');
+      const exportAccountSpy = Engine.context.KeyringController.exportAccount;
+      const address = '0x123';
+
+      await Authentication.revealPrivateKey('valid-password', address);
+
+      expect(reauthSpy).toHaveBeenCalledWith('valid-password');
+      expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
     });
   });
 });
