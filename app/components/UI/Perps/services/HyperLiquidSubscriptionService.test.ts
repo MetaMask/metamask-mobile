@@ -15,21 +15,6 @@ import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
 
-/**
- * Helper to flush all pending timers and microtasks.
- * This replaces all `await new Promise((resolve) => setTimeout(resolve, X))` patterns.
- */
-const flushTimersAndPromises = async (): Promise<void> => {
-  // Run all pending timers (setTimeout callbacks)
-  jest.runAllTimers();
-  // Flush the microtask queue (Promises)
-  await Promise.resolve();
-  // Run any timers that were scheduled by the microtasks
-  jest.runAllTimers();
-  // Flush again for any promises scheduled by timers
-  await Promise.resolve();
-};
-
 // Mock HyperLiquid SDK types
 interface MockSubscription {
   unsubscribe: jest.Mock;
@@ -113,7 +98,6 @@ describe('HyperLiquidSubscriptionService', () => {
   let mockWalletAdapter: any;
 
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
 
     // Mock subscription client
@@ -324,10 +308,6 @@ describe('HyperLiquidSubscriptionService', () => {
     );
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   describe('Price Subscriptions', () => {
     it('should subscribe to price updates successfully', async () => {
       const mockCallback = jest.fn();
@@ -350,7 +330,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for async callbacks
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -381,7 +361,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache to populate
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second subscription should get cached data immediately
       const secondUnsubscribe = await service.subscribeToPrices({
@@ -443,7 +423,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for async operations (webData3 subscription setup)
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockSubscriptionClient.webData3).toHaveBeenCalledWith(
         { user: '0x123' },
@@ -467,7 +447,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -484,7 +464,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(typeof unsubscribe).toBe('function');
       expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
@@ -523,7 +503,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ size: '0.1' })]),
@@ -548,7 +528,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.userFills).toHaveBeenCalledWith(
         { user: '0x123' },
@@ -566,7 +546,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith(
         [
@@ -597,7 +577,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.userFills).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -642,7 +622,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith(
         [
@@ -694,7 +674,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.any(Array),
@@ -722,7 +702,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Wait for subscription to be established and initial callback
       // This will trigger the first webData3 callback which caches both positions and orders
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify position callback was called
       expect(positionCallback).toHaveBeenCalled();
@@ -735,7 +715,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Orders should get cached data immediately (synchronously)
       // or after the second webData3 update with changed data
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Should only call webData3 once for shared subscription
       expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(1);
@@ -762,7 +742,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback2,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe first callback
       unsubscribe1();
@@ -836,7 +816,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should receive cached data on new subscription
       const newCallback = jest.fn();
@@ -945,7 +925,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: oiCapCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Assert
       expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
@@ -1004,13 +984,13 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe
       unsubscribe();
 
       // Wait for unsubscribe to complete
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscription.unsubscribe).toHaveBeenCalled();
     });
@@ -1028,13 +1008,13 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe
       unsubscribe();
 
       // Wait for unsubscribe to complete
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscription.unsubscribe).toHaveBeenCalled();
     });
@@ -1054,7 +1034,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe should not throw
       expect(() => unsubscribe()).not.toThrow();
@@ -1073,7 +1053,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache to populate
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
@@ -1117,7 +1097,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache updates
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify market data is processed
       expect(mockCallback).toHaveBeenCalled();
@@ -1165,7 +1145,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(typeof unsubscribe).toBe('function');
       expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
@@ -1215,7 +1195,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for processing
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(mockCallback).toHaveBeenCalled();
 
@@ -1252,7 +1232,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for processing
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should call callback with empty positions to fix loading state
       // This ensures the UI can transition from loading to empty state for new users without cached positions
@@ -1280,7 +1260,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockSubscriptionClient.activeAssetCtx).not.toHaveBeenCalled();
 
       // Wait for allMids data
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Check that market data fields are undefined
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1337,7 +1317,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for data
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
       // Check that market data fields are included
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1385,7 +1365,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription and data processing
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Verify L2 book subscription was created
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
@@ -1420,7 +1400,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for any potential subscriptions
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Verify L2 book subscription was NOT created
       expect(mockSubscriptionClient.l2Book).not.toHaveBeenCalled();
@@ -1439,7 +1419,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second subscription to same symbol
       const unsubscribe2 = await service.subscribeToPrices({
@@ -1448,14 +1428,14 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should only create one L2 book subscription
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
 
       // Unsubscribe first
       unsubscribe1();
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // L2 book subscription should still be active
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
@@ -1489,7 +1469,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription and data processing
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Should still receive price updates, but without bid/ask
       expect(mockCallback).toHaveBeenCalled();
@@ -1523,7 +1503,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription attempt
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Error should be handled internally
       // Just verify the subscription still works
@@ -1558,7 +1538,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const calls = mockCallback.mock.calls;
@@ -1624,7 +1604,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should receive position with takeProfitPrice set
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1683,7 +1663,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should receive position with stopLossPrice set
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1762,7 +1742,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should receive position with correct counts but only last TP/SL prices
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1855,7 +1835,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should correctly identify TP/SL based on trigger price vs entry price
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1947,7 +1927,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // For short positions: TP when trigger < entry, SL when trigger > entry
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2017,7 +1997,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should include both TP/SL and regular orders
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2118,7 +2098,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should handle positions with and without TP/SL
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2142,7 +2122,7 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Race condition prevention', () => {
-    it('prevents duplicate allMids subscriptions when multiple subscribeToPrices calls happen simultaneously', async () => {
+    it('should prevent duplicate allMids subscriptions when multiple subscribeToPrices calls happen simultaneously', async () => {
       const callbacks = [jest.fn(), jest.fn(), jest.fn()];
       const unsubscribes: (() => void)[] = [];
 
@@ -2153,16 +2133,17 @@ describe('HyperLiquidSubscriptionService', () => {
           callback,
         });
         unsubscribes.push(unsubscribe);
+        return new Promise((resolve) => setTimeout(resolve, 10));
       });
 
-      // Wait for all subscriptions to complete and flush timers
+      // Wait for all subscriptions to complete
       await Promise.all(subscribePromises);
-      await flushTimersAndPromises();
 
       // Should only create one allMids subscription despite multiple simultaneous calls
       expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(1);
 
       // All callbacks should still work
+      await new Promise((resolve) => setTimeout(resolve, 50));
       callbacks.forEach((callback) => {
         expect(callback).toHaveBeenCalled();
       });
@@ -2202,7 +2183,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for first attempt to fail
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Second subscription attempt should retry
       const unsubscribe2 = await service.subscribeToPrices({
@@ -2211,7 +2192,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for second attempt to succeed
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Should have tried twice total
       expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
@@ -2269,7 +2250,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // Wait for both updates to process
-    await flushTimersAndPromises();
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Should only be called once with empty positions (initial notification)
     expect(mockCallback).toHaveBeenCalledTimes(1);
@@ -2303,7 +2284,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // Wait for processing
-    await flushTimersAndPromises();
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Should call callback with zero prices to enable UI state
     expect(mockCallback).toHaveBeenCalledWith([
@@ -2367,7 +2348,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Now update feature flags to enable new DEXs
       await service.updateFeatureFlags(true, ['newdex1', 'newdex2'], [], []);
@@ -2399,13 +2380,13 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update feature flags - should handle error gracefully without throwing
       await service.updateFeatureFlags(true, ['failingdex'], [], []);
 
       // Wait for async error handling
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify updateFeatureFlags completed without throwing
       expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'failingdex' });
@@ -2422,7 +2403,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockPositionCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Update feature flags - should handle error gracefully
       await expect(
@@ -2441,7 +2422,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockPositionCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update feature flags - should handle wallet error gracefully
       await expect(
@@ -2507,7 +2488,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify that metaAndAssetCtxs was NOT called (cache was used)
       // Note: meta() may still be called by createAssetCtxsSubscription fallback if cache miss,
@@ -2535,7 +2516,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Subscription should still work despite cache error
       expect(unsubscribe).toBeDefined();
@@ -2559,7 +2540,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: false,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Should not call meta/metaAndAssetCtxs when market data not requested
       expect(mockInfoClient.meta).not.toHaveBeenCalled();
@@ -2594,7 +2575,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Should handle partial data gracefully
       expect(mockCallback).toHaveBeenCalled();
@@ -2614,7 +2595,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Should return unsubscribe function despite error
       expect(typeof unsubscribe).toBe('function');
@@ -2639,7 +2620,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
       // Should handle error gracefully
       expect(typeof unsubscribe).toBe('function');
@@ -2685,7 +2666,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 30));
 
       // Unsubscribe should not throw even if underlying unsubscribe fails
       expect(() => unsubscribe()).not.toThrow();
@@ -2732,7 +2713,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -2763,7 +2744,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // First subscription to populate cache
       const unsubscribe1 = service.subscribeToOICaps({ callback: jest.fn() });
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Second subscription should get cached data immediately
       const unsubscribe2 = service.subscribeToOICaps({
@@ -2785,7 +2766,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
       expect(mockCallback).toHaveBeenCalled();
@@ -2799,7 +2780,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe1 = service.subscribeToAccount({
         callback: jest.fn(),
       });
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Second subscription should get cached data immediately
       const unsubscribe2 = service.subscribeToAccount({
@@ -2848,7 +2829,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -2893,7 +2874,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -2938,7 +2919,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -2984,7 +2965,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3029,7 +3010,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3074,7 +3055,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3105,7 +3086,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Clear the subscription reference to simulate reconnection
       (service as any).globalAllMidsSubscription = undefined;
@@ -3154,7 +3135,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Clear subscription references to simulate reconnection
       (service as any).webData3Subscriptions.clear();
@@ -3206,7 +3187,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Clear subscriptions to simulate reconnection
       (service as any).globalActiveAssetSubscriptions.clear();
@@ -3245,7 +3226,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Verify initial subscription was created
       expect((service as any).globalL2BookSubscriptions.size).toBe(1);
@@ -3258,7 +3239,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Restore subscriptions
       await service.restoreSubscriptions();
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Verify old subscription was cleared and new one was re-established
       // The map should have the new subscription, not the old one
@@ -3316,7 +3297,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Clear subscriptions to simulate reconnection
       (service as any).assetCtxsSubscriptions.clear();
@@ -3392,7 +3373,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await flushTimersAndPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Clear all subscription references
       (service as any).globalAllMidsSubscription = undefined;
