@@ -47,13 +47,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
-      testMatch: [
-        '**/tests/performance/login/eth-swap-flow.spec.js',
-        '**/tests/performance/login/cross-chain-swap-flow.spec.js',
-        '**/tests/performance/login/import-multiple-srps.spec.js',
-        '**/tests/performance/login/perps-add-funds.spec.js',
-        '**/tests/performance/login/predict/predict-market-details.spec.js',
-      ],
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -67,13 +61,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: [
-        '**/tests/performance/login/eth-swap-flow.spec.js',
-        '**/tests/performance/login/cross-chain-swap-flow.spec.js',
-        '**/tests/performance/login/import-multiple-srps.spec.js',
-        '**/tests/performance/login/perps-add-funds.spec.js',
-        '**/tests/performance/login/predict/predict-market-details.spec.js',
-      ],
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
