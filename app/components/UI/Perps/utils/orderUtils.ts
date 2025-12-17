@@ -178,3 +178,102 @@ export function determineMakerStatus(params: {
   );
   return false;
 }
+
+// =============================================
+// TP/SL Detection Utilities
+// =============================================
+
+/**
+ * Check if an order type is a Take Profit order
+ * @param orderType - The order type string (e.g., 'Take Profit Market', 'Take Profit Limit')
+ * @returns true if the order is a Take Profit order
+ */
+export const isTakeProfitOrderType = (orderType?: string): boolean =>
+  orderType?.includes('Take Profit') ?? false;
+
+/**
+ * Check if an order type is a Stop Loss order
+ * @param orderType - The order type string (e.g., 'Stop Market', 'Stop Limit')
+ * @returns true if the order is a Stop Loss order
+ */
+export const isStopLossOrderType = (orderType?: string): boolean =>
+  orderType?.includes('Stop') ?? false;
+
+/**
+ * Determine TP/SL type from trigger price when order type is ambiguous
+ * Uses the relationship between trigger price and entry price to infer intent
+ *
+ * @param triggerPrice - The trigger price of the order
+ * @param entryPrice - The entry price of the position
+ * @param isLong - Whether the position is long
+ * @returns 'takeProfit' or 'stopLoss'
+ */
+export const determineTpSlFromPrice = (
+  triggerPrice: number,
+  entryPrice: number,
+  isLong: boolean,
+): 'takeProfit' | 'stopLoss' => {
+  if (isLong) {
+    // For long positions:
+    // - TP triggers when price goes UP (triggerPrice > entryPrice)
+    // - SL triggers when price goes DOWN (triggerPrice < entryPrice)
+    return triggerPrice > entryPrice ? 'takeProfit' : 'stopLoss';
+  }
+  // For short positions:
+  // - TP triggers when price goes DOWN (triggerPrice < entryPrice)
+  // - SL triggers when price goes UP (triggerPrice > entryPrice)
+  return triggerPrice < entryPrice ? 'takeProfit' : 'stopLoss';
+};
+
+/**
+ * Parameters for extracting TP/SL type from an order
+ */
+export interface TpSlExtractionParams {
+  orderType?: string;
+  triggerPx?: string;
+}
+
+/**
+ * Position data needed for TP/SL fallback detection
+ */
+export interface TpSlPositionData {
+  size: string;
+  entryPrice?: string;
+}
+
+/**
+ * Extract TP/SL type from an order based on order type or trigger price
+ *
+ * Priority:
+ * 1. Check if orderType explicitly indicates Take Profit
+ * 2. Check if orderType explicitly indicates Stop Loss
+ * 3. Fallback: determine based on trigger price vs entry price relationship
+ *
+ * @param order - The order with orderType and triggerPx
+ * @param position - Optional position for fallback detection
+ * @returns 'takeProfit', 'stopLoss', or null if not a TP/SL order
+ */
+export const extractTpSlTypeFromOrder = (
+  order: TpSlExtractionParams,
+  position?: TpSlPositionData,
+): 'takeProfit' | 'stopLoss' | null => {
+  if (!order.triggerPx) return null;
+
+  if (isTakeProfitOrderType(order.orderType)) {
+    return 'takeProfit';
+  }
+
+  if (isStopLossOrderType(order.orderType)) {
+    return 'stopLoss';
+  }
+
+  // Fallback: determine based on trigger price vs entry price
+  if (position?.entryPrice) {
+    const triggerPrice = parseFloat(order.triggerPx);
+    const entryPrice = parseFloat(position.entryPrice);
+    const isLong = parseFloat(position.size) > 0;
+    return determineTpSlFromPrice(triggerPrice, entryPrice, isLong);
+  }
+
+  return null;
+};

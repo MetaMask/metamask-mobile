@@ -37,6 +37,11 @@ import {
   parseAssetName,
 } from '../utils/hyperLiquidAdapter';
 import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
+import {
+  isTakeProfitOrderType,
+  isStopLossOrderType,
+  extractTpSlTypeFromOrder,
+} from '../utils/orderUtils';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
@@ -465,8 +470,8 @@ export class HyperLiquidSubscriptionService {
 
       // Process trigger orders for TP/SL extraction
       if (order.triggerPx) {
-        const isTakeProfit = order.orderType?.includes('Take Profit');
-        const isStop = order.orderType?.includes('Stop');
+        const isTakeProfit = isTakeProfitOrderType(order.orderType);
+        const isStop = isStopLossOrderType(order.orderType);
         const currentTakeProfitCount =
           tpslCountMap.get(order.coin)?.takeProfitCount || 0;
         const currentStopLossCount =
@@ -487,29 +492,17 @@ export class HyperLiquidSubscriptionService {
 
         if (position) {
           const existing = tpslMap.get(coin) || {};
-          const isLong = parseFloat(position.size) > 0;
 
-          // Determine if it's TP or SL based on order type
-          if (isTakeProfit) {
+          // Use shared utility to determine TP/SL type
+          const tpSlType = extractTpSlTypeFromOrder(
+            { orderType: order.orderType, triggerPx: order.triggerPx },
+            { size: position.size, entryPrice: position.entryPrice },
+          );
+
+          if (tpSlType === 'takeProfit') {
             existing.takeProfitPrice = order.triggerPx;
-          } else if (isStop) {
+          } else if (tpSlType === 'stopLoss') {
             existing.stopLossPrice = order.triggerPx;
-          } else {
-            // Fallback: determine based on trigger price vs entry price
-            const triggerPrice = parseFloat(order.triggerPx);
-            const entryPrice = parseFloat(position.entryPrice || '0');
-
-            if (isLong) {
-              if (triggerPrice > entryPrice) {
-                existing.takeProfitPrice = order.triggerPx;
-              } else {
-                existing.stopLossPrice = order.triggerPx;
-              }
-            } else if (triggerPrice < entryPrice) {
-              existing.takeProfitPrice = order.triggerPx;
-            } else {
-              existing.stopLossPrice = order.triggerPx;
-            }
           }
 
           tpslMap.set(coin, existing);

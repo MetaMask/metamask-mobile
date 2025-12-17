@@ -4,6 +4,10 @@ import {
   getOrderDirection,
   willFlipPosition,
   determineMakerStatus,
+  isTakeProfitOrderType,
+  isStopLossOrderType,
+  determineTpSlFromPrice,
+  extractTpSlTypeFromOrder,
 } from './orderUtils';
 import { Order, OrderParams } from '../controllers/types';
 import { Position } from '../hooks';
@@ -636,6 +640,201 @@ describe('orderUtils', () => {
 
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('isTakeProfitOrderType', () => {
+    it('returns true for Take Profit Market order', () => {
+      const result = isTakeProfitOrderType('Take Profit Market');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for Take Profit Limit order', () => {
+      const result = isTakeProfitOrderType('Take Profit Limit');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for Stop Market order', () => {
+      const result = isTakeProfitOrderType('Stop Market');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for Stop Limit order', () => {
+      const result = isTakeProfitOrderType('Stop Limit');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for regular Limit order', () => {
+      const result = isTakeProfitOrderType('Limit');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for undefined order type', () => {
+      const result = isTakeProfitOrderType(undefined);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isStopLossOrderType', () => {
+    it('returns true for Stop Market order', () => {
+      const result = isStopLossOrderType('Stop Market');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for Stop Limit order', () => {
+      const result = isStopLossOrderType('Stop Limit');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for Take Profit Market order', () => {
+      const result = isStopLossOrderType('Take Profit Market');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for Take Profit Limit order', () => {
+      const result = isStopLossOrderType('Take Profit Limit');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for regular Limit order', () => {
+      const result = isStopLossOrderType('Limit');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for undefined order type', () => {
+      const result = isStopLossOrderType(undefined);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('determineTpSlFromPrice', () => {
+    describe('long positions', () => {
+      it('returns takeProfit when trigger price is above entry price', () => {
+        const result = determineTpSlFromPrice(55000, 50000, true);
+
+        expect(result).toBe('takeProfit');
+      });
+
+      it('returns stopLoss when trigger price is below entry price', () => {
+        const result = determineTpSlFromPrice(45000, 50000, true);
+
+        expect(result).toBe('stopLoss');
+      });
+
+      it('returns stopLoss when trigger price equals entry price', () => {
+        const result = determineTpSlFromPrice(50000, 50000, true);
+
+        expect(result).toBe('stopLoss');
+      });
+    });
+
+    describe('short positions', () => {
+      it('returns takeProfit when trigger price is below entry price', () => {
+        const result = determineTpSlFromPrice(45000, 50000, false);
+
+        expect(result).toBe('takeProfit');
+      });
+
+      it('returns stopLoss when trigger price is above entry price', () => {
+        const result = determineTpSlFromPrice(55000, 50000, false);
+
+        expect(result).toBe('stopLoss');
+      });
+
+      it('returns stopLoss when trigger price equals entry price', () => {
+        const result = determineTpSlFromPrice(50000, 50000, false);
+
+        expect(result).toBe('stopLoss');
+      });
+    });
+  });
+
+  describe('extractTpSlTypeFromOrder', () => {
+    it('returns takeProfit for Take Profit Market order', () => {
+      const order = { orderType: 'Take Profit Market', triggerPx: '55000' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBe('takeProfit');
+    });
+
+    it('returns takeProfit for Take Profit Limit order', () => {
+      const order = { orderType: 'Take Profit Limit', triggerPx: '55000' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBe('takeProfit');
+    });
+
+    it('returns stopLoss for Stop Market order', () => {
+      const order = { orderType: 'Stop Market', triggerPx: '45000' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBe('stopLoss');
+    });
+
+    it('returns stopLoss for Stop Limit order', () => {
+      const order = { orderType: 'Stop Limit', triggerPx: '45000' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBe('stopLoss');
+    });
+
+    it('returns null when order has no triggerPx', () => {
+      const order = { orderType: 'Take Profit Market' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBeNull();
+    });
+
+    it('falls back to price-based detection for long position when orderType is ambiguous', () => {
+      const order = { orderType: 'Trigger', triggerPx: '55000' };
+      const position = { size: '1.0', entryPrice: '50000' };
+
+      const result = extractTpSlTypeFromOrder(order, position);
+
+      expect(result).toBe('takeProfit');
+    });
+
+    it('falls back to price-based detection for short position when orderType is ambiguous', () => {
+      const order = { orderType: 'Trigger', triggerPx: '45000' };
+      const position = { size: '-1.0', entryPrice: '50000' };
+
+      const result = extractTpSlTypeFromOrder(order, position);
+
+      expect(result).toBe('takeProfit');
+    });
+
+    it('returns null when orderType is ambiguous and no position provided', () => {
+      const order = { orderType: 'Trigger', triggerPx: '55000' };
+
+      const result = extractTpSlTypeFromOrder(order);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when orderType is ambiguous and position has no entry price', () => {
+      const order = { orderType: 'Trigger', triggerPx: '55000' };
+      const position = { size: '1.0' };
+
+      const result = extractTpSlTypeFromOrder(order, position);
+
+      expect(result).toBeNull();
     });
   });
 });
