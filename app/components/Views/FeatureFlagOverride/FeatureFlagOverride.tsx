@@ -193,14 +193,16 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case FeatureFlagType.FeatureFlagObject:
         return (
           <View>
-            {Object.keys(localValue as object).map((itemKey: string) => (
-              <Text key={itemKey}>
-                {itemKey}:{' '}
-                {JSON.stringify(
-                  (localValue as object)[itemKey as keyof object],
-                )}
-              </Text>
-            ))}
+            {Object.keys((localValue as object) || {}).map(
+              (itemKey: string) => (
+                <Text key={itemKey}>
+                  {itemKey}:{' '}
+                  {JSON.stringify(
+                    (localValue as object)[itemKey as keyof object],
+                  )}
+                </Text>
+              ),
+            )}
           </View>
         );
       case FeatureFlagType.FeatureFlagArray:
