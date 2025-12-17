@@ -98,6 +98,7 @@ describe('HyperLiquidSubscriptionService', () => {
   let mockWalletAdapter: any;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
 
     // Mock subscription client
@@ -358,6 +359,10 @@ describe('HyperLiquidSubscriptionService', () => {
     );
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('Price Subscriptions', () => {
     it('should subscribe to price updates successfully', async () => {
       const mockCallback = jest.fn();
@@ -379,8 +384,8 @@ describe('HyperLiquidSubscriptionService', () => {
         expect.any(Function),
       );
 
-      // Wait for async callbacks
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Advance timers to trigger async callbacks
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -410,8 +415,8 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: jest.fn(),
       });
 
-      // Wait for cache to populate
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Advance timers for cache to populate
+      await jest.runAllTimersAsync();
 
       // Second subscription should get cached data immediately
       const secondUnsubscribe = await service.subscribeToPrices({
@@ -473,7 +478,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for async operations (individual subscription setup for HIP-3 mode)
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // HIP-3 mode uses individual subscriptions (clearinghouseState + openOrders)
       // and webData3 only for OI caps
@@ -507,7 +512,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Should not call any subscriptions when wallet service fails
       expect(mockSubscriptionClient.clearinghouseState).not.toHaveBeenCalled();
@@ -527,7 +532,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(typeof unsubscribe).toBe('function');
       // Should not call any subscriptions when client not available
@@ -569,7 +574,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ size: '0.1' })]),
@@ -594,7 +599,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscriptionClient.userFills).toHaveBeenCalledWith(
         { user: '0x123' },
@@ -612,7 +617,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalledWith(
         [
@@ -643,7 +648,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscriptionClient.userFills).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -688,7 +693,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalledWith(
         [
@@ -740,7 +745,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.any(Array),
@@ -768,7 +773,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Wait for subscription to be established and initial callback
       // This will trigger the first webData3 callback which caches both positions and orders
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Verify position callback was called
       expect(positionCallback).toHaveBeenCalled();
@@ -781,7 +786,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Orders should get cached data immediately (synchronously)
       // or after the second webData3 update with changed data
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Should only call webData3 once for shared subscription
       expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(1);
@@ -808,7 +813,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback2,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Unsubscribe first callback
       unsubscribe1();
@@ -882,7 +887,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Should receive cached data on new subscription
       const newCallback = jest.fn();
@@ -991,7 +996,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: oiCapCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Assert
       expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
@@ -1050,13 +1055,13 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Unsubscribe
       unsubscribe();
 
       // Wait for unsubscribe to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscription.unsubscribe).toHaveBeenCalled();
     });
@@ -1074,13 +1079,13 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Unsubscribe
       unsubscribe();
 
       // Wait for unsubscribe to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscription.unsubscribe).toHaveBeenCalled();
     });
@@ -1100,7 +1105,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Unsubscribe should not throw
       expect(() => unsubscribe()).not.toThrow();
@@ -1119,7 +1124,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache to populate
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
@@ -1163,7 +1168,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache updates
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Verify market data is processed
       expect(mockCallback).toHaveBeenCalled();
@@ -1211,7 +1216,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       expect(typeof unsubscribe).toBe('function');
       expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
@@ -1261,7 +1266,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for processing
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
 
@@ -1310,7 +1315,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for processing
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should call callback with empty positions to fix loading state
       // This ensures the UI can transition from loading to empty state for new users without cached positions
@@ -1335,7 +1340,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockSubscriptionClient.activeAssetCtx).not.toHaveBeenCalled();
 
       // Wait for allMids data
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Check that market data fields are undefined
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1392,7 +1397,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Wait for data
-      await new Promise((resolve) => setTimeout(resolve, 30));
+      await jest.runAllTimersAsync();
 
       // Check that market data fields are included
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1440,7 +1445,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription and data processing
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Verify L2 book subscription was created
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
@@ -1475,7 +1480,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for any potential subscriptions
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Verify L2 book subscription was NOT created
       expect(mockSubscriptionClient.l2Book).not.toHaveBeenCalled();
@@ -1494,7 +1499,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Second subscription to same symbol
       const unsubscribe2 = await service.subscribeToPrices({
@@ -1503,14 +1508,14 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Should only create one L2 book subscription
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
 
       // Unsubscribe first
       unsubscribe1();
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // L2 book subscription should still be active
       expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
@@ -1544,7 +1549,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription and data processing
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Should still receive price updates, but without bid/ask
       expect(mockCallback).toHaveBeenCalled();
@@ -1578,7 +1583,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription attempt
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Error should be handled internally
       // Just verify the subscription still works
@@ -1613,7 +1618,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const calls = mockCallback.mock.calls;
@@ -1703,7 +1708,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should receive position with takeProfitPrice set
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1784,7 +1789,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should receive position with stopLossPrice set
       expect(mockCallback).toHaveBeenCalledWith([
@@ -1901,7 +1906,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should receive position with correct counts but only last TP/SL prices
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2024,7 +2029,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should correctly identify TP/SL based on trigger price vs entry price
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2146,7 +2151,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // For short positions: TP when trigger < entry, SL when trigger > entry
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2246,7 +2251,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should include both TP/SL and regular orders
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2369,7 +2374,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.runAllTimersAsync();
 
       // Should handle positions with and without TP/SL
       expect(mockCallback).toHaveBeenCalledWith([
@@ -2501,7 +2506,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for openOrders to fire and cache orders
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Simulate a subsequent clearinghouseState update (which will use cached orders)
       clearinghouseStateCallback({
@@ -2521,7 +2526,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Assert - callback should have been called with TP/SL re-extracted from cached orders
       const lastCall =
@@ -2554,17 +2559,19 @@ describe('HyperLiquidSubscriptionService', () => {
           callback,
         });
         unsubscribes.push(unsubscribe);
-        return new Promise((resolve) => setTimeout(resolve, 10));
       });
 
       // Wait for all subscriptions to complete
       await Promise.all(subscribePromises);
 
+      // Advance timers for async callbacks
+      await jest.runAllTimersAsync();
+
       // Should only create one allMids subscription despite multiple simultaneous calls
       expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(1);
 
       // All callbacks should still work
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
       callbacks.forEach((callback) => {
         expect(callback).toHaveBeenCalled();
       });
@@ -2604,7 +2611,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for first attempt to fail
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Second subscription attempt should retry
       const unsubscribe2 = await service.subscribeToPrices({
@@ -2613,7 +2620,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for second attempt to succeed
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Should have tried twice total
       expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
@@ -2680,7 +2687,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // Wait for both updates to process
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await jest.runAllTimersAsync();
 
     // Should only be called once with empty positions (initial notification)
     expect(mockCallback).toHaveBeenCalledTimes(1);
@@ -2714,7 +2721,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // Wait for processing
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await jest.runAllTimersAsync();
 
     // Should call callback with zero prices to enable UI state
     expect(mockCallback).toHaveBeenCalledWith([
@@ -2778,7 +2785,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Now update feature flags to enable new DEXs
       await service.updateFeatureFlags(true, ['newdex1', 'newdex2'], [], []);
@@ -2810,13 +2817,13 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Update feature flags - should handle error gracefully without throwing
       await service.updateFeatureFlags(true, ['failingdex'], [], []);
 
       // Wait for async error handling
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Verify updateFeatureFlags completed without throwing
       expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'failingdex' });
@@ -2833,7 +2840,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockPositionCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Update feature flags - should handle error gracefully
       await expect(
@@ -2852,7 +2859,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockPositionCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await jest.runAllTimersAsync();
 
       // Update feature flags - should handle wallet error gracefully
       await expect(
@@ -2918,7 +2925,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Verify that metaAndAssetCtxs was NOT called (cache was used)
       // Note: meta() may still be called by createAssetCtxsSubscription fallback if cache miss,
@@ -2946,7 +2953,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Subscription should still work despite cache error
       expect(unsubscribe).toBeDefined();
@@ -2970,7 +2977,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: false,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Should not call meta/metaAndAssetCtxs when market data not requested
       expect(mockInfoClient.meta).not.toHaveBeenCalled();
@@ -3005,7 +3012,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Should handle partial data gracefully
       expect(mockCallback).toHaveBeenCalled();
@@ -3025,7 +3032,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Should return unsubscribe function despite error
       expect(typeof unsubscribe).toBe('function');
@@ -3050,7 +3057,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 30));
+      await jest.runAllTimersAsync();
 
       // Should handle error gracefully
       expect(typeof unsubscribe).toBe('function');
@@ -3096,7 +3103,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 30));
+      await jest.runAllTimersAsync();
 
       // Unsubscribe should not throw even if underlying unsubscribe fails
       expect(() => unsubscribe()).not.toThrow();
@@ -3143,7 +3150,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -3174,7 +3181,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // First subscription to populate cache
       const unsubscribe1 = service.subscribeToOICaps({ callback: jest.fn() });
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Second subscription should get cached data immediately
       const unsubscribe2 = service.subscribeToOICaps({
@@ -3196,7 +3203,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
       expect(mockCallback).toHaveBeenCalled();
@@ -3210,7 +3217,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe1 = service.subscribeToAccount({
         callback: jest.fn(),
       });
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await jest.runAllTimersAsync();
 
       // Second subscription should get cached data immediately
       const unsubscribe2 = service.subscribeToAccount({
@@ -3259,7 +3266,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3304,7 +3311,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3349,7 +3356,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3395,7 +3402,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3440,7 +3447,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3485,7 +3492,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls[0][0];
@@ -3516,7 +3523,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Clear the subscription reference to simulate reconnection
       (service as any).globalAllMidsSubscription = undefined;
@@ -3565,7 +3572,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: positionCallback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Clear subscription references to simulate reconnection
       (service as any).webData3Subscriptions.clear();
@@ -3617,7 +3624,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Clear subscriptions to simulate reconnection
       (service as any).globalActiveAssetSubscriptions.clear();
@@ -3656,7 +3663,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeOrderBook: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Verify initial subscription was created
       expect((service as any).globalL2BookSubscriptions.size).toBe(1);
@@ -3669,7 +3676,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Restore subscriptions
       await service.restoreSubscriptions();
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Verify old subscription was cleared and new one was re-established
       // The map should have the new subscription, not the old one
@@ -3727,7 +3734,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Clear subscriptions to simulate reconnection
       (service as any).assetCtxsSubscriptions.clear();
@@ -3803,7 +3810,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.runAllTimersAsync();
 
       // Clear all subscription references
       (service as any).globalAllMidsSubscription = undefined;
