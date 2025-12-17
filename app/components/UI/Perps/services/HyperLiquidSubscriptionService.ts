@@ -438,7 +438,10 @@ export class HyperLiquidSubscriptionService {
     // If cached processed orders provided, extract TP/SL from them directly
     if (cachedProcessedOrders) {
       cachedProcessedOrders.forEach((order) => {
-        if (order.isTrigger && order.price) {
+        // Use triggerPrice for TP/SL (trigger condition price), falling back to price
+        // This ensures consistency with raw SDK order processing which uses triggerPx
+        const tpslPrice = order.triggerPrice || order.price;
+        if (order.isTrigger && tpslPrice) {
           const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
           const isStop = order.detailedOrderType?.includes('Stop');
           const currentTakeProfitCount =
@@ -461,9 +464,9 @@ export class HyperLiquidSubscriptionService {
           if (matchingPosition) {
             const existing = tpslMap.get(order.symbol) || {};
             if (isTakeProfit) {
-              existing.takeProfitPrice = order.price;
+              existing.takeProfitPrice = tpslPrice;
             } else if (isStop) {
-              existing.stopLossPrice = order.price;
+              existing.stopLossPrice = tpslPrice;
             }
             tpslMap.set(order.symbol, existing);
           }
