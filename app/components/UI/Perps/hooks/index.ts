@@ -43,6 +43,9 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
+// Margin adjustment hook
+export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
+
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';

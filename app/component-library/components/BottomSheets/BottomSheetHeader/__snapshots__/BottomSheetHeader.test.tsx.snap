@@ -12,7 +12,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
       },
       false,
       {
-        "padding": 16,
+        "paddingHorizontal": 16,
       },
     ]
   }
@@ -68,7 +68,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
       },
       false,
       {
-        "padding": 16,
+        "paddingHorizontal": 16,
       },
     ]
   }
@@ -123,7 +123,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       },
       false,
       {
-        "padding": 16,
+        "paddingHorizontal": 16,
       },
     ]
   }
