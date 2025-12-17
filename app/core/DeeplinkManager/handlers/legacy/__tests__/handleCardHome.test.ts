@@ -384,15 +384,13 @@ describe('handleCardHome', () => {
         ]);
       });
 
-      it('switches to first cardholder account', () => {
+      it('does not switch account when authenticated', () => {
         handleCardHome();
 
-        expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-          mockCardholderAddress,
-        );
+        expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
       });
 
-      it('navigates to Card Home', () => {
+      it('navigates to Card Home for currently selected account', () => {
         handleCardHome();
         jest.runAllTimers();
 
@@ -402,15 +400,6 @@ describe('handleCardHome', () => {
             screen: Routes.CARD.HOME,
           },
         });
-      });
-
-      it('logs the account switch', () => {
-        handleCardHome();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardHome] Switching to first cardholder account:',
-          mockCardholderAddress,
-        );
       });
     });
 

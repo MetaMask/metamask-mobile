@@ -84,7 +84,7 @@ export const handleCardHome = () => {
     DevLogger.log('[handleCardHome] Successfully enabled card button');
 
     if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount) {
+      if (hasCardLinkedAccount && !isAuthenticated) {
         const firstCardholderAddress = cardholderAccounts[0];
         DevLogger.log(
           '[handleCardHome] Switching to first cardholder account:',
