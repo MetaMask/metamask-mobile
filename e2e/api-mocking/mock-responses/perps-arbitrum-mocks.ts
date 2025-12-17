@@ -372,7 +372,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       return {
         statusCode: 200,
         body: JSON.stringify({
-          0x0000000000000000000000000000000000001010: {
+          '0x0000000000000000000000000000000000001010': {
             id: 'polygon-ecosystem-token',
             price: 0.113006,
             marketCap: 1192507260,
@@ -395,7 +395,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           },
         }),
         headers: {
-          'Content-Type': 'image/svg+xml',
+          'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=3600',
         },
       };
