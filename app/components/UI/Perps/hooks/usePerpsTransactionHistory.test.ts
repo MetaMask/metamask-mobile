@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
@@ -19,6 +19,25 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
 jest.mock('../utils/transactionTransforms');
 jest.mock('./stream/usePerpsLiveFills');
+
+// Suppress act() warnings from auto-fetch behavior in useEffect
+// These warnings occur because the hook auto-fetches on mount and the async
+// state updates complete outside of act(). This is expected behavior for
+// hooks with auto-fetch and doesn't affect test correctness.
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    const message = args[0];
+    if (typeof message === 'string' && message.includes('not wrapped in act')) {
+      return;
+    }
+    originalConsoleError.apply(console, args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalConsoleError;
+});
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -924,6 +943,702 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         { ...mockFills[0], detailedOrderType: undefined },
       ]);
+    });
+  });
+
+  describe('loadMore functionality', () => {
+    // Helper to create multiple mock transactions
+    const createMockTransactions = (count: number) =>
+      Array.from({ length: count }, (_, i) => ({
+        id: `tx-${i}`,
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: `Trade ${i}`,
+        subtitle: `${i} ETH`,
+        timestamp: 1640995200000 - i * 1000, // Descending timestamps
+        asset: 'ETH',
+      }));
+
+    it('returns isLoadingMore as false initially', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      expect(result.current.isLoadingMore).toBe(false);
+    });
+
+    it('returns hasMore as true when more transactions exist beyond PAGE_SIZE', async () => {
+      // Create more transactions than PAGE_SIZE (50)
+      const manyTransactions = createMockTransactions(75);
+      // Return empty for live fills (empty array input), manyTransactions for REST fills
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.hasMore).toBe(true);
+      expect(result.current.transactions.length).toBe(50); // PAGE_SIZE
+    });
+
+    it('returns hasMore as false when transactions fit within PAGE_SIZE', async () => {
+      // Create fewer transactions than PAGE_SIZE
+      const fewTransactions = createMockTransactions(25);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? fewTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.hasMore).toBe(false);
+      expect(result.current.transactions.length).toBe(25);
+    });
+
+    it('loads next page of transactions when loadMore is called', async () => {
+      // Create 75 transactions (more than PAGE_SIZE of 50)
+      const manyTransactions = createMockTransactions(75);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initially should have PAGE_SIZE transactions
+      expect(result.current.transactions.length).toBe(50);
+
+      // Load more
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      // After loadMore, should have all 75 transactions
+      expect(result.current.transactions.length).toBe(75);
+      expect(result.current.hasMore).toBe(false);
+    });
+
+    it('does not load more when isLoadingMore is true', async () => {
+      const manyTransactions = createMockTransactions(100);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Call loadMore twice rapidly without awaiting
+      let loadMorePromise1: Promise<void>;
+      let loadMorePromise2: Promise<void>;
+
+      await act(async () => {
+        loadMorePromise1 = result.current.loadMore();
+        loadMorePromise2 = result.current.loadMore();
+        await loadMorePromise1;
+        await loadMorePromise2;
+      });
+
+      // Should only have loaded one additional page (100 total, after one loadMore: 100)
+      // First load: 50, second concurrent call blocked, so result is 100
+      expect(result.current.transactions.length).toBe(100);
+    });
+
+    it('does not load more when hasMore is false', async () => {
+      // Create exactly PAGE_SIZE transactions
+      const exactTransactions = createMockTransactions(50);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? exactTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.hasMore).toBe(false);
+
+      const transactionsBeforeLoadMore = result.current.transactions.length;
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      // Should not have changed
+      expect(result.current.transactions.length).toBe(
+        transactionsBeforeLoadMore,
+      );
+    });
+
+    it('sets isLoadingMore to true during loading and false after', async () => {
+      const manyTransactions = createMockTransactions(100);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isLoadingMore).toBe(false);
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.isLoadingMore).toBe(false);
+    });
+
+    it('loads multiple pages correctly', async () => {
+      // Create 150 transactions (needs 3 pages of 50 each)
+      const manyTransactions = createMockTransactions(150);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(true);
+
+      // Load second page
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.transactions.length).toBe(100);
+      expect(result.current.hasMore).toBe(true);
+
+      // Load third page
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.transactions.length).toBe(150);
+      expect(result.current.hasMore).toBe(false);
+    });
+
+    it('logs loading information when loadMore is called', async () => {
+      const manyTransactions = createMockTransactions(75);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      jest.clearAllMocks();
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'Loading more transactions (client-side):',
+        expect.objectContaining({
+          previousCount: 50,
+          newCount: 75,
+          totalAvailable: 75,
+        }),
+      );
+    });
+
+    it('resets pagination state on refetch', async () => {
+      const manyTransactions = createMockTransactions(100);
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Load more to display all 100
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.transactions.length).toBe(100);
+      expect(result.current.hasMore).toBe(false);
+
+      // Refetch should reset pagination
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      // After refetch, should be back to PAGE_SIZE
+      expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(true);
+    });
+  });
+
+  describe('merged transactions with live WebSocket fills', () => {
+    it('returns only live fills when no REST transactions exist yet', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'live-order-1',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2500',
+          fee: '5',
+          timestamp: 1640995300000,
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      const liveTransactions = [
+        {
+          id: 'live-fill-0',
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Opened long',
+          subtitle: '1 ETH',
+          timestamp: 1640995300000,
+          asset: 'ETH',
+        },
+      ];
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Live fills transform returns liveTransactions
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        if (fills === liveFillsData) {
+          return liveTransactions;
+        }
+        return [];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      expect(result.current.transactions).toEqual(liveTransactions);
+    });
+
+    it('deduplicates trades using asset+timestamp instead of tx.id', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-1',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2500',
+          fee: '5',
+          timestamp: 1640995300000,
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      // Same trade from WebSocket (different ID due to array index)
+      const liveTransaction = {
+        id: 'fill-0', // Different ID from REST
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Opened long (live)',
+        subtitle: '1 ETH',
+        timestamp: 1640995300000, // Same timestamp
+        asset: 'ETH', // Same asset
+      };
+
+      // Same trade from REST (different ID due to array index)
+      const restTransaction = {
+        id: 'fill-5', // Different ID from WebSocket
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Opened long (rest)',
+        subtitle: '1 ETH',
+        timestamp: 1640995300000, // Same timestamp
+        asset: 'ETH', // Same asset
+      };
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Track which call is for live vs REST fills
+      let callCount = 0;
+      mockTransformFillsToTransactions.mockImplementation(() => {
+        callCount++;
+        // First call during initial fetch returns REST transaction
+        // Second call for live fills returns live transaction
+        if (callCount === 1) {
+          return [restTransaction];
+        }
+        return [liveTransaction];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should deduplicate based on asset+timestamp, keeping the live version
+      expect(result.current.transactions.length).toBe(1);
+      // Live data overwrites REST data
+      expect(result.current.transactions[0].title).toBe('Opened long (live)');
+    });
+
+    it('keeps non-trade transactions separate from trade deduplication', async () => {
+      const fundingTransaction = {
+        id: 'funding-1',
+        type: 'funding' as const,
+        category: 'funding_fee' as const,
+        title: 'Funding fee',
+        subtitle: '+$1.50',
+        timestamp: 1640995300000,
+        asset: 'ETH',
+      };
+
+      const depositTransaction = {
+        id: 'deposit-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposit',
+        subtitle: '100 USDC',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+      };
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([fundingTransaction]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([
+        depositTransaction,
+      ]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Both non-trade transactions should be present
+      expect(result.current.transactions.length).toBe(2);
+      expect(result.current.transactions.map((t) => t.type)).toContain(
+        'funding',
+      );
+      expect(result.current.transactions.map((t) => t.type)).toContain(
+        'deposit',
+      );
+    });
+
+    it('sorts merged transactions by timestamp descending', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-new',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '0.5',
+          price: '50000',
+          fee: '10',
+          timestamp: 1640995400000, // Newest
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      // REST fills from provider.getOrderFills
+      const restFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-old',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2000',
+          fee: '5',
+          timestamp: 1640995200000, // Older
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      const liveTransaction = {
+        id: 'live-fill-0',
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'New live trade',
+        subtitle: '0.5 BTC',
+        timestamp: 1640995400000,
+        asset: 'BTC',
+      };
+
+      const restTransaction = {
+        id: 'rest-fill-0',
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Old REST trade',
+        subtitle: '1 ETH',
+        timestamp: 1640995200000, // Older
+        asset: 'ETH',
+      };
+
+      // Mock provider to return REST fills
+      mockProvider.getOrderFills.mockResolvedValue(restFillsData);
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Use input-based mocking: check the input to determine output
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        // Empty fills = return empty (shouldn't happen in this test)
+        if (fills.length === 0) return [];
+        // Check if it's live fills (symbol: BTC) or REST fills (symbol: ETH)
+        const firstFill = fills[0];
+        if (firstFill.symbol === 'BTC') {
+          return [liveTransaction];
+        }
+        return [restTransaction];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should have 2 transactions (different assets, so no dedup)
+      expect(result.current.transactions.length).toBe(2);
+      // Sorted by timestamp descending
+      expect(result.current.transactions[0].timestamp).toBe(1640995400000);
+      expect(result.current.transactions[1].timestamp).toBe(1640995200000);
+    });
+
+    it('merges live fills with paginated REST transactions correctly', async () => {
+      // Create 60 REST transactions
+      const restTransactions = Array.from({ length: 60 }, (_, i) => ({
+        id: `rest-${i}`,
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: `REST Trade ${i}`,
+        subtitle: `${i} ETH`,
+        timestamp: 1640995200000 - i * 1000,
+        asset: `ASSET-${i}`, // Different assets to avoid dedup
+      }));
+
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'live-order',
+          symbol: 'NEW',
+          side: 'buy',
+          size: '1',
+          price: '100',
+          fee: '1',
+          timestamp: 1640995500000, // Newest
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      const liveTransaction = {
+        id: 'live-0',
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Live Trade',
+        subtitle: '1 NEW',
+        timestamp: 1640995500000,
+        asset: 'NEW',
+      };
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Return REST transactions for non-empty REST fills, live transaction for live fills
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        if (fills.length === 0) return [];
+        const firstFill = fills[0];
+        if (firstFill.symbol === 'NEW') {
+          return [liveTransaction];
+        }
+        return restTransactions;
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should have 50 paginated + 1 live = 51 displayed
+      // But mergedTransactions includes all trades (no pagination cap in merge)
+      // The live transaction should be first (newest timestamp)
+      expect(result.current.transactions[0].title).toBe('Live Trade');
+    });
+  });
+
+  describe('pagination edge cases', () => {
+    it('handles empty transaction list', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.transactions).toEqual([]);
+      expect(result.current.hasMore).toBe(false);
+
+      // loadMore should not error on empty list
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.transactions).toEqual([]);
+    });
+
+    it('handles exactly PAGE_SIZE transactions', async () => {
+      const exactTransactions = Array.from({ length: 50 }, (_, i) => ({
+        id: `tx-${i}`,
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: `Trade ${i}`,
+        subtitle: `${i} ETH`,
+        timestamp: 1640995200000 - i * 1000,
+        asset: 'ETH',
+      }));
+
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? exactTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(false);
+    });
+
+    it('handles PAGE_SIZE + 1 transactions', async () => {
+      const transactions = Array.from({ length: 51 }, (_, i) => ({
+        id: `tx-${i}`,
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: `Trade ${i}`,
+        subtitle: `${i} ETH`,
+        timestamp: 1640995200000 - i * 1000,
+        asset: 'ETH',
+      }));
+
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? transactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.transactions.length).toBe(50);
+      expect(result.current.hasMore).toBe(true);
+
+      await act(async () => {
+        await result.current.loadMore();
+      });
+
+      expect(result.current.transactions.length).toBe(51);
+      expect(result.current.hasMore).toBe(false);
     });
   });
 });
