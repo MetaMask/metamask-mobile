@@ -57,7 +57,6 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
     device,
   );
   await timer1.measure(() => LoginScreen.waitForScreenToDisplay());
-
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });
