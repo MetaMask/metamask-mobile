@@ -12,6 +12,7 @@ on:
           description: 'Run ID of an existing build to reuse (skips build step if provided)'
           required: false
           type: string
+  push:
 
 permissions:
   contents: read
@@ -42,6 +43,7 @@ jobs:
         split_number: ${{ matrix.split }}
         total_splits: 1
         changed_files: ''
-        single_test: ${{ inputs.single_test_file }}
-        artifact_run_id: ${{ inputs.artifact_run_id }}
+        # TODO: revert to use inputs after testing
+        single_test: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
+        artifact_run_id: '4893077109'
       secrets: inherit
