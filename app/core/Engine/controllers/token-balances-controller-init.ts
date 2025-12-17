@@ -6,6 +6,7 @@ import {
 import { TokenBalancesControllerInitMessenger } from '../messengers/token-balances-controller-messenger';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 
 /**
  * Initialize the token balances controller.
@@ -34,6 +35,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
     platform: 'mobile',
+    isOnboarded: () => selectCompletedOnboarding(getState()),
   });
 
   return {

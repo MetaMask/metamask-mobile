@@ -693,7 +693,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                         <View
                                           style={
                                             {
-                                              "paddingRight": 20,
+                                              "paddingRight": 8,
                                             }
                                           }
                                         >
@@ -890,7 +890,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                         <View
                                           style={
                                             {
-                                              "paddingRight": 20,
+                                              "paddingRight": 8,
                                             }
                                           }
                                         >

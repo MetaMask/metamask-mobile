@@ -20,7 +20,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }
@@ -59,7 +59,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         }
         testID="header-title"
       >
-        Connection Details
+        Connection details
       </Text>
     </View>
   </View>
