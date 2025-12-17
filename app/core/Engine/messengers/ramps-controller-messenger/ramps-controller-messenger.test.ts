@@ -1,28 +1,26 @@
+import { Messenger } from '@metamask/messenger';
 import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import type { RampsControllerMessenger } from '@metamask/ramps-controller';
+  RampsControllerActions,
+  RampsControllerEvents,
+  RampsServiceActions,
+  RampsServiceEvents,
+} from '@metamask/ramps-controller';
 import { getRampsControllerMessenger } from './ramps-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<RampsControllerMessenger>,
-  MessengerEvents<RampsControllerMessenger>
->;
+type AllActions = RampsControllerActions | RampsServiceActions;
+type AllEvents = RampsControllerEvents | RampsServiceEvents;
+
+type RootMessenger = Messenger<'Root', AllActions, AllEvents>;
 
 function getRootMessenger(): RootMessenger {
   return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
+    namespace: 'Root',
   });
 }
 
 describe('getRampsControllerMessenger', () => {
   it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+    const rootMessenger = getRootMessenger();
     const rampsControllerMessenger = getRampsControllerMessenger(rootMessenger);
 
     expect(rampsControllerMessenger).toBeInstanceOf(Messenger);

@@ -116,7 +116,11 @@ import {
 import {
   RampsController,
   RampsControllerState,
+  RampsControllerActions,
+  RampsControllerEvents,
   RampsService,
+  RampsServiceActions,
+  RampsServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -510,7 +514,9 @@ type GlobalActions =
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
-  | ProfileMetricsServiceActions;
+  | ProfileMetricsServiceActions
+  | RampsControllerActions
+  | RampsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -582,7 +588,9 @@ type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
-  | ProfileMetricsServiceEvents;
+  | ProfileMetricsServiceEvents
+  | RampsControllerEvents
+  | RampsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.

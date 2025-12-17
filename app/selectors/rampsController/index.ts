@@ -1,11 +1,11 @@
 import { createSelector } from 'reselect';
-import { EngineState } from '../types';
+import { RootState } from '../../reducers';
 
 /**
  * Returns the RampsController state from the engine.
  */
 export const selectRampsControllerState = createSelector(
-  (state: EngineState) => state.engine.backgroundState.RampsController,
+  (state: RootState) => state.engine.backgroundState.RampsController,
   (rampsControllerState) => rampsControllerState,
 );
 

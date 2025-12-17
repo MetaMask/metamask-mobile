@@ -1,6 +1,14 @@
-import { Messenger } from '@metamask/messenger';
-import type { RampsControllerMessenger } from '@metamask/ramps-controller';
-import type { RootMessenger } from '../../types';
+import { RampsControllerMessenger } from '@metamask/ramps-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootMessenger } from '../../types';
+
+type AllowedActions = MessengerActions<RampsControllerMessenger>;
+
+type AllowedEvents = MessengerEvents<RampsControllerMessenger>;
 
 /**
  * Get the RampsControllerMessenger for the RampsController.
@@ -11,7 +19,12 @@ import type { RootMessenger } from '../../types';
 export function getRampsControllerMessenger(
   rootMessenger: RootMessenger,
 ): RampsControllerMessenger {
-  const messenger = new Messenger({
+  const messenger = new Messenger<
+    'RampsController',
+    AllowedActions,
+    AllowedEvents,
+    typeof rootMessenger
+  >({
     namespace: 'RampsController',
     parent: rootMessenger,
   });
