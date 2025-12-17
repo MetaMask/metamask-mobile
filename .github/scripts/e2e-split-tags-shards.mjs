@@ -18,6 +18,7 @@ const env = {
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
   CHANGED_FILES: process.env.CHANGED_FILES || '',
+  SINGLE_TEST: process.env.SINGLE_TEST || '',
 };
 // Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
 
@@ -133,7 +134,16 @@ function* walk(dir) {
  * @param {*} tag - The tag to search for
  * @returns The matching files, sorted alphabetically
  */
-function findMatchingFiles(baseDir, tag) {
+function findMatchingFiles(baseDir, tag, singleTest = '') {
+  if (singleTest) {
+    console.log(`Running single test: ${singleTest}`);
+    // Resolve from cwd so users can pass full paths like 'e2e/specs/wallet/send-flow.spec.ts'
+    const singleTestFile = path.resolve(process.cwd(), singleTest);
+    if (!fs.existsSync(singleTestFile)) throw new Error(`❌ No test file found: ${singleTest}`);
+    console.log(`Found matching spec file to run: ${singleTestFile}`);
+    return [path.relative(process.cwd(), singleTestFile)];
+  }
+
   const resolvedBase = path.resolve(baseDir);
   const results = [];
   // Escape the tag for safe usage in RegExp
@@ -325,12 +335,10 @@ function applyFlakinessDetection(splitFiles) {
 }
 
 async function main() {
-
   console.log("🚀 Starting E2E tests...");
-
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG, env.SINGLE_TEST); // TODO - review this function (!).
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
