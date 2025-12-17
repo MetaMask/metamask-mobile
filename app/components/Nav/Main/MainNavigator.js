@@ -126,6 +126,7 @@ import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSh
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
+import LineaTokenClaimBottomSheet from '../../UI/Rewards/components/LineaTokenClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { getImportTokenNavbarOptions } from '../../UI/Navbar';
 import {
@@ -273,6 +274,10 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.LINEA_TOKEN_CLAIM_BOTTOM_SHEET}
+      component={LineaTokenClaimBottomSheet}
     />
   </Stack.Navigator>
 );

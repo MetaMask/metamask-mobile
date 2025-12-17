@@ -5,7 +5,6 @@ import PreviousSeasonReferralDetails from './PreviousSeasonReferralDetails';
 import {
   selectSeasonId,
   selectReferralCount,
-  selectBalanceRefereePortion,
   selectReferralDetailsLoading,
   selectReferralDetailsError,
 } from '../../../../../reducers/rewards/selectors';
@@ -22,7 +21,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectSeasonId: jest.fn(),
   selectReferralCount: jest.fn(),
-  selectBalanceRefereePortion: jest.fn(),
   selectReferralDetailsLoading: jest.fn(),
   selectReferralDetailsError: jest.fn(),
 }));
@@ -77,9 +75,24 @@ jest.mock('@metamask/design-system-react-native', () => {
     [key: string]: unknown;
   }) => ReactActual.createElement(Text, props, children);
 
+  const Icon = ({
+    name,
+    ...props
+  }: {
+    name?: string;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(View, { ...props, testID: `icon-${name}` });
+
   return {
     Box,
     Text: TextComponent,
+    Icon,
+    IconName: {
+      People: 'People',
+    },
+    IconSize: {
+      Lg: 'Lg',
+    },
     BoxFlexDirection: {
       Row: 'row',
       Column: 'column',
@@ -87,6 +100,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       BodyLg: 'BodyLg',
       BodyMd: 'BodyMd',
+      HeadingSm: 'HeadingSm',
     },
     FontWeight: {
       Bold: 'bold',
@@ -171,7 +185,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 5;
-      if (selector === selectBalanceRefereePortion) return 1000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -182,7 +195,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return null;
       if (selector === selectReferralCount) return 5;
-      if (selector === selectBalanceRefereePortion) return 1000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -199,7 +211,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return undefined;
       if (selector === selectReferralCount) return 5;
-      if (selector === selectBalanceRefereePortion) return 1000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -216,7 +227,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 0;
-      if (selector === selectBalanceRefereePortion) return 0;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return true;
       return undefined;
@@ -239,7 +249,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 0;
-      if (selector === selectBalanceRefereePortion) return 0;
       if (selector === selectReferralDetailsLoading) return true;
       if (selector === selectReferralDetailsError) return true;
       return undefined;
@@ -256,7 +265,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 5;
-      if (selector === selectBalanceRefereePortion) return 1000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return true;
       return undefined;
@@ -276,7 +284,6 @@ describe('PreviousSeasonReferralDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 0;
-      if (selector === selectBalanceRefereePortion) return 0;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return true;
       return undefined;
@@ -294,14 +301,12 @@ describe('PreviousSeasonReferralDetails', () => {
     const { getByText } = render(<PreviousSeasonReferralDetails />);
 
     expect(getByText('5')).toBeOnTheScreen();
-    expect(getByText('1000')).toBeOnTheScreen();
   });
 
   it('displays total referees count', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 10;
-      if (selector === selectBalanceRefereePortion) return 2000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -312,40 +317,16 @@ describe('PreviousSeasonReferralDetails', () => {
     expect(getByText('10')).toBeOnTheScreen();
   });
 
-  it('displays referral points', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return 'season-1';
-      if (selector === selectReferralCount) return 3;
-      if (selector === selectBalanceRefereePortion) return 500;
-      if (selector === selectReferralDetailsLoading) return false;
-      if (selector === selectReferralDetailsError) return false;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonReferralDetails />);
-
-    expect(getByText('500')).toBeOnTheScreen();
-  });
-
   it('displays referral count label', () => {
     const { getByText } = render(<PreviousSeasonReferralDetails />);
 
     expect(getByText('rewards.referral_stats_referrals')).toBeOnTheScreen();
   });
 
-  it('displays referral points label', () => {
-    const { getByText } = render(<PreviousSeasonReferralDetails />);
-
-    expect(
-      getByText('rewards.referral_stats_earned_from_referrals'),
-    ).toBeOnTheScreen();
-  });
-
   it('shows loading state when referralDetailsLoading is true', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 5;
-      if (selector === selectBalanceRefereePortion) return 1000;
       if (selector === selectReferralDetailsLoading) return true;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -365,11 +346,10 @@ describe('PreviousSeasonReferralDetails', () => {
     expect(getByText('5')).toBeOnTheScreen();
   });
 
-  it('handles null total referees', () => {
+  it('renders with null total referees', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return null;
-      if (selector === selectBalanceRefereePortion) return null;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -379,16 +359,12 @@ describe('PreviousSeasonReferralDetails', () => {
 
     // Component should still render with labels visible
     expect(getByText('rewards.referral_stats_referrals')).toBeOnTheScreen();
-    expect(
-      getByText('rewards.referral_stats_earned_from_referrals'),
-    ).toBeOnTheScreen();
   });
 
-  it('handles undefined total referees', () => {
+  it('renders with undefined total referees', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return undefined;
-      if (selector === selectBalanceRefereePortion) return undefined;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -398,16 +374,12 @@ describe('PreviousSeasonReferralDetails', () => {
 
     // Component should still render with labels visible
     expect(getByText('rewards.referral_stats_referrals')).toBeOnTheScreen();
-    expect(
-      getByText('rewards.referral_stats_earned_from_referrals'),
-    ).toBeOnTheScreen();
   });
 
-  it('handles large referral counts', () => {
+  it('renders large referral counts', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-1';
       if (selector === selectReferralCount) return 999999;
-      if (selector === selectBalanceRefereePortion) return 5000000;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -416,14 +388,12 @@ describe('PreviousSeasonReferralDetails', () => {
     const { getByText } = render(<PreviousSeasonReferralDetails />);
 
     expect(getByText('999999')).toBeOnTheScreen();
-    expect(getByText('5000000')).toBeOnTheScreen();
   });
 
   it('renders correctly with all valid data', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return 'season-123';
       if (selector === selectReferralCount) return 42;
-      if (selector === selectBalanceRefereePortion) return 12345;
       if (selector === selectReferralDetailsLoading) return false;
       if (selector === selectReferralDetailsError) return false;
       return undefined;
@@ -432,10 +402,6 @@ describe('PreviousSeasonReferralDetails', () => {
     const { getByText } = render(<PreviousSeasonReferralDetails />);
 
     expect(getByText('42')).toBeOnTheScreen();
-    expect(getByText('12345')).toBeOnTheScreen();
     expect(getByText('rewards.referral_stats_referrals')).toBeOnTheScreen();
-    expect(
-      getByText('rewards.referral_stats_earned_from_referrals'),
-    ).toBeOnTheScreen();
   });
 });

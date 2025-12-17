@@ -35,8 +35,8 @@ const PreviousSeasonSummary = () => {
     >
       <Text
         variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Bold}
-        twClassName="text-default mb-2"
+        fontWeight={FontWeight.Medium}
+        twClassName="text-default"
       >
         {strings('rewards.previous_season_summary.title', {
           seasonName: seasonName || '',
