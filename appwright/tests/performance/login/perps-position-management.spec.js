@@ -49,12 +49,12 @@ test('Perps open position and close it', async ({
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
   );
-  const skipTutorialTimer = new TimerHelper('Skip Tutorial');
-  const selectMarketTimer = new TimerHelper('Select Market BTC');
-  const openOrderScreenTimer = new TimerHelper('Open Order Screen');
-  const openPositionTimer = new TimerHelper('Open Long Position');
-  const setLeverageTimer = new TimerHelper('Set Leverage');
-  const closePositionTimer = new TimerHelper('Close Position');
+  const skipTutorialTimer = new TimerHelper('Skip Tutorial', 1600);
+  const selectMarketTimer = new TimerHelper('Select Market BTC', 6500);
+  const openOrderScreenTimer = new TimerHelper('Open Order Screen', 1150);
+  const openPositionTimer = new TimerHelper('Open Long Position', 10500);
+  const setLeverageTimer = new TimerHelper('Set Leverage', 13500);
+  const closePositionTimer = new TimerHelper('Close Position', 8500);
   await screensSetup(device);
   await login(device);
 

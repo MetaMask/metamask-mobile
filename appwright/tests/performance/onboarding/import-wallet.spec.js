@@ -20,7 +20,7 @@ import {
 } from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.setTimeout(150000000);
+test.setTimeout(180000);
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -39,27 +39,31 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   CreatePasswordScreen.device = device;
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
+    1200,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
+    1200,
   );
   const timer5 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
+    1000,
   );
   const timer6 = new TimerHelper(
     'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
+    1100,
   );
   const timer7 = new TimerHelper(
     'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
+    1500,
   );
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until feature sheet is visible',
+    1700,
   );
   const timer9 = new TimerHelper(
     'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-  );
-  const timer10 = new TimerHelper(
-    'Time since the user clicks on "Account list" button until the account list is visible',
+    40000,
   );
 
   await OnboardingScreen.tapHaveAnExistingWallet();

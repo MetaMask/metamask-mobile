@@ -19,6 +19,7 @@ test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
 
   const balanceStableTimer = new TimerHelper(
     'Time since the user navigates to wallet tab until the balance stabilizes',
+    25000,
   );
 
   await balanceStableTimer.measure(() =>

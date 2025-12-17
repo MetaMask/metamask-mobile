@@ -47,6 +47,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 1: Navigate to Predict tab
   const timer1 = new TimerHelper(
     'Time since user taps Predict button until Predict Market List is displayed',
+    2300,
   );
   await timer1.measure(async () => {
     await WalletActionModal.tapPredictButton();
@@ -56,6 +57,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 2: Open deposit screen
   const timer2 = new TimerHelper(
     'Time since user taps Add Funds button until Deposit screen is displayed',
+    7000,
   );
   await timer2.measure(async () => {
     await PredictMarketListScreen.tapAddFundsButton();
@@ -65,6 +67,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 3: Change default asset
   const timer3 = new TimerHelper(
     'Time since user taps Pay With button until select payment method modal appears',
+    2900,
   );
   await timer3.measure(async () => {
     await PredictDepositScreen.tapPayWith();
@@ -75,6 +78,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 4: Search, select and enter amount for asseet to pay
   const timer4 = new TimerHelper(
     'Time user search, select and enter amount for asseet to pay',
+    11800,
   );
   await timer4.measure(async () => {
     // Search for USDC and select the first visible option
@@ -87,6 +91,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 5: Proceed to confirmation screen
   const timer5 = new TimerHelper(
     'Time since user taps Continue until Confirmation screen is displayed',
+    5100,
   );
   await timer5.measure(async () => {
     await PredictDepositScreen.tapContinue();

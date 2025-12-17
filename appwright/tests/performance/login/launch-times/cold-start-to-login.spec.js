@@ -52,6 +52,7 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   await AppwrightGestures.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',
+    1500,
   );
   await timer1.measure(() => LoginScreen.waitForScreenToDisplay());
 

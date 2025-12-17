@@ -36,6 +36,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
+    1500,
   );
 
   await WalletMainScreen.tapSwapButton();
@@ -46,6 +47,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
 
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
+    6500,
   );
 
   await timer2.measure(() => BridgeScreen.isQuoteDisplayed());

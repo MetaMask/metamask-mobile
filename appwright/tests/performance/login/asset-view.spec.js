@@ -58,6 +58,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
+    600,
   );
 
   await WalletMainScreen.tapNetworkNavBar();

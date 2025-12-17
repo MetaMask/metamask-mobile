@@ -68,15 +68,15 @@ test('Account creation after fresh install', async ({
 
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
-    1500,
+    1300,
   );
   const screen2Timer = new TimerHelper(
     'Time since the user clicks on "Create account" button until the account is in the account list',
-    1500,
+    1300,
   );
   const screen3Timer = new TimerHelper(
     'Time since the user clicks on new account created until the Token list is visible',
-    40000,
+    36000,
   );
 
   await WalletMainScreen.tapIdenticon();
