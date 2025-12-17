@@ -287,6 +287,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        triggerPrice: '25.50',
       });
     });
 
