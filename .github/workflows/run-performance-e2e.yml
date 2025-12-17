@@ -120,27 +120,26 @@ jobs:
     steps:
       - name: Get correct branch name
         id: get-branch
+        env:
+          INPUT_BRANCH: ${{ inputs.branch_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           # Priority: explicit input > PR head_ref > ref_name
-          # When called from ci.yml on PRs, branch_name input will be provided
-          # When triggered directly, use head_ref for PRs or ref_name for others
-          INPUT_BRANCH="${{ inputs.branch_name }}"
-          EVENT_NAME="${{ github.event_name }}"
-          HEAD_REF="${{ github.head_ref }}"
-          
           if [ -n "$INPUT_BRANCH" ]; then
             BRANCH_NAME="$INPUT_BRANCH"
-            echo "Using explicit branch name from input: $BRANCH_NAME"
-          elif [ "$EVENT_NAME" = "pull_request" ] || [ -n "$HEAD_REF" ]; then
+            echo "Using explicit input: $BRANCH_NAME"
+          elif [ "$EVENT_NAME" = "pull_request" ] && [ -n "$HEAD_REF" ]; then
             BRANCH_NAME="$HEAD_REF"
-            echo "PR context detected - using source branch: $BRANCH_NAME"
+            echo "Using PR source branch: $BRANCH_NAME"
           else
-            BRANCH_NAME="${{ github.ref_name }}"
+            BRANCH_NAME="$REF_NAME"
             echo "Using ref_name: $BRANCH_NAME"
           fi
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch name for Bitrise: $BRANCH_NAME"
+          echo "Branch for Bitrise: $BRANCH_NAME"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -341,12 +340,12 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      # - name: Send Slack Notification
-      #   uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
-      #   with:
-      #     webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
-      #     webhook-type: incoming-webhook
-      #     payload: |
-      #       {
-      #         "text": "${{ steps.summary.outputs.summary }}"
-      #       }
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ steps.summary.outputs.summary }}"
+            }
