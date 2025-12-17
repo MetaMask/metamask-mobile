@@ -1,46 +1,38 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-interface PerpsMarketHeaderStyles {
+interface PerpsAssetInfoCardStyles {
   container: ViewStyle;
-  backButton: ViewStyle;
-  perpIcon: ViewStyle;
+  logoContainer: ViewStyle;
   tokenIcon: ViewStyle;
-  leftSection: ViewStyle;
+  infoSection: ViewStyle;
   assetRow: ViewStyle;
-  secondRow: ViewStyle;
   assetName: TextStyle;
-  moreButton: ViewStyle;
+  priceRow: ViewStyle;
 }
 
 export const styleSheet = ({
   theme,
 }: {
   theme: Theme;
-}): PerpsMarketHeaderStyles =>
+}): PerpsAssetInfoCardStyles =>
   StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingLeft: 8,
-      paddingRight: 12,
+      paddingHorizontal: 16,
       paddingVertical: 16,
       backgroundColor: theme.colors.background.default,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
     },
-    backButton: {
-      padding: 4,
-    },
-    perpIcon: {
+    logoContainer: {
       marginRight: 12,
     },
     tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
     },
-    leftSection: {
+    infoSection: {
       flex: 1,
       justifyContent: 'center',
     },
@@ -48,17 +40,14 @@ export const styleSheet = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 2,
-    },
-    secondRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
+      marginBottom: 4,
     },
     assetName: {
       fontWeight: '600',
     },
-    moreButton: {
-      padding: 4,
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 8,
     },
   });

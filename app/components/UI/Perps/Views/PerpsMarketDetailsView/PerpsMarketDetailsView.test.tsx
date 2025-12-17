@@ -1592,7 +1592,7 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Fullscreen chart functionality', () => {
     it('opens fullscreen chart modal when fullscreen button is pressed', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId, findByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -1604,9 +1604,9 @@ describe('PerpsMarketDetailsView', () => {
       // Verify close button is not initially visible (modal is closed)
       expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
 
-      // Press fullscreen button
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+      // Press fullscreen button (now in chart controls area) - wait for it to be available
+      const fullscreenButton = await findByTestId(
+        'perps-market-details-view-fullscreen-button',
       );
       fireEvent.press(fullscreenButton);
 
@@ -1617,7 +1617,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('closes fullscreen chart modal when close button is pressed', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId, findByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -1626,9 +1626,9 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Open the modal first
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+      // Open the modal first (fullscreen button now in chart controls area) - wait for it to be available
+      const fullscreenButton = await findByTestId(
+        'perps-market-details-view-fullscreen-button',
       );
       fireEvent.press(fullscreenButton);
 
@@ -1648,7 +1648,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('renders fullscreen chart when modal is open', async () => {
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, findByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -1657,9 +1657,9 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Open the modal
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+      // Open the modal (fullscreen button now in chart controls area) - wait for it to be available
+      const fullscreenButton = await findByTestId(
+        'perps-market-details-view-fullscreen-button',
       );
       fireEvent.press(fullscreenButton);
 
