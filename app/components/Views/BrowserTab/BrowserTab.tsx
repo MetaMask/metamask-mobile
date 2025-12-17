@@ -149,6 +149,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     homePageUrl,
     activeChainId,
     fromTrending,
+    fromPerps,
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1313,7 +1314,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const handleBackPress = useCallback(() => {
-      if (fromTrending) {
+      if (fromPerps) {
+        // If opened from Perps, navigate back to PerpsHome
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
       } else {
@@ -1322,7 +1328,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromTrending]);
+    }, [navigation, fromTrending, fromPerps]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
