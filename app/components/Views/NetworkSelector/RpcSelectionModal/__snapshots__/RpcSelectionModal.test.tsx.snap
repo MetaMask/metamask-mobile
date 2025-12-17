@@ -129,7 +129,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             },
             false,
             {
-              "padding": 16,
+              "paddingHorizontal": 16,
             },
           ]
         }

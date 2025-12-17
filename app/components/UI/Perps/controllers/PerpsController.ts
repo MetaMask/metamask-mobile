@@ -21,7 +21,12 @@ import {
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-import { MetaMetrics } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
@@ -1549,6 +1554,8 @@ export class PerpsController extends BaseController<
     status: 'completed' | 'failed',
     txHash?: string,
   ): void {
+    let withdrawalAmount: string | undefined;
+
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
         (request) => request.id === withdrawalId,
@@ -1556,6 +1563,8 @@ export class PerpsController extends BaseController<
 
       if (withdrawalIndex >= 0) {
         const request = state.withdrawalRequests[withdrawalIndex];
+        withdrawalAmount = request.amount;
+        const originalStatus = request.status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -1569,6 +1578,21 @@ export class PerpsController extends BaseController<
             lastUpdated: Date.now(),
             activeWithdrawalId: null,
           };
+        }
+
+        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
+        if (withdrawalAmount !== undefined && originalStatus !== status) {
+          const eventBuilder = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          ).addProperties({
+            [PerpsEventProperties.STATUS]:
+              status === 'completed'
+                ? PerpsEventValues.STATUS.COMPLETED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+              Number.parseFloat(withdrawalAmount),
+          });
+          MetaMetrics.getInstance().trackEvent(eventBuilder.build());
         }
 
         DevLogger.log('PerpsController: Updated withdrawal status', {

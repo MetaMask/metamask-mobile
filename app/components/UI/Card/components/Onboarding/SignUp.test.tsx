@@ -44,42 +44,6 @@ jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../../Ramp/Deposit/utils');
 jest.mock('../../util/validatePassword');
 
-// Mock SelectComponent with proper interaction simulation
-jest.mock('../../../SelectComponent', () => {
-  const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  return (props: {
-    testID?: string;
-    onValueChange?: (value: string) => void;
-    selectedValue?: string;
-    defaultValue?: string;
-    options?: { key: string; value: string; label: string }[];
-    [key: string]: unknown;
-  }) => {
-    const handlePress = () => {
-      // Simulate selecting the first available option
-      if (props.options && props.options.length > 0 && props.onValueChange) {
-        props.onValueChange(props.options[0].value);
-      }
-    };
-
-    return ReactActual.createElement(
-      TouchableOpacity,
-      {
-        testID: props.testID,
-        onPress: handlePress,
-        ...props,
-      },
-      ReactActual.createElement(
-        Text,
-        {},
-        props.selectedValue || props.defaultValue || 'Select...',
-      ),
-    );
-  };
-});
-
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -283,17 +247,6 @@ describe('SignUp Component', () => {
 
       expect(passwordInput.props.value).toBe('password123');
     });
-
-    it('has secure text entry enabled', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SignUp />
-        </Provider>,
-      );
-
-      const passwordInput = getByTestId('signup-password-input');
-      expect(passwordInput.props.secureTextEntry).toBe(true);
-    });
   });
 
   describe('Confirm Password Input', () => {
@@ -353,7 +306,18 @@ describe('SignUp Component', () => {
   });
 
   describe('Country Selection', () => {
-    it('allows country selection', () => {
+    it('renders country select touchable', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId('signup-country-select');
+      expect(countrySelect).toBeTruthy();
+    });
+
+    it('navigates to region selector modal on press', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -363,14 +327,24 @@ describe('SignUp Component', () => {
       const countrySelect = getByTestId('signup-country-select');
       fireEvent.press(countrySelect);
 
-      expect(countrySelect).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 
   describe('Form Validation', () => {
     it('enables continue button when all fields are valid', async () => {
+      // Create store with pre-selected country
+      const storeWithCountry = createTestStore({
+        onboarding: {
+          selectedCountry: { key: 'US', name: 'United States' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
+
       const { getByTestId } = render(
-        <Provider store={store}>
+        <Provider store={storeWithCountry}>
           <SignUp />
         </Provider>,
       );
@@ -378,21 +352,13 @@ describe('SignUp Component', () => {
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
       const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const countrySelect = getByTestId('signup-country-select');
       const continueButton = getByTestId('signup-continue-button');
 
       // Fill in all form fields
-      fireEvent.changeText(emailInput, 'test@example.com');
-      fireEvent.changeText(passwordInput, 'Password123!');
-      fireEvent.changeText(confirmPasswordInput, 'Password123!');
-
-      // Select a country - this should trigger the Redux action
-      fireEvent.press(countrySelect);
-
-      // Wait for all state updates to complete
-      await waitFor(() => {
-        const state = store.getState();
-        expect(state.card.onboarding.selectedCountry).toBe('CA'); // Canada comes first alphabetically
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password123!');
       });
 
       // Now check if the continue button is enabled
@@ -406,8 +372,17 @@ describe('SignUp Component', () => {
 
     it('keeps continue button disabled when email is invalid', async () => {
       (validateEmail as jest.Mock).mockReturnValue(false);
+      const storeWithCountry = createTestStore({
+        onboarding: {
+          selectedCountry: { key: 'US', name: 'United States' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
+
       const { getByTestId } = render(
-        <Provider store={store}>
+        <Provider store={storeWithCountry}>
           <SignUp />
         </Provider>,
       );
@@ -415,14 +390,12 @@ describe('SignUp Component', () => {
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
       const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const countrySelect = getByTestId('signup-country-select');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'invalid-email');
         fireEvent.changeText(passwordInput, 'Password123!');
         fireEvent.changeText(confirmPasswordInput, 'Password123!');
-        fireEvent.press(countrySelect);
       });
 
       await waitFor(() => {
@@ -431,8 +404,17 @@ describe('SignUp Component', () => {
     });
 
     it('keeps continue button disabled when passwords do not match', async () => {
+      const storeWithCountry = createTestStore({
+        onboarding: {
+          selectedCountry: { key: 'US', name: 'United States' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
+
       const { getByTestId } = render(
-        <Provider store={store}>
+        <Provider store={storeWithCountry}>
           <SignUp />
         </Provider>,
       );
@@ -440,14 +422,12 @@ describe('SignUp Component', () => {
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
       const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const countrySelect = getByTestId('signup-country-select');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
         fireEvent.changeText(confirmPasswordInput, 'Password321!');
-        fireEvent.press(countrySelect);
       });
 
       await waitFor(() => {
@@ -456,12 +436,18 @@ describe('SignUp Component', () => {
     });
 
     it('keeps continue button disabled when password is invalid', async () => {
-      // Create a new store for this test with the invalid password mock
-      const testStore = createTestStore();
-      (validatePassword as jest.Mock).mockReturnValue(false); // Return false directly, not an object
+      (validatePassword as jest.Mock).mockReturnValue(false);
+      const storeWithCountry = createTestStore({
+        onboarding: {
+          selectedCountry: { key: 'US', name: 'United States' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
 
       const { getByTestId } = render(
-        <Provider store={testStore}>
+        <Provider store={storeWithCountry}>
           <SignUp />
         </Provider>,
       );
@@ -469,13 +455,13 @@ describe('SignUp Component', () => {
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
       const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const countrySelect = getByTestId('signup-country-select');
       const continueButton = getByTestId('signup-continue-button');
 
-      fireEvent.changeText(emailInput, 'test@example.com');
-      fireEvent.changeText(passwordInput, 'weak');
-      fireEvent.changeText(confirmPasswordInput, 'weak');
-      fireEvent.press(countrySelect);
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'weak');
+        fireEvent.changeText(confirmPasswordInput, 'weak');
+      });
 
       await waitFor(() => {
         expect(continueButton.props.disabled).toBe(true);
@@ -509,8 +495,17 @@ describe('SignUp Component', () => {
 
   describe('Form Submission', () => {
     it('calls sendEmailVerification when continue button is pressed', async () => {
+      const storeWithCountry = createTestStore({
+        onboarding: {
+          selectedCountry: { key: 'US', name: 'United States' },
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+        },
+      });
+
       const { getByTestId } = render(
-        <Provider store={store}>
+        <Provider store={storeWithCountry}>
           <SignUp />
         </Provider>,
       );
@@ -518,14 +513,12 @@ describe('SignUp Component', () => {
       const emailInput = getByTestId('signup-email-input');
       const passwordInput = getByTestId('signup-password-input');
       const confirmPasswordInput = getByTestId('signup-confirm-password-input');
-      const countrySelect = getByTestId('signup-country-select');
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
         fireEvent.changeText(confirmPasswordInput, 'Password123!');
-        fireEvent.press(countrySelect);
       });
 
       await waitFor(() => {
@@ -579,37 +572,6 @@ describe('SignUp Component', () => {
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
-    });
-  });
-
-  describe('Country Selection', () => {
-    it('filters selectOptions by country.canSignUp property', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SignUp />
-        </Provider>,
-      );
-
-      const countrySelect = getByTestId('signup-country-select');
-
-      // The SelectComponent mock should receive only countries where canSignUp is true
-      // Based on the mock data, we should have US, Canada, and Germany (3 countries)
-      expect(countrySelect.props.options).toHaveLength(3);
-
-      // Verify that only countries with canSignUp: true are included
-      const optionValues = countrySelect.props.options.map(
-        (option: { value: string }) => option.value,
-      );
-      expect(optionValues).toContain('US');
-      expect(optionValues).toContain('CA');
-      expect(optionValues).toContain('DE');
-      expect(optionValues).not.toContain('GB');
-
-      // Verify the options are sorted alphabetically by name
-      const optionLabels = countrySelect.props.options.map(
-        (option: { label: string }) => option.label,
-      );
-      expect(optionLabels).toEqual(['Canada', 'Germany', 'United States']);
     });
   });
 

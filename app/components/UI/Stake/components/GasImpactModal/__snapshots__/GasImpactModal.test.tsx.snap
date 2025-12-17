@@ -147,7 +147,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
                 },
                 false,
                 {
-                  "padding": 16,
+                  "paddingHorizontal": 16,
                 },
               ]
             }
