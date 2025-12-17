@@ -201,12 +201,12 @@ describe('AssetDetails', () => {
   it('renders token details correctly', () => {
     const { getByText } = renderComponent();
 
-    expect(getByText('Token')).toBeDefined();
-    expect(getByText('Token amount')).toBeDefined();
-    expect(getByText('Token contract address')).toBeDefined();
-    expect(getByText('Token decimal')).toBeDefined();
-    expect(getByText('Network')).toBeDefined();
-    expect(getByText('Token lists')).toBeDefined();
+    expect(getByText('Token')).toBeOnTheScreen();
+    expect(getByText('Token amount')).toBeOnTheScreen();
+    expect(getByText('Token contract address')).toBeOnTheScreen();
+    expect(getByText('Token decimal')).toBeOnTheScreen();
+    expect(getByText('Network')).toBeOnTheScreen();
+    expect(getByText('Token lists')).toBeOnTheScreen();
   });
 
   it('calls goBack when back button is pressed', () => {
@@ -326,12 +326,12 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-    expect(getByText('troubleshooting missing balances')).toBeDefined();
+    expect(getByText('troubleshooting missing balances')).toBeOnTheScreen();
   });
 
   it('renders balance in ETH if primary currency is ETH', () => {
     const { getByText } = renderComponent();
-    expect(getByText('1')).toBeDefined();
+    expect(getByText('1')).toBeOnTheScreen();
   });
 
   it('renders balance in fiat if primary currency is fiat', () => {
@@ -357,6 +357,190 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-    expect(getByText('1')).toBeDefined();
+    expect(getByText('1')).toBeOnTheScreen();
+  });
+
+  it('navigates to troubleshooting webview when warning banner link is pressed', async () => {
+    const mockEmptyState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {},
+          },
+        },
+      },
+    };
+    const mockStoreEmpty = mockStore(mockEmptyState);
+
+    const { getByText } = render(
+      <Provider store={mockStoreEmpty}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    const troubleshootingLink = getByText('troubleshooting missing balances');
+    fireEvent.press(troubleshootingLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: expect.objectContaining({
+        title: 'Troubleshoot',
+      }),
+    });
+  });
+
+  it('does not render Token lists section when aggregators are empty', () => {
+    const mockStateNoAggregators = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [
+              {
+                address: '0xAddress',
+                symbol: 'TKN',
+                decimals: 18,
+                aggregators: [],
+              },
+            ],
+            tokensByChainId: {
+              [CHAIN_IDS.MAINNET]: [
+                {
+                  address: '0xAddress',
+                  symbol: 'TKN',
+                  decimals: 18,
+                  aggregators: [],
+                },
+              ],
+            },
+            allTokens: {
+              [CHAIN_IDS.MAINNET]: {
+                [MOCK_ADDRESS_1]: [
+                  {
+                    address: '0xAddress',
+                    symbol: 'TKN',
+                    decimals: 18,
+                    aggregators: [],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockStoreNoAggregators = mockStore(mockStateNoAggregators);
+
+    const { queryByText } = render(
+      <Provider store={mockStoreNoAggregators}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(queryByText('Token lists')).toBeNull();
+  });
+
+  it('renders token from asset prop when token is not in portfolio', () => {
+    const mockStateNoTokens = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            tokensByChainId: {},
+            allTokens: {},
+          },
+        },
+      },
+    };
+    const mockStoreNoTokens = mockStore(mockStateNoTokens);
+
+    const assetFromSearch = {
+      address: '0xNewToken',
+      symbol: 'NEW',
+      decimals: 18,
+      name: 'New Token',
+      image: 'https://example.com/token.png',
+      aggregators: ['Uniswap'],
+    };
+
+    const { getByText } = render(
+      <Provider store={mockStoreNoTokens}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xNewToken' as `0x${string}`,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: assetFromSearch as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(getByText('NEW')).toBeOnTheScreen();
+  });
+
+  it('returns null when token is not found and no asset prop provided', () => {
+    const mockStateNoTokens = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            tokensByChainId: {},
+            allTokens: {},
+          },
+        },
+      },
+    };
+    const mockStoreNoTokens = mockStore(mockStateNoTokens);
+
+    const { toJSON } = render(
+      <Provider store={mockStoreNoTokens}>
+        <AssetDetails
+          route={{
+            params: {
+              address: '0xUnknownToken' as `0x${string}`,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: undefined as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(toJSON()).toBeNull();
+  });
+
+  it('displays network name in header and content section', () => {
+    const { getAllByText } = renderComponent();
+
+    const networkNameElements = getAllByText('Ethereum Mainnet');
+    expect(networkNameElements).toHaveLength(2);
+    networkNameElements.forEach((networkElement) => {
+      expect(networkElement).toBeOnTheScreen();
+    });
   });
 });
