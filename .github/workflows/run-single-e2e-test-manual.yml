@@ -12,7 +12,6 @@ on:
           description: 'Workflow run ID of an existing build to reuse (skips build step if provided)'
           required: false
           type: string
-  push:
 
 permissions:
   contents: read
@@ -21,7 +20,7 @@ permissions:
 jobs:
   build-ios-apps:
     name: 'Build iOS Apps'
-    if: ${{ false }}
+    if: ${{ !cancelled() && !inputs.artifact_run_id }}
     permissions:
       contents: read
       id-token: write
@@ -30,7 +29,7 @@ jobs:
 
   build-android-apps:
     name: 'Build Android Apps'
-    if: ${{ false }}
+    if: ${{ !cancelled() && !inputs.artifact_run_id }}
     permissions:
       contents: read
       id-token: write
@@ -55,8 +54,8 @@ jobs:
       test_suite_tag: 'SmokeTrade'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
-      single_test: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
+      changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
+      single_test: ${{ inputs.single_test_file }}
       artifact_run_id: '20287746913'
     secrets: inherit
   
@@ -74,7 +73,7 @@ jobs:
       test_suite_tag: 'SmokeTrade'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
-      single_test: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
+      changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
+      single_test: ${{ inputs.single_test_file }}
       artifact_run_id: '20287746913'
     secrets: inherit
