@@ -73,7 +73,6 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
 export const selectIsMusdCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    return true;
     const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
