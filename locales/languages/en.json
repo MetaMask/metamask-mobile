@@ -785,7 +785,8 @@
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
       "contact_support": "Contact support",
-      "error": "An error occurred while verifying the code"
+      "error": "An error occurred while verifying the code",
+      "paste": "Paste"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -980,7 +981,7 @@
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
-    "available": "available to trade",
+    "available": "available",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -2144,7 +2145,8 @@
       "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or predict.",
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
-      "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour."
+      "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+      "slippage": "Slippage"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -2353,6 +2355,7 @@
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
+      "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
@@ -2439,7 +2442,7 @@
     "privacy_policy_button": "Privacy Policy",
     "agree": "I Agree",
     "decline": "No Thanks",
-    "description_title": "Help improve MetaMask",
+    "description_title": "Improve MetaMask",
     "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
@@ -2471,10 +2474,16 @@
     "action_description_4_legacy": "collect your full IP address*",
     "action_description_5_legacy": "sell data. Ever!",
     "action_description_never_legacy": "Never",
-    "toast_message": "We’ve updated our privacy policy",
+    "toast_message": "We've updated our privacy policy",
     "toast_action_button": "Close",
     "toast_read_more": "Read more",
-    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
+    "pna25_title": "Privacy and product updates",
+    "pna25_description": "To better serve you, we’re updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask. This helps us improve MetaMask's performance, security, and features in order to make a better, safer wallet.",
+    "pna25_description_2": "We take privacy seriously. We do not use this information for advertising or sell your data to third parties. You can opt out anytime in Settings.",
+    "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
+    "pna25_blog_post_link": "blog post",
+    "pna25_confirm_button": "Accept and close",
+    "pna25_open_settings_button": "Open Settings"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2995,7 +3004,7 @@
       },
       "keyring_account_list_item": {
         "account_name": "Account name",
-        "public_address": "Public Address"
+        "public_address": "Public address"
       },
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
@@ -3057,22 +3066,22 @@
     "simulation_details": "Estimate balance changes",
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
-    "aes_crypto_test_form_title": "AES Crypto - Test Form",
+    "aes_crypto_test_form_title": "AES crypto - test form",
     "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace.",
-      "navigate_to_sample_feature": "Navigate to Sample Feature",
+      "title": "Developer options",
+      "generate_trace_test": "Generate trace test",
+      "generate_trace_test_desc": "Generate a developer test Sentry trace.",
+      "navigate_to_sample_feature": "Navigate to sample feature",
       "sample_feature_desc": "A sample feature as a template for developers."
     },
     "feature_flag_override": {
-      "title": "Feature Flag Override",
+      "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
     }
   },
   "aes_crypto_test_form": {
-    "generate_random_salt": "Generate Random Salt",
+    "generate_random_salt": "Generate random salt",
     "salt_bytes_count": "Salt bytes count",
     "generate": "Generate",
     "generate_encryption_key": "Generate encryption key from password",
@@ -3080,7 +3089,7 @@
     "salt": "Salt",
     "encrypt_with_key": "Encrypt with key",
     "encrypt": "Encrypt",
-    "encryption_key": "Encryption Key",
+    "encryption_key": "Encryption key",
     "data": "Data",
     "decrypt_with_key": "Decrypt with key",
     "decrypt": "Decrypt"
@@ -3091,7 +3100,7 @@
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
     "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
+    "manage_connections": "Manage connections",
     "manage": "Manage",
     "cancel": "Cancel",
     "loading": "Connecting to MetaMask...",
@@ -3128,9 +3137,9 @@
     "privacy_policy": "Privacy Policy",
     "terms_of_use": "Terms of use",
     "attributions": "Attributions",
-    "support_center": "Visit our Support Center",
+    "support_center": "Visit our support center",
     "web_site": "Visit our Website",
-    "contact_us": "Contact Us"
+    "contact_us": "Contact us"
   },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
@@ -3188,7 +3197,7 @@
     "srp_text": "Secret Recovery Phrase",
     "private_key_text": "Private Key",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn more"
   },
   "screenshot_deterrent": {
     "title": "Safety alert",
@@ -3237,7 +3246,7 @@
       "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. Hold TRX to get 600 bandwidth daily.",
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
@@ -3255,7 +3264,7 @@
       "perps": "Perps trading not supported for this account"
     },
     "description": "Description",
-    "totalSupply": "Total Supply",
+    "totalSupply": "Total supply",
     "address": "Address",
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
@@ -3307,7 +3316,7 @@
     "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
   },
   "account_details": {
-    "title": "Account Details",
+    "title": "Account details",
     "share_account": "Share",
     "view_account": "View account on Etherscan",
     "show_private_key": "Show private key",
@@ -3327,7 +3336,7 @@
     "title": "{{tokenCount}} new token found",
     "title_plural": "{{tokenCount}} new tokens found",
     "import_cta": "Import ({{tokenCount}})",
-    "hide_cta": "Hide All",
+    "hide_cta": "Hide all",
     "token_address": "Token address: ",
     "token_lists": "Token lists: {{listNames}}",
     "token_more": " + {{remainingListCount}} more",
@@ -3365,7 +3374,8 @@
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
     "open_settings": "Settings",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "Camera not available",
+    "tron_address_not_supported": "Tron addresses are not currently supported"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -3401,7 +3411,7 @@
     "gas_fee_fast": "FAST",
     "gas_fee_average": "AVERAGE",
     "gas_fee_slow": "SLOW",
-    "hex_data": "Hex Data",
+    "hex_data": "Hex data",
     "custom_nonce": "Nonce",
     "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "This is an advanced feature used to cancel or speed up any pending transactions.",
@@ -3423,7 +3433,7 @@
     "more_to_continue": "More {{ticker}} is needed to continue",
     "you_can_also_send_funds": "You can also send funds from another account.",
     "token_marketplace": "Token marketplace",
-    "token_Marketplace": "Token Marketplace",
+    "token_Marketplace": "Token marketplace",
     "go_to_faucet": "Go to faucet",
     "get_ether": "Get Ether for the {{networkName}} network.",
     "insufficient_tokens": "Insufficient {{token}}",
@@ -3437,13 +3447,13 @@
     "invalid_collectible_ownership": "You don't own this collectible",
     "known_asset_contract": "Known asset contract address",
     "max": "Max",
-    "recipient_address": "Recipient Address",
+    "recipient_address": "Recipient address",
     "required": "Required",
     "to": "To",
     "total": "Total",
     "loading": "Loading...",
     "conversion_not_available": "Conversion rate not available",
-    "value_not_available": "Not Available",
+    "value_not_available": "Not available",
     "rate_not_available": "Conversion not available",
     "optional": "Optional",
     "no_address_for_ens": "No address for ENS name",
@@ -3465,7 +3475,7 @@
     "transaction_fee": "Gas fee",
     "transaction_fee_less": "No fee",
     "total_amount": "Total amount",
-    "view_data": "View Data",
+    "view_data": "View data",
     "adjust_transaction_fee": "Adjust transaction fee",
     "could_not_resolve_ens": "Couldn't resolve ENS",
     "asset": "Asset",
@@ -3521,7 +3531,7 @@
     "advanced_options": "Advanced",
     "basic_options": "Basic",
     "hide_advanced_options": "Hide advanced",
-    "gas_limit": "Gas Limit:",
+    "gas_limit": "Gas limit:",
     "gas_price": "Gas Price: (GWEI)",
     "save": "Save",
     "warning_gas_limit": "Gas limit must be greater than 20999",
@@ -3555,8 +3565,8 @@
     "transaction_fee_explanation": "A transaction fee is associated with this permission.",
     "view_details": "View details",
     "view_transaction_details": "View transaction details",
-    "view_data": "View Data",
-    "transaction_details": "Transaction Details",
+    "view_data": "View data",
+    "transaction_details": "Transaction details",
     "site_url": "Site URL",
     "permission_request": "Permission request",
     "details_explanation": "{{host}} may access and spend up to this max amount from this account.",
@@ -3602,9 +3612,9 @@
     "welcome": "Welcome!",
     "remove": "Remove",
     "new_tab": "New tab",
-    "tabs_close_all": "Close All",
+    "tabs_close_all": "Close all",
     "tabs_done": "Done",
-    "no_tabs_title": "No Open Tabs",
+    "no_tabs_title": "No open tabs",
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
     "got_it": "Got it",
     "max_tabs_title": "Maximum tabs reached",
@@ -3634,14 +3644,14 @@
     "right_button": "Protect wallet"
   },
   "add_favorite": {
-    "title": "Add Favorite",
+    "title": "Add favorite",
     "title_label": "Name",
     "url_label": "Url",
     "add_button": "Add",
     "cancel_button": "Cancel"
   },
   "approval": {
-    "title": "Confirm Transaction"
+    "title": "Confirm transaction"
   },
   "approve": {
     "title": "Approve",
@@ -3651,40 +3661,40 @@
   "transactions": {
     "tx_review_confirm": "Confirm",
     "tx_review_transfer": "Transfer",
-    "tx_review_contract_deployment": "Contract Deployment",
-    "tx_review_transfer_from": "Transfer From",
-    "tx_review_unknown": "Unknown Method",
+    "tx_review_contract_deployment": "Contract deployment",
+    "tx_review_transfer_from": "Transfer from",
+    "tx_review_unknown": "Unknown method",
     "tx_review_approve": "Approve",
-    "tx_review_increase_allowance": "Increase Allowance",
-    "tx_review_set_approval_for_all": "Set Approval For All",
-    "tx_review_staking_claim": "Staking Claim",
-    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_increase_allowance": "Increase allowance",
+    "tx_review_set_approval_for_all": "Set approval for all",
+    "tx_review_staking_claim": "Staking claim",
+    "tx_review_staking_deposit": "Staking deposit",
     "tx_review_staking_unstake": "Unstake",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "Lending deposit",
+    "tx_review_lending_withdraw": "Lending withdrawal",
     "tx_review_perps_deposit": "Funded Perps",
-    "tx_review_predict_deposit": "Funded Predictions",
-    "tx_review_predict_claim": "Claimed Wins",
-    "tx_review_predict_withdraw": "Predictions Withdraw",
+    "tx_review_predict_deposit": "Funded predictions",
+    "tx_review_predict_claim": "Claimed wins",
+    "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_musd_conversion": "mUSD Conversion",
     "sent_ether": "Sent Ether",
-    "self_sent_ether": "Sent Yourself Ether",
+    "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Received Ether",
     "sent_dai": "Sent DAI",
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
-    "sent_tokens": "Sent Tokens",
-    "received_tokens": "Received Tokens",
+    "sent_tokens": "Sent tokens",
+    "received_tokens": "Received tokens",
     "ether": "Ether",
     "sent_unit": "Sent {{unit}}",
-    "self_sent_unit": "Sent Yourself {{unit}}",
+    "self_sent_unit": "Sent yourself {{unit}}",
     "received_unit": "Received {{unit}}",
-    "sent_collectible": "Sent Collectible",
-    "received_collectible": "Received Collectible",
+    "sent_collectible": "Sent collectible",
+    "received_collectible": "Received collectible",
     "send_ether": "Send Ether",
     "send_unit": "Send {{unit}}",
-    "send_collectible": "Send Collectible",
-    "receive_collectible": "Receive Collectible",
+    "send_collectible": "Send collectible",
+    "receive_collectible": "Receive collectible",
     "sent": "Sent",
     "received": "Received",
     "receive": "Receive",
@@ -3692,8 +3702,8 @@
     "send": "Send",
     "redeposit": "Redeposit",
     "interaction": "Interaction",
-    "contract_deploy": "Contract Deployment",
-    "to_contract": "New Contract",
+    "contract_deploy": "Contract deployment",
+    "to_contract": "New contract",
     "mint": "Mint",
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
@@ -3701,24 +3711,24 @@
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
-    "increase_allowance": "Increase Allowance",
-    "set_approval_for_all": "Set Approval For All",
+    "increase_allowance": "Increase allowance",
+    "set_approval_for_all": "Set approval for all",
     "hash": "Hash",
     "from": "From",
     "to": "To",
     "details": "Details",
     "amount": "Amount",
     "fee": {
-      "transaction_fee_in_ether": "Transaction Fee",
-      "transaction_fee_in_usd": "Transaction Fee (USD)"
+      "transaction_fee_in_ether": "Transaction fee",
+      "transaction_fee_in_usd": "Transaction fee (USD)"
     },
-    "gas_used": "Gas Used (Units)",
-    "gas_limit": "Gas Limit (Units)",
+    "gas_used": "Gas used (units)",
+    "gas_limit": "Gas limit (units)",
     "gas_price": "Gas Price (GWEI)",
     "base_fee": "Base Fee (GWEI)",
     "priority_fee": "Priority Fee (GWEI)",
-    "multichain_priority_fee": "Priority Fee",
-    "max_fee": "Max Fee Per Gas",
+    "multichain_priority_fee": "Priority fee",
+    "max_fee": "Max fee per gas",
     "total": "Total",
     "view_on": "View on",
     "view_on_etherscan": "View on Etherscan",
@@ -3734,13 +3744,13 @@
     "nonce": "Nonce",
     "from_device_label": "from this device",
     "import_wallet_row": "Account added to this device",
-    "import_wallet_label": "Account Added",
+    "import_wallet_label": "Account added",
     "import_wallet_tip": "All future transactions made from this device will include a label \"from this device\" next to the timestamp. For transactions dated before adding the account, this history will not indicate which outgoing transactions originated from this device.",
     "sign_title_scan": "Scan ",
     "sign_title_device": "with your hardware wallet",
     "sign_description_1": "After you have signed with your hardware wallet,",
-    "sign_description_2": "tap on Get Signature",
-    "sign_get_signature": "Get Signature",
+    "sign_description_2": "Tap on get signature",
+    "sign_get_signature": "Get signature",
     "transaction_id": "Transaction ID",
     "network": "Network",
     "request_from": "Request from",
@@ -3761,10 +3771,10 @@
       "medium": "Market",
       "high": "Aggressive",
       "network_suggested": "Network suggested",
-      "gas_limit": "Gas Limit",
+      "gas_limit": "Gas limit",
       "save": "Save",
       "max_base_fee": "Max Base Fee",
-      "priority_fee": "Priority Fee",
+      "priority_fee": "Priority fee",
       "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
       "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
       "estimated_base_fee": "Current: {{value}} GWEI",
@@ -3814,9 +3824,9 @@
     "add_this_address": "Add this address to your address book",
     "next": "Next",
     "enter_an_alias_placeholder": "e.g. Vitalik B.",
-    "add_contact_title": "Add Contact",
+    "add_contact_title": "Add contact",
     "add_contact": "Add contact",
-    "edit_contact_title": "Edit Contact",
+    "edit_contact_title": "Edit contact",
     "edit_contact": "Edit contact",
     "edit": "Edit",
     "address_already_saved": "Contact already saved",
@@ -3835,15 +3845,15 @@
     "button": "Got it"
   },
   "transaction_submitted": {
-    "title": "Transaction Submitted",
+    "title": "Transaction submitted",
     "your_tx_hash_is": "Your transaction hash is:",
     "view_on_etherscan": "View on Etherscan"
   },
   "networks": {
     "title": "Networks",
-    "other_networks": "Other Networks",
+    "other_networks": "Other networks",
     "close": "Close",
-    "status_ok": "All Systems Operational",
+    "status_ok": "All systems operational",
     "status_not_ok": "The network is having some issues",
     "want_to_add_network": "Want to add this network?",
     "add_custom_network": "Add custom network",
@@ -3862,9 +3872,9 @@
     "review": "Review",
     "view_details": "View details",
     "network_details": "Network details",
-    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
+    "network_select_confirm_use_safe_check": "Selecting confirm turns on network details check. You can turn off network details check in ",
     "network_settings_security_privacy": "Settings > Security and privacy",
-    "network_currency_symbol": "Currency Symbol",
+    "network_currency_symbol": "Currency symbol",
     "network_block_explorer_url": "Block Explorer URL",
     "search": "Search for previously added network",
     "search-short": "Search",
@@ -3876,8 +3886,8 @@
     "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "network_warning_title": "Network Information",
-    "additional_network_information_title": "Additional Networks Information",
+    "network_warning_title": "Network information",
+    "additional_network_information_title": "Additional networks information",
     "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
     "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
     "connect_more_networks": "Connect more networks",
@@ -3922,11 +3932,11 @@
     "network_connected": "network connected ",
     "see_your_accounts": "See your accounts and suggest transactions",
     "connected_to": "Connected to ",
-    "manage_permissions": "Manage Permissions",
+    "manage_permissions": "Manage permissions",
     "edit": "Edit",
     "cancel": "Cancel",
     "got_it": "Got it",
-    "connection_details_title": "Connection Details",
+    "connection_details_title": "Connection details",
     "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}",
     "title_add_network_permission": "Add network permission",
     "add_this_network": "Add this network",
@@ -3947,7 +3957,7 @@
     "done": "Done"
   },
   "signature_request": {
-    "title": "Signature Request",
+    "title": "Signature request",
     "cancel": "Cancel",
     "sign": "Sign",
     "sign_requested": "Your signature is being requested",
@@ -3960,7 +3970,7 @@
     "read_more": "Read more"
   },
   "watch_asset_request": {
-    "title": "Add Suggested Token",
+    "title": "Add suggested token",
     "cancel": "CANCEL",
     "add": "ADD TOKEN",
     "message": "Would you like to add this token?",
@@ -5672,8 +5682,8 @@
       },
       "education": {
         "heading": "Earn rewards with mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
-        "continue_button": "Continue"
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
@@ -5703,8 +5713,11 @@
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "estimated_annual_reward": "Estimated annual reward",
+      "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
+      "trx_locked_for_minimum_time": "~3 days",
+      "trx_released_in": "TRX released in",
+      "trx_released_in_minimum_time": "~14 days",
       "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
@@ -6485,57 +6498,52 @@
       "select_method": "Select method"
     },
     "card_onboarding": {
-      "title": "Enable MetaMask Card features",
-      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
-      "verify_account_button": "Sign in",
-      "non_cardholder_title": "Welcome to MetaMask Card",
-      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
-      "non_cardholder_verify_account_button": "Get started",
+      "title": "Spend\nand\nEarn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto like cash and earn rewards.",
+      "apply_now_button": "Apply now",
       "sign_up": {
-        "title": "Sign up",
-        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "title": "Let's get started",
+        "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
         "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Password",
-        "confirm_password_label": "Re-enter your password",
-        "country_label": "Country of Residence",
-        "email_placeholder": "Enter your email address",
         "password_placeholder": "Must be 15+ characters long",
-        "confirm_password_placeholder": "Re-enter your password",
+        "confirm_password_label": "Confirm password",
+        "country_label": "Country of residence",
         "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords do not match",
+        "password_mismatch": "Passwords must match",
         "invalid_email": "Invalid email address",
-        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
       },
       "confirm_email": {
         "title": "Confirm your email",
-        "description": "We've sent a confirmation code to: {{email}}",
-        "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the 6-digit code",
-        "resend_verification": "Resend verification code",
+        "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+        "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds",
         "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
-        "title": "Phone number",
-        "description": "We'll send your confirmation code to this number",
-        "phone_number_label": "Phone number",
-        "phone_number_placeholder": "Enter your phone number",
+        "title": "Confirm your phone number",
+        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
         "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
       "confirm_phone_number": {
         "title": "Confirm your phone number",
-        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
-        "confirm_code_label": "Confirmation code",
-        "resend_verification": "Resend verification code",
+        "description": "Enter the verification code sent to\n{{phoneNumber}}",
+         "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "Next, verify your identity",
-        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
-        "verify_button": "Start verification",
+        "title": "Verify your identity",
+        "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
+        "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
+        "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "verify_button": "Next",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "kyc_webview": {
@@ -6545,8 +6553,10 @@
         "close_button": "Exit"
       },
       "validating_kyc": {
-        "title": "Validating your KYC...",
-        "timeout_button": "Restart verification"
+        "title": "Awaiting approval",
+        "description": "Our partner needs to approve your identity. Once you've been approved, you'll be ready to spend.",
+        "timeout_button": "Restart verification",
+        "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -6565,65 +6575,51 @@
         "success_toast": "Your ID was verified!"
       },
       "kyc_failed": {
-        "title": "Rejected",
-        "description": "Your KYC was rejected. Please try again."
+        "title": "You're not eligible for MetaMask Card right now",
+        "description": "Our partner approves based on set criteria. Learn more.",
+        "close_button": "Back to home"
       },
       "personal_details": {
-        "title": "Now, our partner needs some info about you",
-        "description": "Don't worry, this info is private and we never see it",
+        "title": "Add your info",
+        "description": "Enter your personal details. We'll use this info for verification purposes.",
         "first_name_label": "First name",
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
-        "nationality_label": "Country of Nationality",
+        "nationality_label": "Nationality",
         "ssn_label": "Social Security Number",
-        "first_name_placeholder": "Enter your first name",
-        "last_name_placeholder": "Enter your last name",
-        "date_of_birth_placeholder": "Enter your date of birth",
-        "nationality_placeholder": "Select your nationality",
-        "ssn_placeholder": "Enter your SSN",
         "invalid_ssn": "Invalid SSN",
         "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Residential address",
-        "description": "Please provide your physical residence address to Crypto Life",
+        "title": "Add your address",
+        "description":"Enter your home address. If approved, we'll send your physical card here.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
-        "zip_code_label": "ZIP or Postal code",
-        "address_line_1_placeholder": "Street address",
-        "address_line_2_placeholder": "Floor, apartment or suite number",
-        "city_placeholder": "Enter your city",
-        "state_placeholder": "Enter your state",
-        "zip_code_placeholder": "Enter your ZIP code or postal code",
-        "same_mailing_address_label": "Residential address is the same as mailing address",
-        "electronic_consent_1": "I agree to the ",
-        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
-        "electronic_consent_3": " and to receive all communications electronically",
-        "terms_and_conditions_1": "I agree to the ",
-        "terms_and_conditions_2": "Terms and Conditions",
-        "terms_and_conditions_3": " of MetaMask Card",
-        "privacy_policy_1": "I agree to the data practices described in the ",
-        "privacy_policy_2": "Privacy Policy",
-        "right_to_information_1": "I have been informed of my ",
-        "right_to_information_2": "Right to Information",
-        "right_to_information_3": " as provided by law",
-        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
-        "account_opening_disclosure_2": "Account Opening Disclosure"
+        "zip_code_label": "Zip code",
+        "country_label": "Country",
+        "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
+        "electronic_consent_2": "View document(PDF)"
       },
       "mailing_address": {
         "title": "Mailing address",
-        "description": "Please provide your mailing address"
+        "description": "Please provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "Approved!",
-        "description": "Your KYC was approved. You can now use MetaMask Card."
+        "title": "You're in!",
+        "description": "Let's set up your card so you can start spending your crypto.",
+        "confirm_button": "Set up my card"
       },
       "continue_button": "Next",
       "confirm_button": "Confirm",
       "retry_button": "Try again",
+      "close_button": "Got it",
+      "region_selector": {
+        "title": "Select your Region"
+      },
       "errors": {
+        "no_region_results": "No region matches {{searchString}}",
         "email_already_exists": "Email already exists. Please use a different email.",
         "invalid_email_format": "Invalid email format. Please check your email and try again.",
         "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
@@ -6726,7 +6722,8 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
+      "select_token": "Select token"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -7206,9 +7203,17 @@
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
     },
+    "show_rejection": {
+      "title": "Approval Rejected",
+      "description": "User rejected the request."
+    },
     "show_return_to_app": {
       "title": "Success",
       "description": "Return to the app to continue."
+    },
+    "show_not_found": {
+      "title": "Connection Not Found",
+      "description": "Please establish a new connection from the app to continue."
     }
   },
   "network_connection_banner": {

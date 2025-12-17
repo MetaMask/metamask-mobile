@@ -20,7 +20,7 @@ export const nftDetectionControllerInit: ControllerInitFunction<
   const controller = new NftDetectionController({
     messenger: controllerMessenger,
     disabled: false,
-    addNft: nftController.addNft.bind(nftController),
+    addNfts: nftController.addNfts.bind(nftController),
     getNftState: () => nftController.state,
   });
 

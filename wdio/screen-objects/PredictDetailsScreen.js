@@ -38,7 +38,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.ABOUT_TAB_LABEL);
+      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     }
   }
 
@@ -54,7 +54,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_LABEL);
+      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     }
   }
 
