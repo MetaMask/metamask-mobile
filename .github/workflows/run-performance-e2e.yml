@@ -61,6 +61,11 @@ on:
 permissions:
   contents: read
   id-token: write
+  actions: write
+
+concurrency:
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
