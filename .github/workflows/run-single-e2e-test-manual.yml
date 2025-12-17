@@ -8,7 +8,7 @@ on:
         required: false
         type: string
         default: ''
-      artifact_run_id:
+      artifact_id:
           description: 'Run ID of an existing build to reuse (skips build step if provided)'
           required: false
           type: string
@@ -45,5 +45,5 @@ jobs:
         changed_files: ''
         # TODO: revert to use inputs after testing
         single_test: 'e2e/specs/confirmations-redesigned/transactions/token-approve/set-approval-for-all.spec.ts'
-        artifact_run_id: '4893077109'
+        artifact_id: '4893077109'
       secrets: inherit
