@@ -11,11 +11,15 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+  ButtonVariant,
+  IconName,
+  ButtonIcon,
+  ButtonIconSize,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -28,6 +32,8 @@ import {
   ConvertTokenRowProps,
   ConvertTokenRowTestIds,
 } from './ConvertTokenRow.types';
+import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import BigNumber from 'bignumber.js';
 
 /**
  * A row component for displaying a token in the Quick Convert list.
@@ -48,6 +54,8 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   const networkName = useSelector(selectNetworkName);
 
   const isPending = status === 'pending';
+
+  const formatFiat = useFiatFormatter();
 
   const handleMaxPress = useCallback(() => {
     onMaxPress(token);
@@ -93,6 +101,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
     );
   };
 
+  // TODO: Breakout into component for better debugging
   // Render action buttons - hide if pending
   const renderActions = () => {
     if (isPending) {
@@ -103,17 +112,20 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
     return (
       <>
         <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          label={strings('earn.musd_conversion.max')}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
           onPress={handleMaxPress}
           testID={ConvertTokenRowTestIds.MAX_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          startIconName={IconName.Edit}
-          label=""
+        >
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('earn.musd_conversion.max')}
+          </Text>
+        </Button>
+        <ButtonIcon
+          style={styles.editButton}
+          iconName={IconName.Edit}
+          size={ButtonIconSize.Lg}
+          iconProps={{ size: IconSize.Sm }}
           onPress={handleEditPress}
           testID={ConvertTokenRowTestIds.EDIT_BUTTON}
         />
@@ -133,18 +145,19 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
             variant={TextVariant.BodyMDMedium}
             numberOfLines={1}
             ellipsizeMode="tail"
-            testID={ConvertTokenRowTestIds.TOKEN_NAME}
-          >
-            {token.name}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            numberOfLines={1}
             testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
           >
             {/* TODO: Determine if we want to fallback to the token balance if fiat isn't available. This may not be desired. */}
-            {token.balanceFiat ?? `${token.balance} ${token.symbol}`}
+            {formatFiat(new BigNumber(token?.fiat?.balance ?? '0')) ??
+              `${token.balance} ${token.symbol}`}
+          </Text>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+            numberOfLines={1}
+            testID={ConvertTokenRowTestIds.TOKEN_NAME}
+          >
+            {token.symbol}
           </Text>
         </View>
       </View>
