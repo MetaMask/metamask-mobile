@@ -130,7 +130,7 @@ class ImportFromSeedScreen {
         await Gestures.waitAndTap(this.continueButton);
       } else {
         await AppwrightGestures.hideKeyboard(this.device);
-        await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+        await AppwrightGestures.tap(await this.continueButton); // Use static tap method with retry logic
       }
     } else {
       if (!this._device) {
@@ -153,19 +153,17 @@ class ImportFromSeedScreen {
       if (!this._device) {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
-        await AppwrightGestures.tap(this.screenTitle); // Use static tap method with retry logic
+        await AppwrightGestures.tap(await this.screenTitle); // Use static tap method with retry logic
       }
-    } else {
-      if (!this._device) {
+    } else if (!this._device)
         await Gestures.waitAndTap(this.screenTitle);
-    } else {
-      if (AppwrightSelectors.isIOS(this._device)) {
-        const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
-        await AppwrightGestures.tap(element);
-      } else {
-        await AppwrightGestures.hideKeyboard(this.device);
-      }
-    }
+    else {
+        if (AppwrightSelectors.isIOS(this._device)) {
+          const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
+          await AppwrightGestures.tap(element);
+        } else {
+          await AppwrightGestures.hideKeyboard(this.device);
+        }
     }
   }
 }
