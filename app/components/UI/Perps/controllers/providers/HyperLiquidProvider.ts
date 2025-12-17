@@ -49,10 +49,6 @@ import {
   calculateOrderPriceAndSize,
 } from '../../utils/orderCalculations';
 import {
-  isTakeProfitOrderType,
-  isStopLossOrderType,
-} from '../../utils/orderUtils';
-import {
   compileMarketPattern,
   shouldIncludeMarket,
   type CompiledMarketPattern,
@@ -3790,8 +3786,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
             // Check direct trigger orders
             positionOrders.forEach((order) => {
-              // Use shared utility to determine TP/SL type
-              if (isTakeProfitOrderType(order.orderType)) {
+              // Frontend orders have explicit orderType field
+              if (
+                order.orderType === 'Take Profit Market' ||
+                order.orderType === 'Take Profit Limit'
+              ) {
                 takeProfitPrice = order.triggerPx;
                 DevLogger.log(`Found TP order for ${position.coin}:`, {
                   triggerPrice: order.triggerPx,
@@ -3799,7 +3798,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
                   orderType: order.orderType,
                   isPositionTpsl: order.isPositionTpsl,
                 });
-              } else if (isStopLossOrderType(order.orderType)) {
+              } else if (
+                order.orderType === 'Stop Market' ||
+                order.orderType === 'Stop Limit'
+              ) {
                 stopLossPrice = order.triggerPx;
                 DevLogger.log(`Found SL order for ${position.coin}:`, {
                   triggerPrice: order.triggerPx,
@@ -3822,8 +3824,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
               parentOrder.children.forEach((childOrder: FrontendOrder) => {
                 if (childOrder.isTrigger && childOrder.reduceOnly) {
-                  // Use shared utility to determine TP/SL type
-                  if (isTakeProfitOrderType(childOrder.orderType)) {
+                  if (
+                    childOrder.orderType === 'Take Profit Market' ||
+                    childOrder.orderType === 'Take Profit Limit'
+                  ) {
                     takeProfitPrice = childOrder.triggerPx;
                     DevLogger.log(
                       `Found TP child order for ${position.coin}:`,
@@ -3833,7 +3837,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
                         orderType: childOrder.orderType,
                       },
                     );
-                  } else if (isStopLossOrderType(childOrder.orderType)) {
+                  } else if (
+                    childOrder.orderType === 'Stop Market' ||
+                    childOrder.orderType === 'Stop Limit'
+                  ) {
                     stopLossPrice = childOrder.triggerPx;
                     DevLogger.log(
                       `Found SL child order for ${position.coin}:`,
