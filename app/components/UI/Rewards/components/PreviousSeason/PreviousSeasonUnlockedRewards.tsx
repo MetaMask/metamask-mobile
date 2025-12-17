@@ -8,10 +8,10 @@ import {
   IconName,
   IconSize,
   Text,
-  TextButton,
   TextVariant,
   FontWeight,
   BoxJustifyContent,
+  Icon,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -40,19 +40,27 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardItem from '../RewardItem/RewardItem';
+import { useTheme } from '../../../../../util/theme';
+import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
 
 const PreviousSeasonUnlockedRewards = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { fetchUnlockedRewards } = useUnlockedRewards();
   const tw = useTailwind();
+  const theme = useTheme();
   const unlockedRewards = useSelector(selectUnlockedRewards);
   const unlockedRewardsLoading = useSelector(selectUnlockedRewardLoading);
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
   const seasonTiers = useSelector(selectSeasonTiers);
   const currentTier = useSelector(selectCurrentTier);
-  const seasonShouldInstallNewVersion = useSelector(
-    selectSeasonShouldInstallNewVersion,
+  const seasonMinimumVersion = useSelector(selectSeasonShouldInstallNewVersion);
+
+  const shouldInstallNewVersion = useMemo(
+    () =>
+      seasonMinimumVersion && !hasMinimumRequiredVersion(seasonMinimumVersion),
+    [seasonMinimumVersion],
   );
+
   const openAppStore = useCallback(() => {
     const storeUrl =
       Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
@@ -112,7 +120,7 @@ const PreviousSeasonUnlockedRewards = () => {
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-8">
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
@@ -137,7 +145,7 @@ const PreviousSeasonUnlockedRewards = () => {
                 flexDirection={BoxFlexDirection.Column}
                 twClassName="gap-4 w-full"
               >
-                <Box twClassName="flex-col gap-4">
+                <Box twClassName="flex-col">
                   {endOfSeasonRewards?.map((unlockedReward: RewardDto) => (
                     <RewardItem
                       key={unlockedReward.id}
@@ -153,46 +161,77 @@ const PreviousSeasonUnlockedRewards = () => {
                       isLocked
                       isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                       isEndOfSeasonReward
+                      compact
                     />
                   ))}
                 </Box>
 
-                <Box twClassName="flex-row justify-center w-full">
-                  <TextButton
-                    startIconName={IconName.Warning}
-                    onPress={openAppStore}
-                    startIconProps={{
-                      size: IconSize.Md,
-                      color: IconColor.PrimaryAlternative,
-                    }}
-                    textProps={{
-                      twClassName: 'text-alternative underline',
-                    }}
+                <Box twClassName="flex-row justify-center items-center w-full">
+                  <Icon
+                    name={
+                      shouldInstallNewVersion
+                        ? IconName.Danger
+                        : IconName.Question
+                    }
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-alternative ml-1"
                   >
-                    {seasonShouldInstallNewVersion
-                      ? strings(
-                          'rewards.previous_season_summary.update_metamask_version',
-                          {
-                            version: seasonShouldInstallNewVersion,
-                          },
-                        )
-                      : strings(
-                          'rewards.previous_season_summary.update_metamask',
+                    {shouldInstallNewVersion ? (
+                      <>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          twClassName="text-alternative underline"
+                          onPress={openAppStore}
+                        >
+                          {strings(
+                            'rewards.previous_season_summary.update_metamask_version',
+                            {
+                              version: seasonMinimumVersion,
+                            },
+                          )}
+                        </Text>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          twClassName="text-alternative"
+                        >
+                          {strings(
+                            'rewards.previous_season_summary.to_claim_rewards',
+                          )}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        twClassName="text-alternative"
+                      >
+                        {strings(
+                          'rewards.previous_season_summary.check_back_soon',
                         )}
-                  </TextButton>
+                      </Text>
+                    )}
+                  </Text>
                 </Box>
               </Box>
             ) : (
               <>
                 <RewardsSeasonEndedNoUnlockedRewardsImage
                   name="RewardsSeasonEndedNoUnlockedRewardsImage"
-                  width={125}
-                  height={125}
+                  color={
+                    theme.themeAppearance === 'dark'
+                      ? theme.colors.background.default
+                      : theme.colors.text.muted
+                  }
+                  width={80}
+                  height={80}
                 />
 
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-alternative max-w-sm text-center"
+                  twClassName="text-alternative max-w-xs text-center"
                 >
                   {currentTier?.pointsNeeded
                     ? strings(
