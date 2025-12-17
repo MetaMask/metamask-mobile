@@ -99,7 +99,6 @@ jobs:
         with:
           ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha || github.sha }}
           clean: true
-          fetch-depth: 0
 
       - name: Install Android System Images
         if: ${{ inputs.platform == 'android' }}
