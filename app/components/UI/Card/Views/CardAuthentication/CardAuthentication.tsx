@@ -362,7 +362,7 @@ const CardAuthentication = () => {
             <TouchableOpacity
               onPress={() => setLocation('international')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted ${location === 'international' ? 'border border-text-default rounded-lg' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -381,7 +381,7 @@ const CardAuthentication = () => {
             <TouchableOpacity
               onPress={() => setLocation('us')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted ${location === 'us' ? 'border border-text-default rounded-lg' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -465,7 +465,8 @@ const CardAuthentication = () => {
             label={strings('card.card_otp_authentication.confirm_button')}
             size={ButtonSize.Lg}
             onPress={() => performLogin(confirmCode)}
-            loading={
+            loading={loading}
+            isDisabled={
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
             width={ButtonWidthTypes.Full}
