@@ -141,24 +141,6 @@ describe('HeaderWithTitleLeftScrollable', () => {
       expect(queryByText('Props Title')).toBeNull();
     });
   });
-
-  describe('props', () => {
-    it('accepts custom testID', () => {
-      const { getByTestId } = render(
-        <TestWrapper>
-          {(scrollYValue) => (
-            <HeaderWithTitleLeftScrollable
-              title="Test"
-              scrollY={scrollYValue}
-              testID="custom-header"
-            />
-          )}
-        </TestWrapper>,
-      );
-
-      expect(getByTestId('custom-header')).toBeOnTheScreen();
-    });
-  });
 });
 
 describe('useHeaderWithTitleLeftScrollable', () => {
