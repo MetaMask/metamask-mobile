@@ -35,10 +35,13 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockGoBack = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     setOptions: jest.fn(),
     navigate: jest.fn(),
+    goBack: mockGoBack,
   })),
 }));
 
@@ -189,6 +192,10 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders token details correctly', () => {
     const { getByText } = renderComponent();
 
@@ -198,6 +205,15 @@ describe('AssetDetails', () => {
     expect(getByText('Token decimal')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Token lists')).toBeDefined();
+  });
+
+  it('calls goBack when back button is pressed', () => {
+    const { getByTestId } = renderComponent();
+
+    const backButton = getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('copies address to clipboard and shows alert', async () => {
