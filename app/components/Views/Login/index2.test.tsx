@@ -309,21 +309,11 @@ describe('Login test suite 2', () => {
         .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
+      // Mock getVaultFromBackup to return an error to trigger error handling
       mockGetVaultFromBackup.mockResolvedValueOnce({
-        success: true,
-        vault: 'mock-vault',
+        success: false,
+        error: 'Store password failed',
       });
-      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
-
-      jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        });
-
-      jest
-        .spyOn(Authentication, 'updateAuthPreference')
-        .mockRejectedValueOnce(new Error('Store password failed'));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -335,7 +325,9 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
     });
 
     it('handle vault corruption when vault seed cannot be parsed', async () => {
