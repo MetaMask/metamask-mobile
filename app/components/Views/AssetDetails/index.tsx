@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,9 +11,13 @@ import { useNavigation } from '@react-navigation/native';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
@@ -120,7 +124,7 @@ const AssetDetails = (props: InnerProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
   const providerConfig = useSelector(selectProviderConfig);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
 
@@ -187,14 +191,16 @@ const AssetDetails = (props: InnerProps) => {
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
-    dispatch(
-      showAlert({
-        isVisible: true,
-        autodismiss: 1500,
-        content: 'clipboard-alert',
-        data: { msg: strings('detected_tokens.address_copied_to_clipboard') },
-      }),
-    );
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
   };
 
   const triggerHideToken = () => {
