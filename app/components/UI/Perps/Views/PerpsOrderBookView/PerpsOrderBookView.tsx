@@ -339,7 +339,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return (
       <SafeAreaView style={styles.container} testID={testID}>
         {market ? (
-          <PerpsMarketHeader market={market} onBackPress={handleBack} />
+          <PerpsMarketHeader
+            market={market}
+            onBackPress={handleBack}
+            currentPrice={marketPrice ?? 0}
+          />
         ) : (
           <View style={styles.header}>
             <ButtonIcon
@@ -368,7 +372,13 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   return (
     <SafeAreaView style={styles.container} testID={testID}>
       {/* Market Header */}
-      {market && <PerpsMarketHeader market={market} onBackPress={handleBack} />}
+      {market && (
+        <PerpsMarketHeader
+          market={market}
+          onBackPress={handleBack}
+          currentPrice={marketPrice ?? 0}
+        />
+      )}
 
       {/* Controls Row - Unit Toggle and Grouping */}
       <View style={styles.controlsRow}>
