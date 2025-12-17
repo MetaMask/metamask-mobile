@@ -64,14 +64,14 @@ export const convertSymbolAllowlistToAddresses = (
 };
 
 /**
- * Type guard to validate allowedPaymentTokens structure.
+ * Type guard to validate paymentTokenMap structure.
  * Checks if the value is a valid Record<Hex, Hex[]> mapping.
  * Validates that both keys (chain IDs) and values (token addresses) are hex strings.
  *
  * @param value - Value to validate
  * @returns true if valid, false otherwise
  */
-export const areValidAllowedPaymentTokens = (
+export const isValidPaymentTokenMap = (
   value: unknown,
 ): value is Record<Hex, Hex[]> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -95,6 +95,7 @@ export const areValidAllowedPaymentTokens = (
  * @param allowlist - Optional allowlist to use instead of default CONVERTIBLE_STABLECOINS_BY_CHAIN
  * @returns true if the token is an allowed payment token for mUSD conversion, false otherwise
  */
+// TODO: Delete if no longer needed.
 export const isMusdConversionPaymentToken = (
   tokenAddress: string,
   allowlist: Record<Hex, Hex[]> = CONVERTIBLE_STABLECOINS_BY_CHAIN,
@@ -110,4 +111,94 @@ export const isMusdConversionPaymentToken = (
   return convertibleTokens
     .map((addr) => addr.toLowerCase())
     .includes(tokenAddress.toLowerCase());
+};
+
+/**
+ * Wildcard blocklist type for mUSD conversion.
+ * Maps chain IDs (or "*" for all chains) to arrays of token symbols (or ["*"] for all tokens).
+ *
+ * @example
+ * {
+ *   "*": ["USDC"],           // Block USDC on ALL chains
+ *   "0x1": ["*"],            // Block ALL tokens on Ethereum mainnet
+ *   "0xa4b1": ["USDT", "DAI"] // Block specific tokens on specific chain
+ * }
+ */
+// TODO: Rename to be more generic since we may use this wildcard list for other things.
+export type WildcardBlocklist = Record<string, string[]>;
+
+/**
+ * Type guard to validate WildcardBlocklist structure.
+ * Validates that the value is an object with string keys mapping to string arrays.
+ *
+ * @param value - Value to validate
+ * @returns true if valid WildcardBlocklist, false otherwise
+ */
+// TODO: Rename to be more generic since we may use this wildcard list for other things.
+export const isValidWildcardBlocklist = (
+  value: unknown,
+): value is WildcardBlocklist => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.entries(value).every(
+    ([key, val]) =>
+      typeof key === 'string' &&
+      Array.isArray(val) &&
+      val.every((symbol) => typeof symbol === 'string'),
+  );
+};
+
+/**
+ * Checks if a token is blocked from being used for mUSD conversion.
+ * Supports wildcard matching:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: blocks all tokens on that chain
+ *
+ * @param tokenSymbol - The token symbol (case-insensitive)
+ * @param blocklist - The wildcard blocklist to use
+ * @param chainId - The chain ID where the token exists
+ * @returns true if the token is blocked, false otherwise
+ */
+export const isMusdConversionPaymentTokenBlocked = (
+  tokenSymbol: string,
+  blocklist: WildcardBlocklist = {},
+  chainId?: string,
+): boolean => {
+  if (!chainId || !tokenSymbol) return false;
+
+  const normalizedSymbol = tokenSymbol.toUpperCase();
+
+  // Check global wildcard: blocklist["*"] includes this symbol
+  const globalBlockedSymbols = blocklist['*'];
+  if (globalBlockedSymbols) {
+    if (
+      globalBlockedSymbols.includes('*') ||
+      globalBlockedSymbols
+        .map((symbol) => symbol.toUpperCase())
+        .includes(normalizedSymbol)
+    ) {
+      return true;
+    }
+  }
+
+  // Check chain-specific rules
+  const chainBlockedSymbols = blocklist[chainId];
+  if (chainBlockedSymbols) {
+    // Chain wildcard: block all tokens on this chain
+    if (chainBlockedSymbols.includes('*')) {
+      return true;
+    }
+    // Specific symbol check
+    if (
+      chainBlockedSymbols
+        .map((symbol) => symbol.toUpperCase())
+        .includes(normalizedSymbol)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 };
