@@ -24,7 +24,7 @@ import { LocalNode } from '../../../../framework/types';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 describe(
-  SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
+  SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll methods'),
   () => {
     const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
     const ERC_1155_CONTRACT = SMART_CONTRACTS.ERC1155;
