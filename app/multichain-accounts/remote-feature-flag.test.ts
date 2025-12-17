@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests */
 import {
   assertMultichainAccountsFeatureFlagType,
   isMultichainAccountsRemoteFeatureEnabled,
@@ -43,7 +44,7 @@ const mockState2FeatureVersionsToCheck = [
   },
 ];
 
-describe.skip('Multichain Accounts Feature Flag', () => {
+describe('Multichain Accounts Feature Flag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -83,7 +84,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(true);
     });
 
-    it('returns true when the feature flag meets all conditions', () => {
+    it.skip('returns true when the feature flag meets all conditions', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_1_FLAG]: state1Mock,
@@ -93,7 +94,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false when the feature is not enabled', () => {
+    it.skip('returns false when the feature is not enabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_1_FLAG]: disabledStateMock,
@@ -103,7 +104,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the feature version does not match', () => {
+    it.skip('returns false when the feature version does not match', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_1_FLAG]: {
@@ -118,7 +119,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
   });
 
   describe('isMultichainAccountsRemoteFeatureEnabled - State 2', () => {
-    it('returns false when the feature flag is not defined', () => {
+    it.skip('returns false when the feature flag is not defined', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           // @ts-expect-error Testing undefined flag
@@ -129,7 +130,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(true);
     });
 
-    it('returns true when the feature flag meets all conditions', () => {
+    it.skip('returns true when the feature flag meets all conditions', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: state2Mock,
@@ -139,7 +140,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false when the feature is not enabled', () => {
+    it.skip('returns false when the feature is not enabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: disabledStateMock,
@@ -149,7 +150,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the feature version does not match', () => {
+    it.skip('returns false when the feature version does not match', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: {
@@ -164,7 +165,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
   });
 
   describe('isMultichainAccountsRemoteFeatureEnabled - Local override', () => {
-    it('returns true when the override is enabled', () => {
+    it.skip('returns true when the override is enabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: disabledStateMock,
@@ -175,7 +176,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false when the override is disabled', () => {
+    it.skip('returns false when the override is disabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: disabledStateMock,
@@ -186,7 +187,7 @@ describe.skip('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the override is undefined', () => {
+    it.skip('returns false when the override is undefined', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: disabledStateMock,
