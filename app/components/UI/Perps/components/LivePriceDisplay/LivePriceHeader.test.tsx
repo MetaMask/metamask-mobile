@@ -76,7 +76,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(
-      <LivePriceHeader symbol="ETH" currentPrice={0} />,
+      <LivePriceHeader symbol="ETH" currentPrice={3000} />,
     );
     expect(getByText('$3,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+5.50%')).toBeTruthy();
@@ -92,7 +92,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(
-      <LivePriceHeader symbol="ETH" currentPrice={0} />,
+      <LivePriceHeader symbol="ETH" currentPrice={2500} />,
     );
     expect(getByText('$2,500')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('-3.20%')).toBeTruthy();
@@ -108,7 +108,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(
-      <LivePriceHeader symbol="ETH" currentPrice={0} />,
+      <LivePriceHeader symbol="ETH" currentPrice={2000} />,
     );
     expect(getByText('$2,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+0.00%')).toBeTruthy();
@@ -124,7 +124,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(
-      <LivePriceHeader symbol="SOL" currentPrice={0} />,
+      <LivePriceHeader symbol="SOL" currentPrice={100} />,
     );
     expect(getByText('$100')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+2.10%')).toBeTruthy();
@@ -184,7 +184,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { UNSAFE_getAllByType } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={0} />,
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
       );
 
       const textElements = UNSAFE_getAllByType(Text);
@@ -206,7 +206,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { UNSAFE_getAllByType } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={0} />,
+        <LivePriceHeader symbol="ETH" currentPrice={2500} />,
       );
 
       const textElements = UNSAFE_getAllByType(Text);
@@ -252,7 +252,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { getByText } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={1} />,
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
       );
 
       expect(getByText('$3,000')).toBeTruthy();
@@ -269,7 +269,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { getByText } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={1} />,
+        <LivePriceHeader symbol="ETH" currentPrice={2500} />,
       );
 
       expect(getByText('$2,500')).toBeTruthy();
@@ -287,7 +287,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { getByText, queryByText } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={1} />,
+        <LivePriceHeader symbol="ETH" currentPrice={2000} />,
       );
 
       expect(getByText('$2,000')).toBeTruthy();
@@ -299,7 +299,7 @@ describe('LivePriceHeader', () => {
       mockUsePerpsLivePrices.mockReturnValue({});
 
       const { getByText } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={1} />,
+        <LivePriceHeader symbol="ETH" currentPrice={1800} />,
       );
 
       expect(getByText('$1,800')).toBeTruthy();
@@ -317,7 +317,7 @@ describe('LivePriceHeader', () => {
       });
 
       const { getByText } = render(
-        <LivePriceHeader symbol="ETH" currentPrice={1} />,
+        <LivePriceHeader symbol="ETH" currentPrice={3100} />,
       );
 
       expect(getByText('$3,100')).toBeTruthy();
