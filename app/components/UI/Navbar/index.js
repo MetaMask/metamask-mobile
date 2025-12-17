@@ -1304,7 +1304,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
-        twClassName="h-auto"
+        twClassName="h-auto bg-default"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}
