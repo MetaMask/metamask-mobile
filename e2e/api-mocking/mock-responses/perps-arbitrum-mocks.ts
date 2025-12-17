@@ -353,7 +353,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           },
         }),
         headers: {
-          'Content-Type': 'image/svg+xml',
+          'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=3600',
         },
       };

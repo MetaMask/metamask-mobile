@@ -15,7 +15,7 @@ describe(
       jest.setTimeout(150000);
     });
 
-    it('should show Start Trading on Perps tab and then tutorial screens', async () => {
+    it('displays Start Trading on Perps tab and tutorial screens', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
