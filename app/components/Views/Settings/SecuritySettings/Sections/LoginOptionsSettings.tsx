@@ -26,13 +26,12 @@ import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import AuthenticationError from '../../../../../core/Authentication/AuthenticationError';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
+import { RootState } from '../../../../../reducers';
 
 const LoginOptionsSettings = () => {
   const navigation = useNavigation();
   const allowLoginWithRememberMe = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security?.allowLoginWithRememberMe,
+    (state: RootState) => state.security?.allowLoginWithRememberMe,
   );
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC | undefined
@@ -88,6 +87,7 @@ const LoginOptionsSettings = () => {
           ? AUTHENTICATION_TYPE.BIOMETRIC
           : AUTHENTICATION_TYPE.PASSWORD;
 
+        // Enabling biometrics is handled by the catch condition  "isPasswordRequiredError"
         await Authentication.updateAuthPreference(authType);
 
         // Only update UI if operation completed successfully
@@ -169,6 +169,7 @@ const LoginOptionsSettings = () => {
           ? AUTHENTICATION_TYPE.PASSCODE
           : AUTHENTICATION_TYPE.PASSWORD;
 
+        // Enabling passcode is handled by the catch condition  "isPasswordRequiredError"
         await Authentication.updateAuthPreference(authType);
 
         // Only update UI if operation completed successfully
