@@ -1055,7 +1055,12 @@ class AuthenticationService {
       shouldCreateSocialBackup: true,
       shouldSelectAccount: true,
     },
-  ): Promise<void> => {
+  ): Promise<boolean> => {
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    if (isPasswordOutdated) {
+      return false;
+    }
+
     trace({
       name: TraceName.ImportEvmAccount,
       op: TraceOperation.ImportAccount,
@@ -1095,6 +1100,7 @@ class AuthenticationService {
     endTrace({
       name: TraceName.ImportEvmAccount,
     });
+    return true;
   };
 
   /**
