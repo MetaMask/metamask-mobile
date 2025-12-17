@@ -519,7 +519,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       );
       fireEvent.press(midButton);
 
-      expect(midButton).toBeOnTheScreen();
+      // Verify limit price was updated to current price (3000)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
     });
 
     it('sets price when Bid button is pressed for long orders', () => {
@@ -530,7 +531,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       );
       fireEvent.press(bidButton);
 
-      expect(bidButton).toBeOnTheScreen();
+      // Verify limit price was updated to bid price (2995 from mock)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2995');
     });
 
     it('sets price when Ask button is pressed for short orders', () => {
@@ -543,7 +545,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       );
       fireEvent.press(askButton);
 
-      expect(askButton).toBeOnTheScreen();
+      // Verify limit price was updated to ask price (3005 from mock)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3005');
     });
 
     it('sets price when percentage button is pressed for long orders', () => {
@@ -552,7 +555,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       const onePercentButton = screen.getByText('-1%');
       fireEvent.press(onePercentButton);
 
-      expect(onePercentButton).toBeOnTheScreen();
+      // Verify limit price was updated (BigNumber mock returns base price)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
     });
 
     it('sets price when percentage button is pressed for short orders', () => {
@@ -563,7 +567,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       const onePercentButton = screen.getByText('+1%');
       fireEvent.press(onePercentButton);
 
-      expect(onePercentButton).toBeOnTheScreen();
+      // Verify limit price was updated (BigNumber mock returns base price)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
     });
   });
 

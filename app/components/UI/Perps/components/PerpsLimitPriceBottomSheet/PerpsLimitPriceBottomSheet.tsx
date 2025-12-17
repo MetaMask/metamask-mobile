@@ -105,6 +105,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      setInputMethod(null); // Reset input method tracking for new session
       bottomSheetRef.current?.onOpenBottomSheet();
 
       // Start cursor blinking animation
