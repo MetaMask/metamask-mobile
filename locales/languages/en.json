@@ -7260,5 +7260,10 @@
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
     }
+  },
+  "ota_update_modal": {
+    "title": "Update available",
+    "description": "A new version of the app is available. Please reload the app to continue.",
+    "primary_action": "Reload"
   }
 }

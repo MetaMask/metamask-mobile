@@ -57,6 +57,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { OTAUpdateModal } from '../../../components/UI/OTAUpdateModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -521,6 +522,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+    <Stack.Screen
+      name={Routes.MODAL.OTA_UPDATE_MODAL}
+      component={OTAUpdateModal}
+    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -1093,7 +1098,7 @@ const AppFlow = () => {
   );
 };
 
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
   const navigation = useNavigation();
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
@@ -1102,6 +1107,7 @@ const AppContent: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+  const { isCheckingUpdates } = useOTAUpdates();
 
   if (isFirstRender.current) {
     trace({
@@ -1276,6 +1282,10 @@ const AppContent: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (isCheckingUpdates) {
+    return <FoxLoader />;
+  }
+
   return (
     <>
       <AppFlow />
@@ -1283,16 +1293,6 @@ const AppContent: React.FC = () => {
       <ProfilerManager />
     </>
   );
-};
-
-const App: React.FC = () => {
-  const { isCheckingUpdates } = useOTAUpdates();
-
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
-
-  return <AppContent />;
 };
 
 export default App;

@@ -86,6 +86,7 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
 jest.mock('../../hooks/useOTAUpdates', () => ({
   useOTAUpdates: jest.fn().mockReturnValue({
     isCheckingUpdates: false,
+    hasUpdateAvailable: false,
   }),
 }));
 
@@ -271,6 +272,7 @@ describe('App', () => {
     jest.clearAllMocks();
     mockUseOTAUpdates.mockReturnValue({
       isCheckingUpdates: false,
+      hasUpdateAvailable: false,
     });
     mockNavigate.mockClear();
   });
@@ -287,6 +289,7 @@ describe('App', () => {
   it('renders FoxLoader when OTA update check runs', () => {
     mockUseOTAUpdates.mockReturnValue({
       isCheckingUpdates: true,
+      hasUpdateAvailable: false,
     });
 
     const { getByTestId } = renderScreen(
@@ -296,6 +299,21 @@ describe('App', () => {
     );
 
     expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
+  });
+
+  it('navigates to OTA update modal when update is available', async () => {
+    mockUseOTAUpdates.mockReturnValue({
+      isCheckingUpdates: false,
+      hasUpdateAvailable: true,
+    });
+
+    renderScreen(App, { name: 'App' }, { state: initialState });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.OTA_UPDATE_MODAL,
+      });
+    });
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
