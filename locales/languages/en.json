@@ -1861,6 +1861,7 @@
         "rate": "Rate"
       },
       "view_on_explorer": "View on block explorer",
+      "trade_again": "Trade again",
       "empty_state": {
         "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
@@ -5720,7 +5721,10 @@
       "trx_locked_for_minimum_time": "~3 days",
       "trx_released_in": "TRX released in",
       "trx_released_in_minimum_time": "~14 days",
-      "fee": "Fee"
+      "fee": "Fee",
+      "errors": {
+        "insufficient_balance": "You don't have enough resource balance to do this action."
+      }
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -6819,6 +6823,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "season_error":{
+      "error_fetching_title": "Season couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "season_status_error": {
       "error_fetching_title": "Season balance couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -6922,8 +6931,9 @@
     },
     "previous_season_summary": {
       "title": "{{seasonName}} Results",
-      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
-      "update_metamask": "Update MetaMask to claim your rewards",
+      "update_metamask_version": "Update MetaMask to {{version}}",
+      "to_claim_rewards": " to claim rewards",
+      "check_back_soon": "Check back soon to claim your rewards",
       "point_earned": "point earned",
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
