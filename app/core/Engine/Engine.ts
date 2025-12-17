@@ -176,9 +176,7 @@ import { addressBookControllerInit } from './controllers/address-book-controller
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
