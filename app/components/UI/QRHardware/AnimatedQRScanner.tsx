@@ -36,7 +36,11 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
+// Vignette color for edge dimming effect
+const VIGNETTE_COLOR = 'rgba(0, 0, 0, 0.6)';
+
 const createStyles = (theme: Theme) =>
+  // eslint-disable-next-line react-native/no-color-literals
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -61,40 +65,86 @@ const createStyles = (theme: Theme) =>
       marginRight: 20,
       width: 40,
       alignSelf: 'flex-end',
+      zIndex: 10,
+    },
+    scannerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    scanningProgress: {
+      fontSize: 17,
+      color: theme.brandColors.white,
+      textAlign: 'center',
+      marginBottom: 20,
     },
     frame: {
       width: 250,
       height: 250,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
       opacity: 0.5,
     },
-    text: {
-      flex: 1,
-      fontSize: 17,
-      color: theme.brandColors.white,
-      textAlign: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
+    // Simple edge darkening - minimal coverage
+    edgeDarkening: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    // Top edge
+    darkTop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 100,
+      backgroundColor: VIGNETTE_COLOR,
+    },
+    // Bottom edge
+    darkBottom: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 100,
+      backgroundColor: VIGNETTE_COLOR,
+    },
+    // Left edge
+    darkLeft: {
+      position: 'absolute',
+      top: 100,
+      bottom: 100,
+      left: 0,
+      width: 50,
+      backgroundColor: VIGNETTE_COLOR,
+    },
+    // Right edge
+    darkRight: {
+      position: 'absolute',
+      top: 100,
+      bottom: 100,
+      right: 0,
+      width: 50,
+      backgroundColor: VIGNETTE_COLOR,
     },
     hint: {
       backgroundColor: colors.whiteTransparent,
       width: '100%',
-      height: 120,
+      paddingVertical: 20,
+      paddingHorizontal: 20,
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 5,
     },
     hintText: {
-      width: 240,
-      maxWidth: '80%',
       color: theme.brandColors.black,
       textAlign: 'center',
       fontSize: 16,
       ...fontStyles.normal,
-    },
-    bold: {
-      ...fontStyles.bold,
     },
   });
 
@@ -108,6 +158,8 @@ interface AnimatedQRScannerProps {
   hideModal: () => void;
   pauseQRCode?: (x: boolean) => void;
 }
+
+// this file
 
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const {
@@ -153,16 +205,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     () => (
       <Text style={styles.hintText}>
         {strings('connect_qr_hardware.hint_text')}
-        <Text style={styles.bold}>
-          {strings(
-            purpose === QrScanRequestType.PAIR
-              ? 'connect_qr_hardware.purpose_connect'
-              : 'connect_qr_hardware.purpose_sign',
-          )}
-        </Text>
       </Text>
     ),
-    [purpose, styles],
+    [styles],
   );
 
   const onError = useCallback(
@@ -323,6 +368,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       onModalWillShow={() => pauseQRCode?.(true)}
     >
       <View style={styles.container}>
+        {/* Hint text at the top */}
+        <View style={styles.hint}>{hintText}</View>
+
         {cameraDevice && hasPermission ? (
           <>
             <Camera
@@ -337,10 +385,24 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
                 {<Icon name={IconName.Close} size={IconSize.Xl} />}
               </TouchableOpacity>
-              <Image source={frameImage} style={styles.frame} />
-              <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
-                progress ? `${progress.toString()}%` : ''
-              }`}</Text>
+
+              {/* Simple edge darkening */}
+              <View style={styles.edgeDarkening} pointerEvents="none">
+                <View style={styles.darkTop} />
+                <View style={styles.darkBottom} />
+                <View style={styles.darkLeft} />
+                <View style={styles.darkRight} />
+              </View>
+
+              {/* Centered scanner with progress text above */}
+              <View style={styles.scannerContainer}>
+                <Text
+                  style={styles.scanningProgress}
+                >{`${strings('qr_scanner.scanning')} ${
+                  progress ? `${progress.toString()}%` : ''
+                }`}</Text>
+                <Image source={frameImage} style={styles.frame} />
+              </View>
             </SafeAreaView>
           </>
         ) : (
@@ -348,12 +410,13 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
               {<Icon name={IconName.Close} size={IconSize.Xl} />}
             </TouchableOpacity>
-            <Text style={styles.text}>
-              {strings('transaction.no_camera_permission')}
-            </Text>
+            <View style={styles.scannerContainer}>
+              <Text style={styles.scanningProgress}>
+                {strings('transaction.no_camera_permission')}
+              </Text>
+            </View>
           </SafeAreaView>
         )}
-        <View style={styles.hint}>{hintText}</View>
       </View>
     </Modal>
   );
