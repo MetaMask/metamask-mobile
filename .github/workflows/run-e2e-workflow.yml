@@ -169,6 +169,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}

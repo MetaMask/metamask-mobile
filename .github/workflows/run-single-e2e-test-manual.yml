@@ -57,7 +57,7 @@ jobs:
       total_splits: 1
       changed_files: ''
       single_test: ${{ inputs.single_test_file }}
-      artifact_run_id: ${{ inputs.artifact_run_id }}
+      artifact_run_id: '20287746913'
     secrets: inherit
   
   single-e2e-test-manual-android:
