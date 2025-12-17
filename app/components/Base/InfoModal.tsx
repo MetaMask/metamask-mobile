@@ -2,7 +2,10 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text from './Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../component-library/components/Texts/Text';
 import Title from './Title';
 import { useTheme } from '../../util/theme';
 import { Theme } from '@metamask/design-tokens';
@@ -32,6 +35,20 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
       justifyContent: 'space-between',
       color: colors.text.default,
     },
+    titleCentered: {
+      width: '100%',
+      paddingVertical: 15,
+      paddingHorizontal: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: colors.text.default,
+    },
+    closeButtonAbsolute: {
+      position: 'absolute',
+      right: 20,
+      top: 15,
+    },
     closeIcon: {
       color: colors.text.default,
     },
@@ -52,21 +69,21 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   });
 
 interface InfoModalProps {
-  isVisible: boolean | undefined;
-  title?: React.ReactNode;
-  body?: React.ReactNode;
-  toggleModal: () => void;
-  propagateSwipe?: boolean;
-  message?: string;
-  urlText?: string;
-  url?: () => void;
-  testID?: string;
+  readonly isVisible: boolean | undefined;
+  readonly title?: React.ReactNode;
+  readonly body?: React.ReactNode;
+  readonly toggleModal: () => void;
+  readonly propagateSwipe?: boolean;
+  readonly message?: string;
+  readonly urlText?: string;
+  readonly url?: () => void;
+  readonly testID?: string;
 }
 
 interface CloseButtonProps {
-  onPress: () => void;
-  style: {
-    closeIcon: object;
+  readonly onPress: () => void;
+  readonly style: {
+    readonly closeIcon: object;
   };
 }
 
@@ -80,14 +97,14 @@ const CloseButton: React.FC<CloseButtonProps> = ({ onPress, style }) => (
 );
 
 interface InfoViewProps {
-  message?: string;
-  urlText?: string;
-  url?: () => void;
-  onClose: () => void;
-  style: {
-    infoContainer: object;
-    messageLimit: object;
-    closeIcon: object;
+  readonly message?: string;
+  readonly urlText?: string;
+  readonly url?: () => void;
+  readonly onClose: () => void;
+  readonly style: {
+    readonly infoContainer: object;
+    readonly messageLimit: object;
+    readonly closeIcon: object;
   };
 }
 
@@ -104,10 +121,14 @@ const InfoView: React.FC<InfoViewProps> = ({
 
   return (
     <View style={style.infoContainer}>
-      <Text style={style.messageLimit}>
-        <Text>{message} </Text>
+      <Text variant={TextVariant.BodyMD} style={style.messageLimit}>
+        {message}{' '}
         {urlText && (
-          <Text link onPress={url}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+            onPress={url}
+          >
             {urlText}
           </Text>
         )}
@@ -145,15 +166,21 @@ function InfoModal({
       testID={testID}
     >
       <SafeAreaView style={styles.modalView}>
-        <View style={styles.title}>
+        <View style={message ? styles.title : styles.titleCentered}>
           {title && <Title>{title}</Title>}
-          <InfoView
-            message={message}
-            urlText={urlText}
-            url={url}
-            onClose={toggleModal}
-            style={styles}
-          />
+          {message ? (
+            <InfoView
+              message={message}
+              urlText={urlText}
+              url={url}
+              onClose={toggleModal}
+              style={styles}
+            />
+          ) : (
+            <View style={styles.closeButtonAbsolute}>
+              <CloseButton onPress={toggleModal} style={styles} />
+            </View>
+          )}
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>

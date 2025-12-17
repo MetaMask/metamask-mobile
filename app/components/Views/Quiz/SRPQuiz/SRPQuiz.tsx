@@ -30,7 +30,7 @@ import {
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
 
-const introductionImg = require('../../../../images/reveal-srp.png');
+const introductionImg = require('../../../../images/reveal_srp.png');
 
 export interface SRPQuizProps {
   route: {
