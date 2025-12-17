@@ -173,7 +173,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
 
   // Hook for scroll-based header animation
-  const { scrollHandler, headerAnimatedStyle } = useHeaderScrollAnimation();
+  const { scrollHandler, headerAnimatedStyle, isHeaderInteractive } =
+    useHeaderScrollAnimation();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -917,7 +918,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         />
 
         {/* Animated Header - Asset info fades in when scrolling, buttons always accessible */}
-        <Animated.View style={[styles.animatedHeader, headerAnimatedStyle]}>
+        {/* pointerEvents controlled by scroll position to prevent invisible header intercepting touches */}
+        <Animated.View
+          style={[styles.animatedHeader, headerAnimatedStyle]}
+          pointerEvents={isHeaderInteractive ? 'auto' : 'none'}
+        >
           <PerpsMarketHeader
             market={market}
             onBackPress={handleBackPress}
