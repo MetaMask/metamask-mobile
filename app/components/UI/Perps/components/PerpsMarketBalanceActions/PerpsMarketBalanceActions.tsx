@@ -221,17 +221,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   );
 
   const availableBalance = perpsAccount?.availableBalance || '0';
-  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-  const hasPositions = positions.length > 0;
-
-  const pnlNum = useMemo(() => parseFloat(unrealizedPnl), [unrealizedPnl]);
-  const pnlColor = useMemo(() => {
-    if (pnlNum > 0) return TextColor.Success;
-    if (pnlNum < 0) return TextColor.Error;
-    return TextColor.Alternative;
-  }, [pnlNum]);
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
