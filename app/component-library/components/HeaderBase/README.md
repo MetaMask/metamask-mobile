@@ -19,6 +19,7 @@ Content to wrap to display.
 ### `variant`
 
 Optional variant to control alignment and text size.
+
 - `Compact`: center-aligned with HeadingSm text (default)
 - `Display`: left-aligned with HeadingLg text
 
@@ -86,7 +87,7 @@ Optional style for the header container.
 
 ```javascript
 // HeaderBase with String title and ButtonIcon props
-<HeaderBase 
+<HeaderBase
   startButtonIconProps={{ iconName: IconName.ArrowLeft, onPress: handleBack }}
   endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
 >
@@ -94,7 +95,7 @@ Optional style for the header container.
 </HeaderBase>;
 
 // HeaderBase with multiple end icons (first item appears rightmost)
-<HeaderBase 
+<HeaderBase
   startButtonIconProps={{ iconName: IconName.ArrowLeft, onPress: handleBack }}
   endButtonIconProps={[
     { iconName: IconName.Search, onPress: handleSearch },
@@ -106,7 +107,7 @@ Optional style for the header container.
 </HeaderBase>;
 
 // HeaderBase with custom accessories (legacy pattern)
-<HeaderBase 
+<HeaderBase
   startAccessory={<CustomBackButton />}
   endAccessory={<CustomCloseButton />}
 >
@@ -114,9 +115,10 @@ Optional style for the header container.
 </HeaderBase>;
 
 // HeaderBase with custom title content
-<HeaderBase 
-  startAccessory={SAMPLE_STARTACCESSORY} 
-  endAccessory={SAMPLE_ENDACCESSORY}>
+<HeaderBase
+  startAccessory={SAMPLE_STARTACCESSORY}
+  endAccessory={SAMPLE_ENDACCESSORY}
+>
   {CUSTOM_TITLE_NODE}
 </HeaderBase>;
 
