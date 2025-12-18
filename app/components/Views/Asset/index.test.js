@@ -305,11 +305,10 @@ describe('Asset', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call navigation.setOptions on mount', () => {
-    const mockSetOptions = jest.fn();
-    renderWithProvider(
+  it('renders inline header with asset symbol', () => {
+    const { getByText } = renderWithProvider(
       <Asset
-        navigation={{ setOptions: mockSetOptions }}
+        navigation={{ setOptions: jest.fn(), pop: jest.fn() }}
         route={{
           params: {
             symbol: 'BNB',
@@ -325,7 +324,7 @@ describe('Asset', () => {
       },
     );
 
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(getByText('BNB')).toBeDefined();
   });
 
   it('should display swaps button if the asset is allowed', () => {
