@@ -56,6 +56,17 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+const mockNavigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
 describe('SwitchAccountType - Info Component', () => {
   it('renders correctly for upgrade confirmation', () => {
     const { getByText } = renderWithProvider(<SwitchAccountType />, {
