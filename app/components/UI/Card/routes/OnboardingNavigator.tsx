@@ -28,9 +28,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -40,24 +37,23 @@ import Complete from '../components/Onboarding/Complete';
 
 const Stack = createStackNavigator();
 
-export const KYCModalNavigationOptions = ({
+export const PostEmailNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
 }): StackNavigationOptions => {
   const handleClosePress = () => {
     Alert.alert(
-      strings('card.card_onboarding.kyc_webview.close_confirmation_title'),
-      strings('card.card_onboarding.kyc_webview.close_confirmation_message'),
+      strings('card.card_onboarding.exit_confirmation.title'),
+      strings('card.card_onboarding.exit_confirmation.message'),
       [
         {
-          text: strings('card.card_onboarding.kyc_webview.cancel_button'),
+          text: strings('card.card_onboarding.exit_confirmation.cancel_button'),
           style: 'cancel',
         },
         {
-          text: strings('card.card_onboarding.kyc_webview.close_button'),
-          onPress: () =>
-            navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
+          text: strings('card.card_onboarding.exit_confirmation.exit_button'),
+          onPress: () => navigation.navigate(Routes.WALLET.HOME),
           style: 'destructive',
         },
       ],
@@ -66,46 +62,19 @@ export const KYCModalNavigationOptions = ({
 
   return {
     headerLeft: () => <View />,
-    headerTitle: () => (
-      <Text
-        variant={TextVariant.HeadingSM}
-        style={headerStyle.title}
-        testID={'card-view-title'}
-      >
-        {strings('card.card')}
-      </Text>
-    ),
+    headerTitle: () => <View />,
     headerRight: () => (
       <ButtonIcon
         style={headerStyle.icon}
         size={ButtonIconSizes.Lg}
         iconName={IconName.Close}
-        testID="close-button"
+        testID="exit-onboarding-button"
         onPress={handleClosePress}
       />
     ),
+    gestureEnabled: false,
   };
 };
-
-export const PersonalDetailsNavigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      testID="back-button"
-      onPress={() =>
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY)
-      }
-    />
-  ),
-  headerTitle: () => <View />,
-  headerRight: () => <View />,
-});
 
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
@@ -234,22 +203,22 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
         component={SetPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
         component={ConfirmPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
         component={ValidatingKYC}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
@@ -259,27 +228,27 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
         component={PersonalDetails}
-        options={PersonalDetailsNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
         component={PhysicalAddress}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
         component={MailingAddress}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.WEBVIEW}
         component={KYCWebview}
-        options={KYCModalNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
     </Stack.Navigator>
   );

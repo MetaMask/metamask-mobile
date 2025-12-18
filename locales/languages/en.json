@@ -6560,6 +6560,12 @@
         "cancel_button": "Stay",
         "close_button": "Exit"
       },
+      "exit_confirmation": {
+        "title": "Exit card setup?",
+        "message": "Your progress has been saved. You can continue setting up your card anytime.",
+        "cancel_button": "Continue",
+        "exit_button": "Exit"
+      },
       "validating_kyc": {
         "title": "Awaiting approval",
         "description": "Our partner needs to approve your identity. Once you've been approved, you'll be ready to spend.",
