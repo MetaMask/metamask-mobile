@@ -152,7 +152,7 @@ export const AmountKeyboard = ({
       hideDoneButton
       onChange={updateToNewAmount}
       onPercentagePress={updateToPercentageAmount}
-      showAdditionalKeyboard={amount.length < 1 && !isNFT}
+      showAdditionalKeyboard={!isNFT}
       value={amount}
     />
   );

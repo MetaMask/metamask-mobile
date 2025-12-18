@@ -92,6 +92,24 @@ describe('EditAmountKeyboard', () => {
     expect(getByText(strings('confirm.edit_amount_done'))).toBeDefined();
   });
 
+  it('does not render additional buttons if showAdditionalKeyboard is false', () => {
+    const onPercentagePressMock = jest.fn();
+
+    const { queryByText } = render(
+      <EditAmountKeyboard
+        onChange={noop}
+        onDonePress={noop}
+        onPercentagePress={onPercentagePressMock}
+        value={'0'}
+        showAdditionalKeyboard={false}
+      />,
+    );
+
+    expect(queryByText('25%')).toBeNull();
+    expect(queryByText('50%')).toBeNull();
+    expect(queryByText(strings('confirm.edit_amount_done'))).toBeNull();
+  });
+
   it('render additional rows passed in additionalRow prop', () => {
     const onPercentagePressMock = jest.fn();
 

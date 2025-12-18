@@ -39,6 +39,7 @@ export function EditAmountKeyboard({
   value,
   additionalButtons = ADDITIONAL_BUTTONS,
   hideDoneButton = false,
+  showAdditionalKeyboard = true,
   additionalRow,
   enableEmptyValueString = false,
 }: Readonly<EditAmountKeyboardProps>) {
@@ -58,32 +59,34 @@ export function EditAmountKeyboard({
 
   return (
     <View style={styles.wrapper}>
-      <Box
-        testID="edit-amount-keyboard"
-        flexDirection={FlexDirection.Row}
-        justifyContent={JustifyContent.spaceBetween}
-        gap={10}
-        style={styles.additionalButtons}
-      >
-        {additionalButtons.map(({ value: val, label }) => (
-          <Button
-            key={`${val}-${label}`}
-            testID={`percentage-button-${val}`}
-            label={label}
-            style={styles.percentageButton}
-            onPress={() => onPercentagePress(val)}
-            variant={ButtonVariants.Secondary}
-          />
-        ))}
-        {!hideDoneButton && onDonePress && (
-          <Button
-            label={strings('confirm.edit_amount_done')}
-            style={styles.percentageButton}
-            onPress={onDonePress}
-            variant={ButtonVariants.Secondary}
-          />
-        )}
-      </Box>
+      {showAdditionalKeyboard && (
+        <Box
+          testID="edit-amount-keyboard"
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+          gap={10}
+          style={styles.additionalButtons}
+        >
+          {additionalButtons.map(({ value: val, label }) => (
+            <Button
+              key={`${val}-${label}`}
+              testID={`percentage-button-${val}`}
+              label={label}
+              style={styles.percentageButton}
+              onPress={() => onPercentagePress(val)}
+              variant={ButtonVariants.Secondary}
+            />
+          ))}
+          {!hideDoneButton && onDonePress && (
+            <Button
+              label={strings('confirm.edit_amount_done')}
+              style={styles.percentageButton}
+              onPress={onDonePress}
+              variant={ButtonVariants.Secondary}
+            />
+          )}
+        </Box>
+      )}
 
       <KeypadComponent
         value={value}
