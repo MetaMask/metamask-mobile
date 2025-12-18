@@ -26,11 +26,11 @@ import Routes from '../../../constants/navigation/Routes';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import Section from './components/Section/Section';
+import Section from './components/Sections/Section';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -103,6 +103,7 @@ export const ExploreFeed: React.FC = () => {
     });
     return callbacks;
   }, []);
+
   const handleBrowserPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,

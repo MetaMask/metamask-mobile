@@ -3,7 +3,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useRef } from 'react';
 import { Dimensions } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
+import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

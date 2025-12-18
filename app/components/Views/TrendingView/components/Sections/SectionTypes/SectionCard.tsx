@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
-import { useAppThemeFromContext } from '../../../../../util/theme';
-import Card from '../../../../../component-library/components/Cards/Card';
-import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
+import { Theme } from '../../../../../../util/theme/models';
+import { useAppThemeFromContext } from '../../../../../../util/theme';
+import Card from '../../../../../../component-library/components/Cards/Card';
+import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 

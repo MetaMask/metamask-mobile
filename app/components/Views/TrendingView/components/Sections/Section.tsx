@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
+import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
 
 export interface SectionProps {
   sectionId: SectionId;

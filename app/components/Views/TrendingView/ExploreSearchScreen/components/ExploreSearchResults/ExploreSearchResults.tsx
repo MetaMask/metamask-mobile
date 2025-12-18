@@ -7,7 +7,7 @@ import {
   SECTIONS_CONFIG,
   SECTIONS_ARRAY,
   type SectionId,
-} from '../../../config/sections.config';
+} from '../../../sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';

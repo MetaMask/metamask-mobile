@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../../../../config/sections.config';
+import { SECTIONS_ARRAY } from '../../../../sections.config';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
