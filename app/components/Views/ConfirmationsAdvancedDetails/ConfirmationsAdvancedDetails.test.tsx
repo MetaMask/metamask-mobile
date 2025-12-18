@@ -21,13 +21,20 @@ jest.mock('../../UI/Name', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock('../confirmations/components/smart-contract-with-logo', () =>
-  jest.fn(() => null),
-);
+const MockSmartContractWithLogo = jest.fn();
+jest.mock('../confirmations/components/smart-contract-with-logo', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => MockSmartContractWithLogo(props),
+}));
 
+const MockNestedTransactionData = jest.fn();
 jest.mock(
   '../confirmations/components/nested-transaction-data/nested-transaction-data',
-  () => jest.fn(() => null),
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) =>
+      MockNestedTransactionData(props),
+  }),
 );
 
 jest.mock(
@@ -109,34 +116,34 @@ describe('ConfirmationsAdvancedDetails', () => {
 
   describe('Interacting With Section', () => {
     it('renders interacting with section when "to" address exists', () => {
-      const { toJSON } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <ConfirmationsAdvancedDetails />,
         { state: generateContractInteractionState },
         false,
       );
 
-      expect(toJSON()).toBeTruthy();
+      expect(getByText('Interacting with')).toBeTruthy();
     });
 
     it('does not render interacting with section for downgrade transactions', () => {
-      const { toJSON } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <ConfirmationsAdvancedDetails />,
         { state: getAppStateForConfirmation(downgradeAccountConfirmation) },
         false,
       );
 
       // For downgrade transactions, the interacting with section should not be shown
-      expect(toJSON()).toBeTruthy();
+      expect(queryByText('Interacting with')).toBeNull();
     });
 
     it('renders SmartContractWithLogo for upgrade transactions', () => {
-      const { toJSON } = renderWithProvider(
+      renderWithProvider(
         <ConfirmationsAdvancedDetails />,
         { state: getAppStateForConfirmation(upgradeAccountConfirmation) },
         false,
       );
 
-      expect(toJSON()).toBeTruthy();
+      expect(MockSmartContractWithLogo).toHaveBeenCalled();
     });
   });
 
@@ -241,8 +248,9 @@ describe('ConfirmationsAdvancedDetails', () => {
         false,
       );
 
-      // Modal should be rendered
-      expect(toJSON()).toBeTruthy();
+      // Modal should be rendered - CustomNonceModal is mocked as a string component name
+      const tree = JSON.stringify(toJSON());
+      expect(tree).toContain('CustomNonceModal');
     });
   });
 
@@ -313,13 +321,13 @@ describe('ConfirmationsAdvancedDetails', () => {
   describe('Batched Transactions', () => {
     it('renders NestedTransactionData for batched transactions', () => {
       // Use the upgrade account confirmation which has nested transactions
-      const { toJSON } = renderWithProvider(
+      renderWithProvider(
         <ConfirmationsAdvancedDetails />,
         { state: getAppStateForConfirmation(upgradeAccountConfirmation) },
         false,
       );
 
-      expect(toJSON()).toBeTruthy();
+      expect(MockNestedTransactionData).toHaveBeenCalled();
     });
   });
 

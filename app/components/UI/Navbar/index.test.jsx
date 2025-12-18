@@ -1811,7 +1811,7 @@ describe('getCloseOnlyNavbar', () => {
   describe('getConfirmationsAdvancedDetailsNavbarOptions', () => {
     const title = 'stake.advanced_details';
 
-    it('should return navigation options with correct structure', () => {
+    it('returns navigation options with correct structure', () => {
       const options = getConfirmationsAdvancedDetailsNavbarOptions(
         title,
         mockNavigation,
@@ -1825,7 +1825,7 @@ describe('getCloseOnlyNavbar', () => {
       expect(options.headerShown).toBe(true);
     });
 
-    it('should use background.alternative color for headerStyle', () => {
+    it('uses background.alternative color for headerStyle', () => {
       const options = getConfirmationsAdvancedDetailsNavbarOptions(
         title,
         mockNavigation,
@@ -1838,7 +1838,7 @@ describe('getCloseOnlyNavbar', () => {
       expect(options.headerStyle.elevation).toBe(0);
     });
 
-    it('should return headerTitle as a function', () => {
+    it('returns headerTitle as a function', () => {
       const options = getConfirmationsAdvancedDetailsNavbarOptions(
         title,
         mockNavigation,
@@ -1849,7 +1849,7 @@ describe('getCloseOnlyNavbar', () => {
       expect(options.headerTitle).toBeInstanceOf(Function);
     });
 
-    it('should render headerLeft with back button', () => {
+    it('renders headerLeft with back button', () => {
       const options = getConfirmationsAdvancedDetailsNavbarOptions(
         title,
         mockNavigation,
@@ -1868,7 +1868,7 @@ describe('getCloseOnlyNavbar', () => {
       expect(toJSON()).toBeTruthy();
     });
 
-    it('should call navigation.goBack when back button is pressed', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
       const mockGoBack = jest.fn();
       const testNavigation = {
         ...mockNavigation,
@@ -1892,7 +1892,7 @@ describe('getCloseOnlyNavbar', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should work with different title strings', () => {
+    it('works with different title strings', () => {
       const titles = [
         'stake.advanced_details',
         'transaction.advanced',
@@ -1912,7 +1912,7 @@ describe('getCloseOnlyNavbar', () => {
       });
     });
 
-    it('should work with different theme colors', () => {
+    it('works with different theme colors', () => {
       const darkThemeColors = {
         ...mockThemeColors,
         background: {
@@ -1932,7 +1932,7 @@ describe('getCloseOnlyNavbar', () => {
       );
     });
 
-    it('should integrate with React Navigation stack', () => {
+    it('integrates with React Navigation stack', () => {
       const Stack = createStackNavigator();
       const options = getConfirmationsAdvancedDetailsNavbarOptions(
         title,
