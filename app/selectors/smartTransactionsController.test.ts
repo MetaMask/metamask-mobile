@@ -99,7 +99,8 @@ const getDefaultState = () => {
     rpcUrl: undefined, // default rpc for chain 0x1
     chainId: '0x1',
   };
-  defaultState.engine.backgroundState.SmartTransactionsController.smartTransactionsState.liveness = true;
+  defaultState.engine.backgroundState.SmartTransactionsController.smartTransactionsState.livenessByChainId =
+    { '0x1': true };
   defaultState.engine.backgroundState.PreferencesController.smartTransactionsOptInStatus = true;
 
   defaultState.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions =
@@ -124,9 +125,17 @@ describe('SmartTransactionsController Selectors', () => {
         expect(enabled).toEqual(false);
       },
     );
-    it('should return false if smart transactions liveness is false', () => {
+    it('should return false if smart transactions liveness is false for chain', () => {
       const state = getDefaultState();
-      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.liveness = false;
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.livenessByChainId =
+        { '0x1': false };
+      const enabled = selectSmartTransactionsEnabled(state);
+      expect(enabled).toEqual(false);
+    });
+    it('should return false if smart transactions liveness is not set for chain', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.livenessByChainId =
+        {};
       const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });

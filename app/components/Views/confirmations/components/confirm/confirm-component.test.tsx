@@ -151,6 +151,9 @@ jest.mock('../../../../../core/Engine', () => ({
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
     },
+    SmartTransactionsController: {
+      fetchLiveness: jest.fn(),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
