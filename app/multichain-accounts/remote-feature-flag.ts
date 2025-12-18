@@ -53,6 +53,51 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
   }[],
   _override?: string,
 ): boolean => true;
+// const overrideForVersion2 =
+//   override !== undefined &&
+//   featureVersionsToCheck.some(
+//     ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+//   );
+
+// if (overrideForVersion2) {
+//   return override === 'true';
+// }
+
+// const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+// const enableMultichainAccountsState2 =
+//   remoteFeatureFlags.enableMultichainAccountsState2;
+
+// const isState1Undefined =
+//   !enableMultichainAccounts ||
+//   !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts);
+// const isState2Undefined =
+//   !enableMultichainAccountsState2 ||
+//   !assertMultichainAccountsFeatureFlagType(enableMultichainAccountsState2);
+// if (isState1Undefined && isState2Undefined) {
+//   return true;
+// }
+
+// for (const { version, featureKey } of featureVersionsToCheck) {
+//   const featureFlag = remoteFeatureFlags[featureKey];
+
+//     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
+//       continue;
+//     }
+
+//     const { enabled, featureVersion, minimumVersion } = featureFlag;
+
+//     if (
+//       enabled &&
+//       minimumVersion !== null &&
+//       featureVersion === version &&
+//       compareVersions.compare(minimumVersion, APP_VERSION, '<=')
+//     ) {
+//       return true;
+//     }
+//   }
+
+//   return false;
+// };
 
 /**
  * Get remote feature flags from its controller's state.
