@@ -222,7 +222,10 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
+      params: { refresh: true },
+      screen: 'TrendingFeed',
+    });
   });
 
   it('does not navigate to trending when trending feature flag is disabled', () => {

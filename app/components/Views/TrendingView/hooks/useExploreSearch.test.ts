@@ -56,7 +56,7 @@ let mockSitesData = mockSites;
 let mockSitesLoading = false;
 
 jest.mock(
-  '../../../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
+  '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
   () => ({
     useTrendingSearch: () => ({
       data: mockTrendingData,
@@ -66,7 +66,7 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
+jest.mock('../../../UI/Perps/hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: () => ({
     markets: mockPerpsData,
     isLoading: mockPerpsLoading,
@@ -75,7 +75,7 @@ jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
   }),
 }));
 
-jest.mock('../../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
+jest.mock('../../../UI/Predict/hooks/usePredictMarketData', () => ({
   usePredictMarketData: () => ({
     marketData: mockPredictionsData,
     isFetching: mockPredictionsLoading,
@@ -83,7 +83,7 @@ jest.mock('../../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
   }),
 }));
 
-jest.mock('../../../../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
+jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
   useSitesData: () => ({
     sites: mockSitesData,
     isLoading: mockSitesLoading,
