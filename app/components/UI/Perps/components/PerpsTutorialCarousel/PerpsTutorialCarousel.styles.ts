@@ -89,10 +89,10 @@ const createStyles = (params: {
       flexDirection: 'column',
       alignItems: 'stretch',
       gap: 16,
+      marginBottom: 16,
     },
     skipButton: {
       paddingHorizontal: 16,
-      marginBottom: 16,
       alignSelf: 'center',
       opacity: params.vars.shouldShowSkipButton ? 1 : 0,
     },

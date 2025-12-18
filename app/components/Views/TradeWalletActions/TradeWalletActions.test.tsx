@@ -134,7 +134,6 @@ jest.mock('../../../reducers/swaps', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
-  selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
