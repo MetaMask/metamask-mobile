@@ -136,7 +136,7 @@ export const AmountKeyboard = ({
         <View style={styles.additionalRowContainer}>
           <Button
             isDisabled={
-              Boolean(amountError) || !amount || amount.trim() === '0'
+              Boolean(amountError) || !amount || parseFloat(amount) === 0
             }
             label={
               amountError ??
