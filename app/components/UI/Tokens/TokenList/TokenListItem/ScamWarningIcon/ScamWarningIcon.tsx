@@ -1,15 +1,15 @@
 import React from 'react';
-import { TokenI } from '../../types';
-import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+import { TokenI } from '../../../types';
+import useIsOriginalNativeTokenSymbol from '../../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
+import { selectProviderConfig } from '../../../../../../selectors/networkController';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../../../app/component-library/components/Buttons/ButtonIcon';
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '../../../../../../component-library/components/Icons/Icon';
 
 interface ScamWarningIconProps {
   asset: TokenI & { chainId: string };
