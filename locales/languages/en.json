@@ -6434,7 +6434,7 @@
       "view_on_block_explorer": "View on block explorer"
     },
     "share_address_qr": {
-      "title": "{{networkName}} Address",
+      "title": "{{networkName}} address",
       "copy_address": "Copy address",
       "description": "Use this address to receive tokens and collectibles on",
       "description_prefix": "Use this address to receive tokens and collectibles on"
