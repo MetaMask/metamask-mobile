@@ -186,7 +186,6 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
-    TOKEN_FILTER: 'TokenFilter',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
