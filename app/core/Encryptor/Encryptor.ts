@@ -1,11 +1,11 @@
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
+import type { Encryptor as KeyringControllerEncryptor } from '@metamask/keyring-controller';
 import {
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import type {
-  WithKeyEncryptor,
   EncryptionKey,
   EncryptionResult,
   KeyDerivationOptions,
@@ -57,7 +57,14 @@ const isEncryptionKey = (key: unknown): key is EncryptionKey =>
  * It supports generating a salt, deriving an encryption key from a
  * password and salt, and performing the encryption and decryption processes.
  */
-class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
+class Encryptor
+  implements
+    KeyringControllerEncryptor<
+      EncryptionKey,
+      KeyDerivationOptions,
+      EncryptionResult
+    >
+{
   /**
    * The key derivation parameters used for encryption and decryption operations.
    * These parameters include the algorithm and its specific parameters, for example, number of iterations for key derivation.
