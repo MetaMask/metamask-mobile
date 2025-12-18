@@ -15,10 +15,6 @@ on:
         required: false
         type: string
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
-      branch_name:
-        required: false
-        type: string
-        description: 'Branch name to use for Bitrise builds (defaults to github.ref_name)'
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
@@ -93,14 +89,11 @@ jobs:
         id: trigger-build
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
-          # Use branch_name input if provided, otherwise fall back to github.ref_name
-          BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
-
           echo "Triggering iOS with-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Branch: $BRANCH_NAME"
-
+          echo "Current branch: ${{ github.ref_name }}"
+          
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
             echo "Error: BITRISE_APP_ID is not set"
@@ -114,7 +107,7 @@ jobs:
             echo "Error: BITRISE_API_TOKEN is not set"
             exit 1
           fi
-
+          
           # Set environment variables for with-SRP build
           ENV_VARS='[
             {
@@ -123,7 +116,7 @@ jobs:
               "is_expand": true
             },
             {
-              "mapped_to": "PREDEFINED_PASSWORD",
+              "mapped_to": "PREDEFINED_PASSWORD", 
               "value": "'"${{ secrets.E2E_PASSWORD }}"'",
               "is_expand": true
             },
@@ -134,14 +127,14 @@ jobs:
             }
           ]'
           CUSTOM_ID="MetaMask-iOS-With-SRP-${{ github.run_id }}"
-
+          
           # Trigger iOS workflow
           BUILD_RESPONSE=$(curl -s -X POST \
             "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
             -H "Content-Type: application/json" \
             -d '{
               "build_params": {
-                "branch": "'"$BRANCH_NAME"'",
+                "branch": "${{ github.ref_name }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
@@ -232,14 +225,11 @@ jobs:
         id: trigger-build
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
-          # Use branch_name input if provided, otherwise fall back to github.ref_name
-          BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
-
           echo "Triggering iOS without-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Branch: $BRANCH_NAME"
-
+          echo "Current branch: ${{ github.ref_name }}"
+          
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
             echo "Error: BITRISE_APP_ID is not set"
@@ -253,24 +243,24 @@ jobs:
             echo "Error: BITRISE_API_TOKEN is not set"
             exit 1
           fi
-
+          
           # Set environment variables for without-SRP build
           ENV_VARS='[
             {
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-              "value": "true",
+              "value": "true", 
               "is_expand": true
             }
           ]'
           CUSTOM_ID="MetaMask-iOS-Without-SRP-${{ github.run_id }}"
-
+          
           # Trigger iOS workflow
           BUILD_RESPONSE=$(curl -s -X POST \
             "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
             -H "Content-Type: application/json" \
             -d '{
               "build_params": {
-                "branch": "'"$BRANCH_NAME"'",
+                "branch": "${{ github.ref_name }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',
