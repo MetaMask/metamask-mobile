@@ -34,6 +34,7 @@ import {
 } from '@metamask/approval-controller';
 import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
+import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
 import {
@@ -249,7 +250,11 @@ export const getSnapPermissionSpecifications = (
       messenger.call('ApprovalController:addRequest', opts, true),
     hasPermission: (origin: string, target: string) =>
       messenger.call('PermissionController:hasPermission', origin, target),
-    getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+    getClientCryptography: () => ({
+      pbkdf2Sha512: pbkdf2,
+      hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
+        hmacSha512(key, data),
+    }),
     getPreferences: () => {
       const {
         securityAlertsEnabled,

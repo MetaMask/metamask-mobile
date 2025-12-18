@@ -53,4 +53,6 @@ export type PerpsTooltipContentKey =
   | 'tpsl_count_warning'
   | 'points'
   | 'market_hours'
-  | 'after_hours_trading';
+  | 'after_hours_trading'
+  | 'oracle_price'
+  | 'spread';

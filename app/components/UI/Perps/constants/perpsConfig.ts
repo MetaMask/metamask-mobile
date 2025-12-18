@@ -71,6 +71,9 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
+
+  // Price deviation threshold (as decimal, 0.1 = 10%)
+  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
 } as const;
 
 /**
@@ -216,15 +219,15 @@ export const TP_SL_VIEW_CONFIG = {
  */
 export const LIMIT_PRICE_CONFIG = {
   // Preset percentage options for quick selection
-  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+  PRESET_PERCENTAGES: [1, 2], // Available as both positive and negative
 
   // Modal opening delay when switching to limit order (milliseconds)
   // Allows order type modal to close smoothly before opening limit price modal
   MODAL_OPEN_DELAY: 300,
 
-  // Direction-specific preset configurations
-  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
-  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+  // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
+  LONG_PRESETS: [-1, -2], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2], // Sell above market for short orders
 } as const;
 
 /**
@@ -361,6 +364,10 @@ export const DEVELOPMENT_CONFIG = {
  * Controls carousel limits and display settings for the main Perps home screen
  */
 export const HOME_SCREEN_CONFIG = {
+  // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
+  // Can be controlled via feature flag in the future
+  SHOW_HEADER_ACTION_BUTTONS: true,
+
   // Maximum number of items to show in each carousel
   POSITIONS_CAROUSEL_LIMIT: 10,
   ORDERS_CAROUSEL_LIMIT: 10,
@@ -493,12 +500,20 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // ROE (Return on Equity) threshold (percentage)
   // Shows "Set stop loss" banner when ROE drops below this value
-  ROE_THRESHOLD: -20,
+  ROE_THRESHOLD: -10,
+
+  // Minimum loss threshold to show ANY banner (percentage)
+  // No banner shown until ROE drops below this value
+  MIN_LOSS_THRESHOLD: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
   // Prevents banner from appearing during temporary price fluctuations
   ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+
+  // Minimum position age before showing any banner (milliseconds)
+  // Prevents banner from appearing immediately after opening a position
+  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry

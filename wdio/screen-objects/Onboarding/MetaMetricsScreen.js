@@ -75,7 +75,7 @@ class MetaMetricsScreen {
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.iAgreeButton);
     } else {
-      await AppwrightGestures.tap(this.iAgreeButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.iAgreeButton); 
     }
   }
 

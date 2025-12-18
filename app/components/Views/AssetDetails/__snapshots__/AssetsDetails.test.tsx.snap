@@ -16,7 +16,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -132,7 +132,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           }
         }
@@ -145,7 +145,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -153,7 +153,7 @@ exports[`AssetDetails renders correctly 1`] = `
         ]
       }
     >
-      Token Amount
+      Token amount
     </Text>
     <View
       style={
@@ -168,7 +168,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           }
         }
@@ -181,7 +181,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -214,7 +214,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           }
         }
@@ -251,7 +251,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -266,7 +266,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           },
           {
@@ -284,7 +284,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -299,7 +299,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           },
           {
@@ -317,7 +317,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "marginTop": 32,
           },
@@ -325,14 +325,14 @@ exports[`AssetDetails renders correctly 1`] = `
         ]
       }
     >
-      Token Lists
+      Token lists
     </Text>
     <Text
       style={
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           },
           {
@@ -365,7 +365,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
           }
         }

@@ -14,7 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
+import { usePerpsLiveFills } from '../../hooks/stream';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
@@ -30,12 +30,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  // Memoize params to prevent infinite refetch loop
-  const orderFillsParams = useMemo(() => ({ aggregateByTime: false }), []);
-
-  // Fetch all order fills using existing hook
-  const { orderFills, isLoading } = usePerpsOrderFills({
-    params: orderFillsParams,
+  // Fetch all order fills via WebSocket for live updates
+  const { fills: orderFills, isInitialLoading: isLoading } = usePerpsLiveFills({
+    throttleMs: 0, // Instant updates for real-time activity
   });
 
   // Filter by symbol, transform, and limit to 3
@@ -140,8 +137,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {strings('perps.market.recent_trades')}
       </Text>
-      {!isLoading && trades.length > 0 && (
-        <TouchableOpacity onPress={handleSeeAll}>
+      {!isLoading && (
+        <TouchableOpacity testID="see-all-button" onPress={handleSeeAll}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>

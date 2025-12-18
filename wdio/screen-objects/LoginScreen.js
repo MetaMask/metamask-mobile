@@ -58,7 +58,7 @@ class LoginScreen {
           LoginViewSelectors.PASSWORD_INPUT,
         );
       } else {
-        return AppwrightSelectors.getElementByID(this._device, "textfield");
+        return AppwrightSelectors.getElementByID(this._device, "textfield", true);
       }
     }
   }
@@ -76,7 +76,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.TITLE_ID);
+      return AppwrightSelectors.getElementByID(this._device,'log-in-button');
     }
   }
 
@@ -115,19 +115,19 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      await AppwrightGestures.tap(this.resetWalletButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.resetWalletButton); 
     }
   }
 
   async typePassword(password) {
-    await this.isLoginScreenVisible();
+    //await this.isLoginScreenVisible();
     if (!this._device) {
       await Gestures.typeText(this.passwordInput, password);
     } else {
-      const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
       await AppwrightGestures.typeText(element, password);
-      await screenTitle.tap()
+      await AppwrightGestures.hideKeyboard(this._device);
+
     }
   }
 
@@ -136,7 +136,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      await AppwrightGestures.tap(this.unlockButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.unlockButton); 
     }
   }
 
@@ -144,7 +144,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      await AppwrightGestures.tap(this.title); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.title); 
     }
   }
 
@@ -152,7 +152,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      await AppwrightGestures.tap(this.rememberMeToggle); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.rememberMeToggle); 
     }
   }
 }

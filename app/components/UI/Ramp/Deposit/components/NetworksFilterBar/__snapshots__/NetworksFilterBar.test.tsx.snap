@@ -61,7 +61,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -138,7 +138,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -201,7 +201,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -239,7 +239,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -414,7 +414,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -603,7 +603,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

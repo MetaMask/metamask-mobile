@@ -21,11 +21,13 @@ interface Props {
 export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
   const gasSponsored = quote?.quote?.gasSponsored;
+  const gasIncluded7702 = quote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const sourceChainId = quote?.quote.srcChainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId && !gasIncluded && !gasSponsored) {
+  if (sourceChainId && !isGasless && !gasSponsored) {
     if (isNonEvmChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
@@ -33,7 +35,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     }
   }
   const sourceChainNativeAsset =
-    hexOrCaipChainId && !gasIncluded && !gasSponsored
+    hexOrCaipChainId && !isGasless && !gasSponsored
       ? getNativeSourceToken(hexOrCaipChainId)
       : undefined;
 
@@ -43,7 +45,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  if (gasIncluded || gasSponsored) {
+  if (isGasless || gasSponsored) {
     return true;
   }
 
@@ -55,7 +57,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
       : null;
 
   const atomicGasFee =
-    effectiveGasFee && !gasIncluded
+    effectiveGasFee && !isGasless
       ? ethers.utils.parseUnits(
           effectiveGasFee,
           sourceChainNativeAsset?.decimals,

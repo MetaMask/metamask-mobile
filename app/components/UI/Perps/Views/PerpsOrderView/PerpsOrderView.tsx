@@ -27,6 +27,7 @@ import ButtonSemantic, {
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -94,6 +95,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import {
   usePerpsLiveAccount,
   usePerpsLivePrices,
@@ -101,7 +103,11 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -157,6 +163,10 @@ interface PerpsOrderViewContentProps {
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
 }) => {
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -217,6 +227,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
+  // Save pending trade config when user navigates away
+  usePerpsSavePendingConfig(orderForm);
+
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
    *
@@ -252,6 +265,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
+
+  // A/B Testing: Button color test (TAT-1937)
+  const {
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -293,6 +315,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         orderForm.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
+      ...(isButtonColorTestEnabled && {
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      }),
     },
   });
 
@@ -764,6 +789,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
     orderStartTimeRef.current = Date.now();
 
+    // Track Place Order button press with A/B test context
+    if (isButtonColorTestEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      });
+    }
+
     try {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
@@ -877,6 +916,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           feeDiscountPercentage: feeResults.feeDiscountPercentage,
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
+          source,
         },
       };
 
@@ -933,6 +973,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
+    source,
+    isButtonColorTestEnabled,
+    buttonColorVariant,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1032,7 +1075,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemFirst]}>
+            <View style={[styles.detailItem, styles.detailItemOnly]}>
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1367,26 +1410,44 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
-          <ButtonSemantic
-            severity={
-              orderForm.direction === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
-            onPress={handlePlaceOrder}
-            isFullWidth
-            size={ButtonSizeRNDesignSystem.Lg}
-            isDisabled={
-              !orderValidation.isValid ||
-              isPlacingOrder ||
-              doesStopLossRiskLiquidation ||
-              isAtOICap
-            }
-            isLoading={isPlacingOrder}
-            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-          >
-            {placeOrderLabel}
-          </ButtonSemantic>
+          {buttonColorVariant === 'monochrome' ? (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={placeOrderLabel}
+              onPress={handlePlaceOrder}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              loading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            />
+          ) : (
+            <ButtonSemantic
+              severity={
+                orderForm.direction === 'long'
+                  ? ButtonSemanticSeverity.Success
+                  : ButtonSemanticSeverity.Danger
+              }
+              onPress={handlePlaceOrder}
+              isFullWidth
+              size={ButtonSizeRNDesignSystem.Lg}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </ButtonSemantic>
+          )}
         </View>
       )}
       {/* Leverage Selector */}

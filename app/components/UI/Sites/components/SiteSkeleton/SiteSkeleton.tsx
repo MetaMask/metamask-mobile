@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const iconSize = 44;
+const iconSize = 40;
 const SitesSkeleton: React.FC<ViewStyle> = () => (
   <View style={styles.container}>
     <View>

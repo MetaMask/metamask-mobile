@@ -4,6 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
+import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -47,6 +48,10 @@ export const usePerpsTransactionHistory = ({
     error: userHistoryError,
     refetch: refetchUserHistory,
   } = useUserHistory({ startTime, endTime, accountId });
+
+  // Subscribe to live WebSocket fills for instant trade updates
+  // This ensures new trades appear immediately without waiting for REST refetch
+  const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
@@ -167,8 +172,64 @@ export const usePerpsTransactionHistory = ({
     return null;
   }, [error, userHistoryError]);
 
+  // Merge live WebSocket fills with REST transactions for instant updates
+  // Live fills take precedence for recent trades
+  // IMPORTANT: Deduplicate trades using asset+timestamp (truncated to seconds), not tx.id,
+  // because:
+  // 1. The ID includes array index which differs between REST and WebSocket arrays
+  // 2. Aggregated fills (from split stop loss/TP) may have slightly different first-fill
+  //    timestamps between REST and WebSocket if fills arrive in different order
+  const mergedTransactions = useMemo(() => {
+    // Transform live fills to PerpsTransaction format
+    // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
+    const liveTransactions = transformFillsToTransactions(liveFills);
+
+    // If no REST transactions yet, return only live fills
+    if (transactions.length === 0) {
+      return liveTransactions;
+    }
+
+    // Separate trade transactions from non-trade transactions (orders, funding, deposits)
+    // Non-trade transactions use their ID directly (no index issue)
+    const restTradeTransactions = transactions.filter(
+      (tx) => tx.type === 'trade',
+    );
+    const nonTradeTransactions = transactions.filter(
+      (tx) => tx.type !== 'trade',
+    );
+
+    // Merge trades using asset+timestamp(seconds) as dedup key
+    // Use seconds-truncated timestamp to handle cases where REST and WebSocket
+    // aggregated fills have slightly different first-fill timestamps
+    const tradeMap = new Map<string, PerpsTransaction>();
+
+    // Add REST trade transactions first
+    for (const tx of restTradeTransactions) {
+      // Use asset + timestamp (truncated to seconds) as key
+      const timestampSeconds = Math.floor(tx.timestamp / 1000);
+      const dedupKey = `${tx.asset}-${timestampSeconds}`;
+      tradeMap.set(dedupKey, tx);
+    }
+
+    // Add live fills (overwrites REST duplicates - live data is fresher)
+    for (const tx of liveTransactions) {
+      const timestampSeconds = Math.floor(tx.timestamp / 1000);
+      const dedupKey = `${tx.asset}-${timestampSeconds}`;
+      tradeMap.set(dedupKey, tx);
+    }
+
+    // Combine deduplicated trades with non-trade transactions
+    const allTransactions = [
+      ...Array.from(tradeMap.values()),
+      ...nonTradeTransactions,
+    ];
+
+    // Sort by timestamp descending
+    return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+  }, [liveFills, transactions]);
+
   return {
-    transactions,
+    transactions: mergedTransactions,
     isLoading: combinedIsLoading,
     error: combinedError,
     refetch,
