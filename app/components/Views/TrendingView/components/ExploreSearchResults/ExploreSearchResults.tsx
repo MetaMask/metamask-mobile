@@ -7,10 +7,10 @@ import {
   SECTIONS_CONFIG,
   SECTIONS_ARRAY,
   type SectionId,
-} from '../../../sections.config';
-import { useExploreSearch } from './config/useExploreSearch';
-import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
-import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+} from '../../sections.config';
+import { useExploreSearch } from '../../hooks/useExploreSearch';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSelector } from 'react-redux';
 
 interface ExploreSearchResultsProps {

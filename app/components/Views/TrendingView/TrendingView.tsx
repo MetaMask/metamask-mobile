@@ -23,7 +23,7 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
+import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';

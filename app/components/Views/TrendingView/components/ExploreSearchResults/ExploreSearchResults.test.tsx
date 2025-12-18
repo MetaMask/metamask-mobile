@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
-import { useExploreSearch } from './config/useExploreSearch';
+import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
-import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

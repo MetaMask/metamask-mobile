@@ -3,7 +3,7 @@ import {
   SECTIONS_ARRAY,
   useSectionsData,
   type SectionId,
-} from '../../../../sections.config';
+} from '../sections.config';
 
 export interface ExploreSearchResult {
   data: Record<SectionId, unknown[]>;
