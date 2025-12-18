@@ -118,6 +118,85 @@ export const isTokenInWildcardList = (
  * @example Combined (allowlist + blocklist override)
  * isTokenAllowed("USDT", { "0x1": ["USDC", "USDT"] }, { "*": ["USDT"] }, "0x1") // → false
  */
+/**
+ * Gets a WildcardTokenList from remote feature flag or local env var configuration.
+ * Remote value takes precedence. Returns empty object if both are invalid/unavailable.
+ *
+ * @param remoteValue - The remote feature flag value (string or object)
+ * @param remoteFlagName - Name of the remote flag (for error messages)
+ * @param localEnvValue - The local environment variable value
+ * @param localEnvName - Name of the local env var (for error messages)
+ * @returns WildcardTokenList from config or empty object
+ */
+export const getWildcardTokenListFromConfig = (
+  remoteValue: unknown,
+  remoteFlagName: string,
+  localEnvValue: string | undefined,
+  localEnvName: string,
+): WildcardTokenList => {
+  const expectedFormat =
+    'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}';
+
+  // Try remote value first (takes precedence)
+  if (remoteValue) {
+    try {
+      const parsed =
+        typeof remoteValue === 'string' ? JSON.parse(remoteValue) : remoteValue;
+
+      if (isValidWildcardTokenList(parsed)) {
+        return parsed;
+      }
+      console.warn(
+        `Remote ${remoteFlagName} produced invalid structure. ${expectedFormat}`,
+      );
+    } catch (error) {
+      console.warn(`Failed to parse remote ${remoteFlagName}:`, error);
+    }
+  }
+
+  // Fallback to local env var
+  if (localEnvValue) {
+    try {
+      const parsed = JSON.parse(localEnvValue);
+      if (isValidWildcardTokenList(parsed)) {
+        return parsed;
+      }
+      console.warn(
+        `Local ${localEnvName} produced invalid structure. ${expectedFormat}`,
+      );
+    } catch (error) {
+      console.warn(`Failed to parse ${localEnvName}:`, error);
+    }
+  }
+
+  return {};
+};
+
+/**
+ * Checks if a token is allowed based on combined allowlist and blocklist rules.
+ *
+ * Logic:
+ * 1. If allowlist is non-empty, token MUST be in allowlist
+ * 2. If blocklist is non-empty, token must NOT be in blocklist
+ * 3. Both conditions must pass for the token to be allowed
+ *
+ * @param tokenSymbol - The token symbol (case-insensitive)
+ * @param allowlist - Tokens to allow (empty = allow all)
+ * @param blocklist - Tokens to block (empty = block none)
+ * @param chainId - The chain ID where the token exists
+ * @returns true if the token is allowed, false otherwise
+ *
+ * @example Allowlist only (specific tokens)
+ * isTokenAllowed("USDC", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → true
+ * isTokenAllowed("DAI", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → false
+ *
+ * @example Blocklist only (all except certain tokens)
+ * isTokenAllowed("USDC", {}, { "*": ["TUSD"] }, "0x1") // → true
+ * isTokenAllowed("TUSD", {}, { "*": ["TUSD"] }, "0x1") // → false
+ *
+ * @example Combined (allowlist + blocklist override)
+ * isTokenAllowed("USDT", { "0x1": ["USDC", "USDT"] }, { "*": ["USDT"] }, "0x1") // → false
+ */
 export const isTokenAllowed = (
   tokenSymbol: string,
   allowlist: WildcardTokenList = {},
