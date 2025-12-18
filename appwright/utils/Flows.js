@@ -135,7 +135,7 @@ export async function checkPredictionsModalIsVisible(device) {
   await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
-export async function importSRPFlow(device, srp, dismissModals = true) {
+export async function importSRPFlow(device, srp, dismissModals = false) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -158,7 +158,7 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   timer.start();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapOnAddWalletButton();
   timer2.start();
   await AddAccountModal.isVisible();
@@ -183,13 +183,12 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login', dismissModals = true } = options;
+  const { scenarioType = 'login', dismissModals = false } = options;
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);
