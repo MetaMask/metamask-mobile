@@ -96,7 +96,7 @@ jobs:
           # PR: Use first low/medium device (fallback to first)
           # Other: Use all devices
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            FILTER='[first(.[] | select(.category == "low" or .category == "medium")) // .[0]]'
+            FILTER='if length == 0 then [] else [first((.[] | select(.category == "low" or .category == "medium")), .[0])] end'
             echo "PR mode: 1 device per platform"
           else
             FILTER='.'
