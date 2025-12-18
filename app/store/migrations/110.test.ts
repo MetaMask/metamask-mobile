@@ -162,7 +162,9 @@ describe(`migration #${migrationVersion}`, () => {
               },
             },
             NetworkEnablementController: {
-              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID  },
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID,
+              },
             },
           },
         },
@@ -194,7 +196,9 @@ describe(`migration #${migrationVersion}`, () => {
               },
             },
             NetworkEnablementController: {
-              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID  },
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID,
+              },
             },
           },
         },
@@ -334,24 +338,24 @@ describe(`migration #${migrationVersion}`, () => {
 
   const switchToMainnetScenarios = [
     {
-        state: {
-          engine: {
-            backgroundState: {
-              NetworkController: {
-                networkConfigurationsByChainId: {
-                  ...mainnetConfiguration,
-                  ...megaEthTestnetV1Configuration,
-                },
-                selectedNetworkClientId: 'mainnet',
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...megaEthTestnetV1Configuration,
+              },
+              selectedNetworkClientId: 'mainnet',
             },
-              NetworkEnablementController: {
-                enabledNetworkMap: {
-                  [KnownCaipNamespace.Eip155]: {
-                    '0x1': false,
-                    [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
-                  },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
                 },
               },
+            },
           },
         },
       },
@@ -365,9 +369,9 @@ describe(`migration #${migrationVersion}`, () => {
               networkConfigurationsByChainId: {
                 ...mainnetConfiguration,
                 ...megaEthTestnetV1Configuration,
+              },
+              selectedNetworkClientId: 'megaeth-testnet',
             },
-            selectedNetworkClientId: 'megaeth-testnet',
-          },
             NetworkEnablementController: {
               enabledNetworkMap: {
                 [KnownCaipNamespace.Eip155]: {
@@ -379,7 +383,8 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      scenario: 'megaeth testnet v1 is not enabled but the selected network client id is megaeth testnet v1',
+      scenario:
+        'megaeth testnet v1 is not enabled but the selected network client id is megaeth testnet v1',
     },
     {
       state: {
@@ -388,9 +393,9 @@ describe(`migration #${migrationVersion}`, () => {
             NetworkController: {
               networkConfigurationsByChainId: {
                 ...mainnetConfiguration,
+              },
+              selectedNetworkClientId: 'megaeth-testnet',
             },
-            selectedNetworkClientId: 'megaeth-testnet',
-          },
             NetworkEnablementController: {
               enabledNetworkMap: {
                 [KnownCaipNamespace.Eip155]: {
@@ -402,69 +407,71 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      scenario: 'the selected network client id is megaeth testnet v1 regardless the networkConfigurationsByChainId has megaeth testnet v1 or not',
+      scenario:
+        'the selected network client id is megaeth testnet v1 regardless the networkConfigurationsByChainId has megaeth testnet v1 or not',
     },
   ];
 
   it.each(switchToMainnetScenarios)(
     'switchs to mainnet if $scenario',
-    async ({state}) => {
+    async ({ state }) => {
+      const oldStorage = cloneDeep(state);
 
-    const oldStorage = cloneDeep(state);
-
-    const expectedStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              ...mainnetConfiguration,
-              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+      const expectedStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+              selectedNetworkClientId: 'mainnet',
             },
-            selectedNetworkClientId: 'mainnet',
-          },
-          NetworkEnablementController: {
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': true,
+                  [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                },
               },
             },
           },
         },
-      },
-    };
+      };
 
-    mockedEnsureValidState.mockReturnValue(true);
+      mockedEnsureValidState.mockReturnValue(true);
 
-    const newStorage = await migrate(oldStorage);
+      const newStorage = await migrate(oldStorage);
 
-    expect(newStorage).toStrictEqual(expectedStorage);
-  });
+      expect(newStorage).toStrictEqual(expectedStorage);
+    },
+  );
 
   const invalidSwitchToMainnetScenarios = [
     {
-        state: {
-          engine: {
-            backgroundState: {
-              NetworkController: {
-                networkConfigurationsByChainId: {
-                  ...mainnetConfiguration,
-                  ...lineaSepoliaConfiguration
-                },
-                selectedNetworkClientId: 'linea-sepolia',
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...lineaSepoliaConfiguration,
+              },
+              selectedNetworkClientId: 'linea-sepolia',
             },
-              NetworkEnablementController: {
-                enabledNetworkMap: {
-                  [KnownCaipNamespace.Eip155]: {
-                    '0x1': false,
-                    '0xe705': true,
-                  },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  '0xe705': true,
                 },
               },
+            },
           },
         },
       },
-      scenario: 'the selected network client id is not megaeth testnet v1 and the megaeth testnet v1 is missing from the network configurations and enablement map',
+      scenario:
+        'the selected network client id is not megaeth testnet v1 and the megaeth testnet v1 is missing from the network configurations and enablement map',
     },
     {
       state: {
@@ -476,11 +483,11 @@ describe(`migration #${migrationVersion}`, () => {
                 ...lineaSepoliaConfiguration,
                 [MEGAETH_TESTNET_V1_CHAIN_ID]: {
                   ...megaEthTestnetV1Configuration[MEGAETH_TESTNET_V1_CHAIN_ID],
-                  rpcEndpoints: 'uuid'
+                  rpcEndpoints: 'uuid',
                 },
               },
               selectedNetworkClientId: 'uuid',
-          },
+            },
             NetworkEnablementController: {
               enabledNetworkMap: {
                 [KnownCaipNamespace.Eip155]: {
@@ -489,34 +496,100 @@ describe(`migration #${migrationVersion}`, () => {
                 },
               },
             },
+          },
         },
       },
+      // This case should never happen.
+      scenario:
+        'the megaeth testnet v1 is not enabled and the selected network client id is one of megaeth testnet v1 RPC but the rpcEndpoints of megaeth testnet v1 is not valid',
     },
-    // This case should never happen.
-    scenario: 'the megaeth testnet v1 is not enabled and the selected network client id is one of megaeth testnet v1 RPC but the rpcEndpoints of megaeth testnet v1 is not valid',
-  },
   ];
 
-  it.each(invalidSwitchToMainnetScenarios)('does not switch to mainnet if $scenario', async ({state}) => {
-    const oldStorage = cloneDeep(state);
+  it.each(invalidSwitchToMainnetScenarios)(
+    'does not switch to mainnet if $scenario',
+    async ({ state }) => {
+      const oldStorage = cloneDeep(state);
 
-    const expectedStorage = {
+      const expectedStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...lineaSepoliaConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+              selectedNetworkClientId:
+                state.engine.backgroundState.NetworkController
+                  .selectedNetworkClientId,
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  '0xe705': true,
+                  [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const newStorage = await migrate(oldStorage);
+
+      expect(newStorage).toStrictEqual(expectedStorage);
+    },
+  );
+
+  it('merges the megaeth testnet v2 network configuration if there is one', async () => {
+    const orgState = {
       engine: {
         backgroundState: {
           NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
             networkConfigurationsByChainId: {
               ...mainnetConfiguration,
-              ...lineaSepoliaConfiguration,
-              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              ...megaEthTestnetV1Configuration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+              },
             },
-            selectedNetworkClientId: state.engine.backgroundState.NetworkController.selectedNetworkClientId,
           },
           NetworkEnablementController: {
             enabledNetworkMap: {
               [KnownCaipNamespace.Eip155]: {
                 '0x1': false,
-                '0xe705': true,
-                [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: false,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: true,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: true,
+                '0x1': false,
               },
             },
           },
@@ -526,8 +599,8 @@ describe(`migration #${migrationVersion}`, () => {
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const newStorage = await migrate(oldStorage);
+    const migratedState = await migrate(orgState);
 
-    expect(newStorage).toStrictEqual(expectedStorage);
+    expect(migratedState).toStrictEqual(expectedState);
   });
 });

@@ -102,9 +102,7 @@ export default function migrate(versionedState: unknown) {
       return state;
     }
 
-    if (
-      typeof networkState.selectedNetworkClientId !== 'string'
-    ) {
+    if (typeof networkState.selectedNetworkClientId !== 'string') {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid NetworkController state: '${typeof networkState.selectedNetworkClientId}'`,
@@ -175,22 +173,89 @@ export default function migrate(versionedState: unknown) {
       enabledNetworkMap: { [KnownCaipNamespace.Eip155]: eip155NetworkMap },
     } = networkEnablementState;
 
-    // Add the MegaETH Testnet v2 network configuration.
-    networkConfigurationsByChainId[MEGAETH_TESTNET_V2_CONFIG.chainId] =
-      MEGAETH_TESTNET_V2_CONFIG;
+    // Merge the MegaETH Testnet v2 network configuration if user already has it.
+    if (
+      hasProperty(
+        networkConfigurationsByChainId,
+        MEGAETH_TESTNET_V2_CONFIG.chainId,
+      )
+    ) {
+      const megaethTestnetV2Configuration = networkConfigurationsByChainId[
+        MEGAETH_TESTNET_V2_CONFIG.chainId
+      ] as unknown as NetworkConfiguration;
 
-    // Add the MegaETH Testnet v2 network configuration to the enabled network map.
-    eip155NetworkMap[MEGAETH_TESTNET_V2_CONFIG.chainId] = false;
+      // override the name and native currency of the MegaETH Testnet v2 network configuration.
+      megaethTestnetV2Configuration.name = MEGAETH_TESTNET_V2_CONFIG.name;
+      megaethTestnetV2Configuration.nativeCurrency =
+        MEGAETH_TESTNET_V2_CONFIG.nativeCurrency;
 
-    const isValidMegaEthTestnetV1Configuration = hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID) &&
+      const isEndpointExist = megaethTestnetV2Configuration.rpcEndpoints.find(
+        (rpcEndpoint) =>
+          rpcEndpoint.url === MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].url,
+      );
+      if (!isEndpointExist) {
+        megaethTestnetV2Configuration.rpcEndpoints.push({
+          failoverUrls: [],
+          networkClientId:
+            MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].networkClientId,
+          type: RpcEndpointType.Custom,
+          url: MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].url,
+        });
+        megaethTestnetV2Configuration.defaultRpcEndpointIndex =
+          megaethTestnetV2Configuration.rpcEndpoints.length - 1;
+      }
+
+      const isBlockExplorerUrlExist =
+        megaethTestnetV2Configuration.blockExplorerUrls.find(
+          (url) => url === MEGAETH_TESTNET_V2_CONFIG.blockExplorerUrls[0],
+        );
+      if (!isBlockExplorerUrlExist) {
+        megaethTestnetV2Configuration.blockExplorerUrls.push(
+          MEGAETH_TESTNET_V2_CONFIG.blockExplorerUrls[0],
+        );
+        megaethTestnetV2Configuration.defaultBlockExplorerUrlIndex =
+          megaethTestnetV2Configuration.blockExplorerUrls.length - 1;
+      }
+    } else {
+      // Add the MegaETH Testnet v2 network configuration if user doesn't have it.
+      (networkConfigurationsByChainId as Record<string, NetworkConfiguration>)[
+        MEGAETH_TESTNET_V2_CONFIG.chainId
+      ] = MEGAETH_TESTNET_V2_CONFIG as NetworkConfiguration;
+    }
+
+    // Add the MegaETH Testnet v2 network configuration to the enabled network map if it doesn't exist.
+    if (!hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V2_CONFIG.chainId)) {
+      (eip155NetworkMap as Record<string, boolean>)[
+        MEGAETH_TESTNET_V2_CONFIG.chainId
+      ] = false;
+    }
+
+    const isValidMegaEthTestnetV1Configuration =
+      hasProperty(
+        networkConfigurationsByChainId,
+        MEGAETH_TESTNET_V1_CHAIN_ID,
+      ) &&
       isObject(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]);
 
-    const isValidMegaEthTestnetV1RpcEndpoints = hasProperty(networkConfigurationsByChainId, MEGAETH_TESTNET_V1_CHAIN_ID) &&
-    isObject(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]) &&
-      hasProperty(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID], 'rpcEndpoints') &&
-      Array.isArray(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID].rpcEndpoints);
+    const isValidMegaEthTestnetV1RpcEndpoints =
+      hasProperty(
+        networkConfigurationsByChainId,
+        MEGAETH_TESTNET_V1_CHAIN_ID,
+      ) &&
+      isObject(networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]) &&
+      hasProperty(
+        networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID],
+        'rpcEndpoints',
+      ) &&
+      Array.isArray(
+        networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]
+          .rpcEndpoints,
+      );
 
-    const isMegaEthTestnetV1EnablementMapExists = hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V1_CHAIN_ID);
+    const isMegaEthTestnetV1EnablementMapExists = hasProperty(
+      eip155NetworkMap,
+      MEGAETH_TESTNET_V1_CHAIN_ID,
+    );
 
     const isMegaEthTestnetV1Enabled =
       isMegaEthTestnetV1EnablementMapExists &&
@@ -211,8 +276,7 @@ export default function migrate(versionedState: unknown) {
     if (
       isMegaEthTestnetV1Enabled ||
       networkState.selectedNetworkClientId === 'megaeth-testnet' ||
-      (
-        isValidMegaEthTestnetV1Configuration &&
+      (isValidMegaEthTestnetV1Configuration &&
         isValidMegaEthTestnetV1RpcEndpoints &&
         megaEthTestnetV1Configuration.rpcEndpoints.some(
           (rpcEndpoint) =>
@@ -228,16 +292,12 @@ export default function migrate(versionedState: unknown) {
     // It is safe to remove the MegaETH Testnet v1 network configuration,
     // if MegaETH Testnet v1 is enabled, then it will be switched to mainnet.
     // if MegaETH Testnet v1 is not enabled, then there is no concern to remove it.
-    if (
-      isMegaEthTestnetV1EnablementMapExists
-    ) {
+    if (isMegaEthTestnetV1EnablementMapExists) {
       delete eip155NetworkMap[MEGAETH_TESTNET_V1_CHAIN_ID];
     }
 
     // It is safe to remove the MegaETH Testnet v1 network configuration,
-    if (
-      isValidMegaEthTestnetV1Configuration
-    ) {
+    if (isValidMegaEthTestnetV1Configuration) {
       delete networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID];
     }
 
