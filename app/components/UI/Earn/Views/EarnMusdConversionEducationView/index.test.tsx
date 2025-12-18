@@ -211,6 +211,7 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           outputChainId: mockRouteParams.outputChainId,
           preferredPaymentToken: mockRouteParams.preferredPaymentToken,
+          skipEducationCheck: true,
         });
       });
     });

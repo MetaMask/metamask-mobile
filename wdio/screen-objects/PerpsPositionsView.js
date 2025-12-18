@@ -15,7 +15,7 @@ class PerpsPositionsView {
   }
 
   async tapPositionItem() {
-    await AppwrightGestures.tap(this.positionItem);
+    await AppwrightGestures.tap(await this.positionItem);
   }
 }
 

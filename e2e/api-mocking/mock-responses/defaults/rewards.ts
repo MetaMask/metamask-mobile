@@ -6,6 +6,16 @@ import { MockEventsObject } from '../../../framework';
  */
 
 export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
+  GET: [
+    {
+      urlEndpoint:
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/rewards\/ois$/,
+      responseCode: 200,
+      response: {
+        ois: [],
+      },
+    },
+  ],
   POST: [
     {
       urlEndpoint:

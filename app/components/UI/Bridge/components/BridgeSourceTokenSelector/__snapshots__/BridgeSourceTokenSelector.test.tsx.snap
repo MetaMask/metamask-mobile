@@ -441,7 +441,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }
