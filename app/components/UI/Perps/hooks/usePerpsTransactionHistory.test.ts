@@ -20,25 +20,6 @@ jest.mock('./useUserHistory');
 jest.mock('../utils/transactionTransforms');
 jest.mock('./stream/usePerpsLiveFills');
 
-// Suppress act() warnings from auto-fetch behavior in useEffect
-// These warnings occur because the hook auto-fetches on mount and the async
-// state updates complete outside of act(). This is expected behavior for
-// hooks with auto-fetch and doesn't affect test correctness.
-const originalConsoleError = console.error;
-beforeAll(() => {
-  console.error = (...args: unknown[]) => {
-    const message = args[0];
-    if (typeof message === 'string' && message.includes('not wrapped in act')) {
-      return;
-    }
-    originalConsoleError.apply(console, args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalConsoleError;
-});
-
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseUserHistory = useUserHistory as jest.MockedFunction<
