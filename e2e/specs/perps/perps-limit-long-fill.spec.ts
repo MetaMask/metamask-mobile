@@ -60,7 +60,9 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         await PerpsView.tapPlaceOrderButton();
 
         // Tap Turn on notifications on the Order placed modal
-        await PerpsOrderView.tapTurnOnNotificationsButton();
+        if (device.getPlatform() === 'ios') {
+          await PerpsOrderView.tapTurnOnNotificationsButton();
+        }
 
         // The view returns to Market Details. Change to Orders tab and verify open order card
         await PerpsMarketDetailsView.expectOpenOrderVisible();
