@@ -111,7 +111,6 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
@@ -1282,11 +1281,7 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        {isMultichainAccountsState2Enabled ? (
-          <AccountGroupBalance />
-        ) : (
-          <PortfolioBalance />
-        )}
+        <AccountGroupBalance />
 
         <AssetDetailsActions
           displayBuyButton={displayBuyButton}
