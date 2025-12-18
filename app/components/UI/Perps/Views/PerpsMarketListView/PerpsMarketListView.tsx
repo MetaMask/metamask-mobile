@@ -329,7 +329,7 @@ const PerpsMarketListView = ({
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
   const hasPerpBalance =
     livePositions.positions.length > 0 ||
-    (perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
+    (!!perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
 
   // Extract button_clicked and button_location from route params
   const buttonClicked = route.params?.button_clicked;

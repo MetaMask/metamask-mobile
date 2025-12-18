@@ -87,8 +87,6 @@ export const usePerpsValidationTracking = ({
           trackedWarningsRef.current.add(warning);
           track(MetaMetricsEvents.PERPS_ERROR, {
             [PerpsEventProperties.WARNING_MESSAGE]: warning,
-            [PerpsEventProperties.WARNING_TYPE]:
-              PerpsEventValues.WARNING_TYPE.MINIMUM_ORDER_SIZE,
             [PerpsEventProperties.SCREEN_TYPE]: screenType,
             [PerpsEventProperties.ASSET]: asset,
             ...(screenName && {
