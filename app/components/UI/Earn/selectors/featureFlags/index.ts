@@ -149,6 +149,78 @@ export const selectMusdConversionCTATokens = createSelector(
 );
 
 /**
+ * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
+ * Returns a wildcard allowlist mapping chain IDs (or "*") to token symbols (or ["*"]).
+ *
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: allows all tokens on that chain
+ *
+ * Examples:
+ * - { "*": ["USDC"] }           - Allow USDC on ALL chains
+ * - { "0x1": ["*"] }            - Allow ALL tokens on Ethereum mainnet
+ * - { "0x1": ["USDC", "USDT", "DAI"], "0xe708": ["USDC", "USDT"] } - Allow specific tokens on specific chains
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (empty allowlist = allow all tokens).
+ */
+// TODO: Consider consolidating duplicate logic for allowlist and blocklist into helper.
+export const selectMusdConversionPaymentTokensAllowlist = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList => {
+    // Try remote flag first (takes precedence)
+    const remoteAllowlist =
+      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist;
+
+    if (remoteAllowlist) {
+      try {
+        const parsedRemote =
+          typeof remoteAllowlist === 'string'
+            ? JSON.parse(remoteAllowlist)
+            : remoteAllowlist;
+
+        if (isValidWildcardTokenList(parsedRemote)) {
+          return parsedRemote;
+        }
+        console.warn(
+          'Remote earnMusdConvertibleTokensAllowlist produced invalid structure. ' +
+            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
+        );
+      } catch (error) {
+        console.warn(
+          'Failed to parse remote earnMusdConvertibleTokensAllowlist:',
+          error,
+        );
+      }
+    }
+
+    // Fallback to local env var
+    try {
+      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
+
+      if (localEnvValue) {
+        const parsed = JSON.parse(localEnvValue);
+        if (isValidWildcardTokenList(parsed)) {
+          return parsed;
+        }
+        console.warn(
+          'Local MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST produced invalid structure. ' +
+            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
+        );
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST:',
+        error,
+      );
+    }
+
+    // Default: empty allowlist = allow all tokens
+    return {};
+  },
+);
+
+/**
  * Selects the blocked payment tokens for mUSD conversion from remote config or local fallback.
  * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
  *

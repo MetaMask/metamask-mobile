@@ -128,6 +128,10 @@ jest.mock('../../hooks/useMusdConversionTokens', () => ({
   __esModule: true,
   useMusdConversionTokens: jest.fn().mockReturnValue({
     isConversionToken: jest.fn().mockReturnValue(false),
+    isTokenWithCta: jest.fn().mockReturnValue(false),
+    filterAllowedTokens: jest.fn().mockReturnValue([]),
+    tokens: [],
+    tokensWithCTAs: [],
   }),
 }));
 
@@ -332,10 +336,12 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      tokenFilter: jest.fn().mockReturnValue([]),
+      isTokenWithCta: jest.fn().mockReturnValue(false),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
+      tokensWithCTAs: [],
     });
 
     const { toJSON } = renderWithProvider(
@@ -490,10 +496,12 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      tokenFilter: jest.fn().mockReturnValue([]),
+      isTokenWithCta: jest.fn().mockReturnValue(false),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
+      tokensWithCTAs: [],
     });
 
     const { queryByTestId } = renderWithProvider(
@@ -519,10 +527,12 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      tokenFilter: jest.fn().mockReturnValue([]),
+      isTokenWithCta: jest.fn().mockReturnValue(false),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
+      tokensWithCTAs: [],
     });
 
     const { queryByTestId } = renderWithProvider(
@@ -554,10 +564,12 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      tokenFilter: jest.fn().mockReturnValue([]),
+      isTokenWithCta: jest.fn().mockReturnValue(true),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
+      tokensWithCTAs: [],
     });
 
     const { getByTestId } = renderWithProvider(
@@ -590,10 +602,12 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      tokenFilter: jest.fn().mockReturnValue([]),
+      isTokenWithCta: jest.fn().mockReturnValue(true),
+      filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
+      tokensWithCTAs: [],
     });
 
     (

@@ -1,9 +1,13 @@
 import { useSelector } from 'react-redux';
 import {
   selectMusdConversionCTATokens,
+  selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
 } from '../selectors/featureFlags';
-import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import {
+  isTokenAllowed,
+  isTokenInWildcardList,
+} from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
@@ -16,6 +20,10 @@ import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 
 export const useMusdConversionTokens = () => {
+  const musdConversionPaymentTokensAllowlist = useSelector(
+    selectMusdConversionPaymentTokensAllowlist,
+  );
+
   const musdConversionPaymentTokensBlocklist = useSelector(
     selectMusdConversionPaymentTokensBlocklist,
   );
@@ -24,24 +32,29 @@ export const useMusdConversionTokens = () => {
 
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
-  // Remove tokens that are blocked from being used for mUSD conversion.
-  const filterBlockedTokens = useCallback(
+  // Filter tokens based on allowlist and blocklist rules.
+  // If allowlist is non-empty, token must be in it.
+  // If blocklist is non-empty, token must NOT be in it.
+  const filterAllowedTokens = useCallback(
     (tokens: AssetType[]) =>
-      tokens.filter(
-        (token) =>
-          !isTokenInWildcardList(
-            token.symbol,
-            musdConversionPaymentTokensBlocklist,
-            token.chainId,
-          ),
+      tokens.filter((token) =>
+        isTokenAllowed(
+          token.symbol,
+          musdConversionPaymentTokensAllowlist,
+          musdConversionPaymentTokensBlocklist,
+          token.chainId,
+        ),
       ),
-    [musdConversionPaymentTokensBlocklist],
+    [
+      musdConversionPaymentTokensAllowlist,
+      musdConversionPaymentTokensBlocklist,
+    ],
   );
 
   // Allowed tokens for conversion.
   const conversionTokens = useMemo(
-    () => filterBlockedTokens(allTokens),
-    [allTokens, filterBlockedTokens],
+    () => filterAllowedTokens(allTokens),
+    [allTokens, filterAllowedTokens],
   );
 
   const isConversionToken = (token?: AssetType | TokenI) => {
@@ -100,7 +113,7 @@ export const useMusdConversionTokens = () => {
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
 
   return {
-    filterBlockedTokens,
+    filterAllowedTokens,
     isConversionToken,
     isTokenWithCta,
     isMusdSupportedOnChain,

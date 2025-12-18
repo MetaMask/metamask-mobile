@@ -1,6 +1,7 @@
 import {
   isValidWildcardTokenList,
   isTokenInWildcardList,
+  isTokenAllowed,
   WildcardTokenList,
 } from './wildcardTokenList';
 
@@ -321,6 +322,232 @@ describe('isTokenInWildcardList', () => {
       const result = isTokenInWildcardList('USDC', undefined, '0x1');
 
       expect(result).toBe(false);
+    });
+  });
+});
+
+describe('isTokenAllowed', () => {
+  describe('allowlist-only scenarios', () => {
+    it('allows token when in allowlist', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT', 'DAI'],
+      };
+
+      const result = isTokenAllowed('USDC', allowlist, {}, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('rejects token when not in allowlist', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT', 'DAI'],
+      };
+
+      const result = isTokenAllowed('WBTC', allowlist, {}, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('allows all tokens when allowlist is empty', () => {
+      const result = isTokenAllowed('WBTC', {}, {}, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('allows token when allowlist uses chain wildcard', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['*'],
+      };
+
+      expect(isTokenAllowed('USDC', allowlist, {}, '0x1')).toBe(true);
+      expect(isTokenAllowed('WBTC', allowlist, {}, '0x1')).toBe(true);
+    });
+
+    it('allows token when allowlist uses global wildcard', () => {
+      const allowlist: WildcardTokenList = {
+        '*': ['*'],
+      };
+
+      expect(isTokenAllowed('USDC', allowlist, {}, '0x1')).toBe(true);
+      expect(isTokenAllowed('WBTC', allowlist, {}, '0xa4b1')).toBe(true);
+    });
+
+    it('rejects token on wrong chain even when in allowlist for other chain', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC'],
+      };
+
+      const result = isTokenAllowed('USDC', allowlist, {}, '0xa4b1');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('blocklist-only scenarios', () => {
+    it('rejects token when in blocklist', () => {
+      const blocklist: WildcardTokenList = {
+        '*': ['TUSD'],
+      };
+
+      const result = isTokenAllowed('TUSD', {}, blocklist, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('allows token when not in blocklist', () => {
+      const blocklist: WildcardTokenList = {
+        '*': ['TUSD'],
+      };
+
+      const result = isTokenAllowed('USDC', {}, blocklist, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('allows all tokens when blocklist is empty', () => {
+      const result = isTokenAllowed('TUSD', {}, {}, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('rejects all tokens on chain when blocklist uses chain wildcard', () => {
+      const blocklist: WildcardTokenList = {
+        '0x1': ['*'],
+      };
+
+      expect(isTokenAllowed('USDC', {}, blocklist, '0x1')).toBe(false);
+      expect(isTokenAllowed('WBTC', {}, blocklist, '0x1')).toBe(false);
+    });
+
+    it('allows tokens on other chains when only one chain is blocklisted', () => {
+      const blocklist: WildcardTokenList = {
+        '0x1': ['*'],
+      };
+
+      const result = isTokenAllowed('USDC', {}, blocklist, '0xa4b1');
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('combined allowlist + blocklist scenarios', () => {
+    it('rejects token in allowlist when also in blocklist', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT', 'DAI'],
+      };
+      const blocklist: WildcardTokenList = {
+        '*': ['USDT'],
+      };
+
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('USDT', allowlist, blocklist, '0x1')).toBe(false);
+      expect(isTokenAllowed('DAI', allowlist, blocklist, '0x1')).toBe(true);
+    });
+
+    it('rejects token not in allowlist even if not in blocklist', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT'],
+      };
+      const blocklist: WildcardTokenList = {
+        '*': ['TUSD'],
+      };
+
+      const result = isTokenAllowed('WBTC', allowlist, blocklist, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('allows all tokens except blocklisted when allowlist allows all', () => {
+      const allowlist: WildcardTokenList = {
+        '*': ['*'],
+      };
+      const blocklist: WildcardTokenList = {
+        '*': ['TUSD'],
+      };
+
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('TUSD', allowlist, blocklist, '0x1')).toBe(false);
+      expect(isTokenAllowed('WBTC', allowlist, blocklist, '0xa4b1')).toBe(true);
+    });
+
+    it('handles chain-specific allowlist with global blocklist', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT', 'DAI'],
+        '0xe708': ['USDC', 'USDT'],
+      };
+      const blocklist: WildcardTokenList = {
+        '*': ['USDT'],
+      };
+
+      // Mainnet: USDC allowed, USDT blocked, DAI allowed
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('USDT', allowlist, blocklist, '0x1')).toBe(false);
+      expect(isTokenAllowed('DAI', allowlist, blocklist, '0x1')).toBe(true);
+
+      // Linea: USDC allowed, USDT blocked
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0xe708')).toBe(true);
+      expect(isTokenAllowed('USDT', allowlist, blocklist, '0xe708')).toBe(
+        false,
+      );
+
+      // Other chains: nothing allowed (not in allowlist)
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0xa4b1')).toBe(
+        false,
+      );
+    });
+
+    it('handles PM requirement: specific tokens on specific chains', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC', 'USDT', 'DAI'],
+        '0xe708': ['USDC', 'USDT'],
+      };
+      const blocklist: WildcardTokenList = {};
+
+      // Mainnet: all three allowed
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('USDT', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('DAI', allowlist, blocklist, '0x1')).toBe(true);
+      expect(isTokenAllowed('WBTC', allowlist, blocklist, '0x1')).toBe(false);
+
+      // Linea: only USDC and USDT
+      expect(isTokenAllowed('USDC', allowlist, blocklist, '0xe708')).toBe(true);
+      expect(isTokenAllowed('USDT', allowlist, blocklist, '0xe708')).toBe(true);
+      expect(isTokenAllowed('DAI', allowlist, blocklist, '0xe708')).toBe(false);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('returns false when chainId is undefined', () => {
+      const result = isTokenAllowed('USDC', {}, {}, undefined);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when chainId is empty string', () => {
+      const result = isTokenAllowed('USDC', {}, {}, '');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when tokenSymbol is empty string', () => {
+      const result = isTokenAllowed('', {}, {}, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('uses empty lists as defaults when undefined', () => {
+      const result = isTokenAllowed('USDC', undefined, undefined, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('performs case-insensitive matching', () => {
+      const allowlist: WildcardTokenList = {
+        '0x1': ['USDC'],
+      };
+
+      expect(isTokenAllowed('usdc', allowlist, {}, '0x1')).toBe(true);
+      expect(isTokenAllowed('Usdc', allowlist, {}, '0x1')).toBe(true);
     });
   });
 });
