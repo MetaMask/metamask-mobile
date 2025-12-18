@@ -43,4 +43,15 @@ export interface SrpInputGridProps {
    * Whether the inputs should be disabled
    */
   disabled?: boolean;
+
+  /**
+   * Callback when the current input word changes (for external suggestions rendering)
+   */
+  onCurrentWordChange?: (word: string) => void;
+
+  /**
+   * When true, suggestions will NOT be rendered internally.
+   * Parent component is responsible for rendering SrpWordSuggestions externally.
+   */
+  renderSuggestionsExternally?: boolean;
 }

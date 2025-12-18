@@ -229,6 +229,12 @@ const createStyles = (colors: any) =>
     animatedContainer: {
       flex: 1,
     },
+    keyboardStickyView: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
   });
 
 export default createStyles;

@@ -34,6 +34,7 @@ import SrpWordSuggestions from '../SrpWordSuggestions';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
+  handleSuggestionSelect: (word: string) => void;
 }
 
 /**
@@ -58,6 +59,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
+      onCurrentWordChange,
+      renderSuggestionsExternally = false,
     },
     ref,
   ) => {
@@ -387,8 +390,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       });
     }, [nextSeedPhraseInputFocusedIndex]);
 
+    // Notify parent of current word changes for external suggestions rendering
+    useEffect(() => {
+      onCurrentWordChange?.(currentInputWord);
+    }, [currentInputWord, onCurrentWordChange]);
+
     React.useImperativeHandle(ref, () => ({
       handleSeedPhraseChange,
+      handleSuggestionSelect,
     }));
 
     return (
@@ -530,7 +539,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             : strings('import_from_seed.paste')}
         </Text>
 
-        {isSrpWordSuggestionsEnabled && (
+        {isSrpWordSuggestionsEnabled && !renderSuggestionsExternally && (
           <SrpWordSuggestions
             currentInputWord={currentInputWord}
             onSuggestionSelect={handleSuggestionSelect}
