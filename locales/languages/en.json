@@ -5057,7 +5057,7 @@
       "approve": "Approve {{sourceToken}} for swaps: Up to {{upTo}}"
     },
     "notification_label": {
-      "swap_pending": "Pending Swap ({{sourceToken}} to {{destinationToken}})",
+      "swap_pending": "Pending swap ({{sourceToken}} to {{destinationToken}})",
       "swap_confirmed": "Swap complete ({{sourceToken}} to {{destinationToken}})",
       "approve_pending": "Approving {{sourceToken}} for swaps",
       "approve_confirmed": "{{sourceToken}} approved for swaps"
@@ -5132,7 +5132,7 @@
       "descriptions": {
         "description_1": "Network dropdown moved to your assets",
         "description_2": "Swap and Bridge in one simple flow",
-        "description_3": "Streamlined Send experience",
+        "description_3": "Streamlined send experience",
         "description_4": "A fresh account view"
       },
       "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
@@ -5155,7 +5155,7 @@
     "request_update_network_url": "{{dapp_origin}} is requesting to update your default network URL. You can edit defaults and network information any time.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
-    "switch": "Switch Network"
+    "switch": "Switch network"
   },
   "add_custom_network": {
     "title": "Allow this site to add a network?",
@@ -5204,21 +5204,21 @@
       "aggressive_label": "Aggressive",
       "aggressive_text": "High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.",
       "market_label": "Market",
-      "market_text": "Use Market for fast processing at current market price.",
+      "market_text": "Use market for fast processing at current market price.",
       "low_label": "Low",
-      "low_text": "Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.",
+      "low_text": "Use low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.",
       "link": "Learn more about customizing gas."
     },
     "save": "Save",
     "submit": "Submit",
-    "max_priority_fee_low": "Max Priority Fee is low for current network conditions",
-    "max_priority_fee_high": "Max Priority Fee is higher than necessary",
-    "max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
-    "max_fee_low": "Max Fee is low for current network conditions",
-    "max_fee_high": "Max Fee is higher than necessary",
-    "max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
+    "max_priority_fee_low": "Max priority fee is low for current network conditions",
+    "max_priority_fee_high": "Max priority fee is higher than necessary",
+    "max_priority_fee_speed_up_low": "Max priority fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_priority_fee_cancel_low": "Max priority fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
+    "max_fee_low": "Max fee is low for current network conditions",
+    "max_fee_high": "Max fee is higher than necessary",
+    "max_fee_speed_up_low": "Max fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_fee_cancel_low": "Max fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
     "learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
     "learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
     "learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
@@ -5609,7 +5609,7 @@
     "approval": "Approval",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "transaction_submitted": "Transaction Submitted",
+    "transaction_submitted": "Transaction submitted",
     "every_minute": "Every minute",
     "immediate": "Immediate",
     "apr": "APR",
@@ -5627,20 +5627,20 @@
       "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
       "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
+        "your_health_factor_measures_liquidation_risk": "Your health factor measures liquidation risk",
         "above_two_dot_zero": "Above 2.0",
         "safe_position": "Safe position",
         "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
+        "medium_liquidation_risk": "Medium liquidation risk",
         "below_one_dot_five": "Below 1.5",
         "higher_liquidation_risk": "Higher liquidation risk"
       },
       "lending_risk_aware_withdrawal_tooltip": {
         "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
         "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
+        "pool_liquidity": "Pool liquidity",
         "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
+        "existing_borrow_positions": "Existing borrow positions",
         "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
       }
     },
@@ -5652,7 +5652,7 @@
     "network": "Network",
     "health_factor": "Health factor",
     "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
+    "insufficient_pool_liquidity": "Insufficient pool liquidity",
     "available_to_withdraw": "available to withdraw",
     "unknown": "unknown",
     "how_it_works": "How it works",
@@ -5671,7 +5671,7 @@
       "lending": "Position history",
       "staking": "Payout history"
     },
-    "allowance_reset": "Allowance Reset",
+    "allowance_reset": "Allowance reset",
     "tron": {
       "fee": "Fee"
     },
@@ -5852,11 +5852,11 @@
     "one_year_average": "1 year average"
   },
   "default_settings": {
-    "title": "Your Wallet is ready",
+    "title": "Your wallet is ready",
     "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
     "learn_more_about_privacy": "Learn more about privacy best practices.",
     "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
+    "default_settings": "Default settings",
     "done": "Done",
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
@@ -5892,7 +5892,7 @@
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
-    "fiat_not_available": "Not Available",
+    "fiat_not_available": "Not available",
     "incoming_heading": "You receive",
     "no_balance_changes": "No changes",
     "outgoing_heading": "You send",
@@ -5942,7 +5942,7 @@
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
       "part2": " and ",
-      "risk_disclosure": "Risk Disclosure",
+      "risk_disclosure": "Risk disclosure",
       "part3": "."
     },
     "label": {
@@ -5957,7 +5957,7 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To",
+      "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "total": "Total",
@@ -5978,7 +5978,7 @@
       "switch_account_type": "Account update",
       "approve": "Approve request",
       "perps_deposit": "Add funds",
-      "predict_deposit": "Add Predict funds",
+      "predict_deposit": "Add predict funds",
       "predict_withdraw": "Withdraw"
     },
     "sub_title": {
