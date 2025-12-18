@@ -12,6 +12,7 @@ on:
           description: 'Workflow run ID of an existing build to reuse (skips build step if provided)'
           required: false
           type: string
+          default: ''
 
 permissions:
   contents: read
@@ -56,7 +57,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
       single_test: ${{ inputs.single_test_file }}
-      artifact_run_id: '20287746913'
+      artifact_run_id: ${{ inputs.artifact_run_id }}
     secrets: inherit
   
   single-e2e-test-manual-android:
@@ -75,5 +76,5 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
       single_test: ${{ inputs.single_test_file }}
-      artifact_run_id: '20287746913'
+      artifact_run_id: ${{ inputs.artifact_run_id }}
     secrets: inherit
