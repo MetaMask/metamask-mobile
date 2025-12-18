@@ -67,6 +67,9 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
+  SUPPORTED_ACTIONS.PERPS,
+  SUPPORTED_ACTIONS.PERPS_MARKETS,
+  SUPPORTED_ACTIONS.PERPS_ASSET,
 ];
 
 /**
@@ -78,9 +81,7 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.MMSDK,
 ];
 
-const interstitialWhitelistUrls = [
-  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-] as const;
+const interstitialWhitelistUrls = [] as const;
 
 // This is used when links originate from within the app itself
 const inAppLinkSources = [

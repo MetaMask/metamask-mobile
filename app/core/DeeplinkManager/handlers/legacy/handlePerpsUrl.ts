@@ -107,8 +107,9 @@ const handleAssetNavigation = async (rawSymbol: string) => {
 
   // Create a minimal market object with the symbol and optional marketSource
   // The PerpsMarketDetailsView will fetch the full data
+  // Use combined format (dex:symbol) for HIP-3 to match API format
   const market = {
-    symbol,
+    symbol: marketSource ? `${marketSource}:${symbol}` : symbol,
     name: symbol,
     price: '0',
     change24h: '0',

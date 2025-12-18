@@ -527,7 +527,7 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: expect.objectContaining({
-            symbol: 'TSLA',
+            symbol: 'xyz:TSLA',
             name: 'TSLA',
             marketSource: 'xyz',
           }),
@@ -545,7 +545,7 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: expect.objectContaining({
-            symbol: 'XYZ100',
+            symbol: 'xyz:XYZ100',
             name: 'XYZ100',
             marketSource: 'xyz',
           }),
@@ -561,7 +561,8 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: expect.objectContaining({
-            symbol: 'AAPL',
+            symbol: 'xyz:AAPL',
+            name: 'AAPL',
             marketSource: 'xyz',
           }),
           source: 'deeplink',
