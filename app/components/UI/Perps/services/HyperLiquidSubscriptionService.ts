@@ -529,49 +529,58 @@ export class HyperLiquidSubscriptionService {
       if (order.triggerPx) {
         const isTakeProfit = order.orderType?.includes('Take Profit');
         const isStop = order.orderType?.includes('Stop');
-        const currentTakeProfitCount =
-          tpslCountMap.get(order.coin)?.takeProfitCount || 0;
-        const currentStopLossCount =
-          tpslCountMap.get(order.coin)?.stopLossCount || 0;
-
-        tpslCountMap.set(order.coin, {
-          takeProfitCount: isTakeProfit
-            ? currentTakeProfitCount + 1
-            : currentTakeProfitCount,
-          stopLossCount: isStop
-            ? currentStopLossCount + 1
-            : currentStopLossCount,
-        });
 
         const coin = order.coin;
         position = positions.find(matchPositionToTpsl);
         positionForCoin = positions.find(matchPositionToCoin);
 
-        if (position) {
-          const existing = tpslMap.get(coin) || {};
+        // Determine TP vs SL classification for count and price updates
+        // Use order type first, fallback to price-based detection for ambiguous 'Trigger' types
+        // This matches the cached order processing logic for consistency
+        let classifiedAsTakeProfit = isTakeProfit;
+        let classifiedAsStop = isStop;
+
+        if (!isTakeProfit && !isStop && position) {
+          // Fallback: determine based on trigger price vs entry price
+          // This handles orders with ambiguous type 'Trigger'
+          const triggerPrice = parseFloat(order.triggerPx);
+          const entryPrice = parseFloat(position.entryPrice || '0');
           const isLong = parseFloat(position.size) > 0;
 
-          // Determine if it's TP or SL based on order type
-          if (isTakeProfit) {
-            existing.takeProfitPrice = order.triggerPx;
-          } else if (isStop) {
-            existing.stopLossPrice = order.triggerPx;
-          } else {
-            // Fallback: determine based on trigger price vs entry price
-            const triggerPrice = parseFloat(order.triggerPx);
-            const entryPrice = parseFloat(position.entryPrice || '0');
-
-            if (isLong) {
-              if (triggerPrice > entryPrice) {
-                existing.takeProfitPrice = order.triggerPx;
-              } else {
-                existing.stopLossPrice = order.triggerPx;
-              }
-            } else if (triggerPrice < entryPrice) {
-              existing.takeProfitPrice = order.triggerPx;
+          if (isLong) {
+            if (triggerPrice > entryPrice) {
+              classifiedAsTakeProfit = true;
             } else {
-              existing.stopLossPrice = order.triggerPx;
+              classifiedAsStop = true;
             }
+          } else if (triggerPrice < entryPrice) {
+            classifiedAsTakeProfit = true;
+          } else {
+            classifiedAsStop = true;
+          }
+        }
+
+        const currentTakeProfitCount =
+          tpslCountMap.get(coin)?.takeProfitCount || 0;
+        const currentStopLossCount = tpslCountMap.get(coin)?.stopLossCount || 0;
+
+        tpslCountMap.set(coin, {
+          takeProfitCount: classifiedAsTakeProfit
+            ? currentTakeProfitCount + 1
+            : currentTakeProfitCount,
+          stopLossCount: classifiedAsStop
+            ? currentStopLossCount + 1
+            : currentStopLossCount,
+        });
+
+        if (position) {
+          const existing = tpslMap.get(coin) || {};
+
+          // Use classified values for price assignment (consistent with count logic)
+          if (classifiedAsTakeProfit) {
+            existing.takeProfitPrice = order.triggerPx;
+          } else if (classifiedAsStop) {
+            existing.stopLossPrice = order.triggerPx;
           }
 
           tpslMap.set(coin, existing);

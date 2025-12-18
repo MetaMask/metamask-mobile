@@ -2032,13 +2032,14 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       // Should correctly identify TP/SL based on trigger price vs entry price
+      // With the fix, ambiguous 'Trigger' orders are now counted correctly using price-based fallback
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
           coin: 'BTC',
           takeProfitPrice: '55000', // Above entry price
           stopLossPrice: '45000', // Below entry price
-          takeProfitCount: 0, // Count is handled separately in the service
-          stopLossCount: 0, // Count is handled separately in the service
+          takeProfitCount: 1, // Ambiguous orders now counted via price-based fallback
+          stopLossCount: 1, // Ambiguous orders now counted via price-based fallback
         }),
       ]);
 
@@ -2154,13 +2155,14 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       // For short positions: TP when trigger < entry, SL when trigger > entry
+      // With the fix, ambiguous 'Trigger' orders are now counted correctly using price-based fallback
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
           coin: 'BTC',
           takeProfitPrice: '45000', // Below entry price for short
           stopLossPrice: '55000', // Above entry price for short
-          takeProfitCount: 0, // Count is handled separately in the service
-          stopLossCount: 0, // Count is handled separately in the service
+          takeProfitCount: 1, // Ambiguous orders now counted via price-based fallback
+          stopLossCount: 1, // Ambiguous orders now counted via price-based fallback
         }),
       ]);
 
@@ -2549,23 +2551,25 @@ describe('HyperLiquidSubscriptionService', () => {
     it('preserves TP/SL data from cached orders with ambiguous Trigger type on clearinghouseState updates', async () => {
       const mockCallback = jest.fn();
 
-      // Mock the adapter for long position
+      // Mock the adapter for long position - returns position with size from input
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
-      mockAdapter.adaptPositionFromSDK.mockImplementation(() => ({
-        coin: 'BTC',
-        size: '1.0', // Long position
-        entryPrice: '50000',
-        positionValue: '50000',
-        unrealizedPnl: '5000',
-        marginUsed: '25000',
-        leverage: { type: 'cross', value: 2 },
-        liquidationPrice: '40000',
-        maxLeverage: 100,
-        returnOnEquity: '10.0',
-        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
-        takeProfitCount: 0,
-        stopLossCount: 0,
-      }));
+      mockAdapter.adaptPositionFromSDK.mockImplementation(
+        (assetPos: { position: { szi: string } }) => ({
+          coin: 'BTC',
+          size: assetPos.position.szi, // Use actual size from input
+          entryPrice: '50000',
+          positionValue: '50000',
+          unrealizedPnl: '5000',
+          marginUsed: '25000',
+          leverage: { type: 'cross', value: 2 },
+          liquidationPrice: '40000',
+          maxLeverage: 100,
+          returnOnEquity: '10.0',
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }),
+      );
 
       // Track callback invocations for clearinghouseState
       const callbackRef: { current: ((data: any) => void) | null } = {
@@ -2676,8 +2680,9 @@ describe('HyperLiquidSubscriptionService', () => {
       // Clear mock to track subsequent calls
       mockCallback.mockClear();
 
-      // Simulate a subsequent clearinghouseState update (e.g., PnL update)
+      // Simulate a subsequent clearinghouseState update (e.g., position size change)
       // This triggers re-extraction of TP/SL from CACHED orders
+      // Note: We change szi slightly to ensure positionsHash changes and callback is triggered
       expect(callbackRef.current).not.toBeNull();
       if (callbackRef.current) {
         callbackRef.current({
@@ -2686,7 +2691,7 @@ describe('HyperLiquidSubscriptionService', () => {
             assetPositions: [
               {
                 position: {
-                  szi: '1.0',
+                  szi: '1.1', // Changed from 1.0 - ensures positionsHash differs and callback fires
                   coin: 'BTC',
                   entryPrice: '50000',
                 },
