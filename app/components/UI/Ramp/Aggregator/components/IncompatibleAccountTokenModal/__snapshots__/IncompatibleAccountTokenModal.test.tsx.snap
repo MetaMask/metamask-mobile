@@ -455,7 +455,6 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

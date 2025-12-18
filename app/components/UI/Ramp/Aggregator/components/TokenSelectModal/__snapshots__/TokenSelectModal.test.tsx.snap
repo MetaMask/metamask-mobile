@@ -455,7 +455,6 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

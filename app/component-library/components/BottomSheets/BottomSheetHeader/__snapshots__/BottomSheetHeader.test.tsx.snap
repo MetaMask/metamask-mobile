@@ -22,7 +22,6 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
     style={
       [
         {
-          "alignItems": "center",
           "display": "flex",
           "flexBasis": "0%",
           "flexGrow": 1,
@@ -34,6 +33,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
   >
     <Text
       accessibilityRole="text"
+      maxFontSizeMultiplier={1.75}
       style={
         [
           {
@@ -78,7 +78,6 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
     style={
       [
         {
-          "alignItems": "flex-start",
           "display": "flex",
           "flexBasis": "0%",
           "flexGrow": 1,
@@ -90,6 +89,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
   >
     <Text
       accessibilityRole="text"
+      maxFontSizeMultiplier={1.75}
       style={
         [
           {
@@ -133,7 +133,6 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
     style={
       [
         {
-          "alignItems": "center",
           "display": "flex",
           "flexBasis": "0%",
           "flexGrow": 1,
@@ -145,6 +144,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
   >
     <Text
       accessibilityRole="text"
+      maxFontSizeMultiplier={1.75}
       style={
         [
           {

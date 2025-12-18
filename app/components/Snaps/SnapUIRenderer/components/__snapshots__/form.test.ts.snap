@@ -995,7 +995,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                             style={
                               [
                                 {
-                                  "alignItems": "center",
                                   "display": "flex",
                                   "flexBasis": "0%",
                                   "flexGrow": 1,
@@ -1007,6 +1006,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           >
                             <Text
                               accessibilityRole="text"
+                              maxFontSizeMultiplier={1.75}
                               style={
                                 [
                                   {
@@ -1728,7 +1728,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                             style={
                               [
                                 {
-                                  "alignItems": "center",
                                   "display": "flex",
                                   "flexBasis": "0%",
                                   "flexGrow": 1,
@@ -1740,6 +1739,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           >
                             <Text
                               accessibilityRole="text"
+                              maxFontSizeMultiplier={1.75}
                               style={
                                 [
                                   {

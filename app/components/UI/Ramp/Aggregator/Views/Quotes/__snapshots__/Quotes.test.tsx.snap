@@ -1181,7 +1181,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1193,6 +1192,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -3464,7 +3464,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -3476,6 +3475,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -5351,7 +5351,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -5363,6 +5362,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {

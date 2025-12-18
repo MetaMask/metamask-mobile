@@ -455,7 +455,6 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1596,7 +1595,6 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2737,7 +2735,6 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

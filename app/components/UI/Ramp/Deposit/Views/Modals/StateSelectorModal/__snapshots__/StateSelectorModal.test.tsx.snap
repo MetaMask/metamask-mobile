@@ -455,7 +455,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1256,7 +1255,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2001,7 +1999,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2802,7 +2799,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -3603,7 +3599,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -4667,7 +4662,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

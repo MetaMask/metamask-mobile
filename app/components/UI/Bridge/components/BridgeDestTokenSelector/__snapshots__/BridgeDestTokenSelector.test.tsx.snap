@@ -456,7 +456,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -468,6 +467,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {

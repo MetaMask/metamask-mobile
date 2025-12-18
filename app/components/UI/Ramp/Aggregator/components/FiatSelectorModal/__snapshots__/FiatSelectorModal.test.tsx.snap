@@ -455,7 +455,6 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1391,7 +1390,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2327,7 +2325,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -3263,7 +3260,6 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

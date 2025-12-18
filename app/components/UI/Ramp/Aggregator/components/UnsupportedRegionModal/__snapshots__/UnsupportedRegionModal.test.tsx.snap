@@ -430,7 +430,6 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1026,7 +1025,6 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

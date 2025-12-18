@@ -455,7 +455,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -467,6 +466,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -1167,7 +1167,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1179,6 +1178,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -2075,7 +2075,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2087,6 +2086,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -3215,7 +3215,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -3227,6 +3226,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -3968,7 +3968,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -3980,6 +3979,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -4809,7 +4809,6 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -4821,6 +4820,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -5949,7 +5949,6 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -5961,6 +5960,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
@@ -7089,7 +7089,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -7101,6 +7100,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             >
                               <Text
                                 accessibilityRole="text"
+                                maxFontSizeMultiplier={1.75}
                                 style={
                                   [
                                     {
