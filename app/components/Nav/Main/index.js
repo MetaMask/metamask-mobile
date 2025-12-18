@@ -95,6 +95,7 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { CardVerification } from '../../UI/Card/sdk';
+import { isE2E } from '../../../util/test/utils';
 
 const Stack = createStackNavigator();
 
@@ -190,7 +191,7 @@ const Main = (props) => {
 
       // If the app is now in background, we need to start
       // the background timer, which is less intense
-      if (backgroundMode.current) {
+      if (backgroundMode.current && !isE2E) {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
