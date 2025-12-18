@@ -177,7 +177,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.ways_to_earn.card.sheet.points': '1 point per $1 spent',
       'rewards.ways_to_earn.card.sheet.description':
         'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
-      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage Card',
+      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage card',
       // Deposit MUSD strings
       'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
       'rewards.ways_to_earn.deposit_musd.description':
@@ -209,7 +209,7 @@ jest.mock('./SwapSupportedNetworksSection', () => ({
     return ReactActual.createElement(
       Text,
       { testID: 'swap-supported-networks' },
-      'Supported Networks',
+      'Supported networks',
     );
   },
 }));
@@ -1277,7 +1277,7 @@ describe('WaysToEarn', () => {
         {
           type: WayToEarnType.CARD,
           buttonText: 'MetaMask Card',
-          expectedCTALabel: 'Manage Card',
+          expectedCTALabel: 'Manage card',
           enableFlag: () => {
             mockIsCardSpendEnabled = true;
           },
