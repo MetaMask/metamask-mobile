@@ -1788,9 +1788,12 @@
     },
     "sort": {
       "volume": "Volume",
+      "volume_short": "Vol",
       "price_change": "Price change",
       "funding_rate": "Funding rate",
+      "funding_rate_short": "Funding",
       "open_interest": "Open interest",
+      "open_interest_short": "OI",
       "high_to_low": "High to Low",
       "low_to_high": "Low to High",
       "high": "High",
