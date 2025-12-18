@@ -78,9 +78,44 @@ env:
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
+  determine-branch-name:
+    name: Determine Branch Name for Bitrise
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.get-branch.outputs.branch_name }}
+    steps:
+      - name: Get correct branch name
+        id: get-branch
+        env:
+          INPUT_BRANCH: ${{ inputs.branch_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # Determine the correct branch name for all trigger scenarios:
+          # - workflow_call (from ci.yml): uses INPUT_BRANCH (github.head_ref for PRs, github.ref_name for push)
+          # - pull_request: uses HEAD_REF (source branch, e.g., "feature-branch")
+          # - schedule: uses REF_NAME (typically "main")
+          # - workflow_dispatch: uses INPUT_BRANCH if provided, otherwise REF_NAME
+          # Priority: explicit input > PR head_ref > ref_name
+          if [ -n "$INPUT_BRANCH" ]; then
+            BRANCH_NAME="$INPUT_BRANCH"
+            echo "Using explicit input: $BRANCH_NAME"
+          elif [ "$EVENT_NAME" = "pull_request" ] && [ -n "$HEAD_REF" ]; then
+            BRANCH_NAME="$HEAD_REF"
+            echo "Using PR source branch: $BRANCH_NAME"
+          else
+            BRANCH_NAME="$REF_NAME"
+            echo "Using ref_name: $BRANCH_NAME"
+          fi
+
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          echo "Branch for Bitrise: $BRANCH_NAME"
+
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
+    needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
@@ -90,17 +125,20 @@ jobs:
 
       - name: Select Devices
         id: read-matrix
+        env:
+          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           FILE="appwright/device-matrix.json"
 
           # PR or push to main: Use first low/medium device (fallback to first)
-          # Other: Use all devices
-          if [ "${{ github.event_name }}" = "pull_request" ] || ([ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]); then
+          # Other events (schedule, workflow_dispatch): Use all devices
+          # Note: When called via workflow_call, github.event_name is "workflow_call", so we check the branch name
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "$BRANCH_NAME" = "main" ] || ([ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]); then
             FILTER='if length == 0 then [] else [first((.[] | select(.category == "low" or .category == "medium")), .[0])] end'
-            echo "Limited mode: 1 device per platform"
+            echo "Limited mode: 1 device per platform (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
             FILTER='.'
-            echo "Full mode: All devices"
+            echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           fi
 
           ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
@@ -116,35 +154,6 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
-
-  determine-branch-name:
-    name: Determine Branch Name for Bitrise
-    runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.get-branch.outputs.branch_name }}
-    steps:
-      - name: Get correct branch name
-        id: get-branch
-        env:
-          INPUT_BRANCH: ${{ inputs.branch_name }}
-          HEAD_REF: ${{ github.head_ref }}
-          REF_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          # Priority: explicit input > PR head_ref > ref_name
-          if [ -n "$INPUT_BRANCH" ]; then
-            BRANCH_NAME="$INPUT_BRANCH"
-            echo "Using explicit input: $BRANCH_NAME"
-          elif [ "$EVENT_NAME" = "pull_request" ] && [ -n "$HEAD_REF" ]; then
-            BRANCH_NAME="$HEAD_REF"
-            echo "Using PR source branch: $BRANCH_NAME"
-          else
-            BRANCH_NAME="$REF_NAME"
-            echo "Using ref_name: $BRANCH_NAME"
-          fi
-
-          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -285,6 +294,7 @@ jobs:
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
+        determine-branch-name,
       ]
     if: always()
     steps:
@@ -299,6 +309,8 @@ jobs:
           merge-multiple: true
 
       - name: Run aggregation script
+        env:
+          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
@@ -341,7 +353,7 @@ jobs:
         id: summary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REF_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           {
             echo "summary<<EOF"
