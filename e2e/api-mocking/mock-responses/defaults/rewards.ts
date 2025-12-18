@@ -24,4 +24,22 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
       },
     },
   ],
+  GET: [
+    {
+      urlEndpoint:
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/seasons\/status$/,
+      responseCode: 200,
+      response: {
+        previous: null,
+        current: {},
+        next: null,
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/seasons\/[a-f0-9-]+\/metadata$/,
+      responseCode: 200,
+      response: {},
+    },
+  ],
 };
