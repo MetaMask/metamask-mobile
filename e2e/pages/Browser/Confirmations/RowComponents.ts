@@ -80,6 +80,17 @@ class RowComponents {
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
     );
   }
+
+  async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
+    const symbolElement =
+      (await this.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
+    const symbolElementAttributes = await symbolElement.getAttributes();
+    return (
+      (symbolElementAttributes as { text?: string; label?: string })?.text ??
+      (symbolElementAttributes as { text?: string; label?: string })?.label ??
+      ''
+    );
+  }
 }
 
 export default new RowComponents();
