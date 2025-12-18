@@ -103,6 +103,7 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsValidationTracking } from '../../hooks/usePerpsValidationTracking';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
@@ -614,73 +615,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
-  // Track which errors and warnings have already been tracked to prevent duplicates
-  const trackedErrorsRef = useRef<Set<string>>(new Set());
-  const trackedWarningsRef = useRef<Set<string>>(new Set());
-
-  // Track errors and warnings when they're displayed (only new ones)
-  useEffect(() => {
-    if (filteredErrors.length > 0) {
-      filteredErrors.forEach((error) => {
-        // Only track if this error hasn't been tracked before
-        if (!trackedErrorsRef.current.has(error)) {
-          trackedErrorsRef.current.add(error);
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.VALIDATION,
-            [PerpsEventProperties.ERROR_MESSAGE]: error,
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-          });
-        }
-      });
-      // Clean up tracked errors that are no longer present
-      const currentErrors = new Set(filteredErrors);
-      trackedErrorsRef.current = new Set(
-        Array.from(trackedErrorsRef.current).filter((error) =>
-          currentErrors.has(error),
-        ),
-      );
-    } else {
-      // Clear tracked errors when there are no errors
-      trackedErrorsRef.current.clear();
-    }
-  }, [filteredErrors, track, orderForm.asset]);
-
-  // Track warnings when they're displayed (only new ones)
-  useEffect(() => {
-    if (orderValidation.warnings && orderValidation.warnings.length > 0) {
-      orderValidation.warnings.forEach((warning) => {
-        // Only track if this warning hasn't been tracked before
-        if (!trackedWarningsRef.current.has(warning)) {
-          trackedWarningsRef.current.add(warning);
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.WARNING_MESSAGE]: warning,
-            [PerpsEventProperties.WARNING_TYPE]:
-              PerpsEventValues.WARNING_TYPE.MINIMUM_ORDER_SIZE,
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-          });
-        }
-      });
-      // Clean up tracked warnings that are no longer present
-      const currentWarnings = new Set(orderValidation.warnings || []);
-      trackedWarningsRef.current = new Set(
-        Array.from(trackedWarningsRef.current).filter((warning) =>
-          currentWarnings.has(warning),
-        ),
-      );
-    } else {
-      // Clear tracked warnings when there are no warnings
-      trackedWarningsRef.current.clear();
-    }
-  }, [orderValidation.warnings, track, orderForm.asset]);
+  // Track validation errors and warnings for analytics
+  usePerpsValidationTracking({
+    errors: filteredErrors,
+    warnings: orderValidation.warnings,
+    asset: orderForm.asset,
+    screenType: PerpsEventValues.SCREEN_TYPE.TRADING,
+    screenName: PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+  });
 
   // Handlers
   const handleTPSLPress = useCallback(() => {

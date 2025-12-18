@@ -216,22 +216,19 @@ const PerpsMarketListView = ({
     (index: number) => {
       const tab = tabsData[index];
       if (tab) {
-        // Track button click based on filter type
-        if (tab.filter === 'crypto') {
+        // Map filter to button_clicked value (only track crypto and stocks tabs)
+        const targetTab =
+          tab.filter === 'crypto'
+            ? PerpsEventValues.BUTTON_CLICKED.CRYPTO
+            : tab.filter === 'stocks_and_commodities'
+              ? PerpsEventValues.BUTTON_CLICKED.STOCKS
+              : null;
+
+        if (targetTab) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PerpsEventProperties.INTERACTION_TYPE]:
               PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-            [PerpsEventProperties.BUTTON_CLICKED]:
-              PerpsEventValues.BUTTON_CLICKED.CRYPTO,
-            [PerpsEventProperties.BUTTON_LOCATION]:
-              PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
-          });
-        } else if (tab.filter === 'stocks_and_commodities') {
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-            [PerpsEventProperties.BUTTON_CLICKED]:
-              PerpsEventValues.BUTTON_CLICKED.STOCKS,
+            [PerpsEventProperties.BUTTON_CLICKED]: targetTab,
             [PerpsEventProperties.BUTTON_LOCATION]:
               PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
           });
