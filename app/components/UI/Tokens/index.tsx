@@ -243,13 +243,11 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           setShowScamWarningModal={setShowScamWarningModal}
         />
       )}
-      {removeTokenState.isVisible && (
-        <RemoveTokenBottomSheet
-          isVisible={removeTokenState.isVisible}
-          onClose={handleCloseRemoveTokenBottomSheet}
-          onRemove={removeToken}
-        />
-      )}
+      <RemoveTokenBottomSheet
+        isVisible={removeTokenState.isVisible}
+        onClose={handleCloseRemoveTokenBottomSheet}
+        onRemove={removeToken}
+      />
     </Box>
   );
 });
