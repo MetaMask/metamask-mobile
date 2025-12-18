@@ -95,7 +95,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.TRENDING_VIEW:
             if (isAssetsTrendingTokensEnabled) {
-              navigation.navigate(Routes.TRENDING_VIEW);
+              navigation.navigate(Routes.TRENDING_VIEW, {
+                screen: Routes.TRENDING_FEED,
+                params: { refresh: true },
+              });
             }
             break;
         }

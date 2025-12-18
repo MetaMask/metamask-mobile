@@ -636,7 +636,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: true,
+      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -719,7 +719,6 @@ const HomeTabs = () => {
                 ),
             }}
             component={ExploreHome}
-            layout={({ children }) => UnmountOnBlurComponent(children)}
           />
           <Tab.Screen
             name={Routes.BROWSER.HOME}

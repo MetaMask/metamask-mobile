@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -29,14 +35,31 @@ export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const isFirstMount = useRef(true);
 
   // Track which sections have empty data
   const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
   const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // Trigger refresh only when navigating to an already-mounted screen
+  useEffect(() => {
+    const params = route.params as { refresh?: boolean } | undefined;
+
+    // Skip refresh on first mount
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
+    if (params?.refresh === true) {
+      setRefreshTrigger((prev) => prev + 1);
+    }
+  }, [route.params]);
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
