@@ -112,7 +112,6 @@ describe('handleUniversalLink', () => {
 
   describe('SDK Actions', () => {
     const testCases = [
-      { action: ACTIONS.ANDROID_SDK },
       { action: ACTIONS.CONNECT },
       { action: ACTIONS.MMSDK },
     ] as const;

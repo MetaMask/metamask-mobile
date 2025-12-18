@@ -457,6 +457,7 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
+  LEARN_MORE_BUTTON: 'perps-tutorial-learn-more-button',
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
