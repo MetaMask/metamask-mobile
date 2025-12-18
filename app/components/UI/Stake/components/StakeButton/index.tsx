@@ -93,10 +93,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 
   const { initiateConversion } = useMusdConversion();
-  const { isConversionToken, getMusdOutputChainId } = useMusdConversionTokens();
+  const { isTokenWithCta, getMusdOutputChainId } = useMusdConversionTokens();
 
-  const isConvertibleStablecoin =
-    isMusdConversionFlowEnabled && isConversionToken(asset);
+  const hasMusdConversionCta =
+    isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -252,7 +252,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   }, [asset.address, asset.chainId, initiateConversion, getMusdOutputChainId]);
 
   const onEarnButtonPress = async () => {
-    if (isConvertibleStablecoin) {
+    if (hasMusdConversionCta) {
       return handleConvertToMUSD();
     }
 
@@ -267,7 +267,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   if (
     areEarnExperiencesDisabled ||
-    (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
+    (!hasMusdConversionCta && // Show for convertible tokens even with 0 balance
       primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
       !earnToken?.isETH &&
       earnToken?.balanceMinimalUnit === '0') ||
@@ -276,7 +276,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     return <></>;
 
   const renderEarnButtonText = () => {
-    if (isConvertibleStablecoin) {
+    if (hasMusdConversionCta) {
       return strings('asset_overview.convert_to_musd');
     }
 

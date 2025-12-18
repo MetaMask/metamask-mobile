@@ -1,6 +1,9 @@
 import { useSelector } from 'react-redux';
-import { selectMusdConversionPaymentTokensBlocklist } from '../selectors/featureFlags';
-import { isMusdConversionPaymentTokenBlocked } from '../utils/musd';
+import {
+  selectMusdConversionCTATokens,
+  selectMusdConversionPaymentTokensBlocklist,
+} from '../selectors/featureFlags';
+import { isTokenInWildcardList } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
@@ -17,6 +20,8 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionPaymentTokensBlocklist,
   );
 
+  const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
+
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
   // Remove tokens that are blocked from being used for mUSD conversion.
@@ -24,7 +29,7 @@ export const useMusdConversionTokens = () => {
     (tokens: AssetType[]) =>
       tokens.filter(
         (token) =>
-          !isMusdConversionPaymentTokenBlocked(
+          !isTokenInWildcardList(
             token.symbol,
             musdConversionPaymentTokensBlocklist,
             token.chainId,
@@ -33,6 +38,7 @@ export const useMusdConversionTokens = () => {
     [musdConversionPaymentTokensBlocklist],
   );
 
+  // Allowed tokens for conversion.
   const conversionTokens = useMemo(
     () => filterBlockedTokens(allTokens),
     [allTokens, filterBlockedTokens],
@@ -42,6 +48,36 @@ export const useMusdConversionTokens = () => {
     if (!token) return false;
 
     return conversionTokens.some(
+      (musdToken) =>
+        token.address.toLowerCase() === musdToken.address.toLowerCase() &&
+        token.chainId === musdToken.chainId,
+    );
+  };
+
+  const getConversionTokensWithCtas = useCallback(
+    (tokens: AssetType[]) =>
+      tokens.filter((token) =>
+        // TODO: Rename isMusdConversionPaymentTokenBlocked
+        isTokenInWildcardList(
+          token.symbol,
+          musdConversionCTATokens,
+          token.chainId,
+        ),
+      ),
+    [musdConversionCTATokens],
+  );
+
+  // TODO: Temp - We'll likely want to consolidate this with the useMusdCtaVisibility hook once it's available.
+  const tokensWithCTAs = useMemo(
+    () => getConversionTokensWithCtas(conversionTokens),
+    [conversionTokens, getConversionTokensWithCtas],
+  );
+
+  // TODO: Temp - We'll likely want to consolidate this with the useMusdCtaVisibility hook once it's available.
+  const isTokenWithCta = (token?: AssetType | TokenI) => {
+    if (!token) return false;
+
+    return tokensWithCTAs.some(
       (musdToken) =>
         token.address.toLowerCase() === musdToken.address.toLowerCase() &&
         token.chainId === musdToken.chainId,
@@ -66,8 +102,10 @@ export const useMusdConversionTokens = () => {
   return {
     filterBlockedTokens,
     isConversionToken,
+    isTokenWithCta,
     isMusdSupportedOnChain,
     getMusdOutputChainId,
     tokens: conversionTokens,
+    tokensWithCTAs,
   };
 };
