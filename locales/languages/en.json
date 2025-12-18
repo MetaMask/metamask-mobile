@@ -5769,9 +5769,11 @@
       "learn_more_with_period": "Learn more."
     },
     "stake_your_trx_cta": {
-      "base": "Stake your TRX with MetaMask Pool and earn",
-      "annually": "annually.",
-      "learn_more_with_period": "Learn more."
+      "title": "Lend Tron and earn",
+      "description_start": "Stake your Tron and earn ",
+      "description_end": " annually.",
+      "learn_more": "Learn more.",
+      "earn_button": "Earn"
     },
     "day": {
       "zero": "",
@@ -6823,6 +6825,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "season_error":{
+      "error_fetching_title": "Season couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "season_status_error": {
       "error_fetching_title": "Season balance couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -6926,8 +6933,9 @@
     },
     "previous_season_summary": {
       "title": "{{seasonName}} Results",
-      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
-      "update_metamask": "Update MetaMask to claim your rewards",
+      "update_metamask_version": "Update MetaMask to {{version}}",
+      "to_claim_rewards": " to claim rewards",
+      "check_back_soon": "Check back soon to claim your rewards",
       "point_earned": "point earned",
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
