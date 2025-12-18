@@ -16,9 +16,241 @@ import {
   getMaxStopLossPercentage,
   isValidStopLossPercentage,
   sanitizePercentageInput,
+  countSignificantFigures,
+  hasExceededSignificantFigures,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
+  describe('countSignificantFigures', () => {
+    describe('basic counting', () => {
+      it('returns 5 for price with 3 integer and 2 decimal digits', () => {
+        const result = countSignificantFigures('123.45');
+
+        expect(result).toBe(5);
+      });
+
+      it('returns 5 for price with 2 integer and 3 decimal digits', () => {
+        const result = countSignificantFigures('12.345');
+
+        expect(result).toBe(5);
+      });
+
+      it('returns 3 for integer without trailing zeros', () => {
+        const result = countSignificantFigures('123');
+
+        expect(result).toBe(3);
+      });
+
+      it('returns 2 for integer with trailing zeros (12000)', () => {
+        const result = countSignificantFigures('12000');
+
+        expect(result).toBe(2);
+      });
+    });
+
+    describe('leading zeros after decimal', () => {
+      it('counts all 6 decimal digits for 0.000123', () => {
+        const result = countSignificantFigures('0.000123');
+
+        expect(result).toBe(6);
+      });
+
+      it('counts all 8 decimal digits for 0.00001234', () => {
+        const result = countSignificantFigures('0.00001234');
+
+        expect(result).toBe(8);
+      });
+
+      it('counts 4 decimal digits for 0.0001', () => {
+        const result = countSignificantFigures('0.0001');
+
+        expect(result).toBe(4);
+      });
+    });
+
+    describe('trailing zeros trimming', () => {
+      it('returns 5 for price with trailing zeros after decimal', () => {
+        const result = countSignificantFigures('123.4500');
+
+        expect(result).toBe(5);
+      });
+
+      it('returns 3 for price with all trailing zeros in decimal', () => {
+        const result = countSignificantFigures('123.00');
+
+        expect(result).toBe(3);
+      });
+
+      it('returns 3 for 0.001000 after trimming trailing zeros', () => {
+        const result = countSignificantFigures('0.001000');
+
+        expect(result).toBe(3);
+      });
+    });
+
+    describe('formatted inputs', () => {
+      it('handles dollar sign prefix', () => {
+        const result = countSignificantFigures('$123.45');
+
+        expect(result).toBe(5);
+      });
+
+      it('handles comma thousand separators', () => {
+        const result = countSignificantFigures('1,234.56');
+
+        expect(result).toBe(6);
+      });
+
+      it('handles dollar sign with comma separators', () => {
+        const result = countSignificantFigures('$1,234.56');
+
+        expect(result).toBe(6);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns 0 for empty string', () => {
+        const result = countSignificantFigures('');
+
+        expect(result).toBe(0);
+      });
+
+      it('returns 0 for zero', () => {
+        const result = countSignificantFigures('0');
+
+        expect(result).toBe(0);
+      });
+
+      it('returns 0 for invalid input', () => {
+        const result = countSignificantFigures('invalid');
+
+        expect(result).toBe(0);
+      });
+    });
+  });
+
+  describe('hasExceededSignificantFigures', () => {
+    describe('decimal prices exceeding limit', () => {
+      it('returns true for 6 significant figures when max is 5', () => {
+        const result = hasExceededSignificantFigures('123.456');
+
+        expect(result).toBe(true);
+      });
+
+      it('returns true for decimal with 6 digits including leading zeros', () => {
+        const result = hasExceededSignificantFigures('0.000123');
+
+        expect(result).toBe(true);
+      });
+
+      it('returns true for 8 significant figures', () => {
+        const result = hasExceededSignificantFigures('0.00001234');
+
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('prices within limit', () => {
+      it('returns false for 5 significant figures', () => {
+        const result = hasExceededSignificantFigures('123.45');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for 4 significant figures', () => {
+        const result = hasExceededSignificantFigures('12.34');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for 3 decimal digits with leading zeros', () => {
+        const result = hasExceededSignificantFigures('0.001');
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('integer prices', () => {
+      it('returns false for large integer', () => {
+        const result = hasExceededSignificantFigures('123456');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for integer with many digits', () => {
+        const result = hasExceededSignificantFigures('1234567890');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for integer with trailing zeros', () => {
+        const result = hasExceededSignificantFigures('12000');
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('trailing zeros normalization', () => {
+      it('returns false when trailing zeros normalize to 5 sig figs', () => {
+        const result = hasExceededSignificantFigures('123.4500');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when decimal normalizes to integer', () => {
+        const result = hasExceededSignificantFigures('123.00');
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns false for empty string', () => {
+        const result = hasExceededSignificantFigures('');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for whitespace only', () => {
+        const result = hasExceededSignificantFigures('   ');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for invalid input', () => {
+        const result = hasExceededSignificantFigures('invalid');
+
+        expect(result).toBe(false);
+      });
+
+      it('handles formatted prices with dollar sign', () => {
+        const result = hasExceededSignificantFigures('$123.456');
+
+        expect(result).toBe(true);
+      });
+
+      it('handles formatted prices with commas', () => {
+        const result = hasExceededSignificantFigures('1,234.56');
+
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('custom max significant figures', () => {
+      it('returns true when exceeding custom max of 3', () => {
+        const result = hasExceededSignificantFigures('12.34', 3);
+
+        expect(result).toBe(true);
+      });
+
+      it('returns false when within custom max of 8', () => {
+        const result = hasExceededSignificantFigures('0.00001234', 8);
+
+        expect(result).toBe(false);
+      });
+    });
+  });
+
   describe('isValidTakeProfitPrice', () => {
     describe('Long positions', () => {
       const params = { currentPrice: 100, direction: 'long' as const };
