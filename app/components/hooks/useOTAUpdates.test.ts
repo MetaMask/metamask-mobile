@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import {
   checkForUpdateAsync,
   fetchUpdateAsync,
@@ -47,6 +48,19 @@ const mockManifest = {
   extra: undefined,
 };
 
+const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+  cb();
+  return {
+    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+    done: (onfulfilled: () => void, onrejected: () => void) =>
+      Promise.resolve().then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
+
 describe('useOTAUpdates', () => {
   const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
     typeof useFeatureFlag
@@ -60,6 +74,7 @@ describe('useOTAUpdates', () => {
   const mockLoggerError = Logger.error as jest.MockedFunction<
     typeof Logger.error
   >;
+  const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,30 +82,28 @@ describe('useOTAUpdates', () => {
     (global as unknown as { __DEV__: boolean }).__DEV__ = false;
   });
 
-  it('returns isCheckingUpdates as false when feature flag is disabled', async () => {
+  it('does not check for updates when feature flag is disabled', async () => {
     mockUseFeatureFlag.mockReturnValue(false);
 
-    const { result } = renderHook(() => useOTAUpdates());
+    renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
-      expect(result.current.isCheckingUpdates).toBe(false);
+      expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
     });
-    expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it('skips update check in development mode', async () => {
+  it('skips update check in development mode even when feature flag is enabled', async () => {
     (global as unknown as { __DEV__: boolean }).__DEV__ = true;
     mockUseFeatureFlag.mockReturnValue(true);
 
-    const { result } = renderHook(() => useOTAUpdates());
+    renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
-      expect(result.current.isCheckingUpdates).toBe(false);
+      expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
     });
-    expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it('checks for updates when feature flag is enabled', async () => {
+  it('checks for updates when feature flag is enabled and logs when no update is available', async () => {
     mockUseFeatureFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
@@ -101,59 +114,18 @@ describe('useOTAUpdates', () => {
     });
 
     renderHook(() => useOTAUpdates());
-    await waitFor(() => {
-      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('sets isCheckingUpdates to false when no update is available', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
-    mockCheckForUpdateAsync.mockResolvedValue({
-      isAvailable: false,
-      isRollBackToEmbedded: false,
-      reason:
-        'noUpdateAvailableOnServer' as UpdateCheckResultNotAvailableReason,
-      manifest: undefined,
-    });
-
-    const { result } = renderHook(() => useOTAUpdates());
-
-    await waitFor(() => {
-      expect(result.current.isCheckingUpdates).toBe(false);
-    });
-  });
-
-  it('fetches update and exposes hasUpdateAvailable when a new update is available', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
-    mockCheckForUpdateAsync.mockResolvedValue({
-      isAvailable: true,
-      manifest: mockManifest,
-      isRollBackToEmbedded: false,
-      reason: undefined,
-    });
-    mockFetchUpdateAsync.mockResolvedValue({
-      isNew: true,
-      isRollBackToEmbedded: false,
-      manifest: mockManifest,
-    });
-
-    const { result } = renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
       expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
-      expect(mockFetchUpdateAsync).toHaveBeenCalledTimes(1);
-      expect(result.current.isCheckingUpdates).toBe(false);
-      expect(result.current.hasUpdateAvailable).toBe(true);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RootModalFlow',
-        expect.objectContaining({
-          screen: 'OTAUpdateModal',
-        }),
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'OTA Updates: No updates available',
       );
+      expect(mockFetchUpdateAsync).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  it('sets isCheckingUpdates to false and hasUpdateAvailable to false when update is fetched but not new', async () => {
+  it('logs when update is fetched but not new', async () => {
     mockUseFeatureFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
@@ -163,90 +135,23 @@ describe('useOTAUpdates', () => {
     });
     mockFetchUpdateAsync.mockResolvedValue({
       isNew: false,
-      manifest: undefined,
       isRollBackToEmbedded: false,
+      manifest: undefined,
     });
 
-    const { result } = renderHook(() => useOTAUpdates());
+    renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
-      expect(result.current.isCheckingUpdates).toBe(false);
-      expect(result.current.hasUpdateAvailable).toBe(false);
-    });
-  });
-
-  it('logs error and sets isCheckingUpdates to false when check fails', async () => {
-    const mockError = new Error('Update check failed');
-    mockUseFeatureFlag.mockReturnValue(true);
-    mockCheckForUpdateAsync.mockRejectedValue(mockError);
-
-    const { result } = renderHook(() => useOTAUpdates());
-
-    await waitFor(() => {
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        mockError,
-        'OTA Updates: Error checking for updates, continuing with current version',
+      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockFetchUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'OTA Updates: Update fetched but not new',
       );
-      expect(result.current.isCheckingUpdates).toBe(false);
-      expect(result.current.hasUpdateAvailable).toBe(false);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  it('checks for updates when feature flag changes from disabled to enabled', async () => {
-    mockUseFeatureFlag.mockReturnValue(false);
-    mockCheckForUpdateAsync.mockResolvedValue({
-      isAvailable: false,
-      isRollBackToEmbedded: false,
-      reason:
-        'noUpdateAvailableOnServer' as UpdateCheckResultNotAvailableReason,
-      manifest: undefined,
-    });
-
-    const { rerender } = renderHook(() => useOTAUpdates());
-
-    await waitFor(() => {
-      expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
-    });
-
-    mockUseFeatureFlag.mockReturnValue(true);
-    rerender();
-
-    await waitFor(() => {
-      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('does not check for updates again when feature flag changes from enabled to disabled', async () => {
-    mockUseFeatureFlag.mockReturnValueOnce(true).mockReturnValue(false);
-    mockCheckForUpdateAsync.mockResolvedValue({
-      isAvailable: false,
-      isRollBackToEmbedded: false,
-      reason:
-        'noUpdateAvailableOnServer' as UpdateCheckResultNotAvailableReason,
-      manifest: undefined,
-    });
-
-    const { rerender } = renderHook(() => useOTAUpdates());
-
-    await waitFor(() => {
-      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
-    });
-
-    mockCheckForUpdateAsync.mockClear();
-    rerender();
-
-    expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
-  });
-
-  it('starts with isCheckingUpdates as true', () => {
-    mockUseFeatureFlag.mockReturnValue(true);
-
-    const { result } = renderHook(() => useOTAUpdates());
-
-    expect(result.current.isCheckingUpdates).toBe(true);
-  });
-
-  it('calls update check and fetch in order', async () => {
+  it('navigates to OTA update modal when a new update is available', async () => {
     mockUseFeatureFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
@@ -256,22 +161,39 @@ describe('useOTAUpdates', () => {
     });
     mockFetchUpdateAsync.mockResolvedValue({
       isNew: true,
-      manifest: mockManifest,
       isRollBackToEmbedded: false,
+      manifest: mockManifest,
     });
 
     renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
-      expect(mockCheckForUpdateAsync).toHaveBeenCalled();
+      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockFetchUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'OTAUpdatesModal',
+        }),
+      );
     });
+  });
+
+  it('logs error and continues when update check fails', async () => {
+    const mockError = new Error('Update check failed');
+    mockUseFeatureFlag.mockReturnValue(true);
+    mockCheckForUpdateAsync.mockRejectedValue(mockError);
+
+    renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
-      expect(mockFetchUpdateAsync).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'OTA Updates: Error checking for updates, continuing with current version',
+      );
+      expect(mockFetchUpdateAsync).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
-
-    const checkOrder = mockCheckForUpdateAsync.mock.invocationCallOrder[0];
-    const fetchOrder = mockFetchUpdateAsync.mock.invocationCallOrder[0];
-    expect(checkOrder).toBeLessThan(fetchOrder);
   });
 });

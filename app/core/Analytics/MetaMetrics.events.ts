@@ -594,6 +594,10 @@ enum EVENT_NAME {
   // QR Scanner
   QR_SCANNER_OPENED = 'QR Scanner Opened',
   QR_SCANNED = 'QR Scanned',
+
+  // OTA Updates Modal
+  OTA_UPDATES_MODAL_VIEWED = 'OTA Updates Modal Viewed',
+  OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED = 'OTA Updates Modal Primary Action Clicked',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -1529,6 +1533,12 @@ const events = {
 
   // Privacy Notice
   NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
+
+  // OTA Updates Modal
+  OTA_UPDATES_MODAL_VIEWED: generateOpt(EVENT_NAME.OTA_UPDATES_MODAL_VIEWED),
+  OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
+  ),
 };
 
 /**

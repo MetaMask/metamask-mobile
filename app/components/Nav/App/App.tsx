@@ -57,7 +57,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { OTAUpdateModal } from '../../../components/UI/OTAUpdateModal';
+import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -523,8 +523,8 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
-      name={Routes.MODAL.OTA_UPDATE_MODAL}
-      component={OTAUpdateModal}
+      name={Routes.MODAL.OTA_UPDATES_MODAL}
+      component={OTAUpdatesModal}
     />
     {
       <Stack.Screen
@@ -1107,7 +1107,7 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-  const { isCheckingUpdates } = useOTAUpdates();
+  useOTAUpdates();
 
   if (isFirstRender.current) {
     trace({
@@ -1281,10 +1281,6 @@ const App: React.FC = () => {
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
 
   return (
     <>
