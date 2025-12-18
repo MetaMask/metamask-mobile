@@ -29,7 +29,7 @@ export interface FlashListAssetKey {
   isStaked: boolean | undefined;
 }
 
-export interface TokenListProps {
+interface TokenListProps {
   tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
   onRefresh: () => void;

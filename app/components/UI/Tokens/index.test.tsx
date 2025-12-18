@@ -13,7 +13,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import initialRootState from '../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { TokenList, TokenListProps } from './TokenList/TokenList';
+import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 // eslint-disable-next-line import/no-namespace
@@ -86,32 +86,30 @@ const arrangeMockComponents = () => {
 
   const mockTokensList = jest
     .mocked(TokenList)
-    .mockImplementation(
-      ({ tokenKeys, onRefresh, showRemoveMenu }: TokenListProps) => (
-        <ScrollView testID="tokens-list-scroll-view">
-          <Button
-            testID="MOCK_TEST_REFRESH_BUTTON"
-            title="Refresh"
-            onPress={onRefresh}
-          />
-          {tokenKeys.map((token) => (
-            <TouchableOpacity
-              key={token.address}
-              testID={`asset-${token.address}`}
-              onLongPress={() =>
-                showRemoveMenu({
-                  address: token.address,
-                  chainId: token.chainId,
-                  isStaked: token.isStaked,
-                } as TokenI)
-              }
-            >
-              <Text>{token.address}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ),
-    );
+    .mockImplementation(({ tokenKeys, onRefresh, showRemoveMenu }) => (
+      <ScrollView testID="tokens-list-scroll-view">
+        <Button
+          testID="MOCK_TEST_REFRESH_BUTTON"
+          title="Refresh"
+          onPress={onRefresh}
+        />
+        {tokenKeys.map((token) => (
+          <TouchableOpacity
+            key={token.address}
+            testID={`asset-${token.address}`}
+            onLongPress={() =>
+              showRemoveMenu({
+                address: token.address,
+                chainId: token.chainId,
+                isStaked: token.isStaked,
+              } as TokenI)
+            }
+          >
+            <Text>{token.address}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    ));
 
   return {
     mockMusdConversionAssetListCta,
