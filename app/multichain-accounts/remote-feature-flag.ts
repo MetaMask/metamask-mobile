@@ -1,5 +1,5 @@
-// import compareVersions from 'compare-versions';
-// import packageJson from '../../package.json';
+import compareVersions from 'compare-versions';
+import packageJson from '../../package.json';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../core/Engine';
 
@@ -12,7 +12,7 @@ export interface MultichainAccountsFeatureFlag {
   minimumVersion: string | null;
 }
 
-// const APP_VERSION = packageJson.version;
+const APP_VERSION = packageJson.version;
 const enableMultichainAccountsState2Local =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2;
 
@@ -46,58 +46,58 @@ export const assertMultichainAccountsFeatureFlagType = (
  * @returns True if the multichain accounts feature is enabled for any specified versions, false otherwise.
  */
 export const isMultichainAccountsRemoteFeatureEnabled = (
-  _remoteFeatureFlags: FeatureFlags,
-  _featureVersionsToCheck: {
+  remoteFeatureFlags: FeatureFlags,
+  featureVersionsToCheck: {
     version: string;
     featureKey: keyof FeatureFlags;
   }[],
-  _override?: string,
-): boolean => true;
-// const overrideForVersion2 =
-//   override !== undefined &&
-//   featureVersionsToCheck.some(
-//     ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-//   );
+  override?: string,
+): boolean => {
+  const overrideForVersion2 =
+    override !== undefined &&
+    featureVersionsToCheck.some(
+      ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    );
 
-// if (overrideForVersion2) {
-//   return override === 'true';
-// }
+  if (overrideForVersion2) {
+    return override === 'true';
+  }
 
-// const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
-// const enableMultichainAccountsState2 =
-//   remoteFeatureFlags.enableMultichainAccountsState2;
+  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+  const enableMultichainAccountsState2 =
+    remoteFeatureFlags.enableMultichainAccountsState2;
 
-// const isState1Undefined =
-//   !enableMultichainAccounts ||
-//   !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts);
-// const isState2Undefined =
-//   !enableMultichainAccountsState2 ||
-//   !assertMultichainAccountsFeatureFlagType(enableMultichainAccountsState2);
-// if (isState1Undefined && isState2Undefined) {
-//   return true;
-// }
+  const isState1Undefined =
+    !enableMultichainAccounts ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts);
+  const isState2Undefined =
+    !enableMultichainAccountsState2 ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccountsState2);
+  if (isState1Undefined && isState2Undefined) {
+    return true;
+  }
 
-// for (const { version, featureKey } of featureVersionsToCheck) {
-//   const featureFlag = remoteFeatureFlags[featureKey];
+  for (const { version, featureKey } of featureVersionsToCheck) {
+    const featureFlag = remoteFeatureFlags[featureKey];
 
-//     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
-//       continue;
-//     }
+    if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
+      continue;
+    }
 
-//     const { enabled, featureVersion, minimumVersion } = featureFlag;
+    const { enabled, featureVersion, minimumVersion } = featureFlag;
 
-//     if (
-//       enabled &&
-//       minimumVersion !== null &&
-//       featureVersion === version &&
-//       compareVersions.compare(minimumVersion, APP_VERSION, '<=')
-//     ) {
-//       return true;
-//     }
-//   }
+    if (
+      enabled &&
+      minimumVersion !== null &&
+      featureVersion === version &&
+      compareVersions.compare(minimumVersion, APP_VERSION, '<=')
+    ) {
+      return true;
+    }
+  }
 
-//   return false;
-// };
+  return false;
+};
 
 /**
  * Get remote feature flags from its controller's state.
