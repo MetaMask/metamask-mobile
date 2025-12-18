@@ -65,6 +65,7 @@ describe('useNavbar', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+      overrides: undefined,
     });
     expect(mockSetOptions).toHaveBeenCalledWith(
       getNavbar({
@@ -123,6 +124,7 @@ describe('useNavbar', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+      overrides: undefined,
     });
   });
 
@@ -142,6 +144,7 @@ describe('useNavbar', () => {
       onReject: newOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+      overrides: undefined,
     });
   });
 
