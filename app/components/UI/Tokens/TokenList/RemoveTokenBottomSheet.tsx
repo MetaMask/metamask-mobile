@@ -27,15 +27,13 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleSheetClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => onClose());
-  }, [onClose]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handleRemove = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      onRemove();
-      onClose();
-    });
-  }, [onClose, onRemove]);
+    sheetRef.current?.onCloseBottomSheet();
+    onRemove();
+  }, [onRemove]);
 
   if (!isVisible) return null;
 
@@ -49,9 +47,9 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
         <BottomSheet
           shouldNavigateBack={false}
           ref={sheetRef}
-          onClose={handleSheetClose}
+          onClose={onClose}
         >
-          <BottomSheetHeader>
+          <BottomSheetHeader onClose={handleSheetClose}>
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.remove_token_title')}
             </Text>
