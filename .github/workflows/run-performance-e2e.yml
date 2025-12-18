@@ -93,11 +93,11 @@ jobs:
         run: |
           FILE="appwright/device-matrix.json"
 
-          # PR: Use first low/medium device (fallback to first)
+          # PR or push to main: Use first low/medium device (fallback to first)
           # Other: Use all devices
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] || ([ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]); then
             FILTER='if length == 0 then [] else [first((.[] | select(.category == "low" or .category == "medium")), .[0])] end'
-            echo "PR mode: 1 device per platform"
+            echo "Limited mode: 1 device per platform"
           else
             FILTER='.'
             echo "Full mode: All devices"
