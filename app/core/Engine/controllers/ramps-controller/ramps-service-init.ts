@@ -5,6 +5,23 @@ import {
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 
+export function getRampsEnvironment(): RampsEnvironment {
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+  switch (metamaskEnvironment) {
+    case 'production':
+    case 'beta':
+    case 'rc':
+      return RampsEnvironment.Production;
+
+    case 'dev':
+    case 'exp':
+    case 'test':
+    case 'e2e':
+    default:
+      return RampsEnvironment.Staging;
+  }
+}
+
 /**
  * Initialize the on-ramp service.
  *
@@ -18,7 +35,7 @@ export const rampsServiceInit: ControllerInitFunction<
 > = ({ controllerMessenger }) => {
   const service = new RampsService({
     messenger: controllerMessenger,
-    environment: RampsEnvironment.Staging,
+    environment: getRampsEnvironment(),
     fetch,
   });
 

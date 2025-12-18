@@ -41,7 +41,7 @@ describe('ramps controller init', () => {
     );
   });
 
-  it('controller state should be default state when no initial state is passed in', () => {
+  it('uses default state when no initial state is passed in', () => {
     const defaultRampsControllerState = jest
       .requireActual('@metamask/ramps-controller')
       .getDefaultRampsControllerState();
@@ -54,7 +54,7 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toEqual(defaultRampsControllerState);
   });
 
-  it('controller state should be initial state when initial state is passed in', () => {
+  it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
       geolocation: 'US-CA',
     };
