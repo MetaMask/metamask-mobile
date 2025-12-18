@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.61.1]
+
+### Fixed
+
+- fix: fix rounding issue ([#24032](https://github.com/MetaMask/metamask-mobile/pull/24032))
+- fix(ramp): enable WebView scrolling in Checkout on Android cp-7.61.1 ([#24081](https://github.com/MetaMask/metamask-mobile/pull/24081))
+
 ## [7.61.0]
 
 ### Added
@@ -9634,7 +9641,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.1...HEAD
+[7.61.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.0...v7.61.1
 [7.61.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.4...v7.61.0
 [7.60.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.3...v7.60.4
 [7.60.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.2...v7.60.3
