@@ -3984,6 +3984,47 @@ describe('Authentication', () => {
       alertSpy.mockRestore();
     });
 
+    it('converts BIOMETRIC_NOT_ENABLED error to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS', async () => {
+      // Mock reauthenticate to throw BIOMETRIC_NOT_ENABLED error
+      const biometricNotEnabledError = new Error(
+        `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: Biometric is not enabled`,
+      );
+      jest
+        .spyOn(Authentication, 'reauthenticate')
+        .mockRejectedValueOnce(biometricNotEnabledError);
+
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
+
+      // Verify the error is converted to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
+      let caughtError: unknown;
+      try {
+        await Authentication.updateAuthPreference(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+      } catch (error) {
+        caughtError = error;
+      }
+
+      // Verify it throws AuthenticationError
+      expect(caughtError).toBeInstanceOf(AuthenticationError);
+
+      // Verify the error has the correct customErrorMessage
+      expect((caughtError as AuthenticationError).customErrorMessage).toBe(
+        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+      );
+
+      // Verify that invalid password handling was not triggered
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(trackErrorSpy).not.toHaveBeenCalled();
+
+      // Verify that Logger.error was not called (since this is a converted error)
+      expect(loggerErrorSpy).not.toHaveBeenCalled();
+
+      alertSpy.mockRestore();
+    });
+
     it('skips password validation when skipValidation is true', async () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');

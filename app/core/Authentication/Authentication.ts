@@ -1504,6 +1504,7 @@ class AuthenticationService {
           this.authData,
         );
       }
+      // TUDO: Check if this is really needed for IOS
       await this.resetPassword();
 
       // storePassword handles all storage flag management internally
@@ -1519,6 +1520,21 @@ class AuthenticationService {
       }
     } catch (e) {
       const errorWithMessage = e as { message: string };
+
+      // Check if the error is because biometrics are not enabled
+      // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
+      if (
+        errorWithMessage.message.includes(
+          ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+        )
+      ) {
+        throw new AuthenticationError(
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          this.authData,
+        );
+      }
+
       if (errorWithMessage.message === 'Invalid password') {
         Alert.alert(
           strings('app_settings.invalid_password'),
