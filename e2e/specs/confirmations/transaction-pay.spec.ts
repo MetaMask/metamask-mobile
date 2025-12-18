@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import {
   remoteFeatureEip7702,
@@ -24,7 +24,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureEip7702[1],
@@ -35,7 +35,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await mockRelayStatus(mockServer);
 };
 
-describe(SmokePredictions('Transaction Pay'), () => {
+describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
   it('depoits to predict balance', async () => {
     await withFixtures(
       {
@@ -53,7 +53,7 @@ describe(SmokePredictions('Transaction Pay'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: PredictionMarketFeature,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
