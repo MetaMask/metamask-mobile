@@ -1,4 +1,5 @@
 import { Mockttp } from 'mockttp';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 export const RELAY_QUOTE_MOCK = {
   steps: [
@@ -12,7 +13,7 @@ export const RELAY_QUOTE_MOCK = {
         {
           status: 'incomplete',
           data: {
-            from: '0xb0da5965d43369968574d399dbe6374683773a65',
+            from: DEFAULT_FIXTURE_ACCOUNT,
             to: '0x00000000aa467eba42a3d604b3d74d63b2b6c6cb',
             data: '0x470b5f3b22544142d6b2116ec296913046fe06578b495e602ac2fe0c87b843de',
             value: '429579670170726',
@@ -139,7 +140,7 @@ export const RELAY_QUOTE_MOCK = {
   },
   details: {
     operation: 'swap',
-    sender: '0xb0da5965d43369968574d399dbe6374683773a65',
+    sender: DEFAULT_FIXTURE_ACCOUNT,
     recipient: '0x8f781b47e4a377dba9547cdcd00df98c7064a5b2',
     currencyIn: {
       currency: {
@@ -318,7 +319,7 @@ export const RELAY_STATUS_MOCK = {
 
 export async function mockRelayQuote(mockServer: Mockttp) {
   await mockServer
-    .forGet('/proxy')
+    .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(url?.includes('api.relay.link/quote'));

@@ -747,6 +747,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
             // This indicates full allowance is granted
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
+            // ownerOf(uint256) selector - return owner of the token
+            result = '0x';
           } else {
             // Other USDC contract calls - return current global balance as fallback
             result = currentUSDCBalance;

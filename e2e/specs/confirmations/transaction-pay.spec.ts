@@ -2,8 +2,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import {
   remoteFeatureEip7702,
   remoteFeatureFlagPredictEnabled,
@@ -17,7 +15,14 @@ import {
   mockRelayStatus,
 } from '../../api-mocking/mock-responses/transaction-pay';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import TestHelpers from '../../helpers';
+import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import { Gestures } from '../../framework';
+import TransactionDetailsModal from '../../pages/Transactions/TransactionDetailsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictMarketList from '../../pages/Predict/PredictMarketList';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -31,7 +36,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Transaction Pay'), () => {
-  it('depoits USDC.e to Predict account', async () => {
+  it('depoits to predict balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -54,10 +59,27 @@ describe(SmokePredictions('Transaction Pay'), () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();
+        await WalletActionsBottomSheet.tapPredictButton();
         await PredictAddFunds.tapAddFunds();
-        await TestHelpers.delay(10000);
+
+        await TransactionPayConfirmation.tapPayWithRow();
+        await TransactionPayConfirmation.tapPayWithToken('LineaETH');
+        await TransactionPayConfirmation.tapKeyboardAmount('1.23');
+        await TransactionPayConfirmation.tapKeyboardContinueButton();
+        await TransactionPayConfirmation.verifyTransactionFee('$0.05');
+        await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
+        await TransactionPayConfirmation.verifyTotal('$1.28');
+        await FooterActions.tapConfirmButton();
+
+        await PredictMarketList.tapBackButton();
+        await TabBarComponent.tapActivity();
+        await Gestures.waitAndTap(ActivitiesView.predictDeposit);
+        await TransactionDetailsModal.verifyNetworkFee('$0.01');
+        await TransactionDetailsModal.verifyPaidWithSymbol('LineaETH');
+        await TransactionDetailsModal.verifyTotal('$1.28');
+        await TransactionDetailsModal.verifyTransactionFee('$0.04');
+        await TransactionDetailsModal.verifyStatus('Confirmed');
       },
     );
   });
