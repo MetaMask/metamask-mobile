@@ -663,10 +663,18 @@ export async function withFixtures(
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
     if (!skipReactNativeReload) {
       try {
-        // Force reload React Native to stop any lingering timers
+        // Disable synchronization to prevent race conditions with pending timers
+        await device.disableSynchronization();
         await device.reloadReactNative();
+        await device.enableSynchronization();
       } catch (cleanupError) {
         logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Ensure synchronization is re-enabled even on failure
+        try {
+          await device.enableSynchronization();
+        } catch {
+          // Ignore - best effort
+        }
         // Don't add to cleanupErrors as this is a non-critical cleanup operation
       }
     }
