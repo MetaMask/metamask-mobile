@@ -47,7 +47,7 @@ import PerpsEmptyStateIcon from '../../../../../images/perps-home-empty-state.pn
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
-import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perpsController';
+import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
 
 interface PerpsMarketBalanceActionsProps {
   positions?: Position[];
