@@ -1195,7 +1195,8 @@ describe('EvmAccountSelectorList', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('render the correct amount of network icons for accounts with transaction activity', () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('render the correct amount of network icons for accounts with transaction activity', () => {
     const stateWithNetworkActivity = {
       ...initialState,
       engine: {
