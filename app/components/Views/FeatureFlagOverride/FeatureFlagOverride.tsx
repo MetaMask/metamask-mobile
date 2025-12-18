@@ -156,9 +156,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                 value: option.name,
               }))}
               label={flag.key}
-              defaultValue={(localValue as AbTestType).name}
+              defaultValue={(localValue as AbTestType)?.name}
               onValueChange={handleSelectOption}
-              selectedValue={(localValue as AbTestType).name}
+              selectedValue={(localValue as AbTestType)?.name}
             />
           </Box>
         );
@@ -322,9 +322,9 @@ const FeatureFlagOverride: React.FC = () => {
     if (typeFilter === 'boolean') {
       flags = flags.filter(
         (flag) =>
-          flag.type === 'boolean' ||
-          flag.type === 'boolean with minimumVersion' ||
-          flag.type === 'boolean nested',
+          flag.type === FeatureFlagType.FeatureFlagBoolean ||
+          flag.type === FeatureFlagType.FeatureFlagBooleanWithMinimumVersion ||
+          flag.type === FeatureFlagType.FeatureFlagBooleanNested,
       );
     }
 
