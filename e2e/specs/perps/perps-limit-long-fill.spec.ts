@@ -28,14 +28,17 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
           throw new Error('Command queue server not found');
         }
         await loginToApp();
+
+        // This is needed due to disable animations
+        await device.disableSynchronization();
+
         await PerpsHelpers.navigateToPerpsTab();
 
         // Navigate to Perps from Actions
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        // Open ETH market and select Long
-        await device.disableSynchronization();
+        // Select ETH market and tap Long
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 
