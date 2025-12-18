@@ -19,7 +19,6 @@ describe(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withPerpsProfile('no-funds')
             .withPerpsProfile('no-positions')
             .withPerpsFirstTimeUser(true)
             .build(),

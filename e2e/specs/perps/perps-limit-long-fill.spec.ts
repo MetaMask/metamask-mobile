@@ -18,7 +18,11 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withPerpsProfile('no-positions')
+          .withPerpsFirstTimeUser(false)
+          .withPopularNetworks()
+          .build(),
         restartDevice: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
         useCommandQueueServer: true,
