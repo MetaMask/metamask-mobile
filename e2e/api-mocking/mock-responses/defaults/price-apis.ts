@@ -24,6 +24,12 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           value: 0.000233,
           currencyType: 'crypto',
         },
+        matic: {
+          name: 'Matic',
+          ticker: 'matic',
+          value: 0.000344,
+          currencyType: 'crypto',
+        },
         btc: {
           name: 'Bitcoin',
           ticker: 'btc',
