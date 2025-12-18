@@ -171,7 +171,11 @@ const WalletModalFlow = () => (
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name={'Asset'}
       component={Asset}

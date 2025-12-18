@@ -1,14 +1,23 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
-  Text,
+  Text as RNText,
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { strings } from '../../../../locales/i18n';
@@ -56,8 +65,33 @@ import { selectLastSelectedEvmAccount } from '../../../selectors/accountsControl
 import { TokenI } from '../../UI/Tokens/types';
 import { areAddressesEqual } from '../../../util/address';
 
+// Inline header styles
+const inlineHeaderStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    gap: 16,
+  },
+  leftButton: {
+    marginLeft: 16,
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightPlaceholder: {
+    marginRight: 16,
+    width: 24,
+  },
+});
+
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
     container: {
       padding: 16,
       backgroundColor: colors.background.default,
@@ -173,21 +207,8 @@ const AssetDetails = (props: InnerProps) => {
     return name;
   }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
 
-  useEffect(() => {
-    const networkName = getNetworkName();
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        'Token Details',
-        false,
-        navigation,
-        colors,
-        undefined,
-        true,
-        undefined,
-        networkName,
-      ),
-    );
-  }, [navigation, colors, getNetworkName]);
+  const insets = useSafeAreaInsets();
+  const networkName = getNetworkName();
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
@@ -249,10 +270,10 @@ const AssetDetails = (props: InnerProps) => {
       style={styles.warningBanner}
       warningMessage={
         <>
-          <Text style={styles.warningBannerDesc}>
+          <RNText style={styles.warningBannerDesc}>
             {strings('asset_overview.were_unable')} {symbol}{' '}
             {strings('asset_overview.balance')}{' '}
-            <Text
+            <RNText
               suppressHighlighting
               onPress={() => {
                 navigation.navigate('Webview', {
@@ -266,26 +287,26 @@ const AssetDetails = (props: InnerProps) => {
               style={styles.warningBannerLink}
             >
               {strings('asset_overview.troubleshooting_missing')}{' '}
-            </Text>
+            </RNText>
             {strings('asset_overview.for_help')}
-          </Text>
+          </RNText>
         </>
       }
     />
   );
 
   const renderSectionTitle = (title: string, isFirst?: boolean) => (
-    <Text
+    <RNText
       style={[styles.sectionTitleLabel, isFirst && styles.firstSectionTitle]}
     >
       {title}
-    </Text>
+    </RNText>
   );
 
   const renderSectionDescription = (description: string) => (
-    <Text style={[styles.descriptionLabel, styles.descriptionContainer]}>
+    <RNText style={[styles.descriptionLabel, styles.descriptionContainer]}>
       {description}
-    </Text>
+    </RNText>
   );
 
   const renderTokenSymbol = () => (
@@ -295,7 +316,7 @@ const AssetDetails = (props: InnerProps) => {
         containerStyle={styles.tokenImage}
         iconStyle={styles.tokenImage}
       />
-      <Text style={styles.descriptionLabel}>{symbol}</Text>
+      <RNText style={styles.descriptionLabel}>{symbol}</RNText>
     </View>
   );
 
@@ -344,7 +365,7 @@ const AssetDetails = (props: InnerProps) => {
 
     return (
       <View style={styles.descriptionContainer}>
-        <Text style={styles.descriptionLabel}>{balanceDisplay}</Text>
+        <RNText style={styles.descriptionLabel}>{balanceDisplay}</RNText>
       </View>
     );
   };
@@ -355,9 +376,9 @@ const AssetDetails = (props: InnerProps) => {
       hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
       style={styles.hideButton}
     >
-      <Text style={styles.hideButtonLabel}>
+      <RNText style={styles.hideButtonLabel}>
         {strings('asset_details.hide_cta')}
-      </Text>
+      </RNText>
     </TouchableOpacity>
   );
 
@@ -377,25 +398,56 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {renderSectionTitle(strings('asset_details.token'), true)}
-      {renderTokenSymbol()}
-      {renderSectionTitle(strings('asset_details.amount'))}
-      {renderTokenBalance()}
-      {renderSectionTitle(strings('asset_details.address'))}
-      {renderTokenAddressLink()}
-      {renderSectionTitle(strings('asset_details.decimal'))}
-      {renderSectionDescription(String(decimals))}
-      {renderSectionTitle(strings('asset_details.network'))}
-      {renderSectionDescription(getNetworkName())}
-      {aggregators.length > 0 && (
-        <>
-          {renderSectionTitle(strings('asset_details.lists'))}
-          {renderSectionDescription(aggregators.join(', '))}
-        </>
-      )}
-      {renderHideButton()}
-    </ScrollView>
+    <View style={styles.wrapper}>
+      {/* Inline header for instant rendering */}
+      <View
+        style={[
+          inlineHeaderStyles.container,
+          { marginTop: insets.top, backgroundColor: colors.background.default },
+        ]}
+      >
+        <ButtonIcon
+          style={inlineHeaderStyles.leftButton}
+          onPress={() => navigation.goBack()}
+          size={ButtonIconSize.Lg}
+          iconName={IconName.ArrowLeft}
+        />
+        <View style={inlineHeaderStyles.titleWrapper}>
+          <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
+            {strings('asset_details.options.token_details')}
+          </Text>
+          {networkName ? (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+            >
+              {networkName}
+            </Text>
+          ) : null}
+        </View>
+        <View style={inlineHeaderStyles.rightPlaceholder} />
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {renderSectionTitle(strings('asset_details.token'), true)}
+        {renderTokenSymbol()}
+        {renderSectionTitle(strings('asset_details.amount'))}
+        {renderTokenBalance()}
+        {renderSectionTitle(strings('asset_details.address'))}
+        {renderTokenAddressLink()}
+        {renderSectionTitle(strings('asset_details.decimal'))}
+        {renderSectionDescription(String(decimals))}
+        {renderSectionTitle(strings('asset_details.network'))}
+        {renderSectionDescription(networkName)}
+        {aggregators.length > 0 && (
+          <>
+            {renderSectionTitle(strings('asset_details.lists'))}
+            {renderSectionDescription(aggregators.join(', '))}
+          </>
+        )}
+        {renderHideButton()}
+      </ScrollView>
+    </View>
   );
 };
 
