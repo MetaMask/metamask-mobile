@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeToken } from '../types';
 import { useSelector } from 'react-redux';
+import { TrendingAsset } from '@metamask/assets-controllers';
 
 export type DateLike = string | null | undefined | Date;
 
@@ -56,7 +57,7 @@ export function useRWAToken() {
    * @returns {boolean} - True if the token is a stock token, false otherwise
    */
   const isStockToken = useCallback(
-    (token: BridgeToken) => {
+    (token: BridgeToken | TrendingAsset) => {
       // If RWA is not enabled, always return false
       if (!isRWAEnabled) {
         return false;
