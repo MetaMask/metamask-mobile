@@ -20,6 +20,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 // TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24143
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {

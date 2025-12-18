@@ -52,7 +52,8 @@ const addAccountToSrp = async (
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
 };
 
-// TODO:
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24151
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),

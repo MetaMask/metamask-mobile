@@ -213,6 +213,8 @@ describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
+  // TODO: Update test to be BIP-44 compatible
+  // https://github.com/MetaMask/metamask-mobile/issues/24155
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('displays notification', async () => {
     await withFixtures(
