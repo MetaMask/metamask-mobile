@@ -26,7 +26,7 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkMana
 import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
+import { handleDeeplink } from '../../core/DeeplinkManager/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -118,7 +118,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
+jest.mock('../../core/DeeplinkManager/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 

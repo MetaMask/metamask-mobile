@@ -1,6 +1,9 @@
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
-import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import {
+  formatAddressToCaipReference,
+  type GenericQuoteRequest,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -46,13 +49,14 @@ export const useBridgeQuoteRequest = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  // Use a ref to track the latest insufficientBal value without triggering callback recreation
+  const gasIncluded = useSelector(selectGasIncluded);
+
+  // Prevents infinite requests when user select max balance on
+  // source token input.
   const insufficientBalRef = useRef(insufficientBal);
   useEffect(() => {
     insufficientBalRef.current = insufficientBal;
   }, [insufficientBal]);
-
-  const gasIncluded = useSelector(selectGasIncluded);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -78,9 +82,9 @@ export const useBridgeQuoteRequest = () => {
 
     const params: GenericQuoteRequest = {
       srcChainId: getDecimalChainId(sourceToken.chainId),
-      srcTokenAddress: sourceToken.address,
+      srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
       destChainId: getDecimalChainId(destChainId),
-      destTokenAddress: destToken.address,
+      destTokenAddress: formatAddressToCaipReference(destToken.address),
       srcTokenAmount: normalizedSourceAmount,
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,

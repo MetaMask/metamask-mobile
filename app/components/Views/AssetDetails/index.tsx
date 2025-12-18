@@ -382,15 +382,19 @@ const AssetDetails = (props: InnerProps) => {
       {renderSectionDescription(String(decimals))}
       {renderSectionTitle(strings('asset_details.network'))}
       {renderSectionDescription(getNetworkName())}
-      {renderSectionTitle(strings('asset_details.lists'))}
-      {renderSectionDescription(aggregators.join(', '))}
+      {aggregators.length > 0 && (
+        <>
+          {renderSectionTitle(strings('asset_details.lists'))}
+          {renderSectionDescription(aggregators.join(', '))}
+        </>
+      )}
       {renderHideButton()}
     </ScrollView>
   );
 };
 
 const AssetDetailsContainer = (props: Props) => {
-  const { address, chainId: networkId } = props.route.params;
+  const { address, chainId: networkId, asset } = props.route.params;
 
   const allTokens = useSelector(selectAllTokens);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
@@ -410,7 +414,29 @@ const AssetDetailsContainer = (props: Props) => {
     [tokensByChain, address],
   );
 
-  const token: TokenType | undefined = portfolioToken;
+  // If token not found in portfolio, create a token object from the asset prop
+  // This handles cases where the token is viewed from trending/search but not in user's list
+  const token: TokenType | undefined = useMemo(() => {
+    if (portfolioToken) {
+      return portfolioToken;
+    }
+
+    // Create a token object from the asset prop when token isn't in portfolio
+    if (asset) {
+      return {
+        address: asset.address,
+        symbol: asset.symbol,
+        decimals: asset.decimals,
+        aggregators: asset.aggregators || [],
+        name: asset.name,
+        image: asset.image,
+        // Add other required fields with defaults
+        isERC721: false,
+      } as TokenType;
+    }
+
+    return undefined;
+  }, [portfolioToken, asset]);
 
   if (!token) {
     return null;

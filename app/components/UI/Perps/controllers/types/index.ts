@@ -13,6 +13,8 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -109,7 +111,7 @@ export type OrderParams = {
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000 = 1%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -212,6 +214,21 @@ export type ClosePositionsResult = {
     success: boolean;
     error?: string;
   }[];
+};
+
+export type UpdateMarginParams = {
+  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  amount: string; // Amount to adjust as string (positive = add, negative = remove)
+};
+
+export type MarginResult = {
+  success: boolean;
+  error?: string;
+};
+
+export type FlipPositionParams = {
+  coin: string; // Asset symbol to flip
+  position: Position; // Current position to flip
 };
 
 export interface InitializeResult {
@@ -591,7 +608,7 @@ export interface SubscribePositionsParams {
 }
 
 export interface SubscribeOrderFillsParams {
-  callback: (fills: OrderFill[]) => void;
+  callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
 }
@@ -610,6 +627,63 @@ export interface SubscribeAccountParams {
 export interface SubscribeOICapsParams {
   callback: (caps: string[]) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface SubscribeCandlesParams {
+  coin: string;
+  interval: CandlePeriod;
+  duration?: TimeDuration;
+  callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Single price level in the order book
+ */
+export interface OrderBookLevel {
+  /** Price at this level */
+  price: string;
+  /** Size at this level (in base asset) */
+  size: string;
+  /** Cumulative size up to and including this level */
+  total: string;
+  /** Notional value in USD */
+  notional: string;
+  /** Cumulative notional up to and including this level */
+  totalNotional: string;
+}
+
+/**
+ * Full order book data with multiple price levels
+ */
+export interface OrderBookData {
+  /** Bid levels (buy orders) - highest price first */
+  bids: OrderBookLevel[];
+  /** Ask levels (sell orders) - lowest price first */
+  asks: OrderBookLevel[];
+  /** Spread between best bid and best ask */
+  spread: string;
+  /** Spread as a percentage of mid price */
+  spreadPercentage: string;
+  /** Mid price (average of best bid and best ask) */
+  midPrice: string;
+  /** Timestamp of last update */
+  lastUpdated: number;
+  /** Maximum total size across all levels (for scaling depth bars) */
+  maxTotal: string;
+}
+
+export interface SubscribeOrderBookParams {
+  /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Number of levels to return per side (default: 10) */
+  levels?: number;
+  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
+  nSigFigs?: number;
+  /** Callback function receiving order book updates */
+  callback: (orderBook: OrderBookData) => void;
+  /** Callback for errors */
+  onError?: (error: Error) => void;
 }
 
 export interface LiquidationPriceParams {
@@ -709,6 +783,7 @@ export interface IPerpsProvider {
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
+  updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
@@ -799,6 +874,8 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
+  subscribeToCandles(params: SubscribeCandlesParams): () => void;
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

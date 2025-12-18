@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -21,10 +20,11 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -36,16 +36,13 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToBuy } = useRampNavigation();
+  const buttonClickData = useRampsButtonClickData();
 
   const handleAction = () => {
-    navigation.navigate(...createBuyNavigationDetails());
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),
-    );
+    goToBuy();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
@@ -55,6 +52,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: 'BUY',
           region: rampGeodetectedRegion,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
         })
         .build(),
     );

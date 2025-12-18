@@ -102,7 +102,7 @@ yarn test:e2e:android:debug:build
 # These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
-### Use Expo prebuilds (recommended)
+### Use Expo prebuilds (iOS Only)
 
 You can use prebuilt app files instead of building the app locally.
 
@@ -129,33 +129,6 @@ You can use prebuilt app files instead of building the app locally.
    xcrun simctl boot "iPhone 15 Pro"
    open -a Simulator # to open the simulator app GUI
    ```
-
-#### Android builds
-
-1. **Download Android builds** from Runway/Bitrise/GitHub workflows (build jobs)
-
-   > ⚠️ **Important**: You need **both APK files** from the downloaded zip:
-   >
-   > - Main APK from `/prod/debug/` folder
-   > - Test APK from `/androidTest/` folder
-
-2. **Install the builds**:
-
-   ```bash
-   # Copy the main APK (from /prod/debug/ folder)
-   cp /path/to/downloaded/prod/debug/AAA.apk build/MetaMask.apk
-
-   # Copy the test APK (from /androidTest/ folder)
-   cp /path/to/downloaded/androidTest/prod/debug/BBB.apk build/MetaMask-Test.apk
-   ```
-
-3. **Start the build watcher**:
-
-   ```bash
-   source .e2e.env && yarn watch:clean
-   ```
-
-4. **Launch the Android emulator**: through Android Studio
 
 ### Run the E2E Tests
 

@@ -75,11 +75,13 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'error'`
+- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'order_book' | 'error'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -98,6 +100,8 @@ MetaMetrics.getInstance().trackEvent(
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -232,6 +236,76 @@ MetaMetrics.getInstance().trackEvent(
 );
 ```
 
+## Multiple Concurrent Tests
+
+### Flat Property Pattern
+
+To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
+
+**Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
+
+**Why no `_enabled` property?**
+
+- Events are only sent when test is enabled (`isEnabled === true`)
+- Including the property means the test is active
+- No need for redundant `_enabled` flag
+
+**Example with 3 concurrent tests:**
+
+```typescript
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+    [PerpsEventProperties.ASSET]: 'BTC',
+    // Test 1: Button color test (TAT-1937) - only included when enabled
+    ...(isButtonColorTestEnabled && {
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+    // Test 2: Asset CTA test (TAT-1940) - future
+    ...(isAssetCTATestEnabled && {
+      [PerpsEventProperties.AB_TEST_ASSET_CTA]: assetCTAVariant,
+    }),
+    // Test 3: Homepage CTA test (TAT-1827) - future
+    ...(isHomepageCTATestEnabled && {
+      [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
+    }),
+  },
+});
+```
+
+### Where to Track AB Tests
+
+**✅ Track in both events:** Use dual tracking to enable engagement rate calculation.
+
+**Dual Tracking Approach:**
+
+1. **PERPS_SCREEN_VIEWED** (baseline exposure):
+   - Include `ab_test_button_color` when test is enabled
+   - Establishes how many users were exposed to each variant
+   - Required to calculate engagement rate
+
+2. **PERPS_UI_INTERACTION** (engagement):
+   - Include `ab_test_button_color` when user taps Long/Short or Place Order button
+   - Only sent when test is enabled
+   - Measures which variant drives more button presses
+
+**Why Both Events?**
+
+- **Engagement Rate** = Button presses / Screen views per variant
+- Answers: "Which button color makes users more likely to press the button?"
+
+**Example:** For TAT-1937 (button color test):
+
+- Screen views establish baseline (how many saw control vs monochrome)
+- Button presses measure engagement
+- Compare button presses to screen views for each variant
+
+For details, see [perps-ab-testing.md](./perps-ab-testing.md).
+
+---
+
 ## Best Practices
 
 1. **Use constants** - Never hardcode strings
@@ -239,6 +313,7 @@ MetaMetrics.getInstance().trackEvent(
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
 5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+6. **AB test tracking** - Only in screen view events, not every interaction
 
 ## Sentry vs MetaMetrics
 

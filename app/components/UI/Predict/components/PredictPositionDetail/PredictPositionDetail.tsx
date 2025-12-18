@@ -1,7 +1,11 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import {
+  NavigationProp,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
+import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -22,15 +26,20 @@ import {
   PredictMarket,
   PredictMarketStatus,
   PredictPosition as PredictPositionType,
+  Side,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 
 interface PredictPositionProps {
   position: PredictPositionType;
   market: PredictMarket;
   marketStatus: PredictMarketStatus;
 }
+
+const AUTO_REFRESH_TIMEOUT = 5000;
 
 const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
@@ -39,37 +48,75 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
 
-  const {
-    icon,
-    initialValue,
-    percentPnl,
-    outcome,
-    currentValue,
-    title,
-    optimistic,
-    size,
-  } = position;
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
+  const { icon, initialValue, outcome, title, optimistic, size } =
+    currentPosition;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: position.providerId,
+    providerId: currentPosition.providerId,
     navigation,
   });
 
+  // Only auto-refresh when the screen is focused to avoid duplicate fetches
+  const isFocused = useIsFocused();
+
+  const autoRefreshTimeout =
+    isFocused && marketStatus === PredictMarketStatus.OPEN
+      ? AUTO_REFRESH_TIMEOUT
+      : undefined;
+
+  const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
+    providerId: currentPosition.providerId,
+    marketId: currentPosition.marketId,
+    outcomeId: currentPosition.outcomeId,
+    outcomeTokenId: currentPosition.outcomeTokenId,
+    side: Side.SELL,
+    size: currentPosition.size,
+    autoRefreshTimeout,
+  });
+
+  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  const currentValue = preview
+    ? preview.minAmountReceived
+    : currentPosition.currentValue;
+
+  // Recalculate PnL based on preview data
+  const cashPnl = useMemo(
+    () => currentValue - initialValue,
+    [currentValue, initialValue],
+  );
+
+  const percentPnl = useMemo(
+    () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
+    [cashPnl, initialValue],
+  );
+
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === position.outcomeId && o.groupItemTitle,
+    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
+
+  const outcomeToken = market?.outcomes
+    .find(
+      (o) =>
+        o.id === currentPosition.outcomeId &&
+        o.tokens.find((t) => t.id === currentPosition.outcomeTokenId),
+    )
+    ?.tokens.find((t) => t.id === currentPosition.outcomeTokenId);
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
+          (o) => o.id === currentPosition.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
-          position,
+          position: currentPosition,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
@@ -79,12 +126,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   const renderValueText = () => {
-    // Show skeleton for optimistic positions
-    if (optimistic) {
-      return <Skeleton width={70} height={20} />;
-    }
-
     if (marketStatus === PredictMarketStatus.OPEN) {
+      // Show skeleton for optimistic positions or while preview is loading
+      if (optimistic || isPreviewLoading) {
+        return <Skeleton width={70} height={20} />;
+      }
       return (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPrice(currentValue, { maximumDecimals: 2 })}
@@ -137,7 +183,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               initialValue: formatPrice(initialValue, {
                 maximumDecimals: 2,
               }),
-              outcome,
+              outcome: outcomeToken?.title ?? outcome,
               shares: formatPrice(size, {
                 maximumDecimals: 2,
               }),
@@ -147,7 +193,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN &&
-            (optimistic ? (
+            (optimistic || isPreviewLoading ? (
               <Skeleton width={55} height={16} style={tw.style('mt-1')} />
             ) : (
               <Text

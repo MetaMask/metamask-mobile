@@ -11,8 +11,10 @@ import type { HyperLiquidNetwork } from '../types/config';
 import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types/perps-types';
 
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../utils/perpsErrorHandler';
+import type { SubscribeCandlesParams } from '../controllers/types';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 
@@ -46,6 +48,11 @@ export class HyperLiquidClientService {
   private connectionState: WebSocketConnectionState =
     WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
+  // Health check monitoring
+  private healthCheckInterval?: ReturnType<typeof setInterval>;
+  private healthCheckTimeout?: ReturnType<typeof setTimeout>;
+  private isHealthCheckRunning = false;
+  private onReconnectCallback?: () => Promise<void>;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -102,9 +109,29 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
         note: 'Using HTTP for InfoClient/ExchangeClient, WebSocket for SubscriptionClient',
       });
+
+      // Start health check monitoring after successful initialization
+      this.startHealthCheckMonitoring();
     } catch (error) {
+      const errorInstance = ensureError(error);
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-      DevLogger.log('Failed to initialize HyperLiquid SDK clients:', error);
+
+      // Log to Sentry: initialization failure blocks all Perps functionality
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          service: 'HyperLiquidClientService',
+          network: this.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: 'sdk_initialization',
+          data: {
+            operation: 'initialize',
+            isTestnet: this.isTestnet,
+          },
+        },
+      });
+
       throw error;
     }
   }
@@ -274,18 +301,20 @@ export class HyperLiquidClientService {
    * @param coin - The coin symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
    * @param limit - Number of candles to fetch (default: 100)
+   * @param endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
    * @returns Promise<CandleData | null>
    */
   public async fetchHistoricalCandles(
     coin: string,
     interval: ValidCandleInterval,
     limit: number = 100,
+    endTime?: number,
   ): Promise<CandleData | null> {
     this.ensureInitialized();
 
     try {
       // Calculate start and end times based on interval and limit
-      const now = Date.now();
+      const now = endTime ?? Date.now();
       const intervalMs = this.getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
@@ -322,9 +351,197 @@ export class HyperLiquidClientService {
         candles: [],
       };
     } catch (error) {
-      DevLogger.log('Error fetching historical candles:', error);
+      const errorInstance = ensureError(error);
+
+      // Log to Sentry: prevents initial chart data load
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          service: 'HyperLiquidClientService',
+          network: this.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: 'historical_candles_api',
+          data: {
+            operation: 'fetchHistoricalCandles',
+            coin,
+            interval,
+            limit,
+            hasEndTime: endTime !== undefined,
+          },
+        },
+      });
+
       throw error;
     }
+  }
+
+  /**
+   * Subscribe to candle updates via WebSocket
+   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
+   * @param duration - Optional time duration for calculating initial fetch size
+   * @param callback - Function called with updated candle data
+   * @param onError - Optional function called if subscription initialization fails
+   * @returns Cleanup function to unsubscribe
+   */
+  public subscribeToCandles({
+    coin,
+    interval,
+    duration,
+    callback,
+    onError,
+  }: SubscribeCandlesParams): () => void {
+    this.ensureInitialized();
+
+    const subscriptionClient = this.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error(strings('perps.errors.subscriptionClientNotAvailable'));
+    }
+
+    let currentCandleData: CandleData | null = null;
+    let wsUnsubscribe: (() => void) | null = null;
+    let isUnsubscribed = false;
+
+    // Calculate initial fetch size dynamically based on duration and interval
+    // Match main branch behavior: up to 500 candles initially
+    const initialLimit = duration
+      ? Math.min(calculateCandleCount(duration, interval), 500)
+      : 100; // Default to 100 if no duration provided
+
+    // 1. Fetch initial historical data
+    this.fetchHistoricalCandles(coin, interval, initialLimit)
+      .then((initialData) => {
+        // Don't proceed if already unsubscribed
+        if (isUnsubscribed) {
+          return;
+        }
+
+        currentCandleData = initialData;
+        if (currentCandleData) {
+          callback(currentCandleData);
+        }
+
+        // 2. Subscribe to WebSocket for new candles
+        const subscription = subscriptionClient.candle(
+          { coin, interval },
+          (candleEvent) => {
+            // Don't process events if already unsubscribed
+            if (isUnsubscribed) {
+              return;
+            }
+
+            // Transform SDK CandleEvent to our Candle format
+            const newCandle = {
+              time: candleEvent.t,
+              open: candleEvent.o.toString(),
+              high: candleEvent.h.toString(),
+              low: candleEvent.l.toString(),
+              close: candleEvent.c.toString(),
+              volume: candleEvent.v.toString(),
+            };
+
+            if (!currentCandleData) {
+              currentCandleData = {
+                coin,
+                interval,
+                candles: [newCandle],
+              };
+            } else {
+              // Check if this is an update to the last candle or a new candle
+              const candles = currentCandleData.candles;
+              const lastCandle = candles[candles.length - 1];
+
+              if (lastCandle && lastCandle.time === newCandle.time) {
+                // Update existing candle (live candle update)
+                // Create new array with updated last element to trigger React re-render
+                currentCandleData = {
+                  ...currentCandleData,
+                  candles: [...candles.slice(0, -1), newCandle],
+                };
+              } else {
+                // New candle (completed candle)
+                // Create new array with added element to trigger React re-render
+                currentCandleData = {
+                  ...currentCandleData,
+                  candles: [...candles, newCandle],
+                };
+              }
+            }
+
+            callback(currentCandleData);
+          },
+        );
+
+        // Store cleanup function
+        subscription
+          .then((sub) => {
+            wsUnsubscribe = () => sub.unsubscribe();
+            // If already unsubscribed while waiting, clean up immediately
+            if (isUnsubscribed && wsUnsubscribe) {
+              wsUnsubscribe();
+              wsUnsubscribe = null;
+            }
+          })
+          .catch((error) => {
+            const errorInstance = ensureError(error);
+
+            // Log to Sentry: WebSocket subscription failure prevents live updates
+            Logger.error(errorInstance, {
+              tags: {
+                feature: PERPS_CONSTANTS.FEATURE_NAME,
+                service: 'HyperLiquidClientService',
+                network: this.isTestnet ? 'testnet' : 'mainnet',
+              },
+              context: {
+                name: 'websocket_subscription',
+                data: {
+                  operation: 'subscribeToCandles',
+                  coin,
+                  interval,
+                  phase: 'ws_subscription',
+                },
+              },
+            });
+
+            // Notify caller of error
+            onError?.(errorInstance);
+          });
+      })
+      .catch((error) => {
+        const errorInstance = ensureError(error);
+
+        // Log to Sentry: initial fetch failure blocks chart completely
+        Logger.error(errorInstance, {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            service: 'HyperLiquidClientService',
+            network: this.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: 'initial_candles_fetch',
+            data: {
+              operation: 'subscribeToCandles',
+              coin,
+              interval,
+              phase: 'initial_fetch',
+              initialLimit,
+            },
+          },
+        });
+
+        // Notify caller of error
+        onError?.(errorInstance);
+      });
+
+    // Return cleanup function
+    return () => {
+      isUnsubscribed = true;
+      if (wsUnsubscribe) {
+        wsUnsubscribe();
+        wsUnsubscribe = null;
+      }
+    };
   }
 
   /**
@@ -385,6 +602,12 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
       });
 
+      // Stop health check monitoring
+      this.stopHealthCheckMonitoring();
+
+      // Clear reconnection callback
+      this.onReconnectCallback = undefined;
+
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
         try {
@@ -433,5 +656,138 @@ export class HyperLiquidClientService {
    */
   public isDisconnected(): boolean {
     return this.connectionState === WebSocketConnectionState.DISCONNECTED;
+  }
+
+  /**
+   * Set callback to be invoked when reconnection is needed
+   * This allows the service to notify external components (like PerpsConnectionManager)
+   * when a connection drop is detected
+   */
+  public setOnReconnectCallback(callback: () => Promise<void>): void {
+    this.onReconnectCallback = callback;
+  }
+
+  /**
+   * Start periodic health check monitoring
+   * Checks WebSocket connection health every 5 seconds
+   */
+  private startHealthCheckMonitoring(): void {
+    // Clear any existing interval
+    this.stopHealthCheckMonitoring();
+
+    // Health check interval: 5 seconds for faster detection of connection drops
+    const HEALTH_CHECK_INTERVAL_MS = 5_000;
+
+    this.healthCheckInterval = setInterval(() => {
+      this.performHealthCheck().catch(() => {
+        // Ignore errors during health check
+      });
+    }, HEALTH_CHECK_INTERVAL_MS);
+  }
+
+  /**
+   * Stop health check monitoring
+   */
+  private stopHealthCheckMonitoring(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = undefined;
+    }
+    if (this.healthCheckTimeout) {
+      clearTimeout(this.healthCheckTimeout);
+      this.healthCheckTimeout = undefined;
+    }
+    this.isHealthCheckRunning = false;
+  }
+
+  /**
+   * Perform a single health check to verify WebSocket connection is alive
+   * Uses the subscription client's transport.ready() method
+   */
+  private async performHealthCheck(): Promise<void> {
+    // Skip if already running or disconnected
+    if (
+      this.isHealthCheckRunning ||
+      this.connectionState !== WebSocketConnectionState.CONNECTED ||
+      !this.subscriptionClient
+    ) {
+      return;
+    }
+
+    this.isHealthCheckRunning = true;
+
+    try {
+      const controller = new AbortController();
+
+      // Health check timeout: 5 seconds
+      const HEALTH_CHECK_TIMEOUT_MS = 5_000;
+
+      this.healthCheckTimeout = setTimeout(() => {
+        controller.abort();
+      }, HEALTH_CHECK_TIMEOUT_MS);
+
+      try {
+        // Use transport.ready() to check if WebSocket is actually connected
+        await this.subscriptionClient.transport.ready(controller.signal);
+      } catch {
+        // Connection appears to be dead - trigger reconnection
+        await this.handleConnectionDrop();
+      } finally {
+        if (this.healthCheckTimeout) {
+          clearTimeout(this.healthCheckTimeout);
+          this.healthCheckTimeout = undefined;
+        }
+      }
+    } finally {
+      this.isHealthCheckRunning = false;
+    }
+  }
+
+  /**
+   * Handle detected connection drop
+   * Recreates WebSocket transport and notifies callback to restore subscriptions
+   */
+  private async handleConnectionDrop(): Promise<void> {
+    // Prevent multiple simultaneous reconnection attempts
+    if (this.connectionState === WebSocketConnectionState.CONNECTING) {
+      return;
+    }
+
+    try {
+      this.connectionState = WebSocketConnectionState.CONNECTING;
+
+      // Close existing WebSocket transport
+      if (this.wsTransport) {
+        try {
+          await this.wsTransport.close();
+        } catch {
+          // Ignore errors during close - transport may already be dead
+        }
+      }
+
+      // Recreate WebSocket transport
+      this.createTransports();
+
+      if (!this.wsTransport) {
+        throw new Error('Failed to recreate WebSocket transport');
+      }
+
+      // Recreate SubscriptionClient with new transport
+      this.subscriptionClient = new SubscriptionClient({
+        transport: this.wsTransport,
+      });
+
+      this.connectionState = WebSocketConnectionState.CONNECTED;
+
+      // Notify callback to restore subscriptions
+      if (this.onReconnectCallback) {
+        await this.onReconnectCallback();
+      }
+    } catch {
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+
+      // Stop health checks if reconnection failed
+      this.stopHealthCheckMonitoring();
+    }
   }
 }

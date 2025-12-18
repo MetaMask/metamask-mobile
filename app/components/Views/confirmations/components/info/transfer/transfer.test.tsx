@@ -8,6 +8,7 @@ import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -30,6 +31,10 @@ import { IconName } from '../../../component-library/components/Icons/Icon/index
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
 import { selectChainId } from '../../../selectors/networkController';
@@ -57,6 +62,8 @@ import {
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
+import { strings } from '../../../../locales/i18n';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -91,6 +98,9 @@ const NetworkMultiSelectList = ({
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
+  );
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
   );
 
   const { styles } = useStyles(styleSheet, {});
@@ -226,7 +236,7 @@ const NetworkMultiSelectList = ({
       variant: AvatarVariant.Network as const,
       name: network.name,
       imageSource: network.imageSource as ImageSourcePropType,
-      size: AvatarSize.Sm,
+      size: AvatarSize.Md,
     }),
     [],
   );
@@ -270,12 +280,28 @@ const NetworkMultiSelectList = ({
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
+      const isGasSponsored = isGasFeesSponsoredNetworkEnabled(chainId);
+
       return (
         <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
-            title={name}
+            title={
+              isGasSponsored ? (
+                <Box twClassName="flex-col">
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('networks.no_network_fee')}
+                  </Text>
+                </Box>
+              ) : (
+                name
+              )
+            }
             secondaryText={
               networkTypeOrRpcUrl && hasMultipleRpcs
                 ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
@@ -290,6 +316,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
+            style={styles.centeredNetworkCell}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -310,6 +337,8 @@ const NetworkMultiSelectList = ({
       createButtonProps,
       isSelectAllNetworksSection,
       openRpcModal,
+      isGasFeesSponsoredNetworkEnabled,
+      styles.centeredNetworkCell,
     ],
   );
 

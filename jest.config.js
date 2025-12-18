@@ -7,7 +7,6 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
-process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -70,6 +69,8 @@ const config = {
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-screen-orientation(/.*)?$':
+      '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':

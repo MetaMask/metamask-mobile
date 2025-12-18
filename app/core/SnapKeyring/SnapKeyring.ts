@@ -18,6 +18,7 @@ import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSna
 import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';
+import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 
 /**
  * Builder type for the Snap keyring.
@@ -185,13 +186,20 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           );
         }
 
-        if (accountName) {
-          // Set the account name if one is provided
-          this.#messenger.call(
-            'AccountsController:setAccountName',
-            accountId,
-            accountName,
-          );
+        // HACK: In state 2, account creations can run in parallel, thus, `accountName`
+        // sometimes conflict with other concurrent renaming. Since we don't rely on those
+        // account names anymore, we just omit this part and make this race-free.
+        // FIXME: We still rely on the old behavior in some e2e, so we cannot remove this
+        // entirely.
+        if (!isMultichainAccountsState2Enabled()) {
+          if (accountName) {
+            // Set the account name if one is provided
+            this.#messenger.call(
+              'AccountsController:setAccountName',
+              accountId,
+              accountName,
+            );
+          }
         }
 
         // Track successful account addition

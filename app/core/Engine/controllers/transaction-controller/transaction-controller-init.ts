@@ -50,7 +50,8 @@ import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,8 +79,17 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
+        isAutomaticGasFeeUpdateEnabled: (transaction) => {
+          const { origin, type } = transaction;
+          return (
+            REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType) &&
+            !hasTransactionType(transaction, [TransactionType.relayDeposit]) &&
+            !(
+              origin === ORIGIN_METAMASK &&
+              type === TransactionType.tokenMethodApprove
+            )
+          );
+        },
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -95,7 +105,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         getGasFeeEstimates: (...args) =>
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
-          // @ts-expect-error - NetworkController registry type mismatch between peer dependencies
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {

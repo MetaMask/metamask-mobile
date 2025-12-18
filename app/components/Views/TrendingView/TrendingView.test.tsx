@@ -27,7 +27,6 @@ jest.mock('react-redux', () => ({
 }));
 
 import TrendingView from './TrendingView';
-import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -37,6 +36,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -50,11 +50,6 @@ jest.mock('../../../util/browser', () => ({
   appendURLParams: jest.fn((url) => ({
     href: `${url}?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false`,
   })),
-}));
-
-jest.mock('../Browser', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
 }));
 
 // Mock the network hooks used by useTrendingRequest
@@ -94,14 +89,17 @@ jest.mock(
 );
 
 // Mock useTrendingRequest to return empty results
-jest.mock('../../../components/UI/Assets/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: jest.fn(() => ({
-    results: [],
-    isLoading: false,
-    error: null,
-    fetch: jest.fn(),
-  })),
-}));
+jest.mock(
+  '../../../components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: jest.fn(() => ({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    })),
+  }),
+);
 
 describe('TrendingView', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -140,6 +138,10 @@ describe('TrendingView', () => {
         // Return false to use default networks behavior
         return false;
       }
+      if (selector === selectBasicFunctionalityEnabled) {
+        // Return true by default (enabled)
+        return true;
+      }
       // Handle selectSelectedInternalAccountByScope which is a selector factory
       // It returns a function that takes a scope and returns an account
       if (selector === selectSelectedInternalAccountByScope) {
@@ -172,6 +174,238 @@ describe('TrendingView', () => {
     expect(browserButton).toBeDefined();
   });
 
+  describe('browser button states', () => {
+    it('displays add icon when no browser tabs are open', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 0;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
+
+      const { getByTestId, queryByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+
+      expect(browserButton).toBeDefined();
+      expect(queryByText(/^\d+$/)).toBeNull();
+    });
+
+    it('displays tab count when one browser tab is open', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 1;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
+
+      const { getByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByText('1')).toBeDefined();
+    });
+
+    it('displays tab count when multiple browser tabs are open', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 5;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
+
+      const { getByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByText('5')).toBeDefined();
+    });
+
+    it('displays tab count when many browser tabs are open', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 99;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
+
+      const { getByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByText('99')).toBeDefined();
+    });
+
+    it('navigates to TrendingBrowser when button is pressed', () => {
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+      fireEvent.press(browserButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'TrendingBrowser',
+        expect.objectContaining({
+          newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+          fromTrending: true,
+        }),
+      );
+    });
+  });
+
   it('renders title in header', () => {
     const { getByText } = render(
       <NavigationContainer>
@@ -179,46 +413,7 @@ describe('TrendingView', () => {
       </NavigationContainer>,
     );
 
-    expect(getByText('Trending')).toBeDefined();
-  });
-
-  it('navigates to TrendingBrowser route when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const browserButton = getByTestId('trending-view-browser-button');
-
-    fireEvent.press(browserButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-      newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-      timestamp: expect.any(Number),
-      fromTrending: true,
-    });
-    expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
-  });
-
-  it('includes portfolio URL with correct parameters when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const browserButton = getByTestId('trending-view-browser-button');
-
-    fireEvent.press(browserButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'TrendingBrowser',
-      expect.objectContaining({
-        newTabUrl: expect.stringContaining('metamaskEntry=mobile'),
-        fromTrending: true,
-      }),
-    );
+    expect(getByText('Explore')).toBeDefined();
   });
 
   it('renders search bar button', () => {
@@ -245,5 +440,24 @@ describe('TrendingView', () => {
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+  });
+
+  describe('basic functionality toggle', () => {
+    it('displays empty state when basic functionality is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByTestId('basic-functionality-empty-state')).toBeDefined();
+    });
   });
 });

@@ -10,7 +10,6 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
@@ -144,11 +143,7 @@ export function useTransactionConfirm() {
 
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
-
-    // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
   }, [
     chainId,
     dispatch,

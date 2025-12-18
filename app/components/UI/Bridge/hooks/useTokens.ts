@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react';
+
 import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useTopTokens } from './useTopTokens';
@@ -15,7 +17,6 @@ interface UseTokensProps {
   balanceChainIds?: (Hex | CaipChainId)[];
   tokensToExclude?: { address: string; chainId: Hex | CaipChainId }[];
 }
-
 /**
  * Hook to get tokens for the bridge
  * @param {Object} params - The parameters object
@@ -41,78 +42,94 @@ export function useTokens({
     chainId: topTokensChainId,
   });
 
-  const getTokenKey = (token: {
-    address: string;
-    chainId: Hex | CaipChainId;
-  }) => {
-    // Use the shared utility for non-EVM normalization to ensure consistent deduplication
-    let normalizedAddress = isNonEvmChainId(token.chainId)
-      ? formatAddressToAssetId(token.address, token.chainId)
-      : token.address.toLowerCase();
+  const getTokenKey = useCallback(
+    (token: { address: string; chainId: Hex | CaipChainId }) => {
+      // Use the shared utility for non-EVM normalization to ensure consistent deduplication
+      let normalizedAddress = isNonEvmChainId(token.chainId)
+        ? formatAddressToAssetId(token.address, token.chainId)
+        : token.address.toLowerCase();
 
-    if (!normalizedAddress) {
-      throw new Error(
-        `Invalid token address: ${token.address} for chain ID: ${token.chainId}`,
-      );
-    }
+      if (!normalizedAddress) {
+        throw new Error(
+          `Invalid token address: ${token.address} for chain ID: ${token.chainId}`,
+        );
+      }
 
-    // Normalize the native token address for Polygon
-    // Prevents duplicate tokens with different addresses from
-    // rendering in the UI
-    if (normalizedAddress === POLYGON_NATIVE_TOKEN) {
-      normalizedAddress = zeroAddress();
-    }
+      // Normalize the native token address for Polygon
+      // Prevents duplicate tokens with different addresses from
+      // rendering in the UI
+      if (normalizedAddress === POLYGON_NATIVE_TOKEN) {
+        normalizedAddress = zeroAddress();
+      }
 
-    return `${normalizedAddress}-${token.chainId}`;
-  };
+      return `${normalizedAddress}-${token.chainId}`;
+    },
+    [],
+  );
 
   // Create Sets for O(1) lookups
-  const tokensWithBalanceSet = new Set(
-    tokensWithBalance.map((token) => getTokenKey(token)),
+  const tokensWithBalanceSet = useMemo(
+    () => new Set(tokensWithBalance.map((token) => getTokenKey(token))),
+    [tokensWithBalance, getTokenKey],
   );
-  const excludedTokensSet = new Set(
-    tokensToExclude?.map((token) => getTokenKey(token)) ?? [],
+  const excludedTokensSet = useMemo(
+    () => new Set(tokensToExclude?.map((token) => getTokenKey(token)) ?? []),
+    [tokensToExclude, getTokenKey],
   );
 
   // Combine and filter tokens in a single pass
-  const tokensWithoutBalance = (topTokens ?? [])
-    .concat(remainingTokens ?? [])
-    .filter((token) => {
-      if (!isTradableToken(token)) {
-        return false;
-      }
+  const tokensWithoutBalance = useMemo(
+    () =>
+      (topTokens ?? []).concat(remainingTokens ?? []).filter((token) => {
+        if (!isTradableToken(token)) {
+          return false;
+        }
 
-      const tokenKey = getTokenKey(token);
-      return !tokensWithBalanceSet.has(tokenKey);
-    });
-
-  // Combine tokens with balance and filtered tokens and filter out excluded tokens
-  const allTokens = tokensWithBalance
-    .concat(tokensWithoutBalance)
-    .filter((token) => {
-      if (!isTradableToken(token)) {
-        return false;
-      }
-
-      const tokenKey = getTokenKey(token);
-      return !excludedTokensSet.has(tokenKey);
-    });
-
-  const tokensToRender = tokensWithBalance
-    .concat(
-      topTokens?.filter((token) => {
         const tokenKey = getTokenKey(token);
         return !tokensWithBalanceSet.has(tokenKey);
-      }) ?? [],
-    )
-    .filter((token) => {
-      if (!isTradableToken(token)) {
-        return false;
-      }
+      }),
+    [topTokens, remainingTokens, getTokenKey, tokensWithBalanceSet],
+  );
 
-      const tokenKey = getTokenKey(token);
-      return !excludedTokensSet.has(tokenKey);
-    });
+  // Combine tokens with balance and filtered tokens and filter out excluded tokens
+  const allTokens = useMemo(
+    () =>
+      tokensWithBalance.concat(tokensWithoutBalance).filter((token) => {
+        if (!isTradableToken(token)) {
+          return false;
+        }
+
+        const tokenKey = getTokenKey(token);
+        return !excludedTokensSet.has(tokenKey);
+      }),
+    [tokensWithBalance, tokensWithoutBalance, getTokenKey, excludedTokensSet],
+  );
+
+  const tokensToRender = useMemo(
+    () =>
+      tokensWithBalance
+        .concat(
+          topTokens?.filter((token) => {
+            const tokenKey = getTokenKey(token);
+            return !tokensWithBalanceSet.has(tokenKey);
+          }) ?? [],
+        )
+        .filter((token) => {
+          if (!isTradableToken(token)) {
+            return false;
+          }
+
+          const tokenKey = getTokenKey(token);
+          return !excludedTokensSet.has(tokenKey);
+        }),
+    [
+      tokensWithBalance,
+      topTokens,
+      getTokenKey,
+      tokensWithBalanceSet,
+      excludedTokensSet,
+    ],
+  );
 
   return { allTokens, tokensToRender, pending };
 }

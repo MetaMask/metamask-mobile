@@ -271,6 +271,7 @@
     }
   },
   "PhishingController": {
+    "addressScanCache": {},
     "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
@@ -473,7 +474,6 @@
     "connectionStatus": "disconnected",
     "positions": [],
     "accountState": null,
-    "pendingOrders": [],
     "depositInProgress": false,
     "depositRequests": {},
     "lastDepositTransactionId": null,
@@ -540,6 +540,10 @@
   },
   "TransactionPayController": {
     "transactionData": {}
+  },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
   },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,

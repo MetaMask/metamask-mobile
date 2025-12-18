@@ -17,6 +17,7 @@ import {
   REFERRAL_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
+  USDH_CONFIG,
 } from '../../constants/hyperLiquidConfig';
 import {
   ORDER_SLIPPAGE_CONFIG,
@@ -25,6 +26,7 @@ import {
   TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -98,6 +100,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,
@@ -107,7 +110,9 @@ import type {
   Position,
   ReadyToTradeResult,
   SubscribeAccountParams,
+  SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -123,6 +128,11 @@ import type {
   UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
+import type {
+  ExtendedAssetMeta,
+  ExtendedPerpDex,
+} from '../../types/perps-types';
+import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -222,6 +232,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   private cachedMetaByDex = new Map<string, MetaResponse>();
 
+  // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
+  // TTL-based cache - fee scales rarely change
+  private perpDexsCache: {
+    data: ExtendedPerpDex[] | null;
+    timestamp: number;
+  } = { data: null, timestamp: 0 };
+
   // Session cache for referral state (cleared on disconnect/reconnect)
   // Key: `network:userAddress`, Value: true if referral is set
   private referralCheckCache = new Map<string, boolean>();
@@ -261,6 +278,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+    'could not immediately match': PERPS_ERROR_CODES.IOC_CANCEL,
   };
 
   // Track whether clients have been initialized (lazy initialization)
@@ -336,6 +354,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     const wallet = this.walletService.createWalletAdapter();
     this.clientService.initialize(wallet);
+
+    // Set reconnection callback to restore subscriptions when WebSocket reconnects
+    this.clientService.setOnReconnectCallback(async () => {
+      try {
+        // Restore subscription service subscriptions
+        await this.subscriptionService.restoreSubscriptions();
+
+        const streamManager = getStreamManagerInstance();
+        streamManager.clearAllChannels();
+      } catch {
+        // Ignore errors during reconnection
+      }
+    });
 
     // Only set flag AFTER successful initialization
     this.clientsInitialized = true;
@@ -642,6 +673,116 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Fetch perpDexs data with TTL-based caching
+   * Returns deployerFeeScale info needed for dynamic fee calculation
+   * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
+   */
+  private async getCachedPerpDexs(): Promise<ExtendedPerpDex[]> {
+    const now = Date.now();
+
+    // Return cached data if still valid
+    if (
+      this.perpDexsCache.data &&
+      now - this.perpDexsCache.timestamp <
+        HIP3_FEE_CONFIG.PERP_DEXS_CACHE_TTL_MS
+    ) {
+      DevLogger.log('[getCachedPerpDexs] Using cached perpDexs data', {
+        age: `${Math.round((now - this.perpDexsCache.timestamp) / 1000)}s`,
+        count: this.perpDexsCache.data.length,
+      });
+      return this.perpDexsCache.data;
+    }
+
+    // Fetch fresh data from API
+    // Note: SDK types are incomplete, but API returns deployerFeeScale
+    this.ensureClientsInitialized();
+    const infoClient = this.clientService.getInfoClient();
+    const perpDexs =
+      (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
+
+    // Cache the result
+    this.perpDexsCache = { data: perpDexs, timestamp: now };
+
+    DevLogger.log('[getCachedPerpDexs] Fetched and cached perpDexs data', {
+      count: perpDexs.length,
+      dexes: perpDexs
+        .filter((d) => d !== null)
+        .map((d) => ({
+          name: d.name,
+          deployerFeeScale: d.deployerFeeScale,
+        })),
+    });
+
+    return perpDexs;
+  }
+
+  /**
+   * Calculate HIP-3 fee multiplier using HyperLiquid's official formula
+   * Fetches deployerFeeScale from perpDexs API and growthMode from meta API
+   *
+   * Formula from HyperLiquid docs:
+   * - scaleIfHip3 = deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2
+   * - growthModeScale = growthMode ? 0.1 : 1
+   * - finalMultiplier = scaleIfHip3 * growthModeScale
+   *
+   * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+   */
+  private async calculateHip3FeeMultiplier(params: {
+    dexName: string;
+    assetSymbol: string;
+  }): Promise<number> {
+    const { dexName, assetSymbol } = params;
+
+    try {
+      // Get deployerFeeScale from perpDexs
+      const perpDexs = await this.getCachedPerpDexs();
+      const dexInfo = perpDexs.find((d) => d?.name === dexName);
+      const parsedScale = parseFloat(dexInfo?.deployerFeeScale ?? '');
+      const deployerFeeScale = Number.isNaN(parsedScale)
+        ? HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE
+        : parsedScale;
+
+      // Get growthMode from meta for this specific asset
+      const meta = await this.getCachedMeta({ dexName });
+      const fullAssetName = `${dexName}:${assetSymbol}`;
+      const assetMeta = meta.universe.find(
+        (u) => (u as ExtendedAssetMeta).name === fullAssetName,
+      ) as ExtendedAssetMeta | undefined;
+      const isGrowthMode = assetMeta?.growthMode === 'enabled';
+
+      // Apply official formula
+      const scaleIfHip3 =
+        deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2;
+      const growthModeScale = isGrowthMode
+        ? HIP3_FEE_CONFIG.GROWTH_MODE_SCALE
+        : 1;
+
+      const finalMultiplier = scaleIfHip3 * growthModeScale;
+
+      DevLogger.log('HIP-3 Dynamic Fee Calculation', {
+        dexName,
+        assetSymbol,
+        fullAssetName,
+        deployerFeeScale,
+        isGrowthMode,
+        scaleIfHip3,
+        growthModeScale,
+        finalMultiplier,
+      });
+
+      return finalMultiplier;
+    } catch (error) {
+      DevLogger.log('HIP-3 Fee Calculation Failed, using fallback', {
+        dexName,
+        assetSymbol,
+        error: ensureError(error).message,
+      });
+      // Safe fallback: standard HIP-3 2x multiplier (no Growth Mode discount)
+      return HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE * 2;
+    }
+  }
+
+  /**
    * Generate session cache key for user-specific caches
    * Format: "network:userAddress" (address normalized to lowercase)
    * @param network - 'mainnet' or 'testnet'
@@ -729,6 +870,352 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     return this.cachedUsdcTokenId;
+  }
+
+  /**
+   * Check if a HIP-3 DEX uses USDH as collateral (vs USDC)
+   * Per HyperLiquid docs: USDH DEXs pull collateral from spot balance automatically
+   */
+  private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
+    const meta = await this.getCachedMeta({ dexName });
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    const collateralToken = spotMeta.tokens.find(
+      (t: { index: number }) => t.index === meta.collateralToken,
+    );
+
+    const isUsdh = collateralToken?.name === USDH_CONFIG.TOKEN_NAME;
+
+    DevLogger.log('HyperLiquidProvider: Checked DEX collateral type', {
+      dexName,
+      collateralTokenIndex: meta.collateralToken,
+      collateralTokenName: collateralToken?.name,
+      isUsdh,
+    });
+
+    return isUsdh;
+  }
+
+  /**
+   * Get user's USDH balance in spot wallet
+   */
+  private async getSpotUsdhBalance(): Promise<number> {
+    const infoClient = this.clientService.getInfoClient();
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    const spotState = await infoClient.spotClearinghouseState({
+      user: userAddress,
+    });
+
+    const usdhBalance = spotState.balances.find(
+      (b: { coin: string }) => b.coin === USDH_CONFIG.TOKEN_NAME,
+    );
+
+    const balance = usdhBalance ? parseFloat(usdhBalance.total) : 0;
+
+    DevLogger.log('HyperLiquidProvider: Spot USDH balance', {
+      balance,
+      userAddress,
+    });
+
+    return balance;
+  }
+
+  /**
+   * Get user's USDC balance in spot wallet
+   * Required for USDH DEX orders - need USDC in spot to swap to USDH
+   */
+  private async getSpotUsdcBalance(): Promise<number> {
+    const infoClient = this.clientService.getInfoClient();
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    const spotState = await infoClient.spotClearinghouseState({
+      user: userAddress,
+    });
+
+    const usdcBalance = spotState.balances.find(
+      (b: { coin: string }) => b.coin === 'USDC',
+    );
+
+    const balance = usdcBalance ? parseFloat(usdcBalance.total) : 0;
+
+    DevLogger.log('HyperLiquidProvider: Spot USDC balance', {
+      balance,
+      userAddress,
+    });
+
+    return balance;
+  }
+
+  /**
+   * Transfer USDC from main perps wallet to spot wallet
+   * Required before swapping USDC→USDH for USDH DEX orders
+   */
+  private async transferUsdcToSpot(
+    amount: number,
+  ): Promise<{ success: boolean; error?: string }> {
+    const exchangeClient = this.clientService.getExchangeClient();
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    DevLogger.log('HyperLiquidProvider: Transferring USDC to spot', {
+      amount,
+      userAddress,
+    });
+
+    try {
+      const result = await exchangeClient.sendAsset({
+        destination: userAddress,
+        sourceDex: '', // Main perps DEX (empty string)
+        destinationDex: 'spot',
+        token: await this.getUsdcTokenId(),
+        amount: amount.toString(),
+      });
+
+      if (result.status === 'ok') {
+        DevLogger.log('HyperLiquidProvider: USDC transferred to spot', {
+          amount,
+        });
+        return { success: true };
+      }
+
+      return { success: false, error: `Transfer failed: ${result.status}` };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      DevLogger.log('HyperLiquidProvider: USDC transfer to spot failed', {
+        error: errorMsg,
+      });
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Swap USDC to USDH on spot market
+   * Returns the result of the swap including filled size
+   */
+  private async swapUsdcToUsdh(
+    amount: number,
+  ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    // Find USDH and USDC tokens by name
+    const usdhToken = spotMeta.tokens.find(
+      (t: { name: string }) => t.name === USDH_CONFIG.TOKEN_NAME,
+    );
+    const usdcToken = spotMeta.tokens.find(
+      (t: { name: string }) => t.name === 'USDC',
+    );
+
+    if (!usdhToken || !usdcToken) {
+      return {
+        success: false,
+        error: 'USDH or USDC token not found in spot metadata',
+      };
+    }
+
+    // Find USDH/USDC pair by token indices (NOT by name - name is @230)
+    const usdhUsdcPair = spotMeta.universe.find(
+      (u: { tokens: number[] }) =>
+        u.tokens.includes(usdhToken.index) &&
+        u.tokens.includes(usdcToken.index),
+    );
+
+    if (!usdhUsdcPair) {
+      return { success: false, error: 'USDH/USDC spot pair not found' };
+    }
+
+    const spotAssetId = 10000 + usdhUsdcPair.index;
+
+    DevLogger.log('HyperLiquidProvider: Found USDH/USDC spot pair', {
+      pairIndex: usdhUsdcPair.index,
+      pairName: usdhUsdcPair.name,
+      spotAssetId,
+      usdhTokenIndex: usdhToken.index,
+      usdcTokenIndex: usdcToken.index,
+    });
+
+    // Get current mid price
+    const allMids = await infoClient.allMids();
+    const pairKey = `@${usdhUsdcPair.index}`;
+    const usdhPrice = parseFloat(allMids[pairKey] || '1');
+
+    if (usdhPrice === 0) {
+      return {
+        success: false,
+        error: `No price available for USDH/USDC pair (${pairKey})`,
+      };
+    }
+
+    // Calculate order parameters
+    // USDH is pegged 1:1 to USDC, add small slippage buffer
+    const slippageMultiplier =
+      1 + USDH_CONFIG.SWAP_SLIPPAGE_BPS / BASIS_POINTS_DIVISOR;
+    const maxPrice = usdhPrice * slippageMultiplier;
+
+    // Size in USDH = amount / price (since we're buying USDH with USDC)
+    let sizeInUsdh = amount / usdhPrice;
+
+    // Format size according to HyperLiquid requirements
+    let formattedSize = sizeInUsdh.toFixed(usdhToken.szDecimals);
+
+    // CRITICAL: Ensure USDC cost meets $10 minimum after rounding
+    // At price ~0.999995, buying 10.00 USDH costs 9.99995 USDC (under minimum)
+    // Bump up by one increment if needed to meet minimum
+    const minSpotOrderValue = TRADING_DEFAULTS.amount.mainnet;
+    const estimatedCost = parseFloat(formattedSize) * usdhPrice;
+    if (estimatedCost < minSpotOrderValue) {
+      const increment = Math.pow(10, -usdhToken.szDecimals); // 0.01 for szDecimals=2
+      sizeInUsdh = parseFloat(formattedSize) + increment;
+      formattedSize = sizeInUsdh.toFixed(usdhToken.szDecimals);
+    }
+
+    // Format price according to HyperLiquid requirements
+    const formattedPrice = formatHyperLiquidPrice({
+      price: maxPrice,
+      szDecimals: usdhToken.szDecimals,
+    });
+
+    DevLogger.log('HyperLiquidProvider: Placing USDC→USDH swap order', {
+      usdcAmount: amount,
+      usdhPrice,
+      maxPrice: formattedPrice,
+      size: formattedSize,
+      szDecimals: usdhToken.szDecimals,
+    });
+
+    try {
+      const exchangeClient = this.clientService.getExchangeClient();
+      const result = await exchangeClient.order({
+        orders: [
+          {
+            a: spotAssetId,
+            b: true, // Buy USDH
+            p: formattedPrice,
+            s: formattedSize,
+            r: false, // Not reduce-only
+            t: { limit: { tif: 'Ioc' } }, // Immediate-or-cancel
+          },
+        ],
+        grouping: 'na',
+      });
+
+      if (result.status !== 'ok') {
+        return {
+          success: false,
+          error: `Swap failed: ${JSON.stringify(result)}`,
+        };
+      }
+
+      // Check order status
+      const status = result.response?.data?.statuses?.[0];
+      if (status && 'error' in status) {
+        return { success: false, error: String(status.error) };
+      }
+
+      const filledSize =
+        status && 'filled' in status
+          ? parseFloat(status.filled?.totalSz || '0')
+          : 0;
+
+      DevLogger.log('HyperLiquidProvider: USDC→USDH swap completed', {
+        success: true,
+        filledSize,
+        requestedSize: formattedSize,
+      });
+
+      return { success: true, filledSize };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      DevLogger.log('HyperLiquidProvider: USDC→USDH swap error', {
+        error: errorMsg,
+      });
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Ensure sufficient USDH collateral in spot for HIP-3 DEX order
+   * If user lacks USDH, auto-swap from USDC
+   */
+  private async ensureUsdhCollateralForOrder(
+    dexName: string,
+    requiredMargin: number,
+  ): Promise<void> {
+    const spotUsdhBalance = await this.getSpotUsdhBalance();
+
+    DevLogger.log('HyperLiquidProvider: Checking USDH collateral', {
+      dexName,
+      requiredMargin,
+      spotUsdhBalance,
+    });
+
+    if (spotUsdhBalance >= requiredMargin) {
+      DevLogger.log('HyperLiquidProvider: Sufficient USDH in spot');
+      return;
+    }
+
+    const shortfall = requiredMargin - spotUsdhBalance;
+    // HyperLiquid spot has $10 minimum order value
+    const minSpotOrderValue = TRADING_DEFAULTS.amount.mainnet;
+
+    // If user has some USDH already, we can swap just the shortfall (if >= $10)
+    // If user has zero USDH, they need at least $10 for first swap
+    const swapAmount =
+      spotUsdhBalance > 0 && shortfall >= minSpotOrderValue
+        ? shortfall
+        : Math.max(shortfall, minSpotOrderValue);
+
+    // Step 1: Check spot USDC balance
+    const spotUsdcBalance = await this.getSpotUsdcBalance();
+
+    // Calculate total available USDC (spot + what we can transfer from perps)
+    // For now, check if we have enough in spot first
+    const totalUsdcNeeded = swapAmount - spotUsdcBalance;
+
+    // Step 2: If insufficient USDC in spot, transfer from main perps
+    if (spotUsdcBalance < swapAmount) {
+      const transferAmount = totalUsdcNeeded;
+
+      DevLogger.log('HyperLiquidProvider: Transferring USDC to spot for swap', {
+        spotUsdcBalance,
+        swapAmount,
+        transferAmount,
+      });
+
+      const transferResult = await this.transferUsdcToSpot(transferAmount);
+      if (!transferResult.success) {
+        // Provide user-friendly error for insufficient funds
+        if (transferResult.error?.includes('Insufficient balance')) {
+          throw new Error(
+            `Insufficient USDC balance. Need $${swapAmount.toFixed(2)} for USDH swap but transfer failed. Please deposit more USDC to your HyperLiquid account.`,
+          );
+        }
+        throw new Error(
+          `Failed to transfer USDC to spot: ${transferResult.error}`,
+        );
+      }
+    }
+
+    // Step 3: Swap USDC → USDH
+    DevLogger.log('HyperLiquidProvider: Swapping USDC→USDH for collateral', {
+      shortfall,
+      swapAmount,
+      minOrderValue: minSpotOrderValue,
+    });
+
+    const swapResult = await this.swapUsdcToUsdh(swapAmount);
+
+    if (!swapResult.success) {
+      throw new Error(
+        `Failed to acquire USDH collateral for ${dexName}: ${swapResult.error}`,
+      );
+    }
+
+    DevLogger.log('HyperLiquidProvider: USDH collateral acquired', {
+      dexName,
+      filledSize: swapResult.filledSize,
+    });
   }
 
   /**
@@ -1737,6 +2224,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
   ): Promise<HandleHip3PreOrderResult> {
     const { dexName, coin, orderPrice, positionSize, leverage, isBuy } = params;
 
+    // Check if this DEX uses USDH collateral (vs USDC)
+    // For USDH DEXs, HyperLiquid automatically pulls from spot balance
+    const isUsdhDex = await this.isUsdhCollateralDex(dexName);
+    if (isUsdhDex) {
+      DevLogger.log('HyperLiquidProvider: USDH-collateralized DEX detected', {
+        dexName,
+        coin,
+      });
+
+      // Calculate required margin and ensure USDH is in spot
+      const requiredMargin = await this.calculateHip3RequiredMargin({
+        coin,
+        dexName,
+        positionSize,
+        orderPrice,
+        leverage,
+        isBuy,
+      });
+
+      await this.ensureUsdhCollateralForOrder(dexName, requiredMargin);
+
+      // DEX abstraction will pull USDH from spot automatically
+      return { transferInfo: null };
+    }
+
     if (this.useDexAbstraction) {
       DevLogger.log('Using DEX abstraction (no manual transfer)', {
         coin,
@@ -1871,8 +2383,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
    *
    * Refactored to use helper methods for better maintainability and reduced complexity.
    * Each helper method is focused on a single responsibility.
+   *
+   * @param params - Order parameters
+   * @param retryCount - Internal retry counter to prevent infinite loops (default: 0)
    */
-  async placeOrder(params: OrderParams): Promise<OrderResult> {
+  async placeOrder(params: OrderParams, retryCount = 0): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -2027,6 +2542,56 @@ export class HyperLiquidProvider implements IPerpsProvider {
         assetId,
       });
     } catch (error) {
+      // Retry mechanism for $10 minimum order errors
+      // This handles the case where UI price feed slightly differs from HyperLiquid's orderbook price
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isMinimumOrderError =
+        errorMessage.includes('Order must have minimum value of $10') ||
+        errorMessage.includes('Order 0: Order must have minimum value');
+
+      if (isMinimumOrderError && retryCount === 0) {
+        let adjustedUsdAmount: string;
+        let originalValue: string | undefined;
+
+        if (params.usdAmount) {
+          // USD-based order: adjust the USD amount directly
+          originalValue = params.usdAmount;
+          adjustedUsdAmount = (parseFloat(params.usdAmount) * 1.015).toFixed(2);
+        } else if (params.currentPrice) {
+          // Size-based order: calculate USD from size and adjust
+          const sizeValue = parseFloat(params.size);
+          const estimatedUsd = sizeValue * params.currentPrice;
+          originalValue = `${estimatedUsd.toFixed(2)} (calculated from size ${params.size})`;
+          adjustedUsdAmount = (estimatedUsd * 1.015).toFixed(2);
+        } else {
+          // No price information available - cannot retry
+          return this.handleOrderError({
+            error,
+            coin: params.coin,
+            orderType: params.orderType,
+            isBuy: params.isBuy,
+          });
+        }
+
+        Logger.log(
+          'Retrying order with adjusted size due to minimum value error',
+          {
+            originalValue,
+            adjustedUsdAmount,
+            retryCount,
+          },
+        );
+
+        return this.placeOrder(
+          {
+            ...params,
+            usdAmount: adjustedUsdAmount,
+          },
+          1, // Retry count = 1, prevents further retries
+        );
+      }
+
       return this.handleOrderError({
         error,
         coin: params.coin,
@@ -2107,7 +2672,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const positionSize = parseFloat(params.newOrder.size);
         const slippage =
           params.newOrder.slippage ??
-          ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -2435,7 +3000,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
 
         // Calculate order price with slippage
-        const slippage = ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
+        const slippage =
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
         const orderPrice = isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -2928,6 +3494,94 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Update margin for an existing position (add or remove)
+   *
+   * @param params - Margin adjustment parameters
+   * @param params.coin - Asset symbol (e.g., 'BTC', 'ETH')
+   * @param params.amount - Amount to adjust as string (positive = add, negative = remove)
+   * @returns Promise resolving to margin adjustment result
+   *
+   * Note: HyperLiquid uses micro-units (multiply by 1e6) for the ntli parameter.
+   * The SDK's updateIsolatedMargin requires:
+   * - asset: Asset ID (number)
+   * - isBuy: Position direction (true for long, false for short)
+   * - ntli: Amount in micro-units (amount * 1e6)
+   */
+  async updateMargin(params: {
+    coin: string;
+    amount: string;
+  }): Promise<MarginResult> {
+    try {
+      DevLogger.log('Updating position margin:', params);
+
+      const { coin, amount } = params;
+
+      // Ensure provider is ready
+      await this.ensureReady();
+
+      // Get current position to determine direction
+      // Force fresh API data since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
+      const position = positions.find((p) => p.coin === coin);
+
+      if (!position) {
+        throw new Error(`No position found for ${coin}`);
+      }
+
+      // Determine position direction
+      const isBuy = parseFloat(position.size) > 0; // true for long, false for short
+
+      // Get asset ID for the coin
+      const assetId = this.coinToAssetId.get(coin);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${coin}`);
+      }
+
+      // Convert amount to micro-units (HyperLiquid SDK requirement)
+      const amountFloat = parseFloat(amount);
+      const ntli = Math.floor(amountFloat * 1e6);
+
+      DevLogger.log('Margin adjustment details', {
+        coin,
+        assetId,
+        isBuy,
+        amount: amountFloat,
+        ntli,
+      });
+
+      // Call SDK to update isolated margin
+      const exchangeClient = this.clientService.getExchangeClient();
+      const result = await exchangeClient.updateIsolatedMargin({
+        asset: assetId,
+        isBuy,
+        ntli,
+      });
+
+      DevLogger.log('Margin update result:', result);
+
+      if (result.status !== 'ok') {
+        throw new Error(`Margin adjustment failed: ${JSON.stringify(result)}`);
+      }
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('updateMargin', {
+          coin: params.coin,
+          amount: params.amount,
+        }),
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
    * Get current positions with TP/SL prices
    *
    * Note on TP/SL orders:
@@ -3343,9 +3997,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
+      // HyperLiquid API requires startTime to be a number (not undefined)
+      // Default to configured days ago to get recent funding payments
+      // Using 0 (epoch) would return oldest 500 records, missing latest payments
+      const defaultStartTime =
+        Date.now() -
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+          24 *
+          60 *
+          60 *
+          1000;
       const rawFunding = await infoClient.userFunding({
         user: userAddress,
-        startTime: params?.startTime || 0,
+        startTime: params?.startTime ?? defaultStartTime,
         endTime: params?.endTime,
       });
 
@@ -4645,6 +5309,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    return this.subscriptionService.subscribeToOrderBook(params);
+  }
+
+  /**
+   * Subscribe to live candle updates
+   */
+  subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    return this.clientService.subscribeToCandles(params);
+  }
+
+  /**
    * Configure live data settings
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -4919,21 +5598,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    // HIP-3 assets have 2× base fees (per fees.md line 9)
-    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz")
-    const { dex } = parseAssetName(coin);
+    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz", symbol="TSLA")
+    const { dex, symbol } = parseAssetName(coin);
     const isHip3Asset = dex !== null;
 
-    if (isHip3Asset) {
+    // Calculate HIP-3 fee multiplier dynamically (handles Growth Mode)
+    let hip3Multiplier = 1;
+    if (isHip3Asset && dex && symbol) {
+      hip3Multiplier = await this.calculateHip3FeeMultiplier({
+        dexName: dex,
+        assetSymbol: symbol,
+      });
       const originalRate = feeRate;
-      feeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+      feeRate *= hip3Multiplier;
 
-      DevLogger.log('HIP-3 Fee Multiplier Applied', {
+      DevLogger.log('HIP-3 Dynamic Fee Multiplier Applied', {
         coin,
         dex,
+        symbol,
         originalBaseRate: originalRate,
         hip3BaseRate: feeRate,
-        multiplier: HIP3_FEE_CONFIG.FEE_MULTIPLIER,
+        hip3Multiplier,
       });
     }
 
@@ -4943,6 +5628,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       amount,
       coin,
       isHip3Asset,
+      hip3Multiplier,
       baseFeeRate: feeRate,
       baseTakerRate: FEE_RATES.taker,
       baseMakerRate: FEE_RATES.maker,
@@ -4967,9 +5653,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
               ? cached.perpsTakerRate
               : cached.perpsMakerRate;
 
-          // Apply HIP-3 multiplier to user-specific rates
-          if (isHip3Asset) {
-            userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+          // Apply HIP-3 dynamic multiplier to user-specific rates (includes Growth Mode)
+          if (isHip3Asset && hip3Multiplier > 0) {
+            userFeeRate *= hip3Multiplier;
           }
 
           feeRate = userFeeRate;
@@ -4982,6 +5668,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             spotMakerRate: cached.spotMakerRate,
             selectedRate: feeRate,
             isHip3Asset,
+            hip3Multiplier,
             cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
             cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
           });
@@ -5093,9 +5780,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
 
-        // Apply HIP-3 multiplier to API-fetched rates
-        if (isHip3Asset) {
-          userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+        // Apply HIP-3 dynamic multiplier to API-fetched rates (includes Growth Mode)
+        if (isHip3Asset && hip3Multiplier > 0) {
+          userFeeRate *= hip3Multiplier;
         }
 
         feeRate = userFeeRate;
@@ -5105,6 +5792,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
           discountApplied: perpsTakerRate < FEE_RATES.taker,
           isHip3Asset,
+          hip3Multiplier,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }
@@ -5237,6 +5925,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.referralCheckCache.clear();
       this.builderFeeCheckCache.clear();
       this.cachedMetaByDex.clear();
+      this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;

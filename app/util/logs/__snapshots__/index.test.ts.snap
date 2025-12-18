@@ -486,7 +486,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
-        "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
         "tradeConfigurations": {},
@@ -546,6 +545,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1230,7 +1233,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
-        "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
         "tradeConfigurations": {},
@@ -1290,6 +1292,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

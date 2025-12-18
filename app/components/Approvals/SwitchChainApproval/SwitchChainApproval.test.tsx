@@ -4,8 +4,6 @@ import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SwitchChainApproval from './SwitchChainApproval';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -102,9 +100,6 @@ const mockApprovalRequestData = {
 describe('SwitchChainApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(false);
   });
 
   it('renders', () => {
@@ -166,11 +161,7 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('calls selectNetwork when remove global network selector are enabled', () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(true);
-
+  it('calls selectNetwork when confirm is pressed', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,
@@ -181,27 +172,6 @@ describe('SwitchChainApproval', () => {
 
     expect(mockSelectNetwork).toHaveBeenCalledTimes(1);
     expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-    expect(networkSwitched).toHaveBeenCalledTimes(1);
-    expect(networkSwitched).toHaveBeenCalledWith({
-      networkUrl: URL_MOCK,
-      networkStatus: true,
-    });
-  });
-
-  it('does not call selectNetwork when remove global network selector is disabled', () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(false);
-
-    mockApprovalRequest({
-      type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData,
-    });
-
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(mockSelectNetwork).not.toHaveBeenCalled();
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({
       networkUrl: URL_MOCK,

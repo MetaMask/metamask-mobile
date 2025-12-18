@@ -4,7 +4,6 @@ import {
   PerpsCandlestickChartSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
-  PerpsPositionCardSelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -252,7 +251,7 @@ class PerpsMarketDetailsView {
   // Ensure Close Position button is visible by performing best-effort scrolls, then assert
   async expectClosePositionButtonVisible() {
     const closeBtn = Matchers.getElementByID(
-      PerpsPositionCardSelectorsIDs.CLOSE_BUTTON,
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
     ) as DetoxElement;
 
     for (let i = 0; i < 3; i++) {

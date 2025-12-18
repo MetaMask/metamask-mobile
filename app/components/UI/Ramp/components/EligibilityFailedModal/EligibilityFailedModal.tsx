@@ -33,7 +33,9 @@ function EligibilityFailedModal() {
   const { styles } = useStyles(styleSheet, {});
 
   const navigateToContactSupport = useCallback(() => {
-    Linking.openURL(SUPPORT_URL);
+    Linking.openURL(SUPPORT_URL).catch((error: unknown) => {
+      console.error('Failed to open support URL:', error);
+    });
   }, []);
 
   const handleClose = useCallback(() => {

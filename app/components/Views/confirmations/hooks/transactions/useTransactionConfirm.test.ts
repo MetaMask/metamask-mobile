@@ -16,7 +16,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import { resetTransaction } from '../../../../../actions/transaction';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { flushPromises } from '../../../../../util/test/utils';
@@ -80,10 +79,6 @@ describe('useTransactionConfirm', () => {
     useGaslessSupportedSmartTransactions,
   );
 
-  const isRemoveGlobalNetworkSelectorEnabledMock = jest.mocked(
-    isRemoveGlobalNetworkSelectorEnabled,
-  );
-
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -119,8 +114,6 @@ describe('useTransactionConfirm', () => {
     resetTransactionMock.mockReturnValue({
       type: 'reset',
     });
-
-    isRemoveGlobalNetworkSelectorEnabledMock.mockReturnValue(false);
 
     useNetworkEnablementMock.mockReturnValue({
       tryEnableEvmNetwork: jest.fn(),
@@ -205,28 +198,7 @@ describe('useTransactionConfirm', () => {
     expect(resetTransactionMock).toHaveBeenCalled();
   });
 
-  it('does not enable network when feature flag is disabled', async () => {
-    isRemoveGlobalNetworkSelectorEnabledMock.mockReturnValue(false);
-
-    const tryEnableEvmNetworkMock = jest.fn();
-
-    useNetworkEnablementMock.mockReturnValue({
-      tryEnableEvmNetwork: tryEnableEvmNetworkMock,
-    } as unknown as ReturnType<typeof useNetworkEnablement>);
-
-    const { result } = renderHook();
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-    await flushPromises();
-
-    expect(tryEnableEvmNetworkMock).not.toHaveBeenCalled();
-  });
-
-  it('calls tryEnableEvmNetwork when feature flag is enabled', async () => {
-    isRemoveGlobalNetworkSelectorEnabledMock.mockReturnValue(true);
-
+  it('calls tryEnableEvmNetwork', async () => {
     const tryEnableEvmNetworkMock = jest.fn();
 
     useNetworkEnablementMock.mockReturnValue({

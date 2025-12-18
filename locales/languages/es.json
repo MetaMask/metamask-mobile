@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Continuar",
     "show_hex_data": "Mostrar datos hexadecimales",
     "show_hex_data_desc": "Seleccione esta opción para mostrar el campo de datos hexadecimales en la pantalla de envío.",
-    "show_custom_nonce": "Personalizar nonce de transacción",
-    "custom_nonce_desc": "Active esta opción para cambiar el nonce (número de transacción) en las pantallas de confirmación. Esta es una función avanzada, úsela con precaución.",
     "accounts_identicon_title": "Ícono de cuenta",
     "accounts_identicon_desc": "Elige entre tres estilos diferentes de íconos únicos que pueden ayudarte a identificar cuentas rápidamente.",
     "jazzicons": "Jazzicons",

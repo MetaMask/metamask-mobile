@@ -141,7 +141,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: prediction_market_ios_smoke-${{ matrix.split }}
+      test-suite-name: prediction-market-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: 'SmokePredictions'
       split_number: ${{ matrix.split }}

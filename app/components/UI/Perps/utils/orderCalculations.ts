@@ -201,7 +201,7 @@ export function calculateFinalPositionSize(
         ((currentPrice - priceAtCalculation) / priceAtCalculation) * 10000,
       );
       const maxSlippageBpsValue =
-        maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS;
+        maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS;
 
       if (priceDeltaBps > maxSlippageBpsValue) {
         throw new Error(
@@ -301,9 +301,9 @@ export function calculateOrderPriceAndSize(
   let formattedSize: string;
 
   if (orderType === 'market') {
-    // Market orders: add slippage
+    // Market orders: add slippage (3% conservative default)
     const slippageValue =
-      slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
+      slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
     orderPrice = isBuy
       ? currentPrice * (1 + slippageValue)
       : currentPrice * (1 - slippageValue);
@@ -312,7 +312,7 @@ export function calculateOrderPriceAndSize(
       szDecimals,
     });
   } else {
-    // Limit orders: use provided price
+    // Limit orders: use provided price (no slippage applied)
     if (!limitPrice) {
       throw new Error(
         strings('perps.errors.orderValidation.limitPriceRequired'),
@@ -400,11 +400,20 @@ export function buildOrdersArray(
 
   // 3. Stop Loss order
   if (stopLossPrice) {
+    // Apply 10% slippage to SL limit price (executes as market order when triggered)
+    // HyperLiquid recommended: 10% for TP/SL orders
+    const stopLossPriceNum = parseFloat(stopLossPrice);
+    const slippageValue =
+      ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000;
+    const limitPriceWithSlippage = !isBuy
+      ? stopLossPriceNum * (1 + slippageValue) // Buying to close short: willing to pay MORE (slippage protection)
+      : stopLossPriceNum * (1 - slippageValue); // Selling to close long: willing to accept LESS (slippage protection)
+
     const slOrder: SDKOrderParams = {
       a: assetId,
       b: !isBuy,
       p: formatHyperLiquidPrice({
-        price: parseFloat(stopLossPrice),
+        price: limitPriceWithSlippage,
         szDecimals,
       }),
       s: formattedSize,
@@ -413,7 +422,7 @@ export function buildOrdersArray(
         trigger: {
           isMarket: true,
           triggerPx: formatHyperLiquidPrice({
-            price: parseFloat(stopLossPrice),
+            price: stopLossPriceNum,
             szDecimals,
           }),
           tpsl: 'sl',

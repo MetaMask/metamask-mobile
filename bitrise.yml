@@ -905,13 +905,11 @@ workflows:
   ios_run_regression_network_abstraction_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
-      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
     after_run:
       - ios_e2e_test
   ios_run_regression_network_abstraction_tests_gns_disabled:
     envs:
       - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
-      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - ios_e2e_test
   ios_run_regression_network_expansion_tests:
@@ -3255,7 +3253,6 @@ workflows:
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
       - COMMAND_YARN: 'build:ios:main:e2e'
-      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - _ios_build_template
   build_ios_release_and_upload_sourcemaps:
@@ -3544,6 +3541,9 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
+      MM_MUSD_CONVERSION_FLOW_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -3574,16 +3574,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.60.4
+      VERSION_NAME: 7.61.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3255
+      VERSION_NUMBER: 3294
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.60.4
+      FLASK_VERSION_NAME: 7.61.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3255
+      FLASK_VERSION_NUMBER: 3294
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3611,9 +3611,6 @@ app:
     - opts:
         is_expand: false
       SEEDLESS_ONBOARDING_ENABLED: true
-    - opts:
-        is_expand: false
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
 meta:
   bitrise.io:
     stack: osx-xcode-16.3.x

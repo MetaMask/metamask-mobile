@@ -8,9 +8,14 @@ import {
 } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
 import { useToAddressValidation } from './useToAddressValidation';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
 }));
 
 const mockState = {
@@ -21,7 +26,14 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 
+const mockUseParams = jest.mocked(useParams);
+
 describe('useToAddressValidation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseParams.mockReturnValue(undefined);
+  });
+
   it('return fields for to address error and warning', () => {
     mockUseSendContext.mockReturnValue(
       {} as unknown as ReturnType<typeof useSendContext>,

@@ -25,6 +25,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
     },
@@ -78,6 +79,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
+  SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
@@ -105,6 +107,7 @@ const Routes = {
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
+    PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
@@ -191,6 +194,7 @@ const Routes = {
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
+    UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
@@ -222,6 +226,7 @@ const Routes = {
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
+    TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -230,8 +235,6 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
-  SWAPS: 'Swaps',
-  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
@@ -262,8 +265,14 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    ADJUST_MARGIN: 'PerpsAdjustMargin',
+    SELECT_MODIFY_ACTION: 'PerpsSelectModifyAction',
+    SELECT_ADJUST_MARGIN_ACTION: 'PerpsSelectAdjustMarginAction',
+    SELECT_ORDER_TYPE: 'PerpsSelectOrderType',
+    ORDER_DETAILS: 'PerpsOrderDetailsView',
     PNL_HERO_CARD: 'PerpsPnlHeroCard',
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
+    ORDER_BOOK: 'PerpsOrderBook', // Full order book depth view
     MODALS: {
       ROOT: 'PerpsModals',
       CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',

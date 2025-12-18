@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
   return StyleSheet.create({
     timerWrapper: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       borderRadius: 20,
       marginBottom: 8,
       paddingVertical: 4,

@@ -88,7 +88,7 @@ Use `.github/pull-request-template.md` - fill ALL sections:
   - Labels applied
 - Target `main` branch
 - Keep focused (single feature/fix)
-- Include tests (unit/integration/e2e)
+- Include tests (unit/Component-view/e2e)
 - Update TSDoc when relevant
 
 **⚠️ Force Push Policy**:

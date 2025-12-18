@@ -306,6 +306,10 @@ describe('TokenDetails', () => {
             mockTokenMarketDataByChainId['0x1'][
               '0x6B175474E89094C44Da98b954EedeAC495271d0F'
             ],
+          // null metadata ensures:
+          // 1. tokenList is null (no aggregators array in metadata)
+          // 2. tokenMetadata is null (so tokenMetadata condition is false)
+          metadata: null,
         },
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
@@ -337,11 +341,15 @@ describe('TokenDetails', () => {
       }
     });
 
-    const { getByText, queryByText, debug } = renderWithProvider(
-      <TokenDetails asset={mockDAI} />,
+    const tokenWithoutAddress = {
+      ...mockDAI,
+      address: '', // Empty address makes contractAddress null
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={tokenWithoutAddress} />,
       { state: initialState },
     );
-    debug();
     expect(queryByText('Token details')).toBeNull();
     expect(getByText('Market details')).toBeDefined();
   });

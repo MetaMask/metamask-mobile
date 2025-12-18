@@ -23,6 +23,7 @@ import {
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
 import usePrevious from '../../../../hooks/usePrevious';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  *
@@ -68,6 +69,8 @@ interface UseRewardsResult {
   isLoading: boolean;
   estimatedPoints: number | null;
   hasError: boolean;
+  accountOptedIn: boolean | null;
+  rewardsAccountScope: InternalAccount | null;
 }
 
 /**
@@ -98,6 +101,7 @@ export const useRewards = ({
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [accountOptedIn, setAccountOptedIn] = useState<boolean | null>(null);
   const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
@@ -136,13 +140,29 @@ export const useRewards = ({
     setHasError(false);
 
     try {
-      // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
       );
 
-      if (!isRewardsEnabled) {
+      if (!hasActiveSeason) {
         setEstimatedPoints(null);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if there's a subscription first
+      const candidateSubscriptionId = await Engine.controllerMessenger.call(
+        'RewardsController:getCandidateSubscriptionId',
+      );
+
+      if (!candidateSubscriptionId) {
+        setEstimatedPoints(null);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
+        setHasError(false);
         setIsLoading(false);
         return;
       }
@@ -155,6 +175,8 @@ export const useRewards = ({
 
       if (!caipAccount) {
         setEstimatedPoints(null);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
         setIsLoading(false);
         return;
       }
@@ -165,13 +187,28 @@ export const useRewards = ({
         caipAccount,
       );
 
+      setAccountOptedIn(hasOptedIn);
+
+      // Determine if we should show the rewards row
+      // Show row if: opted in OR (not opted in AND opt-in is supported)
+      let shouldShow = hasOptedIn;
+
+      if (!hasOptedIn && selectedAccount) {
+        const isOptInSupported = await Engine.controllerMessenger.call(
+          'RewardsController:isOptInSupported',
+          selectedAccount,
+        );
+        shouldShow = isOptInSupported;
+      }
+
+      setShouldShowRewardsRow(shouldShow);
+
       if (!hasOptedIn) {
         setEstimatedPoints(null);
+        setHasError(false);
         setIsLoading(false);
         return;
       }
-
-      setShouldShowRewardsRow(true);
 
       // Convert source amount to atomic unit
       const atomicSourceAmount = activeQuote.quote.srcTokenAmount;
@@ -236,12 +273,13 @@ export const useRewards = ({
       setIsLoading(false);
     }
   }, [
-    activeQuote,
+    activeQuote?.quote,
     sourceToken,
     destToken,
     sourceAmount,
     selectedAddress,
     sourceChainId,
+    selectedAccount,
   ]);
 
   // Estimate points when dependencies change
@@ -256,10 +294,32 @@ export const useRewards = ({
     prevRequestId,
   ]);
 
+  // Subscribe to account linked event to retrigger estimate
+  useEffect(() => {
+    const handleAccountLinked = () => {
+      estimatePoints();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:accountLinked',
+      handleAccountLinked,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:accountLinked',
+        handleAccountLinked,
+      );
+    };
+  }, [estimatePoints]);
+
   return {
-    shouldShowRewardsRow,
+    shouldShowRewardsRow:
+      shouldShowRewardsRow && (accountOptedIn || Boolean(selectedAccount)),
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
     hasError,
+    accountOptedIn,
+    rewardsAccountScope: selectedAccount ?? null,
   };
 };

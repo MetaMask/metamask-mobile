@@ -550,7 +550,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "paddingHorizontal": 4,
                                 }
                               }
-                              handlerTag={1}
+                              handlerTag={-1}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
@@ -773,6 +773,60 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         }
                                       }
                                     >
+                                      Tron
+                                    </Text>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "flex-start",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 10,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 40,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={8}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
                                       Optimism
                                     </Text>
                                   </View>
@@ -884,11 +938,28 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -956,6 +1027,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }

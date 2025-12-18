@@ -14,22 +14,6 @@ index d4a40bea9e4ed3c28e347d96e309efe1ff889e81..fab280760de6bd5cdfdbecf01495c2d5
          },
          [utils_1.KnownCaipNamespace.Solana]: {
              [keyring_api_1.SolScope.Mainnet]: true,
-diff --git a/dist/NetworkEnablementController.mjs b/dist/NetworkEnablementController.mjs
-index f0354af26e0aa599a2d580b3e49c6a85eb768a58..e2b2edd19e0dcf81b5048b903f8caf6a4c4a0e8f 100644
---- a/dist/NetworkEnablementController.mjs
-+++ b/dist/NetworkEnablementController.mjs
-@@ -22,6 +22,11 @@ const getDefaultNetworkEnablementControllerState = () => ({
-             [ChainId[BuiltInNetworkName.Mainnet]]: true,
-             [ChainId[BuiltInNetworkName.LineaMainnet]]: true,
-             [ChainId[BuiltInNetworkName.BaseMainnet]]: true,
-+            [ChainId[BuiltInNetworkName.ArbitrumOne]]: true,
-+            [ChainId[BuiltInNetworkName.BscMainnet]]: true,
-+            [ChainId[BuiltInNetworkName.OptimismMainnet]]: true,
-+            [ChainId[BuiltInNetworkName.PolygonMainnet]]: true,
-+            [ChainId[BuiltInNetworkName.SeiMainnet]]: true,
-         },
-         [KnownCaipNamespace.Solana]: {
-             [SolScope.Mainnet]: true,
 diff --git a/dist/constants.cjs b/dist/constants.cjs
 index d45d861dd20777a9c767ef6a4272d0b4fd53f895..145d00f5deec1d79b145bdab8a940e4a6c71230e 100644
 --- a/dist/constants.cjs
@@ -41,16 +25,4 @@ index d45d861dd20777a9c767ef6a4272d0b4fd53f895..145d00f5deec1d79b145bdab8a940e4a
 +    '0x10e6', // MegaETH (4326)
  ];
  //# sourceMappingURL=constants.cjs.map
-\ No newline at end of file
-diff --git a/dist/constants.mjs b/dist/constants.mjs
-index 2631e864148964ade93979ab4b17e936865288c7..f231e8a5c20e30a918c1fdba6fe2b1289c1ded0f 100644
---- a/dist/constants.mjs
-+++ b/dist/constants.mjs
-@@ -12,5 +12,6 @@ export const POPULAR_NETWORKS = [
-     '0x2a15c308d',
-     '0x3e7',
-     '0x8f', // Monad (143)
-+    '0x10e6', // MegaETH (4326)
- ];
- //# sourceMappingURL=constants.mjs.map
 \ No newline at end of file

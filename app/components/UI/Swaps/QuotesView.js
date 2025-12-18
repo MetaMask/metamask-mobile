@@ -39,15 +39,14 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
-  isSwapsNativeAsset,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
@@ -110,7 +109,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
@@ -415,6 +414,7 @@ function SwapsQuotesView({
   /* Get params from navigation */
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { goToBuy } = useRampNavigation();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -1168,9 +1168,7 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
 
     if (shouldUseSmartTransaction) {
       try {
@@ -1503,7 +1501,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToBuy();
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1513,7 +1511,7 @@ function SwapsQuotesView({
         MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
       ).build(),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [goToBuy, trackEvent, createEventBuilder]);
 
   const handleTermsPress = useCallback(
     () =>

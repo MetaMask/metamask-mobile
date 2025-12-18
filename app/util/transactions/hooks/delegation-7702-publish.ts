@@ -214,6 +214,18 @@ export class Delegation7702PublishHook {
       throw new Error(`Transaction relay error - ${status}`);
     }
 
+    // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
+    // skips dropped checks, matching transaction-pay-controller
+    const updatedTransactionMeta = {
+      ...transactionMeta,
+      isIntentComplete: true,
+    };
+    await this.#messenger.call(
+      'TransactionController:updateTransaction',
+      updatedTransactionMeta,
+      'Intent complete after 7702 relay transaction success',
+    );
+
     return {
       transactionHash,
     };

@@ -2,16 +2,20 @@
 const smokeTags = {
   smokeAccounts: {
     tag: 'SmokeAccounts:',
-    description: 'Multi-account, account management',
+    description: 'Multi-account, account management, BIP-44, Keyrings',
   },
-  smokeCore: { tag: 'SmokeCore:', description: 'Core wallet functionality' },
+  smokeCore: {
+    tag: 'SmokeCore:',
+    description:
+      'Core wallet functionality, framework, react native, app state, navigation',
+  },
   smokeConfirmationsRedesigned: {
     tag: 'SmokeConfirmationsRedesigned:',
     description: 'New confirmation UI as well as all confirmation flows',
   },
   smokeIdentity: {
     tag: 'SmokeIdentity:',
-    description: 'User identity, authentication',
+    description: 'Sync accounts, sync contacts',
   },
   smokeNetworkAbstractions: {
     tag: 'SmokeNetworkAbstractions:',
@@ -21,18 +25,21 @@ const smokeTags = {
     tag: 'SmokeNetworkExpansion:',
     description: 'New networks, network config (Solana, Bitcoin, etc)',
   },
-  smokeTrade: { tag: 'SmokeTrade:', description: 'Token swaps, DEX trading' },
+  smokeTrade: {
+    tag: 'SmokeTrade:',
+    description: 'Token swaps, bridge, DEX trading',
+  },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
     description: 'Core wallet, accounts, network switching',
   },
   smokeWalletUX: {
     tag: 'SmokeWalletUX:',
-    description: 'Wallet user experience and UI',
+    description: 'Wallet user experience and UI, settings, notifications, etc',
   },
   smokeAssets: {
     tag: 'SmokeAssets:',
-    description: 'Asset management and display',
+    description: 'Asset management and display, NFTs, token details, etc',
   },
   smokeSwaps: { tag: 'SmokeSwaps:', description: 'Token swap functionality' },
   smokeStake: { tag: 'SmokeStake:', description: 'Staking features' },
@@ -46,10 +53,13 @@ const smokeTags = {
     description: 'Rewards and incentive features',
   },
   smokePerps: { tag: 'SmokePerps:', description: 'Perpetuals trading' },
-  smokeRamps: { tag: 'SmokeRamps:', description: 'On/off ramp features' },
+  smokeRamps: {
+    tag: 'SmokeRamps:',
+    description: 'On/off ramp features, buy/sell',
+  },
   smokeMultiChainPermissions: {
     tag: 'SmokeMultiChainPermissions:',
-    description: 'Multi-chain permissions',
+    description: 'Multi-chain permissions, permission management',
   },
   smokeAnalytics: { tag: 'SmokeAnalytics:', description: 'Analytics' },
   smokeMultiChainAPI: {
@@ -58,7 +68,7 @@ const smokeTags = {
   },
   smokePredictions: {
     tag: 'SmokePredictions:',
-    description: 'Predictions features',
+    description: 'Predictions features, prediction market',
   },
 };
 

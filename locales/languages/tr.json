@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Devam et",
     "show_hex_data": "On Altılı Verileri Göster",
     "show_hex_data_desc": "Gönderim ekranında on altılı veri alanını göstermek için bunu seçin.",
-    "show_custom_nonce": "İşlem nonce numarasını kişiselleştir",
-    "custom_nonce_desc": "Onay ekranlarında nonce numarasını (işlem numarası) değiştirmek için bunu açın. Bu gelişmiş bir özelliktir, dikkatli kullanın.",
     "accounts_identicon_title": "Hesap simgesi",
     "accounts_identicon_desc": "Hesapları hemen tanımlamanıza yardımcı olabilen üç farklı eşsiz simge stili arasından seçiminizi yapın.",
     "jazzicons": "Jazzicons",

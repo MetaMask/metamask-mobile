@@ -2,13 +2,7 @@
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import React, { PureComponent } from 'react';
-import {
-  View,
-  TextInput,
-  SafeAreaView,
-  Linking,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, TextInput, SafeAreaView, Linking } from 'react-native';
 import isUrl from 'is-url';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,7 +15,6 @@ import Networks, {
   isWhitelistedSymbol,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
-import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import BigNumber from 'bignumber.js';
@@ -39,6 +32,7 @@ import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
 import onlyKeepHost from '../../../../../util/onlyKeepHost';
+import { isPublicEndpointUrl } from '../../../../../core/Engine/controllers/network-controller/utils';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import Button, {
@@ -55,6 +49,7 @@ import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlag
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { hexToNumber } from '@metamask/utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -71,7 +66,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import RpcUrlInput from './RpcUrlInput';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
@@ -90,12 +85,11 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
-import { MetaMetrics } from '../../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 import { createStyles } from './index.styles';
 
@@ -485,7 +479,7 @@ export class NetworkSettings extends PureComponent {
     );
 
     // Return true if the chainId exists and the UI redesign is enabled, otherwise false
-    return isNetworkUiRedesignEnabled() && chainIdExists;
+    return chainIdExists;
   };
 
   checkIfRpcUrlExists = async (rpcUrl) => {
@@ -510,13 +504,6 @@ export class NetworkSettings extends PureComponent {
     ).filter((item) => item.rpcUrl === rpcUrl);
 
     if (checkCustomNetworks.length > 0) {
-      if (!isNetworkUiRedesignEnabled()) {
-        this.setState({
-          warningRpcUrl: strings('app_settings.network_exists'),
-        });
-        return checkCustomNetworks;
-      }
-
       return checkCustomNetworks;
     }
     const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
@@ -546,6 +533,7 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet,
     shouldNetworkSwitchPopToWallet,
     navigation,
+    trackRpcUpdateFromBanner,
   }) => {
     const { NetworkController } = Engine.context;
 
@@ -583,6 +571,38 @@ export class NetworkSettings extends PureComponent {
             }
           : undefined,
       );
+
+      // Track RPC update from network connection banner
+      if (trackRpcUpdateFromBanner) {
+        const newRpcEndpoint =
+          networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex];
+        const oldRpcEndpoint =
+          existingNetwork.rpcEndpoints?.[
+            existingNetwork.defaultRpcEndpointIndex ?? 0
+          ];
+
+        const chainIdAsDecimal = hexToNumber(chainId);
+
+        const sanitizeRpcUrl = (url) =>
+          isPublicEndpointUrl(url, infuraProjectId)
+            ? onlyKeepHost(url)
+            : 'custom';
+
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
+            )
+            .addProperties({
+              chain_id_caip: `eip155:${chainIdAsDecimal}`,
+              from_rpc_domain: oldRpcEndpoint?.url
+                ? sanitizeRpcUrl(oldRpcEndpoint.url)
+                : 'unknown',
+              to_rpc_domain: sanitizeRpcUrl(newRpcEndpoint.url),
+            })
+            .build(),
+        );
+      }
     } else {
       await NetworkController.addNetwork({
         ...networkConfig,
@@ -628,6 +648,9 @@ export class NetworkSettings extends PureComponent {
 
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
+
+    const trackRpcUpdateFromBanner =
+      route.params?.trackRpcUpdateFromBanner ?? false;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByChainId() || this.disabledBySymbol();
@@ -637,14 +660,9 @@ export class NetworkSettings extends PureComponent {
     }
 
     // Conditionally check existence of network (Only check in Add Mode)
-    let isNetworkExists;
-    if (isNetworkUiRedesignEnabled()) {
-      isNetworkExists = addMode
-        ? await this.checkIfNetworkNotExistsByChainId(stateChainId)
-        : [];
-    } else {
-      isNetworkExists = editable ? [] : await this.checkIfNetworkExists(rpcUrl);
-    }
+    const isNetworkExists = addMode
+      ? await this.checkIfNetworkNotExistsByChainId(stateChainId)
+      : [];
 
     const isOnboarded = getIsNetworkOnboarded(
       stateChainId,
@@ -682,10 +700,8 @@ export class NetworkSettings extends PureComponent {
       });
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const { NetworkEnablementController } = Engine.context;
-      NetworkEnablementController.enableNetwork(chainId);
-    }
+    const { NetworkEnablementController } = Engine.context;
+    NetworkEnablementController.enableNetwork(chainId);
 
     await this.handleNetworkUpdate({
       rpcUrl,
@@ -703,6 +719,7 @@ export class NetworkSettings extends PureComponent {
       networkType,
       networkUrl,
       showNetworkOnboarding,
+      trackRpcUpdateFromBanner,
     });
   };
 
@@ -710,58 +727,6 @@ export class NetworkSettings extends PureComponent {
    * Validates rpc url, setting a warningRpcUrl if is invalid
    * It also changes validatedRpcURL to true, indicating that was validated
    */
-  validateRpcUrl = async (rpcUrl) => {
-    const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
-    const isRpcExists = await this.checkIfRpcUrlExists(rpcUrl);
-
-    if (!isWebUri(rpcUrl)) {
-      const appendedRpc = `http://${rpcUrl}`;
-      if (isWebUri(appendedRpc)) {
-        this.setState({
-          warningRpcUrl: strings('app_settings.invalid_rpc_prefix'),
-        });
-      } else {
-        this.setState({
-          warningRpcUrl: strings('app_settings.invalid_rpc_url'),
-        });
-      }
-      return false;
-    }
-
-    if (isRpcExists.length > 0) {
-      return this.setState({
-        warningRpcUrl: strings('app_settings.invalid_rpc_url'),
-      });
-    }
-
-    if (isNetworkExists.length > 0) {
-      if (isNetworkUiRedesignEnabled()) {
-        return this.setState({
-          validatedRpcURL: false,
-          warningRpcUrl: strings(
-            'app_settings.url_associated_to_another_chain_id',
-          ),
-        });
-      }
-      return this.setState({
-        validatedRpcURL: true,
-        warningRpcUrl: strings('app_settings.network_exists'),
-      });
-    }
-    const url = new URL(rpcUrl);
-    const privateConnection = isPrivateConnection(url.hostname);
-    if (!privateConnection && url.protocol === 'http:') {
-      this.setState({
-        warningRpcUrl: strings('app_settings.invalid_rpc_prefix'),
-      });
-      return false;
-    }
-    this.setState({ validatedRpcURL: true, warningRpcUrl: undefined });
-
-    this.validateRpcAndChainId();
-
-    return true;
-  };
 
   /**
    * Validates that chain id is a valid integer number, setting a warningChainId if is invalid
@@ -771,12 +736,7 @@ export class NetworkSettings extends PureComponent {
     const isChainIdExists = await this.checkIfChainIdExists(chainId);
     const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 
-    if (
-      isChainIdExists &&
-      isNetworkExists.length > 0 &&
-      isNetworkUiRedesignEnabled() &&
-      !editable
-    ) {
+    if (isChainIdExists && isNetworkExists.length > 0 && !editable) {
       return this.setState({
         validateChainId: true,
         warningChainId: strings(
@@ -785,12 +745,7 @@ export class NetworkSettings extends PureComponent {
       });
     }
 
-    if (
-      isChainIdExists &&
-      isNetworkExists.length === 0 &&
-      isNetworkUiRedesignEnabled() &&
-      !editable
-    ) {
+    if (isChainIdExists && isNetworkExists.length === 0 && !editable) {
       return this.setState({
         validateChainId: true,
         warningChainId: strings('app_settings.network_already_exist'),
@@ -848,10 +803,7 @@ export class NetworkSettings extends PureComponent {
       providerError = err;
     }
 
-    if (
-      (providerError || typeof endpointChainId !== 'string') &&
-      isNetworkUiRedesignEnabled()
-    ) {
+    if (providerError || typeof endpointChainId !== 'string') {
       return this.setState({
         validatedRpcURL: false,
         warningRpcUrl: strings('app_settings.unMatched_chain'),
@@ -859,15 +811,13 @@ export class NetworkSettings extends PureComponent {
     }
 
     if (endpointChainId !== toHex(chainId)) {
-      if (isNetworkUiRedesignEnabled()) {
-        return this.setState({
-          warningRpcUrl: strings(
-            'app_settings.url_associated_to_another_chain_id',
-          ),
-          validatedRpcURL: false,
-          warningChainId: strings('app_settings.unMatched_chain_name'),
-        });
-      }
+      return this.setState({
+        warningRpcUrl: strings(
+          'app_settings.url_associated_to_another_chain_id',
+        ),
+        validatedRpcURL: false,
+        warningChainId: strings('app_settings.unMatched_chain_name'),
+      });
     }
 
     this.validateRpcAndChainId();
@@ -980,14 +930,10 @@ export class NetworkSettings extends PureComponent {
   disabledByChainId = () => {
     const { chainId, validatedChainId, warningChainId } = this.state;
 
-    if (isNetworkUiRedesignEnabled()) {
-      return (
-        !chainId ||
-        (chainId && (!validatedChainId || warningChainId !== undefined))
-      );
-    }
-    if (!chainId) return true;
-    return validatedChainId && !!warningChainId;
+    return (
+      !chainId ||
+      (chainId && (!validatedChainId || warningChainId !== undefined))
+    );
   };
 
   /**
@@ -1011,7 +957,6 @@ export class NetworkSettings extends PureComponent {
       warningSymbol: undefined,
       warningName: undefined,
     });
-    this.validateRpcUrl(this.state.rpcUrlForm);
   };
 
   onRpcNameAdd = async (name) => {
@@ -1094,6 +1039,10 @@ export class NetworkSettings extends PureComponent {
     }
     this.validateSymbol();
     this.getCurrentState();
+  };
+
+  onRpcUrlValidationChange = (isValid) => {
+    this.setState({ validatedRpcURL: isValid });
   };
 
   onRpcUrlChangeWithName = async (url, failoverUrls, name, type) => {
@@ -1468,9 +1417,7 @@ export class NetworkSettings extends PureComponent {
 
     const renderWarningChainId = () => {
       const CHAIN_LIST_URL = 'https://chainid.network/';
-      const containerStyle = isNetworkUiRedesignEnabled()
-        ? styles.newWarningContainer
-        : styles.warningContainer;
+      const containerStyle = styles.newWarningContainer;
 
       if (warningChainId) {
         if (warningChainId === strings('app_settings.unMatched_chain_name')) {
@@ -1568,66 +1515,22 @@ export class NetworkSettings extends PureComponent {
     };
 
     const renderButtons = () => {
-      if (isNetworkUiRedesignEnabled()) {
-        return (
-          <View style={styles.buttonsWrapper}>
-            <View style={styles.buttonsContainer}>
-              <Button
-                size={ButtonSize.Lg}
-                variant={ButtonVariants.Primary}
-                onPress={this.addRpcUrl}
-                testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
-                style={styles.button}
-                label={strings('app_settings.network_save')}
-                isDisabled={isActionDisabled}
-                width={ButtonWidthTypes.Full}
-              />
-            </View>
+      return (
+        <View style={styles.buttonsWrapper}>
+          <View style={styles.buttonsContainer}>
+            <Button
+              size={ButtonSize.Lg}
+              variant={ButtonVariants.Primary}
+              onPress={this.addRpcUrl}
+              testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
+              style={styles.button}
+              label={strings('app_settings.network_save')}
+              isDisabled={isActionDisabled}
+              width={ButtonWidthTypes.Full}
+            />
           </View>
-        );
-      }
-      if (addMode || editable) {
-        return (
-          <View style={styles.buttonsWrapper}>
-            {editable ? (
-              <View style={styles.editableButtonsContainer}>
-                <Button
-                  size={ButtonSize.Lg}
-                  variant={ButtonVariants.Secondary}
-                  isDanger
-                  onPress={this.removeRpcUrl}
-                  testID={NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
-                  style={{ ...styles.button, ...styles.cancel }}
-                  label={strings('app_settings.delete')}
-                />
-                <Button
-                  size={ButtonSize.Lg}
-                  variant={ButtonVariants.Primary}
-                  onPress={this.addRpcUrl}
-                  testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
-                  style={styles.button}
-                  label={strings('app_settings.network_save')}
-                  isDisabled={isActionDisabled}
-                />
-              </View>
-            ) : (
-              <View style={styles.buttonsContainer}>
-                <Button
-                  size={ButtonSize.Lg}
-                  variant={ButtonVariants.Primary}
-                  onPress={this.toggleNetworkDetailsModal}
-                  testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
-                  style={styles.button}
-                  label={strings('app_settings.network_add')}
-                  isDisabled={isActionDisabled}
-                  width={ButtonWidthTypes.Full}
-                />
-              </View>
-            )}
-          </View>
-        );
-      }
-      return null;
+        </View>
+      );
     };
 
     return this.state.showNetworkDetailsModal ? (
@@ -1696,77 +1599,51 @@ export class NetworkSettings extends PureComponent {
             <Text style={styles.label}>
               {strings('app_settings.network_rpc_url_label')}
             </Text>
-            {isNetworkUiRedesignEnabled() ? (
-              <View style={styles.dropDownInput}>
-                <Cell
-                  key={rpcUrl}
-                  testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
-                  variant={CellVariant.SelectWithMenu}
-                  title={
-                    <View style={styles.rpcTitleWrapper}>
-                      <View>
-                        <Text
-                          numberOfLines={1}
-                          variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
-                          testID={CellComponentSelectorsIDs.BASE_TITLE}
-                        >
-                          {rpcName || formatNetworkRpcUrl(rpcUrl)}
-                        </Text>
-                      </View>
-                      {isRpcFailoverEnabled &&
-                        failoverRpcUrls &&
-                        failoverRpcUrls.length > 0 && (
-                          <Tag label={strings('app_settings.failover')} />
-                        )}
-                    </View>
-                  }
-                  secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
-                  showSecondaryTextIcon={false}
-                  isSelected={false}
-                  withAvatar={false}
-                  onPress={this.openRpcModal}
-                  buttonIcon={IconName.ArrowDown}
-                  buttonProps={{
-                    onButtonClick: () => this.openRpcModal(),
-                  }}
-                />
-              </View>
-            ) : (
-              <TextInput
-                ref={this.inputRpcURL}
-                style={inputErrorRpcStyle}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                value={formatNetworkRpcUrl(rpcUrl)}
-                editable={isRPCEditable}
-                onChangeText={this.onRpcUrlChange}
-                onBlur={() => {
-                  this.validateRpcUrl(rpcUrl);
-                  this.onRpcUrlBlur();
-                }}
-                onFocus={this.onRpcUrlFocused}
-                placeholder={strings('app_settings.network_rpc_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.jumpToChainId}
-                testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
-                keyboardAppearance={themeAppearance}
-              />
-            )}
 
-            {!isNetworkUiRedesignEnabled()
-              ? warningRpcUrl && (
-                  <View
-                    style={
-                      isNetworkUiRedesignEnabled()
-                        ? styles.newWarningContainer
-                        : styles.warningContainer
-                    }
-                    testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
-                  >
-                    <Text style={styles.warningText}>{warningRpcUrl}</Text>
+            {/* RPC Url Dropdown */}
+            <View style={styles.dropDownInput}>
+              <Cell
+                key={rpcUrl}
+                testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
+                variant={CellVariant.SelectWithMenu}
+                title={
+                  <View style={styles.rpcTitleWrapper}>
+                    <View>
+                      <Text
+                        numberOfLines={1}
+                        variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+                        testID={CellComponentSelectorsIDs.BASE_TITLE}
+                      >
+                        {rpcName || formatNetworkRpcUrl(rpcUrl)}
+                      </Text>
+                    </View>
+                    {isRpcFailoverEnabled &&
+                      failoverRpcUrls &&
+                      failoverRpcUrls.length > 0 && (
+                        <Tag label={strings('app_settings.failover')} />
+                      )}
                   </View>
-                )
-              : null}
+                }
+                secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
+                showSecondaryTextIcon={false}
+                isSelected={false}
+                withAvatar={false}
+                onPress={this.openRpcModal}
+                buttonIcon={IconName.ArrowDown}
+                buttonProps={{
+                  onButtonClick: () => this.openRpcModal(),
+                }}
+              />
+            </View>
+
+            {warningRpcUrl && (
+              <View
+                style={styles.newWarningContainer}
+                testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
+              >
+                <Text style={styles.warningText}>{warningRpcUrl}</Text>
+              </View>
+            )}
 
             {isRpcFailoverEnabled &&
               failoverRpcUrls &&
@@ -1835,43 +1712,24 @@ export class NetworkSettings extends PureComponent {
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}
             </Text>
-
-            {isNetworkUiRedesignEnabled() ? (
-              <View style={styles.dropDownInput}>
-                <Cell
-                  key={rpcUrl}
-                  testID={NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER}
-                  variant={CellVariant.SelectWithMenu}
-                  title={blockExplorerUrl}
-                  isSelected={false}
-                  withAvatar={false}
-                  onPress={this.openBlockExplorerModal}
-                  buttonIcon={IconName.ArrowDown}
-                  buttonProps={{
-                    onButtonClick: () => this.openBlockExplorerModal(),
-                  }}
-                  avatarProps={{
-                    variant: AvatarVariant.Network,
-                  }}
-                />
-              </View>
-            ) : (
-              <TextInput
-                ref={this.inputBlockExplorerURL}
-                style={inputStyle}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                value={blockExplorerUrl}
-                onChangeText={this.onBlockExplorerUrlChange}
-                placeholder={strings(
-                  'app_settings.network_block_explorer_placeholder',
-                )}
-                testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.toggleNetworkDetailsModal}
-                keyboardAppearance={themeAppearance}
+            <View style={styles.dropDownInput}>
+              <Cell
+                key={rpcUrl}
+                testID={NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER}
+                variant={CellVariant.SelectWithMenu}
+                title={blockExplorerUrl}
+                isSelected={false}
+                withAvatar={false}
+                onPress={this.openBlockExplorerModal}
+                buttonIcon={IconName.ArrowDown}
+                buttonProps={{
+                  onButtonClick: () => this.openBlockExplorerModal(),
+                }}
+                avatarProps={{
+                  variant: AvatarVariant.Network,
+                }}
               />
-            )}
+            </View>
           </SafeAreaView>
           <View style={styles.bottomSection}>
             {isCustomMainnet ? (
@@ -1891,7 +1749,7 @@ export class NetworkSettings extends PureComponent {
           </View>
         </KeyboardAwareScrollView>
 
-        {isNetworkUiRedesignEnabled() && showAddRpcForm.isVisible ? (
+        {showAddRpcForm.isVisible ? (
           <ReusableModal
             style={styles.sheetRpcForm}
             onDismiss={this.closeAddRpcForm}
@@ -1919,12 +1777,14 @@ export class NetworkSettings extends PureComponent {
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_url_label')}
                 </Text>
-                <TextInput
+                <RpcUrlInput
+                  // Input props
                   ref={this.inputRpcURL}
                   style={inputErrorRpcStyle}
-                  value={rpcUrlForm}
                   autoCapitalize={'none'}
                   autoCorrect={false}
+                  value={rpcUrlForm}
+                  editable={isRPCEditable}
                   onChangeText={this.onRpcUrlAdd}
                   onFocus={this.onRpcUrlFocused}
                   placeholder={strings('app_settings.network_rpc_placeholder')}
@@ -1932,12 +1792,14 @@ export class NetworkSettings extends PureComponent {
                   onSubmitEditing={this.jumpToChainId}
                   testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
                   keyboardAppearance={themeAppearance}
+                  // Specific props
+                  checkIfNetworkExists={this.checkIfNetworkExists}
+                  checkIfRpcUrlExists={this.checkIfRpcUrlExists}
+                  onValidationSuccess={this.validateRpcAndChainId}
+                  onValidationChange={this.onRpcUrlValidationChange}
+                  warningStyle={styles.warningText}
                 />
-                {warningRpcUrl && (
-                  <View testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}>
-                    <Text style={styles.warningText}>{warningRpcUrl}</Text>
-                  </View>
-                )}
+
                 {/* RPC Name Input */}
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_name_label')}
@@ -1973,7 +1835,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </ReusableModal>
         ) : null}
-        {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
+        {showAddBlockExplorerForm.isVisible ? (
           <ReusableModal
             style={styles.sheetRpcForm}
             shouldGoBack={false}
@@ -2044,8 +1906,7 @@ export class NetworkSettings extends PureComponent {
           </ReusableModal>
         ) : null}
 
-        {isNetworkUiRedesignEnabled() &&
-        showMultiBlockExplorerAddModal.isVisible ? (
+        {showMultiBlockExplorerAddModal.isVisible ? (
           <ReusableModal
             style={
               blockExplorerUrls.length > 0 || addMode
@@ -2113,7 +1974,7 @@ export class NetworkSettings extends PureComponent {
           </ReusableModal>
         ) : null}
 
-        {isNetworkUiRedesignEnabled() && showMultiRpcAddModal.isVisible ? (
+        {showMultiRpcAddModal.isVisible ? (
           <ReusableModal
             style={
               rpcUrls.length > 0 || addMode ? styles.sheet : styles.sheetSmall
@@ -2285,8 +2146,7 @@ export class NetworkSettings extends PureComponent {
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
         <View style={styles.informationWrapper}>
-          {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
-          networkTypeOrRpcUrl ? (
+          {!shouldShowPopularNetworks || networkTypeOrRpcUrl ? (
             this.customNetwork()
           ) : (
             <ScrollableTabView

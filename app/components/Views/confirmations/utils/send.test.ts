@@ -44,26 +44,24 @@ jest.mock('../../../../lib/ppom/ppom-util', () => ({
 describe('handleSendPageNavigation', () => {
   it('navigates to legacy send page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(
-      mockNavigate,
-      InitSendLocation.WalletActions,
-      false,
-      {
+    handleSendPageNavigation(mockNavigate, {
+      location: InitSendLocation.WalletActions,
+      isSendRedesignEnabled: false,
+      asset: {
         name: 'ETHEREUM',
       } as AssetType,
-    );
+    });
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
   });
   it('navigates to send redesign page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(
-      mockNavigate,
-      InitSendLocation.WalletActions,
-      true,
-      {
+    handleSendPageNavigation(mockNavigate, {
+      location: InitSendLocation.WalletActions,
+      isSendRedesignEnabled: true,
+      asset: {
         name: 'ETHEREUM',
       } as AssetType,
-    );
+    });
     expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
   });
 });

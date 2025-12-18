@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
@@ -12,43 +12,57 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
-  isSelected: boolean;
+  isSelected?: boolean;
   onPress: () => void;
   textColor?: string;
   isDisabled?: boolean;
+  onInfoPress?: () => void;
 }
 
 function TokenListItem({
   token,
   isSelected,
   onPress,
-  textColor,
+  textColor = TextColor.Alternative,
   isDisabled = false,
+  onInfoPress,
 }: Readonly<TokenListItemProps>) {
   const getTokenNetworkInfo = useTokenNetworkInfo();
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
+
+  const handleInfoPress = useCallback(() => {
+    onInfoPress?.();
+  }, [onInfoPress]);
 
   return (
     <ListItemSelect
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
-      accessibilityRole="button"
-      accessible
+      testID={`token-list-item-${token.assetId}`}
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            <BadgeNetwork name={networkName} imageSource={networkImageSource} />
+            <BadgeNetwork
+              name={depositNetworkName ?? networkName}
+              imageSource={networkImageSource}
+            />
           }
         >
           <AvatarToken
@@ -59,11 +73,21 @@ function TokenListItem({
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+        <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
         <Text variant={TextVariant.BodyMD} color={textColor}>
-          {depositNetworkName ?? networkName}
+          {token.symbol}
         </Text>
       </ListItemColumn>
+      {isDisabled && onInfoPress && (
+        <ListItemColumn widthType={WidthType.Auto}>
+          <ButtonIcon
+            size={ButtonIconSize.Md}
+            iconName={IconName.Info}
+            onPress={handleInfoPress}
+            testID="token-unsupported-info-button"
+          />
+        </ListItemColumn>
+      )}
     </ListItemSelect>
   );
 }

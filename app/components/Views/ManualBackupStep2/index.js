@@ -104,60 +104,58 @@ const ManualBackupStep2 = ({
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
-      InteractionManager.runAfterInteractions(async () => {
-        if (backupFlow || settingsBackup) {
-          const resetAction = CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS_FLOW,
+      if (backupFlow || settingsBackup) {
+        const resetAction = CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                screen: Routes.ONBOARDING.SUCCESS,
                 params: {
-                  screen: Routes.ONBOARDING.SUCCESS,
-                  params: {
-                    successFlow: backupFlow
-                      ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
-                      : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
-                  },
+                  successFlow: backupFlow
+                    ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
+                    : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
                 },
               },
-            ],
-          });
+            },
+          ],
+        });
+        navigation.dispatch(resetAction);
+      } else {
+        const resetAction = CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+                },
+              },
+            },
+          ],
+        });
+        endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+        if (isMetricsEnabled()) {
           navigation.dispatch(resetAction);
         } else {
-          const resetAction = CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS_FLOW,
-                params: {
-                  screen: Routes.ONBOARDING.SUCCESS,
-                  params: {
-                    successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-                  },
-                },
-              },
-            ],
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.dispatch(resetAction);
+            },
           });
-          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-          if (isMetricsEnabled()) {
-            navigation.dispatch(resetAction);
-          } else {
-            navigation.navigate('OptinMetrics', {
-              onContinue: () => {
-                navigation.dispatch(resetAction);
-              },
-            });
-          }
         }
-        trackOnboarding(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
-          ).build(),
-          saveOnboardingEvent,
-        );
-      });
+      }
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
+        ).build(),
+        saveOnboardingEvent,
+      );
     } else {
       Alert.alert(
         strings('account_backup_step_5.error_title'),

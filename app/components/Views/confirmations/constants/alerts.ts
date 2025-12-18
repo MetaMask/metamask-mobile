@@ -1,4 +1,6 @@
 export enum AlertKeys {
+  AddressTrustSignalMalicious = 'address_trust_signal_malicious',
+  AddressTrustSignalWarning = 'address_trust_signal_warning',
   BatchedUnusedApprovals = 'batched_unused_approvals',
   Blockaid = 'blockaid',
   BurnAddress = 'burn_address',
@@ -9,8 +11,12 @@ export enum AlertKeys {
   InsufficientPayTokenFees = 'insufficient_pay_token_fees',
   InsufficientPredictBalance = 'insufficient_predict_balance',
   NoPayTokenQuotes = 'no_pay_token_quotes',
+  OriginTrustSignalMalicious = 'origin_trust_signal_malicious',
+  OriginTrustSignalWarning = 'origin_trust_signal_warning',
   PendingTransaction = 'pending_transaction',
   PerpsDepositMinimum = 'perps_deposit_minimum',
   PerpsHardwareAccount = 'perps_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
+  TokenTrustSignalMalicious = 'token_trust_signal_malicious',
+  TokenTrustSignalWarning = 'token_trust_signal_warning',
 }

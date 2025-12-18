@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Fortfahren",
     "show_hex_data": "Hex-Daten anzeigen",
     "show_hex_data_desc": "Wählen Sie dies, um das Hex-Datenfeld auf dem Sendebildschirm anzuzeigen.",
-    "show_custom_nonce": "Transaktions-Nonce anpassen",
-    "custom_nonce_desc": "Aktivieren Sie dies, wenn Sie die Transaktions-Nonce auf Bestätigungsbildschirmen ändern möchten. Dies ist eine erweiterte Funktion. Verwenden Sie sie mit Vorsicht.",
     "accounts_identicon_title": "Konto-Symbol",
     "accounts_identicon_desc": "Wählen Sie aus drei verschiedenen Stilen einzigartiger Symbole, mit denen Sie Konten auf einen Blick erkennen können.",
     "jazzicons": "Jazzicons",

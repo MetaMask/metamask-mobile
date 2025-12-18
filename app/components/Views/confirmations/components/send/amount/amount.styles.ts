@@ -49,7 +49,7 @@ export const styleSheet = (params: {
     },
     currencyTag: {
       alignSelf: 'center',
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       color: theme.colors.text.alternative,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,

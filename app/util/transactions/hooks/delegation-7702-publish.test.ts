@@ -13,6 +13,7 @@ import {
 import {
   GasFeeToken,
   TransactionController,
+  TransactionControllerUpdateTransactionAction,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -73,7 +74,8 @@ type RootMessenger = Messenger<
   | BridgeStatusControllerGetStateAction
   | DelegationControllerSignDelegationAction
   | KeyringControllerSignEip7702AuthorizationAction
-  | KeyringControllerSignTypedMessageAction,
+  | KeyringControllerSignTypedMessageAction
+  | TransactionControllerUpdateTransactionAction,
   never
 >;
 
@@ -103,6 +105,9 @@ describe('Delegation 7702 Publish Hook', () => {
   const getNextNonceMock: jest.MockedFn<
     (address: string, networkClientId: NetworkClientId) => Promise<Hex>
   > = jest.fn();
+  const updateTransactionMock: jest.MockedFn<
+    TransactionControllerUpdateTransactionAction['handler']
+  > = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -114,7 +119,8 @@ describe('Delegation 7702 Publish Hook', () => {
       | BridgeStatusControllerGetStateAction
       | DelegationControllerSignDelegationAction
       | KeyringControllerSignEip7702AuthorizationAction
-      | KeyringControllerSignTypedMessageAction,
+      | KeyringControllerSignTypedMessageAction
+      | TransactionControllerUpdateTransactionAction,
       never,
       RootMessenger
     >({
@@ -128,6 +134,7 @@ describe('Delegation 7702 Publish Hook', () => {
         'KeyringController:signTypedMessage',
         'BridgeStatusController:getState',
         'DelegationController:signDelegation',
+        'TransactionController:updateTransaction',
       ],
       events: [],
       messenger,
@@ -144,6 +151,10 @@ describe('Delegation 7702 Publish Hook', () => {
     rootMessenger.registerActionHandler(
       'DelegationController:signDelegation',
       signDelegationControllerMock,
+    );
+    rootMessenger.registerActionHandler(
+      'TransactionController:updateTransaction',
+      updateTransactionMock,
     );
 
     hookClass = new Delegation7702PublishHook({

@@ -3,40 +3,39 @@ import { render, screen } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
 
-// Shared mocks
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (className: string) => ({ className }),
-  }),
+/**
+ * Mock Strategy:
+ * - Only mock custom hooks and child components with complex dependencies
+ * - Do NOT mock: Routes, design system, icons, or i18n
+ * - Child components are mocked because they have their own test coverage
+ * and we're testing the parent's data transformation and rendering logic
+ */
+
+// Type for activity items passed to PredictActivity component
+interface MockActivityItem {
+  id: string;
+  type: string;
+  marketTitle: string;
+  icon?: string;
+  amountUsd: number;
+  detail: string;
+}
+
+// Mock performance measurement hook
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: jest.fn(),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  Text: 'Text',
-  TextVariant: { BodySm: 'BodySm' },
-}));
-
-// Mock localization with param-aware strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn(
-    (key: string, params?: Record<string, string | number | undefined>) => {
-      switch (key) {
-        case 'predict.transactions.no_transactions':
-          return 'No transactions yet';
-        case 'predict.transactions.buy_detail':
-          return `${params?.amountUsd} on ${params?.outcome} • ${params?.priceCents}`;
-        case 'predict.transactions.sell_detail':
-          return `${params?.priceCents}`;
-        case 'predict.transactions.claim_detail':
-          return 'Claimed';
-        default:
-          return key;
-      }
+// Mock Engine for analytics tracking
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackActivityViewed: jest.fn(),
     },
-  ),
+  },
 }));
 
-// Spy to capture items passed to PredictActivity
+// Mock PredictActivity child component - has its own test coverage
 const mockRenderItem: jest.Mock = jest.fn();
 
 jest.mock('../../components/PredictActivity/PredictActivity', () => {
@@ -66,7 +65,7 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
   };
 });
 
-// Mock hook
+// Mock usePredictActivity hook - external data dependency
 jest.mock('../../hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(() => ({ activity: [], isLoading: false })),
 }));
@@ -84,7 +83,7 @@ describe('PredictTransactionsView', () => {
     jest.clearAllMocks();
   });
 
-  it('shows loading indicator when isLoading is true', () => {
+  it('displays loading indicator when activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce({
       activity: [],
       isLoading: true,
@@ -95,7 +94,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
   });
 
-  it('shows empty state when there are no items', () => {
+  it('displays empty state message when activity list is empty', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce({
       activity: [],
       isLoading: false,
@@ -103,12 +102,49 @@ describe('PredictTransactionsView', () => {
 
     render(<PredictTransactionsView />);
 
-    expect(screen.getByText('No transactions yet')).toBeOnTheScreen();
+    expect(screen.getByText('No recent activity')).toBeOnTheScreen();
   });
 
-  it('renders list items mapped from activity entries', () => {
-    const mockTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+  it('displays all activity items from the activity list', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce({
+      isLoading: false,
+      activity: [
+        {
+          id: 'a1',
+          title: 'Market A',
+          outcome: 'Yes',
+          icon: 'https://example.com/a.png',
+          entry: {
+            type: 'buy',
+            amount: 50,
+            price: 0.34,
+            timestamp: mockTimestamp,
+          },
+        },
+        {
+          id: 'b2',
+          title: 'Market B',
+          outcome: 'No',
+          icon: 'https://example.com/b.png',
+          entry: {
+            type: 'sell',
+            amount: 12.3,
+            price: 0.7,
+            timestamp: mockTimestamp - 100,
+          },
+        },
+      ],
+    });
 
+    render(<PredictTransactionsView />);
+
+    expect(screen.getByTestId('predict-activity-a1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-activity-b2')).toBeOnTheScreen();
+  });
+
+  it('transforms buy activity entry into BUY activity item with formatted details', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce({
       isLoading: false,
       activity: [
@@ -127,6 +163,29 @@ describe('PredictTransactionsView', () => {
             outcomeTokenId: 1,
           },
         },
+      ],
+    });
+
+    render(<PredictTransactionsView />);
+
+    const calls = mockRenderItem.mock.calls.map(
+      (c: [unknown]) => c[0] as MockActivityItem,
+    );
+    const buyItem = calls.find((i: MockActivityItem) => i.id === 'a1');
+
+    expect(buyItem).toBeDefined();
+    expect(buyItem?.type).toBe(PredictActivityType.BUY);
+    expect(buyItem?.marketTitle).toBe('Market A');
+    expect(buyItem?.icon).toBe('https://example.com/a.png');
+    expect(buyItem?.amountUsd).toBe(50);
+    expect(buyItem?.detail).toBe('Bought 50 on Yes · 34¢ per share');
+  });
+
+  it('transforms sell activity entry into SELL activity item with formatted price', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce({
+      isLoading: false,
+      activity: [
         {
           id: 'b2',
           title: 'Market B',
@@ -142,6 +201,28 @@ describe('PredictTransactionsView', () => {
             outcomeTokenId: 2,
           },
         },
+      ],
+    });
+
+    render(<PredictTransactionsView />);
+
+    const calls = mockRenderItem.mock.calls.map(
+      (c: [unknown]) => c[0] as MockActivityItem,
+    );
+    const sellItem = calls.find((i: MockActivityItem) => i.id === 'b2');
+
+    expect(sellItem).toBeDefined();
+    expect(sellItem?.type).toBe(PredictActivityType.SELL);
+    expect(sellItem?.marketTitle).toBe('Market B');
+    expect(sellItem?.amountUsd).toBe(12.3);
+    expect(sellItem?.detail).toBe('Sold at 70¢ per share');
+  });
+
+  it('transforms claimWinnings activity entry into CLAIM activity item', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce({
+      isLoading: false,
+      activity: [
         {
           id: 'c3',
           title: 'Market C',
@@ -153,6 +234,28 @@ describe('PredictTransactionsView', () => {
             timestamp: mockTimestamp - 200,
           },
         },
+      ],
+    });
+
+    render(<PredictTransactionsView />);
+
+    const calls = mockRenderItem.mock.calls.map(
+      (c: [unknown]) => c[0] as MockActivityItem,
+    );
+    const claimItem = calls.find((i: MockActivityItem) => i.id === 'c3');
+
+    expect(claimItem).toBeDefined();
+    expect(claimItem?.type).toBe(PredictActivityType.CLAIM);
+    expect(claimItem?.marketTitle).toBe('Market C');
+    expect(claimItem?.amountUsd).toBe(99.99);
+    expect(claimItem?.detail).toBe('Claimed winnings');
+  });
+
+  it('transforms unknown activity type into CLAIM activity item with zero amount', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce({
+      isLoading: false,
+      activity: [
         {
           id: 'd4',
           title: 'Market D',
@@ -169,56 +272,15 @@ describe('PredictTransactionsView', () => {
 
     render(<PredictTransactionsView />);
 
-    // Assert that our mocked PredictActivity rendered for each item
-    expect(screen.getByTestId('predict-activity-a1')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-activity-b2')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-activity-c3')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-activity-d4')).toBeOnTheScreen();
-
-    // Validate mapped props passed to PredictActivity for a sample of items
     const calls = mockRenderItem.mock.calls.map(
-      (c: [unknown]) =>
-        c[0] as {
-          id: string;
-          type: string;
-          marketTitle: string;
-          icon?: string;
-          amountUsd: number;
-          detail: string;
-        },
+      (c: [unknown]) => c[0] as MockActivityItem,
     );
+    const defaultItem = calls.find((i: MockActivityItem) => i.id === 'd4');
 
-    const buyItem = calls.find((i) => i.id === 'a1');
-    expect(buyItem).toBeDefined();
-    if (!buyItem) return; // narrow for TS
-    expect(buyItem.type).toBe(PredictActivityType.BUY);
-    expect(buyItem.marketTitle).toBe('Market A');
-    expect(buyItem.icon).toBe('https://example.com/a.png');
-    expect(buyItem.amountUsd).toBe(50);
-    expect(buyItem.detail).toBe('50 on Yes • 34¢');
-
-    const sellItem = calls.find((i) => i.id === 'b2');
-    expect(sellItem).toBeDefined();
-    if (!sellItem) return;
-    expect(sellItem.type).toBe(PredictActivityType.SELL);
-    expect(sellItem.marketTitle).toBe('Market B');
-    expect(sellItem.amountUsd).toBe(12.3);
-    expect(sellItem.detail).toBe('70¢');
-
-    const claimItem = calls.find((i) => i.id === 'c3');
-    expect(claimItem).toBeDefined();
-    if (!claimItem) return;
-    expect(claimItem.type).toBe(PredictActivityType.CLAIM);
-    expect(claimItem.marketTitle).toBe('Market C');
-    expect(claimItem.amountUsd).toBe(99.99);
-    expect(claimItem.detail).toBe('Claimed');
-
-    const defaultItem = calls.find((i) => i.id === 'd4');
     expect(defaultItem).toBeDefined();
-    if (!defaultItem) return;
-    expect(defaultItem.type).toBe(PredictActivityType.CLAIM);
-    expect(defaultItem.marketTitle).toBe('Market D');
-    expect(defaultItem.amountUsd).toBe(0);
-    expect(defaultItem.detail).toBe('Claimed');
+    expect(defaultItem?.type).toBe(PredictActivityType.CLAIM);
+    expect(defaultItem?.marketTitle).toBe('Market D');
+    expect(defaultItem?.amountUsd).toBe(0);
+    expect(defaultItem?.detail).toBe('Claimed winnings');
   });
 });

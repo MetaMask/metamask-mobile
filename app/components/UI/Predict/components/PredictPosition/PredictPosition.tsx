@@ -11,6 +11,7 @@ import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -21,6 +22,12 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
 }: PredictPositionProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
   const {
     icon,
     title,
@@ -30,14 +37,13 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     currentValue,
     size,
     optimistic,
-  } = position;
-  const { styles } = useStyles(styleSheet, {});
+  } = currentPosition;
 
   return (
     <TouchableOpacity
       testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
-      onPress={() => onPress?.(position)}
+      onPress={() => onPress?.(currentPosition)}
     >
       <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
