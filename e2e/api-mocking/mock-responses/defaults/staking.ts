@@ -79,5 +79,13 @@ export const STAKING_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: [],
     },
+    {
+      urlEndpoint:
+        /^https:\/\/staking\.api\.cx\.metamask\.io\/v1\/tron-staking\/\d+\/witnesses(\?.*)?$/,
+      responseCode: 200,
+      response: {
+        witnesses: [],
+      },
+    },
   ],
 };

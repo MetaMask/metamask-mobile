@@ -231,7 +231,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -527,7 +527,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Canceled
+                                          Order canceled
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -1015,7 +1015,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -1107,7 +1107,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -1276,7 +1276,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -1368,7 +1368,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -1710,7 +1710,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2024,7 +2024,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Successful!
+                                          Order successful!
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2512,7 +2512,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -2604,7 +2604,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -2773,7 +2773,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -2865,7 +2865,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -3207,7 +3207,7 @@ exports[`OrderDetails renders a created order 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4024,7 +4024,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -4116,7 +4116,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -4285,7 +4285,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -4377,7 +4377,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -4682,7 +4682,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4978,7 +4978,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Failed
+                                          Order failed
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -5466,7 +5466,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -5558,7 +5558,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -5727,7 +5727,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -5819,7 +5819,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -6161,7 +6161,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6505,7 +6505,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             }
                                           }
                                         >
-                                          Processing Order
+                                          Processing order
                                         </Text>
                                       </View>
                                     </View>
@@ -6978,7 +6978,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -7070,7 +7070,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -7239,7 +7239,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -7331,7 +7331,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -7636,7 +7636,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8095,7 +8095,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8743,7 +8743,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9087,7 +9087,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             }
                                           }
                                         >
-                                          Order Pending
+                                          Order pending
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -9575,7 +9575,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -9667,7 +9667,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -9836,7 +9836,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -9928,7 +9928,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -10283,7 +10283,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -10597,7 +10597,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             }
                                           }
                                         >
-                                          Order Successful!
+                                          Order successful!
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -11080,7 +11080,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Contact Support
+                                                  Contact support
                                                 </Text>
                                               </Text>
                                             </View>
@@ -11131,7 +11131,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -11223,7 +11223,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -11392,7 +11392,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -11484,7 +11484,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -11826,7 +11826,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -12643,7 +12643,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -12735,7 +12735,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -12904,7 +12904,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -12996,7 +12996,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -13301,7 +13301,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -14133,7 +14133,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -14225,7 +14225,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -14394,7 +14394,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -14486,7 +14486,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
