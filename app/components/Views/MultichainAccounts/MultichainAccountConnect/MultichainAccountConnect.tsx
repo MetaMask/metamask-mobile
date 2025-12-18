@@ -311,9 +311,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     }
 
     const walletRequest =
-      requestedCaipChainIds.filter(
-        (caipChainId) =>
-          parseCaipChainId(caipChainId).namespace === KnownCaipNamespace.Wallet,
+      requestedScopes.filter(
+        (scope) =>
+          parseCaipChainId(scope).namespace === KnownCaipNamespace.Wallet,
       ).length > 0;
 
     let additionalChains: CaipChainId[] = [];
@@ -360,6 +360,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     nonTestNetworkCaipChainIds,
     testNetworkCaipChainIds,
     requestedCaipChainIds,
+    requestedScopes,
     isEip1193Request,
     currentlySelectedNetwork.chainId,
     requestedNamespaces,
