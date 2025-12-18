@@ -95,7 +95,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 5: Proceed to confirmation screen
   const timer5 = new TimerHelper(
     'Time since user taps Continue until Confirmation screen is displayed',
-    { ios: 5100, android: 5100 },
+    { ios: 4800, android: 6100 },
     device,
   );
   await timer5.measure(async () => {

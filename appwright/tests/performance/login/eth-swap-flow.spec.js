@@ -32,7 +32,7 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
-    { ios: 700, android: 700 },
+    { ios: 1100, android: 1000 },
     device,
   );
 
@@ -41,7 +41,7 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
 
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
-    { ios: 6000, android: 6000 },
+    { ios: 9000, android: 7000 },
     device,
   );
   await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');

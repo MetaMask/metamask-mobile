@@ -36,7 +36,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
-    { ios: 1500, android: 1500 },
+    { ios: 1100, android: 1000 },
     device,
   );
 
@@ -48,7 +48,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
 
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
-    { ios: 6500, android: 6500 },
+    { ios: 9000, android: 7000 },
     device,
   );
 

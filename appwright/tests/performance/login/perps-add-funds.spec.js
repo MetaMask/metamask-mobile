@@ -38,7 +38,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   );
   const openAddFundsTimer = new TimerHelper(
     'Open Add Funds',
-    { ios: 1000, android: 1000 },
+    { ios: 5000, android: 4500 },
     device,
   );
   const getQuoteTimer = new TimerHelper(

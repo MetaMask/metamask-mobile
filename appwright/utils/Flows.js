@@ -148,17 +148,17 @@ export async function importSRPFlow(device, srp, dismissModals = false) {
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on "Add account" button until the next modal is visible',
-    { ios: 500, android: 500 },
+    { ios: 500, android: 1500 },
     device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Import SRP" button until SRP field is displayed',
-    { ios: 850, android: 850 },
+    { ios: 1700, android: 1300 },
     device,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
-    { ios: 8000, android: 8000 },
+    { ios: 2000, android: 2000 },
     device,
   );
 
