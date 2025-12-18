@@ -10,6 +10,8 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
+export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;
+
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
