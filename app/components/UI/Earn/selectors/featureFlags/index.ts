@@ -5,7 +5,7 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import {
-  isValidWildcardTokenList,
+  getWildcardTokenListFromConfig,
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
 
@@ -96,56 +96,15 @@ export const selectIsMusdCtaEnabledFlag = createSelector(
  * Remote flag takes precedence over local env var.
  * If both are unavailable, returns {} (no conversion CTAs).
  */
-// TODO: Break out duplicated parsing logic for cta tokens and blocklist into helper.
 export const selectMusdConversionCTATokens = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList => {
-    // Try remote flag first (takes precedence)
-    const remoteCtaTokens = remoteFeatureFlags?.earnMusdConversionCtaTokens;
-
-    if (remoteCtaTokens) {
-      try {
-        const parsedRemote =
-          typeof remoteCtaTokens === 'string'
-            ? JSON.parse(remoteCtaTokens)
-            : remoteCtaTokens;
-
-        if (isValidWildcardTokenList(parsedRemote)) {
-          return parsedRemote;
-        }
-        console.warn(
-          'Remote earnMusdConversionCtaTokens produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      } catch (error) {
-        console.warn(
-          'Failed to parse remote earnMusdConversionCtaTokens:',
-          error,
-        );
-      }
-    }
-
-    // Fallback to local env var
-    try {
-      const localEnvValue = process.env.MM_MUSD_CTA_TOKENS;
-
-      if (localEnvValue) {
-        const parsed = JSON.parse(localEnvValue);
-        if (isValidWildcardTokenList(parsed)) {
-          return parsed;
-        }
-        console.warn(
-          'Local MM_MUSD_CTA_TOKENS produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      }
-    } catch (error) {
-      console.warn('Failed to parse MM_MUSD_CTA_TOKENS:', error);
-    }
-
-    // Default: no tokens to have conversion CTAs
-    return {};
-  },
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConversionCtaTokens,
+      'earnMusdConversionCtaTokens',
+      process.env.MM_MUSD_CTA_TOKENS,
+      'MM_MUSD_CTA_TOKENS',
+    ),
 );
 
 /**
@@ -164,60 +123,15 @@ export const selectMusdConversionCTATokens = createSelector(
  * Remote flag takes precedence over local env var.
  * If both are unavailable, returns {} (empty allowlist = allow all tokens).
  */
-// TODO: Consider consolidating duplicate logic for allowlist and blocklist into helper.
 export const selectMusdConversionPaymentTokensAllowlist = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList => {
-    // Try remote flag first (takes precedence)
-    const remoteAllowlist =
-      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist;
-
-    if (remoteAllowlist) {
-      try {
-        const parsedRemote =
-          typeof remoteAllowlist === 'string'
-            ? JSON.parse(remoteAllowlist)
-            : remoteAllowlist;
-
-        if (isValidWildcardTokenList(parsedRemote)) {
-          return parsedRemote;
-        }
-        console.warn(
-          'Remote earnMusdConvertibleTokensAllowlist produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      } catch (error) {
-        console.warn(
-          'Failed to parse remote earnMusdConvertibleTokensAllowlist:',
-          error,
-        );
-      }
-    }
-
-    // Fallback to local env var
-    try {
-      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
-
-      if (localEnvValue) {
-        const parsed = JSON.parse(localEnvValue);
-        if (isValidWildcardTokenList(parsed)) {
-          return parsed;
-        }
-        console.warn(
-          'Local MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      }
-    } catch (error) {
-      console.warn(
-        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST:',
-        error,
-      );
-    }
-
-    // Default: empty allowlist = allow all tokens
-    return {};
-  },
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist,
+      'earnMusdConvertibleTokensAllowlist',
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST,
+      'MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
+    ),
 );
 
 /**
@@ -238,56 +152,11 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
  */
 export const selectMusdConversionPaymentTokensBlocklist = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList => {
-    // Try remote flag first (takes precedence)
-    const remoteBlocklist =
-      remoteFeatureFlags?.earnMusdConvertibleTokensBlocklist;
-
-    if (remoteBlocklist) {
-      try {
-        const parsedRemote =
-          typeof remoteBlocklist === 'string'
-            ? JSON.parse(remoteBlocklist)
-            : remoteBlocklist;
-
-        if (isValidWildcardTokenList(parsedRemote)) {
-          return parsedRemote;
-        }
-        console.warn(
-          'Remote earnMusdConvertibleTokensBlocklist produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      } catch (error) {
-        console.warn(
-          'Failed to parse remote earnMusdConvertibleTokensBlocklist:',
-          error,
-        );
-      }
-    }
-
-    // Fallback to local env var
-    try {
-      // TODO: Smoke test using local vars. Do after to avoid slowing down dev to restart server.
-      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST;
-
-      if (localEnvValue) {
-        const parsed = JSON.parse(localEnvValue);
-        if (isValidWildcardTokenList(parsed)) {
-          return parsed;
-        }
-        console.warn(
-          'Local MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST produced invalid structure. ' +
-            'Expected format: {"*":["USDC"],"0x1":["*"],"0xa4b1":["USDT","DAI"]}',
-        );
-      }
-    } catch (error) {
-      console.warn(
-        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST:',
-        error,
-      );
-    }
-
-    // Default: no blocking
-    return {};
-  },
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConvertibleTokensBlocklist,
+      'earnMusdConvertibleTokensBlocklist',
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST,
+      'MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
+    ),
 );
