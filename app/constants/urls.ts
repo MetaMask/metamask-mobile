@@ -27,7 +27,7 @@ export const CONNECTING_TO_DEPRECATED_NETWORK =
   'https://support.metamask.io/networks-and-sidechains/eth-on-testnets/';
 
 export const HOWTO_MANAGE_METAMETRICS =
-  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
+  'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';

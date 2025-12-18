@@ -16,7 +16,7 @@ import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsOrderBookViewSelectorsIDs,
+  // PerpsOrderBookViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -35,7 +35,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   dexName,
-  onOrderBookPress,
+  // onOrderBookPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -115,7 +115,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with title and DEX badge */}
+      {/* Header with title with DEX badge */}
       <View style={styles.header}>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('perps.market.stats')}
@@ -126,7 +126,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       {/* Stats rows with card background */}
       <View style={styles.statsRowsContainer}>
         {/* Order Book - Clickable row */}
-        {onOrderBookPress && (
+        {/* TODO: Re-enable order book row, when feature has been more fully tested */}
+        {/* {onOrderBookPress && (
           <TouchableOpacity
             style={[styles.orderBookRow, styles.statsRowFirst]}
             onPress={onOrderBookPress}
@@ -143,7 +144,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color={IconColor.Alternative}
             />
           </TouchableOpacity>
-        )}
+        )} */}
 
         {/* 24h volume */}
         <KeyValueRow
@@ -161,7 +162,11 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color: TextColor.Default,
             },
           }}
-          style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
+          style={[
+            styles.statsRow,
+            // !onOrderBookPress &&
+            styles.statsRowFirst,
+          ]}
         />
 
         {/* Open interest with tooltip */}
@@ -231,11 +236,26 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         {/* Oracle price (markPrice) - last row without bottom border */}
         <KeyValueRow
           field={{
-            label: {
-              text: strings('perps.market.oracle_price'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
-            },
+            label: (
+              <View style={styles.labelWithIcon}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.market.oracle_price')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => onTooltipPress('oracle_price')}
+                  testID="perps-market-details-oracle-price-info-icon"
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </TouchableOpacity>
+              </View>
+            ),
           }}
           value={{
             label: {

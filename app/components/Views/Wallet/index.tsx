@@ -22,12 +22,12 @@ import {
   TabsListRef,
 } from '../../../component-library/components-temp/Tabs';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import { shouldShowNewPrivacyToastSelector } from '../../../selectors/legalNotices';
 import {
-  isPastPrivacyPolicyDate,
-  shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
-} from '../../../reducers/legalNotices';
+} from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -186,6 +186,7 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
+import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -988,6 +989,11 @@ const Wallet = ({
    * Show rewards intro modal if ff is enabled and never showed before
    */
   useRewardsIntroModal();
+
+  /**
+   * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
+   */
+  usePna25BottomSheet();
 
   /**
    * Callback to trigger when pressing the navigation title.
