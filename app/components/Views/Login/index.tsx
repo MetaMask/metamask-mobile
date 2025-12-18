@@ -268,30 +268,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (backupResult.vault) {
         const vaultSeed = await parseVaultValue(password, backupResult.vault);
         if (vaultSeed) {
-          // get authType
-          const authData = await Authentication.componentAuthenticationType(
-            biometryChoice,
-            rememberMe,
+          navigation.replace(
+            ...createRestoreWalletNavDetailsNested({
+              previousScreen: Routes.ONBOARDING.LOGIN,
+            }),
           );
-          try {
-            await Authentication.storePassword(
-              password,
-              authData.currentAuthType,
-            );
-            navigation.replace(
-              ...createRestoreWalletNavDetailsNested({
-                previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
-            );
-            setLoading(false);
-            setError(null);
-            return;
-          } catch (e) {
-            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
-          }
-        } else {
-          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+          setLoading(false);
+          setError(null);
+          return;
         }
+        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
       } else if (backupResult.error) {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
@@ -308,7 +294,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       setError(strings('login.invalid_password'));
     }
-  }, [password, biometryChoice, rememberMe, navigation]);
+  }, [password, navigation]);
 
   const navigateToHome = useCallback(async () => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);

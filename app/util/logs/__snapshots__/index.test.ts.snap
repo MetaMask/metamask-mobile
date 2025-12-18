@@ -664,6 +664,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -675,6 +676,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -1420,6 +1422,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -1431,6 +1434,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
