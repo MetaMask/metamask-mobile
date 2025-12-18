@@ -22,7 +22,9 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
+import { formatPnl, formatPercentage } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsHomeData,
@@ -93,6 +95,10 @@ const PerpsHomeView = () => {
   const totalBalance = perpsAccount?.totalBalance || '0';
   const isBalanceEmpty = BigNumber(totalBalance).isZero();
 
+  // Calculate P&L for positions subtitle
+  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
+  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+
   // Fetch all home screen data
   const {
     positions,
@@ -105,6 +111,40 @@ const PerpsHomeView = () => {
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+
+  // Calculate positions subtitle with P&L
+  const hasPositions = positions.length > 0;
+  const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
+    useMemo(() => {
+      const pnlNum = parseFloat(unrealizedPnl);
+      const isPnlZero = BigNumber(unrealizedPnl).isZero();
+
+      // Only show subtitle when there are positions and P&L is non-zero
+      if (!hasPositions || isPnlZero) {
+        return {
+          positionsSubtitle: undefined,
+          positionsSubtitleColor: undefined,
+          positionsSubtitleSuffix: undefined,
+        };
+      }
+
+      const color =
+        pnlNum > 0
+          ? TextColor.Success
+          : pnlNum < 0
+            ? TextColor.Error
+            : TextColor.Alternative;
+
+      // Format: "-$18.47 (2.1%)" colored + "Unrealized PnL" in default color
+      const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
+      const suffix = strings('perps.unrealized_pnl');
+
+      return {
+        positionsSubtitle: subtitle,
+        positionsSubtitleColor: color,
+        positionsSubtitleSuffix: suffix,
+      };
+    }, [hasPositions, unrealizedPnl, roe]);
 
   // Determine if any data is loading for initial load tracking
   // Orders and activity load via WebSocket instantly, only track positions and markets
@@ -248,13 +288,16 @@ const PerpsHomeView = () => {
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
-          positions={positions}
           showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
         />
 
         {/* Positions Section */}
         <PerpsHomeSection
           title={strings('perps.home.positions')}
+          subtitle={positionsSubtitle}
+          subtitleColor={positionsSubtitleColor}
+          subtitleSuffix={positionsSubtitleSuffix}
+          subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}
           showWhenEmpty={false}
