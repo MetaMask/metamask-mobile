@@ -83,7 +83,6 @@ import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../select
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -265,7 +264,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
     searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
@@ -605,7 +603,6 @@ class Asset extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const asset = navigation && params;
-    const isSwapsFeatureLive = this.props.swapsIsLive;
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
@@ -672,7 +669,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -697,7 +693,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -851,7 +846,6 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
     swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
