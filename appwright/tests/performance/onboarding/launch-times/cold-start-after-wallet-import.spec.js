@@ -61,7 +61,8 @@ test('Cold Start after importing a wallet', async ({
   const timer1 = await WalletMainScreen.isMenuButtonVisible();
   timer1.changeName(
     'Time since the user clicks on unlock button, until the app unlocks',
-    7500,
+    { ios: 2000, android: 2000 },
+    device,
   );
 
   performanceTracker.addTimer(timer1);
