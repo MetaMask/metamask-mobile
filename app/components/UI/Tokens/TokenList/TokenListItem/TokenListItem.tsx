@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -20,10 +20,9 @@ import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import createStyles from '../../styles';
 import { TokenI } from '../../types';
-import { ScamWarningIcon } from '../ScamWarningIcon';
-import { FlashListAssetKey } from '..';
+import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
+import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectIsMusdConversionFlowEnabledFlag,
@@ -41,8 +40,36 @@ import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-label
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { fontStyles } from '../../../../../styles/common';
+import { Colors } from '../../../../../util/theme/models';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
+
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    balances: {
+      flex: 1,
+      justifyContent: 'center',
+      marginLeft: 20,
+    },
+    balanceFiat: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      textTransform: 'uppercase',
+    },
+    badge: {
+      marginTop: 8,
+    },
+    assetName: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    percentageChange: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignContent: 'center',
+    },
+  });
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -53,7 +80,7 @@ interface TokenListItemProps {
   isFullView?: boolean;
 }
 
-export const TokenListItemBip44 = React.memo(
+export const TokenListItem = React.memo(
   ({
     assetKey,
     showRemoveMenu,
@@ -245,4 +272,4 @@ export const TokenListItemBip44 = React.memo(
   },
 );
 
-TokenListItemBip44.displayName = 'TokenListItemBip44';
+TokenListItem.displayName = 'TokenListItem';
