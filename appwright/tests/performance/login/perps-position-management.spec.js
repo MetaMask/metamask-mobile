@@ -48,6 +48,8 @@ test('Perps open position and close it', async ({
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
+    { ios: 2000, android: 2000 },
+    device,
   );
   const skipTutorialTimer = new TimerHelper(
     'Skip Tutorial',

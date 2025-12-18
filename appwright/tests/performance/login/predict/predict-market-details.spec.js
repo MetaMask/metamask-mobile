@@ -80,7 +80,7 @@ test('Predict Market Details - Load Time Performance', async ({
   );
   await PredictDetailsScreen.tapOutcomesTab();
   await timer5.measure(async () => {
-    PredictDetailsScreen.isOutcomesTabContentDisplayed();
+    await PredictDetailsScreen.isOutcomesTabContentDisplayed();
   });
 
   // Add all timers to performance tracker
