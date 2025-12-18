@@ -35,7 +35,7 @@ class PerpsOrderView {
   }
 
   async tapPlaceOrder() {
-    await AppwrightGestures.tap(this.placeOrderButton);
+    await AppwrightGestures.tap(await this.placeOrderButton);
     appwrightExpect(await PerpsPositionDetailsView.isPositionOpen()).toBe(true);
   }
 
@@ -55,7 +55,7 @@ class PerpsOrderView {
   }
 
   async setLeverage(leverage) {
-    await AppwrightGestures.tap(this.leverageButton);
+    await AppwrightGestures.tap(await this.leverageButton);
     await AppwrightGestures.tap(await this.leverageOption(leverage));
     await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));    
   }
