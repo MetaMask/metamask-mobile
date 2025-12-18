@@ -378,11 +378,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
 
-      const refElement = seedPhraseInputRefs.current?.get(
-        nextSeedPhraseInputFocusedIndex,
-      );
+      requestAnimationFrame(() => {
+        const refElement = seedPhraseInputRefs.current?.get(
+          nextSeedPhraseInputFocusedIndex,
+        );
 
-      refElement?.focus();
+        refElement?.focus();
+      });
     }, [nextSeedPhraseInputFocusedIndex]);
 
     React.useImperativeHandle(ref, () => ({
