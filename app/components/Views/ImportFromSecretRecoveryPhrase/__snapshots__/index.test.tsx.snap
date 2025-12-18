@@ -436,21 +436,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         viewIsInsideTabBar={false}
                       >
                         <View>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Bold",
-                                "fontSize": 32,
-                                "letterSpacing": 0,
-                                "lineHeight": 40,
-                              }
-                            }
-                            testID="import-from-seed-screen-title-id"
-                          >
-                            Import a wallet
-                          </Text>
                           <View
                             collapsable={false}
                             pointerEvents="auto"
@@ -533,12 +518,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#f3f5f9",
-                                    "borderRadius": 10,
-                                    "marginTop": 16,
-                                    "maxHeight": "auto",
-                                    "minHeight": 210,
-                                    "paddingTop": 16,
+                                    "flexDirection": "column",
+                                    "gap": 4,
+                                    "marginBottom": 24,
                                   }
                                 }
                               >
@@ -549,7 +531,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       "borderRadius": 10,
                                       "marginTop": 16,
                                       "maxHeight": "auto",
-                                      "minHeight": 264,
+                                      "minHeight": 210,
                                       "paddingTop": 16,
                                     }
                                   }
@@ -607,24 +589,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         }
                                         testID="textfield"
                                       >
-                                        <TextInput
-                                          autoCapitalize="none"
-                                          autoComplete="off"
-                                          autoCorrect={false}
-                                          autoFocus={false}
-                                          editable={true}
-                                          importantForAutofill="no"
-                                          keyboardType="visible-password"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onKeyPress={[Function]}
-                                          onSelectionChange={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder=""
-                                          placeholderTextColor="#b7bbc8"
-                                          showSoftInputOnFocus={true}
-                                          spellCheck={false}
+                                        <View
                                           style={
                                             [
                                               {
@@ -636,12 +601,51 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               },
                                             ]
                                           }
-                                          submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id_0"
-                                          textAlignVertical="top"
-                                          textContentType="none"
-                                          value=""
-                                        />
+                                        >
+                                          <TextInput
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            autoFocus={false}
+                                            editable={true}
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
+                                            onBlur={[Function]}
+                                            onChangeText={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyPress={[Function]}
+                                            onSelectionChange={[Function]}
+                                            onSubmitEditing={[Function]}
+                                            placeholder=""
+                                            placeholderTextColor="#b7bbc8"
+                                            showSoftInputOnFocus={true}
+                                            spellCheck={false}
+                                            style={
+                                              {
+                                                "backgroundColor": "transparent",
+                                                "borderColor": "transparent",
+                                                "borderWidth": 1,
+                                                "color": "#686e7d",
+                                                "display": "flex",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "height": 66,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 20,
+                                                "opacity": 1,
+                                                "paddingBottom": 12,
+                                                "paddingTop": 12,
+                                                "paddingVertical": 0,
+                                              }
+                                            }
+                                            submitBehavior="submit"
+                                            testID="import-from-seed-screen-seed-phrase-input-id_0"
+                                            textAlignVertical="top"
+                                            textContentType="none"
+                                            value=""
+                                          />
+                                        </View>
                                       </View>
                                       <View
                                         accessibilityState={
@@ -679,24 +683,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         }
                                         testID="textfield"
                                       >
-                                        <TextInput
-                                          autoCapitalize="none"
-                                          autoComplete="off"
-                                          autoCorrect={false}
-                                          autoFocus={true}
-                                          editable={true}
-                                          importantForAutofill="no"
-                                          keyboardType="visible-password"
-                                          multiline={true}
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onKeyPress={[Function]}
-                                          onSelectionChange={[Function]}
-                                          placeholder="Add a space between each word and make sure no one is watching."
-                                          placeholderTextColor="#686e7d"
-                                          showSoftInputOnFocus={true}
-                                          spellCheck={false}
+                                        <View
                                           style={
                                             [
                                               {
@@ -708,12 +695,51 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               },
                                             ]
                                           }
-                                          submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id"
-                                          textAlignVertical="top"
-                                          textContentType="none"
-                                          value=""
-                                        />
+                                        >
+                                          <TextInput
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            autoFocus={true}
+                                            editable={true}
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
+                                            multiline={true}
+                                            onBlur={[Function]}
+                                            onChangeText={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyPress={[Function]}
+                                            onSelectionChange={[Function]}
+                                            placeholder="Add a space between each word and make sure no one is watching."
+                                            placeholderTextColor="#686e7d"
+                                            showSoftInputOnFocus={true}
+                                            spellCheck={false}
+                                            style={
+                                              {
+                                                "backgroundColor": "transparent",
+                                                "borderColor": "transparent",
+                                                "borderWidth": 1,
+                                                "color": "#686e7d",
+                                                "display": "flex",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "height": 66,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 20,
+                                                "opacity": 1,
+                                                "paddingBottom": 12,
+                                                "paddingTop": 12,
+                                                "paddingVertical": 0,
+                                              }
+                                            }
+                                            submitBehavior="submit"
+                                            testID="import-from-seed-screen-seed-phrase-input-id"
+                                            textAlignVertical="top"
+                                            textContentType="none"
+                                            value=""
+                                          />
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
@@ -729,8 +755,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
-                                      "paddingBottom": 16,
-                                      "paddingTop": 12,
+                                      "paddingBottom": 1,
+                                      "paddingTop": 8,
                                       "textAlign": "right",
                                     }
                                   }
@@ -741,15 +767,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                               <View
                                 style={
                                   {
-                                    "alignSelf": "flex-end",
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "paddingBottom": 1,
-                                    "paddingTop": 8,
-                                    "textAlign": "right",
+                                    "flexDirection": "column",
+                                    "gap": 16,
+                                    "width": "100%",
                                   }
                                 }
                               >
