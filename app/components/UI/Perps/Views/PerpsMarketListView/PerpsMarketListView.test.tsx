@@ -37,9 +37,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
-    track: jest.fn(),
+    track: mockTrack,
   })),
 }));
 
@@ -801,6 +802,7 @@ describe('PerpsMarketListView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrack.mockClear();
 
     // Set mock market data for the hook
     mockMarketDataForHook.length = 0;
@@ -1350,6 +1352,206 @@ describe('PerpsMarketListView', () => {
         expect(ethRows.length).toBeGreaterThan(0);
         expect(solRows.length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  describe('Tab Tracking', () => {
+    it('tracks crypto tab press with PERPS_UI_INTERACTION event', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with crypto and stocks tabs available
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 2,
+          commodity: 1,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for tabs to render
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-1`,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Press crypto tab (index 1)
+      const cryptoTab = screen.getByTestId(
+        `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-1`,
+      );
+      fireEvent.press(cryptoTab);
+
+      // Verify tracking event was fired with crypto button_clicked
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          button_clicked: 'crypto',
+          button_location: 'market_list',
+          interaction_type: 'button_clicked',
+        }),
+      );
+    });
+
+    it('tracks stocks tab press with PERPS_UI_INTERACTION event', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with crypto and stocks tabs available
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 2,
+          commodity: 1,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for tabs to render
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-2`,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Press stocks tab (index 2)
+      const stocksTab = screen.getByTestId(
+        `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-2`,
+      );
+      fireEvent.press(stocksTab);
+
+      // Verify tracking event was fired with stocks button_clicked
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          button_clicked: 'stocks',
+          button_location: 'market_list',
+          interaction_type: 'button_clicked',
+        }),
+      );
+    });
+
+    it('does not track all tab press', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with crypto and stocks tabs available
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'crypto',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 2,
+          commodity: 1,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for tabs to render
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-0`,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      // Press all tab (index 0)
+      const allTab = screen.getByTestId(
+        `${PerpsMarketListViewSelectorsIDs.MARKET_TYPE_TAB_BAR}-tab-0`,
+      );
+
+      mockTrack.mockClear();
+      fireEvent.press(allTab);
+
+      // Verify no tracking event with button_clicked was fired for "all" tab
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          button_clicked: expect.any(String),
+        }),
+      );
     });
   });
 });
