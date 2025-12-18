@@ -48,6 +48,7 @@ import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
 import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
+import ConfirmationsAdvancedDetails from '../../Views/ConfirmationsAdvancedDetails';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
@@ -1089,6 +1090,26 @@ const MainNavigator = () => {
         component={isSendRedesignEnabled ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS_ADVANCED_DETAILS}
+        component={ConfirmationsAdvancedDetails}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              backgroundColor: importedColors.transparent,
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
       <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
