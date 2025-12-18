@@ -1,4 +1,4 @@
-name: Single E2E Test Manual
+name: Single E2E Test Manual - flakiness triage
 
 on:
   workflow_dispatch: 
