@@ -180,7 +180,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
-    "@consensys/native-ramps-sdk": "2.1.6",
+    "@consensys/native-ramps-sdk": "^2.1.7",
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@ethersproject/abi": "^5.7.0",
