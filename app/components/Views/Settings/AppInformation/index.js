@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import {
   getApplicationName,
   getVersion,
@@ -189,6 +190,12 @@ class AppInformation extends PureComponent {
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
+  onSendErrorToSentry = () => {
+    captureException(
+      new Error('Manual error triggered from AppInformation debug link'),
+    );
+  };
+
   handleLongPressFox = () => {
     this.setState({ showEnvironmentInfo: true });
   };
@@ -268,7 +275,6 @@ class AppInformation extends PureComponent {
                     </Text>
                   </>
                 )}
-
                 {this.props.preinstalledSnaps.map((snap) => (
                   <Text key={snap.name} style={styles.branchInfo}>
                     {snap.name}: {snap.version} ({snap.status})
@@ -277,6 +283,11 @@ class AppInformation extends PureComponent {
               </>
             )}
           </View>
+          <TouchableOpacity onPress={this.onSendErrorToSentry}>
+            <Text style={styles.link}>
+              {strings('app_information.send_error_to_sentry')}
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>

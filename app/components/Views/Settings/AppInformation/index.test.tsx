@@ -1,5 +1,6 @@
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import {
   DeepPartial,
   renderScreen,
@@ -479,6 +480,37 @@ describe('AppInformation', () => {
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });
+    });
+  });
+
+  describe('Sentry error reporting link', () => {
+    it('triggers Sentry error when Sentry debug link is pressed', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('main');
+
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      await waitFor(() => {
+        expect(getByText('Send error to Sentry')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Send error to Sentry'));
+
+      expect(captureException).toHaveBeenCalled();
     });
   });
 });
