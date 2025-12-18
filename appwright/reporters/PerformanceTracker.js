@@ -1,43 +1,91 @@
 import axios from 'axios';
+// Assuming BrowserStackCredentials.js exports a static class or object
 import { BrowserStackCredentials } from '../utils/BrowserStackCredentials.js';
 
+/**
+ * Interface representing a performance timer object.
+ * Assumed to have methods for retrieving timing data.
+ * @typedef {Object} PerformanceTimer
+ * @property {string} id - Unique identifier for the timer.
+ * @property {function(): (number|null)} getDuration - Returns duration in milliseconds or null.
+ * @property {function(): number} getDurationInSeconds - Returns duration in seconds.
+ */
+
+/**
+ * PerformanceTracker class handles collecting performance metrics,
+ * managing timers, and fetching session-related data (like video URLs) 
+ * from external services (BrowserStack).
+ */
 export class PerformanceTracker {
+  /**
+   * @type {PerformanceTimer[]}
+   */
+  timers;
+  /**
+   * @type {string | null}
+   */
+  sessionId;
+  /**
+   * @type {string | null}
+   */
+  testTitle;
+
   constructor() {
     this.timers = [];
+    this.sessionId = null;
+    this.testTitle = null;
   }
 
+  /**
+   * Adds a new timer to the tracker if a timer with the same ID does not already exist.
+   * @param {PerformanceTimer} timer - The timer object to add.
+   */
   addTimer(timer) {
-    if (this.timers.find((existingTimer) => existingTimer.id === timer.id)) {
+    // Use .some() for better semantics when checking for existence.
+    if (this.timers.some((existingTimer) => existingTimer.id === timer.id)) {
       return;
     }
 
     this.timers.push(timer);
   }
 
+  /**
+   * Stores session metadata internally within the class instance.
+   * This is a critical fix to prevent parallel test runs from overwriting 
+   * global process.env variables.
+   * @param {string} sessionId - The unique ID of the running session (e.g., BrowserStack session ID).
+   * @param {string} testTitle - The title of the test case.
+   */
   async storeSessionData(sessionId, testTitle) {
-    // Store in process environment
-    process.env.TEMP_SESSION_ID = sessionId;
-    process.env.TEMP_TEST_TITLE = testTitle;
+    this.sessionId = sessionId;
+    this.testTitle = testTitle;
+    console.log(`[INFO] Stored session data internally: ${sessionId} | ${testTitle}`);
   }
 
+  /**
+   * Attempts to retrieve the video URL for a given session ID using a retry mechanism.
+   * @param {string} sessionId - The ID of the session to query.
+   * @param {number} [maxRetries=60] - Maximum number of retries.
+   * @param {number} [delayMs=3000] - Delay between retries in milliseconds.
+   * @returns {Promise<string|null>} The video URL string or null if exhausted/failed.
+   */
   async getVideoURL(sessionId, maxRetries = 60, delayMs = 3000) {
     console.log(
-      `🔄 STARTING RETRY MECHANISM: ${maxRetries} retries, ${delayMs}ms delays`,
+      `[RETRY] Starting retrieval mechanism: ${maxRetries} attempts, ${delayMs}ms delay. Max total time: ${(maxRetries * delayMs) / 1000}s`,
     );
-    console.log(`📊 Max total time: ${(maxRetries * delayMs) / 1000} seconds`);
-    // Initial delay to let BrowserStack process the session
-    console.log(
-      '⏱️ Initial 5-second wait for BrowserStack session processing...',
-    );
+
+    // Use async await for non-blocking delay instead of mixing blocking setTimeout.
     await new Promise((resolve) => setTimeout(resolve, 5000));
+    console.log('[INFO] Initial 5-second wait completed.');
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const startTime = Date.now();
       try {
-        console.log(
-          `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
-        );
+        console.log(`[ATTEMPT] ${attempt}/${maxRetries} - Querying session data...`);
+        
+        // Credentials must be retrieved dynamically for each attempt for robustness.
         const credentials = BrowserStackCredentials.getCredentials();
+        
         const response = await axios.get(
           `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
           {
@@ -45,113 +93,95 @@ export class PerformanceTracker {
               username: credentials.username,
               password: credentials.accessKey,
             },
-            timeout: 8000, // 8 second timeout per request
+            timeout: 8000,
           },
         );
 
         const sessionData = response.data.automation_session;
-        const buildId = sessionData.build_hashed_id;
-
-        if (buildId) {
-          // Construct the route to the session video without using the auth token
-          const videoURL = `https://app-automate.browserstack.com/builds/${buildId}/sessions/${sessionId}`;
-          console.log(`✅ SUCCESS ON ATTEMPT ${attempt}! Video URL:`, videoURL);
-          console.log(
-            `🕐 Total time elapsed: ${(Date.now() - startTime) / 1000}s`,
-          );
+        // Check for session status completion or required data presence
+        if (sessionData.build_hashed_id) {
+          const videoURL = `https://app-automate.browserstack.com/builds/${sessionData.build_hashed_id}/sessions/${sessionId}`;
+          console.log(`[SUCCESS] Video URL found: ${videoURL}`);
           return videoURL;
         }
 
-        console.log(
-          `Build ID not found in session data for attempt ${attempt}`,
-        );
+        console.log(`[WAITING] Build ID not available yet. Session status: ${sessionData.status || 'unknown'}`);
+
       } catch (error) {
         const status = error.response?.status;
         const elapsedTime = (Date.now() - startTime) / 1000;
 
-        console.log(
-          `❌ ATTEMPT ${attempt}/${maxRetries} FAILED (${elapsedTime}s):`,
-          {
-            status,
-            message: error.message,
-            data: error.response?.data,
-          },
-        );
-
-        // Only retry on 404 status and if we haven't reached max retries
         if (status === 404 && attempt < maxRetries) {
-          const remaining = maxRetries - attempt;
-          console.log(
-            `🔄 404 ERROR - WILL RETRY IN ${delayMs}ms... (${remaining} attempts remaining)`,
-          );
-          console.log(`⏰ Starting delay at: ${new Date().toISOString()}`);
-
+          console.warn(`[RETRY] Attempt ${attempt} failed (404 Not Found, Session still processing). Retrying in ${delayMs}ms...`);
           await new Promise((resolve) => setTimeout(resolve, delayMs));
-
-          console.log(`⏰ Delay completed at: ${new Date().toISOString()}`);
-          console.log(`➡️ Proceeding to attempt ${attempt + 1}/${maxRetries}`);
           continue;
         }
 
-        // For non-404 errors or last attempt, log and exit
+        // Handle other errors (e.g., 401, 5xx, network timeouts) or maximum retries reached
         console.error(
-          `🚫 FINAL ERROR after ${attempt} attempts (${elapsedTime}s):`,
-          error.response?.data || error.message,
+          `[ERROR] Final failure on attempt ${attempt} (${elapsedTime}s). Status: ${status || 'Network Error'}`,
+          error.message,
         );
         return null;
       }
     }
 
-    // This should never be reached, but adding for safety
-    console.error(
-      `💥 ALL ${maxRetries} ATTEMPTS EXHAUSTED - NO VIDEO URL AVAILABLE`,
-    );
-    console.log(`🕐 End time: ${new Date().toISOString()}`);
+    console.error(`[FAILURE] Exhausted all ${maxRetries} attempts.`);
     return null;
   }
 
+  /**
+   * Aggregates collected performance metrics and attaches them to the test report via testInfo.attach.
+   * @param {object} testInfo - The Playwright test information object.
+   * @returns {Promise<object>} The metrics object.
+   */
   async attachToTest(testInfo) {
     const metrics = {
       steps: [],
+      // Ensure total is correctly initialized as a number
+      total: 0, 
     };
-    let totalSeconds = 0;
 
     for (const timer of this.timers) {
-      const duration = timer.getDuration();
-      const durationInSeconds = timer.getDurationInSeconds();
-
-      if (duration !== null && !isNaN(duration) && duration > 0) {
-        // Create a step object with the timer id as key and duration as value
+      // Assuming getDuration() returns ms and getDurationInSeconds() returns seconds
+      const durationMs = timer.getDuration();
+      
+      if (durationMs !== null && !isNaN(durationMs) && durationMs > 0) {
+        const durationInSeconds = durationMs / 1000; // Calculate once for consistency
+        
+        // Create a step object keyed by the timer ID
         const stepObject = {};
-        stepObject[timer.id] = duration;
-        metrics.steps.push(stepObject);
+        stepObject[timer.id] = durationMs; // Storing duration in milliseconds is typical for precision
 
-        totalSeconds += durationInSeconds;
+        metrics.steps.push(stepObject);
+        metrics.total += durationInSeconds; // Total duration in seconds
       }
     }
 
-    metrics.total = totalSeconds;
+    // Safely retrieve and set device info with robust fallbacks
+    const deviceInfo = testInfo?.project?.use?.device || { 
+      name: 'Unknown', 
+      osVersion: 'Unknown', 
+      provider: 'unknown' 
+    };
+    
+    // Ensure the metric object is standardized and clean
+    metrics.device = deviceInfo;
+    metrics.testTitle = this.testTitle || testInfo.title;
+    metrics.sessionId = this.sessionId || 'N/A';
 
-    // Safely get device info with fallbacks
-    const deviceInfo = testInfo?.project?.use?.device;
-    if (deviceInfo) {
-      metrics.device = deviceInfo;
-    } else {
-      metrics.device = {
-        name: 'Unknown',
-        osVersion: 'Unknown',
-        provider: 'unknown',
-      };
-    }
 
     try {
-      await testInfo.attach(`performance-metrics-${testInfo.title}`, {
-        body: JSON.stringify(metrics),
+      // Use the internal test title for naming the attachment
+      await testInfo.attach(`performance-metrics-${this.testTitle || testInfo.title}`, {
+        body: JSON.stringify(metrics, null, 2), // Use formatting for readability
         contentType: 'application/json',
       });
+      console.log(`[SUCCESS] Attached performance metrics for ${metrics.testTitle}.`);
     } catch (error) {
-      console.error(`❌ Failed to attach performance metrics:`, error.message);
-      throw error;
+      console.error(`[ERROR] Failed to attach performance metrics:`, error.message);
+      // Re-throw the error to ensure the calling process is aware of the failure
+      throw error; 
     }
 
     return metrics;
