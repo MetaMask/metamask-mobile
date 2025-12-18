@@ -92,6 +92,9 @@ const LoginOptionsSettings = () => {
 
         // Only update UI if operation completed successfully
         setBiometryChoice(enabled);
+        // Biometrics and passcode are mutually exclusive - enabling one disables the other
+        // Disabling biometrics switches to PASSWORD which disables both
+        setPasscodeChoice(false);
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
@@ -117,6 +120,9 @@ const LoginOptionsSettings = () => {
 
                 // Update UI state after successful password entry and update
                 setBiometryChoice(enabled);
+                // Biometrics and passcode are mutually exclusive - enabling one disables the other
+                // Disabling biometrics switches to PASSWORD which disables both
+                setPasscodeChoice(false);
 
                 // Re-fetch to ensure UI matches actual state
                 const currentAuthType = await Authentication.getType();
@@ -174,6 +180,9 @@ const LoginOptionsSettings = () => {
 
         // Only update UI if operation completed successfully
         setPasscodeChoice(enabled);
+        // Biometrics and passcode are mutually exclusive - enabling one disables the other
+        // Disabling passcode switches to PASSWORD which disables both
+        setBiometryChoice(false);
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
@@ -199,6 +208,9 @@ const LoginOptionsSettings = () => {
 
                 // Update UI state after successful password entry and update
                 setPasscodeChoice(enabled);
+                // Biometrics and passcode are mutually exclusive - enabling one disables the other
+                // Disabling passcode switches to PASSWORD which disables both
+                setBiometryChoice(false);
 
                 // Re-fetch to ensure UI matches actual state
                 const currentAuthType = await Authentication.getType();
@@ -243,7 +255,7 @@ const LoginOptionsSettings = () => {
 
   return (
     <Box testID={LOGIN_OPTIONS}>
-      {biometryType ? (
+      {biometryType && !passcodeChoice ? (
         <Box style={styles.setting}>
           {isBiometricLoading ? (
             <Box
