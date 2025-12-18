@@ -47,8 +47,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         await PerpsOrderView.selectLimitOrderType();
 
         // When Limit is selected without price, the limit price bottom sheet opens automatically.
-        // Press preset -10% for long (config LONG_PRESETS: [-1,-2,-5,-10])
-        await PerpsOrderView.setLimitPricePresetLong(-10);
+        await PerpsOrderView.setLimitPricePresetLong('Mid');
 
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();
