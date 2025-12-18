@@ -444,28 +444,55 @@ export class HyperLiquidSubscriptionService {
         if (order.isTrigger && tpslPrice) {
           const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
           const isStop = order.detailedOrderType?.includes('Stop');
+
+          const matchingPosition = positions.find(
+            (p) => p.coin === order.symbol,
+          );
+
+          // Determine TP vs SL classification for count and price updates
+          // Use order type first, fallback to price-based detection for ambiguous 'Trigger' types
+          let classifiedAsTakeProfit = isTakeProfit;
+          let classifiedAsStop = isStop;
+
+          if (!isTakeProfit && !isStop && matchingPosition) {
+            // Fallback: determine based on trigger price vs entry price
+            // This handles orders with ambiguous type 'Trigger'
+            const triggerPrice = parseFloat(tpslPrice);
+            const entryPrice = parseFloat(matchingPosition.entryPrice || '0');
+            const isLong = parseFloat(matchingPosition.size) > 0;
+
+            if (isLong) {
+              if (triggerPrice > entryPrice) {
+                classifiedAsTakeProfit = true;
+              } else {
+                classifiedAsStop = true;
+              }
+            } else if (triggerPrice < entryPrice) {
+              classifiedAsTakeProfit = true;
+            } else {
+              classifiedAsStop = true;
+            }
+          }
+
           const currentTakeProfitCount =
             tpslCountMap.get(order.symbol)?.takeProfitCount || 0;
           const currentStopLossCount =
             tpslCountMap.get(order.symbol)?.stopLossCount || 0;
 
           tpslCountMap.set(order.symbol, {
-            takeProfitCount: isTakeProfit
+            takeProfitCount: classifiedAsTakeProfit
               ? currentTakeProfitCount + 1
               : currentTakeProfitCount,
-            stopLossCount: isStop
+            stopLossCount: classifiedAsStop
               ? currentStopLossCount + 1
               : currentStopLossCount,
           });
 
-          const matchingPosition = positions.find(
-            (p) => p.coin === order.symbol,
-          );
           if (matchingPosition) {
             const existing = tpslMap.get(order.symbol) || {};
-            if (isTakeProfit) {
+            if (classifiedAsTakeProfit) {
               existing.takeProfitPrice = tpslPrice;
-            } else if (isStop) {
+            } else if (classifiedAsStop) {
               existing.stopLossPrice = tpslPrice;
             }
             tpslMap.set(order.symbol, existing);

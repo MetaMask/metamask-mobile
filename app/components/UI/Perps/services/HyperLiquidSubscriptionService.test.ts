@@ -2545,6 +2545,179 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe();
     });
+
+    it('preserves TP/SL data from cached orders with ambiguous Trigger type on clearinghouseState updates', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock the adapter for long position
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      mockAdapter.adaptPositionFromSDK.mockImplementation(() => ({
+        coin: 'BTC',
+        size: '1.0', // Long position
+        entryPrice: '50000',
+        positionValue: '50000',
+        unrealizedPnl: '5000',
+        marginUsed: '25000',
+        leverage: { type: 'cross', value: 2 },
+        liquidationPrice: '40000',
+        maxLeverage: 100,
+        returnOnEquity: '10.0',
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      }));
+
+      // Track callback invocations for clearinghouseState
+      const callbackRef: { current: ((data: any) => void) | null } = {
+        current: null,
+      };
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          callbackRef.current = callback;
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: {
+                      szi: '1.0',
+                      coin: 'BTC',
+                      entryPrice: '50000',
+                    },
+                    coin: 'BTC',
+                  },
+                ],
+                marginSummary: {
+                  accountValue: '10000',
+                  totalMarginUsed: '500',
+                },
+                withdrawable: '9500',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Orders with ambiguous 'Trigger' type (no 'Take Profit' or 'Stop' in orderType)
+      // These should be classified by price: above entry = TP, below entry = SL
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              orders: [
+                {
+                  oid: 200,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '55000', // Above entry price = Take Profit for long
+                  orderType: 'Trigger', // Ambiguous order type
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                  limitPx: '55000',
+                  origSz: '1.0',
+                  timestamp: Date.now(),
+                  isTrigger: true,
+                  triggerCondition: '',
+                  children: [],
+                  tif: null,
+                  cloid: null,
+                },
+                {
+                  oid: 201,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '45000', // Below entry price = Stop Loss for long
+                  orderType: 'Trigger', // Ambiguous order type
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                  limitPx: '45000',
+                  origSz: '1.0',
+                  timestamp: Date.now(),
+                  isTrigger: true,
+                  triggerCondition: '',
+                  children: [],
+                  tif: null,
+                  cloid: null,
+                },
+              ],
+            });
+          }, 5); // openOrders arrives after clearinghouseState
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      // Wait for initial subscription setup and callbacks
+      await jest.runAllTimersAsync();
+
+      // Verify initial TP/SL extraction worked
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            takeProfitPrice: '55000',
+            stopLossPrice: '45000',
+          }),
+        ]),
+      );
+
+      // Clear mock to track subsequent calls
+      mockCallback.mockClear();
+
+      // Simulate a subsequent clearinghouseState update (e.g., PnL update)
+      // This triggers re-extraction of TP/SL from CACHED orders
+      expect(callbackRef.current).not.toBeNull();
+      if (callbackRef.current) {
+        callbackRef.current({
+          dex: '',
+          clearinghouseState: {
+            assetPositions: [
+              {
+                position: {
+                  szi: '1.0',
+                  coin: 'BTC',
+                  entryPrice: '50000',
+                },
+                coin: 'BTC',
+              },
+            ],
+            marginSummary: {
+              accountValue: '10500', // Changed - simulates PnL update
+              totalMarginUsed: '500',
+            },
+            withdrawable: '10000',
+          },
+        });
+      }
+
+      await jest.runAllTimersAsync();
+
+      // TP/SL should still be present after re-extraction from cached orders
+      // This is the bug fix: cached orders with 'Trigger' type should use price-based fallback
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            takeProfitPrice: '55000', // Should persist
+            stopLossPrice: '45000', // Should persist
+          }),
+        ]),
+      );
+
+      unsubscribe();
+    });
   });
 
   describe('Race condition prevention', () => {
