@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State Able to generate logs with Sanitized SeedlessOnboardingController sensitive data 1`] = `
+exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State generates logs with sanitized SeedlessOnboardingController sensitive data 1`] = `
 {
   "appVersion": "1",
   "buildNumber": "123",
@@ -128,9 +128,28 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "KeyringController": {
         "isUnlocked": true,
         "keyrings": [
-          "keyring1",
-          "keyring2",
+          {
+            "accounts": [
+              "0x1",
+            ],
+            "metadata": {
+              "id": "keyring1",
+              "name": "",
+            },
+            "type": "HD Key Tree",
+          },
+          {
+            "accounts": [
+              "0x2",
+            ],
+            "metadata": {
+              "id": "keyring2",
+              "name": "",
+            },
+            "type": "Simple Key Pair",
+          },
         ],
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},
@@ -747,6 +766,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
     },
   },
+  "loggedIn": true,
   "metaMetricsId": "6D796265-7374-4953-6D65-74616D61736B",
 }
 `;
@@ -879,9 +899,28 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "KeyringController": {
         "isUnlocked": true,
         "keyrings": [
-          "keyring1",
-          "keyring2",
+          {
+            "accounts": [
+              "0x1",
+            ],
+            "metadata": {
+              "id": "keyring1",
+              "name": "",
+            },
+            "type": "HD Key Tree",
+          },
+          {
+            "accounts": [
+              "0x2",
+            ],
+            "metadata": {
+              "id": "keyring2",
+              "name": "",
+            },
+            "type": "Simple Key Pair",
+          },
         ],
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},
@@ -1327,6 +1366,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accessToken": false,
         "encryptedKeyringEncryptionKey": false,
         "encryptedSeedlessEncryptionKey": false,
+        "isSeedlessOnboardingUserAuthenticated": false,
         "metadataAccessToken": false,
         "nodeAuthTokens": [],
         "refreshToken": false,
@@ -1480,6 +1520,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
     },
   },
+  "loggedIn": true,
   "metaMetricsId": "6D796265-7374-4953-6D65-74616D61736B",
 }
 `;

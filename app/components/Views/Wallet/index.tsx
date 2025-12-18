@@ -182,6 +182,7 @@ import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
+import { useSafeChains } from '../../hooks/useSafeChains';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -738,6 +739,8 @@ const Wallet = ({
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
+
+  useSafeChains();
 
   const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();

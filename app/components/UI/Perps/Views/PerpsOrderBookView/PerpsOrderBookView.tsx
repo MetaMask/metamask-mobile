@@ -66,6 +66,7 @@ import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -86,6 +87,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol } = route.params || {};
+  const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
@@ -388,7 +390,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 unitDisplay === 'base' ? TextColor.Inverse : TextColor.Default
               }
             >
-              {symbol}
+              {displaySymbol}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
