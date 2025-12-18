@@ -48,6 +48,7 @@ export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
 
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
+export { useHeaderScrollAnimation } from './useHeaderScrollAnimation';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';

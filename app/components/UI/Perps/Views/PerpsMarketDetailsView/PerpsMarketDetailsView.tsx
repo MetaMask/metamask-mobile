@@ -11,7 +11,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { View, RefreshControl, Linking } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,6 +21,13 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -33,6 +41,7 @@ import {
   PerpsTutorialSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsAssetInfoCard from '../../components/PerpsAssetInfoCard';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -41,6 +50,7 @@ import type {
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
+import { useHeaderScrollAnimation } from '../../hooks/useHeaderScrollAnimation';
 import {
   CandlePeriod,
   TimeDuration,
@@ -164,6 +174,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Hook for updating TP/SL on existing positions
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
+
+  // Hook for scroll-based header animation
+  const { scrollHandler, headerAnimatedStyle, isHeaderInteractive } =
+    useHeaderScrollAnimation();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -897,21 +911,39 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      {/* Fixed Header Section */}
-      <View>
+      {/* Fixed Header Section - Minimal header with back button and star only */}
+      <View style={styles.headerContainer}>
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
           onFavoritePress={handleWatchlistPress}
-          onFullscreenPress={handleFullscreenChartOpen}
           isFavorite={isWatchlist}
+          showAssetInfo={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
+
+        {/* Animated Header - Asset info fades in when scrolling, buttons always accessible */}
+        {/* pointerEvents controlled by scroll position to prevent invisible header intercepting touches */}
+        <Animated.View
+          style={[styles.animatedHeader, headerAnimatedStyle]}
+          pointerEvents={isHeaderInteractive ? 'auto' : 'none'}
+        >
+          <PerpsMarketHeader
+            market={market}
+            onBackPress={handleBackPress}
+            onFavoritePress={handleWatchlistPress}
+            isFavorite={isWatchlist}
+            showAssetInfo
+            testID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-animated`}
+          />
+        </Animated.View>
       </View>
 
       {/* Scrollable Content Container */}
       <View style={styles.scrollableContentContainer}>
-        <ScrollView
+        <Animated.ScrollView
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
@@ -920,6 +952,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
+          {/* Asset Info Card - Visible at top before scrolling */}
+          <PerpsAssetInfoCard
+            market={market}
+            testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-asset-info`}
+          />
+
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <ComponentErrorBoundary
@@ -961,13 +999,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               )}
             </ComponentErrorBoundary>
 
-            {/* Candle Period Selector */}
-            <PerpsCandlePeriodSelector
-              selectedPeriod={selectedCandlePeriod}
-              onPeriodChange={handleCandlePeriodChange}
-              onMorePress={handleMorePress}
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
-            />
+            {/* Chart Controls Row - Candle Period Selector + Fullscreen Button */}
+            <View style={styles.chartControlsRow}>
+              <PerpsCandlePeriodSelector
+                selectedPeriod={selectedCandlePeriod}
+                onPeriodChange={handleCandlePeriodChange}
+                onMorePress={handleMorePress}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
+              />
+              <ButtonIcon
+                iconName={IconName.Expand}
+                iconColor={IconColor.Default}
+                size={ButtonIconSizes.Md}
+                onPress={handleFullscreenChartOpen}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-fullscreen-button`}
+              />
+            </View>
 
             {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
             {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
@@ -1084,7 +1131,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </Text>
             </Text>
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}

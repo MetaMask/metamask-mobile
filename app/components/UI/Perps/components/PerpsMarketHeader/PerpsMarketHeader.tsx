@@ -26,9 +26,14 @@ interface PerpsMarketHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onFullscreenPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
+  /**
+   * Whether to show the asset info (logo, name, leverage, price) in the header.
+   * When false, only shows back button and favorite star (minimal header).
+   * Default: true for backward compatibility.
+   */
+  showAssetInfo?: boolean;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
@@ -36,9 +41,9 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onFullscreenPress,
   isFavorite = false,
   testID,
+  showAssetInfo = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -56,49 +61,43 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       )}
 
-      {/* Icon Section - Smaller size for better spacing */}
-      <View style={styles.perpIcon}>
-        <PerpsTokenLogo
-          symbol={market.symbol}
-          size={32}
-          style={styles.tokenIcon}
-        />
-      </View>
+      {showAssetInfo ? (
+        <>
+          {/* Icon Section - Smaller size for better spacing */}
+          <View style={styles.perpIcon}>
+            <PerpsTokenLogo
+              symbol={market.symbol}
+              size={32}
+              style={styles.tokenIcon}
+            />
+          </View>
 
-      {/* Left Section */}
-      <View style={styles.leftSection}>
-        <View style={styles.assetRow}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={styles.assetName}
-          >
-            {getPerpsDisplaySymbol(market.symbol)}-USD
-          </Text>
-          <PerpsLeverage maxLeverage={market.maxLeverage} />
-        </View>
-        <View style={styles.secondRow}>
-          <LivePriceHeader
-            symbol={market.symbol}
-            fallbackPrice={market.price || '0'}
-            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            throttleMs={1000}
-          />
-        </View>
-      </View>
-
-      {/* Fullscreen Button */}
-      {onFullscreenPress && (
-        <View style={styles.fullscreenButton}>
-          <ButtonIcon
-            iconName={IconName.Expand}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={onFullscreenPress}
-            testID={`${testID}-fullscreen-button`}
-          />
-        </View>
+          {/* Left Section */}
+          <View style={styles.leftSection}>
+            <View style={styles.assetRow}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.assetName}
+              >
+                {getPerpsDisplaySymbol(market.symbol)}-USD
+              </Text>
+              <PerpsLeverage maxLeverage={market.maxLeverage} />
+            </View>
+            <View style={styles.secondRow}>
+              <LivePriceHeader
+                symbol={market.symbol}
+                fallbackPrice={market.price || '0'}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                throttleMs={1000}
+              />
+            </View>
+          </View>
+        </>
+      ) : (
+        /* Spacer when asset info is hidden - pushes star to the right */
+        <View style={styles.leftSection} />
       )}
 
       {/* Right Action Button */}

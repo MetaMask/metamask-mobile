@@ -13,6 +13,21 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.default,
     },
 
+    // Header container - holds both minimal and animated headers
+    headerContainer: {
+      position: 'relative',
+      backgroundColor: theme.colors.background.default,
+    },
+
+    // Animated header - positioned absolutely over minimal header, fades in on scroll
+    animatedHeader: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+    },
+
     // Scrollable content container - takes remaining space
     scrollableContentContainer: {
       flex: 1,
@@ -44,6 +59,12 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingTop: 0,
       marginTop: 16,
       position: 'relative',
+    },
+    // Chart controls row - candle period selector + fullscreen button
+    chartControlsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     tabsSection: {
       paddingVertical: 8,
