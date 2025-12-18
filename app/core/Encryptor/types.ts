@@ -1,9 +1,25 @@
 import { Json } from '@metamask/utils';
 import type { KeyDerivationOptions } from '@metamask/browser-passworder';
-import { ExportableKeyEncryptor } from '@metamask/keyring-controller';
 
 /** Key derivation function options. */
 export type { KeyDerivationOptions };
+
+/**
+ * Detailed encryption result containing the vault and exported key string.
+ */
+export interface DetailedEncryptionResult {
+  vault: string;
+  exportedKeyString: string;
+}
+
+/**
+ * Detailed decryption result containing the decrypted vault, salt, and exported key string.
+ */
+export interface DetailedDecryptResult {
+  exportedKeyString: string;
+  vault: unknown;
+  salt: string;
+}
 
 /**
  * Interface that needs to be implemented for the underlying library used by the `Encryptor`.
@@ -123,22 +139,126 @@ export interface GenericEncryptor<Data = Json> {
 /**
  * An encryptor interface that supports encrypting and decrypting
  * serializable data with a password, and exporting and importing keys.
+ * This interface is compatible with the KeyringController's Encryptor type.
  */
-export type WithKeyEncryptor<Key, Data> = ExportableKeyEncryptor & {
+export interface WithKeyEncryptor<Key, Data> {
+  /**
+   * Encrypts the given data with the given password.
+   *
+   * @param password - The password to encrypt with.
+   * @param data - The data to encrypt.
+   * @returns The encrypted string.
+   */
+  encrypt: (password: string, data: Data) => Promise<string>;
+
+  /**
+   * Decrypts the given encrypted string with the given password.
+   *
+   * @param password - The password to decrypt with.
+   * @param text - The encrypted string to decrypt.
+   * @returns The decrypted data.
+   */
+  decrypt: (password: string, text: string) => Promise<unknown>;
+
+  /**
+   * Optional vault migration helper. Checks if the provided vault is up to date
+   * with the desired encryption algorithm.
+   *
+   * @param vault - The encrypted string to check.
+   * @param targetDerivationParams - The desired target derivation params.
+   * @returns Whether the vault is updated.
+   */
+  isVaultUpdated?: (
+    vault: string,
+    targetDerivationParams?: KeyDerivationOptions,
+  ) => boolean;
+
   /**
    * Encrypts the given object with the given encryption key.
    *
    * @param key - The encryption key to encrypt with.
-   * @param object - The object to encrypt.
+   * @param data - The object to encrypt.
    * @returns The encryption result.
    */
   encryptWithKey: (key: Key, data: Data) => Promise<EncryptionResult>;
+
+  /**
+   * Encrypts the given object with the given password, and returns the
+   * encryption result and the serialized key string.
+   *
+   * @param password - The password to encrypt with.
+   * @param data - The object to encrypt.
+   * @param salt - The optional salt to use for encryption.
+   * @param keyDerivationOptions - The options to use for key derivation.
+   * @returns The encrypted string and the serialized key string.
+   */
+  encryptWithDetail: (
+    password: string,
+    data: Data,
+    salt?: string,
+    keyDerivationOptions?: KeyDerivationOptions,
+  ) => Promise<DetailedEncryptionResult>;
+
   /**
    * Decrypts the given encrypted string with the given encryption key.
    *
    * @param key - The encryption key to decrypt with.
-   * @param encryptedString - The encrypted string to decrypt.
+   * @param payload - The encrypted payload to decrypt.
    * @returns The decrypted object.
    */
   decryptWithKey: (key: Key, payload: EncryptionResult) => Promise<unknown>;
-};
+
+  /**
+   * Decrypts the given encrypted string with the given password, and returns
+   * the decrypted object and the salt and serialized key string used for
+   * encryption.
+   *
+   * @param password - The password to decrypt with.
+   * @param text - The encrypted string to decrypt.
+   * @returns The decrypted object and the salt and serialized key string.
+   */
+  decryptWithDetail: (
+    password: string,
+    text: string,
+  ) => Promise<DetailedDecryptResult>;
+
+  /**
+   * Generates an encryption key from a serialized key.
+   *
+   * @param keyString - The serialized key string.
+   * @returns The encryption key.
+   */
+  importKey: (keyString: string) => Promise<Key>;
+
+  /**
+   * Exports the encryption key as a string.
+   *
+   * @param key - The encryption key to export.
+   * @returns The serialized key string.
+   */
+  exportKey: (key: Key) => Promise<string>;
+
+  /**
+   * Derives an encryption key from a password.
+   *
+   * @param password - The password to derive the key from.
+   * @param salt - The salt to use for key derivation.
+   * @param exportable - Whether the key should be exportable or not.
+   * @param opts - Optional key derivation options.
+   * @returns The derived encryption key.
+   */
+  keyFromPassword: (
+    password: string,
+    salt: string,
+    exportable?: boolean,
+    opts?: KeyDerivationOptions,
+  ) => Promise<Key>;
+
+  /**
+   * Generates a random salt for key derivation.
+   *
+   * @param size - The number of bytes for the salt.
+   * @returns The base64-encoded salt string.
+   */
+  generateSalt: (size?: number) => string;
+}
