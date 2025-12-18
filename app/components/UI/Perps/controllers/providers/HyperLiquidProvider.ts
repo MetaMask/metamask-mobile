@@ -277,6 +277,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
 
+  // Cache for transaction history (fills, orders, funding) to avoid redundant API calls
+  // Key: `network:userAddress`, Value: cached transaction data
+  private transactionHistoryCache = new Map<
+    string,
+    {
+      fills: OrderFill[] | null;
+      orders: Order[] | null;
+      funding: Funding[] | null;
+      lastFetched: number;
+    }
+  >();
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
@@ -863,6 +875,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   private getCacheKey(network: string, userAddress: string): string {
     return `${network}:${userAddress.toLowerCase()}`;
+  }
+
+  /**
+   * Get transaction history cache key for a user
+   * Uses same format as getCacheKey for consistency
+   */
+  private getTransactionCacheKey(userAddress: string): string {
+    const network = this.clientService.isTestnet() ? 'testnet' : 'mainnet';
+    return this.getCacheKey(network, userAddress);
+  }
+
+  /**
+   * Update transaction history cache for a user
+   * Merges new data with existing cache
+   */
+  private updateTransactionCache(
+    cacheKey: string,
+    data: Partial<{
+      fills: OrderFill[];
+      orders: Order[];
+      funding: Funding[];
+    }>,
+  ): void {
+    const existing = this.transactionHistoryCache.get(cacheKey) || {
+      fills: null,
+      orders: null,
+      funding: null,
+      lastFetched: 0,
+    };
+
+    this.transactionHistoryCache.set(cacheKey, {
+      ...existing,
+      ...data,
+      lastFetched: Date.now(),
+    });
+  }
+
+  /**
+   * Clear transaction history cache
+   * Called on account change, disconnect, or manual refresh
+   */
+  private clearTransactionCache(): void {
+    this.transactionHistoryCache.clear();
+    DevLogger.log('Transaction history cache cleared');
   }
 
   /**
@@ -3873,6 +3929,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Get historical user fills (trade executions)
    * Supports time-based pagination via startTime/endTime params
+   * Uses cache for full fetches (no time params), bypasses cache for time-windowed fetches
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     try {
@@ -3886,6 +3943,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
+
+      // Check cache for full fetches (no time params and not skipping cache)
+      const isFullFetch = params?.startTime === undefined;
+      if (isFullFetch && !params?.skipCache) {
+        const cacheKey = this.getTransactionCacheKey(userAddress);
+        const cached = this.transactionHistoryCache.get(cacheKey);
+        if (cached?.fills) {
+          DevLogger.log('Using cached fills', { count: cached.fills.length });
+          return cached.fills;
+        }
+      }
 
       // Use time-based pagination when startTime is provided (for infinite scroll)
       // Otherwise fall back to userFills for initial load
@@ -3936,6 +4004,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return acc;
       }, []);
 
+      // Cache full fetches only (not time-windowed fetches)
+      if (isFullFetch) {
+        const cacheKey = this.getTransactionCacheKey(userAddress);
+        this.updateTransactionCache(cacheKey, { fills });
+      }
+
       return fills;
     } catch (error) {
       DevLogger.log('Error getting user fills:', error);
@@ -3945,6 +4019,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get historical orders (order lifecycle)
+   * Note: HyperLiquid API has no pagination for historical orders, so we always fetch all.
+   * Uses cache to avoid redundant API calls.
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
@@ -3958,6 +4034,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
+
+      // Check cache first (unless skipCache is true)
+      if (!params?.skipCache) {
+        const cacheKey = this.getTransactionCacheKey(userAddress);
+        const cached = this.transactionHistoryCache.get(cacheKey);
+        if (cached?.orders) {
+          DevLogger.log('Using cached orders', { count: cached.orders.length });
+          return cached.orders;
+        }
+      }
 
       const rawOrders = await infoClient.historicalOrders({
         user: userAddress,
@@ -4029,6 +4115,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
           reduceOnly: order.reduceOnly,
         };
       });
+
+      // Cache the orders
+      const cacheKey = this.getTransactionCacheKey(userAddress);
+      this.updateTransactionCache(cacheKey, { orders });
 
       return orders;
     } catch (error) {
@@ -4102,6 +4192,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get user funding history
+   * Uses cache for default fetches (no custom time params), bypasses cache for custom time windows
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
     try {
@@ -4115,6 +4206,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
+
+      // Check if using default params (cacheable) or custom time window (not cacheable)
+      const isDefaultFetch =
+        params?.startTime === undefined && params?.endTime === undefined;
+
+      // Check cache for default fetches (unless skipCache is true)
+      if (isDefaultFetch && !params?.skipCache) {
+        const cacheKey = this.getTransactionCacheKey(userAddress);
+        const cached = this.transactionHistoryCache.get(cacheKey);
+        if (cached?.funding) {
+          DevLogger.log('Using cached funding', {
+            count: cached.funding.length,
+          });
+          return cached.funding;
+        }
+      }
 
       // HyperLiquid API requires startTime to be a number (not undefined)
       // Default to configured days ago to get recent funding payments
@@ -4146,6 +4253,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
           transactionHash: hash,
         };
       });
+
+      // Cache default fetches only (not custom time windows)
+      if (isDefaultFetch) {
+        const cacheKey = this.getTransactionCacheKey(userAddress);
+        this.updateTransactionCache(cacheKey, { funding });
+      }
 
       return funding;
     } catch (error) {
@@ -6088,6 +6201,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.builderFeeCheckCache.clear();
       this.cachedMetaByDex.clear();
       this.perpDexsCache = { data: null, timestamp: 0 };
+
+      // Clear transaction history cache
+      this.clearTransactionCache();
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;

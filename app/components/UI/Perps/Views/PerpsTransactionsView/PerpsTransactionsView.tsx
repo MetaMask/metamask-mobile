@@ -7,12 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  View,
-} from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -77,13 +72,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [selectedAddress, currentChainId]);
 
   // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
+  // Progressive rendering: fills/funding load first, orders load in background
   const {
     transactions: allTransactions,
     isLoading: transactionsLoading,
-    isLoadingMore,
-    hasMore,
+    ordersLoaded,
     refetch: refreshTransactions,
-    loadMore,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
@@ -352,26 +346,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     </View>
   );
 
-  // Handle infinite scroll - load more when reaching end of list
-  const handleEndReached = useCallback(() => {
-    if (hasMore && !isLoadingMore) {
-      loadMore();
-    }
-  }, [hasMore, isLoadingMore, loadMore]);
-
-  // Render loading footer for infinite scroll
-  const renderFooter = useCallback(() => {
-    if (!isLoadingMore) {
-      return null;
-    }
-
-    return (
-      <View style={tw.style('py-4 items-center')}>
-        <ActivityIndicator size="small" />
-      </View>
-    );
-  }, [isLoadingMore, tw]);
-
   const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
   const filterTabDescription = useMemo(() => {
@@ -382,18 +356,24 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(
-    () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
-  );
+  // For Orders tab, also show skeleton while orders are loading in background
+  const isInitialLoading = useMemo(() => {
+    // Show loading if we're connecting or if transaction data is loading
+    if (isConnecting || transactionsLoading) {
+      return true;
+    }
+    // For Orders tab, show loading until orders are loaded
+    if (activeFilter === 'Orders' && !ordersLoaded) {
+      return true;
+    }
+    return false;
+  }, [isConnecting, transactionsLoading, activeFilter, ordersLoaded]);
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
   // Only measures once per session (no reset on refresh/tab switch)
   usePerpsMeasurement({
     traceName: TraceName.PerpsTransactionsView,
-    conditions: [!isInitialLoading],
+    conditions: [!transactionsLoading && !isConnecting],
     resetConditions: [], // Prevent automatic reset on subsequent loads
   });
 
@@ -462,7 +442,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           item.type === 'header' ? 'header' : 'transaction'
         }
         ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
-        ListFooterComponent={renderFooter}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -473,10 +452,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         ItemSeparatorComponent={() => null}
         scrollEventThrottle={
           PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_SCROLL_EVENT_THROTTLE
-        }
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={
-          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ON_END_REACHED_THRESHOLD
         }
         removeClippedSubviews
         keyboardShouldPersistTaps="handled"

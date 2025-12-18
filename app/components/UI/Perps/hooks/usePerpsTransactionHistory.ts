@@ -11,7 +11,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
+import type { OrderFill, Order, Funding } from '../controllers/types';
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -23,18 +23,21 @@ interface UsePerpsTransactionHistoryParams {
 interface UsePerpsTransactionHistoryResult {
   transactions: PerpsTransaction[];
   isLoading: boolean;
-  isLoadingMore: boolean;
-  hasMore: boolean;
+  ordersLoaded: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  loadMore: () => Promise<void>;
 }
 
 /**
  * Comprehensive hook to fetch and combine all perps transaction data
  * Includes trades, orders, funding, and user history (deposits/withdrawals)
  * Uses HyperLiquid user history as the single source of truth for withdrawals
- * Supports infinite scroll via loadMore() for pagination
+ *
+ * Performance optimization: Progressive rendering
+ * - Phase 1: Fetch fills + funding immediately, render as soon as ready
+ * - Phase 2: Fetch orders in background for enrichment + Orders tab
+ *
+ * FlashList handles rendering virtualization, so we don't need client-side pagination.
  */
 export const usePerpsTransactionHistory = ({
   startTime,
@@ -42,19 +45,16 @@ export const usePerpsTransactionHistory = ({
   accountId,
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
-  // Transactions currently displayed (paginated subset)
+  // Core state
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Store ALL fetched transactions for client-side pagination
-  // HyperLiquid API doesn't support proper pagination for orders/funding,
-  // so we fetch everything once and paginate locally
-  const allFetchedTransactionsRef = useRef<PerpsTransaction[]>([]);
-  // Track how many transactions are currently displayed
-  const displayedCountRef = useRef<number>(0);
+  // Store fetched data in refs for re-enrichment when orders arrive
+  const fillsRef = useRef<OrderFill[]>([]);
+  const fundingRef = useRef<Funding[]>([]);
+  const ordersRef = useRef<Order[]>([]);
 
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
@@ -68,50 +68,30 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
-  // Store userHistory in ref to avoid recreating fetchAllTransactions callback
+  // Store userHistory in ref to avoid recreating fetchTransactions callback
   const userHistoryRef = useRef(userHistory);
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
+
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
 
-  const fetchAllTransactions = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const controller = Engine.context.PerpsController;
-      if (!controller) {
-        throw new Error('PerpsController not available');
-      }
-
-      const provider = controller.getActiveProvider();
-      if (!provider) {
-        throw new Error('No active provider available');
-      }
-
-      DevLogger.log('Fetching comprehensive transaction history...');
-
-      // Fetch all transaction data in parallel
-      const [fills, orders, funding] = await Promise.all([
-        provider.getOrderFills({
-          accountId,
-          aggregateByTime: false,
-        }),
-        provider.getOrders({ accountId }),
-        provider.getFunding({
-          accountId,
-          startTime,
-          endTime,
-        }),
-      ]);
-
-      DevLogger.log('Transaction data fetched:', { fills, orders, funding });
-
+  /**
+   * Build transactions from current data (fills, orders, funding, userHistory)
+   * Called after Phase 1 and again after Phase 2 when orders arrive
+   */
+  const buildTransactions = useCallback(
+    (
+      fills: OrderFill[],
+      orders: Order[],
+      funding: Funding[],
+      includeOrders: boolean,
+    ): PerpsTransaction[] => {
+      // Create order map for fill enrichment (TP/SL pills)
       const orderMap = new Map(orders.map((order) => [order.orderId, order]));
 
-      // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
+      // Enrich fills with detailedOrderType for TP/SL pill display
       const enrichedFills = fills.map((fill) => ({
         ...fill,
         detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
@@ -119,19 +99,23 @@ export const usePerpsTransactionHistory = ({
 
       // Transform each data type to PerpsTransaction format
       const fillTransactions = transformFillsToTransactions(enrichedFills);
-      const orderTransactions = transformOrdersToTransactions(orders);
       const fundingTransactions = transformFundingToTransactions(funding);
       const userHistoryTransactions = transformUserHistoryToTransactions(
         userHistoryRef.current,
       );
 
-      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
+      // Build combined transactions
       const allTransactions = [
         ...fillTransactions,
-        ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
       ];
+
+      // Include order transactions only when orders are loaded
+      if (includeOrders) {
+        const orderTransactions = transformOrdersToTransactions(orders);
+        allTransactions.push(...orderTransactions);
+      }
 
       // Sort by timestamp descending (newest first)
       allTransactions.sort((a, b) => b.timestamp - a.timestamp);
@@ -145,97 +129,137 @@ export const usePerpsTransactionHistory = ({
         return acc;
       }, [] as PerpsTransaction[]);
 
-      // Store ALL transactions for client-side pagination
-      allFetchedTransactionsRef.current = uniqueTransactions;
-
-      // Display only PAGE_SIZE initially for faster rendering
-      const initialDisplayCount =
-        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.PAGE_SIZE;
-      const initialTransactions = uniqueTransactions.slice(
-        0,
-        initialDisplayCount,
-      );
-      displayedCountRef.current = initialTransactions.length;
-
-      // Determine if there are more transactions to load
-      setHasMore(uniqueTransactions.length > initialDisplayCount);
-
-      DevLogger.log('Combined transactions:', {
-        total: uniqueTransactions.length,
-        displayed: initialTransactions.length,
-      });
-      setTransactions(initialTransactions);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch transaction history';
-      DevLogger.log('Error fetching transaction history:', errorMessage);
-      setError(errorMessage);
-      setTransactions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [startTime, endTime, accountId]);
+      return uniqueTransactions;
+    },
+    [],
+  );
 
   /**
-   * Load more transactions for infinite scroll
-   * Uses client-side pagination from already-fetched data
-   * (HyperLiquid API doesn't support proper pagination for orders/funding)
+   * Main fetch function with progressive rendering
+   * Phase 1: Fetch fills + funding, render immediately
+   * Phase 2: Fetch orders in background, re-render with enrichment
    */
-  const loadMore = useCallback(async () => {
-    // Prevent loading if already loading or no more data
-    if (isLoadingMore || !hasMore) {
-      return;
-    }
+  const fetchTransactions = useCallback(
+    async (skipCache = false) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        setOrdersLoaded(false);
 
-    setIsLoadingMore(true);
+        const controller = Engine.context.PerpsController;
+        if (!controller) {
+          throw new Error('PerpsController not available');
+        }
 
-    // Use setTimeout to allow UI to show loading indicator
-    await new Promise((resolve) => setTimeout(resolve, 50));
+        const provider = controller.getActiveProvider();
+        if (!provider) {
+          throw new Error('No active provider available');
+        }
 
-    const allTransactions = allFetchedTransactionsRef.current;
-    const currentCount = displayedCountRef.current;
-    const pageSize = PERPS_TRANSACTIONS_HISTORY_CONSTANTS.PAGE_SIZE;
+        DevLogger.log('Fetching transaction history (progressive)...');
 
-    // Calculate next slice
-    const nextCount = currentCount + pageSize;
-    const nextTransactions = allTransactions.slice(0, nextCount);
+        // PHASE 1: Fetch fills + funding in parallel (fast path)
+        const [fills, funding] = await Promise.all([
+          provider.getOrderFills({
+            accountId,
+            aggregateByTime: false,
+            skipCache,
+          }),
+          provider.getFunding({
+            accountId,
+            startTime,
+            endTime,
+            skipCache,
+          }),
+        ]);
 
-    DevLogger.log('Loading more transactions (client-side):', {
-      previousCount: currentCount,
-      newCount: nextTransactions.length,
-      totalAvailable: allTransactions.length,
-    });
+        DevLogger.log('Phase 1 complete - fills + funding fetched:', {
+          fills: fills.length,
+          funding: funding.length,
+        });
 
-    // Update displayed count
-    displayedCountRef.current = nextTransactions.length;
+        // Store in refs for later re-enrichment
+        fillsRef.current = fills;
+        fundingRef.current = funding;
 
-    // Check if we have more to show
-    setHasMore(nextTransactions.length < allTransactions.length);
+        // Build and render immediately WITHOUT orders (no enrichment yet)
+        const phase1Transactions = buildTransactions(fills, [], funding, false);
+        setTransactions(phase1Transactions);
+        setIsLoading(false); // UI is now interactive!
 
-    // Update state with expanded transactions
-    setTransactions(nextTransactions);
-    setIsLoadingMore(false);
-  }, [isLoadingMore, hasMore]);
+        DevLogger.log('Phase 1 rendered:', {
+          transactionCount: phase1Transactions.length,
+        });
 
+        // PHASE 2: Fetch orders in background (for enrichment + Orders tab)
+        provider
+          .getOrders({ accountId, skipCache })
+          .then((orders) => {
+            DevLogger.log('Phase 2 complete - orders fetched:', {
+              orders: orders.length,
+            });
+
+            // Store orders in ref
+            ordersRef.current = orders;
+
+            // Re-build transactions with orders (now enriched with TP/SL pills)
+            const phase2Transactions = buildTransactions(
+              fillsRef.current,
+              orders,
+              fundingRef.current,
+              true,
+            );
+            setTransactions(phase2Transactions);
+            setOrdersLoaded(true);
+
+            DevLogger.log('Phase 2 rendered:', {
+              transactionCount: phase2Transactions.length,
+            });
+          })
+          .catch((err) => {
+            // Orders failed - fills/funding still work, just no TP/SL pills or Orders tab
+            DevLogger.log('Failed to fetch orders for enrichment:', err);
+            // Don't set error - Phase 1 data is still valid
+            // Mark orders as "loaded" so Orders tab shows empty state instead of spinner
+            setOrdersLoaded(true);
+          });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Failed to fetch transaction history';
+        DevLogger.log('Error fetching transaction history:', errorMessage);
+        setError(errorMessage);
+        setTransactions([]);
+        setIsLoading(false);
+      }
+    },
+    [startTime, endTime, accountId, buildTransactions],
+  );
+
+  /**
+   * Refetch all data (bypasses cache)
+   * Used for pull-to-refresh
+   */
   const refetch = useCallback(async () => {
-    // Reset pagination state on refetch
-    allFetchedTransactionsRef.current = [];
-    displayedCountRef.current = 0;
-    setHasMore(true);
+    // Reset refs
+    fillsRef.current = [];
+    fundingRef.current = [];
+    ordersRef.current = [];
+
     // Fetch user history first, then fetch all transactions
     const freshUserHistory = await refetchUserHistory();
     userHistoryRef.current = freshUserHistory;
-    await fetchAllTransactions();
-  }, [fetchAllTransactions, refetchUserHistory]);
+    await fetchTransactions(true); // skipCache = true for refresh
+  }, [fetchTransactions, refetchUserHistory]);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (!skipInitialFetch && !initialFetchDone.current) {
       initialFetchDone.current = true;
-      refetch();
+      fetchTransactions(false); // Use cache on initial load
     }
-  }, [skipInitialFetch, refetch]);
+  }, [skipInitialFetch, fetchTransactions]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(
@@ -303,17 +327,14 @@ export const usePerpsTransactionHistory = ({
     ];
 
     // Sort by timestamp descending
-    // Note: We don't cap here anymore - infinite scroll handles the limit
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
   }, [liveFills, transactions]);
 
   return {
     transactions: mergedTransactions,
     isLoading: combinedIsLoading,
-    isLoadingMore,
-    hasMore,
+    ordersLoaded,
     error: combinedError,
     refetch,
-    loadMore,
   };
 };

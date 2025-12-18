@@ -570,6 +570,7 @@ export interface GetOrderFillsParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   aggregateByTime?: boolean; // Optional: aggregate by time
+  skipCache?: boolean; // Optional: bypass cache and force API call (default: false)
 }
 
 export interface GetOrdersParams {
@@ -587,6 +588,7 @@ export interface GetFundingParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
+  skipCache?: boolean; // Optional: bypass cache and force API call (default: false)
 }
 
 export interface GetSupportedPathsParams {
