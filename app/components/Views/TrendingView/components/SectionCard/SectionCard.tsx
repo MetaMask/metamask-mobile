@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import { useAppThemeFromContext } from '../../../../../util/theme';
@@ -20,35 +20,20 @@ const createStyles = (theme: Theme) =>
   });
 interface SectionCardProps {
   sectionId: SectionId;
-  refreshTrigger?: number;
-  /** Callback when data empty state changes (only called after loading completes) */
-  toggleSectionEmptyState?: (isEmpty: boolean) => void;
+  data: unknown[];
+  isLoading: boolean;
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
-  refreshTrigger,
-  toggleSectionEmptyState,
+  data,
+  isLoading,
 }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading, refetch } = section.useSectionData();
-
-  // Notify parent when data empty state changes (only after loading completes)
-  useEffect(() => {
-    if (!isLoading && toggleSectionEmptyState) {
-      toggleSectionEmptyState(data.length === 0);
-    }
-  }, [data.length, isLoading, toggleSectionEmptyState]);
-
-  useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0 && refetch) {
-      refetch();
-    }
-  }, [refreshTrigger, refetch]);
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item }) => <section.RowItem item={item} navigation={navigation} />,

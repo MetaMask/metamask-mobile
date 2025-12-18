@@ -30,6 +30,7 @@ import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
+import Section from './components/Section/Section';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -190,16 +191,27 @@ export const ExploreFeed: React.FC = () => {
             // Hide section visually but keep mounted so it can report when data arrives
             const isHidden = emptySections.has(section.id);
 
+            const sectionComponent = (
+              <Section
+                sectionId={section.id}
+                refreshTrigger={refreshTrigger}
+                toggleSectionEmptyState={sectionCallbacks[section.id]}
+              />
+            );
+
             return (
               <Box
                 key={section.id}
                 twClassName={isHidden ? 'hidden' : undefined}
               >
                 <SectionHeader sectionId={section.id} />
-                <section.Section
-                  refreshTrigger={refreshTrigger}
-                  toggleSectionEmptyState={sectionCallbacks[section.id]}
-                />
+                {section.SectionWrapper ? (
+                  <section.SectionWrapper>
+                    {sectionComponent}
+                  </section.SectionWrapper>
+                ) : (
+                  sectionComponent
+                )}
               </Box>
             );
           })}
