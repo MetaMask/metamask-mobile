@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`image component should render an SVG image 1`] = `
+exports[`image component renders an SVG image 1`] = `
 <View
   style={
     [
@@ -98,7 +98,7 @@ exports[`image component should render an SVG image 1`] = `
 </View>
 `;
 
-exports[`image component should render an external image 1`] = `
+exports[`image component renders an external image 1`] = `
 <View
   style={
     [

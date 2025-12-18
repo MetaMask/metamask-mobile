@@ -78,7 +78,7 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
           // eslint-disable-next-line react-native/no-inline-styles
           {
             height: propHeight,
-            width: propHeight,
+            width: propWidth,
             borderRadius,
             maxWidth: '100%',
             maxHeight: '100%',

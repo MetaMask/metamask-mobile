@@ -13,7 +13,7 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 }));
 
 describe('image component', () => {
-  it('should render an SVG image', () => {
+  it('renders an SVG image', () => {
     const { toJSON } = renderInterface(
       Image({
         src: '<svg />',
@@ -24,7 +24,7 @@ describe('image component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render an external image', () => {
+  it('renders an external image', () => {
     const { toJSON } = renderInterface(
       Image({
         src: 'https://metamask.io/fox.png',
