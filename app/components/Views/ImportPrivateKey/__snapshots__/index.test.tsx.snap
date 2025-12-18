@@ -462,7 +462,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Import Account
+                                  Import account
                                 </Text>
                                 <Text
                                   accessibilityRole="text"

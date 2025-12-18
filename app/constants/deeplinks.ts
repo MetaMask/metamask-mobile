@@ -16,6 +16,7 @@ export enum ACTIONS {
   RAMP = 'ramp',
   ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
+  CARD_HOME = 'card-home',
   DAPP = 'dapp',
   SEND = 'send',
   APPROVE = 'approve',
@@ -69,5 +70,6 @@ export const PREFIXES = {
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
+  [ACTIONS.CARD_HOME]: '',
   METAMASK: 'metamask://',
 };

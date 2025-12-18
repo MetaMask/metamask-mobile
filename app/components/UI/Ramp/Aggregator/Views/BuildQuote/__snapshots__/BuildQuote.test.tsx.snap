@@ -3147,7 +3147,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -3795,7 +3795,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -24524,7 +24524,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -25172,7 +25172,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>

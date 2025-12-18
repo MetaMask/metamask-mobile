@@ -8408,7 +8408,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>

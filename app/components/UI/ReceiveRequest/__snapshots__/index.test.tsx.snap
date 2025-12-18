@@ -435,7 +435,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -583,7 +583,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>
@@ -1038,7 +1038,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -1186,7 +1186,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>
@@ -1641,7 +1641,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
+                            accessibilityLabel="Request payment"
                             accessibilityRole="button"
                             accessibilityState={
                               {
@@ -1789,7 +1789,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                Request Payment
+                                Request payment
                               </Text>
                             </View>
                           </View>
