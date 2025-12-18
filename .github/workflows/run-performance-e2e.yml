@@ -322,6 +322,7 @@ jobs:
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         aggregate-results,
+        determine-branch-name,
       ]
     if: always()
     steps:
@@ -338,6 +339,7 @@ jobs:
         id: summary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           {
             echo "summary<<EOF"
