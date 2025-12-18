@@ -259,6 +259,7 @@ describe('CardSDK Context', () => {
         setUser: jest.fn(),
         fetchUserData: jest.fn(),
         logoutFromProvider: jest.fn(),
+        isReturningSession: false,
       };
 
       // When: provider renders with custom value
@@ -300,6 +301,7 @@ describe('CardSDK Context', () => {
         user: null,
         setUser: expect.any(Function),
         fetchUserData: expect.any(Function),
+        isReturningSession: expect.any(Boolean),
       });
     });
 
@@ -879,6 +881,64 @@ describe('CardSDK Context', () => {
         'test-onboarding-id',
       );
       expect(result.current.user).toEqual(mockUserResponse);
+    });
+
+    it('exposes isReturningSession as true when onboardingId exists at mount', async () => {
+      setupMockSDK({
+        getRegistrationStatus: jest.fn().mockResolvedValue(mockUserResponse),
+      });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'existing-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(true);
+    });
+
+    it('exposes isReturningSession as false when no onboardingId exists at mount', async () => {
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(false);
+    });
+
+    it('keeps isReturningSession as false when onboardingId is set after mount', async () => {
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result, rerender } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(false);
+
+      // Simulate onboardingId being set after mount (e.g., after email verification)
+      setupMockUseSelector(mockCardFeatureFlag, null, 'new-onboarding-id');
+      rerender(undefined);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // isReturningSession should still be false since it was captured at mount
+      expect(result.current.isReturningSession).toBe(false);
     });
   });
 });

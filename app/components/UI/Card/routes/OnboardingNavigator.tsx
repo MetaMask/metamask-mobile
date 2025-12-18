@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -112,9 +112,10 @@ const OnboardingNavigator: React.FC = () => {
     cardUserPhase?: CardUserPhase;
   }>();
   const onboardingId = useSelector(selectOnboardingId);
-  const { user, isLoading, fetchUserData } = useCardSDK();
+  const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
   const navigation = useNavigation();
+  const hasShownKeepGoingModal = useRef(false);
   // Fetch fresh user data on mount if user data is missing
   // This ensures we always have the most up-to-date onboarding information
   // when the navigator is accessed
@@ -127,7 +128,7 @@ const OnboardingNavigator: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
-  const getInitialRouteName = useMemo(() => {
+  const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
       if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
@@ -183,9 +184,16 @@ const OnboardingNavigator: React.FC = () => {
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
 
+  // Show "keep going" modal only when a returning user resumes an incomplete flow
+  // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
+  // not when this navigator mounts, so it correctly identifies returning users
   useEffect(() => {
-    const initialRoute = getInitialRouteName;
-    if (initialRoute !== Routes.CARD.ONBOARDING.SIGN_UP) {
+    if (
+      isReturningSession &&
+      initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
+      !hasShownKeepGoingModal.current
+    ) {
+      hasShownKeepGoingModal.current = true;
       navigation.navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.CONFIRM_MODAL,
         params: {
@@ -194,14 +202,14 @@ const OnboardingNavigator: React.FC = () => {
           confirmAction: {
             label: strings('card.card_onboarding.keep_going.confirm_button'),
             onPress: () => {
-              navigation.navigate(initialRoute);
+              navigation.navigate(initialRouteName);
             },
           },
           icon: IconName.ArrowDoubleRight,
         },
       });
     }
-  }, [getInitialRouteName, navigation]);
+  }, [isReturningSession, initialRouteName, navigation]);
 
   if (isLoading && !user) {
     return (
@@ -212,7 +220,7 @@ const OnboardingNavigator: React.FC = () => {
   }
 
   return (
-    <Stack.Navigator initialRouteName={getInitialRouteName}>
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}

@@ -35,6 +35,7 @@ export interface ICardSDK {
   setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
   fetchUserData: () => Promise<void>;
+  isReturningSession: boolean;
 }
 
 interface ProviderProps<T> {
@@ -143,8 +144,17 @@ export const CardSDKProvider = ({
       setUser,
       logoutFromProvider,
       fetchUserData,
+      isReturningSession: hasInitialOnboardingId,
     }),
-    [sdk, isLoading, user, setUser, logoutFromProvider, fetchUserData],
+    [
+      sdk,
+      isLoading,
+      user,
+      setUser,
+      logoutFromProvider,
+      fetchUserData,
+      hasInitialOnboardingId,
+    ],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
