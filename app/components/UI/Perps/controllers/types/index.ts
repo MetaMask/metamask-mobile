@@ -758,6 +758,7 @@ export interface Order {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
 }
 
 export interface Funding {
