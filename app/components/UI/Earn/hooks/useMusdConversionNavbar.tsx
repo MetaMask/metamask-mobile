@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import Text, {
   TextVariant,
@@ -87,8 +87,13 @@ export function useMusdConversionNavbar(chainId: string) {
     [],
   );
 
-  useNavbar(strings('earn.musd_conversion.convert_to_musd'), true, {
-    headerTitle: renderHeaderTitle,
-    headerLeft: renderHeaderLeft,
-  });
+  const overrides = useMemo(
+    () => ({
+      headerTitle: renderHeaderTitle,
+      headerLeft: renderHeaderLeft,
+    }),
+    [renderHeaderTitle, renderHeaderLeft],
+  );
+
+  useNavbar(strings('earn.musd_conversion.convert_to_musd'), true, overrides);
 }
