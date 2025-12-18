@@ -13,6 +13,64 @@
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
+/**
+ * Counts the number of significant figures in a numeric string
+ * This matches HyperLiquid's validation rules:
+ * - Count non-zero integer digits (without leading zeros)
+ * - Count ALL decimal digits (including leading zeros after decimal point)
+ *
+ * @param priceString - The price value as a string (may include $ or ,)
+ * @returns The count of significant figures
+ *
+ * @example
+ * countSignificantFigures('123.45') // 5 (3 integer + 2 decimal)
+ * countSignificantFigures('0.000123') // 6 (0 integer + 6 decimal)
+ * countSignificantFigures('12.345') // 5 (2 integer + 3 decimal)
+ * countSignificantFigures('12000') // 2 (trailing zeros in integer not counted)
+ */
+export const countSignificantFigures = (priceString: string): number => {
+  if (!priceString) return 0;
+
+  // Clean the string - remove currency symbols and commas
+  const cleaned = priceString.replace(/[$,]/g, '').trim();
+
+  // Parse to ensure it's a valid number
+  const num = parseFloat(cleaned);
+  if (isNaN(num) || num === 0) return 0;
+
+  // Split into integer and decimal parts
+  const [integerPart, decimalPart = ''] = cleaned.split('.');
+
+  // Remove leading zeros and negative sign from integer part
+  const trimmedInteger = integerPart.replace(/^-?0+/, '') || '';
+
+  // For integers without decimal, trailing zeros are ambiguous
+  // We treat them as not significant (matching HyperLiquid behavior)
+  const effectiveIntegerLength = decimalPart
+    ? trimmedInteger.length
+    : trimmedInteger.replace(/0+$/, '').length ||
+      (trimmedInteger.length > 0 ? 1 : 0);
+
+  // Count ALL decimal digits (including leading zeros like 0.000123)
+  // This matches HyperLiquid's validation behavior
+  return effectiveIntegerLength + decimalPart.length;
+};
+
+/**
+ * Checks if a price exceeds the maximum allowed significant figures
+ *
+ * @param priceString - The price value as a string
+ * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
+ * @returns true if the price exceeds the limit, false otherwise
+ */
+export const hasExceededSignificantFigures = (
+  priceString: string,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
+): boolean => {
+  if (!priceString || priceString.trim() === '') return false;
+  return countSignificantFigures(priceString) > maxSigFigs;
+};
+
 interface ValidationParams {
   currentPrice: number;
   direction?: 'long' | 'short';
