@@ -13,7 +13,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import initialRootState from '../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { TokenList } from './TokenList';
+import { TokenList, TokenListProps } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 // eslint-disable-next-line import/no-namespace
@@ -36,6 +36,15 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
+// Mock MusdConversionAssetListCta to prevent deep dependency chain issues
+jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="musd-conversion-cta" />,
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -49,7 +58,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('./TokenList', () => ({
+jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
@@ -77,30 +86,32 @@ const arrangeMockComponents = () => {
 
   const mockTokensList = jest
     .mocked(TokenList)
-    .mockImplementation(({ tokenKeys, onRefresh, showRemoveMenu }) => (
-      <ScrollView testID="tokens-list-scroll-view">
-        <Button
-          testID="MOCK_TEST_REFRESH_BUTTON"
-          title="Refresh"
-          onPress={onRefresh}
-        />
-        {tokenKeys.map((token) => (
-          <TouchableOpacity
-            key={token.address}
-            testID={`asset-${token.address}`}
-            onLongPress={() =>
-              showRemoveMenu({
-                address: token.address,
-                chainId: token.chainId,
-                isStaked: token.isStaked,
-              } as TokenI)
-            }
-          >
-            <Text>{token.address}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    ));
+    .mockImplementation(
+      ({ tokenKeys, onRefresh, showRemoveMenu }: TokenListProps) => (
+        <ScrollView testID="tokens-list-scroll-view">
+          <Button
+            testID="MOCK_TEST_REFRESH_BUTTON"
+            title="Refresh"
+            onPress={onRefresh}
+          />
+          {tokenKeys.map((token) => (
+            <TouchableOpacity
+              key={token.address}
+              testID={`asset-${token.address}`}
+              onLongPress={() =>
+                showRemoveMenu({
+                  address: token.address,
+                  chainId: token.chainId,
+                  isStaked: token.isStaked,
+                } as TokenI)
+              }
+            >
+              <Text>{token.address}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ),
+    );
 
   return {
     mockMusdConversionAssetListCta,

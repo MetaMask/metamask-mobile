@@ -1,10 +1,9 @@
 import React from 'react';
 import Modal from 'react-native-modal';
 import { useTheme } from '../../../../../util/theme';
-import createStyles from '../../styles';
 import Box from '../../../Ramp/Aggregator/components/Box';
-import { View } from 'react-native';
-import SheetHeader from '../../../../../../app/component-library/components/Sheet/SheetHeader';
+import { StyleSheet, View } from 'react-native';
+import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
 import Button, {
@@ -18,7 +17,39 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { Colors } from '../../../../../util/theme/models';
 
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    bottomModal: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
+    box: {
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 8,
+      paddingBottom: 20,
+      borderWidth: 0,
+      padding: 0,
+    },
+    boxContent: {
+      backgroundColor: colors.background.default,
+      paddingBottom: 21,
+      paddingTop: 0,
+      borderWidth: 0,
+    },
+    editNetworkButton: {
+      width: '100%',
+    },
+    notch: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border.muted,
+      alignSelf: 'center',
+      marginTop: 4,
+    },
+  });
 interface ScamWarningModalProps {
   showScamWarningModal: boolean;
   setShowScamWarningModal: (arg: boolean) => void;
@@ -30,11 +61,10 @@ export const ScamWarningModal = ({
 }: ScamWarningModalProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const ticker = useSelector(selectEvmTicker);
   const { rpcUrl } = useSelector(selectProviderConfig);
-
-  const styles = createStyles(colors);
 
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
