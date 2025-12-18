@@ -132,6 +132,13 @@ export function useTransactionConfirm() {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    } else if (type === TransactionType.musdConversion) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)

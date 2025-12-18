@@ -7,7 +7,6 @@ import SDKConnect from '../../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../DeeplinkManager';
 import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
 import extractURLParams from '../../utils/extractURLParams';
 import handleRampUrl from './handleRampUrl';
@@ -15,14 +14,12 @@ import handleDepositCashUrl from './handleDepositCashUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 
 export function handleMetaMaskDeeplink({
-  instance,
   handled,
   wcURL,
   origin,
   params,
   url,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   wcURL: string;
   origin: string;
@@ -30,18 +27,6 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
-
-  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-    DevLogger.log(
-      `DeeplinkManager:: metamask launched via android sdk deeplink`,
-    );
-    SDKConnect.getInstance()
-      .bindAndroidSDK()
-      .catch((err) => {
-        Logger.error(err, 'DeepLinkManager failed to connect');
-      });
-    return;
-  }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
@@ -155,7 +140,6 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
     handleRampUrl({
       rampPath,
-      navigation: instance.navigation,
       rampType: RampType.BUY,
     });
   } else if (
@@ -167,7 +151,6 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     handleRampUrl({
       rampPath,
-      navigation: instance.navigation,
       rampType: RampType.SELL,
     });
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
@@ -177,7 +160,6 @@ export function handleMetaMaskDeeplink({
     );
     handleDepositCashUrl({
       depositPath: depositCashPath,
-      navigation: instance.navigation,
     });
   }
 }

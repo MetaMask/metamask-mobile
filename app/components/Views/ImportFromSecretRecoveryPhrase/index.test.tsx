@@ -118,19 +118,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('has current step as 1 on initial render when currentStep is 0', () => {
+    it('renders SRP input screen on initial render', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Verifies step 1 is displayed by checking for the SRP input screen title
-      expect(
-        getByText(
-          strings('import_from_seed.enter_your_secret_recovery_phrase'),
-        ),
-      ).toBeOnTheScreen();
+      // The component shows the SRP input screen initially
+      expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
     });
 
     it('renders Import wallet title and description', () => {
@@ -385,7 +381,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      // Wait for step 2 (password screen) to appear and verify
+      // Wait for password screen to appear and verify
       await waitFor(
         () => {
           expect(
@@ -589,7 +585,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(inputFields[0].props.value).toBe('say');
       });
 
-      // Press continue and verify step 2
+      // Press continue and verify password screen
       fireEvent.press(continueButton);
 
       await waitFor(() => {
@@ -1352,7 +1348,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     it('navigates to Import Wallet UI when back button is pressed', async () => {
       const { getByTestId, getByText } = await renderCreatePasswordUI();
 
-      // Verify we're on step 2
+      // Verify we're on password screen
       expect(
         getByText(strings('import_from_seed.metamask_password')),
       ).toBeOnTheScreen();
@@ -1361,13 +1357,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const backButton = getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID);
       fireEvent.press(backButton);
 
-      // Verify we're back on step 1 (SRP input screen)
+      // Verify we're back on SRP input screen
       await waitFor(() => {
-        expect(
-          getByText(
-            strings('import_from_seed.enter_your_secret_recovery_phrase'),
-          ),
-        ).toBeOnTheScreen();
+        expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
       });
     });
 

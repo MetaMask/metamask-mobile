@@ -3,14 +3,15 @@ import { useReferralDetails } from '../../hooks/useReferralDetails';
 import PreviousSeasonSummaryTile from './PreviousSeasonSummaryTile';
 import {
   Box,
-  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
-  selectBalanceRefereePortion,
   selectReferralCount,
   selectReferralDetailsLoading,
   selectReferralDetailsError,
@@ -23,7 +24,6 @@ const PreviousSeasonReferralDetails = () => {
   const { fetchReferralDetails } = useReferralDetails();
   const seasonId = useSelector(selectSeasonId);
   const totalReferees = useSelector(selectReferralCount);
-  const referralPoints = useSelector(selectBalanceRefereePortion);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
@@ -53,31 +53,13 @@ const PreviousSeasonReferralDetails = () => {
       testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_REFERRAL_DETAILS}
       loadingHeight={72}
     >
-      <Box twClassName="flex-row gap-2 items-center">
-        <Text
-          twClassName="text-default"
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Bold}
-        >
+      <Box twClassName="flex-row gap-1 items-center">
+        <Icon name={IconName.People} size={IconSize.Lg} />
+        <Text twClassName="text-default ml-2" variant={TextVariant.HeadingSm}>
           {totalReferees}
         </Text>
         <Text twClassName="text-alternative">
           {strings('rewards.referral_stats_referrals')?.toLowerCase()}
-        </Text>
-      </Box>
-
-      <Box twClassName="flex-row gap-2 items-center">
-        <Text
-          twClassName="text-default"
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Bold}
-        >
-          {referralPoints}
-        </Text>
-        <Text twClassName="text-alternative">
-          {strings(
-            'rewards.referral_stats_earned_from_referrals',
-          )?.toLowerCase()}
         </Text>
       </Box>
     </PreviousSeasonSummaryTile>

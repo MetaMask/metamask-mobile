@@ -1,4 +1,7 @@
-import { ConfirmationRowComponentIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import {
+  ConfirmationRowComponentIDs,
+  GasFeeTokenSelectorIDs,
+} from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../../framework/Matchers';
 
 class RowComponents {
@@ -52,6 +55,30 @@ class RowComponents {
 
   get NetworkAndOrigin(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
+  }
+
+  get NetworkFeePaidByMetaMask(): DetoxElement {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+    );
+  }
+
+  get NetworkFeeGasFeeTokenPill(): DetoxElement {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.GAS_FEE_TOKEN_PILL,
+    );
+  }
+
+  get NetworkFeeGasFeeTokenSymbol(): DetoxElement {
+    return Matchers.getElementByID(
+      GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_SYMBOL,
+    );
+  }
+
+  get NetworkFeeGasFeeTokenArrow(): DetoxElement {
+    return Matchers.getElementByID(
+      GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
+    );
   }
 }
 

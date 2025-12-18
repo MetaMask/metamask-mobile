@@ -102,10 +102,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
     const response: Anthropic.Message = await anthropic.messages.create({
       model: CLAUDE_CONFIG.model,
       max_tokens: CLAUDE_CONFIG.maxTokens,
-      thinking: {
-        type: 'enabled',
-        budget_tokens: CLAUDE_CONFIG.thinkingBudgetTokens,
-      },
+      temperature: CLAUDE_CONFIG.temperature,
       system: systemPrompt,
       tools,
       messages: [
@@ -113,14 +110,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
         { role: 'user', content: currentMessage },
       ],
     });
-
-    // Log thinking (if present)
-    const thinking = response.content.find(
-      (block: Anthropic.ContentBlock) => block.type === 'thinking',
-    );
-    if (thinking && 'thinking' in thinking) {
-      console.log(`💭 ${thinking.thinking}`);
-    }
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(

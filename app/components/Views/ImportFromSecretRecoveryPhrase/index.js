@@ -7,7 +7,14 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, View, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  View,
+  Keyboard,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -81,6 +88,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -115,6 +124,8 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const srpInputGridRef = useRef(null);
   const scrollViewRef = useRef(null);
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -171,11 +182,23 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   }, [hideSeedPhraseInput, navigation]);
 
+  const animateToStep = useCallback(
+    (nextStep) => {
+      Animated.timing(slideAnim, {
+        toValue: -nextStep * SCREEN_WIDTH,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      setCurrentStep(nextStep);
+    },
+    [slideAnim],
+  );
+
   const onBackPress = () => {
     if (currentStep === 0) {
       navigation.goBack();
     } else {
-      setCurrentStep(currentStep - 1);
+      animateToStep(currentStep - 1);
     }
   };
 
@@ -321,7 +344,7 @@ const ImportFromSecretRecoveryPhrase = ({
     if (!validateSeedPhrase()) {
       return;
     }
-    setCurrentStep(currentStep + 1);
+    animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
@@ -521,62 +544,99 @@ const ImportFromSecretRecoveryPhrase = ({
         extraScrollHeight={100}
         showsVerticalScrollIndicator={false}
       >
-        {currentStep === 0 && (
-          <>
-            <Text
-              variant={TextVariant.DisplayMD}
-              color={TextColor.Default}
-              testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
-            >
-              {strings('import_from_seed.title')}
-            </Text>
-            <View style={styles.importSrpContainer}>
-              <View style={styles.description}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings(
-                    'import_from_seed.enter_your_secret_recovery_phrase',
-                  )}
-                </Text>
-                <TouchableOpacity
-                  onPress={showWhatIsSeedPhrase}
-                  testID={ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Md}
-                    color={colors.icon.alternative}
-                  />
-                </TouchableOpacity>
-              </View>
-              <SrpInputGrid
-                ref={srpInputGridRef}
-                seedPhrase={seedPhrase}
-                onSeedPhraseChange={setSeedPhrase}
-                onError={setError}
-                externalError={error}
-                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-                placeholderText={strings('import_from_seed.srp_placeholder')}
-                uniqueId={uniqueId}
-              />
-              <View style={styles.seedPhraseCtaContainer}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('import_from_seed.continue')}
-                  onPress={handleContinueImportFlow}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
-                  testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
+        <Animated.View
+          style={[
+            styles.stepContainer,
+            {
+              transform: [
+                {
+                  translateX: slideAnim.interpolate({
+                    inputRange: [-SCREEN_WIDTH, 0],
+                    outputRange: [-SCREEN_WIDTH, 0],
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ],
+              opacity: slideAnim.interpolate({
+                inputRange: [-SCREEN_WIDTH, 0],
+                outputRange: [0, 1],
+                extrapolate: 'clamp',
+              }),
+            },
+            currentStep !== 0 && styles.hiddenStep,
+          ]}
+          pointerEvents={currentStep === 0 ? 'auto' : 'none'}
+        >
+          <Text
+            variant={TextVariant.DisplayMD}
+            color={TextColor.Default}
+            testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
+          >
+            {strings('import_from_seed.title')}
+          </Text>
+          <View style={styles.importSrpContainer}>
+            <View style={styles.description}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('import_from_seed.enter_your_secret_recovery_phrase')}
+              </Text>
+              <TouchableOpacity
+                onPress={showWhatIsSeedPhrase}
+                testID={ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Md}
+                  color={colors.icon.alternative}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
-          </>
-        )}
+            <SrpInputGrid
+              ref={srpInputGridRef}
+              seedPhrase={seedPhrase}
+              onSeedPhraseChange={setSeedPhrase}
+              onError={setError}
+              externalError={error}
+              testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+              placeholderText={strings('import_from_seed.srp_placeholder')}
+              uniqueId={uniqueId}
+            />
+            <View style={styles.seedPhraseCtaContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('import_from_seed.continue')}
+                onPress={handleContinueImportFlow}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
+                testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
+              />
+            </View>
+          </View>
+        </Animated.View>
 
-        {currentStep === 1 && (
+        <Animated.View
+          style={[
+            styles.stepContainer,
+            {
+              transform: [
+                {
+                  translateX: slideAnim.interpolate({
+                    inputRange: [-SCREEN_WIDTH, 0],
+                    outputRange: [0, SCREEN_WIDTH],
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ],
+              opacity: slideAnim.interpolate({
+                inputRange: [-SCREEN_WIDTH, 0],
+                outputRange: [1, 0],
+                extrapolate: 'clamp',
+              }),
+            },
+            currentStep !== 1 && styles.hiddenStep,
+          ]}
+          pointerEvents={currentStep === 1 ? 'auto' : 'none'}
+        >
           <View style={styles.passwordContainer}>
             <View style={styles.passwordContainerTitle}>
               <Text
@@ -730,7 +790,7 @@ const ImportFromSecretRecoveryPhrase = ({
               />
             </View>
           </View>
-        )}
+        </Animated.View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
