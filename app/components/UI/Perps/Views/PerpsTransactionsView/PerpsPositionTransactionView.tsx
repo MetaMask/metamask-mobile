@@ -25,6 +25,7 @@ import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsPositionTransactionRouteProp,
@@ -37,7 +38,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import type { PerpsMarketData } from '../../controllers/types';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,14 +51,13 @@ const PerpsPositionTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  // Create a minimal market object from transaction asset for navigation
-  // This is used to navigate to the market details page without requiring the stream provider
-  const market = useMemo<Partial<PerpsMarketData> | undefined>(
-    () =>
-      transaction?.asset
-        ? { symbol: transaction.asset, name: transaction.asset }
-        : undefined,
-    [transaction?.asset],
+  // Get full market data for navigation to market details page
+  const { markets } = usePerpsMarkets();
+
+  // Find the complete market data for the transaction asset
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === transaction?.asset),
+    [markets, transaction?.asset],
   );
 
   navigation.setOptions(

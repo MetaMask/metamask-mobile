@@ -43,6 +43,37 @@ jest.mock('../../hooks', () => ({
   usePerpsBlockExplorerUrl: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [
+      {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        maxLeverage: '25x',
+        price: '$2000',
+        change24h: '+$50',
+        change24hPercent: '+2.5%',
+        volume: '$1.5B',
+        volumeNumber: 1500000000,
+      },
+      {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        price: '$50000',
+        change24h: '+$1000',
+        change24hPercent: '+2%',
+        volume: '$5B',
+        volumeNumber: 5000000000,
+      },
+    ],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
+}));
+
 // Mock the navbar utilities
 jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: jest.fn(() => ({ title: 'Test Title' })),
@@ -638,7 +669,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
-        market: { symbol: 'ETH', name: 'ETH' },
+        market: expect.objectContaining({ symbol: 'ETH', maxLeverage: '25x' }),
         source: 'trade_details',
       },
     });
