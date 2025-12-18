@@ -139,6 +139,18 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
+const getGasFeeTokenSelected = async (): Promise<string> => {
+  const symbolElement =
+    (await RowComponents.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
+
+  const symbolElementAttributes = await symbolElement.getAttributes();
+  const symbolElementLabel =
+    (symbolElementAttributes as { text?: string; label?: string })?.text ??
+    (symbolElementAttributes as { text?: string; label?: string })?.label ??
+    '';
+  return symbolElementLabel;
+};
+
 describe(
   SmokeConfirmationsRedesigned('Send native asset Gas Station using EIP-7702'),
   () => {
@@ -269,12 +281,20 @@ describe(
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
 
+          // const gasFeeTokenSelected = await getGasFeeTokenSelected();
+          // await Assertions.checkIfTextMatches(gasFeeTokenSelected, 'ETH');
+
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
             { description: 'Gas Fee Token Arrow' },
           );
 
           await TransactionConfirmView.tapGasFeeTokenPill();
+
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText('Select a token'),
+            { description: 'Modal is visible' },
+          );
 
           await GasFeeTokenModal.checkAmountFiat('DAI', daiValues.fiatAmount);
           await GasFeeTokenModal.checkAmountToken('DAI', daiValues.tokenAmount);
@@ -293,16 +313,7 @@ describe(
             { description: 'Selected Gas Fee Token is USDC' },
           );
 
-          const symbolElement =
-            (await RowComponents.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
-
-          const symbolElementAttributes = await symbolElement.getAttributes();
-          const symbolElementLabel =
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.text ??
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.label ??
-            '';
+          const symbolElementLabel = await getGasFeeTokenSelected();
 
           await Assertions.checkIfTextMatches(symbolElementLabel, 'USDC');
           await Assertions.expectTextDisplayed(usdcValues.fiatAmount);
