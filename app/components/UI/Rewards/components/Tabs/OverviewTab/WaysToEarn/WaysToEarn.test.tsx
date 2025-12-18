@@ -11,6 +11,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
+import { selectMusdHoldingEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
@@ -80,20 +81,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock useFeatureFlag hook
-jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn((key: string) => {
-    if (key === 'rewardsEnableMusdHolding') {
-      return mockIsMusdHoldingEnabled;
-    }
-    return false;
+// Mock selectMusdHoldingEnabledFlag selector
+jest.mock(
+  '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled',
+  () => ({
+    selectMusdHoldingEnabledFlag: jest.fn(),
   }),
-  FeatureFlagNames: {
-    rewardsEnabled: 'rewardsEnabled',
-    otaUpdatesEnabled: 'otaUpdatesEnabled',
-    rewardsEnableMusdHolding: 'rewardsEnableMusdHolding',
-  },
-}));
+);
 
 // Mock useMetrics hook
 jest.mock('../../../../../../hooks/useMetrics', () => ({
@@ -282,6 +276,9 @@ describe('WaysToEarn', () => {
       }
       if (selector === selectRewardsMusdDepositEnabledFlag) {
         return mockIsMusdDepositEnabled;
+      }
+      if (selector === selectMusdHoldingEnabledFlag) {
+        return mockIsMusdHoldingEnabled;
       }
       return undefined;
     });
