@@ -26,6 +26,9 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
+import ReduxService from '../../../core/redux/ReduxService';
+import { RootState } from '../../../reducers';
+import { ReduxStore } from '../../../core/redux/types';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
@@ -87,12 +90,45 @@ jest.mock('../../hooks/useMetrics', () => {
 });
 
 describe('ImportFromSecretRecoveryPhrase', () => {
+  const createMockReduxStore = (
+    stateOverrides?: Partial<RootState>,
+  ): ReduxStore => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+        passwordSet: true,
+        seedphraseBackedUp: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RootState;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
   afterEach(() => {
     jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   jest
