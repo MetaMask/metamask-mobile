@@ -8,6 +8,7 @@ import {
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useDestinationAccounts } from './useDestinationAccounts';
+import { areAddressesEqual } from '../../../../util/address';
 
 export const useRecipientInitialization = (
   hasInitializedRecipient: React.MutableRefObject<boolean>,
@@ -44,8 +45,8 @@ export const useRecipientInitialization = (
     // Check if the current destAddress matches any of the valid destination accounts
     // destinationAccounts is already filtered by selectValidDestInternalAccountIds
     // which uses account scopes to filter for the specific destination chain
-    return destinationAccounts.some(
-      (account) => account.address === destAddress,
+    return destinationAccounts.some((account) =>
+      areAddressesEqual(account.address, destAddress),
     );
   }, [destAddress, destToken?.chainId, destinationAccounts]);
 
