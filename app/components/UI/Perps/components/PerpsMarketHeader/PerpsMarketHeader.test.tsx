@@ -76,4 +76,26 @@ describe('PerpsMarketHeader', () => {
     fireEvent.press(moreButton);
     expect(onMorePress).toHaveBeenCalled();
   });
+
+  it('should render correctly without maxLeverage', () => {
+    const marketWithoutLeverage = {
+      ...mockMarket,
+      maxLeverage: undefined,
+    };
+
+    const { getByTestId, queryByText } = renderWithProvider(
+      <PerpsMarketHeader
+        market={marketWithoutLeverage as PerpsMarketData}
+        testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
+      />,
+      { state: initialState },
+    );
+
+    // Container should still render
+    expect(getByTestId(PerpsMarketHeaderSelectorsIDs.CONTAINER)).toBeTruthy();
+
+    // Leverage badge should not be rendered when maxLeverage is undefined
+    expect(queryByText('40x')).toBeNull();
+  });
 });
