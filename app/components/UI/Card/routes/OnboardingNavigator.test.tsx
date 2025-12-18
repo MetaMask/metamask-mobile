@@ -280,14 +280,13 @@ describe('OnboardingNavigator', () => {
       });
 
       describe('when user verification state is PENDING', () => {
-        it('returns VERIFY_IDENTITY route when firstName is missing', () => {
+        it('returns SET_PHONE_NUMBER route when phoneNumber is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
-              countryOfNationality: 'US',
-              // firstName is undefined
+              // phoneNumber is undefined
             },
             isLoading: false,
             sdk: null,
@@ -303,73 +302,17 @@ describe('OnboardingNavigator', () => {
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+            Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
           );
         });
 
-        it('returns VERIFY_IDENTITY route when countryOfNationality is missing', () => {
+        it('returns PERSONAL_DETAILS route when phoneNumber exists but firstName is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
-              firstName: 'John',
-              // countryOfNationality is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
-          );
-        });
-
-        it('returns VALIDATING_KYC route when firstName and countryOfNationality exist', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              countryOfNationality: 'US',
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VALIDATING_KYC,
-          );
-        });
-      });
-
-      describe('when user verification state is VERIFIED', () => {
-        it('returns PERSONAL_DETAILS route when firstName is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'VERIFIED',
-              countryOfNationality: 'US',
+              phoneNumber: '+1234567890',
               // firstName is undefined
             },
             isLoading: false,
@@ -390,14 +333,47 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns PHYSICAL_ADDRESS route when firstName and countryOfNationality exist but addressLine1 is missing', () => {
+        it('returns PERSONAL_DETAILS route when dateOfBirth is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
-              verificationState: 'VERIFIED',
+              verificationState: 'PENDING',
+              phoneNumber: '+1234567890',
               firstName: 'John',
+              lastName: 'Doe',
               countryOfNationality: 'US',
+              // dateOfBirth is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+          );
+        });
+
+        it('returns PHYSICAL_ADDRESS route when personal details exist but addressLine1 is missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              phoneNumber: '+1234567890',
+              firstName: 'John',
+              lastName: 'Doe',
+              countryOfNationality: 'US',
+              dateOfBirth: '1990-01-01',
               // addressLine1 is undefined
             },
             isLoading: false,
@@ -418,15 +394,79 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns COMPLETE route when user has all required data', () => {
+        it('returns PHYSICAL_ADDRESS route when city is missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              phoneNumber: '+1234567890',
+              firstName: 'John',
+              lastName: 'Doe',
+              countryOfNationality: 'US',
+              dateOfBirth: '1990-01-01',
+              addressLine1: '123 Main St',
+              // city is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
+          );
+        });
+
+        it('returns VERIFY_IDENTITY route when all user data is complete', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              phoneNumber: '+1234567890',
+              firstName: 'John',
+              lastName: 'Doe',
+              countryOfNationality: 'US',
+              dateOfBirth: '1990-01-01',
+              addressLine1: '123 Main St',
+              city: 'New York',
+              zip: '10001',
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+          );
+        });
+      });
+
+      describe('when user verification state is VERIFIED', () => {
+        it('returns COMPLETE route regardless of user data completeness', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
-              firstName: 'John',
-              countryOfNationality: 'US',
-              addressLine1: '123 Main St',
             },
             isLoading: false,
             sdk: null,
@@ -448,13 +488,12 @@ describe('OnboardingNavigator', () => {
       });
 
       describe('when user verification state is UNVERIFIED', () => {
-        it('returns SIGN_UP route when email is missing', () => {
+        it('returns SIGN_UP route regardless of user data', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'UNVERIFIED',
-              // email is undefined
             },
             isLoading: false,
             sdk: null,
@@ -471,60 +510,6 @@ describe('OnboardingNavigator', () => {
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
             Routes.CARD.ONBOARDING.SIGN_UP,
-          );
-        });
-
-        it('returns SET_PHONE_NUMBER route when email exists but phoneNumber is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'UNVERIFIED',
-              email: 'test@example.com',
-              // phoneNumber is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-          );
-        });
-
-        it('returns VERIFY_IDENTITY route when email and phoneNumber exist', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'UNVERIFIED',
-              email: 'test@example.com',
-              phoneNumber: '+1234567890',
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
           );
         });
       });

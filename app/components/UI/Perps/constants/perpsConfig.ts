@@ -219,15 +219,15 @@ export const TP_SL_VIEW_CONFIG = {
  */
 export const LIMIT_PRICE_CONFIG = {
   // Preset percentage options for quick selection
-  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+  PRESET_PERCENTAGES: [1, 2], // Available as both positive and negative
 
   // Modal opening delay when switching to limit order (milliseconds)
   // Allows order type modal to close smoothly before opening limit price modal
   MODAL_OPEN_DELAY: 300,
 
-  // Direction-specific preset configurations
-  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
-  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+  // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
+  LONG_PRESETS: [-1, -2], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2], // Sell above market for short orders
 } as const;
 
 /**

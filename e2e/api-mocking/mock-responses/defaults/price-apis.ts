@@ -47,14 +47,20 @@ export const PRICE_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices\?assetIds=.*&vsCurrency=usd$/,
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
       responseCode: 200,
       response: {
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
           usd: 0.999588,
+          eth: 0.000233,
         },
         'eip155:1/slip44:60': {
           usd: 4280.15,
+          eth: 1.0,
+        },
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+          usd: 1.0,
+          eth: 0.000233,
         },
       },
     },
