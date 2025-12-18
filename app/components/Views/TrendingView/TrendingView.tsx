@@ -5,7 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import {
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -30,7 +35,41 @@ import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import Section from './components/Sections/Section';
+import Section, { RefreshConfig } from './components/Sections/Section';
+
+/**
+ * Custom hook to track boolean state for each section
+ * Returns the Set of sections with that state and callbacks to update them
+ */
+const useSectionStateTracker = () => {
+  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
+    new Set(),
+  );
+
+  const callbacks = useMemo(() => {
+    const result = {} as Record<SectionId, (isActive: boolean) => void>;
+
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      result[section.id] = (isActive: boolean) => {
+        setActiveSections((currentSections) => {
+          const updatedSections = new Set(currentSections);
+
+          if (isActive) {
+            updatedSections.add(section.id);
+          } else {
+            updatedSections.delete(section.id);
+          }
+
+          return updatedSections;
+        });
+      };
+    });
+
+    return result;
+  }, []);
+
+  return { sectionsWithState: activeSections, callbacks };
+};
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -40,11 +79,21 @@ export const ExploreFeed: React.FC = () => {
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshConfig, setRefreshConfig] = useState<RefreshConfig>({
+    trigger: 0,
+    silentRefresh: true,
+  });
   const isFirstMount = useRef(true);
 
-  // Track which sections have empty data
-  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
+  // Track which sections have empty data and which are loading
+  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
+    useSectionStateTracker();
+
+  const {
+    sectionsWithState: loadingSections,
+    callbacks: loadingStateCallbacks,
+  } = useSectionStateTracker();
+
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Trigger refresh only when navigating to an already-mounted screen
@@ -58,7 +107,11 @@ export const ExploreFeed: React.FC = () => {
     }
 
     if (params?.refresh === true) {
-      setRefreshTrigger((prev) => prev + 1);
+      // Silent refresh - don't show skeletons
+      setRefreshConfig((prev) => ({
+        trigger: prev.trigger + 1,
+        silentRefresh: false,
+      }));
     }
   }, [route.params]);
 
@@ -85,24 +138,6 @@ export const ExploreFeed: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-
-  const sectionCallbacks = useMemo(() => {
-    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
-    HOME_SECTIONS_ARRAY.forEach((section) => {
-      callbacks[section.id] = (isEmpty: boolean) => {
-        setEmptySections((prev) => {
-          const next = new Set(prev);
-          if (isEmpty) {
-            next.add(section.id);
-          } else {
-            next.delete(section.id);
-          }
-          return next;
-        });
-      };
-    });
-    return callbacks;
-  }, []);
 
   const handleBrowserPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -132,15 +167,25 @@ export const ExploreFeed: React.FC = () => {
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    setRefreshTrigger((prev) => prev + 1);
+    // Pull-to-refresh - show skeletons
+    setRefreshConfig((prev) => ({
+      trigger: prev.trigger + 1,
+      silentRefresh: true,
+    }));
   }, []);
+
+  // Show loading indicator when any section is loading during silent refresh
+  const isAnySectionLoading = loadingSections.size > 0;
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="px-4 py-3">
+      <Box twClassName="px-4 py-3 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
+        {!refreshConfig.silentRefresh && isAnySectionLoading && (
+          <ActivityIndicator size="small" color={colors.icon.default} />
+        )}
       </Box>
 
       <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
@@ -195,8 +240,9 @@ export const ExploreFeed: React.FC = () => {
             const sectionComponent = (
               <Section
                 sectionId={section.id}
-                refreshTrigger={refreshTrigger}
-                toggleSectionEmptyState={sectionCallbacks[section.id]}
+                refreshConfig={refreshConfig}
+                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
               />
             );
 
