@@ -135,7 +135,9 @@ export const AmountKeyboard = ({
       additionalRow={
         <View style={styles.additionalRowContainer}>
           <Button
-            disabled={Boolean(amountError) || !amount || amount.trim() === '0'}
+            isDisabled={
+              Boolean(amountError) || !amount || amount.trim() === '0'
+            }
             label={
               amountError ??
               (isNFT ? strings('send.next') : strings('send.continue'))

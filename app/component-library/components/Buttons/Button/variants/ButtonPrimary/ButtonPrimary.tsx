@@ -100,7 +100,6 @@ const ButtonPrimary = ({
       labelColor={textColor}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
-      isDisabled={props.disabled}
       {...props}
     />
   );
