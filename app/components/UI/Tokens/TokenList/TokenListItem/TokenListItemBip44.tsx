@@ -88,10 +88,10 @@ export const TokenListItemBip44 = React.memo(
       selectIsMusdConversionFlowEnabledFlag,
     );
 
-    const { isConversionToken } = useMusdConversionTokens();
+    const { isTokenWithCta } = useMusdConversionTokens();
 
-    const isConvertibleStablecoin =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
+    const hasMusdConversionCta =
+      isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -159,12 +159,10 @@ export const TokenListItemBip44 = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
       if (
         shouldShowStakeCta ||
         shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
+        hasMusdConversionCta
       ) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
@@ -172,7 +170,7 @@ export const TokenListItemBip44 = React.memo(
     }, [
       asset,
       earnToken,
-      isConvertibleStablecoin,
+      hasMusdConversionCta,
       isStablecoinLendingEnabled,
       isStakeable,
     ]);

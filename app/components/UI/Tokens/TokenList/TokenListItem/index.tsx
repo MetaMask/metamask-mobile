@@ -283,9 +283,10 @@ export const TokenListItem = React.memo(
       selectIsMusdConversionFlowEnabledFlag,
     );
 
-    const { isConversionToken } = useMusdConversionTokens();
-    const isConvertibleStablecoin =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
+    const { isTokenWithCta } = useMusdConversionTokens();
+
+    const hasMusdConversionCta =
+      isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
     const networkBadgeSource = useCallback(
       (currentChainId: Hex) => {
@@ -400,12 +401,10 @@ export const TokenListItem = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
       if (
         shouldShowStakeCta ||
         shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
+        hasMusdConversionCta
       ) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
@@ -413,7 +412,7 @@ export const TokenListItem = React.memo(
     }, [
       asset,
       earnToken,
-      isConvertibleStablecoin,
+      hasMusdConversionCta,
       isStablecoinLendingEnabled,
       isStakeable,
     ]);
