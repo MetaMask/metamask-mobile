@@ -51,8 +51,10 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: jest.fn(() => ({
     isConversionToken: jest.fn().mockReturnValue(false),
-    tokenFilter: jest.fn(),
+    isTokenWithCta: jest.fn().mockReturnValue(false),
+    filterAllowedTokens: jest.fn(),
     tokens: [],
+    tokensWithCTAs: [],
   })),
 }));
 

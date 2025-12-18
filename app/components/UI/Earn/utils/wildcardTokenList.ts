@@ -92,3 +92,65 @@ export const isTokenInWildcardList = (
 
   return false;
 };
+
+/**
+ * Checks if a token is allowed based on combined allowlist and blocklist rules.
+ *
+ * Logic:
+ * 1. If allowlist is non-empty, token MUST be in allowlist
+ * 2. If blocklist is non-empty, token must NOT be in blocklist
+ * 3. Both conditions must pass for the token to be allowed
+ *
+ * @param tokenSymbol - The token symbol (case-insensitive)
+ * @param allowlist - Tokens to allow (empty = allow all)
+ * @param blocklist - Tokens to block (empty = block none)
+ * @param chainId - The chain ID where the token exists
+ * @returns true if the token is allowed, false otherwise
+ *
+ * @example Allowlist only (specific tokens)
+ * isTokenAllowed("USDC", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → true
+ * isTokenAllowed("DAI", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → false
+ *
+ * @example Blocklist only (all except certain tokens)
+ * isTokenAllowed("USDC", {}, { "*": ["TUSD"] }, "0x1") // → true
+ * isTokenAllowed("TUSD", {}, { "*": ["TUSD"] }, "0x1") // → false
+ *
+ * @example Combined (allowlist + blocklist override)
+ * isTokenAllowed("USDT", { "0x1": ["USDC", "USDT"] }, { "*": ["USDT"] }, "0x1") // → false
+ */
+export const isTokenAllowed = (
+  tokenSymbol: string,
+  allowlist: WildcardTokenList = {},
+  blocklist: WildcardTokenList = {},
+  chainId?: string,
+): boolean => {
+  if (!chainId || !tokenSymbol) return false;
+
+  // Step 1: If allowlist is non-empty, token must be in it
+  const hasAllowlist = Object.keys(allowlist).length > 0;
+  if (hasAllowlist) {
+    const isInAllowlist = isTokenInWildcardList(
+      tokenSymbol,
+      allowlist,
+      chainId,
+    );
+    if (!isInAllowlist) {
+      return false;
+    }
+  }
+
+  // Step 2: If blocklist is non-empty, token must NOT be in it
+  const hasBlocklist = Object.keys(blocklist).length > 0;
+  if (hasBlocklist) {
+    const isInBlocklist = isTokenInWildcardList(
+      tokenSymbol,
+      blocklist,
+      chainId,
+    );
+    if (isInBlocklist) {
+      return false;
+    }
+  }
+
+  return true;
+};
