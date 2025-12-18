@@ -39,6 +39,7 @@ import type {
   TPSLTrackingData,
 } from '../../controllers/types';
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import {
@@ -169,8 +170,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, monitoringIntent, source } = route.params || {};
+  const { market: routeMarket, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
+
+  // Get full market data from stream to ensure all fields (including maxLeverage) are available
+  // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
+  const { markets } = usePerpsMarkets();
+  const market = useMemo(() => {
+    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+    return fullMarket || routeMarket;
+  }, [markets, routeMarket]);
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
