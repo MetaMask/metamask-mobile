@@ -70,7 +70,6 @@ export const useMusdConversionTokens = () => {
   const getConversionTokensWithCtas = useCallback(
     (tokens: AssetType[]) =>
       tokens.filter((token) =>
-        // TODO: Rename isMusdConversionPaymentTokenBlocked
         isTokenInWildcardList(
           token.symbol,
           musdConversionCTATokens,
