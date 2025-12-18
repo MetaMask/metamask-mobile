@@ -100,20 +100,20 @@ export function useTokens({
         }
 
         //TODO hack the metadata for ondo tokens only
-        // if (token.aggregators.includes('Ondo')) {
-        //   token.rwaData = {
-        //     instrumentType: 'stock',
-        //     ticker: token.name?.split(' ')[0] ?? '',
-        //     market: {
-        //       nextOpen: new Date(new Date().setHours(9, 0, 0, 0)),
-        //       nextClose: new Date(new Date().setHours(16, 0, 0, 0)),
-        //     },
-        //     nextPause: {
-        //       start: null,
-        //       end: null,
-        //     },
-        //   } as BridgeToken['rwaData'];
-        // }
+        if (token.aggregators.includes('Ondo')) {
+          token.rwaData = {
+            instrumentType: 'stock',
+            ticker: token.name?.split(' ')[0] ?? '',
+            market: {
+              nextOpen: new Date(new Date().setHours(9, 0, 0, 0)),
+              nextClose: new Date(new Date().setHours(16, 0, 0, 0)),
+            },
+            nextPause: {
+              start: null,
+              end: null,
+            },
+          } as BridgeToken['rwaData'];
+        }
 
         const tokenKey = getTokenKey(token);
         return !excludedTokensSet.has(tokenKey);
