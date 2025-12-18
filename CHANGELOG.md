@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- chore: cp-7.61.2 update @metamask/network-controller to latest version ([#24166](https://github.com/MetaMask/metamask-mobile/pull/24166))
+- fix: Fix bug where EIP-1559 compatibility check was skipped in some circumstances ([#24166](https://github.com/MetaMask/metamask-mobile/pull/24166))
 
 ## [7.61.1]
 
