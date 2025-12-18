@@ -241,7 +241,7 @@ describe('TrendingTokensFullView', () => {
       false, // Exclude NavigationContainer since we're mocking navigation
     );
 
-    expect(getByText('Trending Tokens')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
