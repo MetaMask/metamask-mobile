@@ -189,7 +189,7 @@ jobs:
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
+    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names, determine-branch-name]
     if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
@@ -197,14 +197,14 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
 
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
+    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names, determine-branch-name]
     if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
@@ -212,7 +212,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
@@ -240,6 +240,7 @@ jobs:
         trigger-android-dual-versions,
         wait-for-onboarding-completion,
         set-build-names,
+        determine-branch-name,
       ]
     if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
@@ -248,7 +249,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
 
@@ -261,6 +262,7 @@ jobs:
         trigger-ios-dual-versions,
         wait-for-onboarding-completion,
         set-build-names,
+        determine-branch-name,
       ]
     if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
@@ -269,7 +271,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
