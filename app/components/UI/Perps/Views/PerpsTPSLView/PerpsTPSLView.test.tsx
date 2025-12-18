@@ -192,7 +192,7 @@ describe('PerpsTPSLView', () => {
   };
 
   const defaultRouteParams = {
-    currentPrice: '3000.00',
+    currentPrice: 3000,
     coin: 'ETH',
     direction: 'long',
     onConfirm: jest.fn(),
@@ -503,7 +503,7 @@ describe('PerpsTPSLView', () => {
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,
         isEditingExistingPosition: false,
-        entryPrice: '3000.00',
+        entryPrice: 3000,
       });
     });
 
@@ -524,7 +524,7 @@ describe('PerpsTPSLView', () => {
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,
         isEditingExistingPosition: false,
-        entryPrice: '3000.00',
+        entryPrice: 3000,
       });
     });
 
