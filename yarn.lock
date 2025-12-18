@@ -7728,17 +7728,17 @@ __metadata:
   linkType: hard
 
 "@metamask/chain-agnostic-permission@npm:^1.2.1, @metamask/chain-agnostic-permission@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@metamask/chain-agnostic-permission@npm:1.2.2"
+  version: 1.3.0
+  resolution: "@metamask/chain-agnostic-permission@npm:1.3.0"
   dependencies:
     "@metamask/api-specs": "npm:^0.14.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
-    "@metamask/network-controller": "npm:^25.0.0"
-    "@metamask/permission-controller": "npm:^12.0.0"
+    "@metamask/controller-utils": "npm:^11.16.0"
+    "@metamask/network-controller": "npm:^27.0.0"
+    "@metamask/permission-controller": "npm:^12.1.1"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/utils": "npm:^11.8.1"
     lodash: "npm:^4.17.21"
-  checksum: 10/cf647bd5e3d38de912439c52a75a9fde91cf2f47f5cbda49258d8c0a0b16e0cb503be430462d7fb96b76cc7fb52402eb2b2b9f1262c75bf028793963709a402c
+  checksum: 10/0a5cd61a32af9e605b0378697744a6ae964a8ca0ff599b207fa6184176b09b122f4af303c2a70abc909606a10c3eabaf06a87dc9f205f9e74626a7061e6f33d3
   languageName: node
   linkType: hard
 
@@ -8929,7 +8929,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/permission-controller@npm:^12.0.0, @metamask/permission-controller@npm:^12.1.0":
+"@metamask/permission-controller@npm:^12.0.0, @metamask/permission-controller@npm:^12.1.0, @metamask/permission-controller@npm:^12.1.1":
   version: 12.1.1
   resolution: "@metamask/permission-controller@npm:12.1.1"
   dependencies:
