@@ -344,6 +344,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     throttleMs: 1000,
   });
 
+  // Get current price from the last candle's close price for chart synchronization
+  // This ensures the current price line matches the live candle close price exactly
+  const chartCurrentPrice = useMemo(() => {
+    if (!candleData?.candles?.length) return 0;
+    const lastCandle = candleData.candles.at(-1);
+    return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
+  }, [candleData]);
+
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
   useEffect(() => {
@@ -394,10 +402,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [existingPosition, orderFills]);
 
   // Compute TP/SL lines for the chart based on existing position
-  // Always include currentPrice to ensure chart price line matches header (TAT-2112)
+  // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
   const tpslLines = useMemo(() => {
-    const currentPriceStr =
-      currentPrice > 0 ? currentPrice.toString() : undefined;
+    const chartPriceStr =
+      chartCurrentPrice > 0 ? chartCurrentPrice.toString() : undefined;
 
     if (existingPosition) {
       return {
@@ -405,13 +413,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         takeProfitPrice: existingPosition.takeProfitPrice,
         stopLossPrice: existingPosition.stopLossPrice,
         liquidationPrice: existingPosition.liquidationPrice || undefined,
-        currentPrice: currentPriceStr,
+        currentPrice: chartPriceStr,
       };
     }
 
     // Even without position, show current price line on chart
-    return currentPriceStr ? { currentPrice: currentPriceStr } : undefined;
-  }, [existingPosition, currentPrice]);
+    return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
+  }, [existingPosition, chartCurrentPrice]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
@@ -906,6 +914,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onFullscreenPress={handleFullscreenChartOpen}
           isFavorite={isWatchlist}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+          currentPrice={chartCurrentPrice}
         />
       </View>
 
