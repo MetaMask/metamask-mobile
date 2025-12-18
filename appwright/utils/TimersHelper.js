@@ -86,16 +86,6 @@ class TimerHelper {
     return duration ? duration / 1000 : 0;
   }
 
-  isRunning() {
-    const timer = Timers.getTimer(this.id);
-    return timer.start !== null && timer.duration === null;
-  }
-
-  isCompleted() {
-    const timer = Timers.getTimer(this.id);
-    return timer.duration !== null;
-  }
-
   /**
    * Measures the execution time of an async action
    * @param {Function} action - Async function to measure
@@ -136,34 +126,6 @@ class TimerHelper {
    */
   hasThreshold() {
     return this._baseThreshold !== null;
-  }
-
-  /**
-   * Validates if the timer duration is within the threshold
-   * @returns {{ passed: boolean, duration: number, threshold: number|null, exceeded: number|null }}
-   */
-  validate() {
-    const duration = this.getDuration();
-    const effectiveThreshold = this.threshold;
-
-    if (effectiveThreshold === null || duration === null) {
-      return {
-        passed: true,
-        duration,
-        threshold: null,
-        exceeded: null,
-      };
-    }
-
-    const passed = duration <= effectiveThreshold;
-    const exceeded = !passed ? duration - effectiveThreshold : null;
-
-    return {
-      passed,
-      duration,
-      threshold: effectiveThreshold,
-      exceeded,
-    };
   }
 
   get id() {
