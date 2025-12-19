@@ -497,6 +497,7 @@ describe('MailingAddress Component', () => {
 
     // Mock useCardSDK
     mockUseCardSDK.mockReturnValue({
+      isReturningSession: false,
       sdk: null,
       isLoading: false,
       user: {
