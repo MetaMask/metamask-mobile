@@ -228,7 +228,9 @@ const SecureKeychain = {
           await this.getGenericPassword();
         } catch (error) {
           // Specifically check for user cancellation
-          if ((error as Error).message === 'User canceled the operation.') {
+          if (
+            (error as Error).message.includes('User canceled the operation')
+          ) {
             // Store password without biometrics
             const encryptedPasswordWithoutBiometrics =
               await instance.encryptPassword(password);

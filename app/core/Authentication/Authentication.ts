@@ -8,7 +8,6 @@ import {
   SEED_PHRASE_HINTS,
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -1521,11 +1520,11 @@ class AuthenticationService {
     } catch (e) {
       const errorWithMessage = e as { message: string };
 
-      // Check if the error is because biometrics are not enabled
+      // Check if the error is because password is not set with biometrics
       // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
       if (
         errorWithMessage.message.includes(
-          ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
         )
       ) {
         throw new AuthenticationError(
@@ -1571,20 +1570,27 @@ class AuthenticationService {
 
     // if no password is provided, try to use the stored biometric/remember-me password
     if (!passwordToVerify) {
-      const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-      if (biometryChoice) {
+      try {
         const credentials = await this.getPassword();
         if (credentials) {
           passwordToVerify = credentials.password;
         }
+      } catch (e) {
+        const error = e as Error;
+        // TODO: May want to triage errors here and throw different errors based on the error type
+        // For example, getPassword throws with `User canceled the operation` when biometrics is canceled or fails
+        throw new Error(
+          `${ReauthenticateErrorType.BIOMETRIC_ERROR}: ${error.message}`,
+        );
       }
 
       // If there is no biometric choice configured or no stored credentials,
       // throw a specific error instead of attempting to verify an empty password.
       if (!passwordToVerify) {
-        const biometricNotEnabledErrorMessage = 'Biometric is not enabled';
+        const passwordNotSetWithBiometricsErrorMessage =
+          'No password stored with biometrics in keychain.';
         throw new Error(
-          `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: ${biometricNotEnabledErrorMessage}`,
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: ${passwordNotSetWithBiometricsErrorMessage}`,
         );
       }
     }
