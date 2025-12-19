@@ -1,68 +1,15 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import { fork, take, cancel, call } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
   AuthSuccessAction,
   AuthErrorAction,
   InterruptBiometricsAction,
-  lockApp,
   UserActionType,
 } from '../../actions/user';
 import { Task } from 'redux-saga';
-import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import { Authentication } from '../../core';
-
-export function* appLockStateMachine() {
-  let biometricsListenerTask: Task<void> | undefined;
-  while (true) {
-    yield take(UserActionType.LOCKED_APP);
-    if (biometricsListenerTask) {
-      yield cancel(biometricsListenerTask);
-    }
-    const bioStateMachineId = Date.now().toString();
-    biometricsListenerTask = yield fork(
-      biometricsStateMachine,
-      bioStateMachineId,
-    );
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
-      bioStateMachineId,
-    });
-  }
-}
-
-/**
- * The state machine for detecting when the app is logged vs logged out.
- * While on the Wallet screen, this state machine
- * will "listen" to the app lock state machine.
- */
-export function* authStateMachine() {
-  // Start when the user is logged in.
-  while (true) {
-    yield take(UserActionType.LOGIN);
-    const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
-    LockManagerService.startListening();
-    // Listen to app lock behavior.
-    yield take(UserActionType.LOGOUT);
-    LockManagerService.stopListening();
-    // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
-    yield cancel(appLockStateMachineTask);
-  }
-}
-
-/**
- * Locks the KeyringController and dispatches LOCK_APP.
- */
-export function* lockKeyringAndApp() {
-  const { KeyringController } = Engine.context;
-  try {
-    yield call(KeyringController.setLocked);
-  } catch (e) {
-    Logger.log('Failed to lock KeyringController', e);
-  }
-  yield put(lockApp());
-}
 
 /**
  * The state machine, which is responsible for handling the state
@@ -95,7 +42,7 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
 
   if (action?.type === UserActionType.INTERRUPT_BIOMETRICS) {
     // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
-    yield fork(lockKeyringAndApp);
+    yield call(Authentication.lockApp);
   } else if (action?.type === UserActionType.AUTH_ERROR) {
     // Authentication service will automatically log out.
   } else if (action?.type === UserActionType.AUTH_SUCCESS) {
@@ -104,8 +51,51 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   }
 }
 
-export function* startAuthStateMachine() {
+export function* appLockStateMachine() {
+  let biometricsListenerTask: Task<void> | undefined;
   while (true) {
-    yield call(Authentication.unlockWallet);
+    yield take(UserActionType.LOCKED_APP);
+    if (biometricsListenerTask) {
+      yield cancel(biometricsListenerTask);
+    }
+    const bioStateMachineId = Date.now().toString();
+    biometricsListenerTask = yield fork(
+      biometricsStateMachine,
+      bioStateMachineId,
+    );
+    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
+      bioStateMachineId,
+    });
   }
+}
+
+/**
+ * The state machine for detecting when the app is logged vs logged out.
+ * While on the Wallet screen, this state machine
+ * will "listen" to the app lock state machine.
+ */
+export function* authStatusStateMachine() {
+  // Start when the user is logged in.
+  while (true) {
+    yield take(UserActionType.LOGIN);
+    // Check if we should show opt in metrics screen
+    // From Login/index.tsx & App/App.tsx
+
+    const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
+    LockManagerService.startListening();
+    // Listen to app lock behavior.
+    yield take(UserActionType.LOGOUT);
+    LockManagerService.stopListening();
+    // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
+    yield cancel(appLockStateMachineTask);
+  }
+}
+
+export function* startAuthStateMachine() {
+  // Give React a render cycle to render the nested navigation stack screens
+  yield call(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+  // Listen to auth status changes.
+  yield fork(authStatusStateMachine);
+  // Unlock wallet on cold app start.
+  yield call(Authentication.unlockWallet);
 }
