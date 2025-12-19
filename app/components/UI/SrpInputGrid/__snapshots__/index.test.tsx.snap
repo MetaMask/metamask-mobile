@@ -14,8 +14,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
     style={
       {
         "backgroundColor": "#f3f5f9",
-        "borderRadius": 10,
-        "marginTop": 16,
+        "borderRadius": 12,
         "maxHeight": "auto",
         "minHeight": 264,
         "paddingTop": 16,
@@ -117,10 +116,9 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -210,10 +208,9 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -264,8 +261,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
     style={
       {
         "backgroundColor": "#f3f5f9",
-        "borderRadius": 10,
-        "marginTop": 16,
+        "borderRadius": 12,
         "maxHeight": "auto",
         "minHeight": 264,
         "paddingTop": 16,
@@ -367,10 +363,9 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -460,10 +455,9 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -514,8 +508,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
     style={
       {
         "backgroundColor": "#f3f5f9",
-        "borderRadius": 10,
-        "marginTop": 16,
+        "borderRadius": 12,
         "maxHeight": "auto",
         "minHeight": 264,
         "paddingTop": 16,
@@ -617,10 +610,9 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -710,10 +702,9 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }
@@ -764,8 +755,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
     style={
       {
         "backgroundColor": "#f3f5f9",
-        "borderRadius": 10,
-        "marginTop": 16,
+        "borderRadius": 12,
         "maxHeight": "auto",
         "minHeight": 264,
         "paddingTop": 16,
@@ -1254,10 +1244,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
                   "fontWeight": "400",
                   "height": 66,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
+                  "lineHeight": 24,
                   "opacity": 1,
                   "paddingBottom": 12,
-                  "paddingTop": 12,
                   "paddingVertical": 0,
                 }
               }

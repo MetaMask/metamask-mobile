@@ -8,6 +8,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -44,7 +45,8 @@ const ImportPrivateKey = () => {
   const navigation = useNavigation();
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,

@@ -2333,9 +2333,6 @@ export function getBackAndCloseNavbar(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    accessories: {
-      marginHorizontal: 16,
-    },
   });
 
   const handleBackPress = () => {
@@ -2363,7 +2360,6 @@ export function getBackAndCloseNavbar(
             size={ButtonIconSize.Lg}
             iconName={IconName.ArrowLeft}
             onPress={handleBackPress}
-            style={innerStyles.accessories}
             testID={testIDs.back}
           />
         )
