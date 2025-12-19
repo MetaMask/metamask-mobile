@@ -1,0 +1,1224 @@
+diff --git a/dist/RampsController.cjs b/dist/RampsController.cjs
+index a796824cbaeef9d10c930cb26c70052b969c5366..a97925ffec8bd88b56744065a0079ddd4c94589c 100644
+--- a/dist/RampsController.cjs
++++ b/dist/RampsController.cjs
+@@ -1,7 +1,20 @@
+ "use strict";
++var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++    if (kind === "m") throw new TypeError("Private method is not writable");
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
++    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var _RampsController_instances, _RampsController_requestCacheTTL, _RampsController_requestCacheMaxSize, _RampsController_pendingRequests, _RampsController_removeRequestState, _RampsController_updateRequestState;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.RampsController = exports.getDefaultRampsControllerState = exports.controllerName = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
++const RequestCache_1 = require("./RequestCache.cjs");
+ // === GENERAL ===
+ /**
+  * The name of the {@link RampsController}, used to namespace the
+@@ -19,6 +32,12 @@ const rampsControllerMetadata = {
+         includeInStateLogs: true,
+         usedInUi: true,
+     },
++    requests: {
++        persist: false,
++        includeInDebugSnapshot: true,
++        includeInStateLogs: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Constructs the default {@link RampsController} state. This allows
+@@ -31,6 +50,7 @@ const rampsControllerMetadata = {
+ function getDefaultRampsControllerState() {
+     return {
+         geolocation: null,
++        requests: {},
+     };
+ }
+ exports.getDefaultRampsControllerState = getDefaultRampsControllerState;
+@@ -46,8 +66,10 @@ class RampsController extends base_controller_1.BaseController {
+      * @param args.messenger - The messenger suited for this controller.
+      * @param args.state - The desired state with which to initialize this
+      * controller. Missing properties will be filled in with defaults.
++     * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.
++     * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.
+      */
+-    constructor({ messenger, state = {}, }) {
++    constructor({ messenger, state = {}, requestCacheTTL = RequestCache_1.DEFAULT_REQUEST_CACHE_TTL, requestCacheMaxSize = RequestCache_1.DEFAULT_REQUEST_CACHE_MAX_SIZE, }) {
+         super({
+             messenger,
+             metadata: rampsControllerMetadata,
+@@ -55,20 +77,164 @@ class RampsController extends base_controller_1.BaseController {
+             state: {
+                 ...getDefaultRampsControllerState(),
+                 ...state,
++                // Always reset requests cache on initialization (non-persisted)
++                requests: {},
+             },
+         });
++        _RampsController_instances.add(this);
++        /**
++         * Default TTL for cached requests.
++         */
++        _RampsController_requestCacheTTL.set(this, void 0);
++        /**
++         * Maximum number of entries in the request cache.
++         */
++        _RampsController_requestCacheMaxSize.set(this, void 0);
++        /**
++         * Map of pending requests for deduplication.
++         * Key is the cache key, value is the pending request with abort controller.
++         */
++        _RampsController_pendingRequests.set(this, new Map());
++        __classPrivateFieldSet(this, _RampsController_requestCacheTTL, requestCacheTTL, "f");
++        __classPrivateFieldSet(this, _RampsController_requestCacheMaxSize, requestCacheMaxSize, "f");
++    }
++    /**
++     * Executes a request with caching and deduplication.
++     *
++     * If a request with the same cache key is already in flight, returns the
++     * existing promise. If valid cached data exists, returns it without making
++     * a new request.
++     *
++     * @param cacheKey - Unique identifier for this request.
++     * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.
++     * @param options - Options for cache behavior.
++     * @returns The result of the request.
++     */
++    async executeRequest(cacheKey, fetcher, options) {
++        const ttl = options?.ttl ?? __classPrivateFieldGet(this, _RampsController_requestCacheTTL, "f");
++        // Check for existing pending request - join it instead of making a duplicate
++        const pending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++        if (pending) {
++            return pending.promise;
++        }
++        // Check cache validity (unless force refresh)
++        if (!options?.forceRefresh) {
++            const cached = this.state.requests[cacheKey];
++            if (cached && !(0, RequestCache_1.isCacheExpired)(cached, ttl)) {
++                return cached.data;
++            }
++        }
++        // Create abort controller for this request
++        const abortController = new AbortController();
++        const lastFetchedAt = Date.now();
++        // Update state to loading
++        __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, (0, RequestCache_1.createLoadingState)());
++        // Create the fetch promise
++        const promise = (async () => {
++            try {
++                const data = await fetcher(abortController.signal);
++                // Don't update state if aborted
++                if (abortController.signal.aborted) {
++                    throw new Error('Request was aborted');
++                }
++                __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, (0, RequestCache_1.createSuccessState)(data, lastFetchedAt));
++                return data;
++            }
++            catch (error) {
++                // Don't update state if aborted
++                if (abortController.signal.aborted) {
++                    throw error;
++                }
++                const errorMessage = error?.message;
++                __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, (0, RequestCache_1.createErrorState)(errorMessage ?? 'Unknown error', lastFetchedAt));
++                throw error;
++            }
++            finally {
++                // Only delete if this is still our entry (not replaced by a new request)
++                const currentPending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++                if (currentPending?.abortController === abortController) {
++                    __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").delete(cacheKey);
++                }
++            }
++        })();
++        // Store pending request for deduplication
++        __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").set(cacheKey, { promise, abortController });
++        return promise;
++    }
++    /**
++     * Aborts a pending request if one exists.
++     *
++     * @param cacheKey - The cache key of the request to abort.
++     * @returns True if a request was aborted.
++     */
++    abortRequest(cacheKey) {
++        const pending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++        if (pending) {
++            pending.abortController.abort();
++            __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").delete(cacheKey);
++            __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_removeRequestState).call(this, cacheKey);
++            return true;
++        }
++        return false;
++    }
++    /**
++     * Gets the state of a specific cached request.
++     *
++     * @param cacheKey - The cache key to look up.
++     * @returns The request state, or undefined if not cached.
++     */
++    getRequestState(cacheKey) {
++        return this.state.requests[cacheKey];
+     }
+     /**
+      * Updates the user's geolocation.
+      * This method calls the RampsService to get the geolocation
+      * and stores the result in state.
++     *
++     * @param options - Options for cache behavior.
++     * @returns The geolocation string.
+      */
+-    async updateGeolocation() {
+-        const geolocation = await this.messenger.call('RampsService:getGeolocation');
++    async updateGeolocation(options) {
++        const cacheKey = (0, RequestCache_1.createCacheKey)('updateGeolocation', []);
++        const geolocation = await this.executeRequest(cacheKey, async () => {
++            const result = await this.messenger.call('RampsService:getGeolocation');
++            return result;
++        }, options);
+         this.update((state) => {
+             state.geolocation = geolocation;
+         });
++        return geolocation;
+     }
+ }
+ exports.RampsController = RampsController;
++_RampsController_requestCacheTTL = new WeakMap(), _RampsController_requestCacheMaxSize = new WeakMap(), _RampsController_pendingRequests = new WeakMap(), _RampsController_instances = new WeakSet(), _RampsController_removeRequestState = function _RampsController_removeRequestState(cacheKey) {
++    this.update((state) => {
++        const requests = state.requests;
++        delete requests[cacheKey];
++    });
++}, _RampsController_updateRequestState = function _RampsController_updateRequestState(cacheKey, requestState) {
++    const maxSize = __classPrivateFieldGet(this, _RampsController_requestCacheMaxSize, "f");
++    this.update((state) => {
++        const requests = state.requests;
++        requests[cacheKey] = requestState;
++        // Evict oldest entries if cache exceeds max size
++        const keys = Object.keys(requests);
++        if (keys.length > maxSize) {
++            // Sort by timestamp (oldest first)
++            const sortedKeys = keys.sort((a, b) => {
++                const aTime = requests[a]?.timestamp ?? 0;
++                const bTime = requests[b]?.timestamp ?? 0;
++                return aTime - bTime;
++            });
++            // Remove oldest entries until we're under the limit
++            const entriesToRemove = keys.length - maxSize;
++            for (let i = 0; i < entriesToRemove; i++) {
++                const keyToRemove = sortedKeys[i];
++                if (keyToRemove) {
++                    delete requests[keyToRemove];
++                }
++            }
++        }
++    });
++};
+ //# sourceMappingURL=RampsController.cjs.map
+\ No newline at end of file
+diff --git a/dist/RampsController.cjs.map b/dist/RampsController.cjs.map
+index 973cfd9fc572af2e4c2a577bbb30d02c28a8cdca..6201c1378b465804bcb77de9630ae663b93c3aa1 100644
+--- a/dist/RampsController.cjs.map
++++ b/dist/RampsController.cjs.map
+@@ -1 +1 @@
+-{"version":3,"file":"RampsController.cjs","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":";;;AAKA,+DAA2D;AAK3D,kBAAkB;AAElB;;;;GAIG;AACU,QAAA,cAAc,GAAG,iBAAiB,CAAC;AAchD;;GAEG;AACH,MAAM,uBAAuB,GAAG;IAC9B,WAAW,EAAE;QACX,OAAO,EAAE,IAAI;QACb,sBAAsB,EAAE,IAAI;QAC5B,kBAAkB,EAAE,IAAI;QACxB,QAAQ,EAAE,IAAI;KACf;CAC4C,CAAC;AAEhD;;;;;;;GAOG;AACH,SAAgB,8BAA8B;IAC5C,OAAO;QACL,WAAW,EAAE,IAAI;KAClB,CAAC;AACJ,CAAC;AAJD,wEAIC;AAkDD,gCAAgC;AAEhC;;GAEG;AACH,MAAa,eAAgB,SAAQ,gCAIpC;IACC;;;;;;;OAOG;IACH,YAAY,EACV,SAAS,EACT,KAAK,GAAG,EAAE,GAIX;QACC,KAAK,CAAC;YACJ,SAAS;YACT,QAAQ,EAAE,uBAAuB;YACjC,IAAI,EAAE,sBAAc;YACpB,KAAK,EAAE;gBACL,GAAG,8BAA8B,EAAE;gBACnC,GAAG,KAAK;aACT;SACF,CAAC,CAAC;IACL,CAAC;IAED;;;;OAIG;IACH,KAAK,CAAC,iBAAiB;QACrB,MAAM,WAAW,GAAG,MAAM,IAAI,CAAC,SAAS,CAAC,IAAI,CAC3C,6BAA6B,CAC9B,CAAC;QAEF,IAAI,CAAC,MAAM,CAAC,CAAC,KAAK,EAAE,EAAE;YACpB,KAAK,CAAC,WAAW,GAAG,WAAW,CAAC;QAClC,CAAC,CAAC,CAAC;IACL,CAAC;CACF;AA7CD,0CA6CC","sourcesContent":["import type {\n  ControllerGetStateAction,\n  ControllerStateChangeEvent,\n  StateMetadata,\n} from '@metamask/base-controller';\nimport { BaseController } from '@metamask/base-controller';\nimport type { Messenger } from '@metamask/messenger';\n\nimport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n\n// === GENERAL ===\n\n/**\n * The name of the {@link RampsController}, used to namespace the\n * controller's actions and events and to namespace the controller's state data\n * when composed with other controllers.\n */\nexport const controllerName = 'RampsController';\n\n// === STATE ===\n\n/**\n * Describes the shape of the state object for {@link RampsController}.\n */\nexport type RampsControllerState = {\n  /**\n   * The user's country code determined by geolocation.\n   */\n  geolocation: string | null;\n};\n\n/**\n * The metadata for each property in {@link RampsControllerState}.\n */\nconst rampsControllerMetadata = {\n  geolocation: {\n    persist: true,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: true,\n    usedInUi: true,\n  },\n} satisfies StateMetadata<RampsControllerState>;\n\n/**\n * Constructs the default {@link RampsController} state. This allows\n * consumers to provide a partial state object when initializing the controller\n * and also helps in constructing complete state objects for this controller in\n * tests.\n *\n * @returns The default {@link RampsController} state.\n */\nexport function getDefaultRampsControllerState(): RampsControllerState {\n  return {\n    geolocation: null,\n  };\n}\n\n// === MESSENGER ===\n\n/**\n * Retrieves the state of the {@link RampsController}.\n */\nexport type RampsControllerGetStateAction = ControllerGetStateAction<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Actions that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerActions = RampsControllerGetStateAction;\n\n/**\n * Actions from other messengers that {@link RampsController} calls.\n */\ntype AllowedActions = RampsServiceGetGeolocationAction;\n\n/**\n * Published when the state of {@link RampsController} changes.\n */\nexport type RampsControllerStateChangeEvent = ControllerStateChangeEvent<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Events that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerEvents = RampsControllerStateChangeEvent;\n\n/**\n * Events from other messengers that {@link RampsController} subscribes to.\n */\ntype AllowedEvents = never;\n\n/**\n * The messenger restricted to actions and events accessed by\n * {@link RampsController}.\n */\nexport type RampsControllerMessenger = Messenger<\n  typeof controllerName,\n  RampsControllerActions | AllowedActions,\n  RampsControllerEvents | AllowedEvents\n>;\n\n// === CONTROLLER DEFINITION ===\n\n/**\n * Manages cryptocurrency on/off ramps functionality.\n */\nexport class RampsController extends BaseController<\n  typeof controllerName,\n  RampsControllerState,\n  RampsControllerMessenger\n> {\n  /**\n   * Constructs a new {@link RampsController}.\n   *\n   * @param args - The constructor arguments.\n   * @param args.messenger - The messenger suited for this controller.\n   * @param args.state - The desired state with which to initialize this\n   * controller. Missing properties will be filled in with defaults.\n   */\n  constructor({\n    messenger,\n    state = {},\n  }: {\n    messenger: RampsControllerMessenger;\n    state?: Partial<RampsControllerState>;\n  }) {\n    super({\n      messenger,\n      metadata: rampsControllerMetadata,\n      name: controllerName,\n      state: {\n        ...getDefaultRampsControllerState(),\n        ...state,\n      },\n    });\n  }\n\n  /**\n   * Updates the user's geolocation.\n   * This method calls the RampsService to get the geolocation\n   * and stores the result in state.\n   */\n  async updateGeolocation(): Promise<void> {\n    const geolocation = await this.messenger.call(\n      'RampsService:getGeolocation',\n    );\n\n    this.update((state) => {\n      state.geolocation = geolocation;\n    });\n  }\n}\n"]}
+\ No newline at end of file
++{"version":3,"file":"RampsController.cjs","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"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","sourcesContent":["import type {\n  ControllerGetStateAction,\n  ControllerStateChangeEvent,\n  StateMetadata,\n} from '@metamask/base-controller';\nimport { BaseController } from '@metamask/base-controller';\nimport type { Messenger } from '@metamask/messenger';\nimport type { Json } from '@metamask/utils';\n\nimport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nimport type {\n  RequestCache as RequestCacheType,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nimport {\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n\n// === GENERAL ===\n\n/**\n * The name of the {@link RampsController}, used to namespace the\n * controller's actions and events and to namespace the controller's state data\n * when composed with other controllers.\n */\nexport const controllerName = 'RampsController';\n\n// === STATE ===\n\n/**\n * Describes the shape of the state object for {@link RampsController}.\n */\nexport type RampsControllerState = {\n  /**\n   * The user's country code determined by geolocation.\n   */\n  geolocation: string | null;\n  /**\n   * Cache of request states, keyed by cache key.\n   * This stores loading, success, and error states for API requests.\n   */\n  requests: RequestCacheType;\n};\n\n/**\n * The metadata for each property in {@link RampsControllerState}.\n */\nconst rampsControllerMetadata = {\n  geolocation: {\n    persist: true,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: true,\n    usedInUi: true,\n  },\n  requests: {\n    persist: false,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: false,\n    usedInUi: true,\n  },\n} satisfies StateMetadata<RampsControllerState>;\n\n/**\n * Constructs the default {@link RampsController} state. This allows\n * consumers to provide a partial state object when initializing the controller\n * and also helps in constructing complete state objects for this controller in\n * tests.\n *\n * @returns The default {@link RampsController} state.\n */\nexport function getDefaultRampsControllerState(): RampsControllerState {\n  return {\n    geolocation: null,\n    requests: {},\n  };\n}\n\n// === MESSENGER ===\n\n/**\n * Retrieves the state of the {@link RampsController}.\n */\nexport type RampsControllerGetStateAction = ControllerGetStateAction<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Actions that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerActions = RampsControllerGetStateAction;\n\n/**\n * Actions from other messengers that {@link RampsController} calls.\n */\ntype AllowedActions = RampsServiceGetGeolocationAction;\n\n/**\n * Published when the state of {@link RampsController} changes.\n */\nexport type RampsControllerStateChangeEvent = ControllerStateChangeEvent<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Events that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerEvents = RampsControllerStateChangeEvent;\n\n/**\n * Events from other messengers that {@link RampsController} subscribes to.\n */\ntype AllowedEvents = never;\n\n/**\n * The messenger restricted to actions and events accessed by\n * {@link RampsController}.\n */\nexport type RampsControllerMessenger = Messenger<\n  typeof controllerName,\n  RampsControllerActions | AllowedActions,\n  RampsControllerEvents | AllowedEvents\n>;\n\n/**\n * Configuration options for the RampsController.\n */\nexport type RampsControllerOptions = {\n  /** The messenger suited for this controller. */\n  messenger: RampsControllerMessenger;\n  /** The desired state with which to initialize this controller. */\n  state?: Partial<RampsControllerState>;\n  /** Time to live for cached requests in milliseconds. Defaults to 15 minutes. */\n  requestCacheTTL?: number;\n  /** Maximum number of entries in the request cache. Defaults to 250. */\n  requestCacheMaxSize?: number;\n};\n\n// === CONTROLLER DEFINITION ===\n\n/**\n * Manages cryptocurrency on/off ramps functionality.\n */\nexport class RampsController extends BaseController<\n  typeof controllerName,\n  RampsControllerState,\n  RampsControllerMessenger\n> {\n  /**\n   * Default TTL for cached requests.\n   */\n  readonly #requestCacheTTL: number;\n\n  /**\n   * Maximum number of entries in the request cache.\n   */\n  readonly #requestCacheMaxSize: number;\n\n  /**\n   * Map of pending requests for deduplication.\n   * Key is the cache key, value is the pending request with abort controller.\n   */\n  readonly #pendingRequests: Map<string, PendingRequest> = new Map();\n\n  /**\n   * Constructs a new {@link RampsController}.\n   *\n   * @param args - The constructor arguments.\n   * @param args.messenger - The messenger suited for this controller.\n   * @param args.state - The desired state with which to initialize this\n   * controller. Missing properties will be filled in with defaults.\n   * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.\n   * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.\n   */\n  constructor({\n    messenger,\n    state = {},\n    requestCacheTTL = DEFAULT_REQUEST_CACHE_TTL,\n    requestCacheMaxSize = DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  }: RampsControllerOptions) {\n    super({\n      messenger,\n      metadata: rampsControllerMetadata,\n      name: controllerName,\n      state: {\n        ...getDefaultRampsControllerState(),\n        ...state,\n        // Always reset requests cache on initialization (non-persisted)\n        requests: {},\n      },\n    });\n\n    this.#requestCacheTTL = requestCacheTTL;\n    this.#requestCacheMaxSize = requestCacheMaxSize;\n  }\n\n  /**\n   * Executes a request with caching and deduplication.\n   *\n   * If a request with the same cache key is already in flight, returns the\n   * existing promise. If valid cached data exists, returns it without making\n   * a new request.\n   *\n   * @param cacheKey - Unique identifier for this request.\n   * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.\n   * @param options - Options for cache behavior.\n   * @returns The result of the request.\n   */\n  async executeRequest<TResult>(\n    cacheKey: string,\n    fetcher: (signal: AbortSignal) => Promise<TResult>,\n    options?: ExecuteRequestOptions,\n  ): Promise<TResult> {\n    const ttl = options?.ttl ?? this.#requestCacheTTL;\n\n    // Check for existing pending request - join it instead of making a duplicate\n    const pending = this.#pendingRequests.get(cacheKey);\n    if (pending) {\n      return pending.promise as Promise<TResult>;\n    }\n\n    // Check cache validity (unless force refresh)\n    if (!options?.forceRefresh) {\n      const cached = this.state.requests[cacheKey];\n      if (cached && !isCacheExpired(cached, ttl)) {\n        return cached.data as TResult;\n      }\n    }\n\n    // Create abort controller for this request\n    const abortController = new AbortController();\n    const lastFetchedAt = Date.now();\n\n    // Update state to loading\n    this.#updateRequestState(cacheKey, createLoadingState());\n\n    // Create the fetch promise\n    const promise = (async (): Promise<TResult> => {\n      try {\n        const data = await fetcher(abortController.signal);\n\n        // Don't update state if aborted\n        if (abortController.signal.aborted) {\n          throw new Error('Request was aborted');\n        }\n\n        this.#updateRequestState(\n          cacheKey,\n          createSuccessState(data as Json, lastFetchedAt),\n        );\n        return data;\n      } catch (error) {\n        // Don't update state if aborted\n        if (abortController.signal.aborted) {\n          throw error;\n        }\n\n        const errorMessage = (error as Error)?.message;\n\n        this.#updateRequestState(\n          cacheKey,\n          createErrorState(errorMessage ?? 'Unknown error', lastFetchedAt),\n        );\n        throw error;\n      } finally {\n        // Only delete if this is still our entry (not replaced by a new request)\n        const currentPending = this.#pendingRequests.get(cacheKey);\n        if (currentPending?.abortController === abortController) {\n          this.#pendingRequests.delete(cacheKey);\n        }\n      }\n    })();\n\n    // Store pending request for deduplication\n    this.#pendingRequests.set(cacheKey, { promise, abortController });\n\n    return promise;\n  }\n\n  /**\n   * Aborts a pending request if one exists.\n   *\n   * @param cacheKey - The cache key of the request to abort.\n   * @returns True if a request was aborted.\n   */\n  abortRequest(cacheKey: string): boolean {\n    const pending = this.#pendingRequests.get(cacheKey);\n    if (pending) {\n      pending.abortController.abort();\n      this.#pendingRequests.delete(cacheKey);\n      this.#removeRequestState(cacheKey);\n      return true;\n    }\n    return false;\n  }\n\n  /**\n   * Removes a request state from the cache.\n   *\n   * @param cacheKey - The cache key to remove.\n   */\n  #removeRequestState(cacheKey: string): void {\n    this.update((state) => {\n      const requests = state.requests as unknown as Record<\n        string,\n        RequestState | undefined\n      >;\n      delete requests[cacheKey];\n    });\n  }\n\n  /**\n   * Gets the state of a specific cached request.\n   *\n   * @param cacheKey - The cache key to look up.\n   * @returns The request state, or undefined if not cached.\n   */\n  getRequestState(cacheKey: string): RequestState | undefined {\n    return this.state.requests[cacheKey];\n  }\n\n  /**\n   * Updates the state for a specific request.\n   *\n   * @param cacheKey - The cache key.\n   * @param requestState - The new state for the request.\n   */\n  #updateRequestState(cacheKey: string, requestState: RequestState): void {\n    const maxSize = this.#requestCacheMaxSize;\n\n    this.update((state) => {\n      const requests = state.requests as unknown as Record<\n        string,\n        RequestState | undefined\n      >;\n      requests[cacheKey] = requestState;\n\n      // Evict oldest entries if cache exceeds max size\n      const keys = Object.keys(requests);\n\n      if (keys.length > maxSize) {\n        // Sort by timestamp (oldest first)\n        const sortedKeys = keys.sort((a, b) => {\n          const aTime = requests[a]?.timestamp ?? 0;\n          const bTime = requests[b]?.timestamp ?? 0;\n          return aTime - bTime;\n        });\n\n        // Remove oldest entries until we're under the limit\n        const entriesToRemove = keys.length - maxSize;\n        for (let i = 0; i < entriesToRemove; i++) {\n          const keyToRemove = sortedKeys[i];\n          if (keyToRemove) {\n            delete requests[keyToRemove];\n          }\n        }\n      }\n    });\n  }\n\n  /**\n   * Updates the user's geolocation.\n   * This method calls the RampsService to get the geolocation\n   * and stores the result in state.\n   *\n   * @param options - Options for cache behavior.\n   * @returns The geolocation string.\n   */\n  async updateGeolocation(options?: ExecuteRequestOptions): Promise<string> {\n    const cacheKey = createCacheKey('updateGeolocation', []);\n\n    const geolocation = await this.executeRequest(\n      cacheKey,\n      async () => {\n        const result = await this.messenger.call('RampsService:getGeolocation');\n        return result;\n      },\n      options,\n    );\n\n    this.update((state) => {\n      state.geolocation = geolocation;\n    });\n\n    return geolocation;\n  }\n}\n"]}
+\ No newline at end of file
+diff --git a/dist/RampsController.d.cts b/dist/RampsController.d.cts
+index 06738bf848d47339db430e98f6e0e170893cd49d..deeba88055a88001f1af12eb29dd8c8827cdf7e7 100644
+--- a/dist/RampsController.d.cts
++++ b/dist/RampsController.d.cts
+@@ -2,6 +2,7 @@ import type { ControllerGetStateAction, ControllerStateChangeEvent } from "@meta
+ import { BaseController } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+ import type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.cjs";
++import type { RequestCache as RequestCacheType, RequestState, ExecuteRequestOptions } from "./RequestCache.cjs";
+ /**
+  * The name of the {@link RampsController}, used to namespace the
+  * controller's actions and events and to namespace the controller's state data
+@@ -16,6 +17,11 @@ export type RampsControllerState = {
+      * The user's country code determined by geolocation.
+      */
+     geolocation: string | null;
++    /**
++     * Cache of request states, keyed by cache key.
++     * This stores loading, success, and error states for API requests.
++     */
++    requests: RequestCacheType;
+ };
+ /**
+  * Constructs the default {@link RampsController} state. This allows
+@@ -55,10 +61,24 @@ type AllowedEvents = never;
+  * {@link RampsController}.
+  */
+ export type RampsControllerMessenger = Messenger<typeof controllerName, RampsControllerActions | AllowedActions, RampsControllerEvents | AllowedEvents>;
++/**
++ * Configuration options for the RampsController.
++ */
++export type RampsControllerOptions = {
++    /** The messenger suited for this controller. */
++    messenger: RampsControllerMessenger;
++    /** The desired state with which to initialize this controller. */
++    state?: Partial<RampsControllerState>;
++    /** Time to live for cached requests in milliseconds. Defaults to 15 minutes. */
++    requestCacheTTL?: number;
++    /** Maximum number of entries in the request cache. Defaults to 250. */
++    requestCacheMaxSize?: number;
++};
+ /**
+  * Manages cryptocurrency on/off ramps functionality.
+  */
+ export declare class RampsController extends BaseController<typeof controllerName, RampsControllerState, RampsControllerMessenger> {
++    #private;
+     /**
+      * Constructs a new {@link RampsController}.
+      *
+@@ -66,17 +86,46 @@ export declare class RampsController extends BaseController<typeof controllerNam
+      * @param args.messenger - The messenger suited for this controller.
+      * @param args.state - The desired state with which to initialize this
+      * controller. Missing properties will be filled in with defaults.
++     * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.
++     * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.
++     */
++    constructor({ messenger, state, requestCacheTTL, requestCacheMaxSize, }: RampsControllerOptions);
++    /**
++     * Executes a request with caching and deduplication.
++     *
++     * If a request with the same cache key is already in flight, returns the
++     * existing promise. If valid cached data exists, returns it without making
++     * a new request.
++     *
++     * @param cacheKey - Unique identifier for this request.
++     * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.
++     * @param options - Options for cache behavior.
++     * @returns The result of the request.
++     */
++    executeRequest<TResult>(cacheKey: string, fetcher: (signal: AbortSignal) => Promise<TResult>, options?: ExecuteRequestOptions): Promise<TResult>;
++    /**
++     * Aborts a pending request if one exists.
++     *
++     * @param cacheKey - The cache key of the request to abort.
++     * @returns True if a request was aborted.
+      */
+-    constructor({ messenger, state, }: {
+-        messenger: RampsControllerMessenger;
+-        state?: Partial<RampsControllerState>;
+-    });
++    abortRequest(cacheKey: string): boolean;
++    /**
++     * Gets the state of a specific cached request.
++     *
++     * @param cacheKey - The cache key to look up.
++     * @returns The request state, or undefined if not cached.
++     */
++    getRequestState(cacheKey: string): RequestState | undefined;
+     /**
+      * Updates the user's geolocation.
+      * This method calls the RampsService to get the geolocation
+      * and stores the result in state.
++     *
++     * @param options - Options for cache behavior.
++     * @returns The geolocation string.
+      */
+-    updateGeolocation(): Promise<void>;
++    updateGeolocation(options?: ExecuteRequestOptions): Promise<string>;
+ }
+ export {};
+ //# sourceMappingURL=RampsController.d.cts.map
+\ No newline at end of file
+diff --git a/dist/RampsController.d.cts.map b/dist/RampsController.d.cts.map
+index b55ba3a6289a869d098236c1b7614364c4ff4b73..4df3206c07f6ffb3bce8700ce587e09b13c334ba 100644
+--- a/dist/RampsController.d.cts.map
++++ b/dist/RampsController.d.cts.map
+@@ -1 +1 @@
+-{"version":3,"file":"RampsController.d.cts","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,wBAAwB,EACxB,0BAA0B,EAE3B,kCAAkC;AACnC,OAAO,EAAE,cAAc,EAAE,kCAAkC;AAC3D,OAAO,KAAK,EAAE,SAAS,EAAE,4BAA4B;AAErD,OAAO,KAAK,EAAE,gCAAgC,EAAE,+CAA2C;AAI3F;;;;GAIG;AACH,eAAO,MAAM,cAAc,oBAAoB,CAAC;AAIhD;;GAEG;AACH,MAAM,MAAM,oBAAoB,GAAG;IACjC;;OAEG;IACH,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;CAC5B,CAAC;AAcF;;;;;;;GAOG;AACH,wBAAgB,8BAA8B,IAAI,oBAAoB,CAIrE;AAID;;GAEG;AACH,MAAM,MAAM,6BAA6B,GAAG,wBAAwB,CAClE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG,6BAA6B,CAAC;AAEnE;;GAEG;AACH,KAAK,cAAc,GAAG,gCAAgC,CAAC;AAEvD;;GAEG;AACH,MAAM,MAAM,+BAA+B,GAAG,0BAA0B,CACtE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG,+BAA+B,CAAC;AAEpE;;GAEG;AACH,KAAK,aAAa,GAAG,KAAK,CAAC;AAE3B;;;GAGG;AACH,MAAM,MAAM,wBAAwB,GAAG,SAAS,CAC9C,OAAO,cAAc,EACrB,sBAAsB,GAAG,cAAc,EACvC,qBAAqB,GAAG,aAAa,CACtC,CAAC;AAIF;;GAEG;AACH,qBAAa,eAAgB,SAAQ,cAAc,CACjD,OAAO,cAAc,EACrB,oBAAoB,EACpB,wBAAwB,CACzB;IACC;;;;;;;OAOG;gBACS,EACV,SAAS,EACT,KAAU,GACX,EAAE;QACD,SAAS,EAAE,wBAAwB,CAAC;QACpC,KAAK,CAAC,EAAE,OAAO,CAAC,oBAAoB,CAAC,CAAC;KACvC;IAYD;;;;OAIG;IACG,iBAAiB,IAAI,OAAO,CAAC,IAAI,CAAC;CASzC"}
+\ No newline at end of file
++{"version":3,"file":"RampsController.d.cts","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,wBAAwB,EACxB,0BAA0B,EAE3B,kCAAkC;AACnC,OAAO,EAAE,cAAc,EAAE,kCAAkC;AAC3D,OAAO,KAAK,EAAE,SAAS,EAAE,4BAA4B;AAGrD,OAAO,KAAK,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,OAAO,KAAK,EACV,YAAY,IAAI,gBAAgB,EAChC,YAAY,EACZ,qBAAqB,EAEtB,2BAAuB;AAaxB;;;;GAIG;AACH,eAAO,MAAM,cAAc,oBAAoB,CAAC;AAIhD;;GAEG;AACH,MAAM,MAAM,oBAAoB,GAAG;IACjC;;OAEG;IACH,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;IAC3B;;;OAGG;IACH,QAAQ,EAAE,gBAAgB,CAAC;CAC5B,CAAC;AAoBF;;;;;;;GAOG;AACH,wBAAgB,8BAA8B,IAAI,oBAAoB,CAKrE;AAID;;GAEG;AACH,MAAM,MAAM,6BAA6B,GAAG,wBAAwB,CAClE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG,6BAA6B,CAAC;AAEnE;;GAEG;AACH,KAAK,cAAc,GAAG,gCAAgC,CAAC;AAEvD;;GAEG;AACH,MAAM,MAAM,+BAA+B,GAAG,0BAA0B,CACtE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG,+BAA+B,CAAC;AAEpE;;GAEG;AACH,KAAK,aAAa,GAAG,KAAK,CAAC;AAE3B;;;GAGG;AACH,MAAM,MAAM,wBAAwB,GAAG,SAAS,CAC9C,OAAO,cAAc,EACrB,sBAAsB,GAAG,cAAc,EACvC,qBAAqB,GAAG,aAAa,CACtC,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG;IACnC,gDAAgD;IAChD,SAAS,EAAE,wBAAwB,CAAC;IACpC,kEAAkE;IAClE,KAAK,CAAC,EAAE,OAAO,CAAC,oBAAoB,CAAC,CAAC;IACtC,gFAAgF;IAChF,eAAe,CAAC,EAAE,MAAM,CAAC;IACzB,uEAAuE;IACvE,mBAAmB,CAAC,EAAE,MAAM,CAAC;CAC9B,CAAC;AAIF;;GAEG;AACH,qBAAa,eAAgB,SAAQ,cAAc,CACjD,OAAO,cAAc,EACrB,oBAAoB,EACpB,wBAAwB,CACzB;;IAiBC;;;;;;;;;OASG;gBACS,EACV,SAAS,EACT,KAAU,EACV,eAA2C,EAC3C,mBAAoD,GACrD,EAAE,sBAAsB;IAiBzB;;;;;;;;;;;OAWG;IACG,cAAc,CAAC,OAAO,EAC1B,QAAQ,EAAE,MAAM,EAChB,OAAO,EAAE,CAAC,MAAM,EAAE,WAAW,KAAK,OAAO,CAAC,OAAO,CAAC,EAClD,OAAO,CAAC,EAAE,qBAAqB,GAC9B,OAAO,CAAC,OAAO,CAAC;IAmEnB;;;;;OAKG;IACH,YAAY,CAAC,QAAQ,EAAE,MAAM,GAAG,OAAO;IA0BvC;;;;;OAKG;IACH,eAAe,CAAC,QAAQ,EAAE,MAAM,GAAG,YAAY,GAAG,SAAS;IA2C3D;;;;;;;OAOG;IACG,iBAAiB,CAAC,OAAO,CAAC,EAAE,qBAAqB,GAAG,OAAO,CAAC,MAAM,CAAC;CAkB1E"}
+\ No newline at end of file
+diff --git a/dist/RampsController.d.mts b/dist/RampsController.d.mts
+index 1bb11d06835583bc48e45ea39661ce24939cf694..b71aefd7b640c607db452a8c8a15919baaa23cb6 100644
+--- a/dist/RampsController.d.mts
++++ b/dist/RampsController.d.mts
+@@ -2,6 +2,7 @@ import type { ControllerGetStateAction, ControllerStateChangeEvent } from "@meta
+ import { BaseController } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+ import type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.mjs";
++import type { RequestCache as RequestCacheType, RequestState, ExecuteRequestOptions } from "./RequestCache.mjs";
+ /**
+  * The name of the {@link RampsController}, used to namespace the
+  * controller's actions and events and to namespace the controller's state data
+@@ -16,6 +17,11 @@ export type RampsControllerState = {
+      * The user's country code determined by geolocation.
+      */
+     geolocation: string | null;
++    /**
++     * Cache of request states, keyed by cache key.
++     * This stores loading, success, and error states for API requests.
++     */
++    requests: RequestCacheType;
+ };
+ /**
+  * Constructs the default {@link RampsController} state. This allows
+@@ -55,10 +61,24 @@ type AllowedEvents = never;
+  * {@link RampsController}.
+  */
+ export type RampsControllerMessenger = Messenger<typeof controllerName, RampsControllerActions | AllowedActions, RampsControllerEvents | AllowedEvents>;
++/**
++ * Configuration options for the RampsController.
++ */
++export type RampsControllerOptions = {
++    /** The messenger suited for this controller. */
++    messenger: RampsControllerMessenger;
++    /** The desired state with which to initialize this controller. */
++    state?: Partial<RampsControllerState>;
++    /** Time to live for cached requests in milliseconds. Defaults to 15 minutes. */
++    requestCacheTTL?: number;
++    /** Maximum number of entries in the request cache. Defaults to 250. */
++    requestCacheMaxSize?: number;
++};
+ /**
+  * Manages cryptocurrency on/off ramps functionality.
+  */
+ export declare class RampsController extends BaseController<typeof controllerName, RampsControllerState, RampsControllerMessenger> {
++    #private;
+     /**
+      * Constructs a new {@link RampsController}.
+      *
+@@ -66,17 +86,46 @@ export declare class RampsController extends BaseController<typeof controllerNam
+      * @param args.messenger - The messenger suited for this controller.
+      * @param args.state - The desired state with which to initialize this
+      * controller. Missing properties will be filled in with defaults.
++     * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.
++     * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.
++     */
++    constructor({ messenger, state, requestCacheTTL, requestCacheMaxSize, }: RampsControllerOptions);
++    /**
++     * Executes a request with caching and deduplication.
++     *
++     * If a request with the same cache key is already in flight, returns the
++     * existing promise. If valid cached data exists, returns it without making
++     * a new request.
++     *
++     * @param cacheKey - Unique identifier for this request.
++     * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.
++     * @param options - Options for cache behavior.
++     * @returns The result of the request.
++     */
++    executeRequest<TResult>(cacheKey: string, fetcher: (signal: AbortSignal) => Promise<TResult>, options?: ExecuteRequestOptions): Promise<TResult>;
++    /**
++     * Aborts a pending request if one exists.
++     *
++     * @param cacheKey - The cache key of the request to abort.
++     * @returns True if a request was aborted.
+      */
+-    constructor({ messenger, state, }: {
+-        messenger: RampsControllerMessenger;
+-        state?: Partial<RampsControllerState>;
+-    });
++    abortRequest(cacheKey: string): boolean;
++    /**
++     * Gets the state of a specific cached request.
++     *
++     * @param cacheKey - The cache key to look up.
++     * @returns The request state, or undefined if not cached.
++     */
++    getRequestState(cacheKey: string): RequestState | undefined;
+     /**
+      * Updates the user's geolocation.
+      * This method calls the RampsService to get the geolocation
+      * and stores the result in state.
++     *
++     * @param options - Options for cache behavior.
++     * @returns The geolocation string.
+      */
+-    updateGeolocation(): Promise<void>;
++    updateGeolocation(options?: ExecuteRequestOptions): Promise<string>;
+ }
+ export {};
+ //# sourceMappingURL=RampsController.d.mts.map
+\ No newline at end of file
+diff --git a/dist/RampsController.d.mts.map b/dist/RampsController.d.mts.map
+index 7a3b1aae263909d551bc2a281687c0169aa3255f..8aa52826543f934bcaf388d898b5010943580e00 100644
+--- a/dist/RampsController.d.mts.map
++++ b/dist/RampsController.d.mts.map
+@@ -1 +1 @@
+-{"version":3,"file":"RampsController.d.mts","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,wBAAwB,EACxB,0BAA0B,EAE3B,kCAAkC;AACnC,OAAO,EAAE,cAAc,EAAE,kCAAkC;AAC3D,OAAO,KAAK,EAAE,SAAS,EAAE,4BAA4B;AAErD,OAAO,KAAK,EAAE,gCAAgC,EAAE,+CAA2C;AAI3F;;;;GAIG;AACH,eAAO,MAAM,cAAc,oBAAoB,CAAC;AAIhD;;GAEG;AACH,MAAM,MAAM,oBAAoB,GAAG;IACjC;;OAEG;IACH,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;CAC5B,CAAC;AAcF;;;;;;;GAOG;AACH,wBAAgB,8BAA8B,IAAI,oBAAoB,CAIrE;AAID;;GAEG;AACH,MAAM,MAAM,6BAA6B,GAAG,wBAAwB,CAClE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG,6BAA6B,CAAC;AAEnE;;GAEG;AACH,KAAK,cAAc,GAAG,gCAAgC,CAAC;AAEvD;;GAEG;AACH,MAAM,MAAM,+BAA+B,GAAG,0BAA0B,CACtE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG,+BAA+B,CAAC;AAEpE;;GAEG;AACH,KAAK,aAAa,GAAG,KAAK,CAAC;AAE3B;;;GAGG;AACH,MAAM,MAAM,wBAAwB,GAAG,SAAS,CAC9C,OAAO,cAAc,EACrB,sBAAsB,GAAG,cAAc,EACvC,qBAAqB,GAAG,aAAa,CACtC,CAAC;AAIF;;GAEG;AACH,qBAAa,eAAgB,SAAQ,cAAc,CACjD,OAAO,cAAc,EACrB,oBAAoB,EACpB,wBAAwB,CACzB;IACC;;;;;;;OAOG;gBACS,EACV,SAAS,EACT,KAAU,GACX,EAAE;QACD,SAAS,EAAE,wBAAwB,CAAC;QACpC,KAAK,CAAC,EAAE,OAAO,CAAC,oBAAoB,CAAC,CAAC;KACvC;IAYD;;;;OAIG;IACG,iBAAiB,IAAI,OAAO,CAAC,IAAI,CAAC;CASzC"}
+\ No newline at end of file
++{"version":3,"file":"RampsController.d.mts","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,wBAAwB,EACxB,0BAA0B,EAE3B,kCAAkC;AACnC,OAAO,EAAE,cAAc,EAAE,kCAAkC;AAC3D,OAAO,KAAK,EAAE,SAAS,EAAE,4BAA4B;AAGrD,OAAO,KAAK,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,OAAO,KAAK,EACV,YAAY,IAAI,gBAAgB,EAChC,YAAY,EACZ,qBAAqB,EAEtB,2BAAuB;AAaxB;;;;GAIG;AACH,eAAO,MAAM,cAAc,oBAAoB,CAAC;AAIhD;;GAEG;AACH,MAAM,MAAM,oBAAoB,GAAG;IACjC;;OAEG;IACH,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;IAC3B;;;OAGG;IACH,QAAQ,EAAE,gBAAgB,CAAC;CAC5B,CAAC;AAoBF;;;;;;;GAOG;AACH,wBAAgB,8BAA8B,IAAI,oBAAoB,CAKrE;AAID;;GAEG;AACH,MAAM,MAAM,6BAA6B,GAAG,wBAAwB,CAClE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG,6BAA6B,CAAC;AAEnE;;GAEG;AACH,KAAK,cAAc,GAAG,gCAAgC,CAAC;AAEvD;;GAEG;AACH,MAAM,MAAM,+BAA+B,GAAG,0BAA0B,CACtE,OAAO,cAAc,EACrB,oBAAoB,CACrB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG,+BAA+B,CAAC;AAEpE;;GAEG;AACH,KAAK,aAAa,GAAG,KAAK,CAAC;AAE3B;;;GAGG;AACH,MAAM,MAAM,wBAAwB,GAAG,SAAS,CAC9C,OAAO,cAAc,EACrB,sBAAsB,GAAG,cAAc,EACvC,qBAAqB,GAAG,aAAa,CACtC,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG;IACnC,gDAAgD;IAChD,SAAS,EAAE,wBAAwB,CAAC;IACpC,kEAAkE;IAClE,KAAK,CAAC,EAAE,OAAO,CAAC,oBAAoB,CAAC,CAAC;IACtC,gFAAgF;IAChF,eAAe,CAAC,EAAE,MAAM,CAAC;IACzB,uEAAuE;IACvE,mBAAmB,CAAC,EAAE,MAAM,CAAC;CAC9B,CAAC;AAIF;;GAEG;AACH,qBAAa,eAAgB,SAAQ,cAAc,CACjD,OAAO,cAAc,EACrB,oBAAoB,EACpB,wBAAwB,CACzB;;IAiBC;;;;;;;;;OASG;gBACS,EACV,SAAS,EACT,KAAU,EACV,eAA2C,EAC3C,mBAAoD,GACrD,EAAE,sBAAsB;IAiBzB;;;;;;;;;;;OAWG;IACG,cAAc,CAAC,OAAO,EAC1B,QAAQ,EAAE,MAAM,EAChB,OAAO,EAAE,CAAC,MAAM,EAAE,WAAW,KAAK,OAAO,CAAC,OAAO,CAAC,EAClD,OAAO,CAAC,EAAE,qBAAqB,GAC9B,OAAO,CAAC,OAAO,CAAC;IAmEnB;;;;;OAKG;IACH,YAAY,CAAC,QAAQ,EAAE,MAAM,GAAG,OAAO;IA0BvC;;;;;OAKG;IACH,eAAe,CAAC,QAAQ,EAAE,MAAM,GAAG,YAAY,GAAG,SAAS;IA2C3D;;;;;;;OAOG;IACG,iBAAiB,CAAC,OAAO,CAAC,EAAE,qBAAqB,GAAG,OAAO,CAAC,MAAM,CAAC;CAkB1E"}
+\ No newline at end of file
+diff --git a/dist/RampsController.mjs b/dist/RampsController.mjs
+index e50e461cabd14b4656a8b6b4da8e0ffb8f9548af..fba55a42f30fce4087b3600ece0acee70b5e8c18 100644
+--- a/dist/RampsController.mjs
++++ b/dist/RampsController.mjs
+@@ -1,4 +1,17 @@
++var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++    if (kind === "m") throw new TypeError("Private method is not writable");
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
++    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var _RampsController_instances, _RampsController_requestCacheTTL, _RampsController_requestCacheMaxSize, _RampsController_pendingRequests, _RampsController_removeRequestState, _RampsController_updateRequestState;
+ import { BaseController } from "@metamask/base-controller";
++import { DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState } from "./RequestCache.mjs";
+ // === GENERAL ===
+ /**
+  * The name of the {@link RampsController}, used to namespace the
+@@ -16,6 +29,12 @@ const rampsControllerMetadata = {
+         includeInStateLogs: true,
+         usedInUi: true,
+     },
++    requests: {
++        persist: false,
++        includeInDebugSnapshot: true,
++        includeInStateLogs: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Constructs the default {@link RampsController} state. This allows
+@@ -28,6 +47,7 @@ const rampsControllerMetadata = {
+ export function getDefaultRampsControllerState() {
+     return {
+         geolocation: null,
++        requests: {},
+     };
+ }
+ // === CONTROLLER DEFINITION ===
+@@ -42,8 +62,10 @@ export class RampsController extends BaseController {
+      * @param args.messenger - The messenger suited for this controller.
+      * @param args.state - The desired state with which to initialize this
+      * controller. Missing properties will be filled in with defaults.
++     * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.
++     * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.
+      */
+-    constructor({ messenger, state = {}, }) {
++    constructor({ messenger, state = {}, requestCacheTTL = DEFAULT_REQUEST_CACHE_TTL, requestCacheMaxSize = DEFAULT_REQUEST_CACHE_MAX_SIZE, }) {
+         super({
+             messenger,
+             metadata: rampsControllerMetadata,
+@@ -51,19 +73,163 @@ export class RampsController extends BaseController {
+             state: {
+                 ...getDefaultRampsControllerState(),
+                 ...state,
++                // Always reset requests cache on initialization (non-persisted)
++                requests: {},
+             },
+         });
++        _RampsController_instances.add(this);
++        /**
++         * Default TTL for cached requests.
++         */
++        _RampsController_requestCacheTTL.set(this, void 0);
++        /**
++         * Maximum number of entries in the request cache.
++         */
++        _RampsController_requestCacheMaxSize.set(this, void 0);
++        /**
++         * Map of pending requests for deduplication.
++         * Key is the cache key, value is the pending request with abort controller.
++         */
++        _RampsController_pendingRequests.set(this, new Map());
++        __classPrivateFieldSet(this, _RampsController_requestCacheTTL, requestCacheTTL, "f");
++        __classPrivateFieldSet(this, _RampsController_requestCacheMaxSize, requestCacheMaxSize, "f");
++    }
++    /**
++     * Executes a request with caching and deduplication.
++     *
++     * If a request with the same cache key is already in flight, returns the
++     * existing promise. If valid cached data exists, returns it without making
++     * a new request.
++     *
++     * @param cacheKey - Unique identifier for this request.
++     * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.
++     * @param options - Options for cache behavior.
++     * @returns The result of the request.
++     */
++    async executeRequest(cacheKey, fetcher, options) {
++        const ttl = options?.ttl ?? __classPrivateFieldGet(this, _RampsController_requestCacheTTL, "f");
++        // Check for existing pending request - join it instead of making a duplicate
++        const pending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++        if (pending) {
++            return pending.promise;
++        }
++        // Check cache validity (unless force refresh)
++        if (!options?.forceRefresh) {
++            const cached = this.state.requests[cacheKey];
++            if (cached && !isCacheExpired(cached, ttl)) {
++                return cached.data;
++            }
++        }
++        // Create abort controller for this request
++        const abortController = new AbortController();
++        const lastFetchedAt = Date.now();
++        // Update state to loading
++        __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, createLoadingState());
++        // Create the fetch promise
++        const promise = (async () => {
++            try {
++                const data = await fetcher(abortController.signal);
++                // Don't update state if aborted
++                if (abortController.signal.aborted) {
++                    throw new Error('Request was aborted');
++                }
++                __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, createSuccessState(data, lastFetchedAt));
++                return data;
++            }
++            catch (error) {
++                // Don't update state if aborted
++                if (abortController.signal.aborted) {
++                    throw error;
++                }
++                const errorMessage = error?.message;
++                __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_updateRequestState).call(this, cacheKey, createErrorState(errorMessage ?? 'Unknown error', lastFetchedAt));
++                throw error;
++            }
++            finally {
++                // Only delete if this is still our entry (not replaced by a new request)
++                const currentPending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++                if (currentPending?.abortController === abortController) {
++                    __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").delete(cacheKey);
++                }
++            }
++        })();
++        // Store pending request for deduplication
++        __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").set(cacheKey, { promise, abortController });
++        return promise;
++    }
++    /**
++     * Aborts a pending request if one exists.
++     *
++     * @param cacheKey - The cache key of the request to abort.
++     * @returns True if a request was aborted.
++     */
++    abortRequest(cacheKey) {
++        const pending = __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").get(cacheKey);
++        if (pending) {
++            pending.abortController.abort();
++            __classPrivateFieldGet(this, _RampsController_pendingRequests, "f").delete(cacheKey);
++            __classPrivateFieldGet(this, _RampsController_instances, "m", _RampsController_removeRequestState).call(this, cacheKey);
++            return true;
++        }
++        return false;
++    }
++    /**
++     * Gets the state of a specific cached request.
++     *
++     * @param cacheKey - The cache key to look up.
++     * @returns The request state, or undefined if not cached.
++     */
++    getRequestState(cacheKey) {
++        return this.state.requests[cacheKey];
+     }
+     /**
+      * Updates the user's geolocation.
+      * This method calls the RampsService to get the geolocation
+      * and stores the result in state.
++     *
++     * @param options - Options for cache behavior.
++     * @returns The geolocation string.
+      */
+-    async updateGeolocation() {
+-        const geolocation = await this.messenger.call('RampsService:getGeolocation');
++    async updateGeolocation(options) {
++        const cacheKey = createCacheKey('updateGeolocation', []);
++        const geolocation = await this.executeRequest(cacheKey, async () => {
++            const result = await this.messenger.call('RampsService:getGeolocation');
++            return result;
++        }, options);
+         this.update((state) => {
+             state.geolocation = geolocation;
+         });
++        return geolocation;
+     }
+ }
++_RampsController_requestCacheTTL = new WeakMap(), _RampsController_requestCacheMaxSize = new WeakMap(), _RampsController_pendingRequests = new WeakMap(), _RampsController_instances = new WeakSet(), _RampsController_removeRequestState = function _RampsController_removeRequestState(cacheKey) {
++    this.update((state) => {
++        const requests = state.requests;
++        delete requests[cacheKey];
++    });
++}, _RampsController_updateRequestState = function _RampsController_updateRequestState(cacheKey, requestState) {
++    const maxSize = __classPrivateFieldGet(this, _RampsController_requestCacheMaxSize, "f");
++    this.update((state) => {
++        const requests = state.requests;
++        requests[cacheKey] = requestState;
++        // Evict oldest entries if cache exceeds max size
++        const keys = Object.keys(requests);
++        if (keys.length > maxSize) {
++            // Sort by timestamp (oldest first)
++            const sortedKeys = keys.sort((a, b) => {
++                const aTime = requests[a]?.timestamp ?? 0;
++                const bTime = requests[b]?.timestamp ?? 0;
++                return aTime - bTime;
++            });
++            // Remove oldest entries until we're under the limit
++            const entriesToRemove = keys.length - maxSize;
++            for (let i = 0; i < entriesToRemove; i++) {
++                const keyToRemove = sortedKeys[i];
++                if (keyToRemove) {
++                    delete requests[keyToRemove];
++                }
++            }
++        }
++    });
++};
+ //# sourceMappingURL=RampsController.mjs.map
+\ No newline at end of file
+diff --git a/dist/RampsController.mjs.map b/dist/RampsController.mjs.map
+index ddd35af2f7e136a2c1ad49ca224cb5695e72705f..4e6f32bc94dbb1c79367398785234b49172c89ef 100644
+--- a/dist/RampsController.mjs.map
++++ b/dist/RampsController.mjs.map
+@@ -1 +1 @@
+-{"version":3,"file":"RampsController.mjs","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,cAAc,EAAE,kCAAkC;AAK3D,kBAAkB;AAElB;;;;GAIG;AACH,MAAM,CAAC,MAAM,cAAc,GAAG,iBAAiB,CAAC;AAchD;;GAEG;AACH,MAAM,uBAAuB,GAAG;IAC9B,WAAW,EAAE;QACX,OAAO,EAAE,IAAI;QACb,sBAAsB,EAAE,IAAI;QAC5B,kBAAkB,EAAE,IAAI;QACxB,QAAQ,EAAE,IAAI;KACf;CAC4C,CAAC;AAEhD;;;;;;;GAOG;AACH,MAAM,UAAU,8BAA8B;IAC5C,OAAO;QACL,WAAW,EAAE,IAAI;KAClB,CAAC;AACJ,CAAC;AAkDD,gCAAgC;AAEhC;;GAEG;AACH,MAAM,OAAO,eAAgB,SAAQ,cAIpC;IACC;;;;;;;OAOG;IACH,YAAY,EACV,SAAS,EACT,KAAK,GAAG,EAAE,GAIX;QACC,KAAK,CAAC;YACJ,SAAS;YACT,QAAQ,EAAE,uBAAuB;YACjC,IAAI,EAAE,cAAc;YACpB,KAAK,EAAE;gBACL,GAAG,8BAA8B,EAAE;gBACnC,GAAG,KAAK;aACT;SACF,CAAC,CAAC;IACL,CAAC;IAED;;;;OAIG;IACH,KAAK,CAAC,iBAAiB;QACrB,MAAM,WAAW,GAAG,MAAM,IAAI,CAAC,SAAS,CAAC,IAAI,CAC3C,6BAA6B,CAC9B,CAAC;QAEF,IAAI,CAAC,MAAM,CAAC,CAAC,KAAK,EAAE,EAAE;YACpB,KAAK,CAAC,WAAW,GAAG,WAAW,CAAC;QAClC,CAAC,CAAC,CAAC;IACL,CAAC;CACF","sourcesContent":["import type {\n  ControllerGetStateAction,\n  ControllerStateChangeEvent,\n  StateMetadata,\n} from '@metamask/base-controller';\nimport { BaseController } from '@metamask/base-controller';\nimport type { Messenger } from '@metamask/messenger';\n\nimport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n\n// === GENERAL ===\n\n/**\n * The name of the {@link RampsController}, used to namespace the\n * controller's actions and events and to namespace the controller's state data\n * when composed with other controllers.\n */\nexport const controllerName = 'RampsController';\n\n// === STATE ===\n\n/**\n * Describes the shape of the state object for {@link RampsController}.\n */\nexport type RampsControllerState = {\n  /**\n   * The user's country code determined by geolocation.\n   */\n  geolocation: string | null;\n};\n\n/**\n * The metadata for each property in {@link RampsControllerState}.\n */\nconst rampsControllerMetadata = {\n  geolocation: {\n    persist: true,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: true,\n    usedInUi: true,\n  },\n} satisfies StateMetadata<RampsControllerState>;\n\n/**\n * Constructs the default {@link RampsController} state. This allows\n * consumers to provide a partial state object when initializing the controller\n * and also helps in constructing complete state objects for this controller in\n * tests.\n *\n * @returns The default {@link RampsController} state.\n */\nexport function getDefaultRampsControllerState(): RampsControllerState {\n  return {\n    geolocation: null,\n  };\n}\n\n// === MESSENGER ===\n\n/**\n * Retrieves the state of the {@link RampsController}.\n */\nexport type RampsControllerGetStateAction = ControllerGetStateAction<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Actions that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerActions = RampsControllerGetStateAction;\n\n/**\n * Actions from other messengers that {@link RampsController} calls.\n */\ntype AllowedActions = RampsServiceGetGeolocationAction;\n\n/**\n * Published when the state of {@link RampsController} changes.\n */\nexport type RampsControllerStateChangeEvent = ControllerStateChangeEvent<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Events that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerEvents = RampsControllerStateChangeEvent;\n\n/**\n * Events from other messengers that {@link RampsController} subscribes to.\n */\ntype AllowedEvents = never;\n\n/**\n * The messenger restricted to actions and events accessed by\n * {@link RampsController}.\n */\nexport type RampsControllerMessenger = Messenger<\n  typeof controllerName,\n  RampsControllerActions | AllowedActions,\n  RampsControllerEvents | AllowedEvents\n>;\n\n// === CONTROLLER DEFINITION ===\n\n/**\n * Manages cryptocurrency on/off ramps functionality.\n */\nexport class RampsController extends BaseController<\n  typeof controllerName,\n  RampsControllerState,\n  RampsControllerMessenger\n> {\n  /**\n   * Constructs a new {@link RampsController}.\n   *\n   * @param args - The constructor arguments.\n   * @param args.messenger - The messenger suited for this controller.\n   * @param args.state - The desired state with which to initialize this\n   * controller. Missing properties will be filled in with defaults.\n   */\n  constructor({\n    messenger,\n    state = {},\n  }: {\n    messenger: RampsControllerMessenger;\n    state?: Partial<RampsControllerState>;\n  }) {\n    super({\n      messenger,\n      metadata: rampsControllerMetadata,\n      name: controllerName,\n      state: {\n        ...getDefaultRampsControllerState(),\n        ...state,\n      },\n    });\n  }\n\n  /**\n   * Updates the user's geolocation.\n   * This method calls the RampsService to get the geolocation\n   * and stores the result in state.\n   */\n  async updateGeolocation(): Promise<void> {\n    const geolocation = await this.messenger.call(\n      'RampsService:getGeolocation',\n    );\n\n    this.update((state) => {\n      state.geolocation = geolocation;\n    });\n  }\n}\n"]}
+\ No newline at end of file
++{"version":3,"file":"RampsController.mjs","sourceRoot":"","sources":["../src/RampsController.ts"],"names":[],"mappings":"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","sourcesContent":["import type {\n  ControllerGetStateAction,\n  ControllerStateChangeEvent,\n  StateMetadata,\n} from '@metamask/base-controller';\nimport { BaseController } from '@metamask/base-controller';\nimport type { Messenger } from '@metamask/messenger';\nimport type { Json } from '@metamask/utils';\n\nimport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nimport type {\n  RequestCache as RequestCacheType,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nimport {\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n\n// === GENERAL ===\n\n/**\n * The name of the {@link RampsController}, used to namespace the\n * controller's actions and events and to namespace the controller's state data\n * when composed with other controllers.\n */\nexport const controllerName = 'RampsController';\n\n// === STATE ===\n\n/**\n * Describes the shape of the state object for {@link RampsController}.\n */\nexport type RampsControllerState = {\n  /**\n   * The user's country code determined by geolocation.\n   */\n  geolocation: string | null;\n  /**\n   * Cache of request states, keyed by cache key.\n   * This stores loading, success, and error states for API requests.\n   */\n  requests: RequestCacheType;\n};\n\n/**\n * The metadata for each property in {@link RampsControllerState}.\n */\nconst rampsControllerMetadata = {\n  geolocation: {\n    persist: true,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: true,\n    usedInUi: true,\n  },\n  requests: {\n    persist: false,\n    includeInDebugSnapshot: true,\n    includeInStateLogs: false,\n    usedInUi: true,\n  },\n} satisfies StateMetadata<RampsControllerState>;\n\n/**\n * Constructs the default {@link RampsController} state. This allows\n * consumers to provide a partial state object when initializing the controller\n * and also helps in constructing complete state objects for this controller in\n * tests.\n *\n * @returns The default {@link RampsController} state.\n */\nexport function getDefaultRampsControllerState(): RampsControllerState {\n  return {\n    geolocation: null,\n    requests: {},\n  };\n}\n\n// === MESSENGER ===\n\n/**\n * Retrieves the state of the {@link RampsController}.\n */\nexport type RampsControllerGetStateAction = ControllerGetStateAction<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Actions that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerActions = RampsControllerGetStateAction;\n\n/**\n * Actions from other messengers that {@link RampsController} calls.\n */\ntype AllowedActions = RampsServiceGetGeolocationAction;\n\n/**\n * Published when the state of {@link RampsController} changes.\n */\nexport type RampsControllerStateChangeEvent = ControllerStateChangeEvent<\n  typeof controllerName,\n  RampsControllerState\n>;\n\n/**\n * Events that {@link RampsControllerMessenger} exposes to other consumers.\n */\nexport type RampsControllerEvents = RampsControllerStateChangeEvent;\n\n/**\n * Events from other messengers that {@link RampsController} subscribes to.\n */\ntype AllowedEvents = never;\n\n/**\n * The messenger restricted to actions and events accessed by\n * {@link RampsController}.\n */\nexport type RampsControllerMessenger = Messenger<\n  typeof controllerName,\n  RampsControllerActions | AllowedActions,\n  RampsControllerEvents | AllowedEvents\n>;\n\n/**\n * Configuration options for the RampsController.\n */\nexport type RampsControllerOptions = {\n  /** The messenger suited for this controller. */\n  messenger: RampsControllerMessenger;\n  /** The desired state with which to initialize this controller. */\n  state?: Partial<RampsControllerState>;\n  /** Time to live for cached requests in milliseconds. Defaults to 15 minutes. */\n  requestCacheTTL?: number;\n  /** Maximum number of entries in the request cache. Defaults to 250. */\n  requestCacheMaxSize?: number;\n};\n\n// === CONTROLLER DEFINITION ===\n\n/**\n * Manages cryptocurrency on/off ramps functionality.\n */\nexport class RampsController extends BaseController<\n  typeof controllerName,\n  RampsControllerState,\n  RampsControllerMessenger\n> {\n  /**\n   * Default TTL for cached requests.\n   */\n  readonly #requestCacheTTL: number;\n\n  /**\n   * Maximum number of entries in the request cache.\n   */\n  readonly #requestCacheMaxSize: number;\n\n  /**\n   * Map of pending requests for deduplication.\n   * Key is the cache key, value is the pending request with abort controller.\n   */\n  readonly #pendingRequests: Map<string, PendingRequest> = new Map();\n\n  /**\n   * Constructs a new {@link RampsController}.\n   *\n   * @param args - The constructor arguments.\n   * @param args.messenger - The messenger suited for this controller.\n   * @param args.state - The desired state with which to initialize this\n   * controller. Missing properties will be filled in with defaults.\n   * @param args.requestCacheTTL - Time to live for cached requests in milliseconds.\n   * @param args.requestCacheMaxSize - Maximum number of entries in the request cache.\n   */\n  constructor({\n    messenger,\n    state = {},\n    requestCacheTTL = DEFAULT_REQUEST_CACHE_TTL,\n    requestCacheMaxSize = DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  }: RampsControllerOptions) {\n    super({\n      messenger,\n      metadata: rampsControllerMetadata,\n      name: controllerName,\n      state: {\n        ...getDefaultRampsControllerState(),\n        ...state,\n        // Always reset requests cache on initialization (non-persisted)\n        requests: {},\n      },\n    });\n\n    this.#requestCacheTTL = requestCacheTTL;\n    this.#requestCacheMaxSize = requestCacheMaxSize;\n  }\n\n  /**\n   * Executes a request with caching and deduplication.\n   *\n   * If a request with the same cache key is already in flight, returns the\n   * existing promise. If valid cached data exists, returns it without making\n   * a new request.\n   *\n   * @param cacheKey - Unique identifier for this request.\n   * @param fetcher - Function that performs the actual fetch. Receives an AbortSignal.\n   * @param options - Options for cache behavior.\n   * @returns The result of the request.\n   */\n  async executeRequest<TResult>(\n    cacheKey: string,\n    fetcher: (signal: AbortSignal) => Promise<TResult>,\n    options?: ExecuteRequestOptions,\n  ): Promise<TResult> {\n    const ttl = options?.ttl ?? this.#requestCacheTTL;\n\n    // Check for existing pending request - join it instead of making a duplicate\n    const pending = this.#pendingRequests.get(cacheKey);\n    if (pending) {\n      return pending.promise as Promise<TResult>;\n    }\n\n    // Check cache validity (unless force refresh)\n    if (!options?.forceRefresh) {\n      const cached = this.state.requests[cacheKey];\n      if (cached && !isCacheExpired(cached, ttl)) {\n        return cached.data as TResult;\n      }\n    }\n\n    // Create abort controller for this request\n    const abortController = new AbortController();\n    const lastFetchedAt = Date.now();\n\n    // Update state to loading\n    this.#updateRequestState(cacheKey, createLoadingState());\n\n    // Create the fetch promise\n    const promise = (async (): Promise<TResult> => {\n      try {\n        const data = await fetcher(abortController.signal);\n\n        // Don't update state if aborted\n        if (abortController.signal.aborted) {\n          throw new Error('Request was aborted');\n        }\n\n        this.#updateRequestState(\n          cacheKey,\n          createSuccessState(data as Json, lastFetchedAt),\n        );\n        return data;\n      } catch (error) {\n        // Don't update state if aborted\n        if (abortController.signal.aborted) {\n          throw error;\n        }\n\n        const errorMessage = (error as Error)?.message;\n\n        this.#updateRequestState(\n          cacheKey,\n          createErrorState(errorMessage ?? 'Unknown error', lastFetchedAt),\n        );\n        throw error;\n      } finally {\n        // Only delete if this is still our entry (not replaced by a new request)\n        const currentPending = this.#pendingRequests.get(cacheKey);\n        if (currentPending?.abortController === abortController) {\n          this.#pendingRequests.delete(cacheKey);\n        }\n      }\n    })();\n\n    // Store pending request for deduplication\n    this.#pendingRequests.set(cacheKey, { promise, abortController });\n\n    return promise;\n  }\n\n  /**\n   * Aborts a pending request if one exists.\n   *\n   * @param cacheKey - The cache key of the request to abort.\n   * @returns True if a request was aborted.\n   */\n  abortRequest(cacheKey: string): boolean {\n    const pending = this.#pendingRequests.get(cacheKey);\n    if (pending) {\n      pending.abortController.abort();\n      this.#pendingRequests.delete(cacheKey);\n      this.#removeRequestState(cacheKey);\n      return true;\n    }\n    return false;\n  }\n\n  /**\n   * Removes a request state from the cache.\n   *\n   * @param cacheKey - The cache key to remove.\n   */\n  #removeRequestState(cacheKey: string): void {\n    this.update((state) => {\n      const requests = state.requests as unknown as Record<\n        string,\n        RequestState | undefined\n      >;\n      delete requests[cacheKey];\n    });\n  }\n\n  /**\n   * Gets the state of a specific cached request.\n   *\n   * @param cacheKey - The cache key to look up.\n   * @returns The request state, or undefined if not cached.\n   */\n  getRequestState(cacheKey: string): RequestState | undefined {\n    return this.state.requests[cacheKey];\n  }\n\n  /**\n   * Updates the state for a specific request.\n   *\n   * @param cacheKey - The cache key.\n   * @param requestState - The new state for the request.\n   */\n  #updateRequestState(cacheKey: string, requestState: RequestState): void {\n    const maxSize = this.#requestCacheMaxSize;\n\n    this.update((state) => {\n      const requests = state.requests as unknown as Record<\n        string,\n        RequestState | undefined\n      >;\n      requests[cacheKey] = requestState;\n\n      // Evict oldest entries if cache exceeds max size\n      const keys = Object.keys(requests);\n\n      if (keys.length > maxSize) {\n        // Sort by timestamp (oldest first)\n        const sortedKeys = keys.sort((a, b) => {\n          const aTime = requests[a]?.timestamp ?? 0;\n          const bTime = requests[b]?.timestamp ?? 0;\n          return aTime - bTime;\n        });\n\n        // Remove oldest entries until we're under the limit\n        const entriesToRemove = keys.length - maxSize;\n        for (let i = 0; i < entriesToRemove; i++) {\n          const keyToRemove = sortedKeys[i];\n          if (keyToRemove) {\n            delete requests[keyToRemove];\n          }\n        }\n      }\n    });\n  }\n\n  /**\n   * Updates the user's geolocation.\n   * This method calls the RampsService to get the geolocation\n   * and stores the result in state.\n   *\n   * @param options - Options for cache behavior.\n   * @returns The geolocation string.\n   */\n  async updateGeolocation(options?: ExecuteRequestOptions): Promise<string> {\n    const cacheKey = createCacheKey('updateGeolocation', []);\n\n    const geolocation = await this.executeRequest(\n      cacheKey,\n      async () => {\n        const result = await this.messenger.call('RampsService:getGeolocation');\n        return result;\n      },\n      options,\n    );\n\n    this.update((state) => {\n      state.geolocation = geolocation;\n    });\n\n    return geolocation;\n  }\n}\n"]}
+\ No newline at end of file
+diff --git a/dist/RequestCache.cjs b/dist/RequestCache.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..ace2bfd8cb30c0f15d293306ec3ee89838eece4d
+--- /dev/null
++++ b/dist/RequestCache.cjs
+@@ -0,0 +1,98 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = void 0;
++/**
++ * Status of a cached request.
++ */
++var RequestStatus;
++(function (RequestStatus) {
++    RequestStatus["IDLE"] = "idle";
++    RequestStatus["LOADING"] = "loading";
++    RequestStatus["SUCCESS"] = "success";
++    RequestStatus["ERROR"] = "error";
++})(RequestStatus || (exports.RequestStatus = RequestStatus = {}));
++/**
++ * Default TTL for cached requests in milliseconds (15 minutes).
++ */
++exports.DEFAULT_REQUEST_CACHE_TTL = 15 * 60 * 1000;
++/**
++ * Default maximum number of entries in the request cache.
++ */
++exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;
++/**
++ * Creates a cache key from a method name and parameters.
++ *
++ * @param method - The method name.
++ * @param params - The parameters passed to the method.
++ * @returns A unique cache key string.
++ */
++function createCacheKey(method, params) {
++    return `${method}:${JSON.stringify(params)}`;
++}
++exports.createCacheKey = createCacheKey;
++/**
++ * Checks if a cached request has expired based on TTL.
++ *
++ * @param requestState - The cached request state.
++ * @param ttl - Time to live in milliseconds.
++ * @returns True if the cache entry has expired.
++ */
++function isCacheExpired(requestState, ttl = exports.DEFAULT_REQUEST_CACHE_TTL) {
++    if (requestState.status !== RequestStatus.SUCCESS) {
++        return true;
++    }
++    const now = Date.now();
++    return now - requestState.timestamp > ttl;
++}
++exports.isCacheExpired = isCacheExpired;
++/**
++ * Creates an initial loading state for a request.
++ *
++ * @returns A new RequestState in loading status.
++ */
++function createLoadingState() {
++    const now = Date.now();
++    return {
++        status: RequestStatus.LOADING,
++        data: null,
++        error: null,
++        timestamp: now,
++        lastFetchedAt: now,
++    };
++}
++exports.createLoadingState = createLoadingState;
++/**
++ * Creates a success state for a request.
++ *
++ * @param data - The data returned by the request.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in success status.
++ */
++function createSuccessState(data, lastFetchedAt) {
++    return {
++        status: RequestStatus.SUCCESS,
++        data,
++        error: null,
++        timestamp: Date.now(),
++        lastFetchedAt,
++    };
++}
++exports.createSuccessState = createSuccessState;
++/**
++ * Creates an error state for a request.
++ *
++ * @param error - The error message.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in error status.
++ */
++function createErrorState(error, lastFetchedAt) {
++    return {
++        status: RequestStatus.ERROR,
++        data: null,
++        error,
++        timestamp: Date.now(),
++        lastFetchedAt,
++    };
++}
++exports.createErrorState = createErrorState;
++//# sourceMappingURL=RequestCache.cjs.map
+\ No newline at end of file
+diff --git a/dist/RequestCache.cjs.map b/dist/RequestCache.cjs.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..45278dc0104a1cbad2af6f705ccca0ea9d5778ea
+--- /dev/null
++++ b/dist/RequestCache.cjs.map
+@@ -0,0 +1 @@
++{"version":3,"file":"RequestCache.cjs","sourceRoot":"","sources":["../src/RequestCache.ts"],"names":[],"mappings":";;;AAEA;;GAEG;AACH,IAAY,aAKX;AALD,WAAY,aAAa;IACvB,8BAAa,CAAA;IACb,oCAAmB,CAAA;IACnB,oCAAmB,CAAA;IACnB,gCAAe,CAAA;AACjB,CAAC,EALW,aAAa,6BAAb,aAAa,QAKxB;AAwBD;;GAEG;AACU,QAAA,yBAAyB,GAAG,EAAE,GAAG,EAAE,GAAG,IAAI,CAAC;AAExD;;GAEG;AACU,QAAA,8BAA8B,GAAG,GAAG,CAAC;AAElD;;;;;;GAMG;AACH,SAAgB,cAAc,CAAC,MAAc,EAAE,MAAiB;IAC9D,OAAO,GAAG,MAAM,IAAI,IAAI,CAAC,SAAS,CAAC,MAAM,CAAC,EAAE,CAAC;AAC/C,CAAC;AAFD,wCAEC;AAED;;;;;;GAMG;AACH,SAAgB,cAAc,CAC5B,YAA0B,EAC1B,MAAc,iCAAyB;IAEvC,IAAI,YAAY,CAAC,MAAM,KAAK,aAAa,CAAC,OAAO,EAAE,CAAC;QAClD,OAAO,IAAI,CAAC;IACd,CAAC;IACD,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO,GAAG,GAAG,YAAY,CAAC,SAAS,GAAG,GAAG,CAAC;AAC5C,CAAC;AATD,wCASC;AAED;;;;GAIG;AACH,SAAgB,kBAAkB;IAChC,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI,EAAE,IAAI;QACV,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,GAAG;QACd,aAAa,EAAE,GAAG;KACnB,CAAC;AACJ,CAAC;AATD,gDASC;AAED;;;;;;GAMG;AACH,SAAgB,kBAAkB,CAChC,IAAU,EACV,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI;QACJ,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC;AAXD,gDAWC;AAED;;;;;;GAMG;AACH,SAAgB,gBAAgB,CAC9B,KAAa,EACb,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,KAAK;QAC3B,IAAI,EAAE,IAAI;QACV,KAAK;QACL,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC;AAXD,4CAWC","sourcesContent":["import type { Json } from '@metamask/utils';\n\n/**\n * Status of a cached request.\n */\nexport enum RequestStatus {\n  IDLE = 'idle',\n  LOADING = 'loading',\n  SUCCESS = 'success',\n  ERROR = 'error',\n}\n\n/**\n * State of a single cached request.\n * All properties must be JSON-serializable to satisfy StateConstraint.\n */\nexport type RequestState = {\n  /** Current status of the request */\n  status: `${RequestStatus}`;\n  /** The data returned by the request, if successful */\n  data: Json | null;\n  /** Error message if the request failed */\n  error: string | null;\n  /** Timestamp when the request completed (for TTL calculation) */\n  timestamp: number;\n  /** Timestamp when the fetch started */\n  lastFetchedAt: number;\n};\n\n/**\n * Cache of request states, keyed by cache key.\n */\nexport type RequestCache = Record<string, RequestState>;\n\n/**\n * Default TTL for cached requests in milliseconds (15 minutes).\n */\nexport const DEFAULT_REQUEST_CACHE_TTL = 15 * 60 * 1000;\n\n/**\n * Default maximum number of entries in the request cache.\n */\nexport const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;\n\n/**\n * Creates a cache key from a method name and parameters.\n *\n * @param method - The method name.\n * @param params - The parameters passed to the method.\n * @returns A unique cache key string.\n */\nexport function createCacheKey(method: string, params: unknown[]): string {\n  return `${method}:${JSON.stringify(params)}`;\n}\n\n/**\n * Checks if a cached request has expired based on TTL.\n *\n * @param requestState - The cached request state.\n * @param ttl - Time to live in milliseconds.\n * @returns True if the cache entry has expired.\n */\nexport function isCacheExpired(\n  requestState: RequestState,\n  ttl: number = DEFAULT_REQUEST_CACHE_TTL,\n): boolean {\n  if (requestState.status !== RequestStatus.SUCCESS) {\n    return true;\n  }\n  const now = Date.now();\n  return now - requestState.timestamp > ttl;\n}\n\n/**\n * Creates an initial loading state for a request.\n *\n * @returns A new RequestState in loading status.\n */\nexport function createLoadingState(): RequestState {\n  const now = Date.now();\n  return {\n    status: RequestStatus.LOADING,\n    data: null,\n    error: null,\n    timestamp: now,\n    lastFetchedAt: now,\n  };\n}\n\n/**\n * Creates a success state for a request.\n *\n * @param data - The data returned by the request.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in success status.\n */\nexport function createSuccessState(\n  data: Json,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.SUCCESS,\n    data,\n    error: null,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Creates an error state for a request.\n *\n * @param error - The error message.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in error status.\n */\nexport function createErrorState(\n  error: string,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.ERROR,\n    data: null,\n    error,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Options for executing a cached request.\n */\nexport type ExecuteRequestOptions = {\n  /** Force a refresh even if cached data exists */\n  forceRefresh?: boolean;\n  /** Custom TTL for this request in milliseconds */\n  ttl?: number;\n};\n\n/**\n * Represents a pending request with its promise and abort controller.\n */\nexport type PendingRequest<TResult = unknown> = {\n  promise: Promise<TResult>;\n  abortController: AbortController;\n};\n"]}
+\ No newline at end of file
+diff --git a/dist/RequestCache.d.cts b/dist/RequestCache.d.cts
+new file mode 100644
+index 0000000000000000000000000000000000000000..3b99dac4b25ad9f7ade36c8e2285a44474684631
+--- /dev/null
++++ b/dist/RequestCache.d.cts
+@@ -0,0 +1,93 @@
++import type { Json } from "@metamask/utils";
++/**
++ * Status of a cached request.
++ */
++export declare enum RequestStatus {
++    IDLE = "idle",
++    LOADING = "loading",
++    SUCCESS = "success",
++    ERROR = "error"
++}
++/**
++ * State of a single cached request.
++ * All properties must be JSON-serializable to satisfy StateConstraint.
++ */
++export type RequestState = {
++    /** Current status of the request */
++    status: `${RequestStatus}`;
++    /** The data returned by the request, if successful */
++    data: Json | null;
++    /** Error message if the request failed */
++    error: string | null;
++    /** Timestamp when the request completed (for TTL calculation) */
++    timestamp: number;
++    /** Timestamp when the fetch started */
++    lastFetchedAt: number;
++};
++/**
++ * Cache of request states, keyed by cache key.
++ */
++export type RequestCache = Record<string, RequestState>;
++/**
++ * Default TTL for cached requests in milliseconds (15 minutes).
++ */
++export declare const DEFAULT_REQUEST_CACHE_TTL: number;
++/**
++ * Default maximum number of entries in the request cache.
++ */
++export declare const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;
++/**
++ * Creates a cache key from a method name and parameters.
++ *
++ * @param method - The method name.
++ * @param params - The parameters passed to the method.
++ * @returns A unique cache key string.
++ */
++export declare function createCacheKey(method: string, params: unknown[]): string;
++/**
++ * Checks if a cached request has expired based on TTL.
++ *
++ * @param requestState - The cached request state.
++ * @param ttl - Time to live in milliseconds.
++ * @returns True if the cache entry has expired.
++ */
++export declare function isCacheExpired(requestState: RequestState, ttl?: number): boolean;
++/**
++ * Creates an initial loading state for a request.
++ *
++ * @returns A new RequestState in loading status.
++ */
++export declare function createLoadingState(): RequestState;
++/**
++ * Creates a success state for a request.
++ *
++ * @param data - The data returned by the request.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in success status.
++ */
++export declare function createSuccessState(data: Json, lastFetchedAt: number): RequestState;
++/**
++ * Creates an error state for a request.
++ *
++ * @param error - The error message.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in error status.
++ */
++export declare function createErrorState(error: string, lastFetchedAt: number): RequestState;
++/**
++ * Options for executing a cached request.
++ */
++export type ExecuteRequestOptions = {
++    /** Force a refresh even if cached data exists */
++    forceRefresh?: boolean;
++    /** Custom TTL for this request in milliseconds */
++    ttl?: number;
++};
++/**
++ * Represents a pending request with its promise and abort controller.
++ */
++export type PendingRequest<TResult = unknown> = {
++    promise: Promise<TResult>;
++    abortController: AbortController;
++};
++//# sourceMappingURL=RequestCache.d.cts.map
+\ No newline at end of file
+diff --git a/dist/RequestCache.d.cts.map b/dist/RequestCache.d.cts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..a96276f805aa55a25083c39c4d87f296bad192f8
+--- /dev/null
++++ b/dist/RequestCache.d.cts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"RequestCache.d.cts","sourceRoot":"","sources":["../src/RequestCache.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,wBAAwB;AAE5C;;GAEG;AACH,oBAAY,aAAa;IACvB,IAAI,SAAS;IACb,OAAO,YAAY;IACnB,OAAO,YAAY;IACnB,KAAK,UAAU;CAChB;AAED;;;GAGG;AACH,MAAM,MAAM,YAAY,GAAG;IACzB,oCAAoC;IACpC,MAAM,EAAE,GAAG,aAAa,EAAE,CAAC;IAC3B,sDAAsD;IACtD,IAAI,EAAE,IAAI,GAAG,IAAI,CAAC;IAClB,0CAA0C;IAC1C,KAAK,EAAE,MAAM,GAAG,IAAI,CAAC;IACrB,iEAAiE;IACjE,SAAS,EAAE,MAAM,CAAC;IAClB,uCAAuC;IACvC,aAAa,EAAE,MAAM,CAAC;CACvB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,YAAY,GAAG,MAAM,CAAC,MAAM,EAAE,YAAY,CAAC,CAAC;AAExD;;GAEG;AACH,eAAO,MAAM,yBAAyB,QAAiB,CAAC;AAExD;;GAEG;AACH,eAAO,MAAM,8BAA8B,MAAM,CAAC;AAElD;;;;;;GAMG;AACH,wBAAgB,cAAc,CAAC,MAAM,EAAE,MAAM,EAAE,MAAM,EAAE,OAAO,EAAE,GAAG,MAAM,CAExE;AAED;;;;;;GAMG;AACH,wBAAgB,cAAc,CAC5B,YAAY,EAAE,YAAY,EAC1B,GAAG,GAAE,MAAkC,GACtC,OAAO,CAMT;AAED;;;;GAIG;AACH,wBAAgB,kBAAkB,IAAI,YAAY,CASjD;AAED;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,IAAI,EAAE,IAAI,EACV,aAAa,EAAE,MAAM,GACpB,YAAY,CAQd;AAED;;;;;;GAMG;AACH,wBAAgB,gBAAgB,CAC9B,KAAK,EAAE,MAAM,EACb,aAAa,EAAE,MAAM,GACpB,YAAY,CAQd;AAED;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG;IAClC,iDAAiD;IACjD,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,kDAAkD;IAClD,GAAG,CAAC,EAAE,MAAM,CAAC;CACd,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,cAAc,CAAC,OAAO,GAAG,OAAO,IAAI;IAC9C,OAAO,EAAE,OAAO,CAAC,OAAO,CAAC,CAAC;IAC1B,eAAe,EAAE,eAAe,CAAC;CAClC,CAAC"}
+\ No newline at end of file
+diff --git a/dist/RequestCache.d.mts b/dist/RequestCache.d.mts
+new file mode 100644
+index 0000000000000000000000000000000000000000..4fdc928bb5783291d49a0fdf547c812a7ce02c20
+--- /dev/null
++++ b/dist/RequestCache.d.mts
+@@ -0,0 +1,93 @@
++import type { Json } from "@metamask/utils";
++/**
++ * Status of a cached request.
++ */
++export declare enum RequestStatus {
++    IDLE = "idle",
++    LOADING = "loading",
++    SUCCESS = "success",
++    ERROR = "error"
++}
++/**
++ * State of a single cached request.
++ * All properties must be JSON-serializable to satisfy StateConstraint.
++ */
++export type RequestState = {
++    /** Current status of the request */
++    status: `${RequestStatus}`;
++    /** The data returned by the request, if successful */
++    data: Json | null;
++    /** Error message if the request failed */
++    error: string | null;
++    /** Timestamp when the request completed (for TTL calculation) */
++    timestamp: number;
++    /** Timestamp when the fetch started */
++    lastFetchedAt: number;
++};
++/**
++ * Cache of request states, keyed by cache key.
++ */
++export type RequestCache = Record<string, RequestState>;
++/**
++ * Default TTL for cached requests in milliseconds (15 minutes).
++ */
++export declare const DEFAULT_REQUEST_CACHE_TTL: number;
++/**
++ * Default maximum number of entries in the request cache.
++ */
++export declare const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;
++/**
++ * Creates a cache key from a method name and parameters.
++ *
++ * @param method - The method name.
++ * @param params - The parameters passed to the method.
++ * @returns A unique cache key string.
++ */
++export declare function createCacheKey(method: string, params: unknown[]): string;
++/**
++ * Checks if a cached request has expired based on TTL.
++ *
++ * @param requestState - The cached request state.
++ * @param ttl - Time to live in milliseconds.
++ * @returns True if the cache entry has expired.
++ */
++export declare function isCacheExpired(requestState: RequestState, ttl?: number): boolean;
++/**
++ * Creates an initial loading state for a request.
++ *
++ * @returns A new RequestState in loading status.
++ */
++export declare function createLoadingState(): RequestState;
++/**
++ * Creates a success state for a request.
++ *
++ * @param data - The data returned by the request.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in success status.
++ */
++export declare function createSuccessState(data: Json, lastFetchedAt: number): RequestState;
++/**
++ * Creates an error state for a request.
++ *
++ * @param error - The error message.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in error status.
++ */
++export declare function createErrorState(error: string, lastFetchedAt: number): RequestState;
++/**
++ * Options for executing a cached request.
++ */
++export type ExecuteRequestOptions = {
++    /** Force a refresh even if cached data exists */
++    forceRefresh?: boolean;
++    /** Custom TTL for this request in milliseconds */
++    ttl?: number;
++};
++/**
++ * Represents a pending request with its promise and abort controller.
++ */
++export type PendingRequest<TResult = unknown> = {
++    promise: Promise<TResult>;
++    abortController: AbortController;
++};
++//# sourceMappingURL=RequestCache.d.mts.map
+\ No newline at end of file
+diff --git a/dist/RequestCache.d.mts.map b/dist/RequestCache.d.mts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..583122c39fc65980fed2de927b28ce71748ead26
+--- /dev/null
++++ b/dist/RequestCache.d.mts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"RequestCache.d.mts","sourceRoot":"","sources":["../src/RequestCache.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,wBAAwB;AAE5C;;GAEG;AACH,oBAAY,aAAa;IACvB,IAAI,SAAS;IACb,OAAO,YAAY;IACnB,OAAO,YAAY;IACnB,KAAK,UAAU;CAChB;AAED;;;GAGG;AACH,MAAM,MAAM,YAAY,GAAG;IACzB,oCAAoC;IACpC,MAAM,EAAE,GAAG,aAAa,EAAE,CAAC;IAC3B,sDAAsD;IACtD,IAAI,EAAE,IAAI,GAAG,IAAI,CAAC;IAClB,0CAA0C;IAC1C,KAAK,EAAE,MAAM,GAAG,IAAI,CAAC;IACrB,iEAAiE;IACjE,SAAS,EAAE,MAAM,CAAC;IAClB,uCAAuC;IACvC,aAAa,EAAE,MAAM,CAAC;CACvB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,YAAY,GAAG,MAAM,CAAC,MAAM,EAAE,YAAY,CAAC,CAAC;AAExD;;GAEG;AACH,eAAO,MAAM,yBAAyB,QAAiB,CAAC;AAExD;;GAEG;AACH,eAAO,MAAM,8BAA8B,MAAM,CAAC;AAElD;;;;;;GAMG;AACH,wBAAgB,cAAc,CAAC,MAAM,EAAE,MAAM,EAAE,MAAM,EAAE,OAAO,EAAE,GAAG,MAAM,CAExE;AAED;;;;;;GAMG;AACH,wBAAgB,cAAc,CAC5B,YAAY,EAAE,YAAY,EAC1B,GAAG,GAAE,MAAkC,GACtC,OAAO,CAMT;AAED;;;;GAIG;AACH,wBAAgB,kBAAkB,IAAI,YAAY,CASjD;AAED;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,IAAI,EAAE,IAAI,EACV,aAAa,EAAE,MAAM,GACpB,YAAY,CAQd;AAED;;;;;;GAMG;AACH,wBAAgB,gBAAgB,CAC9B,KAAK,EAAE,MAAM,EACb,aAAa,EAAE,MAAM,GACpB,YAAY,CAQd;AAED;;GAEG;AACH,MAAM,MAAM,qBAAqB,GAAG;IAClC,iDAAiD;IACjD,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,kDAAkD;IAClD,GAAG,CAAC,EAAE,MAAM,CAAC;CACd,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,cAAc,CAAC,OAAO,GAAG,OAAO,IAAI;IAC9C,OAAO,EAAE,OAAO,CAAC,OAAO,CAAC,CAAC;IAC1B,eAAe,EAAE,eAAe,CAAC;CAClC,CAAC"}
+\ No newline at end of file
+diff --git a/dist/RequestCache.mjs b/dist/RequestCache.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b78020b813828b2243cb2dabc43771a355e42768
+--- /dev/null
++++ b/dist/RequestCache.mjs
+@@ -0,0 +1,90 @@
++/**
++ * Status of a cached request.
++ */
++export var RequestStatus;
++(function (RequestStatus) {
++    RequestStatus["IDLE"] = "idle";
++    RequestStatus["LOADING"] = "loading";
++    RequestStatus["SUCCESS"] = "success";
++    RequestStatus["ERROR"] = "error";
++})(RequestStatus || (RequestStatus = {}));
++/**
++ * Default TTL for cached requests in milliseconds (15 minutes).
++ */
++export const DEFAULT_REQUEST_CACHE_TTL = 15 * 60 * 1000;
++/**
++ * Default maximum number of entries in the request cache.
++ */
++export const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;
++/**
++ * Creates a cache key from a method name and parameters.
++ *
++ * @param method - The method name.
++ * @param params - The parameters passed to the method.
++ * @returns A unique cache key string.
++ */
++export function createCacheKey(method, params) {
++    return `${method}:${JSON.stringify(params)}`;
++}
++/**
++ * Checks if a cached request has expired based on TTL.
++ *
++ * @param requestState - The cached request state.
++ * @param ttl - Time to live in milliseconds.
++ * @returns True if the cache entry has expired.
++ */
++export function isCacheExpired(requestState, ttl = DEFAULT_REQUEST_CACHE_TTL) {
++    if (requestState.status !== RequestStatus.SUCCESS) {
++        return true;
++    }
++    const now = Date.now();
++    return now - requestState.timestamp > ttl;
++}
++/**
++ * Creates an initial loading state for a request.
++ *
++ * @returns A new RequestState in loading status.
++ */
++export function createLoadingState() {
++    const now = Date.now();
++    return {
++        status: RequestStatus.LOADING,
++        data: null,
++        error: null,
++        timestamp: now,
++        lastFetchedAt: now,
++    };
++}
++/**
++ * Creates a success state for a request.
++ *
++ * @param data - The data returned by the request.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in success status.
++ */
++export function createSuccessState(data, lastFetchedAt) {
++    return {
++        status: RequestStatus.SUCCESS,
++        data,
++        error: null,
++        timestamp: Date.now(),
++        lastFetchedAt,
++    };
++}
++/**
++ * Creates an error state for a request.
++ *
++ * @param error - The error message.
++ * @param lastFetchedAt - When the fetch started.
++ * @returns A new RequestState in error status.
++ */
++export function createErrorState(error, lastFetchedAt) {
++    return {
++        status: RequestStatus.ERROR,
++        data: null,
++        error,
++        timestamp: Date.now(),
++        lastFetchedAt,
++    };
++}
++//# sourceMappingURL=RequestCache.mjs.map
+\ No newline at end of file
+diff --git a/dist/RequestCache.mjs.map b/dist/RequestCache.mjs.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..132fb3d1257f7869f195fe1ba855061d60511970
+--- /dev/null
++++ b/dist/RequestCache.mjs.map
+@@ -0,0 +1 @@
++{"version":3,"file":"RequestCache.mjs","sourceRoot":"","sources":["../src/RequestCache.ts"],"names":[],"mappings":"AAEA;;GAEG;AACH,MAAM,CAAN,IAAY,aAKX;AALD,WAAY,aAAa;IACvB,8BAAa,CAAA;IACb,oCAAmB,CAAA;IACnB,oCAAmB,CAAA;IACnB,gCAAe,CAAA;AACjB,CAAC,EALW,aAAa,KAAb,aAAa,QAKxB;AAwBD;;GAEG;AACH,MAAM,CAAC,MAAM,yBAAyB,GAAG,EAAE,GAAG,EAAE,GAAG,IAAI,CAAC;AAExD;;GAEG;AACH,MAAM,CAAC,MAAM,8BAA8B,GAAG,GAAG,CAAC;AAElD;;;;;;GAMG;AACH,MAAM,UAAU,cAAc,CAAC,MAAc,EAAE,MAAiB;IAC9D,OAAO,GAAG,MAAM,IAAI,IAAI,CAAC,SAAS,CAAC,MAAM,CAAC,EAAE,CAAC;AAC/C,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,cAAc,CAC5B,YAA0B,EAC1B,MAAc,yBAAyB;IAEvC,IAAI,YAAY,CAAC,MAAM,KAAK,aAAa,CAAC,OAAO,EAAE,CAAC;QAClD,OAAO,IAAI,CAAC;IACd,CAAC;IACD,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO,GAAG,GAAG,YAAY,CAAC,SAAS,GAAG,GAAG,CAAC;AAC5C,CAAC;AAED;;;;GAIG;AACH,MAAM,UAAU,kBAAkB;IAChC,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI,EAAE,IAAI;QACV,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,GAAG;QACd,aAAa,EAAE,GAAG;KACnB,CAAC;AACJ,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,kBAAkB,CAChC,IAAU,EACV,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI;QACJ,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,gBAAgB,CAC9B,KAAa,EACb,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,KAAK;QAC3B,IAAI,EAAE,IAAI;QACV,KAAK;QACL,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC","sourcesContent":["import type { Json } from '@metamask/utils';\n\n/**\n * Status of a cached request.\n */\nexport enum RequestStatus {\n  IDLE = 'idle',\n  LOADING = 'loading',\n  SUCCESS = 'success',\n  ERROR = 'error',\n}\n\n/**\n * State of a single cached request.\n * All properties must be JSON-serializable to satisfy StateConstraint.\n */\nexport type RequestState = {\n  /** Current status of the request */\n  status: `${RequestStatus}`;\n  /** The data returned by the request, if successful */\n  data: Json | null;\n  /** Error message if the request failed */\n  error: string | null;\n  /** Timestamp when the request completed (for TTL calculation) */\n  timestamp: number;\n  /** Timestamp when the fetch started */\n  lastFetchedAt: number;\n};\n\n/**\n * Cache of request states, keyed by cache key.\n */\nexport type RequestCache = Record<string, RequestState>;\n\n/**\n * Default TTL for cached requests in milliseconds (15 minutes).\n */\nexport const DEFAULT_REQUEST_CACHE_TTL = 15 * 60 * 1000;\n\n/**\n * Default maximum number of entries in the request cache.\n */\nexport const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;\n\n/**\n * Creates a cache key from a method name and parameters.\n *\n * @param method - The method name.\n * @param params - The parameters passed to the method.\n * @returns A unique cache key string.\n */\nexport function createCacheKey(method: string, params: unknown[]): string {\n  return `${method}:${JSON.stringify(params)}`;\n}\n\n/**\n * Checks if a cached request has expired based on TTL.\n *\n * @param requestState - The cached request state.\n * @param ttl - Time to live in milliseconds.\n * @returns True if the cache entry has expired.\n */\nexport function isCacheExpired(\n  requestState: RequestState,\n  ttl: number = DEFAULT_REQUEST_CACHE_TTL,\n): boolean {\n  if (requestState.status !== RequestStatus.SUCCESS) {\n    return true;\n  }\n  const now = Date.now();\n  return now - requestState.timestamp > ttl;\n}\n\n/**\n * Creates an initial loading state for a request.\n *\n * @returns A new RequestState in loading status.\n */\nexport function createLoadingState(): RequestState {\n  const now = Date.now();\n  return {\n    status: RequestStatus.LOADING,\n    data: null,\n    error: null,\n    timestamp: now,\n    lastFetchedAt: now,\n  };\n}\n\n/**\n * Creates a success state for a request.\n *\n * @param data - The data returned by the request.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in success status.\n */\nexport function createSuccessState(\n  data: Json,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.SUCCESS,\n    data,\n    error: null,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Creates an error state for a request.\n *\n * @param error - The error message.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in error status.\n */\nexport function createErrorState(\n  error: string,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.ERROR,\n    data: null,\n    error,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Options for executing a cached request.\n */\nexport type ExecuteRequestOptions = {\n  /** Force a refresh even if cached data exists */\n  forceRefresh?: boolean;\n  /** Custom TTL for this request in milliseconds */\n  ttl?: number;\n};\n\n/**\n * Represents a pending request with its promise and abort controller.\n */\nexport type PendingRequest<TResult = unknown> = {\n  promise: Promise<TResult>;\n  abortController: AbortController;\n};\n"]}
+\ No newline at end of file
+diff --git a/dist/index.cjs b/dist/index.cjs
+index ac9da3dc5e113ee50d1be21b16cda836e03c67c4..146825903e5138d3a37e4ddbe598ab9767e3003b 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -1,10 +1,19 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.RampsEnvironment = exports.RampsService = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
++exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = exports.RampsEnvironment = exports.RampsService = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
+ var RampsController_1 = require("./RampsController.cjs");
+ Object.defineProperty(exports, "RampsController", { enumerable: true, get: function () { return RampsController_1.RampsController; } });
+ Object.defineProperty(exports, "getDefaultRampsControllerState", { enumerable: true, get: function () { return RampsController_1.getDefaultRampsControllerState; } });
+ var RampsService_1 = require("./RampsService.cjs");
+ Object.defineProperty(exports, "RampsService", { enumerable: true, get: function () { return RampsService_1.RampsService; } });
+ Object.defineProperty(exports, "RampsEnvironment", { enumerable: true, get: function () { return RampsService_1.RampsEnvironment; } });
++var RequestCache_1 = require("./RequestCache.cjs");
++Object.defineProperty(exports, "RequestStatus", { enumerable: true, get: function () { return RequestCache_1.RequestStatus; } });
++Object.defineProperty(exports, "DEFAULT_REQUEST_CACHE_TTL", { enumerable: true, get: function () { return RequestCache_1.DEFAULT_REQUEST_CACHE_TTL; } });
++Object.defineProperty(exports, "DEFAULT_REQUEST_CACHE_MAX_SIZE", { enumerable: true, get: function () { return RequestCache_1.DEFAULT_REQUEST_CACHE_MAX_SIZE; } });
++Object.defineProperty(exports, "createCacheKey", { enumerable: true, get: function () { return RequestCache_1.createCacheKey; } });
++Object.defineProperty(exports, "isCacheExpired", { enumerable: true, get: function () { return RequestCache_1.isCacheExpired; } });
++Object.defineProperty(exports, "createLoadingState", { enumerable: true, get: function () { return RequestCache_1.createLoadingState; } });
++Object.defineProperty(exports, "createSuccessState", { enumerable: true, get: function () { return RequestCache_1.createSuccessState; } });
++Object.defineProperty(exports, "createErrorState", { enumerable: true, get: function () { return RequestCache_1.createErrorState; } });
+ //# sourceMappingURL=index.cjs.map
+\ No newline at end of file
+diff --git a/dist/index.cjs.map b/dist/index.cjs.map
+index 71476fb050f0a7c44084939047733a9054a6f944..71a1cff2418cc547e3d3debaad1734b88311cfc1 100644
+--- a/dist/index.cjs.map
++++ b/dist/index.cjs.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;AAQA,yDAG2B;AAFzB,kHAAA,eAAe,OAAA;AACf,iIAAA,8BAA8B,OAAA;AAOhC,mDAAgE;AAAvD,4GAAA,YAAY,OAAA;AAAE,gHAAA,gBAAgB,OAAA","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n"]}
+\ No newline at end of file
++{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;AASA,yDAG2B;AAFzB,kHAAA,eAAe,OAAA;AACf,iIAAA,8BAA8B,OAAA;AAOhC,mDAAgE;AAAvD,4GAAA,YAAY,OAAA;AAAE,gHAAA,gBAAgB,OAAA;AAQvC,mDASwB;AARtB,6GAAA,aAAa,OAAA;AACb,yHAAA,yBAAyB,OAAA;AACzB,8HAAA,8BAA8B,OAAA;AAC9B,8GAAA,cAAc,OAAA;AACd,8GAAA,cAAc,OAAA;AACd,kHAAA,kBAAkB,OAAA;AAClB,kHAAA,kBAAkB,OAAA;AAClB,gHAAA,gBAAgB,OAAA","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n"]}
+\ No newline at end of file
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 25e3ce5bf9ac3d9ed9ee31edf2d65f4b636ad28c..3c97ecdccc610df9ee5a688d0f2df7d64f23a4c3 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -1,6 +1,8 @@
+-export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, } from "./RampsController.cjs";
++export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOptions, } from "./RampsController.cjs";
+ export { RampsController, getDefaultRampsControllerState, } from "./RampsController.cjs";
+ export type { RampsServiceActions, RampsServiceEvents, RampsServiceMessenger, } from "./RampsService.cjs";
+ export { RampsService, RampsEnvironment } from "./RampsService.cjs";
+ export type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.cjs";
++export type { RequestCache, RequestState, ExecuteRequestOptions, PendingRequest, } from "./RequestCache.cjs";
++export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState, } from "./RequestCache.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/index.d.cts.map b/dist/index.d.cts.map
+index 9291ed58943af75050748c49007b676f7610dfbc..4e1475dcc8ea9e8592ac4a734dd8151b38767ff1 100644
+--- a/dist/index.d.cts.map
++++ b/dist/index.d.cts.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.d.cts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,GAChC,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C"}
+\ No newline at end of file
++{"version":3,"file":"index.d.cts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB"}
+\ No newline at end of file
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index 2404168ce09d74d0aeabcf6a661dbb36c92290b2..c83e24a7bcf4fce5797117b476332e8dd1f15f2b 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -1,6 +1,8 @@
+-export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, } from "./RampsController.mjs";
++export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOptions, } from "./RampsController.mjs";
+ export { RampsController, getDefaultRampsControllerState, } from "./RampsController.mjs";
+ export type { RampsServiceActions, RampsServiceEvents, RampsServiceMessenger, } from "./RampsService.mjs";
+ export { RampsService, RampsEnvironment } from "./RampsService.mjs";
+ export type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.mjs";
++export type { RequestCache, RequestState, ExecuteRequestOptions, PendingRequest, } from "./RequestCache.mjs";
++export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState, } from "./RequestCache.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/index.d.mts.map b/dist/index.d.mts.map
+index d1dd276022dadc42108a5fb305e18eb83421b1ef..108f51b8112edef66ad3100423bf5760650e2a2e 100644
+--- a/dist/index.d.mts.map
++++ b/dist/index.d.mts.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.d.mts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,GAChC,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C"}
+\ No newline at end of file
++{"version":3,"file":"index.d.mts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB"}
+\ No newline at end of file
+diff --git a/dist/index.mjs b/dist/index.mjs
+index f8e1d4cad5a6472922ece76faa1f5d468438ac0c..e88617114527c6f2e39d756677e7fa941cacdf3e 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -1,3 +1,4 @@
+ export { RampsController, getDefaultRampsControllerState } from "./RampsController.mjs";
+ export { RampsService, RampsEnvironment } from "./RampsService.mjs";
++export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState } from "./RequestCache.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/index.mjs.map b/dist/index.mjs.map
+index fdaad9c8fd865d53adc5f5488b776ad15d8ccd4e..aaeeff4d986390fb4e427212830ebe903a984dc7 100644
+--- a/dist/index.mjs.map
++++ b/dist/index.mjs.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.mjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAQA,OAAO,EACL,eAAe,EACf,8BAA8B,EAC/B,8BAA0B;AAM3B,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n"]}
+\ No newline at end of file
++{"version":3,"file":"index.mjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AASA,OAAO,EACL,eAAe,EACf,8BAA8B,EAC/B,8BAA0B;AAM3B,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAQhE,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,EACjB,2BAAuB","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n"]}
+\ No newline at end of file
