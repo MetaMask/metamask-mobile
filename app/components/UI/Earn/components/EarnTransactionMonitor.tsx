@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEarnLendingTransactionStatus } from '../hooks/useEarnLendingTransactionStatus';
 import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
 
 /**
@@ -10,6 +11,9 @@ import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
 const EarnTransactionMonitor: React.FC = () => {
   // Enable mUSD conversion status monitoring and toasts
   useMusdConversionStatus();
+
+  // Enable lending transaction token addition (no toasts)
+  useEarnLendingTransactionStatus();
 
   // This component doesn't render anything
   return null;
