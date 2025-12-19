@@ -39,10 +39,6 @@ jest.mock('expo-updates', () => ({
   reloadAsync: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
-
 jest.mock('../../../util/metrics', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({}),
