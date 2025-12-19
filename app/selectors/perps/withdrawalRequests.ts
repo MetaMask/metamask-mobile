@@ -1,6 +1,7 @@
 import { createDeepEqualSelector } from '../util';
 import { selectPerpsControllerState } from './base';
-import { selectSelectedInternalAccountFormattedAddress } from '../accountsController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../components/UI/Earn/constants/networks';
 
 /**
  * Type definition for a withdrawal request.
@@ -37,11 +38,12 @@ export const selectAllWithdrawalRequests = createDeepEqualSelector(
  */
 export const selectWithdrawalRequestsBySelectedAccount =
   createDeepEqualSelector(
-    [
-      selectAllWithdrawalRequests,
-      selectSelectedInternalAccountFormattedAddress,
-    ],
-    (allWithdrawals, selectedAddress) => {
+    [selectAllWithdrawalRequests, selectSelectedInternalAccountByScope],
+    (allWithdrawals, selectedAccountByScope) => {
+      // Get the EVM account from the selected account group
+      const selectedEvmAccount = selectedAccountByScope(EVM_SCOPE);
+      const selectedAddress = selectedEvmAccount?.address;
+
       // Return stable empty array if no selected address
       if (!selectedAddress) {
         return EMPTY_WITHDRAWAL_REQUESTS;

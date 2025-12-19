@@ -5,17 +5,21 @@ import {
   WithdrawalRequest,
 } from './withdrawalRequests';
 
-// Mock the accountsController selector
-jest.mock('../accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+// Mock the multichainAccounts selector
+jest.mock('../multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-import { selectSelectedInternalAccountFormattedAddress } from '../accountsController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 
-const mockSelectSelectedInternalAccountFormattedAddress =
-  selectSelectedInternalAccountFormattedAddress as jest.MockedFunction<
-    typeof selectSelectedInternalAccountFormattedAddress
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
   >;
+
+// Helper to create a mock scope selector function
+const createMockScopeSelector = (address: string | undefined) =>
+  jest.fn().mockReturnValue(address ? { address } : undefined);
 
 // Helper function to create test withdrawal requests
 const createWithdrawalRequest = (
@@ -158,8 +162,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -174,8 +178,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         createWithdrawalRequest({ id: '1', accountAddress: MOCK_ADDRESS }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        undefined,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(undefined),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -191,8 +195,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -210,8 +214,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        upperCaseAddress,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(upperCaseAddress),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -230,8 +234,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        checksummedAddress,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(checksummedAddress),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -241,8 +245,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
 
     it('returns stable empty array reference when no address is selected', () => {
       const mockState = createMockState([]);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        undefined,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(undefined),
       );
 
       const result1 = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -259,8 +263,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result1 = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -281,8 +285,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -313,8 +317,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         }),
       ];
       const mockState = createMockState(mockWithdrawals);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -340,8 +344,8 @@ describe('Perps Withdrawal Requests Selectors', () => {
         transactionId: 'tx-123',
       });
       const mockState = createMockState([mockWithdrawal]);
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
@@ -352,13 +356,37 @@ describe('Perps Withdrawal Requests Selectors', () => {
 
     it('returns empty array when PerpsController state is undefined', () => {
       const mockState = createMockStateWithoutPerps();
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        MOCK_ADDRESS,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
       );
 
       const result = selectWithdrawalRequestsBySelectedAccount(mockState);
 
       expect(result).toEqual([]);
+    });
+
+    it('filters by EVM account when non-EVM account is globally selected', () => {
+      // This test verifies the fix for the bug where selecting a non-EVM account
+      // (Solana, Bitcoin, etc.) would cause withdrawal requests to not display
+      // even though they exist for the user's EVM account in the same account group
+      const mockWithdrawals = [
+        createWithdrawalRequest({
+          id: '1',
+          accountAddress: MOCK_ADDRESS,
+        }),
+      ];
+      const mockState = createMockState(mockWithdrawals);
+      // The selector now uses selectSelectedInternalAccountByScope with EVM_SCOPE
+      // which always returns the EVM account from the selected account group,
+      // regardless of which chain type is globally selected
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        createMockScopeSelector(MOCK_ADDRESS),
+      );
+
+      const result = selectWithdrawalRequestsBySelectedAccount(mockState);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('1');
     });
   });
 });
