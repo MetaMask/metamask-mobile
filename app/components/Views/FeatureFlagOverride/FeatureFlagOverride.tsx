@@ -55,6 +55,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   // Track whether the user is actively editing a text input to prevent
   // background flag refreshes from overwriting partially typed input
   const isEditingRef = useRef(false);
+  // Track whether a reset is in progress to prevent onEndEditing from
+  // reinstating the override with stale closure values
+  const isResettingRef = useRef(false);
 
   useEffect(() => {
     // Sync localValue with flag.value when the flag is not overridden
@@ -73,6 +76,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   );
 
   const handleResetOverride = () => {
+    // Set resetting flag to prevent onEndEditing from reinstating the override
+    // with stale closure values when the input loses focus due to button press
+    isResettingRef.current = true;
     setLocalValue(flag.originalValue);
     onToggle(flag.key, null); // null indicates removal of override
   };
@@ -217,6 +223,12 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               }}
               onEndEditing={() => {
                 isEditingRef.current = false;
+                // Skip onToggle if a reset was just triggered to prevent
+                // reinstating the override with stale closure values
+                if (isResettingRef.current) {
+                  isResettingRef.current = false;
+                  return;
+                }
                 onToggle(flag.key, localValue);
               }}
               onBlur={() => {
