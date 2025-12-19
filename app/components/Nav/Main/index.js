@@ -191,12 +191,14 @@ const Main = (props) => {
 
       // If the app is now in background, we need to start
       // the background timer, which is less intense
-      if (backgroundMode.current && !isE2E) {
+      if (backgroundMode.current) {
         removeNotVisibleNotifications();
 
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+        if (!isE2E) {
+          BackgroundTimer.runBackgroundTimer(async () => {
+            await updateIncomingTransactions();
+          }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+        }
       }
     },
     [backgroundMode, removeNotVisibleNotifications],
