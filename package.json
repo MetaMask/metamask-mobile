@@ -508,7 +508,7 @@
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
     "@metamask/foundryup": "1.0.0",
     "@metamask/mobile-provider": "^3.0.0",
-    "@metamask/object-multiplex": "^1.1.0",
+    "@metamask/object-multiplex": "^2.1.0",
     "@metamask/providers": "^18.3.1",
     "@metamask/test-dapp": "9.5.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
