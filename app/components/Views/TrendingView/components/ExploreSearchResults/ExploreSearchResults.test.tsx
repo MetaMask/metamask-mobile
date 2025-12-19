@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
-import { useExploreSearch } from './config/useExploreSearch';
+import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
-import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -17,7 +17,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('./config/useExploreSearch');
+jest.mock('../../hooks/useExploreSearch');
 const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
   typeof useExploreSearch
 >;
@@ -25,27 +25,24 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock child components that render individual items
 jest.mock(
-  '../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
+  '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => () => null,
 );
 
 jest.mock(
-  '../../../../../UI/Perps/components/PerpsMarketRowItem',
+  '../../../../UI/Perps/components/PerpsMarketRowItem',
+  () => () => null,
+);
+
+jest.mock('../../../../UI/Predict/components/PredictMarket', () => () => null);
+
+jest.mock(
+  '../../../../UI/Predict/components/PredictMarketRowItem',
   () => () => null,
 );
 
 jest.mock(
-  '../../../../../UI/Predict/components/PredictMarket',
-  () => () => null,
-);
-
-jest.mock(
-  '../../../../../UI/Predict/components/PredictMarketRowItem',
-  () => () => null,
-);
-
-jest.mock(
-  '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter',
+  '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter',
   () => {
     const ReactNative = jest.requireActual('react-native');
     return jest.fn(({ searchQuery }) =>
