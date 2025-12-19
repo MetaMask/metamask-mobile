@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { checkForUpdateAsync, fetchUpdateAsync } from 'expo-updates';
 import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Logger from '../../util/Logger';
-import { useFeatureFlag, FeatureFlagNames } from './useFeatureFlag';
 import { createOTAUpdatesModalNavDetails } from '../UI/OTAUpdatesModal/OTAUpdatesModal';
+import { selectOtaUpdatesEnabledFlag } from '../../selectors/featureFlagController/otaUpdates';
 /**
  * Hook to manage OTA updates based on a feature flag.
  *
@@ -18,7 +19,7 @@ import { createOTAUpdatesModalNavDetails } from '../UI/OTAUpdatesModal/OTAUpdate
  * calling `reloadAsync` when the user confirms.
  */
 export const useOTAUpdates = () => {
-  const otaUpdatesEnabled = useFeatureFlag(FeatureFlagNames.otaUpdatesEnabled);
+  const otaUpdatesEnabled = useSelector(selectOtaUpdatesEnabledFlag);
   const navigation = useNavigation();
 
   useEffect(() => {
