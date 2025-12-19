@@ -29,13 +29,9 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   formatPerpsFiat,
-  formatPnl,
-  formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import type {
-  PerpsNavigationParamList,
-  Position,
-} from '../../controllers/types';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
@@ -50,7 +46,6 @@ import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 interface PerpsMarketBalanceActionsProps {
-  positions?: Position[];
   showActionButtons?: boolean;
 }
 
@@ -75,7 +70,6 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 };
 
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
-  positions = [],
   showActionButtons = true,
 }) => {
   const tw = useTailwind();
@@ -217,17 +211,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const totalBalance = perpsAccount?.totalBalance || '0';
   const availableBalance = perpsAccount?.availableBalance || '0';
-  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const isBalanceEmpty = BigNumber(totalBalance).isZero();
-  const hasPositions = positions.length > 0;
-
-  const pnlNum = useMemo(() => parseFloat(unrealizedPnl), [unrealizedPnl]);
-  const pnlColor = useMemo(() => {
-    if (pnlNum > 0) return TextColor.Success;
-    if (pnlNum < 0) return TextColor.Error;
-    return TextColor.Alternative;
-  }, [pnlNum]);
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
@@ -345,34 +329,20 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 {formatPerpsFiat(totalBalance)}
               </Text>
             </Animated.View>
-            <Box twClassName="flex-row items-center mt-1">
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                }
-              >
-                {formatPerpsFiat(availableBalance)} {strings('perps.available')}
-              </Text>
-              {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
-                <>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {' · P&L '}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={pnlColor}
-                    testID={PerpsMarketBalanceActionsSelectorsIDs.PNL_VALUE}
-                  >
-                    {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
-                  </Text>
-                </>
-              )}
-            </Box>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={tw.style('mt-1')}
+              testID={
+                PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+              }
+            >
+              {formatPerpsFiat(availableBalance, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+                stripTrailingZeros: false,
+              })}{' '}
+              {strings('perps.available')}
+            </Text>
             {/* Action Buttons */}
             {showActionButtons && (
               <Box

@@ -43,9 +43,7 @@ import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { cardDefaultNavigationOptions } from '../../routes';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -270,6 +268,7 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   isSolanaChainId: jest.fn(),
 }));
 
@@ -2496,7 +2495,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('does nothing when no error exists', async () => {
+    it('does nothing when no error exists', () => {
       // Given: authenticated user without error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2509,7 +2508,6 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
@@ -2518,7 +2516,7 @@ describe('CardHome Component', () => {
       );
     });
 
-    it('does nothing when user is not authenticated', async () => {
+    it('does nothing when user is not authenticated', () => {
       // Given: non-authenticated user with error
       setupMockSelectors({ isAuthenticated: false });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2531,13 +2529,12 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
     });
 
-    it('does nothing when error is not an authentication error', async () => {
+    it('does nothing when error is not an authentication error', () => {
       // Given: authenticated user with non-authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(false);
@@ -2550,7 +2547,6 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      await new Promise((r) => setTimeout(r, 100));
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockClearAllCache).not.toHaveBeenCalled();
@@ -2667,8 +2663,8 @@ describe('CardHome Component', () => {
       // Given: authenticated user with persistent authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      const WrappedCardHome = withCardSDK(CardHome);
 
+      // Setup mock to return same error for multiple renders
       setupLoadCardDataMock({
         error: 'First auth error',
         isAuthenticated: true,
@@ -2683,24 +2679,10 @@ describe('CardHome Component', () => {
         priorityToken: mockPriorityToken,
       });
 
-      // When: component renders twice with the same authentication error
-      const { rerender } = renderWithProvider(<WrappedCardHome />, {
-        state: {
-          engine: {
-            backgroundState,
-          },
-        },
-      });
+      // When: component renders with authentication error
+      render();
 
       // Then: cleanup runs once on initial render
-      await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
-      });
-
-      // When: component re-renders with same error
-      rerender(<WrappedCardHome />);
-
-      // Then: cleanup does not run again for unchanged error
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
       });

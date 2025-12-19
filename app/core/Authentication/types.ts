@@ -22,3 +22,7 @@ export enum PasswordSubmissionErrorType {
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error',
   PASSWORD_REQUIREMENTS_NOT_MET = 'Password requirements not met',
 }
+
+export enum ReauthenticateErrorType {
+  BIOMETRIC_NOT_ENABLED = 'BIOMETRIC_NOT_ENABLED',
+}
