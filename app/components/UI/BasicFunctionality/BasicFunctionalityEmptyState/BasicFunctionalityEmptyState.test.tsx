@@ -23,13 +23,13 @@ describe('BasicFunctionalityEmptyState', () => {
       <BasicFunctionalityEmptyState />,
     );
 
-    expect(getByText('Explore is not available')).toBeDefined();
+    expect(getByText('Explore is not available')).toBeOnTheScreen();
     expect(
       getByText(
         "We can't fetch the required metadata when basic functionality is disabled.",
       ),
-    ).toBeDefined();
-    expect(getByText('Enable basic functionality')).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByText('Enable basic functionality')).toBeOnTheScreen();
     expect(
       queryByTestId('basic-functionality-empty-state-icon-container'),
     ).toBeNull();
@@ -41,7 +41,7 @@ describe('BasicFunctionalityEmptyState', () => {
       <BasicFunctionalityEmptyState title={customTitle} />,
     );
 
-    expect(getByText(customTitle)).toBeDefined();
+    expect(getByText(customTitle)).toBeOnTheScreen();
   });
 
   it('renders icon when iconName prop is provided', () => {
@@ -51,7 +51,7 @@ describe('BasicFunctionalityEmptyState', () => {
 
     expect(
       getByTestId('basic-functionality-empty-state-icon-container'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('navigates to basic functionality settings when button is pressed', () => {
