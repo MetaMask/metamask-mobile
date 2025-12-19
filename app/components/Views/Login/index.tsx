@@ -188,6 +188,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
+    // Use shorter delay during E2E tests to prevent pending timers
+    // that cause Detox synchronization issues
+    const delay = isE2E ? 0 : 100;
     const timeoutId = setTimeout(async () => {
       if (await Authentication.checkIsSeedlessPasswordOutdated()) {
         navigation.replace('Rehydrate', {
@@ -196,7 +199,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       } else {
         setStartFoxAnimation('Start');
       }
-    }, 100);
+    }, delay);
 
     return () => {
       clearTimeout(timeoutId);
