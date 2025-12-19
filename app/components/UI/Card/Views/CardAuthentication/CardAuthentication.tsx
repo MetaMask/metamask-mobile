@@ -99,8 +99,11 @@ const CardAuthentication = () => {
       if (error) {
         clearError();
       }
+      if (otpError) {
+        clearOtpError();
+      }
     },
-    [error, clearError],
+    [error, clearError, otpError, clearOtpError],
   );
 
   // Send OTP when entering OTP step

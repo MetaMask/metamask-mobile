@@ -80,6 +80,14 @@ const SetPhoneNumber = () => {
   const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
     selectedCountry?.emoji || '',
   );
+
+  // Sync local state when selectedCountry changes (e.g., after regions load)
+  useEffect(() => {
+    if (selectedCountry) {
+      setSelectedCountryAreaCode(selectedCountry.areaCode || '');
+      setSelectedCountryEmoji(selectedCountry.emoji || '');
+    }
+  }, [selectedCountry]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {
