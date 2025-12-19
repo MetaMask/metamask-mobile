@@ -28,7 +28,7 @@ const initialState = {
 };
 
 describe('PerpsMarketHeader', () => {
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
@@ -41,7 +41,7 @@ describe('PerpsMarketHeader', () => {
     expect(getByTestId(PerpsMarketHeaderSelectorsIDs.CONTAINER)).toBeTruthy();
   });
 
-  it('should handle back button press', () => {
+  it('handles back button press', () => {
     const onBackPress = jest.fn();
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
@@ -59,7 +59,7 @@ describe('PerpsMarketHeader', () => {
     expect(onBackPress).toHaveBeenCalled();
   });
 
-  it('should handle more button press', () => {
+  it('handles more button press', () => {
     const onMorePress = jest.fn();
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
@@ -77,7 +77,7 @@ describe('PerpsMarketHeader', () => {
     expect(onMorePress).toHaveBeenCalled();
   });
 
-  it('should render correctly without maxLeverage', () => {
+  it('renders correctly without maxLeverage', () => {
     const marketWithoutLeverage = {
       ...mockMarket,
       maxLeverage: undefined,
@@ -85,7 +85,7 @@ describe('PerpsMarketHeader', () => {
 
     const { getByTestId, queryByText } = renderWithProvider(
       <PerpsMarketHeader
-        market={marketWithoutLeverage as PerpsMarketData}
+        market={marketWithoutLeverage as unknown as PerpsMarketData}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
       />,
