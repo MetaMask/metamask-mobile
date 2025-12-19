@@ -120,6 +120,26 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ios_backgroundColor={theme.colors.border.muted}
           />
         );
+      case FeatureFlagType.FeatureFlagBooleanNested:
+        return (
+          <Switch
+            value={(localValue as { value: boolean })?.value ?? false}
+            onValueChange={(newValue: boolean) => {
+              const updatedValue = {
+                ...(localValue as { value: boolean }),
+                value: newValue,
+              };
+              setLocalValue(updatedValue);
+              onToggle(flag.key, updatedValue);
+            }}
+            trackColor={{
+              true: theme.colors.primary.default,
+              false: theme.colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            ios_backgroundColor={theme.colors.border.muted}
+          />
+        );
       case FeatureFlagType.FeatureFlagAbTest: {
         const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
           | AbTestType[]
@@ -208,16 +228,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               Alert.alert(
                 `${flag.key} (${flag.type})`,
                 JSON.stringify(localValue, null, 2),
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Reset to Default',
-                    onPress: () => {
-                      setLocalValue(flag.originalValue);
-                      onToggle(flag.key, null); // null indicates removal of override
-                    },
-                  },
-                ],
+                [{ text: 'Cancel', style: 'cancel' }],
               );
             }}
           >
