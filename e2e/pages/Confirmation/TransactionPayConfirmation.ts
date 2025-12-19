@@ -72,12 +72,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  async verifyPayWithSymbol(symbol: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.payWithSymbol, {
-      description: `Token symbol ${symbol} should be selected in pay with row`,
-    });
-  }
-
   async verifyTotal(total: string): Promise<void> {
     await Assertions.expectElementToHaveText(this.total, total, {
       description: 'Total should be correct',
