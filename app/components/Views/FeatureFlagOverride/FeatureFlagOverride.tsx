@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -30,10 +24,7 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import {
-  selectRawRemoteFeatureFlags,
-  selectLocalOverrides,
-} from '../../../selectors/featureFlagController';
+import { selectRawRemoteFeatureFlags } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
@@ -52,23 +43,17 @@ interface AbTestType {
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
-  const override = useSelector(selectLocalOverrides);
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
-  const prevIsOverriddenRef = useRef(flag.isOverridden);
 
   useEffect(() => {
-    const wasOverridden = prevIsOverriddenRef.current;
-    const isNowOverridden = flag.isOverridden;
-
-    if (wasOverridden && !isNowOverridden) {
-      // Reset localValue to flag.value when override is cleared
+    // Sync localValue with flag.value when the flag is not overridden.
+    // This handles both clearing overrides and background config refreshes.
+    if (!flag.isOverridden) {
       setLocalValue(flag.value);
     }
-
-    prevIsOverriddenRef.current = isNowOverridden;
-  }, [override, flag.value, flag.isOverridden, flag.key]);
+  }, [flag.value, flag.isOverridden]);
   const minimumVersion = (localValue as MinimumVersionFlagValue)
     ?.minimumVersion;
   const isVersionSupported = useMemo(
