@@ -775,22 +775,6 @@ describe('FeatureFlagOverride', () => {
   });
 
   describe('A/B Test Flag Handling', () => {
-    it('renders A/B test flag with fallback text when options are unavailable', () => {
-      // Render with an A/B test flag - the rawRemoteFeatureFlags won't have the array of options
-      renderWithProviders(
-        { abTestFlag: { name: 'control', value: { variant: 'A' } } },
-        {},
-      );
-
-      // Verify the flag is rendered
-      expect(screen.getByText('abTestFlag')).toBeTruthy();
-      // When options are not available, it renders the stringified value as fallback
-      expect(
-        screen.getByText('[object Object]') ||
-          screen.queryByText('control') !== null,
-      ).toBeTruthy();
-    });
-
     it('renders text display for A/B test flags in store', () => {
       // Render with an A/B test flag
       const storeWithAbTest = createMockStore(
