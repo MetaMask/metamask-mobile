@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -17,7 +17,7 @@ import {
   selectNativeNetworkCurrencies,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
-import { TokenList } from './TokenList';
+import { TokenList } from './TokenList/TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -30,12 +30,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar';
+import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
-import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import TokenListSkeleton from './TokenList/TokenListSkeleton';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
+import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -43,7 +41,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionCta from '../Earn/components/Musd/MusdConversionCta';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
@@ -97,21 +95,8 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   // Memoize selector computation for better performance
-  const sortedTokenKeys = useSelector(
-    useMemo(
-      () =>
-        isMultichainAccountsState2Enabled
-          ? selectSortedAssetsBySelectedAccountGroup
-          : selectSortedTokenKeys,
-      [isMultichainAccountsState2Enabled],
-    ),
-  );
+  const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
 
   // Mark as loaded once we have data (even if empty)
   useEffect(() => {
@@ -225,7 +210,11 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
         <>
-          {isMusdConversionFlowEnabled && <MusdConversionCta />}
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
           <TokenList
             tokenKeys={sortedTokenKeys}
             refreshing={refreshing}
@@ -241,12 +230,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           <TokensEmptyState />
         </Box>
       )}
-      {showScamWarningModal && (
-        <ScamWarningModal
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-      )}
+      <ScamWarningModal
+        showScamWarningModal={showScamWarningModal}
+        setShowScamWarningModal={setShowScamWarningModal}
+      />
       <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}

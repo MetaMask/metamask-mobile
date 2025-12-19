@@ -9,15 +9,14 @@ const createStyles = (colors: Colors) =>
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
       paddingTop:
-        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
-      paddingBottom: 16,
+        Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
     },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
+      justifyContent: 'space-between',
       gap: 16,
-      marginRight: 25,
     },
     action: {
       flex: 0,
@@ -37,7 +36,8 @@ const createStyles = (colors: Colors) =>
     },
     actionContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     button: {
       flex: 1,
@@ -58,7 +58,7 @@ const createStyles = (colors: Colors) =>
     },
     illustration: {
       width: Device.isMediumDevice() ? 160 : 200,
-      height: Device.isMediumDevice() ? 120 : 150,
+      height: Device.isMediumDevice() ? 120 : 180,
       alignSelf: 'center',
     },
     flexContainer: {

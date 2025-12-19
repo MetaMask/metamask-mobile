@@ -328,6 +328,13 @@ const OptinMetrics = () => {
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
         <View style={styles.wrapper}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={PrivacyIllustration}
+              style={styles.illustration}
+              resizeMode="contain"
+            />
+          </View>
           <Text
             variant={TextVariant.DisplayMD}
             color={TextColor.Default}
@@ -336,13 +343,6 @@ const OptinMetrics = () => {
           >
             {strings('privacy_policy.description_title')}
           </Text>
-          <View style={styles.imageContainer}>
-            <Image
-              source={PrivacyIllustration}
-              style={styles.illustration}
-              resizeMode="contain"
-            />
-          </View>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
@@ -362,12 +362,6 @@ const OptinMetrics = () => {
               activeOpacity={0.7}
             >
               <View style={styles.checkbox}>
-                <Checkbox
-                  onPress={handleBasicUsageToggle}
-                  isChecked={isBasicUsageChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                />
                 <View style={styles.flexContainer}>
                   <Text
                     variant={TextVariant.BodySMMedium}
@@ -376,6 +370,12 @@ const OptinMetrics = () => {
                     {strings('privacy_policy.gather_basic_usage_title')}
                   </Text>
                 </View>
+                <Checkbox
+                  onPress={handleBasicUsageToggle}
+                  isChecked={isBasicUsageChecked}
+                  accessibilityRole={'checkbox'}
+                  accessible
+                />
               </View>
               <Text
                 variant={TextVariant.BodySM}
@@ -410,13 +410,6 @@ const OptinMetrics = () => {
               disabled={isMarketingDisabled}
             >
               <View style={styles.checkbox}>
-                <Checkbox
-                  onPress={handleMarketingToggle}
-                  isChecked={isMarketingChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  disabled={isMarketingDisabled}
-                />
                 <View style={styles.flexContainer}>
                   <Text
                     variant={TextVariant.BodySMMedium}
@@ -427,6 +420,13 @@ const OptinMetrics = () => {
                     {strings('privacy_policy.checkbox_marketing')}
                   </Text>
                 </View>
+                <Checkbox
+                  onPress={handleMarketingToggle}
+                  isChecked={isMarketingChecked}
+                  accessibilityRole={'checkbox'}
+                  accessible
+                  disabled={isMarketingDisabled}
+                />
               </View>
               <Text
                 variant={TextVariant.BodySM}

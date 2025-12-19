@@ -20,17 +20,19 @@ jest.mock('react-native-device-info', () => ({
 
 const selectedAddress = '0x123';
 
-jest.mock('./TokensBottomSheet', () => ({
+jest.mock('./TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
-jest.mock('../Earn/components/Musd/MusdConversionCta', () => {
+jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
   const { View } = jest.requireActual('react-native');
-  const MockMusdConversionCta = () => <View testID="musd-conversion-cta" />;
+  const MusdConversionAssetListCta = () => (
+    <View testID="musd-conversion-cta" />
+  );
 
   return {
     __esModule: true,
-    default: MockMusdConversionCta,
+    default: MusdConversionAssetListCta,
   };
 });
 

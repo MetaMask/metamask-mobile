@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { View, ViewProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
@@ -12,6 +13,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
+import { RootState } from '../../../../../../reducers';
+import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 
 interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -31,19 +34,20 @@ const TronStakingButtons = ({
   const isStakedTrx =
     asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
 
+  const unstakedTrxAsset = useSelector((state: RootState) =>
+    isStakedTrx && asset?.address && asset?.chainId
+      ? selectAsset(state, {
+          address: asset.address,
+          chainId: asset.chainId,
+          isStaked: false,
+        })
+      : undefined,
+  );
+
   const baseAssetForStake = React.useMemo(
     () =>
-      !isStakedTrx
-        ? asset
-        : // we prefer nativeAsset if present; otherwise synthesize TRX view
-          (asset.nativeAsset ?? {
-            ...asset,
-            name: 'Tron',
-            symbol: 'TRX',
-            ticker: 'TRX',
-            isStaked: false,
-          }),
-    [asset, isStakedTrx],
+      !isStakedTrx ? asset : (unstakedTrxAsset ?? asset.nativeAsset ?? asset),
+    [asset, isStakedTrx, unstakedTrxAsset],
   );
 
   const onStakePress = () => {
@@ -89,7 +93,7 @@ const TronStakingButtons = ({
         label={
           hasStakedPositions
             ? strings('stake.stake_more')
-            : strings('stake.stake')
+            : strings('stake.stake_your_trx_cta.earn_button')
         }
         onPress={onStakePress}
       />

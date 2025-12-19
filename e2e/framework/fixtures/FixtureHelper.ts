@@ -49,6 +49,7 @@ import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
+import { PlatformDetector } from '../PlatformLocator';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -403,7 +404,7 @@ export const loadFixture = async (
 
   // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
   // On Android, fixture uses fallback ports which are mapped via adb reverse
-  if (device.getPlatform() === 'ios') {
+  if (await PlatformDetector.isIOS()) {
     state = updateDappUrlsWithAllocatedPorts(state);
     state = updateMockServerUrlsInFixture(state);
   }
@@ -659,6 +660,35 @@ export async function withFixtures(
       }
     }
 
+    // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
+    if (!skipReactNativeReload) {
+      try {
+        // Disable synchronization to prevent race conditions with pending timers
+        await device.disableSynchronization();
+        await device.reloadReactNative();
+        await device.enableSynchronization();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Ensure synchronization is re-enabled even on failure
+        try {
+          await device.enableSynchronization();
+        } catch {
+          // Ignore - best effort
+        }
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+      }
+    }
+
+    if (mockServerInstance) {
+      try {
+        // Validate live requests
+        mockServerInstance.validateLiveRequests();
+      } catch (cleanupError) {
+        logger.error('Error during live request validation:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
     // Clean up the mock server
     if (mockServerInstance?.isStarted()) {
       try {
@@ -691,26 +721,6 @@ export async function withFixtures(
           );
           cleanupErrors.push(cleanupError as Error);
         }
-      }
-    }
-
-    if (!skipReactNativeReload) {
-      try {
-        // Force reload React Native to stop any lingering timers
-        await device.reloadReactNative();
-      } catch (cleanupError) {
-        logger.warn('React Native reload failed (non-critical):', cleanupError);
-        // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      }
-    }
-
-    if (mockServerInstance) {
-      try {
-        // Validate live requests
-        mockServerInstance.validateLiveRequests();
-      } catch (cleanupError) {
-        logger.error('Error during live request validation:', cleanupError);
-        cleanupErrors.push(cleanupError as Error);
       }
     }
 

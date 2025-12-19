@@ -685,6 +685,8 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
 // Specific channel for fills
 class FillStreamChannel extends StreamChannel<OrderFill[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
@@ -715,6 +717,42 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
   protected getClearedData(): OrderFill[] {
     return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches fills data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('FillStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('FillStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
   }
 }
 
@@ -1215,6 +1253,25 @@ export class PerpsStreamManager {
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  /**
+   * Force reconnection of all stream channels after WebSocket reconnection
+   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
+   * will automatically reconnect when subscribers are still active
+   */
+  public clearAllChannels(): void {
+    // Disconnect all channels to clear dead WebSocket subscriptions
+    // Channels will automatically reconnect when subscribers call connect()
+    this.prices.disconnect();
+    this.orders.disconnect();
+    this.positions.disconnect();
+    this.fills.disconnect();
+    this.account.disconnect();
+    this.marketData.disconnect();
+    this.oiCaps.disconnect();
+    this.topOfBook.disconnect();
+    this.candles.disconnect();
+  }
 }
 
 // Singleton instance
@@ -1257,5 +1314,14 @@ export const usePerpsStream = () => {
   }
   return context;
 };
+
+// Type that only includes channel properties (excludes methods like clearAllChannels)
+export type PerpsStreamChannelKey = {
+  [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
+    pause(): void;
+  }
+    ? K
+    : never;
+}[keyof PerpsStreamManager];
 
 // Types are exported from controllers/types

@@ -37,10 +37,26 @@ jest.mock('../../../../hooks/useMetrics', () => {
   };
 });
 
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true),
-}));
+const mockGetIsBridgeEnabledSource = jest.fn(() => true);
+const mockSetIsDestTokenManuallySet = jest.fn();
+const mockSetDestToken = jest.fn();
+jest.mock('../../../../../core/redux/slices/bridge', () => {
+  const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
+  return {
+    ...actual,
+    selectIsBridgeEnabledSourceFactory: jest.fn(
+      () => mockGetIsBridgeEnabledSource,
+    ),
+    setIsDestTokenManuallySet: (...args: unknown[]) => {
+      mockSetIsDestTokenManuallySet(...args);
+      return actual.setIsDestTokenManuallySet(...args);
+    },
+    setDestToken: (...args: unknown[]) => {
+      mockSetDestToken(...args);
+      return actual.setDestToken(...args);
+    },
+  };
+});
 
 const mockGoToPortfolioBridge = jest.fn();
 jest.mock('../useGoToPortfolioBridge', () => ({
@@ -97,6 +113,17 @@ jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn(),
 }));
 
+// Mock token utilities
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+
+jest.mock('../../utils/tokenUtils', () => ({
+  getDefaultDestToken: jest.fn(),
+  getNativeSourceToken: jest.fn(),
+}));
+
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
   const mockLocation = SwapBridgeNavigationLocation.TabBar;
@@ -108,6 +135,14 @@ describe('useSwapBridgeNavigation', () => {
     decimals: 18,
     chainId: mockChainId,
     image: '',
+  };
+
+  const mockSourceToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000000001',
+    symbol: 'SRC',
+    name: 'Source Token',
+    decimals: 18,
+    chainId: mockChainId,
   };
 
   beforeEach(() => {
@@ -140,6 +175,30 @@ describe('useSwapBridgeNavigation', () => {
 
     // Reset selectChainId mock to default
     (selectChainId as unknown as jest.Mock).mockReturnValue(mockChainId);
+
+    // Reset bridge enabled mock to default (enabled)
+    mockGetIsBridgeEnabledSource.mockReturnValue(true);
+
+    // Reset setIsDestTokenManuallySet mock
+    mockSetIsDestTokenManuallySet.mockClear();
+    mockSetDestToken.mockClear();
+
+    // Setup default mocks for token utilities
+    (getDefaultDestToken as jest.Mock).mockReturnValue({
+      address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+      decimals: 18,
+      chainId: mockChainId,
+    });
+    (getNativeSourceToken as jest.Mock).mockReturnValue({
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ether',
+      decimals: 18,
+      chainId: mockChainId,
+      image: '',
+    });
   });
 
   it('uses native token when no token is provided', () => {
@@ -202,6 +261,93 @@ describe('useSwapBridgeNavigation', () => {
     });
   });
 
+  it('uses tokenOverride when passed to goToSwaps', () => {
+    const configuredToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'TOKEN',
+      name: 'Test Token',
+      decimals: 18,
+      chainId: mockChainId,
+    };
+
+    const overrideToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'OVERRIDE',
+      name: 'Override Token',
+      decimals: 18,
+      chainId: '0x89' as Hex,
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+          sourceToken: configuredToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(overrideToken);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: overrideToken,
+        sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Unified,
+      },
+    });
+  });
+
+  it('falls back to ETH on mainnet when bridge is not enabled for source chain', () => {
+    mockGetIsBridgeEnabledSource.mockReturnValue(false);
+
+    // Mock that getNativeAssetForChainId returns ETH for mainnet fallback
+    (getNativeAssetForChainId as jest.Mock).mockReturnValue({
+      address: '0x0000000000000000000000000000000000000000',
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    });
+
+    const unsupportedToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'UNSUPPORTED',
+      name: 'Unsupported Token',
+      decimals: 18,
+      chainId: '0x999' as Hex,
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+          sourceToken: unsupportedToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          name: 'Ether',
+          symbol: 'ETH',
+          image: '',
+          decimals: 18,
+          chainId: '0x1',
+        },
+        sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Unified,
+      },
+    });
+  });
+
   it('navigates to Bridge when goToSwaps is called and bridge UI is enabled', () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -222,6 +368,21 @@ describe('useSwapBridgeNavigation', () => {
         bridgeViewMode: BridgeViewMode.Unified,
       },
     });
+  });
+
+  it('resets isDestTokenManuallySet flag when navigating to swaps', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
   });
 
   it('uses home page filter network when no token is provided', () => {
@@ -335,6 +496,226 @@ describe('useSwapBridgeNavigation', () => {
           bridgeViewMode: BridgeViewMode.Unified,
         },
       });
+    });
+  });
+
+  describe('destToken handling', () => {
+    it('dispatches provided destToken when different from sourceToken', () => {
+      const destToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000002',
+        symbol: 'DEST',
+        name: 'Destination Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(destToken);
+    });
+
+    it('uses destTokenOverride when passed to goToSwaps', () => {
+      const configuredDestToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000002',
+        symbol: 'CONFIGURED',
+        name: 'Configured Dest Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const overrideDestToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000003',
+        symbol: 'OVERRIDE',
+        name: 'Override Dest Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: configuredDestToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(undefined, overrideDestToken);
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(overrideDestToken);
+    });
+
+    it('falls back to default when destToken same as sourceToken', () => {
+      const sameAsSourceToken: BridgeToken = {
+        ...mockSourceToken,
+      };
+
+      const defaultToken = {
+        address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      (getDefaultDestToken as jest.Mock).mockReturnValue(defaultToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: sameAsSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(defaultToken);
+    });
+
+    it('uses both sourceTokenOverride and destTokenOverride when passed to goToSwaps', () => {
+      const sourceOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000004',
+        symbol: 'SRC_OVERRIDE',
+        name: 'Source Override Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const destOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000005',
+        symbol: 'DEST_OVERRIDE',
+        name: 'Dest Override Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(sourceOverride, destOverride);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: sourceOverride,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+      expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    });
+
+    it('falls back to native token when default dest same as source', () => {
+      const nativeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+        image: '',
+      };
+
+      // Make default token same as source token
+      (getDefaultDestToken as jest.Mock).mockReturnValue({
+        ...mockSourceToken,
+      });
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(nativeToken);
+    });
+
+    it('falls back to native token when getDefaultDestToken returns null', () => {
+      const nativeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+        image: '',
+      };
+
+      (getDefaultDestToken as jest.Mock).mockReturnValue(null);
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(nativeToken);
+    });
+
+    it('does not dispatch destToken when native token same as source', () => {
+      // Source token is the native token
+      const nativeSourceToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      // Default and native both match source
+      (getDefaultDestToken as jest.Mock).mockReturnValue(nativeSourceToken);
+      (getNativeSourceToken as jest.Mock).mockReturnValue(nativeSourceToken);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: nativeSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      // setDestToken should not be called since all options match source
+      expect(mockSetDestToken).not.toHaveBeenCalled();
     });
   });
 
@@ -489,6 +870,33 @@ describe('useSwapBridgeNavigation', () => {
           bridgeViewMode: BridgeViewMode.Unified,
         },
       });
+    });
+
+    it('dispatches destToken with CAIP chain ID format', () => {
+      const solanaDestToken: BridgeToken = {
+        symbol: 'SOL',
+        name: 'Solana',
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        decimals: 9,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+        chainId: SolScope.Mainnet,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            destToken: solanaDestToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetDestToken).toHaveBeenCalledWith(solanaDestToken);
     });
   });
 

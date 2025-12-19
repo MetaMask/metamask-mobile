@@ -50,7 +50,8 @@ import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,8 +79,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
+        isAutomaticGasFeeUpdateEnabled,
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -96,9 +96,6 @@ export const TransactionControllerInit: ControllerInitFunction<
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
           networkController.getNetworkClientRegistry(...args),
-        // @ts-expect-error Type mismatch due to @metamask/network-controller version mismatch.
-        // The latest version (v27.0.0+) adds NetworkStatus.Degraded enum value
-        // See: https://github.com/MetaMask/core/pull/7186
         getNetworkState: () => networkController.state,
         hooks: {
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
@@ -360,6 +357,23 @@ function beforeSign(
 ) {
   const predictController = request.getController('PredictController');
   return predictController.beforeSign(hookRequest);
+}
+
+function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
+  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+    return false;
+  }
+
+  if (
+    transaction.origin === ORIGIN_METAMASK &&
+    transaction.type === TransactionType.tokenMethodApprove
+  ) {
+    return false;
+  }
+
+  return REDESIGNED_TRANSACTION_TYPES.includes(
+    transaction.type as TransactionType,
+  );
 }
 
 function addTransactionControllerListeners(
