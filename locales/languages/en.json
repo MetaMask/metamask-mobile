@@ -3227,7 +3227,10 @@
     "earn": "Earn",
     "convert": "Convert",
     "tron": {
-      "daily_resource": "Daily resources",
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "transactions",
+      "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
@@ -5652,6 +5655,9 @@
       "staking": "Payout history"
     },
     "allowance_reset": "Allowance Reset",
+    "tron": {
+      "fee": "Fee"
+    },
     "musd_conversion": {
       "confirmation_button": "Convert to mUSD",
       "earn_rewards_with": "Earn rewards with mUSD",
@@ -5666,8 +5672,17 @@
     "stake": "Stake",
     "earn": "Earn",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
+      "unstake_completed": "Unstaking completed",
+      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
-      "energy": "Energy"
+      "energy": "Energy",
+      "estimated_annual_reward": "Estimated annual reward",
+      "trx_locked_for": "TRX locked for",
+      "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
