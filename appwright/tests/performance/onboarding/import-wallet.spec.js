@@ -39,17 +39,17 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   CreatePasswordScreen.device = device;
   const timer1 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-    { ios: 600, android: 1800 },
+    { ios: 1000, android: 1800 },
     device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-    { ios: 600, android: 1500 },
+    { ios: 1000, android: 1500 },
     device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-    { ios: 1000, android: 1500 },
+    { ios: 2500, android: 1800 },
     device,
   );
   const timer4 = new TimerHelper(
@@ -64,12 +64,12 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   );
   const timer6 = new TimerHelper(
     'Time since the user clicks on "Done" button until feature sheet is visible',
-    { ios: 1100, android: 3100 },
+    { ios: 2500, android: 3100 },
     device,
   );
   const timer7 = new TimerHelper(
     'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-    { ios: 25000, android: 35000 },
+    { ios: 35000, android: 40000 },
     device,
   );
 

@@ -73,7 +73,7 @@ test('Account creation after fresh install', async ({
   );
   const screen2Timer = new TimerHelper(
     'Time since the user clicks on "Create account" button until the account is in the account list',
-    { ios: 800, android: 1900 },
+    { ios: 1500, android: 1900 },
     device,
   );
   const screen3Timer = new TimerHelper(

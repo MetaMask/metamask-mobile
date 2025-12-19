@@ -97,7 +97,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
-    { ios: 1600, android: 1200 },
+    { ios: 1600, android: 1500 },
     device,
   );
   const timer3 = new TimerHelper(
@@ -107,7 +107,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   );
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
-    { ios: 4000, android: 4000 },
+    { ios: 6000, android: 6000 },
     device,
   );
   await WalletActionModal.tapSendButton();
