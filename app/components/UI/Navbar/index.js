@@ -2370,7 +2370,6 @@ export function getBackAndCloseNavbar(
             size={ButtonIconSize.Lg}
             iconName={IconName.Close}
             onPress={handleClosePress}
-            style={innerStyles.accessories}
             testID={testIDs.close}
           />
         )
