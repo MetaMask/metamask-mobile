@@ -78,7 +78,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
