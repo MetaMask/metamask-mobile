@@ -1,32 +1,39 @@
-import { image } from './image';
-import { mockTheme } from '../../../../util/theme';
-import { ImageElement } from '@metamask/snaps-sdk/jsx';
+import { Image } from '@metamask/snaps-sdk/jsx';
+import { renderInterface } from '../testUtils';
+
+jest.mock('../../../../core/Engine/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+  context: {
+    SnapInterfaceController: {
+      updateInterfaceState: jest.fn(),
+    },
+  },
+}));
 
 describe('image component', () => {
-  const defaultParams = {
-    map: {},
-    t: jest.fn(),
-    theme: mockTheme,
-  };
-
-  it('should render image with some props', () => {
-    const imageElement: ImageElement = {
-      type: 'Image',
-      props: {
+  it('renders an SVG image', () => {
+    const { toJSON } = renderInterface(
+      Image({
         src: '<svg />',
         borderRadius: 'full',
-      },
-      key: null,
-    };
+      }),
+    );
 
-    const result = image({ element: imageElement, ...defaultParams });
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    expect(result).toEqual({
-      element: 'SnapUIImage',
-      props: {
-        borderRadius: 999,
-        value: '<svg />',
-      },
-    });
+  it('renders an external image', () => {
+    const { toJSON } = renderInterface(
+      Image({
+        src: 'https://metamask.io/fox.png',
+        borderRadius: 'full',
+        width: 200,
+        height: 200,
+      }),
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });
