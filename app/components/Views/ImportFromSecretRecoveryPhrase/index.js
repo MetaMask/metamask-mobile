@@ -15,7 +15,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect , useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -93,7 +93,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -134,8 +134,8 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useFeatureFlag(
-    FeatureFlagNames.importSrpWordSuggestion,
+  const isSrpWordSuggestionsEnabled = useSelector(
+    selectImportSrpWordSuggestionEnabledFlag,
   );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);

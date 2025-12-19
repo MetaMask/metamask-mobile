@@ -49,7 +49,7 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
@@ -79,9 +79,9 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useFeatureFlag(
-    FeatureFlagNames.importSrpWordSuggestion,
-  ) as boolean;
+  const isSrpWordSuggestionsEnabled = useSelector(
+    selectImportSrpWordSuggestionEnabledFlag,
+  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
   const shouldUseKeyboardProvider = !isE2E;

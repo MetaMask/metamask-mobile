@@ -3,24 +3,29 @@ import { fireEvent, act } from '@testing-library/react-native';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+
+// Track the mock return value
+let mockFeatureFlagValue = true;
 
 // Mock Keyboard
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
 }));
 
-// Mock useFeatureFlag hook
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    importSrpWordSuggestion: 'importSrpWordSuggestion',
-  },
-}));
+// Mock the selector for importSrpWordSuggestion feature flag
+jest.mock(
+  '../../../selectors/featureFlagController/importSrpWordSuggestion',
+  () => ({
+    selectImportSrpWordSuggestionEnabledFlag: jest.fn(
+      () => mockFeatureFlagValue,
+    ),
+  }),
+);
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
+// Helper function to set the mock value
+const setMockFeatureFlagValue = (value: boolean) => {
+  mockFeatureFlagValue = value;
+};
 
 // Mock BIP39 wordlist with test words
 jest.mock('@metamask/scure-bip39/dist/wordlists/english', () => ({
@@ -57,7 +62,7 @@ describe('SrpInputGrid', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     // Enable feature flag by default
-    mockUseFeatureFlag.mockReturnValue(true);
+    setMockFeatureFlagValue(true);
   });
 
   afterEach(() => {
@@ -167,7 +172,7 @@ describe('SrpInputGrid', () => {
     });
 
     it('hides suggestions when importSrpWordSuggestion feature flag is disabled', () => {
-      mockUseFeatureFlag.mockReturnValue(false);
+      setMockFeatureFlagValue(false);
 
       const { getByTestId, queryByText } = renderWithProvider(
         <SrpInputGrid {...defaultProps} />,
@@ -181,7 +186,7 @@ describe('SrpInputGrid', () => {
     });
 
     it('displays suggestions when importSrpWordSuggestion feature flag is enabled', () => {
-      mockUseFeatureFlag.mockReturnValue(true);
+      setMockFeatureFlagValue(true);
 
       const { getByTestId, getByText } = renderWithProvider(
         <SrpInputGrid {...defaultProps} />,
@@ -433,7 +438,7 @@ describe('SrpInputGrid', () => {
     });
 
     it('hides internal suggestions when renderSuggestionsExternally is true', () => {
-      mockUseFeatureFlag.mockReturnValue(true);
+      setMockFeatureFlagValue(true);
       const seedPhrase = ['wallet', ''];
 
       const { getByTestId, queryByText } = renderWithProvider(
@@ -456,7 +461,7 @@ describe('SrpInputGrid', () => {
     });
 
     it('displays internal suggestions when renderSuggestionsExternally is false', () => {
-      mockUseFeatureFlag.mockReturnValue(true);
+      setMockFeatureFlagValue(true);
       const seedPhrase = ['wallet', ''];
 
       const { getByTestId, getByText } = renderWithProvider(

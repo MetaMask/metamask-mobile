@@ -29,7 +29,8 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { useSelector } from 'react-redux';
+import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 import SrpWordSuggestions from '../SrpWordSuggestions';
 
 export interface SrpInputGridRef {
@@ -69,9 +70,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const styles = createStyles(colors);
 
     //flag to enable/disable SRP word suggestions
-    const isSrpWordSuggestionsEnabled = useFeatureFlag(
-      FeatureFlagNames.importSrpWordSuggestion,
-    ) as boolean;
+    const isSrpWordSuggestionsEnabled = useSelector(
+      selectImportSrpWordSuggestionEnabledFlag,
+    );
 
     // Internal state
     const [

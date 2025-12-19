@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   selectDestAddress,
@@ -7,11 +7,8 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  isNonEvmAddress,
-  isNonEvmChainId,
-} from '../../../../core/Multichain/utils';
 import { useDestinationAccounts } from './useDestinationAccounts';
+import { areAddressesEqual } from '../../../../util/address';
 
 export const useRecipientInitialization = (
   hasInitializedRecipient: React.MutableRefObject<boolean>,
@@ -33,6 +30,26 @@ export const useRecipientInitialization = (
     [dispatch],
   );
 
+  // Check if current destAddress is a valid destination account for the current destination chain
+  // This properly handles switching between different non-EVM chains (e.g., BTC → SOL)
+  // by checking if the address exists in the filtered destination accounts list
+  const isDestAddressValidForDestChain = useMemo(() => {
+    if (
+      !destAddress ||
+      !destToken?.chainId ||
+      destinationAccounts.length === 0
+    ) {
+      return false;
+    }
+
+    // Check if the current destAddress matches any of the valid destination accounts
+    // destinationAccounts is already filtered by selectValidDestInternalAccountIds
+    // which uses account scopes to filter for the specific destination chain
+    return destinationAccounts.some((account) =>
+      areAddressesEqual(account.address, destAddress),
+    );
+  }, [destAddress, destToken?.chainId, destinationAccounts]);
+
   // Initialize default recipient account
   useEffect(() => {
     // Only initialize if we haven't done so before, or if the current address doesn't match the network type
@@ -40,25 +57,12 @@ export const useRecipientInitialization = (
       return;
     }
 
-    // Check if current destAddress matches the destination chain type
-    const isDestChainNonEvm =
-      destToken?.chainId && isNonEvmChainId(destToken.chainId);
-    const isDestAddressNonEvm = destAddress && isNonEvmAddress(destAddress);
-
-    // Address format should match the destination chain type:
-    // - If dest chain is non-EVM (e.g., Solana, Bitcoin), dest address should be non-EVM
-    // - If dest chain is EVM, dest address should be EVM
-    const doesDestAddrMatchNetworkType =
-      destAddress &&
-      destToken?.chainId &&
-      isDestChainNonEvm === isDestAddressNonEvm;
-
-    // Only initialize in these specific cases:
-    // 1. Never initialized AND no destAddress set
-    // 2. destAddress doesn't match the current network type (user switched networks)
-    const shouldInitialize =
-      (!hasInitializedRecipient.current && !destAddress) ||
-      !doesDestAddrMatchNetworkType;
+    // Initialize/reinitialize in these cases:
+    // 1. No destAddress is set (missing or cleared)
+    // 2. destAddress is not valid for the current destination chain (user switched networks)
+    //    This handles switching between different non-EVM chains (e.g., BTC → SOL)
+    // Note: isDestAddressValidForDestChain returns false when destAddress is falsy,
+    const shouldInitialize = !isDestAddressValidForDestChain;
 
     if (shouldInitialize) {
       // Find an account from the currently selected account group that supports the destination network
@@ -78,10 +82,10 @@ export const useRecipientInitialization = (
     }
   }, [
     destAddress,
-    destToken,
     destinationAccounts,
     handleSelectAccount,
     currentlySelectedAccount,
     hasInitializedRecipient,
+    isDestAddressValidForDestChain,
   ]);
 };
