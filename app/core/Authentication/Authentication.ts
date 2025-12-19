@@ -1579,6 +1579,7 @@ class AuthenticationService {
         const error = e as Error;
         // TODO: May want to triage errors here and throw different errors based on the error type
         // For example, getPassword throws with `User canceled the operation` when biometrics is canceled or fails
+        // Disallowing biometrics on system level will not throw an error and just return empty credentials
         throw new Error(
           `${ReauthenticateErrorType.BIOMETRIC_ERROR}: ${error.message}`,
         );
