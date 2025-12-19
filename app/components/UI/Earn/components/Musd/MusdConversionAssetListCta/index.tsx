@@ -58,7 +58,7 @@ const MusdConversionAssetListCta = () => {
   const { getPaymentTokenForSelectedNetwork, getChainIdForBuyFlow } =
     useMusdConversionFlowData();
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
+  const { initiateCustomConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
@@ -144,7 +144,7 @@ const MusdConversionAssetListCta = () => {
         return;
       }
 
-      await initiateConversion({
+      await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
       });
     } catch (error) {
