@@ -17,7 +17,7 @@ describe('Navbar Utility Functions', () => {
       jest.clearAllMocks();
     });
 
-    it('should return navigation options with both back and close buttons by default', () => {
+    it('returns navigation options with both back and close buttons by default', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       expect(options.headerShown).toBe(true);
@@ -27,7 +27,7 @@ describe('Navbar Utility Functions', () => {
       expect(options.headerStyle).toBeDefined();
     });
 
-    it('should render back button with correct props', () => {
+    it('renders back button with correct props', () => {
       const testIDs = { back: 'test-back-button' };
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         testIDs,
@@ -39,7 +39,7 @@ describe('Navbar Utility Functions', () => {
       expect(BackButton.props.iconName).toBe('ArrowLeft');
     });
 
-    it('should render close button with correct props', () => {
+    it('renders close button with correct props', () => {
       const testIDs = { close: 'test-close-button' };
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         testIDs,
@@ -51,7 +51,7 @@ describe('Navbar Utility Functions', () => {
       expect(CloseButton.props.iconName).toBe('Close');
     });
 
-    it('should hide back button when showBack is false', () => {
+    it('hides back button when showBack is false', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         showBack: false,
       });
@@ -60,7 +60,7 @@ describe('Navbar Utility Functions', () => {
       expect(options.headerRight).toBeInstanceOf(Function);
     });
 
-    it('should hide close button when showClose is false', () => {
+    it('hides close button when showClose is false', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         showClose: false,
       });
@@ -69,7 +69,7 @@ describe('Navbar Utility Functions', () => {
       expect(options.headerRight).toBeNull();
     });
 
-    it('should hide both buttons when both flags are false', () => {
+    it('hides both buttons when both flags are false', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         showBack: false,
         showClose: false,
@@ -79,7 +79,7 @@ describe('Navbar Utility Functions', () => {
       expect(options.headerRight).toBeNull();
     });
 
-    it('should call custom onBack handler when provided', () => {
+    it('calls custom onBack handler when provided', () => {
       const customOnBack = jest.fn();
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         onBack: customOnBack,
@@ -92,7 +92,7 @@ describe('Navbar Utility Functions', () => {
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
-    it('should call navigation.goBack when no custom onBack handler is provided', () => {
+    it('calls navigation.goBack when no custom onBack handler is provided', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       const BackButton = options.headerLeft();
@@ -101,7 +101,7 @@ describe('Navbar Utility Functions', () => {
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should call custom onClose handler when provided', () => {
+    it('calls custom onClose handler when provided', () => {
       const customOnClose = jest.fn();
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         onClose: customOnClose,
@@ -114,7 +114,7 @@ describe('Navbar Utility Functions', () => {
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
-    it('should call navigation.goBack when no custom onClose handler is provided', () => {
+    it('calls navigation.goBack when no custom onClose handler is provided', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       const CloseButton = options.headerRight();
@@ -123,7 +123,7 @@ describe('Navbar Utility Functions', () => {
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should use custom background color when provided', () => {
+    it('uses custom background color when provided', () => {
       const customBgColor = '#FF0000';
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
         backgroundColor: customBgColor,
@@ -132,7 +132,7 @@ describe('Navbar Utility Functions', () => {
       expect(options.headerStyle.backgroundColor).toBe(customBgColor);
     });
 
-    it('should use default background color when not provided', () => {
+    it('uses default background color when not provided', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       expect(options.headerStyle.backgroundColor).toBe(
@@ -140,21 +140,21 @@ describe('Navbar Utility Functions', () => {
       );
     });
 
-    it('should have transparent shadow', () => {
+    it('has transparent shadow', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       expect(options.headerStyle.shadowColor).toBe('transparent');
       expect(options.headerStyle.elevation).toBe(0);
     });
 
-    it('should return null for headerTitle', () => {
+    it('returns null for headerTitle', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       const titleResult = options.headerTitle();
       expect(titleResult).toBeNull();
     });
 
-    it('should work with all custom options combined', () => {
+    it('works with all custom options combined', () => {
       const customOnBack = jest.fn();
       const customOnClose = jest.fn();
       const testIDs = { back: 'custom-back', close: 'custom-close' };
