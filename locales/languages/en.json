@@ -6506,7 +6506,7 @@
       "deposit": "Fund with cash",
       "deposit_description": "Low-cost card or bank transfer",
       "swap": "Fund with crypto",
-      "swap_description": "Swap tokens into {{symbol}} on Linea",
+      "swap_description": "Swap tokens into {{symbol}} on {{chainName}}",
       "select_method": "Select method"
     },
     "card_onboarding": {
