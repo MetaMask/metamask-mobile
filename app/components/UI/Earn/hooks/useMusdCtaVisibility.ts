@@ -138,7 +138,8 @@ export const useMusdCtaVisibility = () => {
   ]);
 
   return {
-    shouldShowCta,
+    // TEMP: TODO: Remove after building.
+    shouldShowCta: true,
     showNetworkIcon,
     selectedChainId,
   };
