@@ -181,7 +181,7 @@ describe('Footer', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk Disclosure'));
+    fireEvent.press(getByText('Risk disclosure'));
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );
