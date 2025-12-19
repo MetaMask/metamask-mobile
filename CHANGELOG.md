@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.61.3]
 
+### Uncategorized
+
+- update changelog diff links
+- update changelog
+- Merge branch 'stable' into release/7.61.3
+- bump semvar version to 7.61.3 && build version to 3314
+- release: 7.61.2 ([#24167](https://github.com/MetaMask/metamask-mobile/pull/24167))
+- chore: release/7.61.2-Changelog ([#24173](https://github.com/MetaMask/metamask-mobile/pull/24173))
+- Merge branch 'stable' into release/7.61.2
+- release: 7.61.1 ([#24026](https://github.com/MetaMask/metamask-mobile/pull/24026))
+- update changelog
+- Merge branch 'stable' into release/7.61.1
+- release: 7.61.0 ([#23381](https://github.com/MetaMask/metamask-mobile/pull/23381))
+- release: release/7.61.0-Changelog ([#23380](https://github.com/MetaMask/metamask-mobile/pull/23380))
+
 ### Fixed
 
 - chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
