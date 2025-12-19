@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -12,7 +6,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -75,7 +69,6 @@ export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const route = useRoute();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
@@ -83,7 +76,6 @@ export const ExploreFeed: React.FC = () => {
     trigger: 0,
     silentRefresh: true,
   });
-  const isFirstMount = useRef(true);
 
   // Track which sections have empty data and which are loading
   const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
@@ -96,24 +88,25 @@ export const ExploreFeed: React.FC = () => {
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
+  // REMOVED FOR NOW (https://consensys.slack.com/archives/C07NF2K42LE/p1766152712027759?thread_ts=1766135783.241539&cid=C07NF2K42LE)
   // Trigger refresh only when navigating to an already-mounted screen
-  useEffect(() => {
-    const params = route.params as { refresh?: boolean } | undefined;
+  // useEffect(() => {
+  //   const params = route.params as { refresh?: boolean } | undefined;
 
-    // Skip refresh on first mount
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
+  //   // Skip refresh on first mount
+  //   if (isFirstMount.current) {
+  //     isFirstMount.current = false;
+  //     return;
+  //   }
 
-    if (params?.refresh === true) {
-      // Silent refresh - don't show skeletons
-      setRefreshConfig((prev) => ({
-        trigger: prev.trigger + 1,
-        silentRefresh: false,
-      }));
-    }
-  }, [route.params]);
+  //   if (params?.refresh === true) {
+  //     // Silent refresh - don't show skeletons
+  //     setRefreshConfig((prev) => ({
+  //       trigger: prev.trigger + 1,
+  //       silentRefresh: false,
+  //     }));
+  //   }
+  // }, [route.params]);
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
