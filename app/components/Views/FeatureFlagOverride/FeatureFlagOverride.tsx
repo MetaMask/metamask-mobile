@@ -23,7 +23,7 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;

@@ -1,9 +1,7 @@
 import React, { useRef } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
-import createStyles from '../styles';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -17,16 +15,32 @@ import currencySymbols from '../../../../util/currency-symbols.json';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
+
+const styles = StyleSheet.create({
+  bottomSheetTitle: {
+    alignSelf: 'center',
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
+  bottomSheetText: {
+    width: '100%',
+  },
+});
 
 enum SortOption {
   FiatAmount = 0,
   Alphabetical = 1,
 }
 
+export const createTokensBottomSheetNavDetails = createNavigationDetails(
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.SHEET.TOKEN_SORT,
+);
+
 const TokenSortBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
 
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
