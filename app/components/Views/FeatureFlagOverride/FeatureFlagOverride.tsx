@@ -140,9 +140,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           | AbTestType[]
           | undefined;
 
-        // Fall through to default case if A/B test options are unavailable
+        // Return default display if A/B test options are unavailable
         if (!abTestOptions || !Array.isArray(abTestOptions)) {
-          break;
+          return (
+            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
+              {String(localValue)}
+            </Text>
+          );
         }
 
         const handleSelectOption = (name: string) => {
