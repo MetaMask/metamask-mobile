@@ -71,9 +71,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     }
   }, [rawFeatureFlags, addTraitsToUser]);
 
-  // Local state for overrides
-  const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
-
   const setOverride = useCallback((key: string, value: unknown) => {
     Engine.context?.RemoteFeatureFlagController?.setFlagOverride(
       key,
