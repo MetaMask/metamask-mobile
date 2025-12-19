@@ -137,6 +137,15 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     withNavigationLock(onReceive);
   }, [withNavigationLock, onReceive]);
 
+  // Navigate to mUSD Quick Convert view
+  const handleMusdQuickConvertPress = useCallback(() => {
+    withNavigationLock(() => {
+      navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.QUICK_CONVERT,
+      });
+    });
+  }, [withNavigationLock, navigate]);
+
   return (
     <View style={styles.activitiesButton}>
       {displayBuyButton && (
@@ -172,10 +181,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonContainer}>
         <MainActionButton
-          iconName={IconName.Received}
-          label={strings('asset_overview.receive_button')}
-          onPress={handleReceivePress}
-          isDisabled={false}
+          iconName={IconName.Coin}
+          label={strings('earn.musd_conversion.quick_convert_button')}
+          onPress={handleMusdQuickConvertPress}
+          isDisabled={!canSignTransactions}
           testID={receiveButtonActionID}
         />
       </View>
