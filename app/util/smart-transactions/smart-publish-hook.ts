@@ -7,6 +7,7 @@ import {
 import {
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
+  SmartTransactionsNetworkConfig,
   SmartTransactionStatuses,
   type Fee,
   type Fees,
@@ -45,27 +46,11 @@ export interface SubmitSmartTransactionRequest {
   >;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
-  featureFlags: {
-    mobile_active: boolean;
-    extension_active: boolean;
-    fallback_to_v1: boolean;
-    fallbackToV1: boolean;
-    mobileActive: boolean;
-    extensionActive: boolean;
-    mobileActiveIOS: boolean;
-    mobileActiveAndroid: boolean;
-    smartTransactions:
-      | {
-          expectedDeadline: number;
-          maxDeadline: number;
-          mobileReturnTxHashAsap: boolean;
-          batchStatusPollingInterval: number;
-        }
-      | Record<string, never>;
-  };
+  featureFlags: SmartTransactionsNetworkConfig;
   transactions?: PublishBatchHookTransaction[];
 }
 
+const DEFAULT_BATCH_STATUS_POLLING_INTERVAL = 1000;
 const LOG_PREFIX = 'STX publishHook';
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
@@ -76,16 +61,7 @@ class SmartTransactionHook {
   #approvalEnded: boolean;
   #approvalId: string | undefined;
   #chainId: Hex;
-  #featureFlags: {
-    extensionActive: boolean;
-    mobileActive: boolean;
-    smartTransactions: {
-      expectedDeadline?: number;
-      maxDeadline?: number;
-      mobileReturnTxHashAsap?: boolean;
-      batchStatusPollingInterval?: number;
-    };
-  };
+  #featureFlags: SmartTransactionsNetworkConfig;
   #shouldUseSmartTransaction: boolean;
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
@@ -132,7 +108,7 @@ class SmartTransactionHook {
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
     this.#mobileReturnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
+      this.#featureFlags?.mobileReturnTxHashAsap ?? false;
     this.#transactions = transactions;
 
     const {
@@ -203,8 +179,11 @@ class SmartTransactionHook {
       }
 
       const batchStatusPollingInterval =
-        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+        this.#featureFlags?.batchStatusPollingInterval ??
+        DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
+        // if the interval if undefined, the controller will set 5 seconds by default.
+        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );
@@ -280,8 +259,11 @@ class SmartTransactionHook {
 
     try {
       const batchStatusPollingInterval =
-        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+        this.#featureFlags?.batchStatusPollingInterval ??
+        DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
+        // if the interval if undefined, the controller will set 5 seconds by default.
+        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );

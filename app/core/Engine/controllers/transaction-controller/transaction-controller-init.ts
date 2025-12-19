@@ -17,8 +17,10 @@ import {
 } from '@metamask/smart-transactions-controller';
 
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
-import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import {
+  getSmartTransactionsFeatureFlagsForChain,
+  selectShouldUseSmartTransaction,
+} from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
 import {
   submitSmartTransactionHook,
@@ -262,12 +264,12 @@ async function publishHook({
   return { transactionHash: undefined };
 }
 
-function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
+function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
   const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
     state,
     chainId,
   );
-  const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
+  const featureFlags = getSmartTransactionsFeatureFlagsForChain(state, chainId);
 
   return {
     shouldUseSmartTransaction,
