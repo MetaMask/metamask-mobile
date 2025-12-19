@@ -206,9 +206,10 @@ export default function migrate(versionedState: unknown) {
     captureException(
       new Error(`Migration ${migrationVersion}: ${getErrorMessage(error)}`),
     );
-  }
 
-  return state;
+    // Return the original state if migration fails to avoid breaking the app
+    return versionedState;
+  }
 }
 
 function validateNetworkController(state: ValidState):
@@ -217,15 +218,15 @@ function validateNetworkController(state: ValidState):
       selectedNetworkClientId: string;
     }
   | undefined {
-  // Validate if the NetworkController state exists and has the expected structure.
   if (
     !hasProperty(state, 'engine') ||
     !hasProperty(state.engine, 'backgroundState') ||
     !hasProperty(state.engine.backgroundState, 'NetworkController')
   ) {
+    // We catch the exception here, as we don't expect the NetworkController state is missing.
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+        `Migration ${migrationVersion}: Invalid NetworkController state: missing NetworkController`,
       ),
     );
     return undefined;
@@ -289,7 +290,6 @@ function validateNetworkEnablementController(state: ValidState):
       eip155NetworkMap: Record<string, boolean>;
     }
   | undefined {
-  // Validate if the NetworkEnablementController state exists and has the expected structure.
   if (
     !hasProperty(state, 'engine') ||
     !hasProperty(state.engine, 'backgroundState') ||

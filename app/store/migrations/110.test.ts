@@ -218,7 +218,7 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
   });
 
-  it('removes the megaeth testnet v1 network configuration and enablement map and adds the megaeth testnet v2 network configuration', async () => {
+  it('adds the megaeth testnet v2 network configuration, update the enablement map and remove the megaeth testnet v1 network configuration', async () => {
     const orgState = {
       engine: {
         backgroundState: {
@@ -271,6 +271,44 @@ describe(`migration #${migrationVersion}`, () => {
                 [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
                 '0x1': true,
               },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(orgState);
+
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('adds the megaeth testnet v2 network configuration and remove the megaeth testnet v1 network configuration but does not update the enablement map if NetworkEnablementController state is invalid', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'megaeth-testnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...megaEthTestnetV1Configuration,
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
             },
           },
         },
