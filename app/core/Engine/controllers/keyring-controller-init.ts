@@ -82,7 +82,6 @@ export const keyringControllerInit: ControllerInitFunction<
     // @ts-expect-error: TODO: Update the type of QRHardwareKeyring to
     // `Keyring<Json>`.
     keyringBuilders: additionalKeyrings,
-    cacheEncryptionKey: true,
   });
 
   return {

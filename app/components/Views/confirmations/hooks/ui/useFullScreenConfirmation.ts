@@ -1,6 +1,10 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -11,8 +15,18 @@ const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
   isWalletInitiated: boolean,
+  maxValueMode = false,
 ): boolean => {
   if (!isWalletInitiated) {
+    return false;
+  }
+
+  // TODO: Consider creating array of constants for this (similar to FULL_SCREEN_CONFIRMATIONS) instead of checking for musdConversion specifically.
+  // Max mode mUSD conversion should render as bottom sheet
+  if (
+    maxValueMode &&
+    transactionMetadata?.type === TransactionType.musdConversion
+  ) {
     return false;
   }
 
@@ -34,11 +48,13 @@ export const useFullScreenConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const isInternalConfirmation = useIsInternalConfirmation();
+  const { maxValueMode } = useParams<{ maxValueMode?: boolean }>();
 
   const isFullScreenConfirmation = getIsFullScreenConfirmation(
     approvalRequest,
     transactionMetadata,
     isInternalConfirmation,
+    maxValueMode,
   );
 
   return { isFullScreenConfirmation };

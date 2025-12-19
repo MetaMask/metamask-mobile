@@ -13,10 +13,10 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
