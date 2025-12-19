@@ -87,5 +87,6 @@ export const makeSelectRequestError = (cacheKey: string) =>
 export const makeSelectRequestStatus = (cacheKey: string) =>
   createSelector(
     makeSelectRequestState(cacheKey),
-    (requestState): RequestStatus => requestState?.status ?? RequestStatus.IDLE,
+    (requestState): `${RequestStatus}` =>
+      requestState?.status ?? RequestStatus.IDLE,
   );
