@@ -1,9 +1,12 @@
 import { test } from '../../../../fixtures/performance-test.js';
 import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
-import { login } from '../../../../utils/Flows.js';
+import {
+  login,
+  dismissMultichainAccountsIntroModal,
+} from '../../../../utils/Flows.js';
 
-import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
+import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';
@@ -13,7 +16,7 @@ import ExternalWebsitesScreen from '../../../../../wdio/screen-objects/BrowserOb
 import AccountApprovalModal from '../../../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
 
 // There is a bug in this flow specifically on the samsung s23 device.
-test('Measure Warm Start: Login To Wallet Screen', async ({
+test('Measure Warm Start: Warm Start to Login Screen', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -27,36 +30,17 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
 
   await login(device);
 
-  await TabBarModal.tapBrowserButton();
-
-  /*
-    These steps are too flaky. Commenting out for now.
-
-  // await BrowserScreen.isScreenContentDisplayed();
-  // await BrowserScreen.tapUrlBar();
-  // await AddressBarScreen.tapClearButton();
-  // await AddressBarScreen.editUrlInput('https://metamask.github.io/test-dapp/');
-
-  // await AddressBarScreen.submitUrlWebsite();
-  // await ExternalWebsitesScreen.isTestDappDisplayed();
-
-  // await ExternalWebsitesScreen.tapDappConnectButton();
-  // console.log('Waiting for 10 seconds');
-  // await AccountApprovalModal.tapConnectButtonByText();
-  // console.log('Waiting for 30 seconds');
-*/
-  await TabBarModal.tapWalletButton();
+  const timer1 = new TimerHelper(
+    'Time since the user open the app again and the login screen appears',
+    { ios: 1500, android: 1500 },
+    device,
+  );
   await AppwrightGestures.backgroundApp(device, 30);
   await AppwrightGestures.activateApp(device);
-  await LoginScreen.waitForScreenToDisplay();
-  await login(device);
+  await timer1.measure(async () => {
+    await LoginScreen.waitForScreenToDisplay();
+  });
 
-  const timer1 = new TimerHelper(
-    'Time since the user clicks on unlock button, until the app unlocks',
-  );
-  timer1.start();
-  await WalletMainScreen.isMainWalletViewVisible();
-  timer1.stop();
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });
