@@ -42,7 +42,6 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
-import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
