@@ -70,6 +70,18 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
+export const selectIsMusdCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 /**
  * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
  * Returns a mapping of chain IDs to arrays of token addresses that users can pay with to convert to mUSD.

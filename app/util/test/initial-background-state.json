@@ -383,6 +383,7 @@
     }
   },
   "SnapController": {
+    "isReady": false,
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
@@ -393,7 +394,8 @@
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
-    "lastUpdated": null
+    "lastUpdated": null,
+    "signature": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -738,5 +740,8 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "RampsController": {
+    "geolocation": null
   }
 }
