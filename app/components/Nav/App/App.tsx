@@ -150,7 +150,6 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -1102,7 +1101,6 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-  useOTAUpdates();
 
   if (isFirstRender.current) {
     trace({

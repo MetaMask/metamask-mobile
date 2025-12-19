@@ -82,10 +82,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn(),
-}));
-
 jest.mock(
   '../../UI/FoxLoader',
   () =>

@@ -7277,7 +7277,7 @@
   },
   "ota_update_modal": {
     "title": "Update available",
-    "description": "A new version of the app is available. Please reload the app to continue.",
+    "description": "A new version of the app is available, please restart to continue",
     "primary_action": "Reload"
   }
 }
