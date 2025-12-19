@@ -193,36 +193,44 @@ describe('usePerpsTransactionHistory', () => {
   });
 
   describe('initial state', () => {
-    it('returns initial state correctly', async () => {
+    it('returns initial state correctly when skipInitialFetch is true', () => {
       // Override transform mock to return empty for initial state test
       mockTransformFillsToTransactions.mockReturnValue([]);
 
-      const { result } = renderHook(() => usePerpsTransactionHistory());
-
-      // Initial state: no WebSocket fills, no REST data yet
-      expect(result.current.transactions).toEqual([]);
-      // Initial loading state is false, becomes true when fetch starts
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.ordersLoaded).toBe(false);
-      expect(result.current.error).toBeNull();
-      expect(typeof result.current.refetch).toBe('function');
-
-      // Wait for initial fetch to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-    });
-
-    it('skips initial fetch when skipInitialFetch is true', () => {
-      // Override transform mock to return empty for initial state test
-      mockTransformFillsToTransactions.mockReturnValue([]);
-
+      // Use skipInitialFetch to test true initial state before any fetch
       const { result } = renderHook(() =>
         usePerpsTransactionHistory({ skipInitialFetch: true }),
       );
 
+      // Initial state: no WebSocket fills, no REST data yet
       expect(result.current.transactions).toEqual([]);
+      // Initial loading state is false before any fetch starts
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.ordersLoaded).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(typeof result.current.refetch).toBe('function');
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('starts fetching immediately on mount', async () => {
+      // Override transform mock to return empty for this test
+      mockTransformFillsToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 1 to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // After fetch completes, loading is false
+      expect(result.current.isLoading).toBe(false);
+      expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
   });
 
@@ -376,7 +384,7 @@ describe('usePerpsTransactionHistory', () => {
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      renderHook(() => usePerpsTransactionHistory(params));
+      const { result } = renderHook(() => usePerpsTransactionHistory(params));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -394,13 +402,18 @@ describe('usePerpsTransactionHistory', () => {
         endTime: 1640995300000,
         skipCache: false,
       });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
     });
 
     it('passes accountId to useUserHistory hook', async () => {
       const accountId =
         'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
 
-      renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsTransactionHistory({
           accountId,
         }),
@@ -416,10 +429,17 @@ describe('usePerpsTransactionHistory', () => {
         endTime: undefined,
         accountId,
       });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
     });
 
     it('handles undefined accountId correctly', async () => {
-      renderHook(() => usePerpsTransactionHistory({ accountId: undefined }));
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ accountId: undefined }),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -442,6 +462,11 @@ describe('usePerpsTransactionHistory', () => {
         startTime: undefined,
         endTime: undefined,
         accountId: undefined,
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
     });
 
@@ -486,6 +511,11 @@ describe('usePerpsTransactionHistory', () => {
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(result.current.transactions[0].timestamp).toBe(2000);
@@ -538,6 +568,11 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
       expect(result.current.transactions).toHaveLength(2);
     });
 
@@ -570,6 +605,11 @@ describe('usePerpsTransactionHistory', () => {
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // Should contain both transactions (no duplicates since IDs are different)
@@ -697,6 +737,11 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
       expect(result.current.isLoading).toBe(false);
     });
   });
@@ -755,8 +800,27 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for initial fetch to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete first
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Clear mocks for refetch check
+      mockRefetchUserHistory.mockClear();
+      mockProvider.getOrderFills.mockClear();
+
       await act(async () => {
         await result.current.refetch();
+      });
+
+      // Wait for refetch Phase 2 to complete
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(mockRefetchUserHistory).toHaveBeenCalled();
@@ -766,10 +830,15 @@ describe('usePerpsTransactionHistory', () => {
 
   describe('logging', () => {
     it('logs transaction data fetching', async () => {
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -1030,8 +1099,9 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // Should deduplicate based on asset+timestamp, keeping the live version
@@ -1075,8 +1145,9 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // Both non-trade transactions should be present
@@ -1167,8 +1238,9 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // Should have 2 transactions (different assets, so no dedup)
@@ -1192,8 +1264,9 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(result.current.transactions).toEqual([]);
@@ -1223,8 +1296,9 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // All 500 transactions should be present (no pagination)

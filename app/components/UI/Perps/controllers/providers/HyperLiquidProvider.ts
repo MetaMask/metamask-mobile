@@ -882,7 +882,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Uses same format as getCacheKey for consistency
    */
   private getTransactionCacheKey(userAddress: string): string {
-    const network = this.clientService.isTestnet() ? 'testnet' : 'mainnet';
+    const network = this.clientService.isTestnetMode() ? 'testnet' : 'mainnet';
     return this.getCacheKey(network, userAddress);
   }
 
