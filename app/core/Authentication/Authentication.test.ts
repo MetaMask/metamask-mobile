@@ -631,10 +631,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -648,10 +648,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.PASSCODE,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.PASSCODE,
+        password: mockPassword,
+      });
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -665,10 +665,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.REMEMBER_ME,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        password: mockPassword,
+      });
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -695,10 +695,10 @@ describe('Authentication', () => {
     it('stores password with PASSWORD and disables both biometric and passcode', async () => {
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.PASSWORD,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+        password: mockPassword,
+      });
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -715,17 +715,17 @@ describe('Authentication', () => {
         .mockRejectedValueOnce(error);
 
       await expect(
-        Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.PASSWORD,
-          mockPassword,
-        ),
+        Authentication.updateAuthPreference({
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+          password: mockPassword,
+        }),
       ).rejects.toThrow(AuthenticationError);
 
       try {
-        await Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.PASSWORD,
-          mockPassword,
-        );
+        await Authentication.updateAuthPreference({
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+          password: mockPassword,
+        });
       } catch (authError) {
         expect(authError).toBeInstanceOf(AuthenticationError);
         expect((authError as AuthenticationError).customErrorMessage).toBe(
@@ -3931,7 +3931,9 @@ describe('Authentication', () => {
       // Set BIOMETRY_CHOICE so reauthenticate can find the password
       await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
 
-      await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.BIOMETRIC);
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
 
       expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
@@ -3950,10 +3952,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
 
       expect(Authentication.getPassword).not.toHaveBeenCalled();
       expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
@@ -3976,7 +3978,9 @@ describe('Authentication', () => {
       // Set BIOMETRY_CHOICE so reauthenticate can find the password
       await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
 
-      await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSCODE);
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.PASSCODE,
+      });
 
       expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
@@ -3997,7 +4001,9 @@ describe('Authentication', () => {
       // Set BIOMETRY_CHOICE so reauthenticate can find the password
       await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
 
-      await Authentication.updateAuthPreference(AUTHENTICATION_TYPE.PASSWORD);
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+      });
 
       expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(
@@ -4021,10 +4027,10 @@ describe('Authentication', () => {
         }),
       } as unknown as ReduxStore);
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
 
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -4041,10 +4047,10 @@ describe('Authentication', () => {
         }),
       } as unknown as ReduxStore);
 
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
 
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
       expect(mockDispatch).not.toHaveBeenCalledWith(
@@ -4061,10 +4067,10 @@ describe('Authentication', () => {
       const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
 
       await expect(
-        Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          mockPassword,
-        ),
+        Authentication.updateAuthPreference({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: mockPassword,
+        }),
       ).rejects.toThrow('Invalid password');
 
       expect(alertSpy).toHaveBeenCalledWith(
@@ -4090,10 +4096,10 @@ describe('Authentication', () => {
       const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
 
       await expect(
-        Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          mockPassword,
-        ),
+        Authentication.updateAuthPreference({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: mockPassword,
+        }),
       ).rejects.toThrow('Store password failed');
 
       expect(alertSpy).not.toHaveBeenCalled();
@@ -4122,9 +4128,9 @@ describe('Authentication', () => {
       // Verify the error is converted to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
       let caughtError: unknown;
       try {
-        await Authentication.updateAuthPreference(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-        );
+        await Authentication.updateAuthPreference({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
       } catch (error) {
         caughtError = error;
       }
@@ -4157,10 +4163,10 @@ describe('Authentication', () => {
 
       // Note: The actual implementation doesn't have skipValidation parameter
       // This test should verify normal behavior
-      await Authentication.updateAuthPreference(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        mockPassword,
-      );
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
 
       expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
       expect(verifyPasswordSpy).toHaveBeenCalledWith(mockPassword);

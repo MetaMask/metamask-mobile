@@ -1,4 +1,4 @@
 import { Authentication } from './Authentication';
 
 export default Authentication;
-export { useAuthentication } from './useAuthentication';
+export { useAuthentication } from './hooks/useAuthentication';

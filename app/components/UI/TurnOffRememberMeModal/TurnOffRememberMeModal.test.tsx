@@ -43,11 +43,10 @@ import type { ReduxStore } from '../../../core/redux/types';
 jest.mock('../../../core/Authentication/Authentication', () => ({
   Authentication: {
     updateAuthPreference: jest.fn(),
-    lockApp: jest.fn(),
   },
 }));
 
-// Mock Authentication index (exports default Authentication and useAuthentication)
+// Mock Authentication index (exports default Authentication)
 jest.mock('../../../core/Authentication', () => {
   const authSource = jest.requireMock(
     '../../../core/Authentication/Authentication',
@@ -55,9 +54,6 @@ jest.mock('../../../core/Authentication', () => {
   return {
     __esModule: true,
     default: authSource.Authentication,
-    useAuthentication: jest.fn(() => ({
-      lockApp: authSource.Authentication.lockApp,
-    })),
   };
 });
 
@@ -233,7 +229,6 @@ describe('TurnOffRememberMeModal', () => {
   let mockGetItem: jest.Mock;
   let mockRemoveItem: jest.Mock;
   let mockUpdateAuthPreference: jest.Mock;
-  let mockLockApp: jest.Mock;
 
   const createMockReduxStore = (): ReduxStore =>
     ({
@@ -282,17 +277,14 @@ describe('TurnOffRememberMeModal', () => {
     );
     mockUpdateAuthPreference = authModule.Authentication
       .updateAuthPreference as jest.Mock;
-    mockLockApp = authModule.Authentication.lockApp as jest.Mock;
 
     // Clear and reset mocks
     mockDismissModal.mockClear();
     mockUpdateAuthPreference.mockClear();
-    mockLockApp.mockClear();
 
     // Set default mock implementations
     mockDoesPasswordMatch.mockResolvedValue({ valid: false });
     mockUpdateAuthPreference.mockResolvedValue(undefined);
-    mockLockApp.mockResolvedValue(undefined);
     mockGetItem.mockResolvedValue(null);
     mockRemoveItem.mockResolvedValue(undefined);
   });
@@ -377,14 +369,13 @@ describe('TurnOffRememberMeModal', () => {
       expect(mockGetItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        'ValidPassword123!',
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: 'ValidPassword123!',
+      });
       expect(mockRemoveItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });
@@ -411,10 +402,10 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.PASSWORD,
-        'ValidPassword123!',
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+        password: 'ValidPassword123!',
+      });
     });
   });
 
@@ -454,9 +445,6 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
-      await waitFor(() => {
-        expect(mockLockApp).toHaveBeenCalled();
-      });
     }
   });
 
@@ -496,9 +484,6 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
-      await waitFor(() => {
-        expect(mockLockApp).toHaveBeenCalled();
-      });
     }
   });
 
@@ -525,7 +510,6 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });
@@ -591,7 +575,6 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });

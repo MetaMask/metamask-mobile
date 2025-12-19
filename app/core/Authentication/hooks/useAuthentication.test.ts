@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import Authentication from './';
 
 // Import useAuthentication
 import { useAuthentication } from './useAuthentication';
+import { Authentication } from '../Authentication';
 
 // Create mock function for lockApp
 const mockLockApp = jest.fn<

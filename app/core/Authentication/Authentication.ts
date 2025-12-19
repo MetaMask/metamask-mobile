@@ -1490,15 +1490,17 @@ class AuthenticationService {
    * Throws AuthenticationError if password is not found in keychain and not provided.
    * Callers should handle navigation to password entry screen when this error is thrown.
    *
-   * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
-   * @param password - optional password to use. If not provided, gets from keychain.
+   * @param options - Options for updating auth preference
+   * @param options.authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
+   * @param options.password - optional password to use. If not provided, gets from keychain.
    * @returns {Promise<void>}
    * @throws {AuthenticationError} when password is not found and not provided
    */
-  updateAuthPreference = async (
-    authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
-    password?: string,
-  ): Promise<void> => {
+  updateAuthPreference = async (options: {
+    authType: AUTHENTICATION_TYPE;
+    password?: string;
+  }): Promise<void> => {
+    const { authType, password } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
