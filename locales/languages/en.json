@@ -6532,8 +6532,7 @@
         "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
         "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
-        "resend_cooldown": "Resend available in {{seconds}} seconds",
-        "account_exists": "Please log in to proceed with your onboarding"
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
         "title": "Confirm your phone number",
@@ -6563,6 +6562,12 @@
         "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
         "cancel_button": "Stay",
         "close_button": "Exit"
+      },
+      "exit_confirmation": {
+        "title": "Exit card setup?",
+        "message": "Your progress has been saved. You can continue setting up your card anytime.",
+        "cancel_button": "Continue",
+        "exit_button": "Exit"
       },
       "validating_kyc": {
         "title": "Awaiting approval",
@@ -6622,6 +6627,16 @@
         "title": "You're in!",
         "description": "Let's set up your card so you can start spending your crypto.",
         "confirm_button": "Set up my card"
+      },
+      "account_exists": {
+        "title": "You already have an account",
+        "description": "The email address {{email}} is already associated with a Card account.",
+        "confirm_button": "Log in"
+      },
+      "keep_going":{
+        "title": "Let's keep going",
+        "description": "Pick up where you left off and finish setting up your card.",
+        "confirm_button": "Continue"
       },
       "continue_button": "Next",
       "confirm_button": "Confirm",
