@@ -10,6 +10,6 @@ export function useAuthentication() {
       reset?: boolean;
       locked?: boolean;
       navigateToLogin?: boolean;
-    }) => Authentication.lockApp(options),
+    }): Promise<void> => Authentication.lockApp(options),
   };
 }
