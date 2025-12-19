@@ -283,11 +283,9 @@ describe('usePerpsHomeData', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn().mockResolvedValue(undefined),
-      loadMore: jest.fn().mockResolvedValue(undefined),
     });
 
     // Mock sortMarkets to return markets as-is by default
@@ -760,11 +758,9 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsTransactionHistory.mockReturnValue({
         transactions: [],
         isLoading: false,
-        isLoadingMore: false,
-        hasMore: false,
+        ordersLoaded: true,
         error: null,
         refetch: jest.fn().mockResolvedValue(undefined),
-        loadMore: jest.fn().mockResolvedValue(undefined),
       });
 
       const { result } = renderHook(() => usePerpsHomeData());

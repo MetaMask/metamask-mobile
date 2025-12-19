@@ -138,11 +138,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     mockUsePerpsEventTracking.mockReturnValue({
@@ -240,11 +238,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: mockRefetch,
-      loadMore: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -262,11 +258,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -287,11 +281,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: 'API Error',
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -348,11 +340,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [todayTransaction, yesterdayTransaction, oldTransaction],
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -384,11 +374,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: unsortedTransactions,
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -405,11 +393,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: 'Network error',
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -430,11 +416,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -548,11 +532,9 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
-      loadMore: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
