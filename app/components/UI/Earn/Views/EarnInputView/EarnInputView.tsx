@@ -69,7 +69,10 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
-import { doesTokenRequireAllowanceReset } from '../../utils';
+import {
+  doesTokenRequireAllowanceReset,
+  formatChainIdForAnalytics,
+} from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
@@ -726,7 +729,7 @@ const EarnInputView = () => {
           currency_type: !isFiat ? 'fiat' : 'native',
           experience: earnToken?.experience?.type,
           token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
+          chain_id: formatChainIdForAnalytics(earnToken?.chainId),
         })
         .build(),
     );
