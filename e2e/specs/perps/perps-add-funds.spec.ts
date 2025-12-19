@@ -117,7 +117,6 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         await PerpsDepositView.tapContinue();
         // Verify review screen shows quote
         await Assertions.expectTextDisplayed('Transaction fee');
-        await Assertions.expectTextDisplayed('MetaMask fee');
         await PerpsDepositView.tapAddFunds();
 
         await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');

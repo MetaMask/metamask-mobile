@@ -17,6 +17,7 @@ export const ALLOWLISTED_HOSTS = [
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
+  'api.hyperliquid.xyz', // HyperLiquid SDK makes direct requests during initialization (controller mocking handles business logic)
 ];
 
 export const ALLOWLISTED_URLS = [
