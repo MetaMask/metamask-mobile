@@ -284,43 +284,101 @@ describe(`migration #${migrationVersion}`, () => {
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('adds the megaeth testnet v2 network configuration and remove the megaeth testnet v1 network configuration but does not update the enablement map if NetworkEnablementController state is invalid', async () => {
-    const orgState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'megaeth-testnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              ...mainnetConfiguration,
-              ...megaEthTestnetV1Configuration,
+  const invalidNetworkEnablementControllerStates = [
+    {
+      state: {
+        engine: {
+          backgroundState: {},
+        },
+      },
+      scenario: 'missing NetworkEnablementController',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: 'invalid',
+          },
+        },
+      },
+      scenario: 'invalid NetworkEnablementController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {},
+          },
+        },
+      },
+      scenario: 'missing enabledNetworkMap',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: { enabledNetworkMap: 'invalid' },
+          },
+        },
+      },
+      scenario: 'invalid enabledNetworkMap state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: 'invalid' },
             },
           },
         },
       },
-    };
+      scenario: 'invalid enabledNetworkMap Eip155 state',
+    },
+  ];
 
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              ...mainnetConfiguration,
-              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+  it.each(invalidNetworkEnablementControllerStates)(
+    'does not update the enablement map and adds the megaeth testnet v2 network configuration and remove the megaeth testnet v1 network configuration if $scenario',
+    async ({ state }) => {
+      const orgState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'megaeth-testnet',
+              networksMetadata: {},
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...megaEthTestnetV1Configuration,
+              },
             },
+            ...state.engine.backgroundState,
           },
         },
-      },
-    };
+      };
 
-    mockedEnsureValidState.mockReturnValue(true);
+      const expectedState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+            },
+            ...state.engine.backgroundState,
+          },
+        },
+      };
 
-    const migratedState = await migrate(orgState);
+      mockedEnsureValidState.mockReturnValue(true);
 
-    expect(migratedState).toStrictEqual(expectedState);
-  });
+      const migratedState = await migrate(orgState);
+
+      expect(migratedState).toStrictEqual(expectedState);
+    },
+  );
 
   const switchToMainnetScenarios = [
     {
