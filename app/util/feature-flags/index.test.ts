@@ -159,6 +159,62 @@ describe('Feature Flags Utility Functions', () => {
 
       expect(result).toBe('object');
     });
+
+    it('returns "abTest" for objects with exactly name (string) and value properties', () => {
+      const flagValue = {
+        name: 'control',
+        value: { variant: 'A' },
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('abTest');
+    });
+
+    it('returns "abTest" for A/B test with primitive value', () => {
+      const flagValue = {
+        name: 'treatment',
+        value: true,
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('abTest');
+    });
+
+    it('returns "object" for objects with name and value plus additional properties', () => {
+      const flagValue = {
+        name: 'config',
+        value: 'foo',
+        other: 'data',
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('object');
+    });
+
+    it('returns "object" for objects with name and value where name is not a string', () => {
+      const flagValue = {
+        name: 123,
+        value: 'test',
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('object');
+    });
+
+    it('returns "boolean nested" for objects with name and boolean value (name is not a string)', () => {
+      const flagValue = {
+        name: { nested: 'object' },
+        value: true,
+      };
+
+      const result = getFeatureFlagType(flagValue);
+
+      expect(result).toBe('boolean nested');
+    });
   });
 
   describe('isMinimumRequiredVersionSupported', () => {

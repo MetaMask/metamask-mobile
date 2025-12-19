@@ -44,8 +44,10 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagType => {
     return FeatureFlagType.FeatureFlagBooleanWithMinimumVersion;
   } else if (
     typeof value === 'object' &&
+    Object.keys(value as object).length === 2 &&
     Object.hasOwnProperty.call(value, 'name') &&
-    Object.hasOwnProperty.call(value, 'value')
+    Object.hasOwnProperty.call(value, 'value') &&
+    typeof (value as { name: unknown }).name === 'string'
   ) {
     return FeatureFlagType.FeatureFlagAbTest;
   } else if (
