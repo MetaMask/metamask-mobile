@@ -39,7 +39,11 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   }
 
   return (
-    <View style={styles.suggestionContainer} onTouchStart={onPressIn}>
+    <View
+      style={styles.suggestionContainer}
+      onTouchStart={onPressIn}
+      testID="srp-word-suggestions"
+    >
       <FlatList
         horizontal
         data={suggestions}
