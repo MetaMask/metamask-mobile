@@ -38,7 +38,10 @@ const BasicFunctionalityEmptyState = ({
     >
       <Box twClassName="flex-col w-[337px] items-stretch">
         {iconName && (
-          <Box twClassName="items-center mb-4">
+          <Box
+            twClassName="items-center mb-4"
+            testID="basic-functionality-empty-state-icon-container"
+          >
             <Icon
               name={iconName}
               color={IconColor.IconMuted}

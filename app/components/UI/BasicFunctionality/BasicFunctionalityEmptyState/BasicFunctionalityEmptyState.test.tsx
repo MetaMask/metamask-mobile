@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import BasicFunctionalityEmptyState from './BasicFunctionalityEmptyState';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -17,8 +18,10 @@ describe('BasicFunctionalityEmptyState', () => {
     jest.clearAllMocks();
   });
 
-  it('renders empty state', () => {
-    const { getByText } = render(<BasicFunctionalityEmptyState />);
+  it('renders empty state with default title', () => {
+    const { getByText, queryByTestId } = render(
+      <BasicFunctionalityEmptyState />,
+    );
 
     expect(getByText('Explore is not available')).toBeDefined();
     expect(
@@ -27,6 +30,28 @@ describe('BasicFunctionalityEmptyState', () => {
       ),
     ).toBeDefined();
     expect(getByText('Enable basic functionality')).toBeDefined();
+    expect(
+      queryByTestId('basic-functionality-empty-state-icon-container'),
+    ).toBeNull();
+  });
+
+  it('renders custom title when title prop is provided', () => {
+    const customTitle = 'Custom Title';
+    const { getByText } = render(
+      <BasicFunctionalityEmptyState title={customTitle} />,
+    );
+
+    expect(getByText(customTitle)).toBeDefined();
+  });
+
+  it('renders icon when iconName prop is provided', () => {
+    const { getByTestId } = render(
+      <BasicFunctionalityEmptyState iconName={IconName.Warning} />,
+    );
+
+    expect(
+      getByTestId('basic-functionality-empty-state-icon-container'),
+    ).toBeDefined();
   });
 
   it('navigates to basic functionality settings when button is pressed', () => {
