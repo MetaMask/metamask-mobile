@@ -33,7 +33,7 @@ import {
   setFiatOrdersPaymentMethodDeposit,
 } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { I18nEvents, strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { DepositNavigationParams } from '../types';
 
@@ -73,9 +73,14 @@ export const DEPOSIT_ENVIRONMENT = environment;
 export const DepositSDKNoAuth = new NativeRampsSdk(
   {
     context,
+    locale: I18n.locale,
   },
   environment,
 );
+
+I18nEvents.addListener('localeChanged', (locale) => {
+  DepositSDKNoAuth.setLocale(locale);
+});
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -151,6 +156,7 @@ export const DepositSDKProvider = ({
         {
           apiKey: providerApiKey,
           context,
+          locale: I18n.locale,
         },
         environment,
       );
@@ -160,6 +166,19 @@ export const DepositSDKProvider = ({
       setSdkError(error as Error);
     }
   }, [providerApiKey]);
+
+  // Listen for locale changes and update SDK locale
+  useEffect(() => {
+    if (!sdk) return;
+
+    const handleLocaleChange = (locale: string) => {
+      sdk.setLocale(locale);
+    };
+    I18nEvents.addListener('localeChanged', handleLocaleChange);
+    return () => {
+      I18nEvents.removeListener('localeChanged', handleLocaleChange);
+    };
+  }, [sdk]);
 
   useEffect(() => {
     if (sdk && authToken) {
@@ -216,7 +235,7 @@ export const DepositSDKProvider = ({
         ? await sdk.logout()
         : await sdk
             .logout()
-            .catch((error) =>
+            .catch((error: Error) =>
               Logger.error(
                 error as Error,
                 'SDK logout failed but invalidation was not required. Error:',

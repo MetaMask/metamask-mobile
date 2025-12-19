@@ -144,6 +144,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
+    expect(engine.context).toHaveProperty('RampsController');
+    expect(engine.context).toHaveProperty('RampsService');
   });
 
   it('calling Engine.init twice returns the same instance', () => {

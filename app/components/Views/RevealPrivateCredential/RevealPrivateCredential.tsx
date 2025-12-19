@@ -32,11 +32,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
-import {
-  KEEP_SRP_SAFE_URL,
-  NON_CUSTODIAL_WALLET_URL,
-  SRP_GUIDE_URL,
-} from '../../../constants/urls';
+import { KEEP_SRP_SAFE_URL, SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -137,8 +133,14 @@ const RevealPrivateCredential = ({
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
 
-  // Address will always be defined because checkSummedAddress is the selectedAccount's address
-  const account = getInternalAccountByAddress(selectedAddress as string);
+  const [account, setAccount] = useState<InternalAccount | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const acc = getInternalAccountByAddress(selectedAddress as string);
+    setAccount(acc);
+  }, [selectedAddress]);
 
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
@@ -408,9 +410,6 @@ const RevealPrivateCredential = ({
           tabLabel={strings(`reveal_credential.text`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
           <View style={styles.seedPhraseView}>
             <TextInput
               value={clipboardPrivateCredential}
@@ -583,15 +582,6 @@ const RevealPrivateCredential = ({
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
       <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
-      {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-      <Text
-        color={colors.primary.default}
-        onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
-      >
-        {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-      </Text>
-      {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
     </Text>
   );
 

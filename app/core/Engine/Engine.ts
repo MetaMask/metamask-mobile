@@ -177,6 +177,8 @@ import { analyticsControllerInit } from './controllers/analytics-controller/anal
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
+import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
@@ -368,6 +370,8 @@ export class Engine {
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
+        RampsService: rampsServiceInit,
+        RampsController: rampsControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -403,6 +407,8 @@ export class Engine {
     const addressBookController = controllersByName.AddressBookController;
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
+    const rampsService = controllersByName.RampsService;
+    const rampsController = controllersByName.RampsController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -552,6 +558,8 @@ export class Engine {
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
+      RampsService: rampsService,
+      RampsController: rampsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1328,6 +1336,7 @@ export default {
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1391,6 +1400,7 @@ export default {
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,

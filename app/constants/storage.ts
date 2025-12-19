@@ -11,6 +11,8 @@ export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
 // Legacy MetaMetrics and new AnalyticsController related keys
+export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;
+
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
