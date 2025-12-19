@@ -215,6 +215,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               value={String(localValue)}
               onFocus={() => {
                 isEditingRef.current = true;
+                // Reset any stale resetting state from a previous Reset button click
+                // that occurred when the input wasn't focused (so onEndEditing never fired)
+                isResettingRef.current = false;
               }}
               onChangeText={(text) => {
                 const newValue =
