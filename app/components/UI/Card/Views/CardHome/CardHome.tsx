@@ -641,17 +641,20 @@ const CardHome = () => {
     handleAuthenticationError();
   }, [cardError, dispatch, isAuthenticated, navigation]);
 
-  // Load Card Data once CardHome opens
+  // Load Card Data once when CardHome opens
+  // This is the single orchestrator for data fetching - individual hooks don't auto-fetch
+  // to prevent duplicate API calls
+  // Wait for SDK to be ready before fetching to ensure all API calls can succeed
   useEffect(() => {
-    const loadCardData = async () => {
-      await fetchAllData();
-      hasLoadedCardHomeView.current = true;
-    };
-
-    if (!hasLoadedCardHomeView.current && isAuthenticated) {
-      loadCardData();
+    // Wait for SDK to be ready before fetching data
+    if (isSDKLoading) {
+      return;
     }
-  }, [fetchAllData, isAuthenticated]);
+    if (!hasLoadedCardHomeView.current && isAuthenticated) {
+      hasLoadedCardHomeView.current = true;
+      fetchAllData();
+    }
+  }, [fetchAllData, isAuthenticated, isSDKLoading]);
 
   // Show KYC status alert if needed
   useEffect(() => {
