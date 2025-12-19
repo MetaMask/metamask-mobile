@@ -339,6 +339,12 @@ export function isEthAddress(address: string): boolean {
 export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
+  // This guard clause is added in case we try to access the engine
+  // before it's available. Otherwise, this method will throw.
+  if (!Engine) {
+    return undefined;
+  }
+
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
   return Object.values(accounts).find((a: InternalAccount) =>
     areAddressesEqual(a.address, address),
