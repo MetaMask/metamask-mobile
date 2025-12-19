@@ -579,8 +579,10 @@ generateAndroidBinary() {
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg
 
-	if [ "$configuration" = "Release" ] ; then		
-		# Generate AAB bundle (not needed for E2E)
+	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
+	# and is only needed for Play Store distribution
+	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" != "e2e" ] ; then
+		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
 		./gradlew $bundleConfiguration

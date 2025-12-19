@@ -63,6 +63,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
+import { usePerpsLivePrices } from '../../hooks';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -331,7 +332,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   leverage: initialLeverage,
   minLeverage,
   maxLeverage,
-  currentPrice,
   direction,
   asset = '',
   limitPrice,
@@ -345,6 +345,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
+
+  const currentLivePrice = usePerpsLivePrices({
+    symbols: [asset],
+    throttleMs: 1000,
+  });
+
+  const currentPrice = parseFloat(currentLivePrice[asset]?.price);
 
   // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
