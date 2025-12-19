@@ -1,6 +1,6 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
-import TimerHelper from '../utils/TimersHelper.js';
+import QualityGatesValidator from '../utils/QualityGatesValidator.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -31,6 +31,19 @@ export const test = base.extend({
       );
     } catch (error) {
       console.error('❌ Failed to attach performance metrics:', error.message);
+    }
+
+    // Validate quality gates if any timer has thresholds defined
+    const hasThresholds = performanceTracker.timers.some((t) =>
+      t.hasThreshold(),
+    );
+    if (hasThresholds) {
+      console.log('🔍 Validating quality gates...');
+      QualityGatesValidator.assertThresholds(
+        testInfo.title,
+        performanceTracker.timers,
+      );
+      console.log('✅ Quality gates PASSED');
     }
 
     console.log('🔍 Looking for session ID...');

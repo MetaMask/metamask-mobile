@@ -40,6 +40,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -151,6 +152,17 @@ const PerpsAdjustMarginView: React.FC = () => {
   const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
   }, []);
+
+  // Helper to format liquidation distance with fallback when liquidation price is unavailable
+  const formatLiquidationDistance = useCallback(
+    (distance: number, liquidationPrice: number): string => {
+      if (liquidationPrice === 0) {
+        return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
+      }
+      return `${distance.toFixed(0)}%`;
+    },
+    [],
+  );
 
   const handleConfirm = useCallback(async () => {
     if (marginAmount <= 0 || !position) return;
@@ -347,7 +359,10 @@ const PerpsAdjustMarginView: React.FC = () => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {currentLiquidationDistance.toFixed(0)}%
+                  {formatLiquidationDistance(
+                    currentLiquidationDistance,
+                    currentLiquidationPrice,
+                  )}
                 </Text>
                 <Icon
                   name={IconName.Arrow2Right}
@@ -355,12 +370,18 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text variant={TextVariant.BodyMD}>
-                  {newLiquidationDistance.toFixed(0)}%
+                  {formatLiquidationDistance(
+                    newLiquidationDistance,
+                    newLiquidationPrice,
+                  )}
                 </Text>
               </View>
             ) : (
               <Text variant={TextVariant.BodyMD}>
-                {currentLiquidationDistance.toFixed(0)}%
+                {formatLiquidationDistance(
+                  currentLiquidationDistance,
+                  currentLiquidationPrice,
+                )}
               </Text>
             )}
           </View>
