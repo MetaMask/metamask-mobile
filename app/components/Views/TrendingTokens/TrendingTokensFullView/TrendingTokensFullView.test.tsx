@@ -43,7 +43,7 @@ jest.mock(
 );
 
 // Mock sections.config to avoid complex Perps dependencies
-jest.mock('../../TrendingView/config/sections.config', () => ({
+jest.mock('../../TrendingView/sections.config', () => ({
   SECTIONS_CONFIG: {
     tokens: {
       getSearchableText: (item: { name?: string; symbol?: string }) =>
