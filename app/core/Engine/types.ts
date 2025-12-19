@@ -114,6 +114,15 @@ import {
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
+  RampsController,
+  RampsControllerState,
+  RampsControllerActions,
+  RampsControllerEvents,
+  RampsService,
+  RampsServiceActions,
+  RampsServiceEvents,
+} from '@metamask/ramps-controller';
+import {
   TransactionController,
   TransactionControllerActions,
   TransactionControllerEvents,
@@ -505,7 +514,9 @@ type GlobalActions =
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
-  | ProfileMetricsServiceActions;
+  | ProfileMetricsServiceActions
+  | RampsControllerActions
+  | RampsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -577,7 +588,9 @@ type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
-  | ProfileMetricsServiceEvents;
+  | ProfileMetricsServiceEvents
+  | RampsControllerEvents
+  | RampsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -638,6 +651,7 @@ export type Controllers = {
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
+  RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
@@ -690,6 +704,7 @@ export type Controllers = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  RampsService: RampsService;
 };
 
 /**
@@ -715,6 +730,7 @@ export type EngineState = {
   NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
+  RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
@@ -863,6 +879,8 @@ export type ControllersToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RampsController'
+  | 'RampsService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'

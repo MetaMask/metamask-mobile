@@ -6,7 +6,7 @@ MetaMetrics uses **8 consolidated events** with discriminating properties (vs 38
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
-## Two Tracking Approaches
+## Three Tracking Approaches
 
 ### 1. `usePerpsEventTracking` Hook (Components)
 
@@ -75,11 +75,18 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'order_book' | 'error'`
+- `screen_type` (required): `'homescreen' | 'market_list' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'create_tpsl' | 'edit_tpsl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'order_book' | 'pnl_hero_card' | 'error'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
-- `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
+- `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`, `'close_toast'`, `'perp_asset_screen'`)
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
+- `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
+- `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
+- `has_stop_loss` (optional): Whether stop loss is set (boolean, used for TP/SL screens)
+- `pnl_dollar` (optional): P&L in dollars (number, used for pnl_hero_card screen)
+- `pnl_percent` (optional): P&L as percentage (number, used for pnl_hero_card screen)
+- `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
+- `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -87,7 +94,7 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'favorite_toggled'` (Note: `favorite_toggled` = watchlist toggle)
+- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'favorite_toggled' | 'button_clicked'` (Note: `favorite_toggled` = watchlist toggle, `button_clicked` = generic button click for entry point tracking)
 - `action` (optional): Specific action performed: `'connection_retry' | 'share'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more' | 'favorite_market' | 'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -100,6 +107,9 @@ MetaMetrics.getInstance().trackEvent(
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
+- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit' | 'withdraw' | 'tutorial' | 'tooltip' | 'open_position' | 'magnifying_glass' | 'crypto' | 'stocks'`
+- `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home' | 'perps_tutorial' | 'perps_home_empty_state' | 'perps_asset_screen' | 'perps_tab' | 'market_list' | 'tooltip'`
+- `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -179,19 +189,27 @@ MetaMetrics.getInstance().trackEvent(
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where TP/SL update originated (e.g., `'tp_sl_view'`, `'position_screen'`)
 - `position_size` (optional): Size of the position (number)
+- `screen_type` (optional): `'create_tpsl' | 'edit_tpsl'` - Whether creating TP/SL for new order or editing existing position
+- `has_take_profit` (optional): Whether take profit is set (boolean)
+- `has_stop_loss` (optional): Whether stop loss is set (boolean)
+- `take_profit_percentage` (optional): Take profit percentage from entry price (number)
+- `stop_loss_percentage` (optional): Stop loss percentage from entry price (number)
 - `error_message` (optional): Error description when status is 'failed'
 
 ### 8. PERPS_ERROR
 
 **Properties:**
 
-- `error_type` (required): `'network' | 'app_crash' | 'backend' | 'validation'`
-- `error_message` (required): Error description string
-- `screen_type` (optional): Screen where error occurred (e.g., `'trading'`, `'withdrawal'`, `'markets'`)
+- `error_type` (required for errors): `'network' | 'app_crash' | 'backend' | 'validation'`
+- `error_message` (required for errors): Error description string
+- `warning_message` (required for warnings): Warning description string
+- `screen_type` (optional): Screen where error/warning occurred (e.g., `'trading'`, `'withdrawal'`, `'market_list'`, `'position_close'`)
+- `screen_name` (optional): Specific screen name (e.g., `'connection_error'`, `'perps_market_details'`, `'perps_order'`)
 - `retry_attempts` (optional): Number of retry attempts (number)
 - `asset` (optional): Asset symbol if error is asset-specific (e.g., `'BTC'`, `'ETH'`)
 - `action` (optional): Action being attempted when error occurred
-- `screen_name` (optional): Specific screen name (e.g., `'connection_error'`)
+
+**Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`).
 
 ## Quick Reference
 
@@ -306,6 +324,136 @@ For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 
 ---
 
+## PnL Hero Card Tracking
+
+The PnL Hero Card screen is tracked with additional P&L context and source information.
+
+### Properties
+
+- `screen_type`: `'pnl_hero_card'`
+- `source`: `'close_toast' | 'perp_asset_screen'` - How user arrived at the screen
+- `pnl_dollar`: P&L in dollars (number)
+- `pnl_percent`: P&L as percentage (ROE)
+- `asset`: Asset symbol (e.g., `'BTC'`)
+- `direction`: `'long' | 'short'`
+
+### Source Values
+
+| Value                 | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `'close_toast'`       | User tapped on the close position success toast |
+| `'perp_asset_screen'` | User navigated from the asset/position screen   |
+
+---
+
+## TP/SL Screen Differentiation
+
+The TP/SL (Take Profit / Stop Loss) tracking differentiates between creating TP/SL for a new order vs editing TP/SL for an existing position.
+
+### Screen Types
+
+| Value           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `'create_tpsl'` | Creating TP/SL for a new order (before order placement) |
+| `'edit_tpsl'`   | Editing TP/SL for an existing position                  |
+
+### Additional Properties
+
+- `has_take_profit`: Whether take profit is currently set (boolean)
+- `has_stop_loss`: Whether stop loss is currently set (boolean)
+- `take_profit_percentage`: Take profit percentage from entry price
+- `stop_loss_percentage`: Stop loss percentage from entry price
+
+### Usage
+
+```typescript
+// Screen view tracking
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]: isEditingExistingPosition
+      ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+      : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL,
+    [PerpsEventProperties.ASSET]: asset,
+    [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+    [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
+  },
+});
+```
+
+---
+
+## Entry Point Tracking
+
+Entry point tracking captures how users navigate to screens, enabling analysis of user flows and button effectiveness.
+
+### Properties
+
+- `button_clicked`: Identifies which button was clicked
+- `button_location`: Identifies where the button was located
+
+### Button Clicked Values
+
+| Value                | Description                             |
+| -------------------- | --------------------------------------- |
+| `'deposit'`          | Add funds / deposit button              |
+| `'withdraw'`         | Withdraw funds button                   |
+| `'tutorial'`         | Learn more / tutorial button            |
+| `'tooltip'`          | Got it button in tooltip bottom sheets  |
+| `'open_position'`    | Tap on a position card                  |
+| `'magnifying_glass'` | Search icon button                      |
+| `'crypto'`           | Crypto tab in market list               |
+| `'stocks'`           | Stocks & Commodities tab in market list |
+
+### Button Location Values
+
+| Value                      | Description                         |
+| -------------------------- | ----------------------------------- |
+| `'perps_home'`             | Perps home screen                   |
+| `'perps_tutorial'`         | Tutorial screen                     |
+| `'perps_home_empty_state'` | Perps home empty state (no balance) |
+| `'perps_asset_screen'`     | Asset details screen                |
+| `'perps_tab'`              | Positions tab                       |
+| `'market_list'`            | Market list screen                  |
+| `'tooltip'`                | Tooltip bottom sheet                |
+
+### Usage Example
+
+```typescript
+// Track button click
+track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+  [PerpsEventProperties.INTERACTION_TYPE]:
+    PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+  [PerpsEventProperties.BUTTON_CLICKED]:
+    PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
+  [PerpsEventProperties.BUTTON_LOCATION]:
+    PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+});
+
+// Pass to navigation for screen view tracking
+navigation.navigate(Routes.PERPS.MARKET_LIST, {
+  button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
+  button_location: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+});
+
+// Include in screen view event
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
+    ...(buttonClicked && {
+      [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+    }),
+    ...(buttonLocation && {
+      [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+    }),
+  },
+});
+```
+
+---
+
 ## Best Practices
 
 1. **Use constants** - Never hardcode strings
@@ -314,6 +462,7 @@ For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 4. **Use properties** - Don't create new events for minor variations
 5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
 6. **AB test tracking** - Only in screen view events, not every interaction
+7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 
 ## Sentry vs MetaMetrics
 
@@ -326,7 +475,8 @@ For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 
 ## Related Files
 
-- **Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
+- **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
-- **Properties**: `app/components/UI/Perps/constants/eventNames.ts`
+- **Properties & Values**: `app/components/UI/Perps/constants/eventNames.ts`
 - **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`
+- **Trading Service**: `app/components/UI/Perps/controllers/services/TradingService.ts`

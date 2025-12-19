@@ -33,8 +33,8 @@ import {
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
-import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';
+import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import {
   HOME_SCREEN_CONFIG,
   LEARN_MORE_CONFIG,
@@ -83,12 +83,15 @@ const PerpsHomeView = () => {
   const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
+  // Pass button location for tracking deposit entry point
   const {
     handleAddFunds,
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions();
+  } = usePerpsHomeActions({
+    buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+  });
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -159,6 +162,17 @@ const PerpsHomeView = () => {
   // Track home screen viewed event
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
+
+  // Get perp balance status for tracking
+  const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
+  const hasPerpBalance =
+    livePositions.positions.length > 0 ||
+    (!!perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
+
+  // Extract button_clicked and button_location from route params
+  const buttonClicked = route.params?.button_clicked;
+  const buttonLocation = route.params?.button_location;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
@@ -166,23 +180,58 @@ const PerpsHomeView = () => {
       [PerpsEventProperties.SCREEN_TYPE]:
         PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
       [PerpsEventProperties.SOURCE]: source,
+      [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
+      ...(buttonClicked && {
+        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+      }),
+      ...(buttonLocation && {
+        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+      }),
     },
   });
 
   const handleSearchToggle = useCallback(() => {
+    // Track button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
     // Navigate to MarketListView with search enabled
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
+      button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
+      button_location: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
     });
-  }, [perpsNavigation]);
+  }, [perpsNavigation, trackEvent, createEventBuilder]);
 
   const navigtateToTutorial = useCallback(() => {
+    // Track tutorial button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.TUTORIAL,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
     navigation.navigate(Routes.PERPS.TUTORIAL, {
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {
