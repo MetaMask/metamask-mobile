@@ -740,5 +740,8 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "RampsController": {
+    "geolocation": null
   }
 }
