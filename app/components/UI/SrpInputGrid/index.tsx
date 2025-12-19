@@ -83,10 +83,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       Record<number, boolean>
     >({});
     const [currentInputWord, setCurrentInputWord] = useState<string>('');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
-      null,
-    );
 
     const focusedInputIndexRef = useRef<number | null>(null);
     const isSuggestionSelectingRef = useRef<boolean>(false);
@@ -260,7 +256,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const handleOnFocus = useCallback(
       (index: number) => {
         setNextSeedPhraseInputFocusedIndex(index);
-        setFocusedInputIndex(index);
         focusedInputIndexRef.current = index;
 
         const currentWord = seedPhrase[index] || '';
@@ -273,8 +268,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     const handleOnBlur = useCallback(
       (index: number) => {
-        setFocusedInputIndex(null);
-
         if (blurTimeoutRef.current) {
           clearTimeout(blurTimeoutRef.current);
         }
@@ -354,7 +347,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
       setCurrentInputWord('');
-      setFocusedInputIndex(null);
+      focusedInputIndexRef.current = null;
     }, [onSeedPhraseChange]);
 
     /* istanbul ignore next -- @preserve Focus events */

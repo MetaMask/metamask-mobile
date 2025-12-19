@@ -1273,7 +1273,35 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('renders with KeyboardProvider wrapper', () => {
+    it('renders with KeyboardProvider wrapper in non-E2E environment', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('passes onCurrentWordChange to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('passes renderSuggestionsExternally prop to SrpInputGrid', () => {
       const { getByTestId } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },

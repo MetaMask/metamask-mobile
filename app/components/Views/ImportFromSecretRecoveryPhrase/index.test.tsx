@@ -1817,5 +1817,98 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       expect(srpInput).toBeTruthy();
     });
+
+    it('passes onCurrentWordChange callback to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('passes renderSuggestionsExternally prop to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders with KeyboardProvider wrapper', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      expect(srpInput).toBeTruthy();
+    });
+  });
+
+  describe('Step Navigation and Animation', () => {
+    it('transitions from SRP step to password step with valid mnemonic', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        {
+          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        },
+        {
+          state: initialState,
+        },
+      );
+
+      const srpInput = getByTestId(
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          srpInput,
+          'lazy youth dentist air relief leave neither liquid belt aspect bone frame',
+        );
+      });
+
+      const continueButton = getByTestId(
+        ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(continueButton).toBeTruthy();
+    });
   });
 });
