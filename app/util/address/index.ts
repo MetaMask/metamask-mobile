@@ -341,7 +341,7 @@ export function getInternalAccountByAddress(
 ): InternalAccount | undefined {
   // This guard clause is added in case we try to access the engine
   // before it's available. Otherwise, this method will throw.
-  if (!Engine.context) {
+  if (!Engine) {
     return undefined;
   }
 
