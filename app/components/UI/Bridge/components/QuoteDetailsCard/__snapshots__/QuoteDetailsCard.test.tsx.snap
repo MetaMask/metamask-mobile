@@ -573,7 +573,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   Network fee
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityLabel="Network Fee tooltip"
+                                  accessibilityLabel="Network fee tooltip"
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
@@ -870,7 +870,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   Price impact
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityLabel="Price Impact tooltip"
+                                  accessibilityLabel="Price impact tooltip"
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}

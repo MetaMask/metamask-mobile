@@ -62,7 +62,7 @@ describe('SwitchAccountType - Info Component', () => {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
     expect(getByText('Smart Account')).toBeDefined();
   });
@@ -74,6 +74,6 @@ describe('SwitchAccountType - Info Component', () => {
     expect(getByText('Now')).toBeDefined();
     expect(getByText('Smart Account')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
   });
 });

@@ -20,7 +20,7 @@ import {
 } from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.setTimeout(150000000);
+test.setTimeout(180000);
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -39,38 +39,46 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   CreatePasswordScreen.device = device;
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
+    { ios: 1200, android: 1200 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
+    { ios: 1200, android: 1200 },
+    device,
   );
   const timer5 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
+    { ios: 1000, android: 1000 },
+    device,
   );
   const timer6 = new TimerHelper(
     'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
+    { ios: 1100, android: 1100 },
+    device,
   );
   const timer7 = new TimerHelper(
     'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
+    { ios: 1500, android: 1500 },
+    device,
   );
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until feature sheet is visible',
+    { ios: 1700, android: 1700 },
+    device,
   );
   const timer9 = new TimerHelper(
     'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-  );
-  const timer10 = new TimerHelper(
-    'Time since the user clicks on "Account list" button until the account list is visible',
+    { ios: 40000, android: 40000 },
+    device,
   );
 
   await OnboardingScreen.tapHaveAnExistingWallet();
-  timer3.start();
-  await OnboardingSheet.isVisible();
-  timer3.stop();
+  await timer3.measure(() => OnboardingSheet.isVisible());
 
   await OnboardingSheet.tapImportSeedButton();
-  timer4.start();
-  await ImportFromSeedScreen.isScreenTitleVisible();
-  timer4.stop();
+  await timer4.measure(() => ImportFromSeedScreen.isScreenTitleVisible());
+
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(
     process.env.TEST_SRP_3,
     true,
@@ -78,41 +86,35 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
 
   await ImportFromSeedScreen.tapContinueButton();
-  timer5.start();
-  await CreatePasswordScreen.isVisible();
-  timer5.stop();
+  await timer5.measure(() => CreatePasswordScreen.isVisible());
+
   await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.reEnterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
-  timer6.start();
-  await MetaMetricsScreen.isScreenTitleVisible();
-  timer6.stop();
+  await timer6.measure(() => MetaMetricsScreen.isScreenTitleVisible());
 
   await MetaMetricsScreen.tapIAgreeButton();
-  timer7.start();
-  await OnboardingSucessScreen.isVisible();
-  timer7.stop();
+  await timer7.measure(() => OnboardingSucessScreen.isVisible());
 
   await OnboardingSucessScreen.tapDone();
-  timer8.start();
-  await checkPredictionsModalIsVisible(device);
-  timer8.stop();
+  await timer8.measure(() => checkPredictionsModalIsVisible(device));
 
   await dissmissPredictionsModal(device);
-  timer9.start();
+  await timer9.measure(async () => {
+    await WalletMainScreen.isTokenVisible('ETH');
+    await WalletMainScreen.isTokenVisible('SOL');
+  });
 
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
-  timer9.stop();
-
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-  performanceTracker.addTimer(timer5);
-  performanceTracker.addTimer(timer6);
-  performanceTracker.addTimer(timer7);
-  performanceTracker.addTimer(timer8);
-  performanceTracker.addTimer(timer9);
+  performanceTracker.addTimers(
+    timer3,
+    timer4,
+    timer5,
+    timer6,
+    timer7,
+    timer8,
+    timer9,
+  );
   await performanceTracker.attachToTest(testInfo);
 });

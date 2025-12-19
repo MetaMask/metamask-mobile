@@ -1,14 +1,5 @@
-import React, {
-  useRef,
-  useState,
-  LegacyRef,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
 import { InteractionManager, View } from 'react-native';
-import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -43,6 +34,7 @@ import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagC
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
+import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -71,9 +63,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
-  const actionSheet = useRef<typeof ActionSheet>();
-  const tokenToRemoveRef = useRef<TokenI | undefined>();
   const [refreshing, setRefreshing] = useState(false);
+  const [removeTokenState, setRemoveTokenState] = useState<
+    { isVisible: true; token: TokenI } | { isVisible: false }
+  >({ isVisible: false });
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const selectInternalAccountByScope = useSelector(
@@ -108,10 +101,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   }, [sortedTokenKeys, hasInitialLoad]);
 
   const showRemoveMenu = useCallback((token: TokenI) => {
-    if (actionSheet.current) {
-      tokenToRemoveRef.current = token;
-      actionSheet.current.show();
-    }
+    setRemoveTokenState({ isVisible: true, token });
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -135,7 +125,13 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const removeToken = useCallback(async () => {
-    const tokenToRemove = tokenToRemoveRef.current;
+    if (!removeTokenState.isVisible) return;
+
+    const tokenToRemove = removeTokenState.token;
+
+    // Reset state immediately to prevent issues if onClose fires first
+    setRemoveTokenState({ isVisible: false });
+
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
         await removeNonEvmToken({
@@ -155,6 +151,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       }
     }
   }, [
+    removeTokenState,
     currentChainId,
     trackEvent,
     createEventBuilder,
@@ -171,14 +168,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     });
   }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-  const onActionSheetPress = useCallback(
-    (index: number) => {
-      if (index === 0) {
-        removeToken();
-      }
-    },
-    [removeToken],
-  );
+  const handleCloseRemoveTokenBottomSheet = useCallback(() => {
+    setRemoveTokenState({ isVisible: false });
+  }, []);
 
   const handleScamWarningModal = useCallback(() => {
     setShowScamWarningModal((prev) => !prev);
@@ -234,13 +226,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}
       />
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
+      <RemoveTokenBottomSheet
+        isVisible={removeTokenState.isVisible}
+        onClose={handleCloseRemoveTokenBottomSheet}
+        onRemove={removeToken}
       />
     </Box>
   );
