@@ -87,6 +87,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { isE2E } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import createStyles from './ChoosePassword.styles';
@@ -710,7 +711,7 @@ const ChoosePassword = () => {
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <FoxRiveLoaderAnimation />
+            {!isE2E && <FoxRiveLoaderAnimation />}
           </View>
         ) : (
           <KeyboardAwareScrollView

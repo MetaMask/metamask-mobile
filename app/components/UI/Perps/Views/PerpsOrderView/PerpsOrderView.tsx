@@ -95,6 +95,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import {
   usePerpsLiveAccount,
   usePerpsLivePrices,
@@ -162,6 +163,10 @@ interface PerpsOrderViewContentProps {
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
 }) => {
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -262,7 +267,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
   // A/B Testing: Button color test (TAT-1937)
-  const { variantName: buttonColorVariant } = usePerpsABTest({
+  const {
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
@@ -307,6 +315,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         orderForm.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
+      ...(isButtonColorTestEnabled && {
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      }),
     },
   });
 
@@ -710,6 +721,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
     orderStartTimeRef.current = Date.now();
 
+    // Track Place Order button press with A/B test context
+    if (isButtonColorTestEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      });
+    }
+
     try {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
@@ -815,6 +840,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           feeDiscountPercentage: feeResults.feeDiscountPercentage,
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
+          source,
         },
       };
 
@@ -871,6 +897,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
+    source,
+    isButtonColorTestEnabled,
+    buttonColorVariant,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -970,7 +999,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemFirst]}>
+            <View style={[styles.detailItem, styles.detailItemOnly]}>
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1307,7 +1336,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           {buttonColorVariant === 'monochrome' ? (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={placeOrderLabel}

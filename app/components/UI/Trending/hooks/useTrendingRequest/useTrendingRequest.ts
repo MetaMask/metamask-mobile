@@ -5,8 +5,7 @@ import {
   SortTrendingBy,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
+import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 /**
  * Hook for handling trending tokens request
@@ -23,7 +22,7 @@ export const useTrendingRequest = (options: {
 }) => {
   const {
     chainIds: providedChainIds = [],
-    sortBy,
+    sortBy = 'h24_trending',
     minLiquidity = 0,
     minVolume24hUsd = 0,
     maxVolume24hUsd,
@@ -31,18 +30,13 @@ export const useTrendingRequest = (options: {
     maxMarketCap,
   } = options;
 
-  // Get popular networks for filtering
-  const popularNetworks = usePopularNetworks();
-
-  // Use provided chainIds or default to popular networks
+  // Use provided chainIds or default to trending networks
   const chainIds = useMemo((): CaipChainId[] => {
     if (providedChainIds.length > 0) {
       return providedChainIds;
     }
-    return popularNetworks.map(
-      (network: ProcessedNetwork) => network.caipChainId,
-    );
-  }, [providedChainIds, popularNetworks]);
+    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
+  }, [providedChainIds]);
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
@@ -54,7 +48,7 @@ export const useTrendingRequest = (options: {
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [error, setError] = useState<Error | null>(null);
 
@@ -79,7 +73,9 @@ export const useTrendingRequest = (options: {
         maxVolume24hUsd,
         minMarketCap,
         maxMarketCap,
-      });
+        // TODO: Remove type assertion once @metamask/assets-controllers types are updated
+        excludeLabels: ['stable_coin', 'blue_chip'],
+      } as Parameters<typeof getTrendingTokens>[0]);
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults(resultsToStore);

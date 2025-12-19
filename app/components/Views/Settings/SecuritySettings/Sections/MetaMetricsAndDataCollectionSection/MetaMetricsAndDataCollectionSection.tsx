@@ -32,6 +32,9 @@ import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthenti
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
+import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
@@ -62,6 +65,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
+  const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
@@ -117,6 +123,13 @@ const MetaMetricsAndDataCollectionSection: React.FC<
             .build(),
         );
       });
+
+      // If user has not acknowledged PNA25 and is enabling metrics
+      // we count this as an acknowledgement of PNA25
+      // and the PNA25 notice is not shown to them
+      if (isPna25FlagEnabled && !isPna25Acknowledged) {
+        dispatch(storePna25Acknowledged());
+      }
     } else {
       await enable(false);
       setAnalyticsEnabled(false);

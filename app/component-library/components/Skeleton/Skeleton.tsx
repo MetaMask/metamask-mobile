@@ -63,26 +63,32 @@ const Skeleton: React.FC<SkeletonProps> = ({
   }, [children, hideChildren]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <View style={styles.base} {...props}>
-      {/* Animated background always present */}
-      <Animated.View
-        style={[styles.background, { opacity: opacityAnim }]}
-        pointerEvents="none"
-        {...animatedViewProps}
-      />
+    <>
+      {!hideChildren && children ? (
+        children
+      ) : (
+        <View style={styles.base} {...props}>
+          {/* Animated background always present */}
+          <Animated.View
+            style={[styles.background, { opacity: opacityAnim }]}
+            pointerEvents="none"
+            {...animatedViewProps}
+          />
 
-      {children && (
-        <View
-          style={[
-            styles.childrenContainer,
-            hideChildren ? styles.hideChildren : undefined,
-          ]}
-          {...childrenWrapperProps}
-        >
-          {children}
+          {children && (
+            <View
+              style={[
+                styles.childrenContainer,
+                hideChildren ? styles.hideChildren : undefined,
+              ]}
+              {...childrenWrapperProps}
+            >
+              {children}
+            </View>
+          )}
         </View>
       )}
-    </View>
+    </>
   );
 };
 

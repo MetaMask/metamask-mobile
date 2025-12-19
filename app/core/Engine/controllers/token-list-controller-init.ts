@@ -17,14 +17,22 @@ export const tokenListControllerInit: ControllerInitFunction<
   TokenListController,
   TokenListControllerMessenger,
   TokenListControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController }) => {
+> = ({ controllerMessenger, initMessenger, getController, persistedState }) => {
   const networkController = getController('NetworkController');
 
   const controller = new TokenListController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
+    state: persistedState.TokenListController,
     onNetworkStateChange: (listener) =>
-      initMessenger.subscribe('NetworkController:stateChange', listener),
+      initMessenger.subscribe(
+        'NetworkController:stateChange',
+        // TODO: Remove type assertion once @metamask/network-controller versions are aligned.
+        // Currently there's a version mismatch between the direct dependency and the one
+        // nested in @metamask/transaction-controller, causing NetworkState type incompatibility.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (networkState) => listener(networkState as any),
+      ),
   });
 
   return {

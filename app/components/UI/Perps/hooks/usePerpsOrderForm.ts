@@ -128,6 +128,7 @@ export function usePerpsOrderForm(
     });
 
     // Return the target amount directly (USD as source of truth, no optimization)
+    // Use conservative default ($10) unless explicitly provided via navigation param
     const targetAmount =
       tempMaxAmount < defaultAmount
         ? tempMaxAmount.toString()

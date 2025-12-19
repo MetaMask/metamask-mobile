@@ -383,6 +383,7 @@
     }
   },
   "SnapController": {
+    "isReady": false,
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
@@ -393,7 +394,8 @@
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
-    "lastUpdated": null
+    "lastUpdated": null,
+    "signature": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -475,12 +477,16 @@
     "positions": [],
     "accountState": null,
     "depositInProgress": false,
-    "depositRequests": {},
+    "depositRequests": [],
     "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "withdrawInProgress": false,
-    "withdrawalRequests": {},
-    "withdrawalProgress": {},
+    "withdrawalRequests": [],
+    "withdrawalProgress": {
+      "progress": 0,
+      "lastUpdated": 0,
+      "activeWithdrawalId": null
+    },
     "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
@@ -540,6 +546,10 @@
   },
   "TransactionPayController": {
     "transactionData": {}
+  },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
   },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
@@ -730,5 +740,8 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "RampsController": {
+    "geolocation": null
   }
 }

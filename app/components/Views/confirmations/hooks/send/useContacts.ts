@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../../../../constants/address';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {

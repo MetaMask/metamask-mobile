@@ -220,6 +220,7 @@ export const PerpsHomeViewSelectorsIDs = {
   SCROLL_CONTENT: 'scroll-content',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
+  POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
@@ -456,6 +457,7 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
+  LEARN_MORE_BUTTON: 'perps-tutorial-learn-more-button',
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
@@ -633,6 +635,8 @@ export const PerpsOrderBookViewSelectorsIDs = {
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
   UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
   UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
+  SPREAD_INFO_BUTTON: 'perps-order-book-spread-info-button',
+  BOTTOM_SHEET_TOOLTIP: 'perps-order-book-tooltip',
 } as const;
 
 // ========================================

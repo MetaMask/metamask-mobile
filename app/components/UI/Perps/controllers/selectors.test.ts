@@ -6,6 +6,7 @@ import {
   selectIsWatchlistMarket,
   selectHasPlacedFirstOrder,
   selectMarketFilterPreferences,
+  selectOrderBookGrouping,
 } from './selectors';
 import type { PerpsControllerState } from './PerpsController';
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
@@ -406,6 +407,70 @@ describe('PerpsController selectors', () => {
       } as unknown as PerpsControllerState;
 
       const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectOrderBookGrouping', () => {
+    it('returns mainnet order book grouping when not on testnet', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: { orderBookGrouping: 10 },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'BTC');
+
+      expect(result).toBe(10);
+    });
+
+    it('returns testnet order book grouping when on testnet', () => {
+      const state = {
+        isTestnet: true,
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {
+            ETH: { orderBookGrouping: 0.01 },
+          },
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'ETH');
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns undefined when no config exists for asset', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+      } as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'SOL');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when orderBookGrouping is not set', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: { leverage: 10 },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'BTC');
 
       expect(result).toBeUndefined();
     });

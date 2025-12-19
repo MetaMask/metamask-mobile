@@ -60,7 +60,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
-import TokenIcon from './components/TokenIcon';
+import TokenIcon from '../../Base/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';

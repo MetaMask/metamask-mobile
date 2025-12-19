@@ -45,6 +45,8 @@ import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
+// eslint-disable-next-line import/no-namespace
+import * as multichainAccountsSelectors from '../../../../../selectors/multichainAccounts/accounts';
 import {
   createMockToken,
   getCreateMockTokenOptions,
@@ -57,13 +59,10 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-
-jest.mock('./utils');
 
 jest.mock('lodash', () => {
   const actual = jest.requireActual('lodash');
@@ -163,6 +162,7 @@ jest.mock('../../../../../selectors/multichain', () => ({
       },
     ],
   })),
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
@@ -292,11 +292,6 @@ jest.mock('../../../Stake/hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('./utils', () => ({
-  __esModule: true,
-  getIsRedesignedStablecoinLendingScreenEnabled: jest.fn(() => false),
-}));
-
 jest.mock('../../utils/tempLending', () => ({
   generateLendingAllowanceIncreaseTransaction: jest.fn(() => ({
     txParams: {
@@ -380,9 +375,6 @@ describe('EarnInputView', () => {
     jest.useFakeTimers();
 
     // Reset the mocked function to default value
-    (
-      getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
-    ).mockReturnValue(false);
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
     } as unknown as ConfirmationRedesignRemoteFlags);
@@ -470,7 +462,7 @@ describe('EarnInputView', () => {
   });
 
   afterEach(() => {
-    (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   function render(
@@ -552,6 +544,7 @@ describe('EarnInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        null,
       );
 
       // "0" in the input display and on the keypad
@@ -583,7 +576,23 @@ describe('EarnInputView', () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       (useEarnTokens as jest.Mock).mockReturnValue({
-        getEarnToken: jest.fn(() => undefined),
+        getEarnToken: jest.fn(() => ({
+          name: 'TRON',
+          symbol: 'TRX',
+          ticker: 'TRX',
+          chainId: 'tron:728126428',
+          address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+          isNative: true,
+          isETH: false,
+          decimals: 6,
+          balance: '0',
+          balanceMinimalUnit: '0',
+          balanceFormatted: '0 TRX',
+          balanceFiat: '$0',
+          tokenUsdExchangeRate: 0,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
         getOutputToken: jest.fn(() => undefined),
       });
 
@@ -591,8 +600,9 @@ describe('EarnInputView', () => {
         name: 'TRON',
         symbol: 'TRX',
         ticker: 'TRX',
-        chainId: 'tron:main',
-        address: 'T1111111111111111111111111111111111',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
         balance: '0',
         balanceFiat: '$0',
         isETH: false,
@@ -608,6 +618,149 @@ describe('EarnInputView', () => {
 
       expect(getByTestId('resource-toggle-energy')).toBeTruthy();
       expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
+    });
+
+    it('renders TRX earnToken with non-zero balance from selector', () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      const mockGetEarnToken = jest.fn(() => ({
+        ...TRX_TOKEN,
+        balanceMinimalUnit: '100000000',
+        balanceFormatted: '100 TRX',
+        balanceFiatNumber: 100,
+        tokenUsdExchangeRate: 1,
+        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+        experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+      }));
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: mockGetEarnToken,
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByTestId } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      // Verify getEarnToken was called with the token
+      expect(mockGetEarnToken).toHaveBeenCalledWith(TRX_TOKEN);
+      // Verify TRX-specific UI elements are rendered
+      expect(getByTestId('resource-toggle-energy')).toBeTruthy();
+      expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
+    });
+
+    it('replaces Max button with Done when non-zero amount is entered', async () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...TRX_TOKEN,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByText, queryByText } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(getByText('Max')).toBeTruthy();
+      expect(queryByText(strings('onboarding_success.done'))).toBeNull();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(queryByText('Max')).toBeNull();
+      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+    });
+
+    it('does not show MaxInputModal when Max button is pressed for TRX', async () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...TRX_TOKEN,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByText } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeModals',
+        expect.objectContaining({
+          screen: Routes.STAKING.MODALS.MAX_INPUT,
+        }),
+      );
     });
   });
 
@@ -636,16 +789,6 @@ describe('EarnInputView', () => {
       });
 
       expect(getByText('USD')).toBeTruthy();
-    });
-  });
-
-  describe('when calculating rewards', () => {
-    it('calculates estimated annual rewards based on input', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText('1'));
-
-      expect(getByText('0.5 ETH')).toBeTruthy();
     });
   });
 
@@ -678,17 +821,6 @@ describe('EarnInputView', () => {
 
       fireEvent.press(getByText('4'));
       expect(queryAllByText('Not enough ETH')).toHaveLength(2);
-    });
-
-    it('navigates to Learn more modal when learn icon is pressed', () => {
-      const { getByLabelText } = renderComponent();
-      fireEvent.press(getByLabelText('Learn More'));
-      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-        screen: Routes.STAKING.MODALS.LEARN_MORE,
-        params: {
-          chainId: CHAIN_IDS.MAINNET,
-        },
-      });
     });
   });
 
@@ -994,10 +1126,10 @@ describe('EarnInputView', () => {
       // Enable stablecoin lending feature flag
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
-      // Mock the function to return true for this test
-      (
-        getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
-      ).mockReturnValue(true);
+      // Enable redesigned staking confirmations flag
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -1093,9 +1225,6 @@ describe('EarnInputView', () => {
                 type: 'lendingDeposit',
               },
             ],
-            disable7702: true,
-            disableHook: true,
-            disableSequential: false,
             requireApproval: true,
           });
 
@@ -1137,6 +1266,7 @@ describe('EarnInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        null,
       );
     });
   });
@@ -1619,6 +1749,171 @@ describe('EarnInputView', () => {
           data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
         });
       });
+    });
+  });
+
+  describe('Additional edge cases for coverage', () => {
+    it('navigates to MAX_INPUT modal for staking when max button pressed', () => {
+      const { getByText } = renderComponent();
+
+      const maxButton = getByText('Max');
+      fireEvent.press(maxButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'StakeModals',
+        expect.objectContaining({
+          screen: Routes.STAKING.MODALS.MAX_INPUT,
+        }),
+      );
+    });
+
+    it('handles missing selectedAccount address gracefully in lending flow', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectConversionRateMock.mockReturnValue(1);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('100000000'),
+          balanceMinimalUnit: '100000000',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
+
+      // Mock selector to return undefined account
+      jest
+        .spyOn(
+          multichainAccountsSelectors,
+          'selectSelectedInternalAccountByScope',
+        )
+        .mockReturnValue(() => undefined);
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: MOCK_USDC_MAINNET_ASSET },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when selectedAccount is undefined
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles missing earnToken experience market data gracefully', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectConversionRateMock.mockReturnValue(1);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('100000000'),
+          balanceMinimalUnit: '100000000',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            // Missing market data
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: MOCK_USDC_MAINNET_ASSET },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when market data is missing
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles pooled staking when attemptDepositTransaction is undefined', async () => {
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: undefined,
+      });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
+
+      const { getByText } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when attemptDepositTransaction is undefined
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('tracks staking events when shouldLogStakingEvent returns true', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText } = renderComponent();
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Stake Input Quick Amount Clicked',
+          properties: expect.objectContaining({
+            location: 'EarnInputView',
+            amount: 0.25,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          }),
+        }),
+      );
     });
   });
 });
