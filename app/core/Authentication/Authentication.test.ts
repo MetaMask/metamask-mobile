@@ -541,10 +541,12 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('returns PASSCODE type for components when biometric is disabled', async () => {
+  it('returns PASSCODE type for components when passcode was previously chosen (PASSCODE_DISABLED not set)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // PASSCODE_DISABLED is not set (null/undefined) - represents user who chose PASSCODE
+    // BIOMETRY_CHOICE_DISABLED is set to represent that biometrics are disabled
     await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 
     // Mock Redux store to return allowLoginWithRememberMe: false
@@ -560,10 +562,107 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
-  it('returns BIOMETRIC type for components when biometric is available', async () => {
+  it('returns BIOMETRIC type for components when biometric was previously chosen (PASSCODE_DISABLED is TRUE)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // PASSCODE_DISABLED = TRUE represents user who previously chose BIOMETRIC
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+    // Mock Redux store to return allowLoginWithRememberMe: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(
+      true,
+      false,
+    );
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  it('returns PASSCODE type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // No storage flags set - represents new user or first-time choice
+    // With new logic, this defaults to PASSCODE when biometryChoice is true
+
+    // Mock Redux store to return allowLoginWithRememberMe: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(
+      true,
+      false,
+    );
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD type when biometryChoice is false', async () => {
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+    // Mock Redux store to return allowLoginWithRememberMe: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(
+      false,
+      false,
+    );
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns PASSWORD type when biometrics are not available', async () => {
+    SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+    // Mock Redux store to return allowLoginWithRememberMe: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(
+      true,
+      false,
+    );
+    expect(result.availableBiometryType).toBeNull();
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('prioritizes REMEMBER_ME over BIOMETRIC when both are enabled', async () => {
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // Don't set PASSCODE_DISABLED - this allows BIOMETRIC condition to potentially match
+    // but REMEMBER_ME should still take priority when rememberMe is true
+
+    // Mock Redux store to return allowLoginWithRememberMe: true
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(true, true);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
+  });
+
+  it('returns BIOMETRIC type when PASSCODE_DISABLED is TRUE and biometryChoice is true, even if BIOMETRY_CHOICE_DISABLED was previously set', async () => {
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // User previously disabled biometrics but then re-enabled them
+    // PASSCODE_DISABLED = TRUE indicates they want BIOMETRIC
+    await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1793,7 +1892,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1866,7 +1965,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1909,7 +2008,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1936,7 +2035,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1972,7 +2071,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2050,7 +2149,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 

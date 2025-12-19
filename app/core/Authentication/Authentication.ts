@@ -555,16 +555,13 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
       biometryChoice &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
+      passcodePreviouslyDisabled === TRUE
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -697,7 +694,6 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       await this.dispatchLogin();
       this.authData = authData;
-      this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
       // discovery...).
@@ -1503,13 +1499,7 @@ class AuthenticationService {
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-      if (!passwordToUse.password) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
+
       // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
       await this.resetPassword();
 
