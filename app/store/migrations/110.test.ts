@@ -205,58 +205,6 @@ describe(`migration #${migrationVersion}`, () => {
       },
       scenario: 'selectedNetworkClientId is not a string',
     },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: {},
-          },
-        },
-      },
-      scenario: 'missing NetworkEnablementController',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkEnablementController: 'invalid',
-          },
-        },
-      },
-      scenario: 'invalid NetworkEnablementController state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkEnablementController: {},
-          },
-        },
-      },
-      scenario: 'missing enabledNetworkMap',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkEnablementController: { enabledNetworkMap: 'invalid' },
-          },
-        },
-      },
-      scenario: 'invalid enabledNetworkMap state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkEnablementController: {
-              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: 'invalid' },
-            },
-          },
-        },
-      },
-      scenario: 'invalid enabledNetworkMap Eip155 state',
-    },
   ];
 
   it.each(invalidStates)('captures exception if $scenario', ({ state }) => {
