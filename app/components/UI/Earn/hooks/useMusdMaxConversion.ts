@@ -10,11 +10,10 @@ import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations
 import Routes from '../../../../constants/navigation/Routes';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import {
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-} from '../constants/musd';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { useMusdQuickConvertPercentage } from './useMusdQuickConvertPercentage';
 
 /**
  * Result from creating a max conversion transaction.
@@ -25,21 +24,6 @@ export interface MaxConversionResult {
   /** The output chain ID where mUSD will be received */
   outputChainId: Hex;
 }
-
-/**
- * Determines the output chain ID for mUSD conversion.
- * Uses same-chain if mUSD is deployed there, otherwise defaults to Ethereum mainnet.
- */
-// TODO: Use the useMusdConversionTokens hook to get the output chain ID instead of duplicating it here.
-const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
-  const mUsdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[paymentTokenChainId];
-  if (mUsdAddress) {
-    // mUSD exists on this chain - same-chain conversion
-    return paymentTokenChainId;
-  }
-  // mUSD not on this chain - cross-chain to Ethereum mainnet
-  return MUSD_CONVERSION_DEFAULT_CHAIN_ID as Hex;
-};
 
 /**
  * Hook for creating max-amount mUSD conversion transactions.
@@ -65,6 +49,8 @@ export const useMusdMaxConversion = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
+  const { getMusdOutputChainId } = useMusdConversionTokens();
+  const { applyPercentage } = useMusdQuickConvertPercentage();
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -81,9 +67,7 @@ export const useMusdMaxConversion = () => {
       const tokenAddress = token.address as Hex;
       const tokenChainId = token.chainId as Hex;
 
-      // TODO: Consider using the useMusdConversionTokens hook to get the output chain ID instead of duplicating it here.
-      // Determine output chain (same-chain if mUSD exists, else mainnet)
-      const outputChainId = getOutputChainId(tokenChainId);
+      const outputChainId = getMusdOutputChainId(tokenChainId);
 
       try {
         setIsLoading(true);
@@ -124,11 +108,14 @@ export const useMusdMaxConversion = () => {
           );
         }
 
-        // Generate transfer data with max amount
+        // Generate transfer data with adjusted amount (based on percentage from feature flag)
         // Note: We use the token's rawBalance which is already in minimal units (hex)
+        // The applyPercentage function will return the full balance if percentage is 1 (max mode)
+        // or a reduced amount if percentage is < 1 (e.g., 90%)
+        const adjustedBalance = applyPercentage(token.rawBalance as Hex);
         const transferData = generateTransferData('transfer', {
           toAddress: selectedAddress,
-          amount: token.rawBalance,
+          amount: adjustedBalance,
         });
 
         const { transactionMeta } = await TransactionController.addTransaction(
@@ -199,7 +186,7 @@ export const useMusdMaxConversion = () => {
         setIsLoading(false);
       }
     },
-    [navigation, selectedAddress],
+    [applyPercentage, getMusdOutputChainId, navigation, selectedAddress],
   );
 
   /**
