@@ -31,15 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
     },
-    actionButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-    },
-    spinnerContainer: {
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
+    tokenIconContainer: {
+      width: 32,
+      height: 32,
     },
   });
 };

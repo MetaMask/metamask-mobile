@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -14,11 +14,6 @@ import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
-import {
-  selectMusdConversionStatuses,
-  createTokenChainKey,
-  deriveConversionUIStatus,
-} from '../../selectors/musdConversionStatus';
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
@@ -58,15 +53,9 @@ const MusdQuickConvertView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
-  const {
-    initiateCustomConversion,
-    initiateMaxConversion,
-    isMaxConversionLoading,
-  } = useMusdConversion();
+  const { initiateCustomConversion, initiateMaxConversion } =
+    useMusdConversion();
   const { getMusdOutputChainId } = useMusdConversionTokens();
-
-  // Track which token is currently loading for max conversion
-  const [loadingTokenKey, setLoadingTokenKey] = useState<string | null>(null);
 
   // Feature flags
   const isMusdFlowEnabled = useSelector(selectIsMusdConversionFlowEnabledFlag);
@@ -74,9 +63,6 @@ const MusdQuickConvertView = () => {
 
   // Get convertible tokens
   const { tokens: conversionTokens } = useMusdConversionTokens();
-
-  // Get conversion statuses from TransactionController
-  const conversionStatuses = useSelector(selectMusdConversionStatuses);
 
   // TODO: Circle back to ensure the header looks like designs.
   // Set up navigation header
@@ -98,15 +84,7 @@ const MusdQuickConvertView = () => {
       if (!token.rawBalance) {
         return;
       }
-      const tokenKey = createTokenChainKey(token.address, token.chainId ?? '');
-      setLoadingTokenKey(tokenKey);
-      try {
-        await initiateMaxConversion(token);
-      } finally {
-        // Clear loading state after navigation (transaction created successfully)
-        // or if an error occurred
-        setLoadingTokenKey(null);
-      }
+      await initiateMaxConversion(token);
     },
     [initiateMaxConversion],
   );
@@ -127,23 +105,6 @@ const MusdQuickConvertView = () => {
     [initiateCustomConversion, getMusdOutputChainId],
   );
 
-  // Get status for a token
-  const getTokenStatus = useCallback(
-    (token: AssetType) => {
-      const key = createTokenChainKey(token.address, token.chainId ?? '');
-
-      // If this token is currently being loaded (transaction being created),
-      // show pending state to give immediate feedback
-      if (isMaxConversionLoading && loadingTokenKey === key) {
-        return 'pending';
-      }
-
-      const statusInfo = conversionStatuses[key] ?? null;
-      return deriveConversionUIStatus(statusInfo);
-    },
-    [conversionStatuses, isMaxConversionLoading, loadingTokenKey],
-  );
-
   const tokensWithBalance = useMemo(
     () =>
       conversionTokens.filter(
@@ -159,10 +120,9 @@ const MusdQuickConvertView = () => {
         token={item}
         onMaxPress={handleMaxPress}
         onEditPress={handleEditPress}
-        status={getTokenStatus(item)}
       />
     ),
-    [handleMaxPress, handleEditPress, getTokenStatus],
+    [handleMaxPress, handleEditPress],
   );
 
   // TODO: This may be the same as the createTokenChainKey util. If yes, replace with createTokenChainKey call.
