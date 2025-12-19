@@ -100,6 +100,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import {
+  PASSCODE_DISABLED,
+  BIOMETRY_CHOICE_DISABLED,
+  TRUE,
+} from '../../../../../constants/storage';
 
 // Mock Device
 jest.mock('../../../../../util/device', () => ({
@@ -208,7 +213,16 @@ describe('LoginOptionsSettings', () => {
       currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       availableBiometryType: 'FaceID',
     });
-    mockGetItem.mockResolvedValue(null);
+    // When biometrics is enabled, passcode is disabled (mutually exclusive)
+    mockGetItem.mockImplementation((key: string) => {
+      if (key === BIOMETRY_CHOICE_DISABLED) {
+        return Promise.resolve(null); // Biometrics not disabled (enabled)
+      }
+      if (key === PASSCODE_DISABLED) {
+        return Promise.resolve(TRUE); // Passcode is disabled
+      }
+      return Promise.resolve(null);
+    });
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
       state: initialState,
