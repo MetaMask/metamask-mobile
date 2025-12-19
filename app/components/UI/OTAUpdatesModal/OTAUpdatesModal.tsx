@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import { Image } from 'react-native';
+import { BackHandler, Image, Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -59,6 +59,28 @@ const OTAUpdatesModal = () => {
 
     isReloadingRef.current = true;
 
+    // Android: avoid in-place reload and exit app instead so the OTA
+    // applies on the next cold start (workaround for native crash during
+    // React Native instance teardown).
+    if (Platform.OS === 'android') {
+      dismissBottomSheet(() => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
+          )
+            .addProperties({
+              ...generateDeviceAnalyticsMetaData(),
+            })
+            .build(),
+        );
+
+        BackHandler.exitApp();
+      });
+
+      return;
+    }
+
+    // iOS: keep existing reloadAsync behavior.
     dismissBottomSheet(async () => {
       trackEvent(
         createEventBuilder(
