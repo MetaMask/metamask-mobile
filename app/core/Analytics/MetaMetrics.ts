@@ -30,6 +30,8 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
  * This class provides backward compatibility with the IMetaMetrics interface
  * while delegating all analytics operations to AnalyticsController via the analytics.ts utility.
  *
+ * @deprecated Use {@link analytics} from `app/util/analytics/analytics` instead. This class is maintained for backward compatibility only.
+ *
  * ## Configuration
  * Initialize the MetaMetrics system by calling {@link configure} method.
  * This should be done once in the app lifecycle.
@@ -85,7 +87,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
  * const metrics = MetaMetrics.getInstance();
  * metrics.reset();
  * ```
- * @remarks prefer {@link useMetrics} hook in your components
+ * @remarks Use {@link analytics} from `app/util/analytics/analytics` for new code. Prefer {@link useMetrics} hook in your components.
  *
  * @see METAMETRICS_ANONYMOUS_ID
  */
@@ -356,7 +358,10 @@ class MetaMetrics implements IMetaMetrics {
 
       this.#isConfigured = true;
     } catch (error: unknown) {
-      Logger.error(error, 'Error initializing MetaMetrics');
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Error initializing MetaMetrics',
+      );
     }
     return this.#isConfigured;
   };
