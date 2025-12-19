@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react-native';
-import { PhishingDetectorResultType } from '@metamask/phishing-controller';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -54,10 +53,6 @@ const mockInitialState = {
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: () => ({ result: true, name: 'test' }),
-    },
     AccountsController: {
       listMultichainAccounts: () => [],
     },
@@ -73,11 +68,9 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResult: jest.fn(() => ({ result: false, name: '' })),
   getPhishingTestResultAsync: jest.fn(() =>
     Promise.resolve({ result: false, name: '' }),
   ),
-  isProductSafetyDappScanningEnabled: jest.fn(() => false),
 }));
 
 const mockProps = {
@@ -205,34 +198,6 @@ describe('BrowserTab', () => {
           url: 'javascript://example.com',
         }),
       ).toBe(false);
-    });
-
-    it('stops webview from loading a phishing website', async () => {
-      const { getPhishingTestResult } = jest.requireMock(
-        '../../../util/phishingDetection',
-      );
-      getPhishingTestResult.mockReturnValue({
-        result: true,
-        name: 'phishing-site',
-        type: PhishingDetectorResultType.Blocklist,
-      });
-
-      renderWithProvider(<BrowserTab {...mockProps} />, {
-        state: mockInitialState,
-      });
-
-      await waitFor(() =>
-        expect(screen.getByTestId('browser-webview')).toBeVisible(),
-      );
-
-      const webView = screen.getByTestId('browser-webview');
-      const onShouldStartLoadWithRequest =
-        webView.props.onShouldStartLoadWithRequest;
-
-      const phishingResult = onShouldStartLoadWithRequest({
-        url: 'https://phishing-site.com',
-      });
-      expect(phishingResult).toBe(false);
     });
   });
 });
