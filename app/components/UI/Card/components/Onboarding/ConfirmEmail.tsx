@@ -151,9 +151,7 @@ const ConfirmEmail = () => {
         navigation.navigate(Routes.CARD.MODALS.ID, {
           screen: Routes.CARD.MODALS.CONFIRM_MODAL,
           params: {
-            title: strings('card.card_onboarding.account_exists.title', {
-              email,
-            }),
+            title: strings('card.card_onboarding.account_exists.title'),
             description: strings(
               'card.card_onboarding.account_exists.description',
               {

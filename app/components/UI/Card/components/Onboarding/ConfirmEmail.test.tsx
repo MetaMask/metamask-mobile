@@ -310,10 +310,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
           "Didn't receive a code? ",
         'card.card_onboarding.continue_button': 'Continue',
         'card.card_onboarding.account_exists.title':
-          'Account exists for {email}',
+          'You already have an account',
         'card.card_onboarding.account_exists.description':
-          'An account already exists for {email}. Please sign in instead.',
-        'card.card_onboarding.account_exists.confirm_button': 'Sign In',
+          'The email address {email} is already associated with a Card account.',
+        'card.card_onboarding.account_exists.confirm_button': 'Log in',
       };
 
       let result = mockStrings[key] || key;
@@ -1020,11 +1020,11 @@ describe('ConfirmEmail Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.CONFIRM_MODAL,
         params: expect.objectContaining({
-          title: 'Account exists for test@example.com',
+          title: 'You already have an account',
           description:
-            'An account already exists for test@example.com. Please sign in instead.',
+            'The email address test@example.com is already associated with a Card account.',
           confirmAction: expect.objectContaining({
-            label: 'Sign In',
+            label: 'Log in',
           }),
         }),
       });
@@ -1104,7 +1104,7 @@ describe('ConfirmEmail Component', () => {
         fireEvent.changeText(codeFieldInput, '123456');
       });
 
-      expect(capturedOnPress).toBeDefined();
+      expect(capturedOnPress).toEqual(expect.any(Function));
 
       mockNavigate.mockClear();
 

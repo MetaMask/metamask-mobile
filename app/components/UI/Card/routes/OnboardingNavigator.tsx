@@ -76,6 +76,27 @@ export const PostEmailNavigationOptions = ({
   };
 };
 
+// Navigation options for KYC status screens (VALIDATING_KYC, KYC_FAILED)
+// These screens should exit directly without confirmation alert
+export const KYCStatusNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => <View />,
+  headerTitle: () => <View />,
+  headerRight: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      testID="exit-onboarding-button"
+      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+    />
+  ),
+  gestureEnabled: false,
+});
+
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
     cardUserPhase?: CardUserPhase;
@@ -119,32 +140,35 @@ const OnboardingNavigator: React.FC = () => {
 
     // Priority 2: Use cached user data if available
     if (user?.verificationState && onboardingId) {
-      if (user.verificationState === 'UNVERIFIED') {
-        return Routes.CARD.ONBOARDING.SIGN_UP;
+      if (user.verificationState === 'REJECTED') {
+        return Routes.CARD.ONBOARDING.KYC_FAILED;
       }
 
-      if (user.verificationState === 'PENDING') {
+      if (user.verificationState === 'UNVERIFIED') {
         if (!user?.phoneNumber) {
           return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
         }
 
-        if (
-          !user.firstName ||
-          !user.lastName ||
-          !user.countryOfNationality ||
-          !user.dateOfBirth
-        ) {
-          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+      }
+
+      if (user.verificationState === 'PENDING') {
+        if (!user.firstName) {
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
         }
 
         if (!user?.addressLine1 || !user?.city || !user?.zip) {
           return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
         }
 
-        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
       }
 
       if (user.verificationState === 'VERIFIED') {
+        if (!user?.addressLine1 || !user?.city || !user?.zip) {
+          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+        }
+
         return Routes.CARD.ONBOARDING.COMPLETE;
       }
     }
@@ -160,7 +184,8 @@ const OnboardingNavigator: React.FC = () => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
-      !hasShownKeepGoingModal.current
+      !hasShownKeepGoingModal.current &&
+      user?.verificationState !== 'REJECTED'
     ) {
       hasShownKeepGoingModal.current = true;
       navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -178,7 +203,12 @@ const OnboardingNavigator: React.FC = () => {
         },
       });
     }
-  }, [isReturningSession, initialRouteName, navigation]);
+  }, [
+    isReturningSession,
+    initialRouteName,
+    navigation,
+    user?.verificationState,
+  ]);
 
   if (isLoading && !user) {
     return (
@@ -218,7 +248,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
         component={ValidatingKYC}
-        options={PostEmailNavigationOptions}
+        options={KYCStatusNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
@@ -228,7 +258,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={PostEmailNavigationOptions}
+        options={KYCStatusNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}

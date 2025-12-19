@@ -33,9 +33,14 @@ const ConfirmModal = () => {
   const { title, description, icon, confirmAction } =
     useParams<ConfirmModalParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
+
   const handleCancel = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, [sheetRef]);
+
+  const handleConfirm = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(confirmAction.onPress);
+  }, [sheetRef, confirmAction.onPress]);
 
   const renderIcon = () => (
     <Icon
@@ -69,7 +74,7 @@ const ConfirmModal = () => {
   const renderActions = () => (
     <Box twClassName="w-full mt-2" testID="confirm-modal-actions">
       <Button
-        onPress={confirmAction.onPress}
+        onPress={handleConfirm}
         variant={confirmAction.variant || ButtonVariant.Primary}
         size={ButtonSize.Lg}
         twClassName="w-full"

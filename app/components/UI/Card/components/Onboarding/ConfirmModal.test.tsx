@@ -14,8 +14,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => mockStrings(key),
 }));
 
-// Mock BottomSheet with ref support
-const mockOnCloseBottomSheet = jest.fn();
+// Mock BottomSheet with ref support - the mock calls callback immediately
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  if (callback) {
+    callback();
+  }
+});
+
+// Store reference for the mock to use (hoisting workaround)
+const getMockOnCloseBottomSheet = () => mockOnCloseBottomSheet;
+
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -31,10 +39,14 @@ jest.mock(
           children: React.ReactNode;
           testID?: string;
         },
-        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
       ) => {
         React.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onCloseBottomSheet: (callback?: () => void) => {
+            // Get the mock function at runtime to avoid hoisting issues
+            const mockFn = getMockOnCloseBottomSheet();
+            mockFn(callback);
+          },
         }));
         return React.createElement(
           View,
@@ -144,6 +156,12 @@ describe('ConfirmModal', () => {
     jest.clearAllMocks();
     mockStrings.mockClear();
     mockUseParams.mockReturnValue(createMockParams());
+    // Restore mock implementation since jest.resetAllMocks() clears it
+    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
+      if (callback) {
+        callback();
+      }
+    });
   });
 
   afterEach(() => {
@@ -154,12 +172,12 @@ describe('ConfirmModal', () => {
     it('renders the modal with all elements', () => {
       const { getByTestId } = render(<ConfirmModal />);
 
-      expect(getByTestId('confirm-modal')).toBeTruthy();
-      expect(getByTestId('confirm-modal-icon')).toBeTruthy();
-      expect(getByTestId('confirm-modal-title')).toBeTruthy();
-      expect(getByTestId('confirm-modal-description')).toBeTruthy();
-      expect(getByTestId('confirm-modal-actions')).toBeTruthy();
-      expect(getByTestId('confirm-modal-close-button')).toBeTruthy();
+      expect(getByTestId('confirm-modal')).toBeOnTheScreen();
+      expect(getByTestId('confirm-modal-icon')).toBeOnTheScreen();
+      expect(getByTestId('confirm-modal-title')).toBeOnTheScreen();
+      expect(getByTestId('confirm-modal-description')).toBeOnTheScreen();
+      expect(getByTestId('confirm-modal-actions')).toBeOnTheScreen();
+      expect(getByTestId('confirm-modal-close-button')).toBeOnTheScreen();
     });
 
     it('displays the title from params', () => {
@@ -199,7 +217,7 @@ describe('ConfirmModal', () => {
 
       const { getByText } = render(<ConfirmModal />);
 
-      expect(getByText('Custom Button Label')).toBeTruthy();
+      expect(getByText('Custom Button Label')).toBeOnTheScreen();
     });
 
     it('uses default button label when label is empty', () => {
@@ -264,7 +282,7 @@ describe('ConfirmModal', () => {
 
       const { getByTestId } = render(<ConfirmModal />);
 
-      expect(getByTestId('confirm-modal')).toBeTruthy();
+      expect(getByTestId('confirm-modal')).toBeOnTheScreen();
     });
 
     it('handles confirmAction with custom variant', () => {
@@ -281,7 +299,7 @@ describe('ConfirmModal', () => {
 
       const { getByTestId } = render(<ConfirmModal />);
 
-      expect(getByTestId('confirm-button')).toBeTruthy();
+      expect(getByTestId('confirm-button')).toBeOnTheScreen();
     });
   });
 });
