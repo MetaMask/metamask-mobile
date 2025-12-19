@@ -12,11 +12,7 @@ import {
   FeatureFlagOverrideProvider,
   useFeatureFlagOverride,
 } from './FeatureFlagOverrideContext';
-import {
-  FeatureFlagType,
-  getFeatureFlagType,
-  isMinimumRequiredVersionSupported,
-} from '../util/feature-flags';
+import { FeatureFlagType, getFeatureFlagType } from '../util/feature-flags';
 import {
   selectRemoteFeatureFlags,
   selectLocalOverrides,
@@ -56,25 +52,7 @@ jest.mock('../util/feature-flags', () => ({
   ...jest.requireActual('../util/feature-flags'),
   getFeatureFlagDescription: jest.fn(),
   getFeatureFlagType: jest.fn(),
-  isMinimumRequiredVersionSupported: jest.fn(),
 }));
-
-// Mock the ToastContext to avoid dependency issues
-jest.mock('../component-library/components/Toast', () => {
-  const React = jest.requireActual('react');
-  return {
-    ToastContext: React.createContext({
-      toastRef: { current: { showToast: jest.fn() } },
-    }),
-    ToastVariants: {
-      Plain: 'Plain',
-      Account: 'Account',
-      Network: 'Network',
-      App: 'App',
-      Icon: 'Icon',
-    },
-  };
-});
 
 // Mock useMetrics hook
 const mockAddTraitsToUser = jest.fn();
@@ -88,9 +66,6 @@ jest.mock('../components/hooks/useMetrics/useMetrics', () => ({
 describe('FeatureFlagOverrideContext', () => {
   let mockUseSelector: jest.MockedFunction<typeof useSelector>;
   let mockGetFeatureFlagType: jest.MockedFunction<typeof getFeatureFlagType>;
-  let mockIsMinimumRequiredVersionSupported: jest.MockedFunction<
-    typeof isMinimumRequiredVersionSupported
-  >;
   // State to track overrides for simulation
   let currentOverrides: Record<string, unknown>;
   let currentRawFlags: Record<string, unknown>;
@@ -103,16 +78,10 @@ describe('FeatureFlagOverrideContext', () => {
     mockClearAllFlagOverrides.mockClear();
     mockUseSelector = jest.mocked(useSelector);
     mockGetFeatureFlagType = jest.mocked(getFeatureFlagType);
-    mockIsMinimumRequiredVersionSupported = jest.mocked(
-      isMinimumRequiredVersionSupported,
-    );
 
     // Reset state
     currentOverrides = {};
     currentRawFlags = {};
-
-    // Default mock implementations
-    mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockGetFeatureFlagType.mockImplementation((value: any) => {
@@ -190,21 +159,6 @@ describe('FeatureFlagOverrideContext', () => {
       expect(Object.keys(result.current.featureFlags)).toHaveLength(5);
     });
 
-    it('returns flag value directly from getFeatureFlag', () => {
-      const mockFlags = { testFlag: true };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBoolean,
-      );
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      const flagValue = result.current.getFeatureFlag('testFlag');
-      expect(flagValue).toBe(true);
-    });
-
     it('sorts feature flags list alphabetically by key', () => {
       const mockFlags = {
         zFlag: true,
@@ -256,7 +210,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.hasOverride('testFlag')).toBe(true);
       expect(result.current.overrides.testFlag).toBe(false);
       expect(result.current.getOverrideCount()).toBe(1);
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
+      expect(result.current.featureFlags.testFlag.value).toBe(false);
       expect(result.current.featureFlags.testFlag.isOverridden).toBe(true);
     });
 
@@ -279,7 +233,7 @@ describe('FeatureFlagOverrideContext', () => {
 
       expect(result.current.hasOverride('newFlag')).toBe(true);
       expect(result.current.overrides.newFlag).toBe('new value');
-      expect(result.current.getFeatureFlag('newFlag')).toBe('new value');
+      expect(result.current.featureFlags.newFlag.value).toBe('new value');
       expect(result.current.featureFlags.newFlag.originalValue).toBeUndefined();
       expect(result.current.featureFlags.newFlag.isOverridden).toBe(true);
     });
@@ -297,7 +251,7 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       rerender(null);
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
+      expect(result.current.featureFlags.testFlag.value).toBe(false);
 
       act(() => {
         result.current.removeOverride('testFlag');
@@ -310,7 +264,7 @@ describe('FeatureFlagOverrideContext', () => {
 
       expect(result.current.hasOverride('testFlag')).toBe(false);
       expect(result.current.overrides.testFlag).toBeUndefined();
-      expect(result.current.getFeatureFlag('testFlag')).toBe(true);
+      expect(result.current.featureFlags.testFlag.value).toBe(true);
       expect(result.current.featureFlags.testFlag.isOverridden).toBe(false);
     });
 
@@ -360,8 +314,8 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.hasOverride('flag1')).toBe(false);
       expect(result.current.hasOverride('flag2')).toBe(false);
       expect(result.current.hasOverride('flag3')).toBe(false);
-      expect(result.current.getFeatureFlag('flag1')).toBe(true);
-      expect(result.current.getFeatureFlag('flag2')).toBe(false);
+      expect(result.current.featureFlags.flag1.value).toBe(true);
+      expect(result.current.featureFlags.flag2.value).toBe(false);
     });
 
     it('updates multiple overrides independently', () => {
@@ -377,24 +331,24 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       rerender(null);
-      expect(result.current.getFeatureFlag('flag1')).toBe('override1');
-      expect(result.current.getFeatureFlag('flag2')).toBe('original2');
+      expect(result.current.featureFlags.flag1.value).toBe('override1');
+      expect(result.current.featureFlags.flag2.value).toBe('original2');
 
       act(() => {
         result.current.setOverride('flag2', 'override2');
       });
 
       rerender(null);
-      expect(result.current.getFeatureFlag('flag1')).toBe('override1');
-      expect(result.current.getFeatureFlag('flag2')).toBe('override2');
+      expect(result.current.featureFlags.flag1.value).toBe('override1');
+      expect(result.current.featureFlags.flag2.value).toBe('override2');
 
       act(() => {
         result.current.setOverride('flag1', 'updated1');
       });
 
       rerender(null);
-      expect(result.current.getFeatureFlag('flag1')).toBe('updated1');
-      expect(result.current.getFeatureFlag('flag2')).toBe('override2');
+      expect(result.current.featureFlags.flag1.value).toBe('updated1');
+      expect(result.current.featureFlags.flag2.value).toBe('override2');
     });
   });
 
@@ -557,8 +511,8 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
-      expect(result.current.getFeatureFlag('nullFlag')).toBeNull();
-      expect(result.current.getFeatureFlag('undefinedFlag')).toBeUndefined();
+      expect(result.current.featureFlags.nullFlag.value).toBeNull();
+      expect(result.current.featureFlags.undefinedFlag.value).toBeUndefined();
     });
 
     it('uses original value for type determination when current value is null/undefined', () => {
@@ -589,7 +543,7 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
-      expect(result.current.getFeatureFlag('flag1')).toBe(true);
+      expect(result.current.featureFlags.flag1.value).toBe(true);
       expect(result.current.featureFlagsList).toHaveLength(1);
 
       // Change Redux state (update currentRawFlags directly)
@@ -597,8 +551,8 @@ describe('FeatureFlagOverrideContext', () => {
 
       rerender(null);
 
-      expect(result.current.getFeatureFlag('flag1')).toBe(true);
-      expect(result.current.getFeatureFlag('flag2')).toBe(false);
+      expect(result.current.featureFlags.flag1.value).toBe(true);
+      expect(result.current.featureFlags.flag2.value).toBe(false);
       expect(result.current.featureFlagsList).toHaveLength(2);
     });
 
@@ -615,7 +569,7 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       rerender(null);
-      expect(result.current.getFeatureFlag('flag1')).toBe(false);
+      expect(result.current.featureFlags.flag1.value).toBe(false);
 
       // Change Redux state (update currentRawFlags directly)
       currentRawFlags = { flag1: true, flag2: 'new' };
@@ -623,9 +577,9 @@ describe('FeatureFlagOverrideContext', () => {
       rerender(null);
 
       // Override should be preserved
-      expect(result.current.getFeatureFlag('flag1')).toBe(false);
+      expect(result.current.featureFlags.flag1.value).toBe(false);
       expect(result.current.featureFlags.flag1.isOverridden).toBe(true);
-      expect(result.current.getFeatureFlag('flag2')).toBe('new');
+      expect(result.current.featureFlags.flag2.value).toBe('new');
       expect(result.current.featureFlags.flag2.isOverridden).toBe(false);
     });
   });
@@ -697,146 +651,6 @@ describe('FeatureFlagOverrideContext', () => {
     });
   });
 
-  describe('getFeatureFlag Method', () => {
-    it('returns undefined for non-existent flags', () => {
-      setupSelectorMocks({});
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('nonExistentFlag')).toBeUndefined();
-    });
-
-    it('returns enabled value for boolean with minimumVersion flags when version is supported', () => {
-      const mockFlags = {
-        testFlag: { enabled: true, minimumVersion: '1.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('testFlag')).toBe(true);
-    });
-
-    it('returns false for boolean with minimumVersion flags when enabled is false and version is supported', () => {
-      const mockFlags = {
-        testFlag: { enabled: false, minimumVersion: '1.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
-    });
-
-    it('returns false for boolean with minimumVersion flags when version is not supported in non-production', () => {
-      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: 'development',
-        configurable: true,
-      });
-
-      const mockFlags = {
-        testFlag: { enabled: true, minimumVersion: '99.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
-
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: originalNodeEnv,
-        configurable: true,
-      });
-    });
-
-    it('returns false for boolean with minimumVersion flags when version is not supported in production', () => {
-      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: 'production',
-        configurable: true,
-      });
-
-      const mockFlags = {
-        testFlag: { enabled: true, minimumVersion: '99.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
-
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: originalNodeEnv,
-        configurable: true,
-      });
-    });
-
-    it('returns enabled value for boolean with minimumVersion flags when enabled is false', () => {
-      const mockFlags = {
-        testFlag: { enabled: false, minimumVersion: '99.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
-    });
-
-    it('returns flag value directly for non-boolean with minimumVersion flags', () => {
-      const mockFlags = {
-        stringFlag: 'test value',
-        numberFlag: 42,
-        booleanFlag: true,
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType
-        .mockReturnValueOnce(FeatureFlagType.FeatureFlagString)
-        .mockReturnValueOnce(FeatureFlagType.FeatureFlagNumber)
-        .mockReturnValueOnce(FeatureFlagType.FeatureFlagBoolean);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      expect(result.current.getFeatureFlag('stringFlag')).toBe('test value');
-      expect(result.current.getFeatureFlag('numberFlag')).toBe(42);
-      expect(result.current.getFeatureFlag('booleanFlag')).toBe(true);
-    });
-  });
-
   describe('Complex Scenarios', () => {
     it('handles mix of original flags, overrides, and new flags', () => {
       const mockFlags = {
@@ -860,19 +674,19 @@ describe('FeatureFlagOverrideContext', () => {
       const allFlags = result.current.featureFlagsList;
       expect(allFlags).toHaveLength(3);
 
-      expect(result.current.getFeatureFlag('original1')).toBe('modified1');
+      expect(result.current.featureFlags.original1.value).toBe('modified1');
       expect(result.current.featureFlags.original1.originalValue).toBe(
         'value1',
       );
       expect(result.current.featureFlags.original1.isOverridden).toBe(true);
 
-      expect(result.current.getFeatureFlag('original2')).toBe('value2');
+      expect(result.current.featureFlags.original2.value).toBe('value2');
       expect(result.current.featureFlags.original2.originalValue).toBe(
         'value2',
       );
       expect(result.current.featureFlags.original2.isOverridden).toBe(false);
 
-      expect(result.current.getFeatureFlag('new1')).toBe('newValue1');
+      expect(result.current.featureFlags.new1.value).toBe('newValue1');
       expect(result.current.featureFlags.new1.originalValue).toBeUndefined();
       expect(result.current.featureFlags.new1.isOverridden).toBe(true);
     });
@@ -892,7 +706,7 @@ describe('FeatureFlagOverrideContext', () => {
 
       rerender(null);
 
-      expect(result.current.getFeatureFlag('testFlag')).toBe('change3');
+      expect(result.current.featureFlags.testFlag.value).toBe('change3');
       expect(result.current.getOverrideCount()).toBe(1);
     });
 
@@ -903,7 +717,7 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
-      expect(result.current.getFeatureFlag('')).toBe('empty key value');
+      expect(result.current.featureFlags[''].value).toBe('empty key value');
 
       act(() => {
         result.current.setOverride('', 'overridden empty');
@@ -911,72 +725,8 @@ describe('FeatureFlagOverrideContext', () => {
 
       rerender(null);
 
-      expect(result.current.getFeatureFlag('')).toBe('overridden empty');
+      expect(result.current.featureFlags[''].value).toBe('overridden empty');
       expect(result.current.hasOverride('')).toBe(true);
-    });
-
-    describe('Version Support Logic', () => {
-      it('returns false for unsupported minimumVersion in development environment', () => {
-        const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
-        Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-          value: 'development',
-          configurable: true,
-        });
-
-        const mockFlags = {
-          myFeatureFlag: { enabled: true, minimumVersion: '10.0.0' },
-        };
-        setupSelectorMocks(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue(
-          FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-        );
-        mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-        const { result } = renderHook(() => useFeatureFlagOverride(), {
-          wrapper: createWrapper,
-        });
-
-        expect(result.current.getFeatureFlag('myFeatureFlag')).toBe(false);
-
-        Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-          value: originalNodeEnv,
-          configurable: true,
-        });
-      });
-
-      it('returns enabled value when feature flag version is supported', () => {
-        const mockFlags = {
-          supportedFlag: { enabled: true, minimumVersion: '1.0.0' },
-        };
-        setupSelectorMocks(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue(
-          FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-        );
-        mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-
-        const { result } = renderHook(() => useFeatureFlagOverride(), {
-          wrapper: createWrapper,
-        });
-
-        expect(result.current.getFeatureFlag('supportedFlag')).toBe(true);
-      });
-
-      it('returns flag value directly for non-boolean with minimumVersion flag types', () => {
-        const mockFlags = {
-          stringFlag: 'test value',
-        };
-        setupSelectorMocks(mockFlags);
-        mockGetFeatureFlagType.mockReturnValue(
-          FeatureFlagType.FeatureFlagString,
-        );
-        mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-        const { result } = renderHook(() => useFeatureFlagOverride(), {
-          wrapper: createWrapper,
-        });
-
-        expect(result.current.getFeatureFlag('stringFlag')).toBe('test value');
-      });
     });
   });
 
@@ -1061,210 +811,7 @@ describe('FeatureFlagOverrideContext', () => {
     });
   });
 
-  describe('Snapshot Functionality', () => {
-    it('takes snapshot when getFeatureFlag is called for boolean flag', async () => {
-      const mockFlags = { testBooleanFlag: true };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBoolean,
-      );
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('testBooleanFlag');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          testBooleanFlag: true,
-        });
-      });
-    });
-
-    it('takes snapshot when getFeatureFlag is called for boolean with minimumVersion flag', async () => {
-      const mockFlags = {
-        testVersionFlag: { enabled: true, minimumVersion: '1.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('testVersionFlag');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          testVersionFlag: true,
-        });
-      });
-    });
-
-    it('takes snapshot for each boolean flag when multiple flags are accessed', async () => {
-      const mockFlags = {
-        flag1: true,
-        flag2: false,
-        flag3: true,
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBoolean,
-      );
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      // Clear the initial bulk call from useEffect
-      mockAddTraitsToUser.mockClear();
-
-      await act(async () => {
-        result.current.getFeatureFlag('flag1');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          flag1: true,
-        });
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('flag2');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          flag2: false,
-        });
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('flag3');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          flag3: true,
-        });
-      });
-
-      expect(mockAddTraitsToUser).toHaveBeenCalledTimes(3);
-    });
-
-    it('does not take additional snapshot for non-boolean flags via getFeatureFlag', async () => {
-      const mockFlags = {
-        stringFlag: 'test value',
-        numberFlag: 42,
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType
-        .mockReturnValueOnce(FeatureFlagType.FeatureFlagString)
-        .mockReturnValueOnce(FeatureFlagType.FeatureFlagNumber);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      // Clear the initial bulk call from useEffect
-      mockAddTraitsToUser.mockClear();
-
-      await act(async () => {
-        result.current.getFeatureFlag('stringFlag');
-        result.current.getFeatureFlag('numberFlag');
-      });
-
-      // getFeatureFlag should not add additional traits for non-boolean flags
-      await waitFor(
-        () => {
-          expect(mockAddTraitsToUser).not.toHaveBeenCalled();
-        },
-        { timeout: 200 },
-      );
-    });
-
-    it('updates snapshot when same boolean flag is accessed with different value after override', async () => {
-      const mockFlags = { testFlag: true };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBoolean,
-      );
-
-      const { result, rerender } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('testFlag');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          testFlag: true,
-        });
-      });
-
-      act(() => {
-        result.current.setOverride('testFlag', false);
-      });
-
-      rerender(null);
-
-      await act(async () => {
-        result.current.getFeatureFlag('testFlag');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenLastCalledWith({
-          testFlag: false,
-        });
-      });
-    });
-
-    it('takes snapshot with false value for boolean with minimumVersion when version is not supported', async () => {
-      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: 'development',
-        configurable: true,
-      });
-
-      const mockFlags = {
-        testVersionFlag: { enabled: true, minimumVersion: '99.0.0' },
-      };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(
-        FeatureFlagType.FeatureFlagBooleanWithMinimumVersion,
-      );
-      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
-
-      const { result } = renderHook(() => useFeatureFlagOverride(), {
-        wrapper: createWrapper,
-      });
-
-      await act(async () => {
-        result.current.getFeatureFlag('testVersionFlag');
-      });
-
-      await waitFor(() => {
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          testVersionFlag: false,
-        });
-      });
-
-      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
-        value: originalNodeEnv,
-        configurable: true,
-      });
-    });
-
+  describe('Bulk Traits on Mount', () => {
     it('calls addTraitsToUser in bulk on mount with all feature flags', () => {
       const mockFlags = { stringFlag: 'test', boolFlag: true };
       mockUseSelector.mockReturnValue(mockFlags);

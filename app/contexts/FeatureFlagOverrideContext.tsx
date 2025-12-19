@@ -12,16 +12,7 @@ import {
   selectLocalOverrides,
   selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
-import {
-  FeatureFlagInfo,
-  getFeatureFlagType,
-  isMinimumRequiredVersionSupported,
-} from '../util/feature-flags';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../component-library/components/Toast';
-import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
+import { FeatureFlagInfo, getFeatureFlagType } from '../util/feature-flags';
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
@@ -33,7 +24,6 @@ interface FeatureFlagOverrides {
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
-  getFeatureFlag: (key: string) => unknown;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -61,8 +51,6 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Get overrides from controller state via Redux
   const overrides = useSelector(selectLocalOverrides);
-  const toastContext = useContext(ToastContext);
-  const toastRef = toastContext?.toastRef;
 
   // Track remote feature flags and add all flags to user traits in bulk
   useEffect(() => {
@@ -123,63 +111,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     [featureFlags],
   );
 
-  const validateMinimumVersion = useCallback(
-    (flagKey: string, flagValue: MinimumVersionFlagValue) => {
-      if (
-        process.env.METAMASK_ENVIRONMENT !== 'production' &&
-        !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
-      ) {
-        toastRef?.current?.showToast({
-          labelOptions: [
-            {
-              label: 'Unsupported version',
-              isBold: true,
-            },
-            {
-              label: `${flagKey} is not supported on your version of the app.`,
-            },
-          ],
-          hasNoTimeout: false,
-          variant: ToastVariants.Plain,
-        });
-        return false;
-      }
-      return flagValue.enabled;
-    },
-    [toastRef],
-  );
-
-  /**
-   * get a specific feature flag value with overrides applied
-   */
-  const getFeatureFlag = useCallback(
-    (key: string) => {
-      const flag = featureFlags[key];
-      if (!flag) {
-        return undefined;
-      }
-
-      if (flag.type === 'boolean with minimumVersion') {
-        const flagValue = validateMinimumVersion(
-          flag.key,
-          flag.value as unknown as MinimumVersionFlagValue,
-        );
-        addTraitsToUser({
-          [flag.key]: flagValue,
-        });
-        return flagValue;
-      }
-      if (flag.type === 'boolean') {
-        addTraitsToUser({
-          [flag.key]: flag.value as boolean,
-        });
-      }
-
-      return flag.value;
-    },
-    [featureFlags, validateMinimumVersion, addTraitsToUser],
-  );
-
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
     [overrides],
@@ -189,7 +120,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     () => ({
       featureFlags,
       originalFlags: rawFeatureFlags,
-      getFeatureFlag,
       featureFlagsList,
       overrides,
       setOverride,
@@ -201,7 +131,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     [
       featureFlags,
       rawFeatureFlags,
-      getFeatureFlag,
       featureFlagsList,
       overrides,
       setOverride,

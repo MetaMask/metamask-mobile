@@ -773,4 +773,119 @@ describe('FeatureFlagOverride', () => {
       expect(screen.queryByText(/Showing: \d+ flags/)).toBeNull();
     });
   });
+
+  describe('A/B Test Flag Handling', () => {
+    it('renders A/B test flag with fallback text when options are unavailable', () => {
+      // Render with an A/B test flag - the rawRemoteFeatureFlags won't have the array of options
+      renderWithProviders(
+        { abTestFlag: { name: 'control', value: { variant: 'A' } } },
+        {},
+      );
+
+      // Verify the flag is rendered
+      expect(screen.getByText('abTestFlag')).toBeTruthy();
+      // When options are not available, it renders the stringified value as fallback
+      expect(
+        screen.getByText('[object Object]') ||
+          screen.queryByText('control') !== null,
+      ).toBeTruthy();
+    });
+
+    it('renders text display for A/B test flags in store', () => {
+      // Render with an A/B test flag
+      const storeWithAbTest = createMockStore(
+        { abTestFlag: { name: 'control', value: { variant: 'A' } } },
+        {},
+      );
+
+      render(
+        <Provider store={storeWithAbTest}>
+          <ToastContext.Provider value={mockToastContext}>
+            <FeatureFlagOverrideProvider>
+              <FeatureFlagOverride />
+            </FeatureFlagOverrideProvider>
+          </ToastContext.Provider>
+        </Provider>,
+      );
+
+      expect(screen.getByText('abTestFlag')).toBeTruthy();
+    });
+  });
+
+  describe('Version-gated Flag Interactions', () => {
+    it('enables switch when version is supported', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
+
+      renderWithProviders(
+        { versionFlag: { enabled: false, minimumVersion: '1.0.0' } },
+        {},
+      );
+
+      const switches = screen.getAllByRole('switch');
+      expect(switches[0].props.disabled).toBe(false);
+    });
+  });
+
+  describe('Flag Value Rendering', () => {
+    it('renders correctly when object flag has nested properties', () => {
+      renderWithProviders(
+        { nestedObj: { level1: { level2: { deep: 'value' } } } },
+        {},
+      );
+
+      expect(screen.getByText('nestedObj')).toBeTruthy();
+      expect(
+        screen.getByText('level1: {"level2":{"deep":"value"}}'),
+      ).toBeTruthy();
+    });
+
+    it('renders array flag with correct label', () => {
+      renderWithProviders({ myArray: [1, 2, 3, 4, 5] }, {});
+
+      expect(screen.getByText('myArray')).toBeTruthy();
+      expect(screen.getByText('View/Edit')).toBeTruthy();
+    });
+  });
+
+  describe('FeatureFlagRow State Sync', () => {
+    it('syncs localValue with flag.value when override is removed', () => {
+      // Start with an overridden string flag
+      const { rerender } = render(<FeatureFlagOverride />, {
+        wrapper: createTestWrapper(
+          { stringFlag: 'original' },
+          { stringFlag: 'overridden' },
+        ).Wrapper,
+      });
+
+      // Verify overridden value is displayed
+      expect(screen.getByDisplayValue('overridden')).toBeTruthy();
+
+      // Rerender with override removed
+      const { Wrapper: NewWrapper } = createTestWrapper(
+        { stringFlag: 'original' },
+        {},
+      );
+      rerender(
+        <NewWrapper>
+          <FeatureFlagOverride />
+        </NewWrapper>,
+      );
+
+      // Verify original value is now displayed
+      expect(screen.getByDisplayValue('original')).toBeTruthy();
+    });
+  });
+
+  describe('BooleanNested Flag Type', () => {
+    it('filters include boolean nested flags when boolean filter is active', () => {
+      // Render with a nested boolean flag
+      renderWithProviders({ nestedBoolFlag: { value: true } }, {});
+
+      const filterButton = screen.getByText('All (1)');
+      fireEvent.press(filterButton);
+
+      // Boolean nested flags should be included in boolean filter
+      expect(screen.getByText('nestedBoolFlag')).toBeTruthy();
+    });
+  });
 });
