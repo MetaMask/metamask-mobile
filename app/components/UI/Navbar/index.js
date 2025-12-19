@@ -2299,3 +2299,86 @@ export function getCloseOnlyNavbar({
     headerStyle: innerStyles.headerStyle,
   };
 }
+
+/**
+ * Generic navbar with a back button on the left and close button on the right
+ * @param {Object} navigation - Navigation object
+ * @param {Object} themeColors - Theme colors object
+ * @param {Object} [options] - Configuration options
+ * @param {Function} [options.onBack] - Optional custom back handler (defaults to navigation.goBack())
+ * @param {Function} [options.onClose] - Optional custom close handler (defaults to navigation.goBack())
+ * @param {boolean} [options.showBack] - Show back button on the left (defaults to true)
+ * @param {boolean} [options.showClose] - Show close button on the right (defaults to true)
+ * @param {Object} [options.testIDs] - Optional test IDs for buttons
+ * @param {string} [options.testIDs.back] - Test ID for back button
+ * @param {string} [options.testIDs.close] - Test ID for close button
+ * @param {string} [options.backgroundColor] - Optional background color override
+ * @returns {Object} - Navigation options
+ */
+export function getBackAndCloseNavbar(
+  navigation,
+  themeColors,
+  {
+    onBack,
+    onClose,
+    showBack = true,
+    showClose = true,
+    testIDs = {},
+    backgroundColor,
+  } = {},
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: backgroundColor ?? themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 16,
+    },
+  });
+
+  const handleBackPress = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    navigation.goBack();
+  };
+
+  const handleClosePress = () => {
+    if (onClose) {
+      onClose();
+      return;
+    }
+    navigation.goBack();
+  };
+
+  return {
+    headerShown: true,
+    headerTitle: () => null,
+    headerLeft: showBack
+      ? () => (
+          <ButtonIcon
+            size={ButtonIconSize.Lg}
+            iconName={IconName.ArrowLeft}
+            onPress={handleBackPress}
+            style={innerStyles.accessories}
+            testID={testIDs.back}
+          />
+        )
+      : null,
+    headerRight: showClose
+      ? () => (
+          <ButtonIcon
+            size={ButtonIconSize.Lg}
+            iconName={IconName.Close}
+            onPress={handleClosePress}
+            style={innerStyles.accessories}
+            testID={testIDs.close}
+          />
+        )
+      : null,
+    headerStyle: innerStyles.headerStyle,
+  };
+}

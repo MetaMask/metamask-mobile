@@ -1,7 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,11 +8,9 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
-      backgroundColor: colors.background.default,
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
@@ -69,11 +66,6 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       marginVertical: 16,
-    },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
-      marginRight: 16,
-      marginTop: Device.isIphoneX() ? 40 : 24,
     },
     textContainer: {
       width: '90%',
