@@ -57,18 +57,17 @@ describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
         await TransactionPayConfirmation.tapPayWithToken('LineaETH');
         await TransactionPayConfirmation.tapKeyboardAmount('1.23');
         await TransactionPayConfirmation.tapKeyboardContinueButton();
-
-        await TransactionPayConfirmation.verifyTransactionFee('$0.05');
+        await TransactionPayConfirmation.verifyTransactionFee('$4.17');
         await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
-        await TransactionPayConfirmation.verifyTotal('$1.28');
+        await TransactionPayConfirmation.verifyTotal('$5.40');
         await FooterActions.tapConfirmButton();
 
         await PredictMarketList.tapBackButton();
         await TabBarComponent.tapActivity();
         await Gestures.waitAndTap(ActivitiesView.predictDeposit);
-        await TransactionDetailsModal.verifyNetworkFee('$0.01');
+        await TransactionDetailsModal.verifyNetworkFee('$4.13');
         await TransactionDetailsModal.verifyPaidWithSymbol('LineaETH');
-        await TransactionDetailsModal.verifyTotal('$1.28');
+        await TransactionDetailsModal.verifyTotal('$5.40');
         await TransactionDetailsModal.verifyTransactionFee('$0.04');
         await TransactionDetailsModal.verifyStatus('Confirmed');
       },
