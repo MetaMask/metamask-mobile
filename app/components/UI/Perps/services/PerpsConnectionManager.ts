@@ -869,6 +869,7 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
       const oiCapCleanup = streamManager.oiCaps.prewarm();
+      const fillsCleanup = streamManager.fills.prewarm();
 
       // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
@@ -882,6 +883,7 @@ class PerpsConnectionManagerClass {
         accountCleanup,
         marketDataCleanup,
         oiCapCleanup,
+        fillsCleanup,
         priceCleanup,
       );
 
