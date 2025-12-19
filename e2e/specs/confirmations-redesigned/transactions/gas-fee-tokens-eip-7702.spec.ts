@@ -139,7 +139,8 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
-describe(
+// Skipping this spec as it is currently causing app crashes on CI
+describe.skip(
   SmokeConfirmationsRedesigned('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {

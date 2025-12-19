@@ -1949,7 +1949,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                             }
                                           }
                                         >
-                                          Return to Home Screen
+                                          Return to home screen
                                         </Text>
                                       </TouchableOpacity>
                                     </View>

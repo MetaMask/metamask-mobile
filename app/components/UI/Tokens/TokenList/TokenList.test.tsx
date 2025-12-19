@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { TokenList } from './index';
+import { TokenList } from './TokenList';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -51,7 +51,7 @@ jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
 }));
 
 // Mock child components
-jest.mock('./TokenListItem', () => ({
+jest.mock('./TokenListItem/TokenListItem', () => ({
   TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {
     const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
