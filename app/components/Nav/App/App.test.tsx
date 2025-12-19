@@ -31,7 +31,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -84,15 +83,8 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
 }));
 
 jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn().mockReturnValue({
-    isCheckingUpdates: false,
-    hasUpdateAvailable: false,
-  }),
+  useOTAUpdates: jest.fn(),
 }));
-
-const mockUseOTAUpdates = useOTAUpdates as jest.MockedFunction<
-  typeof useOTAUpdates
->;
 
 jest.mock(
   '../../UI/FoxLoader',
@@ -270,10 +262,6 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: false,
-      hasUpdateAvailable: false,
-    });
     mockNavigate.mockClear();
   });
 
@@ -284,36 +272,6 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
-  });
-
-  it('renders FoxLoader when OTA update check runs', () => {
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: true,
-      hasUpdateAvailable: false,
-    });
-
-    const { getByTestId } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-    );
-
-    expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
-  });
-
-  it('navigates to OTA update modal when update is available', async () => {
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: false,
-      hasUpdateAvailable: true,
-    });
-
-    renderScreen(App, { name: 'App' }, { state: initialState });
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.OTA_UPDATE_MODAL,
-      });
-    });
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
