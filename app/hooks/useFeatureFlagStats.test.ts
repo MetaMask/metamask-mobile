@@ -47,6 +47,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -72,6 +73,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -97,6 +99,7 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -118,6 +121,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 1,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -142,6 +146,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 1,
+      abTest: 0,
     });
   });
 
@@ -165,6 +170,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -193,6 +199,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -221,6 +228,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -270,6 +278,7 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 1,
       array: 1,
+      abTest: 0,
     });
   });
 
@@ -315,6 +324,7 @@ describe('useFeatureFlagStats', () => {
       string: 3,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -342,6 +352,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -441,6 +452,7 @@ describe('useFeatureFlagStats', () => {
       string: 1,
       number: 0,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -491,6 +503,7 @@ describe('useFeatureFlagStats', () => {
       string: 3,
       number: 3,
       array: 0,
+      abTest: 0,
     });
   });
 
@@ -530,6 +543,7 @@ describe('useFeatureFlagStats', () => {
       string: 0,
       number: 0,
       array: 2,
+      abTest: 0,
     });
   });
 });

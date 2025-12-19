@@ -136,9 +136,14 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case FeatureFlagType.FeatureFlagAbTest: {
-        const abTestOptions = rawRemoteFeatureFlags[
-          flag.key
-        ] as unknown as AbTestType[];
+        const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
+          | AbTestType[]
+          | undefined;
+
+        // Fall through to default case if A/B test options are unavailable
+        if (!abTestOptions || !Array.isArray(abTestOptions)) {
+          break;
+        }
 
         const handleSelectOption = (name: string) => {
           const selectedOption = abTestOptions.find(
@@ -219,8 +224,8 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                   {
                     text: 'Reset to Default',
                     onPress: () => {
-                      setLocalValue(flag.value);
-                      onToggle(flag.key, flag.value);
+                      setLocalValue(flag.originalValue);
+                      onToggle(flag.key, null); // null indicates removal of override
                     },
                   },
                 ],
