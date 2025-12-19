@@ -11,6 +11,8 @@ import {
   BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
+  authSuccess,
+  authError,
   logIn,
   logOut,
   passwordSet,
@@ -22,7 +24,9 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
+  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+  AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -72,9 +76,13 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { handlePasswordSubmissionError } from './utils';
+import {
+  checkPasswordRequirement,
+  handlePasswordSubmissionError,
+} from './utils';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -144,25 +152,25 @@ class AuthenticationService {
       .map((keyring) => keyring.metadata.id);
   }
 
-  // /**
-  //  * This method recreates the vault upon login if user is new and is not using the latest encryption lib
-  //  * @param password - password entered on login
-  //  */
-  // private loginVaultCreation = async (password: string): Promise<void> => {
-  //   // Restore vault with user entered password
-  //   const { KeyringController, SeedlessOnboardingController } = Engine.context;
-  //   await KeyringController.submitPassword(password);
+  /**
+   * This method recreates the vault upon login if user is new and is not using the latest encryption lib
+   * @param password - password entered on login
+   */
+  private loginVaultCreation = async (password: string): Promise<void> => {
+    // Restore vault with user entered password
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    await KeyringController.submitPassword(password);
 
-  //   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-  //     await SeedlessOnboardingController.submitPassword(password);
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      await SeedlessOnboardingController.submitPassword(password);
 
-  //     // renew refresh token
-  //     renewSeedlessControllerRefreshTokens(password).catch((err) => {
-  //       Logger.error(err, 'Failed to renew refresh token');
-  //     });
-  //   }
-  //   password = this.wipeSensitiveData();
-  // };
+      // renew refresh token
+      renewSeedlessControllerRefreshTokens(password).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
+      });
+    }
+    password = this.wipeSensitiveData();
+  };
 
   /**
    * This method creates a new vault and restores with seed phrase and existing user data
@@ -662,64 +670,64 @@ class AuthenticationService {
     parsedSeed = this.wipeSensitiveData();
   };
 
-  // /**
-  //  * Manual user password entry for login
-  //  * @param password - password provided by user
-  //  * @param authData - type of authentication required to fetch password from keychain
-  //  */
-  // userEntryAuth = async (
-  //   password: string,
-  //   authData: AuthData,
-  // ): Promise<void> => {
-  //   try {
-  //     trace({
-  //       name: TraceName.VaultCreation,
-  //       op: TraceOperation.VaultCreation,
-  //     });
+  /**
+   * Manual user password entry for login
+   * @param password - password provided by user
+   * @param authData - type of authentication required to fetch password from keychain
+   */
+  userEntryAuth = async (
+    password: string,
+    authData: AuthData,
+  ): Promise<void> => {
+    try {
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
 
-  //     if (authData.oauth2Login) {
-  //       // if seedless flow - rehydrate
-  //       await this.rehydrateSeedPhrase(password);
-  //     } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
-  //       // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-  //       await this.syncPasswordAndUnlockWallet(password);
-  //     } else {
-  //       // else srp flow
-  //       await this.loginVaultCreation(password);
-  //     }
+      if (authData.oauth2Login) {
+        // if seedless flow - rehydrate
+        await this.rehydrateSeedPhrase(password);
+      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+        await this.syncPasswordAndUnlockWallet(password);
+      } else {
+        // else srp flow
+        await this.loginVaultCreation(password);
+      }
 
-  //     endTrace({ name: TraceName.VaultCreation });
+      endTrace({ name: TraceName.VaultCreation });
 
-  //     await this.storePassword(password, authData.currentAuthType);
-  //     await this.dispatchLogin();
-  //     this.authData = authData;
-  //     this.dispatchPasswordSet();
+      await this.storePassword(password, authData.currentAuthType);
+      await this.dispatchLogin();
+      this.authData = authData;
+      this.dispatchPasswordSet();
 
-  //     // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-  //     // discovery...).
-  //     // NOTE: We do not await on purpose, to run those operations in the background.
-  //     // eslint-disable-next-line no-void
-  //     void this.postLoginAsyncOperations();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
-  //     // TODO: Replace "any" with type
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   } catch (e: any) {
-  //     if (e instanceof SeedlessOnboardingControllerError) {
-  //       throw e;
-  //     }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      if (e instanceof SeedlessOnboardingControllerError) {
+        throw e;
+      }
 
-  //     if ((e as Error).message.includes('SeedlessOnboardingController')) {
-  //       throw e;
-  //     }
+      if ((e as Error).message.includes('SeedlessOnboardingController')) {
+        throw e;
+      }
 
-  //     throw new AuthenticationError(
-  //       (e as Error).message,
-  //       AUTHENTICATION_FAILED_TO_LOGIN,
-  //       this.authData,
-  //     );
-  //   }
-  //   password = this.wipeSensitiveData();
-  // };
+      throw new AuthenticationError(
+        (e as Error).message,
+        AUTHENTICATION_FAILED_TO_LOGIN,
+        this.authData,
+      );
+    }
+    password = this.wipeSensitiveData();
+  };
 
   /**
    * Method for unlocking the wallet.
@@ -824,79 +832,79 @@ class AuthenticationService {
     }
   };
 
-  // /**
-  //  * Attempts to use biometric/pin code/remember me to login
-  //  * @param bioStateMachineId - ID associated with each biometric session.
-  //  * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
-  //  */
-  // appTriggeredAuth = async (
-  //   options: {
-  //     bioStateMachineId?: string;
-  //     disableAutoLogout?: boolean;
-  //   } = {},
-  // ): Promise<void> => {
-  //   const bioStateMachineId = options?.bioStateMachineId;
-  //   const disableAutoLogout = options?.disableAutoLogout;
-  //   try {
-  //     // TODO: Replace "any" with type
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     const credentials: any = await SecureKeychain.getGenericPassword();
-  //     const password = credentials?.password;
-  //     if (!password) {
-  //       throw new AuthenticationError(
-  //         AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-  //         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-  //         this.authData,
-  //       );
-  //     }
-  //     trace({
-  //       name: TraceName.VaultCreation,
-  //       op: TraceOperation.VaultCreation,
-  //     });
-  //     // check for seedless password outdated
-  //     const isSeedlessPasswordOutdated =
-  //       await this.checkIsSeedlessPasswordOutdated(false);
-  //     if (isSeedlessPasswordOutdated) {
-  //       throw new AuthenticationError(
-  //         'Seedless password is outdated',
-  //         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-  //         this.authData,
-  //       );
-  //     } else {
-  //       await this.loginVaultCreation(password);
-  //     }
-  //     endTrace({ name: TraceName.VaultCreation });
+  /**
+   * Attempts to use biometric/pin code/remember me to login
+   * @param bioStateMachineId - ID associated with each biometric session.
+   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
+   */
+  appTriggeredAuth = async (
+    options: {
+      bioStateMachineId?: string;
+      disableAutoLogout?: boolean;
+    } = {},
+  ): Promise<void> => {
+    const bioStateMachineId = options?.bioStateMachineId;
+    const disableAutoLogout = options?.disableAutoLogout;
+    try {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const credentials: any = await SecureKeychain.getGenericPassword();
+      const password = credentials?.password;
+      if (!password) {
+        throw new AuthenticationError(
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+          this.authData,
+        );
+      }
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
+      // check for seedless password outdated
+      const isSeedlessPasswordOutdated =
+        await this.checkIsSeedlessPasswordOutdated(false);
+      if (isSeedlessPasswordOutdated) {
+        throw new AuthenticationError(
+          'Seedless password is outdated',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+          this.authData,
+        );
+      } else {
+        await this.loginVaultCreation(password);
+      }
+      endTrace({ name: TraceName.VaultCreation });
 
-  //     await this.dispatchLogin();
-  //     ReduxService.store.dispatch(authSuccess(bioStateMachineId));
-  //     this.dispatchPasswordSet();
+      await this.dispatchLogin();
+      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
+      this.dispatchPasswordSet();
 
-  //     // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-  //     // discovery...).
-  //     // NOTE: We do not await on purpose, to run those operations in the background.
-  //     // eslint-disable-next-line no-void
-  //     void this.postLoginAsyncOperations();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
-  //     // TODO: Replace "any" with type
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   } catch (e: any) {
-  //     const errorMessage = (e as Error).message;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const errorMessage = (e as Error).message;
 
-  //     // Track authentication failures that could indicate vault/keychain issues to Segment
-  //     trackVaultCorruption(errorMessage, {
-  //       error_type: 'authentication_service_failure',
-  //       context: 'app_triggered_auth_failed',
-  //     });
+      // Track authentication failures that could indicate vault/keychain issues to Segment
+      trackVaultCorruption(errorMessage, {
+        error_type: 'authentication_service_failure',
+        context: 'app_triggered_auth_failed',
+      });
 
-  //     ReduxService.store.dispatch(authError(bioStateMachineId));
-  //     !disableAutoLogout && this.lockApp({ reset: false });
-  //     throw new AuthenticationError(
-  //       errorMessage,
-  //       AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-  //       this.authData,
-  //     );
-  //   }
-  // };
+      ReduxService.store.dispatch(authError(bioStateMachineId));
+      !disableAutoLogout && this.lockApp({ reset: false });
+      throw new AuthenticationError(
+        errorMessage,
+        AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+        this.authData,
+      );
+    }
+  };
 
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
