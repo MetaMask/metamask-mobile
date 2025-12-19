@@ -9,75 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.61.3]
 
-### Uncategorized
-
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- Merge branch 'stable' into release/7.61.2
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- Merge branch 'stable' into release/7.61.2
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- Merge branch 'stable' into release/7.61.2
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- Merge branch 'stable' into release/7.61.2
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- update changelog for 7.61.3 (hotfix - no test plan)
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- Merge branch 'stable' into release/7.61.2
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- update changelog diff links
-- update changelog
-- Merge branch 'stable' into release/7.61.3
-- bump semvar version to 7.61.3 && build version to 3314
-- release: 7.61.2 ([#24167](https://github.com/MetaMask/metamask-mobile/pull/24167))
-- chore: release/7.61.2-Changelog ([#24173](https://github.com/MetaMask/metamask-mobile/pull/24173))
-- Merge branch 'stable' into release/7.61.2
-- release: 7.61.1 ([#24026](https://github.com/MetaMask/metamask-mobile/pull/24026))
-- update changelog
-- Merge branch 'stable' into release/7.61.1
-- release: 7.61.0 ([#23381](https://github.com/MetaMask/metamask-mobile/pull/23381))
-- release: release/7.61.0-Changelog ([#23380](https://github.com/MetaMask/metamask-mobile/pull/23380))
-
 ### Fixed
 
-- chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
+- feat: NWNT-681: Add useTronStakeApy hook ([#24206](https://github.com/MetaMask/metamask-mobile/pull/24206))
+- feat: add support for accountChanged for Tron network ([#24207](https://github.com/MetaMask/metamask-mobile/pull/24207))
+- chore: update @metamask/keyring-api and @metamask/tron-wallet-snap versions ([#24205](https://github.com/MetaMask/metamask-mobile/pull/24205))
+- chore: adds localization method and other improvements ([#24204](https://github.com/MetaMask/metamask-mobile/pull/24204))
+- chore: add support for fiat use in tron staking/unstaking flows ([#24199](https://github.com/MetaMask/metamask-mobile/pull/24199))
+- chore: adds the Tron staking details preview ([#24198](https://github.com/MetaMask/metamask-mobile/pull/24198))
 - fix(ramp): use ScrollView from react-native-gesture-handler in PaymentMethodSelectorModal ([#24197](https://github.com/MetaMask/metamask-mobile/pull/24197))
+- chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
 
 ## [7.61.2]
 
