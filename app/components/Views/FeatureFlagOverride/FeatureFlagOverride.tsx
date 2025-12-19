@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -46,11 +52,16 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
+  // Track whether the user is actively editing a text input to prevent
+  // background flag refreshes from overwriting partially typed input
+  const isEditingRef = useRef(false);
 
   useEffect(() => {
-    // Sync localValue with flag.value when the flag is not overridden.
-    // This handles both clearing overrides and background config refreshes.
-    if (!flag.isOverridden) {
+    // Sync localValue with flag.value when the flag is not overridden
+    // and the user is not actively editing the input field.
+    // This handles both clearing overrides and background config refreshes
+    // while preventing race conditions during user input.
+    if (!flag.isOverridden && !isEditingRef.current) {
       setLocalValue(flag.value);
     }
   }, [flag.value, flag.isOverridden]);
@@ -196,12 +207,21 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="flex-1 ml-2">
             <TextInput
               value={String(localValue)}
+              onFocus={() => {
+                isEditingRef.current = true;
+              }}
               onChangeText={(text) => {
                 const newValue =
                   flag.type === 'number' ? Number(text) || 0 : text;
                 setLocalValue(newValue);
               }}
-              onEndEditing={() => onToggle(flag.key, localValue)}
+              onEndEditing={() => {
+                isEditingRef.current = false;
+                onToggle(flag.key, localValue);
+              }}
+              onBlur={() => {
+                isEditingRef.current = false;
+              }}
               style={[
                 tw.style('border rounded p-2 text-sm'),
                 {
