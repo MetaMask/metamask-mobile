@@ -68,6 +68,16 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           usd: 1.0,
           eth: 0.000233,
         },
+        'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
+          usd: 1.0,
+          eth: 0.000344,
+          price: 1.0,
+        },
+        'eip155:137/slip44:966': {
+          usd: 1.0,
+          price: 1.0,
+          eth: 0.000344,
+        },
       },
     },
     {

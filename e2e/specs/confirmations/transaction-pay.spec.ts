@@ -24,32 +24,22 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 
-const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagPredictEnabled(true),
-    ...remoteFeatureEip7702[1],
-  });
-
-  await POLYMARKET_COMPLETE_MOCKS(mockServer);
-  await mockRelayQuote(mockServer);
-  await mockRelayStatus(mockServer);
-};
-
 describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
-  it('depoits to predict balance', async () => {
+  it('deposits to predict balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withPolygon()
-          .withTokenRates(
+          .withTokens(
+            [
+              {
+                address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+                decimals: 6,
+                name: 'USD Coin (PoS)',
+                symbol: 'USDC.e',
+              },
+            ],
             CHAIN_IDS.POLYGON,
-            '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-            2.0,
-          )
-          .withTokenRates(
-            CHAIN_IDS.LINEA_MAINNET,
-            '0x0000000000000000000000000000000000000000',
-            2.0,
           )
           .build(),
         restartDevice: true,
@@ -67,6 +57,7 @@ describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
         await TransactionPayConfirmation.tapPayWithToken('LineaETH');
         await TransactionPayConfirmation.tapKeyboardAmount('1.23');
         await TransactionPayConfirmation.tapKeyboardContinueButton();
+
         await TransactionPayConfirmation.verifyTransactionFee('$0.05');
         await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
         await TransactionPayConfirmation.verifyTotal('$1.28');
@@ -84,3 +75,14 @@ describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
     );
   });
 });
+
+async function testSpecificMock(mockServer: Mockttp) {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureEip7702[1],
+  });
+
+  await POLYMARKET_COMPLETE_MOCKS(mockServer);
+  await mockRelayQuote(mockServer);
+  await mockRelayStatus(mockServer);
+}
