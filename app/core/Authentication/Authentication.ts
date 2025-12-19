@@ -362,7 +362,7 @@ class AuthenticationService {
       ReduxService.store.getState().security?.allowLoginWithRememberMe;
     if (existingUser && allowLoginWithRememberMe) {
       const credentials = await SecureKeychain.getGenericPassword();
-      if (credentials && credentials.password) {
+      if (credentials?.password) {
         return {
           currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
           availableBiometryType,
