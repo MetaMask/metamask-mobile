@@ -3,10 +3,12 @@ import { useSelector } from 'react-redux';
 import { TrxScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import Logger from '../../../../util/Logger';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import {
   confirmTronStake,
   validateTronStakeAmount,
+  computeStakeFee,
   TronStakeResult,
 } from '../utils/tron-staking-snap';
 import { TronResourceType } from '../../../../core/Multichain/constants';
@@ -99,18 +101,20 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        const fee = {
-          type: 'fee',
-          asset: {
-            unit: 'TRX',
-            type: 'TRX',
-            amount: '0.01',
-            fungible: true,
-          },
-        };
-        nextPreview = { ...(nextPreview ?? {}), fee };
-      } catch {
-        // ignore for now
+        const feeResult = await computeStakeFee(selectedTronAccount, {
+          fromAccountId: selectedTronAccount.id,
+          value: amount,
+          options: { purpose: resourceType.toUpperCase() as TronResourceType },
+        });
+        if (feeResult.length > 0) {
+          const fee = feeResult[0];
+          nextPreview = { ...(nextPreview ?? {}), fee };
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Tron Stake] Failed to compute stake fee',
+        );
       }
 
       if (nextPreview) setPreview(nextPreview);
@@ -119,7 +123,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
 
       return validation;
     },
-    [selectedTronAccount, chainId],
+    [selectedTronAccount, chainId, resourceType],
   );
 
   const confirmStake = useCallback<UseTronStakeReturn['confirmStake']>(
