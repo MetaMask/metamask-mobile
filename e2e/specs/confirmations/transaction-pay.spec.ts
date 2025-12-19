@@ -64,7 +64,9 @@ describe(SmokeConfirmationsRedesigned('Transaction Pay'), () => {
 
         await PredictMarketList.tapBackButton();
         await TabBarComponent.tapActivity();
-        await Gestures.waitAndTap(ActivitiesView.predictDeposit);
+        await Gestures.waitAndTap(ActivitiesView.predictDeposit, {
+          elemDescription: 'Predict Deposit transaction item',
+        });
         await TransactionDetailsModal.verifyNetworkFee('$4.13');
         await TransactionDetailsModal.verifyPaidWithSymbol('LineaETH');
         await TransactionDetailsModal.verifyTotal('$5.40');

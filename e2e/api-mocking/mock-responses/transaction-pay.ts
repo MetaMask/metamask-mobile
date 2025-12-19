@@ -331,25 +331,14 @@ export async function mockRelayQuote(mockServer: Mockttp) {
 }
 
 export async function mockRelayStatus(mockServer: Mockttp) {
-  const rule = await mockServer.forGet('/proxy').matching((request) => {
-    const url = new URL(request.url).searchParams.get('url');
-    return Boolean(url?.includes('api.relay.link/intents/status'));
-  });
-
-  await rule.thenCallback(() => ({
-    statusCode: 200,
-    json: { ...RELAY_STATUS_MOCK, status: 'pending' },
-  }));
-
-  await rule.thenCallback(() => ({
-    statusCode: 200,
-    json: { ...RELAY_STATUS_MOCK, status: 'pending' },
-  }));
-
-  await rule.thenCallback(() => ({
-    statusCode: 200,
-    json: RELAY_STATUS_MOCK,
-  }));
-
-  return rule;
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('api.relay.link/intents/status'));
+    })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: RELAY_STATUS_MOCK,
+    }));
 }
