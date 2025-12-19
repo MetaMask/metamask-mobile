@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- update changelog for 7.61.3 (hotfix - no test plan)
+- update changelog diff links
+- update changelog
+- Merge branch 'stable' into release/7.61.3
+- bump semvar version to 7.61.3 && build version to 3314
+- Merge branch 'stable' into release/7.61.2
+- update changelog
+- Merge branch 'stable' into release/7.61.1
 - update changelog diff links
 - update changelog
 - Merge branch 'stable' into release/7.61.3
