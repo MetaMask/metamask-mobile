@@ -158,6 +158,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           const selectedOption = abTestOptions.find(
             (option: { name: string }) => option.name === name,
           );
+          if (selectedOption === undefined) {
+            return;
+          }
           setLocalValue(selectedOption);
           onToggle(flag.key, selectedOption);
         };
