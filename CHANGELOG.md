@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.61.3]
+
+### Fixed
+
+- chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
+- fix(ramp): use ScrollView from react-native-gesture-handler in PaymentMethodSelectorModal ([#24197](https://github.com/MetaMask/metamask-mobile/pull/24197))
+
 ## [7.61.2]
 
 ### Fixed
