@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SecuritySettings should render correctly 1`] = `
+exports[`SecuritySettings renders correctly 1`] = `
 <RCTScrollView
   style={
     {
@@ -400,6 +400,14 @@ exports[`SecuritySettings should render correctly 1`] = `
         </View>
       </View>
       <View
+        style={
+          [
+            {
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
         testID="login-options"
       />
       <View
