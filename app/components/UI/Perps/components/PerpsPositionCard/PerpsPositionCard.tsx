@@ -238,7 +238,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             >
               {showSizeInUSD && currentPrice
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
             </Text>
