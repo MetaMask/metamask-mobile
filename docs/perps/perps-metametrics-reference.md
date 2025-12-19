@@ -40,25 +40,7 @@ track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
 });
 ```
 
-### 2. `usePerpsValidationTracking` Hook (Validation Errors/Warnings)
-
-**Location:** `app/components/UI/Perps/hooks/usePerpsValidationTracking.ts`
-
-Automatically tracks validation errors and warnings as they appear, preventing duplicates.
-
-```typescript
-import { usePerpsValidationTracking } from '../../hooks/usePerpsValidationTracking';
-
-usePerpsValidationTracking({
-  errors: validationResult.errors,
-  warnings: validationResult.warnings,
-  asset: orderForm.asset,
-  screenType: PerpsEventValues.SCREEN_TYPE.TRADING,
-  screenName: PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-});
-```
-
-### 3. Controller Tracking (Transactions)
+### 2. Controller Tracking (Transactions)
 
 **Location:** `app/components/UI/Perps/controllers/PerpsController.ts`
 
@@ -220,14 +202,14 @@ MetaMetrics.getInstance().trackEvent(
 
 - `error_type` (required for errors): `'network' | 'app_crash' | 'backend' | 'validation'`
 - `error_message` (required for errors): Error description string
-- `warning_message` (required for warnings): Warning description string (used when tracking warnings via `usePerpsValidationTracking`)
+- `warning_message` (required for warnings): Warning description string
 - `screen_type` (optional): Screen where error/warning occurred (e.g., `'trading'`, `'withdrawal'`, `'market_list'`, `'position_close'`)
 - `screen_name` (optional): Specific screen name (e.g., `'connection_error'`, `'perps_market_details'`, `'perps_order'`)
 - `retry_attempts` (optional): Number of retry attempts (number)
 - `asset` (optional): Asset symbol if error is asset-specific (e.g., `'BTC'`, `'ETH'`)
 - `action` (optional): Action being attempted when error occurred
 
-**Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`). The `usePerpsValidationTracking` hook automatically tracks validation errors and warnings as they appear, preventing duplicates.
+**Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`).
 
 ## Quick Reference
 
@@ -339,39 +321,6 @@ usePerpsEventTracking({
 - Compare button presses to screen views for each variant
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
-
----
-
-## Validation Error/Warning Tracking
-
-The `usePerpsValidationTracking` hook automatically tracks validation errors and warnings as they appear, preventing duplicate tracking.
-
-### Usage
-
-```typescript
-import { usePerpsValidationTracking } from '../../hooks/usePerpsValidationTracking';
-
-// In your component
-usePerpsValidationTracking({
-  errors: validationResult.errors, // Array of error strings
-  warnings: validationResult.warnings, // Optional: array of warning strings
-  asset: orderForm.asset,
-  screenType: PerpsEventValues.SCREEN_TYPE.TRADING,
-  screenName: PerpsEventValues.SCREEN_NAME.PERPS_ORDER, // Optional
-});
-```
-
-### Behavior
-
-1. **Automatic tracking**: Tracks errors/warnings when they first appear
-2. **Deduplication**: Won't re-track the same error/warning until it's resolved
-3. **Cleanup**: Clears tracked messages when they're resolved
-4. **Separate tracking**: Errors use `error_type` + `error_message`, warnings use `warning_message`
-
-### Currently Used In
-
-- `PerpsOrderView` - Trading form validation
-- `PerpsClosePositionView` - Position close validation
 
 ---
 
@@ -513,22 +462,20 @@ usePerpsEventTracking({
 4. **Use properties** - Don't create new events for minor variations
 5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
 6. **AB test tracking** - Only in screen view events, not every interaction
-7. **Validation tracking** - Use `usePerpsValidationTracking` hook for automatic error/warning tracking
-8. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
+7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 
 ## Sentry vs MetaMetrics
 
-| Sentry                | MetaMetrics                                            |
-| --------------------- | ------------------------------------------------------ |
-| 38+ traces            | 8 events                                               |
-| Performance           | Behavior                                               |
-| Technical metrics     | Business metrics                                       |
-| `usePerpsMeasurement` | `usePerpsEventTracking` / `usePerpsValidationTracking` |
+| Sentry                | MetaMetrics             |
+| --------------------- | ----------------------- |
+| 38+ traces            | 8 events                |
+| Performance           | Behavior                |
+| Technical metrics     | Business metrics        |
+| `usePerpsMeasurement` | `usePerpsEventTracking` |
 
 ## Related Files
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
-- **Validation Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsValidationTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: `app/components/UI/Perps/constants/eventNames.ts`
 - **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`

@@ -57,7 +57,6 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsValidationTracking } from '../../hooks/usePerpsValidationTracking';
 import {
   formatPositionSize,
   formatPerpsFiat,
@@ -340,14 +339,6 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
     },
-  });
-
-  // Track validation errors and warnings for analytics
-  usePerpsValidationTracking({
-    errors: validationResult.errors,
-    warnings: validationResult.warnings,
-    asset: position.coin,
-    screenType: PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
   });
 
   // Initialize USD values when price data is available (only once, not on price updates)

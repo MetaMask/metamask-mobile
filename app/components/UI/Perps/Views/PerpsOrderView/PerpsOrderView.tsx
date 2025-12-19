@@ -103,7 +103,6 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsValidationTracking } from '../../hooks/usePerpsValidationTracking';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
@@ -614,15 +613,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     );
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
-
-  // Track validation errors and warnings for analytics
-  usePerpsValidationTracking({
-    errors: filteredErrors,
-    warnings: orderValidation.warnings,
-    asset: orderForm.asset,
-    screenType: PerpsEventValues.SCREEN_TYPE.TRADING,
-    screenName: PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-  });
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
