@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- feat: add Tron stakeComputeFee and other improvements ([#24209](https://github.com/MetaMask/metamask-mobile/pull/24209))
 - feat: NWNT-681: Add useTronStakeApy hook ([#24206](https://github.com/MetaMask/metamask-mobile/pull/24206))
 - feat: add support for accountChanged for Tron network ([#24207](https://github.com/MetaMask/metamask-mobile/pull/24207))
 - chore: update @metamask/keyring-api and @metamask/tron-wallet-snap versions ([#24205](https://github.com/MetaMask/metamask-mobile/pull/24205))
