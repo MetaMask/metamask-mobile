@@ -15,7 +15,7 @@ import PerpsE2EModifiers from './helpers/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
-  it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

@@ -200,6 +200,30 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       };
     });
 
+  // Mock Rewards API for perps fee discount through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return (
+        urlParam.includes('rewards') && urlParam.includes('perps-fee-discount')
+      );
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log(
+        '[Perps E2E Mock] Intercepted Rewards perps-fee-discount request',
+      );
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          discountPercentage: 0,
+          eligible: false,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
   // Mock HyperLiquid coin image requests through the mobile proxy
   await mockServer
     .forGet('/proxy')

@@ -266,7 +266,6 @@ class PerpsView {
       elemDescription: 'Close position bottom sheet button',
       checkStability: true,
       timeout: 10000,
-      waitForElementToDisappear: true,
     });
   }
 
