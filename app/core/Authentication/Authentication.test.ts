@@ -60,8 +60,6 @@ import Logger from '../../util/Logger';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import AppConstants from '../AppConstants';
-import { setLockTime } from '../../actions/settings';
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
@@ -642,6 +640,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('stores password with PASSCODE and manages storage flags correctly', async () => {
@@ -659,6 +658,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('stores password with REMEMBER_ME and does not affect biometric/passcode flags', async () => {
@@ -690,6 +690,7 @@ describe('Authentication', () => {
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
         expect.any(String),
       );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('stores password with PASSWORD and disables both biometric and passcode', async () => {
@@ -706,6 +707,7 @@ describe('Authentication', () => {
       );
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('throws AuthenticationError when SecureKeychain fails', async () => {
@@ -1791,7 +1793,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1864,7 +1866,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1907,7 +1909,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1934,7 +1936,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1970,7 +1972,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2048,7 +2050,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword), passwordSet (from dispatchPasswordSet), setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -4016,46 +4018,6 @@ describe('Authentication', () => {
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
-    });
-
-    it('updates lock time when lockTime is -1', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
-        getState: () => ({
-          settings: { lockTime: -1 },
-          security: { allowLoginWithRememberMe: true },
-        }),
-      } as unknown as ReduxStore);
-
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.BIOMETRIC,
-        password: mockPassword,
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-      );
-    });
-
-    it('does not update lock time when lockTime is not -1', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
-        getState: () => ({
-          settings: { lockTime: 30000 },
-          security: { allowLoginWithRememberMe: true },
-        }),
-      } as unknown as ReduxStore);
-
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.BIOMETRIC,
-        password: mockPassword,
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-      );
     });
 
     it('shows alert and tracks error when password is invalid', async () => {

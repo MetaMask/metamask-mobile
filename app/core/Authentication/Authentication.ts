@@ -83,8 +83,6 @@ import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import AppConstants from '../AppConstants';
-import { setLockTime } from '../../actions/settings';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
 
@@ -487,6 +485,7 @@ class AuthenticationService {
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
+      this.dispatchPasswordSet();
     } catch (error) {
       throw new AuthenticationError(
         (error as Error).message,
@@ -1511,20 +1510,11 @@ class AuthenticationService {
           this.authData,
         );
       }
-      // TUDO: Check if this is really needed for IOS
+      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
       await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
-
-      ReduxService.store.dispatch(passwordSet());
-
-      const lockTime = ReduxService.store.getState().settings.lockTime;
-      if (lockTime === -1) {
-        ReduxService.store.dispatch(
-          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-        );
-      }
     } catch (e) {
       const errorWithMessage = e as { message: string };
 
