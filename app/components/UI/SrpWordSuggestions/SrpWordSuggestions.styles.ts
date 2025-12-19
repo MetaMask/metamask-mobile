@@ -13,6 +13,7 @@ export const createStyles = (colors: Colors) =>
     },
     suggestionListContent: {
       alignItems: 'center' as const,
+      paddingLeft: 20,
     },
     suggestionButton: {
       paddingHorizontal: 16,

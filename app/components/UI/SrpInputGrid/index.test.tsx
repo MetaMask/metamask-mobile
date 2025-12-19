@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
@@ -406,6 +406,130 @@ describe('SrpInputGrid', () => {
       rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet', '']} />);
 
       expect(input).toBeTruthy();
+    });
+  });
+
+  describe('External Suggestions Rendering', () => {
+    it('calls onCurrentWordChange when input text changes in grid mode', () => {
+      const mockOnCurrentWordChange = jest.fn();
+      const seedPhrase = ['wallet', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid
+          {...defaultProps}
+          seedPhrase={seedPhrase}
+          onCurrentWordChange={mockOnCurrentWordChange}
+        />,
+      );
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+
+      act(() => {
+        fireEvent(secondInput, 'focus');
+        fireEvent.changeText(secondInput, 'wal');
+        jest.runAllTimers();
+      });
+
+      expect(mockOnCurrentWordChange).toHaveBeenCalledWith('wal');
+    });
+
+    it('hides internal suggestions when renderSuggestionsExternally is true', () => {
+      mockUseFeatureFlag.mockReturnValue(true);
+      const seedPhrase = ['wallet', ''];
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <SrpInputGrid
+          {...defaultProps}
+          seedPhrase={seedPhrase}
+          renderSuggestionsExternally
+        />,
+      );
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+
+      act(() => {
+        fireEvent(secondInput, 'focus');
+        fireEvent.changeText(secondInput, 'ab');
+        jest.runAllTimers();
+      });
+
+      expect(queryByText('abandon')).not.toBeOnTheScreen();
+    });
+
+    it('displays internal suggestions when renderSuggestionsExternally is false', () => {
+      mockUseFeatureFlag.mockReturnValue(true);
+      const seedPhrase = ['wallet', ''];
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <SrpInputGrid
+          {...defaultProps}
+          seedPhrase={seedPhrase}
+          renderSuggestionsExternally={false}
+        />,
+      );
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+
+      act(() => {
+        fireEvent(secondInput, 'focus');
+        fireEvent.changeText(secondInput, 'ab');
+        jest.runAllTimers();
+      });
+
+      expect(getByText('abandon')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Ref Methods', () => {
+    it('exposes handleSuggestionSelect via ref', () => {
+      const ref = React.createRef<{
+        handleSeedPhraseChange: (text: string) => void;
+        handleSuggestionSelect: (word: string) => void;
+        setSuggestionSelecting: (value: boolean) => void;
+      }>();
+
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} ref={ref} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+
+      expect(ref.current?.handleSuggestionSelect).toBeDefined();
+      expect(typeof ref.current?.handleSuggestionSelect).toBe('function');
+    });
+
+    it('exposes setSuggestionSelecting via ref', () => {
+      const ref = React.createRef<{
+        handleSeedPhraseChange: (text: string) => void;
+        handleSuggestionSelect: (word: string) => void;
+        setSuggestionSelecting: (value: boolean) => void;
+      }>();
+
+      renderWithProvider(<SrpInputGrid {...defaultProps} ref={ref} />);
+
+      expect(ref.current?.setSuggestionSelecting).toBeDefined();
+      expect(typeof ref.current?.setSuggestionSelecting).toBe('function');
+    });
+
+    it('calls onSeedPhraseChange when handleSuggestionSelect is called via ref', () => {
+      const ref = React.createRef<{
+        handleSeedPhraseChange: (text: string) => void;
+        handleSuggestionSelect: (word: string) => void;
+        setSuggestionSelecting: (value: boolean) => void;
+      }>();
+
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} ref={ref} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+
+      ref.current?.handleSuggestionSelect('wallet');
+
+      jest.advanceTimersByTime(100);
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
     });
   });
 });

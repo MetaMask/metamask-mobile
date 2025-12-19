@@ -19,6 +19,8 @@ import { connect } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
+  KeyboardStickyView,
+  useKeyboardState,
 } from 'react-native-keyboard-controller';
 import { isE2E, isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
@@ -90,6 +92,8 @@ import {
 } from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
+import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -127,6 +131,14 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const [currentInputWord, setCurrentInputWord] = useState('');
+
+  // Feature flag for SRP word suggestions
+  const isSrpWordSuggestionsEnabled = useFeatureFlag(
+    FeatureFlagNames.importSrpWordSuggestion,
+  );
+
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -607,6 +619,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                   placeholderText={strings('import_from_seed.srp_placeholder')}
                   uniqueId={uniqueId}
+                  onCurrentWordChange={setCurrentInputWord}
+                  renderSuggestionsExternally={isSrpWordSuggestionsEnabled}
                 />
                 <View style={styles.seedPhraseCtaContainer}>
                   <Button
@@ -783,6 +797,24 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
+      {isSrpWordSuggestionsEnabled &&
+        currentStep === 0 &&
+        isKeyboardVisible && (
+          <KeyboardStickyView
+            offset={{ closed: 0, opened: 0 }}
+            style={styles.keyboardStickyView}
+          >
+            <SrpWordSuggestions
+              currentInputWord={currentInputWord}
+              onSuggestionSelect={(word) => {
+                srpInputGridRef.current?.handleSuggestionSelect(word);
+              }}
+              onPressIn={() => {
+                srpInputGridRef.current?.setSuggestionSelecting(true);
+              }}
+            />
+          </KeyboardStickyView>
+        )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

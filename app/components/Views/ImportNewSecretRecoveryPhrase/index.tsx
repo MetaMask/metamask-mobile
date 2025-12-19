@@ -11,7 +11,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+  KeyboardStickyView,
+  useKeyboardState,
+} from 'react-native-keyboard-controller';
+import { isE2E } from '../../../util/test/utils';
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
@@ -42,6 +48,8 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
+import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
@@ -61,12 +69,22 @@ const ImportNewSecretRecoveryPhrase = () => {
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
-  const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scrollViewRef = useRef<any>(null);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentInputWord, setCurrentInputWord] = useState('');
+
+  // Feature flag for SRP word suggestions
+  const isSrpWordSuggestionsEnabled = useFeatureFlag(
+    FeatureFlagNames.importSrpWordSuggestion,
+  ) as boolean;
+
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+  const shouldUseKeyboardProvider = !isE2E;
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -262,7 +280,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   };
 
-  return (
+  const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         ref={scrollViewRef}
@@ -270,9 +288,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={100}
+        bottomOffset={180}
         showsVerticalScrollIndicator={false}
       >
         <Text
@@ -308,6 +324,8 @@ const ImportNewSecretRecoveryPhrase = () => {
               'import_new_secret_recovery_phrase.textarea_placeholder',
             )}
             uniqueId={uniqueId}
+            onCurrentWordChange={setCurrentInputWord}
+            renderSuggestionsExternally={isSrpWordSuggestionsEnabled}
           />
 
           <View style={styles.buttonWrapper}>
@@ -332,8 +350,30 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
         </View>
       </KeyboardAwareScrollView>
+      {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          style={styles.keyboardStickyView}
+        >
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+            onPressIn={() => {
+              srpInputGridRef.current?.setSuggestionSelecting(true);
+            }}
+          />
+        </KeyboardStickyView>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
+  );
+
+  return shouldUseKeyboardProvider ? (
+    <KeyboardProvider>{content}</KeyboardProvider>
+  ) : (
+    content
   );
 };
 

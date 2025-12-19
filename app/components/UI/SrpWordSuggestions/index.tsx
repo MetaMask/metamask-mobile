@@ -39,7 +39,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   }
 
   return (
-    <View style={styles.suggestionContainer}>
+    <View style={styles.suggestionContainer} onTouchStart={onPressIn}>
       <FlatList
         horizontal
         data={suggestions}
@@ -49,6 +49,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
               styles.suggestionButton,
               pressed && styles.suggestionPressed,
             ]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPressIn={onPressIn}
             onPress={() => onSuggestionSelect(item)}
           >
