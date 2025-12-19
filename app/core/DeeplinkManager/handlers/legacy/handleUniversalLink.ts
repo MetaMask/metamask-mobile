@@ -26,6 +26,7 @@ import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
 import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
+import { handleCardHome } from './handleCardHome';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 
 const {
@@ -54,6 +55,7 @@ enum SUPPORTED_ACTIONS {
   ONBOARDING = ACTIONS.ONBOARDING,
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING = ACTIONS.CARD_ONBOARDING,
+  CARD_HOME = ACTIONS.CARD_HOME,
   // MetaMask SDK specific actions
   ANDROID_SDK = ACTIONS.ANDROID_SDK,
   CONNECT = ACTIONS.CONNECT,
@@ -67,6 +69,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
+  SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
@@ -347,6 +350,10 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.CARD_ONBOARDING: {
       handleCardOnboarding();
+      break;
+    }
+    case SUPPORTED_ACTIONS.CARD_HOME: {
+      handleCardHome();
       break;
     }
   }
