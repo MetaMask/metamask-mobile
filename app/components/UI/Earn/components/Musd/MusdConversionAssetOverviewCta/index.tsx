@@ -41,7 +41,7 @@ const MusdConversionAssetOverviewCta = ({
 
   const networkName = useNetworkName(asset.chainId as Hex);
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
+  const { initiateCustomConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
 
   const submitCtaPressedEvent = () => {
@@ -77,7 +77,7 @@ const MusdConversionAssetOverviewCta = ({
         throw new Error('Asset address or chain ID is not set');
       }
 
-      await initiateConversion({
+      await initiateCustomConversion({
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),

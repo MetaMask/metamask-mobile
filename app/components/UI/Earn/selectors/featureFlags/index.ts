@@ -200,6 +200,7 @@ export const selectMusdQuickConvertEnabledFlag = createSelector(
  * which adds fees on top of the requested amount causing insufficient funds for max conversions.
  * Using a percentage (e.g., 90%) leaves room for fees until Relay supports `EXACT_INPUT`.
  */
+// TODO: Remove after rebasing, we can safely assume max all the time.
 export const selectMusdQuickConvertPercentage = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): number => {
