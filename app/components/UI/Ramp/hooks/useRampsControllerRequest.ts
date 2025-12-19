@@ -106,12 +106,9 @@ export function useRampsControllerRequest<T>(
     [cacheKey],
   );
 
-  const statusFromRedux = useSelector(selectStatus);
+  const status = useSelector(selectStatus);
   const error = useSelector(selectError);
   const data = useSelector(selectData);
-
-  // Map the Redux status to our simplified status type
-  const status: RequestStatusValue = statusFromRedux ?? 'idle';
 
   const execute = useCallback(
     async (executeOptions?: ExecuteRequestOptions): Promise<T> => {
@@ -120,7 +117,9 @@ export function useRampsControllerRequest<T>(
         throw new Error('RampsController is not available');
       }
 
-      const methodFn = (RampsController as Record<string, unknown>)[method];
+      const methodFn = (RampsController as unknown as Record<string, unknown>)[
+        method
+      ];
       if (typeof methodFn !== 'function') {
         throw new Error(`Method ${method} is not available on RampsController`);
       }

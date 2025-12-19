@@ -29,7 +29,8 @@ const createMockStore = (rampsControllerState = {}) =>
 
 const wrapper = (store: ReturnType<typeof createMockStore>) =>
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(Provider, { store }, children);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return React.createElement(Provider, { store } as any, children);
   };
 
 describe('useRampsGeolocation', () => {
