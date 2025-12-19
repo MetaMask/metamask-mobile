@@ -59,10 +59,22 @@ const LoginOptionsSettings = () => {
           ? AUTHENTICATION_TYPE.BIOMETRIC
           : authType.availableBiometryType;
         setBiometryType(stateValue);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        setPasscodeChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
+
+        if (authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC) {
+          // Biometrics are enabled - passcode must be disabled (mutually exclusive)
+          setBiometryChoice(
+            !(previouslyDisabled && previouslyDisabled === TRUE),
+          );
+          setPasscodeChoice(false);
+        } else {
+          // Passcode is enabled - biometrics must be disabled (mutually exclusive)
+          setBiometryChoice(false);
+          setPasscodeChoice(
+            !(
+              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+            ),
+          );
+        }
       } else {
         const stateValue =
           Device.isAndroid() && authType.availableBiometryType
