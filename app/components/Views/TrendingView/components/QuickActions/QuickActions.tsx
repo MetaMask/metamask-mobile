@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_ARRAY, SectionId } from '../../config/sections.config';
+import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
 
 interface QuickActionsProps {
   /** Set of section IDs that have empty data and should be hidden */

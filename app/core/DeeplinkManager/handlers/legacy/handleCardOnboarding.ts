@@ -190,7 +190,7 @@ function trackCardOnboardingDeeplinkEvent({
   try {
     const metrics = MetaMetrics.getInstance();
     const event = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.CARD_ONBOARDING_DEEPLINK,
+      MetaMetricsEvents.CARD_DEEPLINK_HANDLED,
     )
       .addProperties({
         deeplink_type: CardDeeplinkActions.CARD_ONBOARDING,

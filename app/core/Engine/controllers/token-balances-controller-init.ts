@@ -1,4 +1,4 @@
-import { ControllerInitFunction, EngineState } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenBalancesController,
   type TokenBalancesControllerMessenger,
@@ -31,9 +31,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     queryMultipleAccounts: preferencesState.isMultiAccountBalancesEnabled,
     accountsApiChainIds: () =>
-      selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: persistedState as EngineState },
-      }) as `0x${string}`[],
+      selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
     isOnboarded: () => selectCompletedOnboarding(getState()),
   });

@@ -554,7 +554,9 @@ export const createTradingViewChartTemplate = (
 
                             // Format with final decimal precision using cached formatter
                             const formatter = window.getCachedFormatter(finalDecimals);
-                            return formatter.format(formattedValue);
+                            const formatted = formatter.format(formattedValue);
+                            // Strip trailing zeros to match header formatting
+                            return formatted.replace(/(\\.[0-9]*?)0+$/, '$1').replace(/\\.$/, '');
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
