@@ -1268,7 +1268,6 @@ describe('FeatureFlagOverrideContext', () => {
     it('calls addTraitsToUser in bulk on mount with all feature flags', () => {
       const mockFlags = { stringFlag: 'test', boolFlag: true };
       mockUseSelector.mockReturnValue(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue('string');
 
       renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
