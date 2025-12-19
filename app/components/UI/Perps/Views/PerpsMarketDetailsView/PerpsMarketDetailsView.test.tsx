@@ -2203,7 +2203,7 @@ describe('PerpsMarketDetailsView', () => {
       };
     });
 
-    it('should use route market data when maxLeverage is present (no enrichment needed)', () => {
+    it('uses route market data when maxLeverage is present (no enrichment needed)', () => {
       // Route has complete market data including maxLeverage
       mockRouteParams.market = {
         symbol: 'ETH',
@@ -2238,7 +2238,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(getByText('ETH-USD')).toBeTruthy();
     });
 
-    it('should enrich market data from usePerpsMarkets when route has minimal data', async () => {
+    it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
       // Route has minimal market data (no maxLeverage)
       mockRouteParams.market = {
         symbol: 'BTC',
@@ -2284,7 +2284,7 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('should gracefully handle when enrichment data is not available', () => {
+    it('gracefully handles when enrichment data is not available', () => {
       // Route has minimal market data (no maxLeverage)
       mockRouteParams.market = {
         symbol: 'UNKNOWN',
