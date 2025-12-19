@@ -64,7 +64,7 @@ export const useMusdQuickConvertPercentage =
           .multipliedBy(percentage)
           .integerValue(BigNumber.ROUND_DOWN);
 
-        return toHex(adjustedBalance) as Hex;
+        return toHex(adjustedBalance.toString());
       },
       [isMaxMode, percentage],
     );
@@ -76,4 +76,3 @@ export const useMusdQuickConvertPercentage =
       applyPercentage,
     };
   };
-

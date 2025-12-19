@@ -63,7 +63,7 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
   const { preferredPaymentToken, isDeeplink } =
@@ -243,7 +243,7 @@ const EarnMusdConversionEducationView = () => {
         }
 
         if (deeplinkState.action === 'convert') {
-          await initiateConversion({
+          await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
           });
@@ -253,7 +253,7 @@ const EarnMusdConversionEducationView = () => {
 
       // Proceed to conversion flow if we have the required params (normal flow)
       if (!isDeeplink && preferredPaymentToken) {
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
         });
@@ -272,7 +272,7 @@ const EarnMusdConversionEducationView = () => {
     }
   }, [
     dispatch,
-    initiateConversion,
+    initiateCustomConversion,
     preferredPaymentToken,
     submitContinuePressedEvent,
     deeplinkState,
