@@ -56,6 +56,10 @@ export const usePerpsTransactionHistory = ({
   const fundingRef = useRef<Funding[]>([]);
   const ordersRef = useRef<Order[]>([]);
 
+  // Fetch version counter to detect stale Phase 2 completions
+  // Incremented on each new fetch; Phase 2 checks this before updating state
+  const fetchVersionRef = useRef(0);
+
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
     userHistory,
@@ -141,6 +145,9 @@ export const usePerpsTransactionHistory = ({
    */
   const fetchTransactions = useCallback(
     async (skipCache = false) => {
+      // Increment fetch version to invalidate any pending Phase 2 from previous fetches
+      const currentFetchVersion = ++fetchVersionRef.current;
+
       try {
         setIsLoading(true);
         setError(null);
@@ -156,7 +163,9 @@ export const usePerpsTransactionHistory = ({
           throw new Error('No active provider available');
         }
 
-        DevLogger.log('Fetching transaction history (progressive)...');
+        DevLogger.log('Fetching transaction history (progressive)...', {
+          fetchVersion: currentFetchVersion,
+        });
 
         // PHASE 1: Fetch fills + funding in parallel (fast path)
         const [fills, funding] = await Promise.all([
@@ -173,9 +182,19 @@ export const usePerpsTransactionHistory = ({
           }),
         ]);
 
+        // Check if this fetch is still current (not superseded by a newer fetch)
+        if (fetchVersionRef.current !== currentFetchVersion) {
+          DevLogger.log('Phase 1 superseded by newer fetch, skipping update', {
+            fetchVersion: currentFetchVersion,
+            currentVersion: fetchVersionRef.current,
+          });
+          return;
+        }
+
         DevLogger.log('Phase 1 complete - fills + funding fetched:', {
           fills: fills.length,
           funding: funding.length,
+          fetchVersion: currentFetchVersion,
         });
 
         // Store in refs for later re-enrichment
@@ -195,8 +214,21 @@ export const usePerpsTransactionHistory = ({
         provider
           .getOrders({ accountId, skipCache })
           .then((orders) => {
+            // Check if this Phase 2 is still current (not superseded by a newer fetch)
+            if (fetchVersionRef.current !== currentFetchVersion) {
+              DevLogger.log(
+                'Phase 2 superseded by newer fetch, skipping update',
+                {
+                  fetchVersion: currentFetchVersion,
+                  currentVersion: fetchVersionRef.current,
+                },
+              );
+              return;
+            }
+
             DevLogger.log('Phase 2 complete - orders fetched:', {
               orders: orders.length,
+              fetchVersion: currentFetchVersion,
             });
 
             // Store orders in ref
@@ -217,6 +249,10 @@ export const usePerpsTransactionHistory = ({
             });
           })
           .catch((err) => {
+            // Check if this Phase 2 error is still relevant
+            if (fetchVersionRef.current !== currentFetchVersion) {
+              return;
+            }
             // Orders failed - fills/funding still work, just no TP/SL pills or Orders tab
             DevLogger.log('Failed to fetch orders for enrichment:', err);
             // Don't set error - Phase 1 data is still valid
@@ -224,6 +260,10 @@ export const usePerpsTransactionHistory = ({
             setOrdersLoaded(true);
           });
       } catch (err) {
+        // Check if this error is still relevant
+        if (fetchVersionRef.current !== currentFetchVersion) {
+          return;
+        }
         const errorMessage =
           err instanceof Error
             ? err.message

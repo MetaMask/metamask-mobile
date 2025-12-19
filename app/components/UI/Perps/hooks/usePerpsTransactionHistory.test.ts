@@ -826,6 +826,79 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockRefetchUserHistory).toHaveBeenCalled();
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
+
+    it('ignores stale Phase 2 completions after refetch', async () => {
+      // Create a delayed orders response for the first fetch
+      let resolveFirstOrders: ((orders: unknown[]) => void) | null = null;
+      const firstOrdersPromise = new Promise<unknown[]>((resolve) => {
+        resolveFirstOrders = resolve;
+      });
+
+      // First fetch: orders will be delayed
+      mockProvider.getOrders
+        .mockImplementationOnce(() => firstOrdersPromise)
+        .mockResolvedValue(mockOrders);
+
+      const firstFills = [{ ...mockFills[0], orderId: 'first-fetch-fill' }];
+      const secondFills = [{ ...mockFills[0], orderId: 'second-fetch-fill' }];
+
+      mockProvider.getOrderFills
+        .mockResolvedValueOnce(firstFills)
+        .mockResolvedValue(secondFills);
+
+      // Transform fills to transactions
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        if (fills.length === 0) return [];
+        return fills.map((fill: { orderId: string }) => ({
+          id: fill.orderId,
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Trade',
+          subtitle: '1 ETH',
+          timestamp: 1640995200000,
+          asset: 'ETH',
+        }));
+      });
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 1 of first fetch
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // At this point, first Phase 1 is done, but Phase 2 (orders) is still pending
+      expect(result.current.ordersLoaded).toBe(false);
+      expect(result.current.transactions[0]?.id).toBe('first-fetch-fill');
+
+      // Trigger refetch while first Phase 2 is still pending
+      const refetchPromise = act(async () => {
+        await result.current.refetch();
+      });
+
+      // Wait for second fetch's Phase 1 to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Now resolve the FIRST fetch's Phase 2 (this should be ignored)
+      await act(async () => {
+        if (resolveFirstOrders) {
+          resolveFirstOrders([{ orderId: 'stale-order', symbol: 'BTC' }]);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for second fetch to fully complete
+      await refetchPromise;
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // The transactions should be from the SECOND fetch, not corrupted by stale Phase 2
+      // If the race condition weren't fixed, we'd see empty fills or wrong data
+      expect(result.current.transactions[0]?.id).toBe('second-fetch-fill');
+    });
   });
 
   describe('logging', () => {
@@ -843,12 +916,16 @@ describe('usePerpsTransactionHistory', () => {
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'Fetching transaction history (progressive)...',
+        expect.objectContaining({
+          fetchVersion: expect.any(Number),
+        }),
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'Phase 1 complete - fills + funding fetched:',
         expect.objectContaining({
           fills: expect.any(Number),
           funding: expect.any(Number),
+          fetchVersion: expect.any(Number),
         }),
       );
     });
