@@ -14,7 +14,6 @@ import PerpsE2EModifiers from './helpers/perps-modifiers';
 import ToastModal from '../../pages/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
-import PerpsDepositProcessingView from '../../pages/Perps/PerpsDepositProcessingView';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -26,7 +25,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
     jest.setTimeout(150000);
   });
 
-  it.skip('deposits $80 from Add funds and verifies updated balance', async () => {
+  it('deposits $80 from Add funds and verifies updated balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -116,10 +115,10 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
 
         // Continue and Confirm
         await PerpsDepositView.tapContinue();
-        await PerpsDepositView.tapConfirm();
+        // Verify review screen shows quote
+        await Assertions.expectTextDisplayed('Transaction fee');
+        await PerpsDepositView.tapAddFunds();
 
-        await PerpsDepositProcessingView.expectProcessingVisible();
-        // Apply deposit mock and verify balance update
         await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
         logger.info('🔥 E2E Mock: Deposit applied');
         await Utilities.executeWithRetry(
