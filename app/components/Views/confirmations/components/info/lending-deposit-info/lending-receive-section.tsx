@@ -65,9 +65,7 @@ const LendingReceiveSection = () => {
           <View style={styles.receiptTokenRowLeft}>
             <AvatarToken
               name={receiptTokenName}
-              imageSource={
-                receiptTokenImage ? { uri: receiptTokenImage } : undefined
-              }
+              imageSource={{ uri: receiptTokenImage }}
               size={AvatarSize.Xs}
               style={styles.receiveTokenIcon}
               isIpfsGatewayCheckBypassed

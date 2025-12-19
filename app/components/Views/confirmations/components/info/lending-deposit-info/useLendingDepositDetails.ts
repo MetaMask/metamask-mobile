@@ -1,9 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
-import { RootState } from '../../../../../../reducers';
+import { Hex } from '@metamask/utils';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { earnSelectors } from '../../../../../../selectors/earnController/earn';
 import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
@@ -20,6 +19,7 @@ import {
 } from '../../../../../UI/Earn/utils';
 import { getEstimatedAnnualRewards } from '../../../../../UI/Earn/utils/token';
 import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
+import useEarnToken from '../../../../../UI/Earn/hooks/useEarnToken';
 
 export interface LendingDepositDetails {
   tokenSymbol: string;
@@ -97,13 +97,23 @@ export const useLendingDepositDetails = (): LendingDepositDetails | null => {
     } as TokenI;
   }, [chainId, decodedData?.tokenAddress]);
 
-  // Get earn token pair from selector
-  const earnTokenPair = useSelector((state: RootState) =>
-    tokenAsset ? earnSelectors.selectEarnTokenPair(state, tokenAsset) : null,
+  // Get earn token pair and snapshot using the hook
+  const { earnTokenPair, tokenSnapshot, getTokenSnapshot } = useEarnToken(
+    tokenAsset as TokenI,
   );
 
   const earnToken = earnTokenPair?.earnToken;
   const outputToken = earnTokenPair?.outputToken;
+
+  // Fetch token snapshot when outputToken doesn't exist (user doesn't have Atoken)
+  useEffect(() => {
+    if (!outputToken && earnToken?.experience?.market?.outputToken?.address) {
+      getTokenSnapshot(
+        earnToken.chainId as Hex,
+        earnToken.experience.market.outputToken.address as Hex,
+      );
+    }
+  }, [outputToken, getTokenSnapshot, earnToken]);
 
   // Calculate token amount and fiat values
   const {
@@ -160,8 +170,7 @@ export const useLendingDepositDetails = (): LendingDepositDetails | null => {
     (!transactionMeta && !transactionBatchesMetadata) ||
     !earnToken ||
     !decodedData ||
-    !chainId ||
-    !outputToken
+    !chainId
   ) {
     return null;
   }
@@ -190,11 +199,18 @@ export const useLendingDepositDetails = (): LendingDepositDetails | null => {
     isNative: false,
   };
 
+  // Get receipt token symbol with fallback to tokenSnapshot
+  const receiptTokenSymbol =
+    outputToken?.ticker ||
+    outputToken?.symbol ||
+    tokenSnapshot?.token?.symbol ||
+    '';
+
   // Format receipt token amount like the original (amount + symbol)
   const formattedReceiptTokenAmount = `${renderFromTokenMinimalUnit(
     decodedData.amountMinimalUnit,
     earnToken.decimals,
-  )} ${outputToken.ticker || outputToken.symbol || ''}`;
+  )} ${receiptTokenSymbol}`;
 
   return {
     tokenSymbol,
@@ -208,15 +224,23 @@ export const useLendingDepositDetails = (): LendingDepositDetails | null => {
     withdrawalTime: strings('earn.immediate'),
     protocol: 'Aave',
     protocolContractAddress,
-    receiptTokenSymbol: outputToken.ticker || outputToken.symbol || '',
+    receiptTokenSymbol,
     receiptTokenName:
-      outputToken.name || outputToken.ticker || outputToken.symbol || '',
+      outputToken?.name ||
+      outputToken?.ticker ||
+      outputToken?.symbol ||
+      tokenSnapshot?.token?.name ||
+      '',
     receiptTokenAmount: formattedReceiptTokenAmount,
     receiptTokenAmountFiat: addCurrencySymbol(
       amountFiatNumber.toString(),
       currentCurrency,
     ),
-    receiptTokenImage: outputToken.image || '',
+    receiptTokenImage:
+      outputToken?.image ||
+      tokenSnapshot?.token?.image ||
+      earnToken?.image ||
+      '',
     amountMinimalUnit: decodedData.amountMinimalUnit,
     tokenDecimals,
     token,
