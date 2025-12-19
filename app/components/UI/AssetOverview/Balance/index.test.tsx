@@ -20,7 +20,7 @@ import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearn
 import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { ACCOUNT_TYPE_LABEL_TEST_ID } from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
+import { ACCOUNT_TYPE_LABEL_TEST_ID } from '../../Tokens/TokenList/TokenListItem/TokenListItem';
 import { BtcAccountType } from '@metamask/keyring-api';
 
 jest.mock('../../../../../locales/i18n', () => ({

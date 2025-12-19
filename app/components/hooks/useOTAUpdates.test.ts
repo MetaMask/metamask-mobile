@@ -81,6 +81,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('does not check for updates when feature flag is disabled', async () => {
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(false);
     renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
