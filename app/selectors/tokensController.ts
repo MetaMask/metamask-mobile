@@ -12,6 +12,7 @@ import {
 } from './networkController';
 import { PopularList } from '../util/networks/customNetworks';
 import { ChainId } from '@metamask/controller-utils';
+import { ATOKEN_METADATA_FALLBACK } from '../constants/tokens';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -88,10 +89,51 @@ export const selectDetectedTokens = createSelector(
     ],
 );
 
-export const selectAllTokens = createDeepEqualSelector(
+const selectAllTokensRaw = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.allTokens,
+);
+
+/**
+ * Enriched selectAllTokens that applies fallback metadata for aTokens.
+ * This ensures aTokens have correct name/symbol even when API data is missing.
+ */
+export const selectAllTokens = createDeepEqualSelector(
+  selectAllTokensRaw,
+  (allTokens): TokensControllerState['allTokens'] => {
+    if (!allTokens) return allTokens;
+
+    const enriched: TokensControllerState['allTokens'] = {};
+
+    for (const [chainId, addressTokens] of Object.entries(allTokens)) {
+      const fallbacksForChain = ATOKEN_METADATA_FALLBACK[chainId as Hex];
+
+      if (!fallbacksForChain) {
+        enriched[chainId as Hex] = addressTokens;
+        continue;
+      }
+
+      // Enrich tokens for each address on this chain
+      enriched[chainId as Hex] = {};
+      for (const [address, tokens] of Object.entries(addressTokens)) {
+        enriched[chainId as Hex][address as Hex] = tokens.map((token) => {
+          const fallback = fallbacksForChain[token.address?.toLowerCase()];
+          if (fallback) {
+            return {
+              ...token,
+              name: fallback.name,
+              symbol: fallback.symbol,
+              decimals: token.decimals ?? fallback.decimals,
+            };
+          }
+          return token;
+        });
+      }
+    }
+
+    return enriched;
+  },
 );
 
 export const getChainIdsToPoll = createDeepEqualSelector(
