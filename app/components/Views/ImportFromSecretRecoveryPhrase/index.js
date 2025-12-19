@@ -15,7 +15,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect , useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
