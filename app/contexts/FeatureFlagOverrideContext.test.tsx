@@ -980,6 +980,87 @@ describe('FeatureFlagOverrideContext', () => {
     });
   });
 
+  describe('Remote Feature Flag Change Tracking', () => {
+    it('adds all feature flags to user traits in bulk when received', async () => {
+      const mockFlags = {
+        booleanFlag: true,
+        stringFlag: 'variant_a',
+        numberFlag: 42,
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+
+      renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          booleanFlag: true,
+          stringFlag: 'variant_a',
+          numberFlag: 42,
+        });
+      });
+    });
+
+    it('adds all feature flags to user traits in bulk when flags change', async () => {
+      const initialFlags = { flag1: true, flag2: 'variant_a' };
+      mockUseSelector.mockReturnValue(initialFlags);
+
+      const { rerender } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      mockAddTraitsToUser.mockClear();
+
+      const updatedFlags = { flag1: false, flag2: 'variant_b', newFlag: 100 };
+      mockUseSelector.mockReturnValue(updatedFlags);
+
+      rerender(null);
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          flag1: false,
+          flag2: 'variant_b',
+          newFlag: 100,
+        });
+      });
+    });
+
+    it('does not call addTraitsToUser when no feature flags exist', async () => {
+      mockUseSelector.mockReturnValue({});
+
+      renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(
+        () => {
+          expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+        },
+        { timeout: 200 },
+      );
+    });
+
+    it('sends user traits in a single bulk call, not per-flag', async () => {
+      const mockFlags = { flag1: true, flag2: 'variant', flag3: 123 };
+      mockUseSelector.mockReturnValue(mockFlags);
+
+      renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        // Should be called exactly once with all flags
+        expect(mockAddTraitsToUser).toHaveBeenCalledTimes(1);
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          flag1: true,
+          flag2: 'variant',
+          flag3: 123,
+        });
+      });
+    });
+  });
+
   describe('Snapshot Functionality', () => {
     it('takes snapshot when getFeatureFlag is called for boolean flag', async () => {
       const mockFlags = { testBooleanFlag: true };
@@ -1043,6 +1124,9 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
+      // Clear the initial bulk call from useEffect
+      mockAddTraitsToUser.mockClear();
+
       await act(async () => {
         result.current.getFeatureFlag('flag1');
       });
@@ -1076,7 +1160,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(mockAddTraitsToUser).toHaveBeenCalledTimes(3);
     });
 
-    it('does not take snapshot for non-boolean flags', async () => {
+    it('does not take additional snapshot for non-boolean flags via getFeatureFlag', async () => {
       const mockFlags = {
         stringFlag: 'test value',
         numberFlag: 42,
@@ -1090,11 +1174,15 @@ describe('FeatureFlagOverrideContext', () => {
         wrapper: createWrapper,
       });
 
+      // Clear the initial bulk call from useEffect
+      mockAddTraitsToUser.mockClear();
+
       await act(async () => {
         result.current.getFeatureFlag('stringFlag');
         result.current.getFeatureFlag('numberFlag');
       });
 
+      // getFeatureFlag should not add additional traits for non-boolean flags
       await waitFor(
         () => {
           expect(mockAddTraitsToUser).not.toHaveBeenCalled();
@@ -1177,16 +1265,20 @@ describe('FeatureFlagOverrideContext', () => {
       });
     });
 
-    it('does not call addTraitsToUser when no snapshots are taken', () => {
-      const mockFlags = { stringFlag: 'test' };
-      setupSelectorMocks(mockFlags);
-      mockGetFeatureFlagType.mockReturnValue(FeatureFlagType.FeatureFlagString);
+    it('calls addTraitsToUser in bulk on mount with all feature flags', () => {
+      const mockFlags = { stringFlag: 'test', boolFlag: true };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('string');
 
       renderHook(() => useFeatureFlagOverride(), {
         wrapper: createWrapper,
       });
 
-      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+      // useEffect sends all flags in bulk on mount
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        stringFlag: 'test',
+        boolFlag: true,
+      });
     });
   });
 });

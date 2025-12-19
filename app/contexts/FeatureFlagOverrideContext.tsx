@@ -4,6 +4,7 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -62,6 +63,16 @@ export const FeatureFlagOverrideProvider: React.FC<
   const overrides = useSelector(selectLocalOverrides);
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
+
+  // Track remote feature flags and add all flags to user traits in bulk
+  useEffect(() => {
+    if (Object.keys(rawFeatureFlags).length > 0) {
+      addTraitsToUser(rawFeatureFlags);
+    }
+  }, [rawFeatureFlags, addTraitsToUser]);
+
+  // Local state for overrides
+  const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
 
   const setOverride = useCallback((key: string, value: unknown) => {
     Engine.context?.RemoteFeatureFlagController?.setFlagOverride(
