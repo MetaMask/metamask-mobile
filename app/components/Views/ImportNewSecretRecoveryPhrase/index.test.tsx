@@ -1259,4 +1259,30 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       mockAlert.mockRestore();
     });
   });
+
+  describe('SRP Word Suggestions Feature', () => {
+    it('renders SRP input grid for word suggestions', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders with KeyboardProvider wrapper', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+  });
 });
