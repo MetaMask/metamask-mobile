@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -37,12 +37,11 @@ describe('useRampsControllerRequest', () => {
     jest.clearAllMocks();
   });
 
-  it('returns idle state when no request has been made', () => {
+  it('returns idle status when no request has been made', () => {
     const store = createMockStore();
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -51,12 +50,11 @@ describe('useRampsControllerRequest', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.isIdle).toBe(true);
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.status).toBe('idle');
     expect(result.current.data).toBeNull();
   });
 
-  it('returns loading state from redux when request is in progress', () => {
+  it('returns loading status from redux when request is in progress', () => {
     const cacheKey = 'updateGeolocation:[]';
     const store = createMockStore({
       requests: {
@@ -72,7 +70,6 @@ describe('useRampsControllerRequest', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -81,11 +78,10 @@ describe('useRampsControllerRequest', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.isIdle).toBe(false);
+    expect(result.current.status).toBe('loading');
   });
 
-  it('returns success state from redux when request completed', () => {
+  it('returns success status and data from redux when request completed', () => {
     const cacheKey = 'updateGeolocation:[]';
     const store = createMockStore({
       requests: {
@@ -101,7 +97,6 @@ describe('useRampsControllerRequest', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -112,11 +107,11 @@ describe('useRampsControllerRequest', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.status).toBe('success');
     expect(result.current.data).toBe('US-CA');
   });
 
-  it('returns error state from redux when request failed', () => {
+  it('returns error status and message from redux when request failed', () => {
     const cacheKey = 'updateGeolocation:[]';
     const store = createMockStore({
       requests: {
@@ -132,7 +127,6 @@ describe('useRampsControllerRequest', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -141,75 +135,8 @@ describe('useRampsControllerRequest', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.isError).toBe(true);
+    expect(result.current.status).toBe('error');
     expect(result.current.error).toBe('Network error');
-  });
-
-  it('executes the request when calling execute()', async () => {
-    const store = createMockStore();
-    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US-NY');
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: mockUpdateGeolocation,
-      abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
-    };
-
-    const { result } = renderHook(
-      () =>
-        useRampsControllerRequest<string>('updateGeolocation', [], {
-          onMount: false,
-        }),
-      { wrapper: wrapper(store) },
-    );
-
-    let returnValue: string | undefined;
-    await act(async () => {
-      returnValue = await result.current.execute();
-    });
-
-    expect(mockUpdateGeolocation).toHaveBeenCalled();
-    expect(returnValue).toBe('US-NY');
-  });
-
-  it('calls abortRequest on the controller when abort is called', () => {
-    const store = createMockStore();
-    const mockAbortRequest = jest.fn().mockReturnValue(true);
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
-      abortRequest: mockAbortRequest,
-      invalidateRequest: jest.fn(),
-    };
-
-    const { result } = renderHook(
-      () =>
-        useRampsControllerRequest('updateGeolocation', [], { onMount: false }),
-      { wrapper: wrapper(store) },
-    );
-
-    const didAbort = result.current.abort();
-
-    expect(mockAbortRequest).toHaveBeenCalledWith('updateGeolocation:[]');
-    expect(didAbort).toBe(true);
-  });
-
-  it('calls invalidateRequest on the controller when invalidate is called', () => {
-    const store = createMockStore();
-    const mockInvalidateRequest = jest.fn();
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
-      abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: mockInvalidateRequest,
-    };
-
-    const { result } = renderHook(
-      () =>
-        useRampsControllerRequest('updateGeolocation', [], { onMount: false }),
-      { wrapper: wrapper(store) },
-    );
-
-    result.current.invalidate();
-
-    expect(mockInvalidateRequest).toHaveBeenCalledWith('updateGeolocation:[]');
   });
 
   it('executes request on mount when onMount is true', async () => {
@@ -218,7 +145,6 @@ describe('useRampsControllerRequest', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: mockUpdateGeolocation,
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     renderHook(
@@ -232,35 +158,39 @@ describe('useRampsControllerRequest', () => {
     });
   });
 
-  it('provides the correct cache key', () => {
+  it('does not execute request on mount when onMount is false', () => {
     const store = createMockStore();
+    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
     (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
+      updateGeolocation: mockUpdateGeolocation,
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
-    const { result } = renderHook(
+    renderHook(
       () =>
         useRampsControllerRequest('updateGeolocation', [], { onMount: false }),
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.cacheKey).toBe('updateGeolocation:[]');
+    expect(mockUpdateGeolocation).not.toHaveBeenCalled();
   });
 
-  it('throws an error if RampsController is not available', async () => {
+  it('aborts request on unmount', async () => {
     const store = createMockStore();
-    (Engine.context as { RampsController: unknown }).RampsController = null;
+    const mockAbortRequest = jest.fn().mockReturnValue(true);
+    (Engine.context as { RampsController: unknown }).RampsController = {
+      updateGeolocation: jest.fn().mockResolvedValue('US'),
+      abortRequest: mockAbortRequest,
+    };
 
-    const { result } = renderHook(
+    const { unmount } = renderHook(
       () =>
         useRampsControllerRequest('updateGeolocation', [], { onMount: false }),
       { wrapper: wrapper(store) },
     );
 
-    await expect(result.current.execute()).rejects.toThrow(
-      'RampsController is not available',
-    );
+    unmount();
+
+    expect(mockAbortRequest).toHaveBeenCalledWith('updateGeolocation:[]');
   });
 });

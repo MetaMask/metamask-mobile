@@ -3,15 +3,18 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   createCacheKey,
-  RequestStatus,
   type ExecuteRequestOptions,
 } from '@metamask/ramps-controller';
 import {
-  makeSelectRequestState,
-  makeSelectRequestIsLoading,
+  makeSelectRequestStatus,
   makeSelectRequestError,
   makeSelectRequestData,
 } from '../../../../selectors/rampsController';
+
+/**
+ * Request status values.
+ */
+export type RequestStatusValue = 'idle' | 'loading' | 'success' | 'error';
 
 /**
  * Options for the useRampsControllerRequest hook.
@@ -44,37 +47,9 @@ export interface UseRampsControllerRequestResult<T> {
    */
   error: string | null;
   /**
-   * Whether the request is currently loading.
+   * Current request status: 'idle' | 'loading' | 'success' | 'error'.
    */
-  isLoading: boolean;
-  /**
-   * Whether the request completed successfully.
-   */
-  isSuccess: boolean;
-  /**
-   * Whether the request failed.
-   */
-  isError: boolean;
-  /**
-   * Whether the request is in idle state (not yet started).
-   */
-  isIdle: boolean;
-  /**
-   * Function to execute the request manually.
-   */
-  execute: (options?: ExecuteRequestOptions) => Promise<T>;
-  /**
-   * Function to abort the request if it's in progress.
-   */
-  abort: () => boolean;
-  /**
-   * Function to invalidate the cached result.
-   */
-  invalidate: () => void;
-  /**
-   * The cache key for this request.
-   */
-  cacheKey: string;
+  status: RequestStatusValue;
 }
 
 /**
@@ -83,26 +58,27 @@ export interface UseRampsControllerRequestResult<T> {
  * This hook provides:
  * - Automatic caching of request results
  * - Deduplication of concurrent requests with the same parameters
- * - Loading, error, and success states from Redux
- * - Ability to abort in-flight requests
- * - Cache invalidation
+ * - Request state from Redux (data, error, status)
+ * - Automatic abort of in-flight requests on unmount
+ *
+ * For advanced control (manual refresh, abort, invalidate), use
+ * Engine.context.RampsController directly.
  *
  * @param method - The method name to call on RampsController.
  * @param params - Parameters to pass to the method.
  * @param options - Hook options.
- * @returns Request state and control functions.
+ * @returns Request state.
  *
  * @example
  * ```tsx
- * const {
- *   data: geolocation,
- *   isLoading,
- *   error,
- *   execute,
- * } = useRampsControllerRequest('updateGeolocation', []);
+ * const { data, error, status } = useRampsControllerRequest<string>(
+ *   'updateGeolocation',
+ *   [],
+ * );
  *
- * // The request is automatically executed on mount
- * // Use `execute()` to manually trigger a refresh
+ * if (status === 'loading') return <Loading />;
+ * if (error) return <Error message={error} />;
+ * return <Text>{data}</Text>;
  * ```
  */
 export function useRampsControllerRequest<T>(
@@ -117,12 +93,8 @@ export function useRampsControllerRequest<T>(
     [method, params],
   );
 
-  const selectRequestState = useMemo(
-    () => makeSelectRequestState(cacheKey),
-    [cacheKey],
-  );
-  const selectIsLoading = useMemo(
-    () => makeSelectRequestIsLoading(cacheKey),
+  const selectStatus = useMemo(
+    () => makeSelectRequestStatus(cacheKey),
     [cacheKey],
   );
   const selectError = useMemo(
@@ -134,12 +106,12 @@ export function useRampsControllerRequest<T>(
     [cacheKey],
   );
 
-  const requestState = useSelector(selectRequestState);
-  const isLoading = useSelector(selectIsLoading);
+  const statusFromRedux = useSelector(selectStatus);
   const error = useSelector(selectError);
   const data = useSelector(selectData);
 
-  const status = requestState?.status ?? RequestStatus.IDLE;
+  // Map the Redux status to our simplified status type
+  const status: RequestStatusValue = statusFromRedux ?? 'idle';
 
   const execute = useCallback(
     async (executeOptions?: ExecuteRequestOptions): Promise<T> => {
@@ -171,13 +143,6 @@ export function useRampsControllerRequest<T>(
     return RampsController.abortRequest(cacheKey);
   }, [cacheKey]);
 
-  const invalidate = useCallback((): void => {
-    const { RampsController } = Engine.context;
-    if (RampsController) {
-      RampsController.invalidateRequest(cacheKey);
-    }
-  }, [cacheKey]);
-
   const hasExecutedRef = useRef(false);
 
   useEffect(() => {
@@ -188,6 +153,7 @@ export function useRampsControllerRequest<T>(
       });
     }
 
+    // Abort in-flight request on unmount
     return () => {
       abort();
     };
@@ -196,14 +162,7 @@ export function useRampsControllerRequest<T>(
   return {
     data,
     error,
-    isLoading,
-    isSuccess: status === RequestStatus.SUCCESS,
-    isError: status === RequestStatus.ERROR,
-    isIdle: status === RequestStatus.IDLE,
-    execute,
-    abort,
-    invalidate,
-    cacheKey,
+    status,
   };
 }
 

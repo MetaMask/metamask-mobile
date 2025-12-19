@@ -1,11 +1,8 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import {
-  useRampsGeolocation,
-  useUpdateGeolocation,
-} from './useRampsGeolocation';
+import { useRampsGeolocation } from './useRampsGeolocation';
 import { RequestStatus } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
@@ -45,7 +42,6 @@ describe('useRampsGeolocation', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -73,7 +69,6 @@ describe('useRampsGeolocation', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -82,18 +77,16 @@ describe('useRampsGeolocation', () => {
     );
 
     expect(result.current.geolocation).toBe('US-CA');
-    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('falls back to legacy geolocation field when request data is null', () => {
+  it('returns null when request data is not yet loaded', () => {
     const store = createMockStore({
-      geolocation: 'US-NY',
       requests: {},
     });
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -101,7 +94,7 @@ describe('useRampsGeolocation', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.geolocation).toBe('US-NY');
+    expect(result.current.geolocation).toBeNull();
   });
 
   it('returns loading state when request is in progress', () => {
@@ -120,7 +113,6 @@ describe('useRampsGeolocation', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -147,7 +139,6 @@ describe('useRampsGeolocation', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -155,52 +146,7 @@ describe('useRampsGeolocation', () => {
       { wrapper: wrapper(store) },
     );
 
-    expect(result.current.isError).toBe(true);
     expect(result.current.error).toBe('Failed to fetch geolocation');
-  });
-
-  it('refreshes geolocation when refresh is called', async () => {
-    const store = createMockStore();
-    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US-TX');
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: mockUpdateGeolocation,
-      abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
-    };
-
-    const { result } = renderHook(
-      () => useRampsGeolocation({ onMount: false }),
-      { wrapper: wrapper(store) },
-    );
-
-    let returnValue: string | undefined;
-    await act(async () => {
-      returnValue = await result.current.refresh();
-    });
-
-    expect(mockUpdateGeolocation).toHaveBeenCalled();
-    expect(returnValue).toBe('US-TX');
-  });
-
-  it('can force refresh', async () => {
-    const store = createMockStore();
-    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US-FL');
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: mockUpdateGeolocation,
-      abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
-    };
-
-    const { result } = renderHook(
-      () => useRampsGeolocation({ onMount: false }),
-      { wrapper: wrapper(store) },
-    );
-
-    await act(async () => {
-      await result.current.refresh({ forceRefresh: true });
-    });
-
-    expect(mockUpdateGeolocation).toHaveBeenCalledWith({ forceRefresh: true });
   });
 
   it('fetches geolocation on mount by default', async () => {
@@ -209,7 +155,6 @@ describe('useRampsGeolocation', () => {
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: mockUpdateGeolocation,
       abortRequest: jest.fn().mockReturnValue(false),
-      invalidateRequest: jest.fn(),
     };
 
     renderHook(() => useRampsGeolocation(), { wrapper: wrapper(store) });
@@ -218,55 +163,19 @@ describe('useRampsGeolocation', () => {
       expect(mockUpdateGeolocation).toHaveBeenCalled();
     });
   });
-});
 
-describe('useUpdateGeolocation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns a function to update geolocation', async () => {
-    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US-WA');
+  it('does not fetch on mount when onMount is false', () => {
+    const store = createMockStore();
+    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
     (Engine.context as { RampsController: unknown }).RampsController = {
       updateGeolocation: mockUpdateGeolocation,
+      abortRequest: jest.fn().mockReturnValue(false),
     };
 
-    const { result } = renderHook(() => useUpdateGeolocation());
-
-    let returnValue: string | undefined;
-    await act(async () => {
-      returnValue = await result.current();
+    renderHook(() => useRampsGeolocation({ onMount: false }), {
+      wrapper: wrapper(store),
     });
 
-    expect(mockUpdateGeolocation).toHaveBeenCalled();
-    expect(returnValue).toBe('US-WA');
-  });
-
-  it('passes options to updateGeolocation', async () => {
-    const mockUpdateGeolocation = jest.fn().mockResolvedValue('US-OR');
-    (Engine.context as { RampsController: unknown }).RampsController = {
-      updateGeolocation: mockUpdateGeolocation,
-    };
-
-    const { result } = renderHook(() => useUpdateGeolocation());
-
-    await act(async () => {
-      await result.current({ forceRefresh: true, ttl: 5000 });
-    });
-
-    expect(mockUpdateGeolocation).toHaveBeenCalledWith({
-      forceRefresh: true,
-      ttl: 5000,
-    });
-  });
-
-  it('throws error when RampsController is not available', async () => {
-    (Engine.context as { RampsController: unknown }).RampsController = null;
-
-    const { result } = renderHook(() => useUpdateGeolocation());
-
-    await expect(result.current()).rejects.toThrow(
-      'RampsController is not available',
-    );
+    expect(mockUpdateGeolocation).not.toHaveBeenCalled();
   });
 });
