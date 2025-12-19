@@ -6999,7 +6999,7 @@
       }
     },
     "settings": {
-      "title": "Rewards Settings",
+      "title": "Rewards settings",
       "subtitle": "Accounts",
       "description": "Add multiple accounts to combine your points and unlock rewards faster.",
       "tab_linked_accounts": "Added ({{count}})",
@@ -7047,7 +7047,7 @@
     },
     "ways_to_earn": {
       "title": "Ways to earn",
-      "supported_networks": "Supported Networks",
+      "supported_networks": "Supported networks",
       "swap": {
         "title": "Swap",
         "description": "8 points per $10",
@@ -7104,7 +7104,7 @@
           "title": "MetaMask Card",
           "points": "1 point per $1 spent",
           "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
-          "cta_label": "Manage Card"
+          "cta_label": "Manage card"
         }
       },
       "deposit_musd": {
@@ -7179,7 +7179,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
+      "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
@@ -7198,9 +7198,9 @@
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
       "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
-      "bridge_send_loading": "Bridge Send",
+      "bridge_send_loading": "Bridge send",
       "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
-      "bridge_receive_loading": "Bridge Receive",
+      "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
@@ -7215,11 +7215,11 @@
       "description": "Establishing connection with {{dappName}}..."
     },
     "show_error": {
-      "title": "Connection Error",
+      "title": "Connection error",
       "description": "Failed to establish connection. Please try again."
     },
     "show_rejection": {
-      "title": "Approval Rejected",
+      "title": "Approval rejected",
       "description": "User rejected the request."
     },
     "show_return_to_app": {
@@ -7242,7 +7242,7 @@
     "title": "Explore",
     "view_all": "View all",
     "tokens": "Tokens",
-    "trending_tokens": "Trending Tokens",
+    "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "All networks",
     "24h": "24h",
@@ -7264,7 +7264,7 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "sites": "Sites",
-    "popular_sites": "Popular Sites",
+    "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
