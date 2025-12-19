@@ -533,11 +533,7 @@ class TransactionElement extends PureComponent {
           </ListItem.Date>
           <ListItem.Content style={styles.listItemContent}>
             <ListItem.Icon>
-              {this.renderTxElementIcon(
-                transactionElement,
-                transactionStatus,
-                chainId,
-              )}
+              {this.renderTxElementIcon(transactionElement, tx)}
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
