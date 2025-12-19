@@ -97,7 +97,8 @@ function createAccountsTestSpecificMock(
   };
 }
 
-// TODO:
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24155
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {

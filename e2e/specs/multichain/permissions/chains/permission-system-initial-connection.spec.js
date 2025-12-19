@@ -12,7 +12,8 @@ import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonP
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
 
-// TODO:
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24146
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
