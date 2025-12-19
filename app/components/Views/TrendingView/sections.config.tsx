@@ -1,30 +1,30 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
-import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
-import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import PerpsMarketRowItem from '../../../UI/Perps/components/PerpsMarketRowItem';
-import type { PerpsMarketData } from '../../../UI/Perps/controllers/types';
-import PredictMarket from '../../../UI/Predict/components/PredictMarket';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
-import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
-import SectionCard from '../components/SectionCard/SectionCard';
-import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
-import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
-import { usePerpsMarkets } from '../../../UI/Perps/hooks';
-import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
+import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
+import type { PerpsMarketData } from '../../UI/Perps/controllers/types';
+import PredictMarket from '../../UI/Predict/components/PredictMarket';
+import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
+import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
+import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
+import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
+import { usePerpsMarkets } from '../../UI/Perps/hooks';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { Box, IconName } from '@metamask/design-system-react-native';
-import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import SiteRowItemWrapper from '../../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
-import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
-import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
-import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
-import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
+import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
+import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
+import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
+import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
+import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
+import SectionCard from './components/Sections/SectionTypes/SectionCard';
+import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -48,14 +48,16 @@ interface SectionConfig {
   }>;
   Skeleton: React.ComponentType;
   Section: React.ComponentType<{
-    refreshTrigger?: number;
-    toggleSectionEmptyState?: (isEmpty: boolean) => void;
+    sectionId: SectionId;
+    data: unknown[];
+    isLoading: boolean;
   }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
     refetch: () => Promise<void> | void;
   };
+  SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
 
 /**
@@ -85,14 +87,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     RowItem: ({ item }) => (
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
-    Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
-      <SectionCard
-        sectionId="tokens"
-        refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
-      />
-    ),
+    Skeleton: TrendingTokensSkeleton,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
       return { data, isLoading, refetch };
@@ -126,18 +122,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       />
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
-    Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
+    Skeleton: TrendingTokensSkeleton,
+    SectionWrapper: ({ children }) => (
       <PerpsConnectionProvider>
-        <PerpsStreamProvider>
-          <SectionCard
-            sectionId="perps"
-            refreshTrigger={refreshTrigger}
-            toggleSectionEmptyState={toggleSectionEmptyState}
-          />
-        </PerpsStreamProvider>
+        <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
@@ -170,13 +161,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
-      <SectionCarrousel
-        sectionId="predictions"
-        refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
-      />
-    ),
+    Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
@@ -197,14 +182,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     RowItem: ({ item, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
-    Skeleton: () => <SiteSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
-      <SectionCard
-        sectionId="sites"
-        refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
-      />
-    ),
+    Skeleton: SiteSkeleton,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);
       return { data: sites, isLoading, refetch };
