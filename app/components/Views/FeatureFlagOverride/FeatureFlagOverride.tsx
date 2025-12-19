@@ -144,17 +144,11 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
           | AbTestType[]
           | undefined;
-
-        // Return default display if A/B test options are unavailable
-        if (!abTestOptions || !Array.isArray(abTestOptions)) {
-          return (
-            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-              {String(localValue)}
-            </Text>
-          );
-        }
+        const isOptionsAvailable =
+          abTestOptions && Array.isArray(abTestOptions);
 
         const handleSelectOption = (name: string) => {
+          if (!isOptionsAvailable) return;
           const selectedOption = abTestOptions.find(
             (option: { name: string }) => option.name === name,
           );
@@ -165,17 +159,33 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           onToggle(flag.key, selectedOption);
         };
 
+        // Safely extract name from localValue if it has AbTestType shape
+        const selectedName =
+          localValue &&
+          typeof localValue === 'object' &&
+          'name' in localValue &&
+          typeof (localValue as AbTestType).name === 'string'
+            ? (localValue as AbTestType).name
+            : undefined;
+
         return (
-          <Box twClassName="flex-1 ml-2 justify-center min-w-[160px]">
+          <Box
+            twClassName="flex-1 ml-2 justify-center min-w-[160px]"
+            pointerEvents={isOptionsAvailable ? 'auto' : 'none'}
+          >
             <SelectOptionSheet
-              options={abTestOptions.map((option: AbTestType) => ({
-                label: option.name,
-                value: option.name,
-              }))}
+              options={
+                isOptionsAvailable
+                  ? abTestOptions.map((option: AbTestType) => ({
+                      label: option.name,
+                      value: option.name,
+                    }))
+                  : []
+              }
               label={flag.key}
-              defaultValue={(localValue as AbTestType)?.name}
+              defaultValue={selectedName}
               onValueChange={handleSelectOption}
-              selectedValue={(localValue as AbTestType)?.name}
+              selectedValue={selectedName}
             />
           </Box>
         );
