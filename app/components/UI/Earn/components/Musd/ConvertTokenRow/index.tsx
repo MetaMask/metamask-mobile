@@ -25,7 +25,6 @@ import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
-import { TokenIconWithSpinner } from '../../TokenIconWithSpinner';
 import { useMusdQuickConvertPercentage } from '../../../hooks/useMusdQuickConvertPercentage';
 import styleSheet from './ConvertTokenRow.styles';
 import {
@@ -39,22 +38,18 @@ import BigNumber from 'bignumber.js';
  * A row component for displaying a token in the Quick Convert list.
  *
  * Displays:
- * TODO: Circle back on the loading/pending states.
- * - Token icon with network badge (or spinner if pending)
+ * - Token icon with network badge
  * - Token name and balance
- * - Max and Edit buttons (or spinner if conversion is pending)
+ * - Max and Edit buttons
  */
 const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   token,
   onMaxPress,
   onEditPress,
-  status,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const networkName = useSelector(selectNetworkName);
   const { buttonLabel } = useMusdQuickConvertPercentage();
-
-  const isPending = status === 'pending';
 
   const formatFiat = useFiatFormatter();
 
@@ -66,78 +61,29 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
     onEditPress(token);
   }, [onEditPress, token]);
 
-  // Render token icon - show spinner if pending
-  const renderTokenIcon = () => {
-    if (isPending) {
-      return (
-        <View
-          style={styles.spinnerContainer}
-          testID={ConvertTokenRowTestIds.SPINNER}
-        >
-          <TokenIconWithSpinner
-            tokenSymbol={token.symbol}
-            tokenIcon={token.image}
-          />
-        </View>
-      );
-    }
-
-    return (
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={getNetworkImageSource({
-              chainId: token.chainId ?? '',
-            })}
-            isScaled={false}
-            size={AvatarSize.Xs}
-          />
-        }
-      >
-        <EarnNetworkAvatar token={token} />
-      </BadgeWrapper>
-    );
-  };
-
-  // TODO: Breakout into component for better debugging
-  // Render action buttons - hide if pending
-  const renderActions = () => {
-    if (isPending) {
-      // When pending, we show the spinner on the token icon, no buttons needed
-      return null;
-    }
-
-    return (
-      <>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleMaxPress}
-          testID={ConvertTokenRowTestIds.MAX_BUTTON}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
-        </Button>
-        <ButtonIcon
-          style={styles.editButton}
-          iconName={IconName.Edit}
-          size={ButtonIconSize.Lg}
-          iconProps={{ size: IconSize.Sm }}
-          onPress={handleEditPress}
-          testID={ConvertTokenRowTestIds.EDIT_BUTTON}
-        />
-      </>
-    );
-  };
-
   return (
     <View style={styles.container} testID={ConvertTokenRowTestIds.CONTAINER}>
       {/* Left side: Token icon and info */}
       <View style={styles.left}>
         <View testID={ConvertTokenRowTestIds.TOKEN_ICON}>
-          {renderTokenIcon()}
+          <View style={styles.tokenIconContainer}>
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  name={networkName}
+                  imageSource={getNetworkImageSource({
+                    chainId: token.chainId ?? '',
+                  })}
+                  isScaled={false}
+                  size={AvatarSize.Xs}
+                />
+              }
+            >
+              <EarnNetworkAvatar token={token} />
+            </BadgeWrapper>
+          </View>
         </View>
         <View style={styles.tokenInfo}>
           <Text
@@ -162,7 +108,24 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
       </View>
 
       {/* Right side: Action buttons or status */}
-      <View style={styles.right}>{renderActions()}</View>
+      <View style={styles.right}>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={handleMaxPress}
+          testID={ConvertTokenRowTestIds.MAX_BUTTON}
+        >
+          <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
+        </Button>
+        <ButtonIcon
+          style={styles.editButton}
+          iconName={IconName.Edit}
+          size={ButtonIconSize.Lg}
+          iconProps={{ size: IconSize.Sm }}
+          onPress={handleEditPress}
+          testID={ConvertTokenRowTestIds.EDIT_BUTTON}
+        />
+      </View>
     </View>
   );
 };
