@@ -110,11 +110,26 @@ export const useMusdConversionTokens = () => {
       ? toHex(chainId)
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
 
+  /**
+   * Gets the mUSD token address for a given chain.
+   * @param chainId - The chain ID to get the mUSD address for
+   * @returns The mUSD token address
+   * @throws Error if mUSD is not supported on the chain
+   */
+  const getMusdTokenAddress = (chainId: Hex): Hex => {
+    const address = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+    if (!address) {
+      throw new Error(`mUSD token address not found for chain ID: ${chainId}`);
+    }
+    return address;
+  };
+
   return {
     filterAllowedTokens,
     isConversionToken,
     isMusdSupportedOnChain,
     getMusdOutputChainId,
+    getMusdTokenAddress,
     tokens: conversionTokens,
   };
 };

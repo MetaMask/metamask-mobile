@@ -1,23 +1,35 @@
 import { Hex } from '@metamask/utils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { TransactionType } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import { AssetType } from '../../../Views/confirmations/types/token';
+import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { useMusdQuickConvertPercentage } from './useMusdQuickConvertPercentage';
 
 /**
- * Configuration for mUSD conversion
+ * Result from creating a max conversion transaction.
  */
-export interface MusdConversionConfig {
+export interface MaxConversionResult {
+  /** The transaction ID created */
+  transactionId: string;
+  /** The output chain ID where mUSD will be received */
+  outputChainId: Hex;
+}
+
+/**
+ * Configuration for custom amount mUSD conversion.
+ */
+export interface CustomConversionConfig {
   /**
    * The chain ID of the mUSD token to convert to.
    */
@@ -40,46 +52,181 @@ export interface MusdConversionConfig {
 }
 
 /**
- * Hook for initiating mUSD conversion flow using MetaMask Pay.
+ * Hook for initiating mUSD conversion flows using MetaMask Pay.
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains. It uses ERC-20
  * transfer encoding and MetaMask Pay's Relay integration, which are specific to
  * EVM networks.
  *
- * This hook handles both transaction creation and navigation to the confirmation screen.
+ * This hook provides two conversion modes:
+ * - **Max conversion**: Converts the full token balance in a single action
+ * - **Custom conversion**: Opens a screen where the user can specify the amount
  *
  * @example
- * const { initiateConversion } = useMusdConversion();
+ * // Max conversion (full balance)
+ * const { initiateMaxConversion, isMaxConversionLoading } = useMusdConversion();
+ * await initiateMaxConversion(token);
  *
- * await initiateConversion({
+ * @example
+ * // Custom amount conversion
+ * const { initiateCustomConversion } = useMusdConversion();
+ * await initiateCustomConversion({
  *   outputChainId: CHAIN_IDS.MAINNET,
- *   preferredPaymentToken: {
- *     address: USDC_ADDRESS_MAINNET,
- *     chainId: CHAIN_IDS.MAINNET,
- *   },
- *   navigationStack: Routes.EARN.ROOT,
+ *   preferredPaymentToken: { address: USDC_ADDRESS, chainId: CHAIN_IDS.MAINNET },
  * });
  */
 export const useMusdConversion = () => {
+  const [isMaxConversionLoading, setIsMaxConversionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
+
+  const { getMusdOutputChainId, getMusdTokenAddress } =
+    useMusdConversionTokens();
+  const { applyPercentage } = useMusdQuickConvertPercentage();
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-
   const selectedAddress = selectedAccount?.address;
+  const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 
-  const hasSeenConversionEducationScreen = useSelector(
-    selectMusdConversionEducationSeen,
+  /**
+   * Initiates a max-amount mUSD conversion.
+   *
+   * This creates a transaction with the full token balance and navigates
+   * to the max conversion confirmation modal.
+   */
+  const initiateMaxConversion = useCallback(
+    async (token: AssetType): Promise<MaxConversionResult> => {
+      const tokenAddress = token.address as Hex;
+      const tokenChainId = token.chainId as Hex;
+      const outputChainId = getMusdOutputChainId(tokenChainId);
+
+      try {
+        setIsMaxConversionLoading(true);
+        setError(null);
+
+        if (!tokenAddress || !tokenChainId) {
+          throw new Error('Token address and chainId are required');
+        }
+
+        if (!token.rawBalance || token.rawBalance === '0x0') {
+          throw new Error('Token balance must be greater than zero');
+        }
+
+        if (!selectedAddress) {
+          throw new Error('No account selected');
+        }
+
+        const networkClientId =
+          Engine.context.NetworkController.findNetworkClientIdByChainId(
+            outputChainId,
+          );
+
+        if (!networkClientId) {
+          throw new Error(
+            `Network client not found for chain ID: ${outputChainId}`,
+          );
+        }
+
+        const mUSDTokenAddress = getMusdTokenAddress(outputChainId);
+
+        // Generate transfer data with adjusted amount (based on percentage from feature flag)
+        // Note: We use the token's rawBalance which is already in minimal units (hex)
+        const adjustedBalance = applyPercentage(token.rawBalance as Hex);
+        const transferData = generateTransferData('transfer', {
+          toAddress: selectedAddress,
+          amount: adjustedBalance,
+        });
+
+        const { TransactionController, TransactionPayController } =
+          Engine.context;
+
+        const { transactionMeta } = await TransactionController.addTransaction(
+          {
+            to: mUSDTokenAddress,
+            from: selectedAddress,
+            data: transferData,
+            value: '0x0',
+            chainId: outputChainId,
+          },
+          {
+            // Skip initial gas estimate for better UX - it will be calculated async
+            skipInitialGasEstimate: true,
+            networkClientId,
+            origin: MMM_ORIGIN,
+            type: TransactionType.musdConversion,
+          },
+        );
+
+        // Set payment token - this triggers automatic Relay quote fetching
+        Logger.log('[mUSD Max Conversion] Setting payment token:', {
+          transactionId: transactionMeta.id,
+          tokenAddress,
+          chainId: tokenChainId,
+        });
+
+        TransactionPayController.updatePaymentToken({
+          transactionId: transactionMeta.id,
+          tokenAddress,
+          chainId: tokenChainId,
+        });
+
+        Logger.log(
+          `[mUSD Max Conversion] Created transaction ${transactionMeta.id} for ${token.symbol ?? tokenAddress}`,
+        );
+
+        // Navigate to modal stack AFTER transaction is created
+        // This ensures approvalRequest exists when the confirmation screen renders
+        navigation.navigate(Routes.EARN.MODALS.ROOT, {
+          screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
+          params: {
+            // maxValueMode required to display mUSD max conversion bottom sheet confirmation.
+            maxValueMode: true,
+            outputChainId,
+            token,
+          },
+        });
+
+        return {
+          transactionId: transactionMeta.id,
+          outputChainId,
+        };
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Failed to create max conversion transaction';
+
+        Logger.error(
+          err as Error,
+          '[mUSD Max Conversion] Failed to create max conversion',
+        );
+
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setIsMaxConversionLoading(false);
+      }
+    },
+    [
+      applyPercentage,
+      getMusdTokenAddress,
+      getMusdOutputChainId,
+      navigation,
+      selectedAddress,
+    ],
   );
 
+  /**
+   * Navigates to the custom amount conversion screen.
+   */
   const navigateToConversionScreen = useCallback(
     ({
       outputChainId,
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
-    }: MusdConversionConfig) => {
+    }: CustomConversionConfig) => {
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
@@ -97,8 +244,8 @@ export const useMusdConversion = () => {
    * @returns true if redirected to education, false if user can proceed
    */
   const handleEducationRedirectIfNeeded = useCallback(
-    (config: MusdConversionConfig): boolean => {
-      if (config.skipEducationCheck || hasSeenConversionEducationScreen) {
+    (config: CustomConversionConfig): boolean => {
+      if (config.skipEducationCheck || hasSeenEducation) {
         return false;
       }
 
@@ -118,17 +265,19 @@ export const useMusdConversion = () => {
 
       return true;
     },
-    [hasSeenConversionEducationScreen, navigation],
+    [hasSeenEducation, navigation],
   );
 
   /**
-   * Creates a placeholder transaction and navigates to confirmation.
-   * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
+   * Initiates a custom amount mUSD conversion.
+   *
+   * Creates a placeholder transaction and navigates to the confirmation screen
+   * where the user can specify the amount to convert.
    *
    * If the user has not seen the education screen, they will be redirected there first.
    */
-  const initiateConversion = useCallback(
-    async (config: MusdConversionConfig): Promise<string | void> => {
+  const initiateCustomConversion = useCallback(
+    async (config: CustomConversionConfig): Promise<string | void> => {
       if (handleEducationRedirectIfNeeded(config)) {
         return;
       }
@@ -148,15 +297,18 @@ export const useMusdConversion = () => {
           throw new Error('No account selected');
         }
 
-        const { NetworkController } = Engine.context;
         const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(outputChainId);
+          Engine.context.NetworkController.findNetworkClientIdByChainId(
+            outputChainId,
+          );
 
         if (!networkClientId) {
           throw new Error(
             `Network client not found for chain ID: ${outputChainId}`,
           );
         }
+
+        const mUSDTokenAddress = getMusdTokenAddress(outputChainId);
 
         /**
          * Navigate to the confirmation screen immediately for better UX,
@@ -178,14 +330,6 @@ export const useMusdConversion = () => {
           });
 
           const { TransactionController } = Engine.context;
-
-          const mUSDTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
-
-          if (!mUSDTokenAddress) {
-            throw new Error(
-              `mUSD token address not found for chain ID: ${outputChainId}`,
-            );
-          }
 
           const { transactionMeta } =
             await TransactionController.addTransaction(
@@ -226,11 +370,11 @@ export const useMusdConversion = () => {
         );
 
         setError(errorMessage);
-
         throw err;
       }
     },
     [
+      getMusdTokenAddress,
       handleEducationRedirectIfNeeded,
       navigateToConversionScreen,
       navigation,
@@ -238,9 +382,19 @@ export const useMusdConversion = () => {
     ],
   );
 
+  /**
+   * Resets the error state.
+   */
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
-    initiateConversion,
-    hasSeenConversionEducationScreen,
+    initiateMaxConversion,
+    initiateCustomConversion,
+    clearError,
+    isMaxConversionLoading,
     error,
+    hasSeenEducation,
   };
 };

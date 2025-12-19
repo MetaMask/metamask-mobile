@@ -5,7 +5,7 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
-import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { CustomConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { PayWithRow } from '../../rows/pay-with-row';
@@ -42,7 +42,7 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
-    useParams<MusdConversionConfig>();
+    useParams<CustomConversionConfig>();
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 

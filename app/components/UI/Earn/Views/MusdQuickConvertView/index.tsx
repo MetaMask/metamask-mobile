@@ -14,7 +14,6 @@ import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
-import { useMusdMaxConversion } from '../../hooks/useMusdMaxConversion';
 import {
   selectMusdConversionStatuses,
   createTokenChainKey,
@@ -59,9 +58,11 @@ const MusdQuickConvertView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
-  const { initiateConversion } = useMusdConversion();
-  const { createMaxConversion, isLoading: isMaxConversionLoading } =
-    useMusdMaxConversion();
+  const {
+    initiateCustomConversion,
+    initiateMaxConversion,
+    isMaxConversionLoading,
+  } = useMusdConversion();
   const { getMusdOutputChainId } = useMusdConversionTokens();
 
   // Track which token is currently loading for max conversion
@@ -100,14 +101,14 @@ const MusdQuickConvertView = () => {
       const tokenKey = createTokenChainKey(token.address, token.chainId ?? '');
       setLoadingTokenKey(tokenKey);
       try {
-        await createMaxConversion(token);
+        await initiateMaxConversion(token);
       } finally {
         // Clear loading state after navigation (transaction created successfully)
         // or if an error occurred
         setLoadingTokenKey(null);
       }
     },
-    [createMaxConversion],
+    [initiateMaxConversion],
   );
 
   // navigate to existing confirmation screen
@@ -115,7 +116,7 @@ const MusdQuickConvertView = () => {
     async (token: AssetType) => {
       const outputChainId = getMusdOutputChainId(token.chainId);
 
-      await initiateConversion({
+      await initiateCustomConversion({
         outputChainId,
         preferredPaymentToken: {
           address: token.address as Hex,
@@ -123,7 +124,7 @@ const MusdQuickConvertView = () => {
         },
       });
     },
-    [initiateConversion, getMusdOutputChainId],
+    [initiateCustomConversion, getMusdOutputChainId],
   );
 
   // Get status for a token

@@ -47,9 +47,7 @@ interface EarnMusdConversionEducationViewRouteParams {
  */
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
-
-  const { initiateConversion } = useMusdConversion();
-
+  const { initiateCustomConversion } = useMusdConversion();
   const { preferredPaymentToken, outputChainId } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
 
@@ -142,7 +140,7 @@ const EarnMusdConversionEducationView = () => {
 
       // Proceed to conversion flow if we have the required params
       if (outputChainId && preferredPaymentToken) {
-        await initiateConversion({
+        await initiateCustomConversion({
           outputChainId,
           preferredPaymentToken,
           skipEducationCheck: true,
@@ -162,7 +160,7 @@ const EarnMusdConversionEducationView = () => {
     }
   }, [
     dispatch,
-    initiateConversion,
+      initiateCustomConversion,
     outputChainId,
     preferredPaymentToken,
     submitContinuePressedEvent,
