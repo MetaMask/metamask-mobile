@@ -239,7 +239,7 @@ const CardAuthentication = () => {
   );
 
   const handleResendOtp = useCallback(async () => {
-    if (resendCooldown > 0 || !otpData?.userId) {
+    if (resendCooldown > 0 || !otpData?.userId || otpLoading) {
       return;
     }
 
@@ -252,7 +252,7 @@ const CardAuthentication = () => {
     } catch (err) {
       Logger.log('CardAuthentication::Resend OTP failed', err);
     }
-  }, [resendCooldown, otpData?.userId, sendOtpLogin, location]);
+  }, [resendCooldown, otpData?.userId, sendOtpLogin, location, otpLoading]);
 
   const handleBackToLogin = useCallback(() => {
     setStep('login');

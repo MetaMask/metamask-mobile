@@ -893,6 +893,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                         "flexDirection": "row",
                                         "height": 48,
                                         "justifyContent": "center",
+                                        "opacity": 0.5,
                                         "overflow": "hidden",
                                         "paddingHorizontal": 16,
                                       }
