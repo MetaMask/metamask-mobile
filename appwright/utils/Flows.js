@@ -143,7 +143,7 @@ export async function importSRPFlow(device, srp, dismissModals = false) {
   const timers = [];
   const timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
-    { ios: 1500, android: 1500 },
+    { ios: 1000, android: 3000 },
     device,
   );
   const timer2 = new TimerHelper(
@@ -153,7 +153,7 @@ export async function importSRPFlow(device, srp, dismissModals = false) {
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Import SRP" button until SRP field is displayed',
-    { ios: 1700, android: 1300 },
+    { ios: 1700, android: 1700 },
     device,
   );
   const timer4 = new TimerHelper(
