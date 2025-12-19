@@ -44,7 +44,7 @@ jest.mock('../../../../Analytics', () => {
       __mockTrackEvent: actualMockTrackEvent,
     },
     MetaMetricsEvents: {
-      CARD_ONBOARDING_DEEPLINK: 'Card Onboarding Deeplink',
+      CARD_DEEPLINK_HANDLED: 'Card Deeplink Handled',
     },
   };
 });
