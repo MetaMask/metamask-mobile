@@ -20,7 +20,7 @@ export const selectImportSrpWordSuggestionEnabledRawFlag = createSelector(
     }
     const remoteFlag = remoteFeatureFlags[IMPORT_SRP_WORD_SUGGESTION_FLAG_NAME];
 
-    return Boolean(remoteFlag) ?? DEFAULT_IMPORT_SRP_WORD_SUGGESTION_ENABLED;
+    return Boolean(remoteFlag);
   },
 );
 

@@ -83,7 +83,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       Record<number, boolean>
     >({});
     const [currentInputWord, setCurrentInputWord] = useState<string>('');
-    const [, setFocusedInputIndex] = useState<number | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
+      null,
+    );
 
     const focusedInputIndexRef = useRef<number | null>(null);
     const isSuggestionSelectingRef = useRef<boolean>(false);
