@@ -22,8 +22,8 @@ export interface AnalyticsHelper {
   trackEvent: (event: AnalyticsTrackingEvent) => void;
   trackView: (name: string, properties?: AnalyticsEventProperties) => void;
   identify: (traits?: AnalyticsUserTraits) => void;
-  optIn: () => void;
-  optOut: () => void;
+  optIn: () => Promise<void>;
+  optOut: () => Promise<void>;
   getAnalyticsId: () => Promise<string>;
   isEnabled: () => boolean;
   isOptedIn: () => Promise<boolean>;
@@ -76,20 +76,31 @@ const identify = (traits?: AnalyticsUserTraits): void => {
 
 /**
  * Opt in to analytics
+ * Returns a promise that resolves when the opt-in operation has been processed
  */
-const optIn = (): void => {
-  queueManager.queueOperation('optIn').catch((error) => {
+const optIn = async (): Promise<void> => {
+  try {
+    await queueManager.queueOperation('optIn');
+    // Wait for state to propagate after optIn is processed
+    // This ensures isEnabled() returns true before subsequent trackEvent calls
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  } catch (error) {
     Logger.log('Analytics: Unhandled error in optIn', error);
-  });
+  }
 };
 
 /**
  * Opt out of analytics
+ * Returns a promise that resolves when the opt-out operation has been processed
  */
-const optOut = (): void => {
-  queueManager.queueOperation('optOut').catch((error) => {
+const optOut = async (): Promise<void> => {
+  try {
+    await queueManager.queueOperation('optOut');
+    // Wait for state to propagate after optOut is processed
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  } catch (error) {
     Logger.log('Analytics: Unhandled error in optOut', error);
-  });
+  }
 };
 
 /**

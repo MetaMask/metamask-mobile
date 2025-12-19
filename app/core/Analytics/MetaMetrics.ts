@@ -19,8 +19,6 @@ import {
   IMetaMetrics,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
-import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { analytics } from '../../util/analytics/analytics';
@@ -353,27 +351,11 @@ class MetaMetrics implements IMetaMetrics {
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
       // Note: Privacy plugin is now added in platform-adapter during AnalyticsController initialization
+      // User identification is now handled in analytics-controller-init.ts
       // No need to add it here anymore
 
       this.#isConfigured = true;
-
-      // identify user with the latest traits
-      // run only after the MetaMetrics is configured
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      if (analytics.isEnabled()) {
-        analytics.identify(
-          consolidatedTraits as unknown as import('@metamask/analytics-controller').AnalyticsUserTraits,
-        );
-      }
-
-      const analyticsId = await analytics.getAnalyticsId();
-      if (__DEV__) Logger.log(`MetaMetrics configured with ID: ${analyticsId}`);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
     return this.#isConfigured;
@@ -383,12 +365,13 @@ class MetaMetrics implements IMetaMetrics {
    * Enable or disable MetaMetrics
    *
    * @param enable - Boolean indicating if MetaMetrics should be enabled or disabled
+   * @deprecated Use {@link analytics.optIn} or {@link analytics.optOut} from `app/util/analytics/analytics` instead
    */
   enable = async (enable = true): Promise<void> => {
     if (enable) {
-      analytics.optIn();
+      await analytics.optIn();
     } else {
-      analytics.optOut();
+      await analytics.optOut();
     }
   };
 
@@ -396,6 +379,7 @@ class MetaMetrics implements IMetaMetrics {
    * Check if MetaMetrics is enabled
    *
    * @returns Boolean indicating if MetaMetrics is enabled or disabled
+   * @deprecated Use {@link analytics.isEnabled} from `app/util/analytics/analytics` instead
    */
   isEnabled = (): boolean => analytics.isEnabled();
 
@@ -407,6 +391,7 @@ class MetaMetrics implements IMetaMetrics {
    * @remarks method can be called multiple times,
    * new traits are sent with the underlying identification call to Segment
    * and user traits are updated with the latest ones
+   * @deprecated Use {@link analytics.identify} from `app/util/analytics/analytics` instead
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
     if (analytics.isEnabled()) {
@@ -427,8 +412,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   group = (_groupId: string, _groupTraits?: GroupTraits): Promise<void> =>
     // Deprecated method - no-op
-     Promise.resolve()
-  ;
+    Promise.resolve();
 
   /**
    * Track an event
@@ -469,6 +453,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   * @deprecated Use {@link analytics.trackEvent} from `app/util/analytics/analytics` instead. Prefer using {@link useMetrics} hook in components.
    */
   trackEvent = (
     // New signature
@@ -593,8 +578,10 @@ class MetaMetrics implements IMetaMetrics {
    * Get the current MetaMetrics ID
    *
    * @returns the current MetaMetrics ID
+   * @deprecated Use {@link analytics.getAnalyticsId} from `app/util/analytics/analytics` instead
    */
-  getMetaMetricsId = async (): Promise<string> => await analytics.getAnalyticsId();
+  getMetaMetricsId = async (): Promise<string> =>
+    await analytics.getAnalyticsId();
 }
 
 export default MetaMetrics;
