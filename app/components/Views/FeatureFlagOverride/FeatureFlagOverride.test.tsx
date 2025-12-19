@@ -10,7 +10,7 @@ import {
   FeatureFlagInfo,
   isMinimumRequiredVersionSupported,
 } from '../../../util/feature-flags';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({

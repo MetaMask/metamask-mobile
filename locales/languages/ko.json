@@ -7204,7 +7204,7 @@
       "description": "연결하는 데 실패했습니다. 다시 시도하세요."
     },
     "show_rejection": {
-      "title": "Approval Rejected",
+      "title": "Approval rejected",
       "description": "User rejected the request."
     },
     "show_return_to_app": {
@@ -7227,7 +7227,7 @@
     "title": "Explore",
     "view_all": "View all",
     "tokens": "토큰",
-    "trending_tokens": "Trending Tokens",
+    "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "모든 네트워크",
     "24h": "24h",
@@ -7249,7 +7249,7 @@
     "predictions": "예측",
     "no_results": "No results found",
     "sites": "사이트",
-    "popular_sites": "Popular Sites",
+    "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
