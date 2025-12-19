@@ -66,7 +66,7 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Track remote feature flags and add all flags to user traits in bulk
   useEffect(() => {
-    if (Object.keys(rawFeatureFlags).length > 0) {
+    if (rawFeatureFlags && Object.keys(rawFeatureFlags).length > 0) {
       addTraitsToUser(rawFeatureFlags);
     }
   }, [rawFeatureFlags, addTraitsToUser]);
@@ -101,8 +101,8 @@ export const FeatureFlagOverrideProvider: React.FC<
 
     // Process all feature flags and return flat list
     Array.from(allKeys).forEach((key: string) => {
-      const originalValue = rawFeatureFlags[key];
-      const currentValue = featureFlagsWithOverrides[key];
+      const originalValue = rawFeatureFlags?.[key];
+      const currentValue = featureFlagsWithOverrides?.[key];
       const isOverridden = hasOverride(key);
 
       const flagValue = {
