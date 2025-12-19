@@ -22,6 +22,16 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
   [CHAIN_IDS.BSC]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
 };
 
+/**
+ * Chains where mUSD CTA should show (buy routes available).
+ * BSC is excluded as buy routes are not yet available.
+ */
+export const MUSD_BUYABLE_CHAIN_IDS: Hex[] = [
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+  // CHAIN_IDS.BSC, // TODO: Uncomment once buy routes are available
+];
+
 export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
   [CHAIN_IDS.MAINNET]:
     'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
