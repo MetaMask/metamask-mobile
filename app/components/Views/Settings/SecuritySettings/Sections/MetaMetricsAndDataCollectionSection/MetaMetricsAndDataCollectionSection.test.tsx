@@ -44,7 +44,25 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../../core/Analytics/MetaMetrics');
+// Mock analytics module
+jest.mock('../../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Mock MetaMetrics for events
+jest.mock('../../../../../../core/Analytics/MetaMetrics', () => ({
+  MetaMetricsEvents: jest.requireActual('../../../../../../core/Analytics/MetaMetrics')
+    .MetaMetricsEvents,
+}));
 
 jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
   updateMarketingOptInStatus: jest.fn(),
@@ -62,14 +80,10 @@ jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
   }),
 }));
 
-const mockMetrics = {
-  trackEvent: jest.fn(),
-  enable: jest.fn(() => Promise.resolve()),
-  addTraitsToUser: jest.fn(() => Promise.resolve()),
-  isEnabled: jest.fn(() => false),
-};
+// Import analytics to access mocks
+import { analytics } from '../../../../../../util/analytics/analytics';
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 const mockUpdateMarketingOptInStatus =
   OAuthService.updateMarketingOptInStatus as jest.MockedFunction<
@@ -157,6 +171,11 @@ describe('MetaMetricsAndDataCollectionSection', () => {
     jest.clearAllMocks();
     mockUpdateMarketingOptInStatus.mockClear();
     mockSelectSeedlessOnboardingLoginFlow.mockClear();
+    (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockAnalytics.trackEvent as jest.Mock).mockClear();
+    (mockAnalytics.optIn as jest.Mock).mockClear();
+    (mockAnalytics.optOut as jest.Mock).mockClear();
+    (mockAnalytics.identify as jest.Mock).mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -191,7 +210,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
     describe('switch', () => {
       it('is on when MetaMetrics is initially enabled', async () => {
-        mockMetrics.isEnabled.mockReturnValue(true);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -208,7 +227,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('is off when MetaMetrics is initially disabled', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -224,7 +243,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('is disabled when basic functionality is disabled', async () => {
-        mockMetrics.isEnabled.mockReturnValue(true);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -245,7 +264,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('calls autoSignIn when toggling the switch', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -262,7 +281,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('alerts and disables marketing when turned off', async () => {
-        mockMetrics.isEnabled.mockReturnValue(true);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -288,15 +307,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         await waitFor(() => {
           expect(metaMetricsSwitch.props.value).toBe(false);
           expect(marketingSwitch.props.value).toBe(false);
-          expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+          expect(mockAnalytics.optOut).toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
-          expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
-          expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+          expect(mockAnalytics.identify).not.toHaveBeenCalled();
+          expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
         });
       });
 
       it('keeps marketing off, adds traits to user and tracks event when turned on', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -323,13 +342,13 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         await waitFor(() => {
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(marketingSwitch.props.value).toBe(false);
-          expect(mockMetrics.enable).toHaveBeenCalledWith();
+          expect(mockAnalytics.optIn).toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
-          expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
+          expect(mockAnalytics.identify).toHaveBeenCalledWith({
             deviceProp: 'Device value',
             userProp: 'User value',
           });
-          expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
             MetricsEventBuilder.createEventBuilder(
               MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             )
@@ -344,7 +363,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('dispatches storePna25Acknowledged when flag is enabled and user enables metrics', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
         mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
@@ -366,7 +385,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('does not dispatch storePna25Acknowledged when flag is disabled', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
         mockSelectIsPna25FlagEnabled.mockReturnValue(false);
         mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
@@ -388,7 +407,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('does not dispatch storePna25Acknowledged when already acknowledged', async () => {
-        mockMetrics.isEnabled.mockReturnValue(false);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
         mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(true);
 
@@ -410,7 +429,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('does not dispatch storePna25Acknowledged when user disables metrics', async () => {
-        mockMetrics.isEnabled.mockReturnValue(true);
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         mockSelectIsPna25FlagEnabled.mockReturnValue(true);
         mockSelectIsPna25Acknowledged.mockReturnValue(false);
 
@@ -439,7 +458,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
 
         it('enables social login metrics when toggling MetaMetrics switch on', async () => {
-          mockMetrics.isEnabled.mockReturnValue(false);
+          (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
 
           const { findByTestId } = renderScreen(
             MetaMetricsAndDataCollectionSection,
@@ -454,15 +473,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           fireEvent(metaMetricsSwitch, 'valueChange', true);
 
           await waitFor(() => {
-            expect(mockMetrics.enable).toHaveBeenCalled();
+            expect(mockAnalytics.optIn).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
-            expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
-            expect(mockMetrics.trackEvent).toHaveBeenCalled();
+            expect(mockAnalytics.identify).toHaveBeenCalled();
+            expect(mockAnalytics.trackEvent).toHaveBeenCalled();
           });
         });
 
         it('disables social login metrics and disables marketing when toggling MetaMetrics switch off', async () => {
-          mockMetrics.isEnabled.mockReturnValue(true);
+          (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
 
           const { findByTestId } = renderScreen(
             MetaMetricsAndDataCollectionSection,
@@ -489,15 +508,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(false);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+            expect(mockAnalytics.optOut).toHaveBeenCalled();
             expect(mockAlert).toHaveBeenCalled();
-            expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
-            expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+            expect(mockAnalytics.identify).not.toHaveBeenCalled();
+            expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
           });
         });
 
         it('keeps marketing off, adds traits to user and tracks event when turned on (social login flow)', async () => {
-          mockMetrics.isEnabled.mockReturnValue(false);
+          (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
 
           const { findByTestId } = renderScreen(
             MetaMetricsAndDataCollectionSection,
@@ -526,8 +545,8 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(marketingSwitch.props.value).toBe(false);
             expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
-            expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
-            expect(mockMetrics.trackEvent).toHaveBeenCalled();
+            expect(mockAnalytics.identify).toHaveBeenCalled();
+            expect(mockAnalytics.trackEvent).toHaveBeenCalled();
           });
         });
       });
@@ -625,12 +644,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
           // Not called when MetaMetrics is initially enabled
           if (!metaMetricsInitiallyEnabled) {
-            expect(mockMetrics.enable).toHaveBeenCalledWith();
-            expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+            expect(mockAnalytics.optIn).toHaveBeenCalled();
+            expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
               deviceProp: 'Device value',
               userProp: 'User value',
             });
-            expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
+            expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
               1,
               MetricsEventBuilder.createEventBuilder(
                 MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -644,14 +663,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             );
           }
 
-          expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(
+          expect(mockAnalytics.identify).toHaveBeenNthCalledWith(
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
               has_marketing_consent: 'ON',
             },
           );
-          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
+          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
             // if MetaMetrics is initially disabled, trackEvent is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             MetricsEventBuilder.createEventBuilder(
@@ -703,14 +722,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         await waitFor(() => {
           expect(marketingSwitch.props.value).toBe(false);
           expect(metaMetricsSwitch.props.value).toBe(true);
-          expect(mockMetrics.enable).not.toHaveBeenCalled();
+          expect(mockAnalytics.optIn).not.toHaveBeenCalled();
+          expect(mockAnalytics.optOut).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
-          expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
-          expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
+          expect(mockAnalytics.identify).toHaveBeenCalledTimes(1);
+          expect(mockAnalytics.identify).toHaveBeenCalledWith({
             has_marketing_consent: 'OFF',
           });
-          expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
-          expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
             MetricsEventBuilder.createEventBuilder(
               MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             )

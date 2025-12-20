@@ -55,7 +55,33 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/Analytics/MetaMetrics');
+// Mock analytics module
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Mock MetaMetrics for any remaining methods
+const mockIsEnabled = jest.fn(() => true);
+jest.mock('../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockIsEnabled,
+    getMetaMetricsId: jest.fn(() => Promise.resolve('test-metametrics-id')),
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+  }),
+}));
 
 jest.mock(
   '../../core/Engine/controllers/remote-feature-flag-controller/utils',
@@ -65,14 +91,10 @@ jest.mock(
   }),
 );
 
-const mockMetrics = {
-  isEnabled: jest.fn(() => true),
-  getMetaMetricsId: jest.fn(() =>
-    Promise.resolve('6D796265-7374-4953-6D65-74616D61736B'),
-  ),
-};
+// Import analytics to access mocks
+import { analytics } from '../../util/analytics/analytics';
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 describe('logs :: generateStateLogs', () => {
   beforeEach(() => {
@@ -896,7 +918,7 @@ describe('logs :: downloadStateLogs', () => {
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    (mockMetrics.isEnabled as jest.Mock).mockReturnValue(false);
+    mockIsEnabled.mockReturnValue(false);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
