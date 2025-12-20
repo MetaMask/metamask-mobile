@@ -333,11 +333,13 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+      MUSD_MAX_CONVERSION: 'EarnMusdMaxConversionModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

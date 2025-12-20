@@ -95,8 +95,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -120,8 +122,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -140,8 +144,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -162,8 +168,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -182,8 +190,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -204,8 +214,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -242,8 +254,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -279,8 +293,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [firstToken, secondToken],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -311,8 +327,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -339,8 +357,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -395,8 +415,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });
@@ -449,8 +471,10 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        tokensWithCTAs: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
       });

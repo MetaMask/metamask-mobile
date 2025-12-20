@@ -84,8 +84,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } =
-    useEarnToken(token);
+  const { earnTokenPair } = useEarnToken(token);
 
   const earnToken = earnTokenPair?.earnToken;
   const outputToken = earnTokenPair?.outputToken;
@@ -180,15 +179,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   //   return parseFloat(healthFactor).toFixed(2);
   // };
-
-  useEffect(() => {
-    if (!earnToken) {
-      getTokenSnapshot(
-        outputToken?.chainId as Hex,
-        outputToken?.experience.market?.underlying?.address as Hex,
-      );
-    }
-  }, [outputToken, getTokenSnapshot, earnToken]);
 
   // Needed to get token's network name
   const networkConfig =
@@ -339,36 +329,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          if (!earnToken) {
-            try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
-          }
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [emitTxMetaMetric, navigation, outputToken?.chainId],
   );
 
   // Guards

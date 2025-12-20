@@ -136,10 +136,12 @@ const mockUseMusdConversionTokens =
   >;
 mockUseMusdConversionTokens.mockReturnValue({
   isConversionToken: jest.fn().mockReturnValue(false),
-  tokenFilter: jest.fn(),
+  isTokenWithCta: jest.fn().mockReturnValue(false),
+  filterAllowedTokens: jest.fn(),
   isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
   getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
   tokens: [],
+  tokensWithCTAs: [],
 });
 
 jest.mock('../../../../../selectors/earnController/earn', () => ({
@@ -494,10 +496,12 @@ describe('StakeButton', () => {
       });
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(false),
-        tokenFilter: jest.fn(),
+        isTokenWithCta: jest.fn().mockReturnValue(false),
+        filterAllowedTokens: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
+        tokensWithCTAs: [],
       });
     });
 
@@ -514,10 +518,17 @@ describe('StakeButton', () => {
               MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
-        tokenFilter: jest.fn(),
+        isTokenWithCta: jest.fn(
+          (asset) =>
+            asset?.address?.toLowerCase() ===
+              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
+            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
+        ),
+        filterAllowedTokens: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
+        tokensWithCTAs: [],
       });
 
       const { getByText } = renderWithProvider(
@@ -547,10 +558,17 @@ describe('StakeButton', () => {
               MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
-        tokenFilter: jest.fn(),
+        isTokenWithCta: jest.fn(
+          (asset) =>
+            asset?.address?.toLowerCase() ===
+              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
+            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
+        ),
+        filterAllowedTokens: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
+        tokensWithCTAs: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -591,10 +609,17 @@ describe('StakeButton', () => {
               MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
-        tokenFilter: jest.fn(),
+        isTokenWithCta: jest.fn(
+          (asset) =>
+            asset?.address?.toLowerCase() ===
+              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
+            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
+        ),
+        filterAllowedTokens: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
+        tokensWithCTAs: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -630,10 +655,17 @@ describe('StakeButton', () => {
               MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
-        tokenFilter: jest.fn(),
+        isTokenWithCta: jest.fn(
+          (asset) =>
+            asset?.address?.toLowerCase() ===
+              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
+            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
+        ),
+        filterAllowedTokens: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
+        tokensWithCTAs: [],
       });
 
       const zeroBalanceAsset = {

@@ -32,7 +32,7 @@ import {
   selectNetworkConfigurationByChainId,
   selectDefaultEndpointByChainId,
 } from '../../../../../selectors/networkController';
-import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import { selectTokenMarketDataByChainId } from '../../../../../selectors/tokenRatesController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import Keypad from '../../../../Base/Keypad';
@@ -74,6 +74,8 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -86,6 +88,7 @@ const EarnInputView = () => {
   // navigation hooks
   const navigation = useNavigation();
   const route = useRoute<EarnInputViewProps['route']>();
+  const { navigateToConfirmation } = useConfirmNavigation();
   const { token } = route.params;
 
   // We want to keep track of the last quick amount pressed before navigating to review.
@@ -102,7 +105,7 @@ const EarnInputView = () => {
   );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
-    selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
+    selectTokenMarketDataByChainId(state, token?.chainId as Hex),
   );
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
@@ -434,16 +437,18 @@ const EarnInputView = () => {
         type: TransactionType.lendingDeposit,
       };
 
+      // Navigate first so the loader shows while the transaction batch is being added
+      navigateToConfirmation({
+        loader: ConfirmationLoader.Default,
+        stack: 'StakeScreens',
+      });
+
       addTransactionBatch({
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
-      });
-
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     };
 
@@ -491,6 +496,7 @@ const EarnInputView = () => {
     amountTokenMinimalUnit,
     networkClientId,
     navigation,
+    navigateToConfirmation,
     token,
     amountFiatNumber,
     annualRewardsToken,
