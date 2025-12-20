@@ -5,7 +5,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { useTheme } from '../../../../../util/theme';
@@ -78,15 +82,24 @@ const PredictFeed = () => {
   );
 
   const balanceCardAnimatedStyle = useAnimatedStyle(() => {
+    'worklet';
     const offset = scrollCoordinator.balanceCardOffset.value;
     const height = scrollCoordinator.balanceCardHeight.value;
-    const opacity = height > 0 ? Math.max(0, 1 + offset / height) : 1;
+
+    // Smoothly fade out as card moves up
+    const opacity =
+      height > 0
+        ? interpolate(offset, [-height, 0], [0, 1], Extrapolation.CLAMP)
+        : 1;
 
     return {
       transform: [{ translateY: offset }],
       opacity,
     };
-  });
+  }, [
+    scrollCoordinator.balanceCardOffset,
+    scrollCoordinator.balanceCardHeight,
+  ]);
 
   const handleSearchToggle = () => {
     setIsSearchVisible(true);
