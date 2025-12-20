@@ -15,15 +15,29 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
-import { Json } from '@metamask/snaps-sdk';
+import { Json, SnapId } from '@metamask/snaps-sdk';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
+import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSnap';
+import { BITCOIN_WALLET_SNAP_ID } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { TRON_WALLET_SNAP_ID } from '../../../core/SnapKeyring/TronWalletSnap';
+
+const MULTICHAIN_WALLET_SNAP_IDS = [
+  SOLANA_WALLET_SNAP_ID,
+  BITCOIN_WALLET_SNAP_ID,
+  TRON_WALLET_SNAP_ID,
+];
 
 export enum TemplateConfirmation {
   Ok = 'template_confirmation.ok',
   CANCEL = 'template_confirmation.cancel',
 }
 
-const SnapDialogApproval = () => {
+const SnapDialogApproval = ({
+  route,
+}: {
+  route?: { params?: { isConfirmationSubroute?: boolean } };
+}) => {
+  const isConfirmationSubroute = route?.params?.isConfirmationSubroute;
   const [isDismissed, setIsDismissed] = useState(false);
   const { approvalRequest } = useApprovalRequest();
   const { styles } = useStyles(stylesheet, {});
@@ -88,6 +102,14 @@ const SnapDialogApproval = () => {
   )
     return null;
 
+  // Temporary early return - needs a fix
+  if (
+    !isConfirmationSubroute &&
+    MULTICHAIN_WALLET_SNAP_IDS.includes(approvalRequest?.origin as SnapId)
+  ) {
+    return null;
+  }
+
   const getDialogButtons = (type: string | undefined) => {
     switch (type) {
       case DIALOG_APPROVAL_TYPES.alert:
@@ -124,6 +146,33 @@ const SnapDialogApproval = () => {
   const snapId = approvalRequest?.origin;
   const interfaceId = approvalRequest?.requestData?.id;
 
+  const content = (
+    <View style={styles.root}>
+      <SnapUIRenderer
+        snapId={snapId}
+        interfaceId={interfaceId}
+        onCancel={onCancel}
+        useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{
+          marginBottom:
+            approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default ? 80 : 0,
+        }}
+      />
+      {approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default && (
+        <BottomSheetFooter
+          style={styles.footer}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonPropsArray={buttons}
+        />
+      )}
+    </View>
+  );
+
+  if (isConfirmationSubroute) {
+    return content;
+  }
+
   return (
     <ApprovalModal
       isVisible={
@@ -134,26 +183,7 @@ const SnapDialogApproval = () => {
       onCancel={onCancel}
       avoidKeyboard
     >
-      <View style={styles.root}>
-        <SnapUIRenderer
-          snapId={snapId}
-          interfaceId={interfaceId}
-          onCancel={onCancel}
-          useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{
-            marginBottom:
-              approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default ? 80 : 0,
-          }}
-        />
-        {approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default && (
-          <BottomSheetFooter
-            style={styles.footer}
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            buttonPropsArray={buttons}
-          />
-        )}
-      </View>
+      {content}
     </ApprovalModal>
   );
 };
