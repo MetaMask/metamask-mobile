@@ -9,6 +9,7 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import { isE2E } from '../../util/test/utils';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -132,30 +133,48 @@ export const ControllerStorage = {
 // Use the consolidated storage WITH AsyncStorage fallback for migration scenarios
 const MigratedStorage = createStorage(true);
 /**
+ * The core persistence function that saves controller state to filesystem storage.
+ */
+const persistControllerState = async (
+  filteredState: unknown,
+  controllerName: string,
+) => {
+  try {
+    // Save the filtered state to filesystem storage
+    await ControllerStorage.setItem(
+      `persist:${controllerName}`,
+      JSON.stringify(filteredState),
+    );
+
+    Logger.log(`${controllerName} state persisted successfully`);
+  } catch (error) {
+    Logger.error(error as Error, {
+      message: `Failed to persist ${controllerName} state`,
+    });
+  }
+};
+
+/**
  * Creates a debounced controller persistence function.
  *
  * This utility handles saving controller state to individual filesystem storage files
  * with automatic debouncing to prevent excessive writes during rapid state changes.
  *
+ * During E2E tests, debouncing is skipped to prevent pending timers that cause
+ * Detox synchronization issues. The persistence is still performed, just immediately.
+ *
  * @param debounceMs - Milliseconds to debounce persistence operations (default: 200ms)
- * @returns Debounced persistence function
+ * @returns Debounced persistence function (or immediate function in E2E)
  */
-export const createPersistController = (debounceMs: number = 200) =>
-  debounce(async (filteredState: unknown, controllerName: string) => {
-    try {
-      // Save the filtered state to filesystem storage
-      await ControllerStorage.setItem(
-        `persist:${controllerName}`,
-        JSON.stringify(filteredState),
-      );
+export const createPersistController = (debounceMs: number = 200) => {
+  // Skip debouncing during E2E tests to prevent pending timers
+  // that cause Detox synchronization issues
+  if (isE2E) {
+    return persistControllerState;
+  }
 
-      Logger.log(`${controllerName} state persisted successfully`);
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to persist ${controllerName} state`,
-      });
-    }
-  }, debounceMs);
+  return debounce(persistControllerState, debounceMs);
+};
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {

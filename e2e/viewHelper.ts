@@ -380,6 +380,7 @@ export const switchToSepoliaNetwork = async () => {
  */
 export const waitForAppReady = async (timeout: number = 15000) => {
   const startTime = Date.now();
+  // await device.disableSynchronization();
 
   logger.debug('Waiting for app to complete rehydration and stabilize...');
 
@@ -415,6 +416,7 @@ export const waitForAppReady = async (timeout: number = 15000) => {
         `This may indicate rehydration issues or state corruption.`,
     );
   }
+  // await device.enableSynchronization();
 };
 
 /**

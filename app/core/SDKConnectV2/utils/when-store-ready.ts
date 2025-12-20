@@ -1,4 +1,5 @@
 import { store } from '../../../store';
+import { isE2E } from '../../../util/test/utils';
 
 const isStoreReady = () => {
   try {
@@ -15,6 +16,9 @@ const isStoreReady = () => {
   }
 };
 
+// Use shorter polling interval during E2E tests to reduce pending timers
+const POLL_INTERVAL = isE2E ? 10 : 100;
+
 /**
  * Waits for the Redux store and its dispatch method to be available.
  * This utility helps prevent a rare race condition during app initialization where
@@ -24,6 +28,6 @@ const isStoreReady = () => {
  */
 export const whenStoreReady = async (): Promise<void> => {
   while (!isStoreReady()) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
   }
 };
