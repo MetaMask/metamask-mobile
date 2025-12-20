@@ -73,6 +73,7 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
+export { usePerpsMarketFills } from './usePerpsMarketFills';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';
