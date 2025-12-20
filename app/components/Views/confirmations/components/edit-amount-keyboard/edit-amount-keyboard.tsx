@@ -59,7 +59,6 @@ export function EditAmountKeyboard({
 
   return (
     <View style={styles.wrapper}>
-      {additionalRow}
       {showAdditionalKeyboard && (
         <Box
           testID="edit-amount-keyboard"
@@ -88,11 +87,13 @@ export function EditAmountKeyboard({
           )}
         </Box>
       )}
+
       <KeypadComponent
         value={value}
         onChange={handleChange}
         currency="native"
       />
+      {additionalRow}
     </View>
   );
 }
