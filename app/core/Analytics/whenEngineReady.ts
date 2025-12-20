@@ -1,14 +1,20 @@
-import Engine from '../Engine/Engine';
-
 const MAX_RETRIES = 5;
 const INITIAL_DELAY_MS = 1000;
+
+/**
+ * Lazy import Engine to avoid circular dependencies
+ * Engine is only accessed at runtime, not at module load time
+ */
+const getEngine = () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../Engine/Engine').default;
 
 /**
  * Check if Engine is initialized
  */
 const isEngineReady = (): boolean => {
   try {
-    if (Engine.context) {
+    if (getEngine().context) {
       return true;
     }
     return false;

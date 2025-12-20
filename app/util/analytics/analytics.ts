@@ -3,7 +3,6 @@ import {
   type AnalyticsUserTraits,
   analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
-import Engine from '../../core/Engine/Engine';
 import { whenEngineReady } from '../../core/Analytics/whenEngineReady';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
@@ -30,10 +29,18 @@ export interface AnalyticsHelper {
 }
 
 /**
+ * Lazy import Engine to avoid circular dependencies
+ * Engine is only accessed at runtime, not at module load time
+ */
+const getEngine = () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../core/Engine/Engine').default;
+
+/**
  * Create singleton queue manager instance
  */
 const queueManager = createAnalyticsQueueManager({
-  getEngineMessenger: () => Engine.controllerMessenger,
+  getEngineMessenger: () => getEngine().controllerMessenger,
   whenEngineReady,
 });
 
@@ -124,7 +131,7 @@ const isEnabled = (): boolean => {
     const reduxState = store.getState();
     const enabled = selectAnalyticsEnabled(reduxState);
     // Also check Engine state directly as fallback (in case Redux hasn't synced yet)
-    const engineState = Engine.state?.AnalyticsController;
+    const engineState = getEngine().state?.AnalyticsController;
     const engineEnabled =
       engineState && analyticsControllerSelectors.selectEnabled(engineState);
 
