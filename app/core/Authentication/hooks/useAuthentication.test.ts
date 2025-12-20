@@ -105,13 +105,13 @@ describe('useAuthentication', () => {
       expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
-    it('creates new function reference on each render', () => {
+    it('returns same function reference across renders', () => {
       const { result, rerender } = renderHook(() => useAuthentication());
       const firstReference = result.current.lockApp;
 
       rerender();
 
-      expect(result.current.lockApp).not.toBe(firstReference);
+      expect(result.current.lockApp).toBe(firstReference);
       expect(typeof result.current.lockApp).toBe('function');
     });
   });
