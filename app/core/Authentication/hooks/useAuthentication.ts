@@ -7,4 +7,5 @@ export default () => ({
   reauthenticate: Authentication.reauthenticate,
   revealSRP: Authentication.revealSRP,
   revealPrivateKey: Authentication.revealPrivateKey,
+  unlockWallet: Authentication.unlockWallet,
 });

@@ -78,6 +78,10 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import {
+  checkPasswordRequirement,
+  handlePasswordSubmissionError,
+} from './utils';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -725,6 +729,109 @@ class AuthenticationService {
   };
 
   /**
+   * Method for unlocking the wallet.
+   *
+   * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
+   * If the user exists and the biometric credentials are not found, it will navigate to the login flow and request the user to enter their password.
+   * If the user does not exist, it will place the user in the onboarding flow.
+   */
+  unlockWallet = async (
+    {
+      password,
+      authPreference,
+    }: {
+      password?: string;
+      authPreference?: AuthData;
+    } = { password: undefined, authPreference: undefined },
+  ) => {
+    const { KeyringController } = Engine.context;
+    const existingUser = selectExistingUser(ReduxService.store.getState());
+    let passwordToUse;
+
+    if (existingUser) {
+      // User exists. Attempt to unlock wallet.
+
+      if (password) {
+        // Explicitly provided password.
+        passwordToUse = password;
+      } else {
+        // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
+        // TODO: Add try catch block to handle canceling biometric/passcode etc
+        // TODO: Check if it throws if there's no password set, or biometrics is not allowed
+        const credentials = await SecureKeychain.getGenericPassword();
+        passwordToUse = credentials?.password;
+      }
+
+      if (passwordToUse) {
+        // Password available. Use password to unlock wallet.
+        try {
+          // TODO: Refactor in a follow up
+          if (authPreference?.oauth2Login) {
+            // if seedless flow - rehydrate
+            await this.rehydrateSeedPhrase(passwordToUse);
+          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+            // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+            await this.syncPasswordAndUnlockWallet(passwordToUse);
+          } else {
+            //Unlock keyrings.
+            await KeyringController.submitPassword(passwordToUse);
+            if (
+              selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+            ) {
+              await Engine.context.SeedlessOnboardingController.submitPassword(
+                passwordToUse,
+              );
+
+              // renew refresh token
+              renewSeedlessControllerRefreshTokens(passwordToUse).catch(
+                (err) => {
+                  Logger.error(err, 'Failed to renew refresh token');
+                },
+              );
+            }
+          }
+
+          // Store password using authentication preference.
+          // if (authPreference) {
+          //   await this.updateAuthPreference({password, authPreference});
+          // }
+
+          // TODO: Verify with Mario if setting existing user to true is necessary to prevent the vault recovery flow from reappearing after vault recovery
+
+          // TODO: Refactor in a follow up
+          await this.dispatchLogin();
+          this.authData = authPreference ?? this.authData;
+          this.dispatchPasswordSet();
+          void this.postLoginAsyncOperations();
+
+          // Navigate to home screen.
+          NavigationService.navigation?.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        } catch (error: unknown) {
+          // Error while submitting password.
+          // TODO: Also handle seedless error
+          handlePasswordSubmissionError(error);
+        }
+      } else {
+        // No password found. Navigate to login.
+        NavigationService.navigation?.reset({
+          routes: [
+            {
+              name: Routes.ONBOARDING.LOGIN,
+            },
+          ],
+        });
+      }
+    } else {
+      // User is new. Navigate to onboarding.
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    }
+  };
+
+  /**
    * Attempts to use biometric/pin code/remember me to login
    * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
@@ -807,7 +914,10 @@ class AuthenticationService {
     navigateToLogin = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    // Wipes biometric/pin-code/remember me if reset is true.
     if (reset) await this.resetPassword();
+
+    // Lock the KeyringController.
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
@@ -821,8 +931,14 @@ class AuthenticationService {
     // the function swallowed the error
     this.checkIsSeedlessPasswordOutdated(true);
 
+    // Reset authentication preference.
+    // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
+
+    // Dispatch logout to Redux. Authentication state machine in sagas uses this action.
     this.dispatchLogout();
+
+    // Navigate user to the login screen.
     if (navigateToLogin) {
       NavigationService.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
