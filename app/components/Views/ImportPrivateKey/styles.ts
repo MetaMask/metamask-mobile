@@ -1,7 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +12,6 @@ const createStyles = (colors: any) =>
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
@@ -41,14 +39,13 @@ const createStyles = (colors: any) =>
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
       paddingBottom: Platform.select({
-        ios: 36,
+        ios: 0,
         android: 24,
       }),
       backgroundColor: colors.background.default,
     },
     top: {
       paddingTop: 0,
-      padding: 24,
       width: '100%',
     },
     bottom: {
@@ -58,32 +55,42 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
     },
     input: {
-      backgroundColor: colors.background.default,
-      fontSize: 14,
-      borderRadius: 6,
+      backgroundColor: colors.background.section,
+      fontSize: 16,
+      borderRadius: 8,
       height: 120,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
       ...fontStyles.normal,
-      color: colors.text.muted,
+      color: colors.text.alternative,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginVertical: 16,
+      marginVertical: 8,
+      lineHeight: 24,
     },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
-      marginRight: 16,
-      marginTop: Device.isIphoneX() ? 40 : 24,
+    navbarLeftButton: {
+      alignSelf: 'flex-start',
+      marginLeft: 16,
     },
     textContainer: {
-      width: '90%',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
-      rowGap: 24,
+      rowGap: 8,
       marginTop: 16,
-      paddingLeft: 12,
+      paddingHorizontal: 16,
+    },
+    descriptionText: {
+      fontSize: 16,
+      lineHeight: 24,
+    },
+    subtitleText: {
+      fontSize: 16,
+      lineHeight: 24,
+      fontWeight: '500',
+    },
+    learnMoreText: {
+      fontSize: 16,
+      lineHeight: 24,
     },
   });
 
