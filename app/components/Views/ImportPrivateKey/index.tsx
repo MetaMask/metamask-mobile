@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Alert,
@@ -8,6 +8,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -19,11 +20,6 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
   TextColor,
@@ -33,11 +29,9 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { getBackAndCloseNavbar } from '../../UI/Navbar';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -51,7 +45,8 @@ const ImportPrivateKey = () => {
   const navigation = useNavigation();
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -77,6 +72,17 @@ const ImportPrivateKey = () => {
     // eslint-disable-next-line
   }, []);
 
+  useLayoutEffect(() => {
+    navigation.setOptions(
+      getBackAndCloseNavbar(navigation, colors, {
+        testIDs: {
+          back: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
+        },
+        showClose: false,
+      }),
+    );
+  }, [navigation, colors]);
+
   const learnMore = () =>
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -87,10 +93,6 @@ const ImportPrivateKey = () => {
         title: strings('drawer.metamask_support'),
       },
     });
-
-  const dismiss = () => {
-    navigation.goBack();
-  };
 
   const goNext = async (scannedPrivateKey?: string) => {
     const privateKeyToProcess = scannedPrivateKey || privateKey;
@@ -168,20 +170,7 @@ const ImportPrivateKey = () => {
           style={styles.content}
           testID={ImportAccountFromPrivateKeyIDs.CONTAINER}
         >
-          <ButtonIcon
-            onPress={dismiss}
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            iconColor={IconColor.Default}
-            style={styles.navbarRightButton}
-            testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
-          />
           <View style={styles.top}>
-            <Icon
-              name={IconName.Download}
-              size={IconSize.XXL}
-              color={IconColor.Default}
-            />
             <View style={styles.textContainer}>
               <Text style={styles.title}>
                 {strings('import_private_key.title')}
