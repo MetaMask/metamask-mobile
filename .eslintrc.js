@@ -41,6 +41,10 @@ module.exports = {
           'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
+        // The rule 'no-parameter-properties' was deprecated and replaced by 'parameter-properties' in newer versions.
+        // We disable the old one (to fix the error "Definition for rule ... not found") and enable the new one to preserve behavior.
+        '@typescript-eslint/no-parameter-properties': 'off',
+        '@typescript-eslint/parameter-properties': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [

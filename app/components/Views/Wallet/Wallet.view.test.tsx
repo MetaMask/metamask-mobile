@@ -1,9 +1,8 @@
 import '../../../util/test/component-view/mocks';
 import { renderWalletView } from '../../../util/test/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { describeForPlatforms } from '../../../util/test/platform';
 
-describeForPlatforms('Wallet', () => {
+describe('Wallet', () => {
   it('renders wallet home with minimal state and shows key UI elements', () => {
     const { getByTestId } = renderWalletView({
       overrides: {
