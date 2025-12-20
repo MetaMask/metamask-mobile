@@ -1,33 +1,68 @@
-{
-  "yaml.schemas": {
-    "file:///Users/bruno/.vscode/extensions/gizmos.docs-yaml-0.1.5/schemas/toc.schema.json": "/toc\\.yml/i"
-  },
+// Configure YAML schema associations for VS Code
+"yaml.schemas": {
+  // Link the Docs YAML TOC schema to any toc.yml file (case-insensitive)
+  "file:///Users/bruno/.vscode/extensions/gizmos.docs-yaml-0.1.5/schemas/toc.schema.json": "/toc\\.yml/i"
+},
 
-  "cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
-  "cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
-  "cucumberautocomplete.strictGherkinCompletion": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative",
+// Tell Cucumber autocomplete where to find step definition files
+"cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
 
-  // Tailwind CSS configuration
-  "tailwindCSS.includeLanguages": {
-    "javascript": "javascript",
-    "typescript": "typescript",
-    "typescriptreact": "typescriptreact"
-  },
-  "tailwindCSS.classAttributes": ["twClassName", "style"],
-  "tailwindCSS.experimental.classRegex": [
-    ["tw`([^`]*)`", "$1"],
-    ["tw\\('([^']*)'\\)", "$1"],
-    ["tw\\(\"([^\"]*)\"\\)", "$1"]
-  ],
-  "tailwindCSS.emmetCompletions": true,
-  "tailwindCSS.validate": true,
-  "tailwindCSS.showPixelEquivalents": true,
-  "tailwindCSS.colorDecorators": true,
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-  "editor.inlayHints.enabled": "on"
-}
+// Sync Gherkin feature files from this folder for autocomplete
+"cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
+
+// Enforce strict Gherkin syntax checking for autocomplete
+"cucumberautocomplete.strictGherkinCompletion": true,
+
+// Tell VS Code to use the project-local TypeScript installation
+"typescript.tsdk": "node_modules/typescript/lib",
+
+// Force VS Code to use relative paths when auto-importing JS modules
+"javascript.preferences.importModuleSpecifier": "relative",
+
+// Force VS Code to use relative paths when auto-importing TS modules
+"typescript.preferences.importModuleSpecifier": "relative",
+
+// Tailwind CSS Settings Start
+// Map languages so Tailwind works inside JS files
+"tailwindCSS.includeLanguages": {
+  // Enable Tailwind IntelliSense inside .js files
+  "javascript": "javascript",
+  // Enable Tailwind IntelliSense inside .ts files
+  "typescript": "typescript",
+  // Enable Tailwind IntelliSense inside .tsx files
+  "typescriptreact": "typescriptreact"
+},
+
+// Recognize custom attribute names as Tailwind class containers
+"tailwindCSS.classAttributes": ["twClassName", "style"],
+
+// Add custom regex rules for detecting Tailwind classes inside JS template strings
+"tailwindCSS.experimental.classRegex": [
+  // Extract classes inside: tw`...`
+  ["tw`([^`]*)`", "$1"],
+  // Extract inside: tw('...')
+  ["tw\\('([^']*)'\\)", "$1"],
+  // Extract inside: tw("...")
+  ["tw\\(\"([^\"]*)\"\\)", "$1"]
+],
+
+// Enable Tailwind autocompletion through Emmet
+"tailwindCSS.emmetCompletions": true,
+
+// Turn on Tailwind class validation (warnings for invalid classes)
+"tailwindCSS.validate": true,
+
+// Show pixel equivalents for Tailwind spacing units
+"tailwindCSS.showPixelEquivalents": true,
+
+// Display Tailwind color boxes next to class names
+"tailwindCSS.colorDecorators": true,
+// Tailwind CSS Settings End
+
+// Enable quick suggestions even inside string values
+"editor.quickSuggestions": {
+  "strings": true
+},
+
+// Turn on inline hints (type info, parameter hints, etc.)
+"editor.inlayHints.enabled": "on"
