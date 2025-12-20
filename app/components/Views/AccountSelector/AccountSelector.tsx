@@ -105,6 +105,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     disablePrivacyMode,
     navigateToAddAccountActions,
     isEvmOnly,
+    disableAddAccountButton,
   } = routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -351,6 +352,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+            showFooter={!disableAddAccountButton}
           />
         ) : (
           <EvmAccountSelectorList
@@ -363,24 +365,27 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         )}
-        <BottomSheetFooter
-          buttonPropsArray={addAccountButtonProps}
-          style={styles.sheet}
-        />
+        {!disableAddAccountButton && (
+          <BottomSheetFooter
+            buttonPropsArray={addAccountButtonProps}
+            style={styles.sheet}
+          />
+        )}
       </Fragment>
     ),
     [
       isMultichainAccountsState2Enabled,
       selectedAccountGroup,
       _onSelectMultichainAccount,
-      accounts,
+      disableAddAccountButton,
       _onSelectAccount,
-      ensByAccountAddress,
       onRemoveImportedAccount,
+      accounts,
+      ensByAccountAddress,
       privacyMode,
       disablePrivacyMode,
-      styles.sheet,
       addAccountButtonProps,
+      styles.sheet,
     ],
   );
 

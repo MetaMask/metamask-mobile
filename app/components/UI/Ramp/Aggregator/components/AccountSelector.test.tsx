@@ -128,7 +128,7 @@ describe('AccountSelector', () => {
     expect(mockNavigate).toHaveBeenCalled();
   });
 
-  it('handles isEvmOnly prop correctly', () => {
+  it('handles isEvmOnly prop when true', () => {
     renderWithProvider(<AccountSelector isEvmOnly />, {
       state: defaultState,
     });
@@ -140,12 +140,31 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: true,
+          disableAddAccountButton: true,
         }),
       }),
     );
   });
 
-  it('uses ramp networks for CAIP chain IDs', () => {
+  it('handles isEvmOnly prop when false', () => {
+    renderWithProvider(<AccountSelector isEvmOnly={false} />, {
+      state: defaultState,
+    });
+
+    fireEvent.press(screen.getByTestId('ramps-account-picker'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({
+        screen: 'AccountSelector',
+        params: expect.objectContaining({
+          isEvmOnly: false,
+          disableAddAccountButton: true,
+        }),
+      }),
+    );
+  });
+
+  it('handles isEvmOnly prop when undefined', () => {
     renderWithProvider(<AccountSelector />, {
       state: defaultState,
     });
@@ -157,8 +176,30 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: undefined,
+          disableAddAccountButton: true,
         }),
       }),
     );
+  });
+
+  it('passes correct navigation params with default props', () => {
+    renderWithProvider(<AccountSelector />, {
+      state: defaultState,
+    });
+
+    fireEvent.press(screen.getByTestId('ramps-account-picker'));
+
+    const expectedNavParams = [
+      'RootModalFlow',
+      {
+        screen: 'AccountSelector',
+        params: {
+          isEvmOnly: undefined,
+          disableAddAccountButton: true,
+        },
+      },
+    ];
+
+    expect(mockNavigate).toHaveBeenCalledWith(...expectedNavParams);
   });
 });
