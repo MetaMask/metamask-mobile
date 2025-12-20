@@ -30,6 +30,15 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
+  get burgerMenu() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_BURGER_MENU);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_BURGER_MENU);
+    }
+  }
+  
+
   get TokenNotificationTitle() {
     return Selectors.getElementByPlatform(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
@@ -208,6 +217,14 @@ class WalletMainScreen {
 
     
   }
+  async tapOnBurgerMenu() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.burgerMenu);
+    } else {
+      await AppwrightGestures.tap(this.burgerMenu);
+    }
+  }
+  
 
   async isTokenVisible(token) {
     const isAndroid = AppwrightSelectors.isAndroid(this._device);
