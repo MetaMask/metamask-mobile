@@ -29,19 +29,41 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import TurnOffRememberMeModal from './TurnOffRememberMeModal';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME } from '../../../constants/storage';
 
-// Mock Authentication
-jest.mock('../../../core', () => ({
+// Mock ReduxService
+import ReduxService from '../../../core/redux/ReduxService';
+import type { ReduxStore } from '../../../core/redux/types';
+
+// Mock Authentication source file (exports: export const Authentication = ...)
+jest.mock('../../../core/Authentication/Authentication', () => ({
   Authentication: {
     updateAuthPreference: jest.fn(),
-    lockApp: jest.fn(),
   },
 }));
+
+// Mock Authentication index (exports default Authentication)
+jest.mock('../../../core/Authentication', () => {
+  const authSource = jest.requireMock(
+    '../../../core/Authentication/Authentication',
+  );
+  return {
+    __esModule: true,
+    default: authSource.Authentication,
+  };
+});
+
+// Mock Authentication from core index (used by component directly)
+jest.mock('../../../core', () => {
+  const authModule = jest.requireMock('../../../core/Authentication');
+  return {
+    Authentication: authModule.default,
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -204,34 +226,65 @@ jest.mock('../WarningExistingUserModal', () => {
 
 describe('TurnOffRememberMeModal', () => {
   let mockDoesPasswordMatch: jest.Mock;
-  let mockUpdateAuthPreference: jest.Mock;
-  let mockLockApp: jest.Mock;
   let mockGetItem: jest.Mock;
   let mockRemoveItem: jest.Mock;
+  let mockUpdateAuthPreference: jest.Mock;
+
+  const createMockReduxStore = (): ReduxStore =>
+    ({
+      dispatch: jest.fn(),
+      getState: jest.fn(() => ({
+        user: {
+          existingUser: false,
+        },
+        security: {
+          allowLoginWithRememberMe: true,
+        },
+        settings: {
+          lockTime: -1,
+        },
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: null, // Not in seedless flow
+            },
+          },
+        },
+      })),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    }) as unknown as ReduxStore;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock ReduxService store
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
 
     // Get the mocked functions from the modules
     const passwordModule = jest.requireMock('../../../util/password');
     mockDoesPasswordMatch = passwordModule.doesPasswordMatch as jest.Mock;
 
-    const coreModule = jest.requireMock('../../../core');
-    mockUpdateAuthPreference = coreModule.Authentication
-      .updateAuthPreference as jest.Mock;
-    mockLockApp = coreModule.Authentication.lockApp as jest.Mock;
-
     const storageModule = jest.requireMock('../../../store/storage-wrapper');
     mockGetItem = storageModule.default.getItem as jest.Mock;
     mockRemoveItem = storageModule.default.removeItem as jest.Mock;
 
-    // Clear and reset mockDismissModal
+    // Get Authentication mocks from the mocked module
+    const authModule = jest.requireMock(
+      '../../../core/Authentication/Authentication',
+    );
+    mockUpdateAuthPreference = authModule.Authentication
+      .updateAuthPreference as jest.Mock;
+
+    // Clear and reset mocks
     mockDismissModal.mockClear();
+    mockUpdateAuthPreference.mockClear();
 
     // Set default mock implementations
     mockDoesPasswordMatch.mockResolvedValue({ valid: false });
     mockUpdateAuthPreference.mockResolvedValue(undefined);
-    mockLockApp.mockResolvedValue(undefined);
     mockGetItem.mockResolvedValue(null);
     mockRemoveItem.mockResolvedValue(undefined);
   });
@@ -308,20 +361,21 @@ describe('TurnOffRememberMeModal', () => {
 
     const button = getByTestId('warning-modal-cancel-button');
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockGetItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-        'ValidPassword123!',
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: 'ValidPassword123!',
+      });
       expect(mockRemoveItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });
@@ -343,13 +397,15 @@ describe('TurnOffRememberMeModal', () => {
 
     const button = getByTestId('warning-modal-cancel-button');
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.PASSWORD,
-        'ValidPassword123!',
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+        password: 'ValidPassword123!',
+      });
     });
   });
 
@@ -374,7 +430,9 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     const button = getByTestId('warning-modal-cancel-button');
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
@@ -387,9 +445,6 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
-      await waitFor(() => {
-        expect(mockLockApp).toHaveBeenCalled();
-      });
     }
   });
 
@@ -414,7 +469,9 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     const button = getByTestId('warning-modal-cancel-button');
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
@@ -427,9 +484,6 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
-      await waitFor(() => {
-        expect(mockLockApp).toHaveBeenCalled();
-      });
     }
   });
 
@@ -450,11 +504,12 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     const button = getByTestId('warning-modal-cancel-button');
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });
@@ -480,7 +535,9 @@ describe('TurnOffRememberMeModal', () => {
 
     const button = getByTestId('warning-modal-cancel-button');
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
@@ -512,11 +569,12 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     const button = getByTestId('warning-modal-cancel-button');
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
-      expect(mockLockApp).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
     });
   });
