@@ -13,12 +13,21 @@ export const USER_WALLET_ADDRESS = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 export const MOCK_USDC_BALANCE_WEI =
   '0x0000000000000000000000000000000000000000000000000000000001adb5e4'; // 28160000 in hex
 
+// Post-withdraw target balance for tests (26.16 USDC = 26,160,000 = 0x18f2b80)
+export const MOCK_USDC_BALANCE_WEI_END =
+  '0x00000000000000000000000000000000000000000000000000000000018f2b80'; // 26160000 in hex
+
+// Post-claim USDC balance (48.16 USDC = 48,160,000 = 0x2de0300)
 // Post-claim USDC balance (48.16 USDC = 48,160,000 = 0x2dedd00)
 export const POST_CLAIM_USDC_BALANCE_WEI =
   '0x0000000000000000000000000000000000000000000000000000000002dedd00';
 
 export const POST_CASH_OUT_USDC_BALANCE_WEI =
   '0x00000000000000000000000000000000000000000000000000000000037f14a0'; // 58.66 USDC
+
+// Post-withdraw USDC balance (example: keep the same for now; tests assert toast only)
+// If balance assertions are added later, update this to the expected post-withdraw value
+export const POST_WITHDRAW_USDC_BALANCE_WEI = MOCK_USDC_BALANCE_WEI_END;
 
 // Post-open-position USDC balance (17.76 USDC = 17,760,000 = 0x10eff00)
 // Base balance (28.16) - investment (10.00) - fees (~0.40) = 17.76 USDC
