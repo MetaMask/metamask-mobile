@@ -50,11 +50,8 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
       }
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {label}
-      </Text>
       {showIcon && imageSource && (
-        <Box twClassName="ml-2">
+        <Box twClassName="mr-2">
           <Avatar
             variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
@@ -63,6 +60,10 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
           />
         </Box>
       )}
+
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
     </Pressable>
   );
 };
