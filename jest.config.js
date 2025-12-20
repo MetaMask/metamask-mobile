@@ -83,5 +83,41 @@ const config = {
   cache: false,
 };
 
+/**
+ * Personal Jest Ignore Patterns Configuration (Optional)
+ *
+ * This section automatically loads and merges a personal ignore config file if it exists.
+ * This allows developers to add personal ignore patterns (e.g., IDE history folders,
+ * personal test directories) without committing them to the repository.
+ *
+ * IMPORTANT: This file is ONLY for ignore patterns. Other Jest configuration
+ * customizations should not be added here.
+ *
+ * To use:
+ * 1. Copy `jest.config.personal-ignore.js.example` to `jest.config.personal-ignore.js`
+ * 2. Add your personal ignore patterns to the file
+ * 3. The patterns will be automatically merged with the base config
+ *
+ * Note: The personal config file is gitignored and will not be committed to the repository.
+ */
+try {
+  // eslint-disable-next-line import/no-dynamic-require -- Loading optional personal config file
+  const personalConfig = require('./jest.config.personal-ignore.js');
+  if (personalConfig.coveragePathIgnorePatterns) {
+    config.coveragePathIgnorePatterns = [
+      ...config.coveragePathIgnorePatterns,
+      ...personalConfig.coveragePathIgnorePatterns,
+    ];
+  }
+  if (personalConfig.testPathIgnorePatterns) {
+    config.testPathIgnorePatterns = [
+      ...config.testPathIgnorePatterns,
+      ...personalConfig.testPathIgnorePatterns,
+    ];
+  }
+} catch {
+  // Personal config file doesn't exist, which is fine - it's optional
+}
+
 // eslint-disable-next-line import/no-commonjs
 module.exports = config;
