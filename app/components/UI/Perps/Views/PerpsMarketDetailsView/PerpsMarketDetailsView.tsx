@@ -1,3 +1,4 @@
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import {
   useNavigation,
   useRoute,
@@ -6,127 +7,127 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
-  useMemo,
-  useState,
   useEffect,
+  useMemo,
   useRef,
+  useState,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+  PerpsTutorialSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-  ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  PerpsMarketDetailsViewSelectorsIDs,
-  PerpsOrderViewSelectorsIDs,
-  PerpsTutorialSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { TraceName } from '../../../../../util/trace';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
+import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
+import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
+import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
+import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
+import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
+import PerpsNavigationCard, {
+  type NavigationItem,
+} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
+import PerpsOICapWarning from '../../components/PerpsOICapWarning';
+import PerpsPositionCard from '../../components/PerpsPositionCard';
+import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
+import TradingViewChart, {
+  type OhlcData,
+  type TradingViewChartRef,
+} from '../../components/TradingViewChart';
+import {
+  CandlePeriod,
+  PERPS_CHART_CONFIG,
+  TimeDuration,
+} from '../../constants/chartConfig';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
   TPSLTrackingData,
 } from '../../controllers/types';
-import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
-import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
-import {
-  CandlePeriod,
-  TimeDuration,
-  PERPS_CHART_CONFIG,
-} from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { createStyles } from './PerpsMarketDetailsView.styles';
-import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { TraceName } from '../../../../../util/trace';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 import {
   usePerpsConnection,
-  usePerpsTrading,
-  usePerpsNetworkManagement,
   usePerpsNavigation,
+  usePerpsNetworkManagement,
+  usePerpsTrading,
   usePositionManagement,
 } from '../../hooks';
-import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
-import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import {
+  usePerpsLiveAccount,
+  usePerpsLiveOrders,
+  usePerpsLivePrices,
+} from '../../hooks/stream';
+import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
+import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
 import {
   usePerpsDataMonitor,
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
-import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import {
-  usePerpsLiveAccount,
-  usePerpsLivePrices,
-  usePerpsLiveOrders,
-} from '../../hooks/stream';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
+import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
+import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
+import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
 } from '../../selectors/featureFlags';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
-import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
-import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import PerpsOICapWarning from '../../components/PerpsOICapWarning';
-import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
-import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
-import PerpsNavigationCard, {
-  type NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
-import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
-import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
-import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
-import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
-import TradingViewChart, {
-  type TradingViewChartRef,
-  type OhlcData,
-} from '../../components/TradingViewChart';
-import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
-import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
-import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
-import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import {
-  selectPerpsEligibility,
   createSelectIsWatchlistMarket,
+  selectPerpsEligibility,
 } from '../../selectors/perpsController';
-import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import Engine from '../../../../../core/Engine';
-import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
-import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
-import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
-import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
+import { createStyles } from './PerpsMarketDetailsView.styles';
+import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -169,8 +170,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, monitoringIntent, source } = route.params || {};
+  const { market: routeMarket, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
+
+  // Get full market data from stream to ensure all fields (including maxLeverage) are available
+  // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
+  // Skip fetching if routeMarket already has maxLeverage (performance optimization)
+  const needsEnrichment = !routeMarket?.maxLeverage;
+  const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
+  const market = useMemo(() => {
+    // If route market already has all required fields, use it directly
+    if (!needsEnrichment) return routeMarket;
+
+    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+
+    return fullMarket || routeMarket;
+  }, [markets, routeMarket, needsEnrichment]);
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
