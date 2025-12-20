@@ -1,0 +1,80 @@
+name: Single E2E Test Manual - flakiness triage
+
+on:
+  workflow_dispatch: 
+    inputs:
+      single_test_file:
+        description: 'Single test file to run - e2e/specs/your-test.spec.ts'
+        required: false
+        type: string
+        default: ''
+      artifact_run_id:
+          description: 'Workflow run ID of an existing build to reuse (skips build step if provided)'
+          required: false
+          type: string
+          default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ !cancelled() && !inputs.artifact_run_id }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  build-android-apps:
+    name: 'Build Android Apps'
+    if: ${{ !cancelled() && !inputs.artifact_run_id }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+
+  single-e2e-test-manual-ios:
+    needs: [build-ios-apps]
+    if: ${{ !cancelled() && (needs.build-ios-apps.result == 'success' || needs.build-ios-apps.result == 'skipped') }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: single-e2e-test-manual-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeTrade'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
+      single_test: ${{ inputs.single_test_file }}
+      artifact_run_id: ${{ inputs.artifact_run_id }}
+    secrets: inherit
+  
+  single-e2e-test-manual-android:
+    needs: [build-android-apps]
+    if: ${{ !cancelled() && (needs.build-android-apps.result == 'success' || needs.build-android-apps.result == 'skipped') }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: single-e2e-test-manual-android-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeTrade'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.single_test_file }}  # we're just using the single test to apply flakiness detection
+      single_test: ${{ inputs.single_test_file }}
+      artifact_run_id: ${{ inputs.artifact_run_id }}
+    secrets: inherit
