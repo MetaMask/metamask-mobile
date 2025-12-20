@@ -1,5 +1,7 @@
 import { ChainablePromiseElement } from 'webdriverio';
 import { boxedStep } from './Utilities';
+import { createLogger, type Logger } from './logger';
+import { GestureOptions } from './types';
 
 /**
  * PlaywrightAdapter - Provides Playwright-like API on top of WebdriverIO elems
@@ -15,25 +17,41 @@ import { boxedStep } from './Utilities';
  */
 export class PlaywrightElement {
   private elem: ChainablePromiseElement;
+  private logger: Logger;
 
   constructor(elem: ChainablePromiseElement) {
     this.elem = elem;
+    this.logger = createLogger({ name: 'PlaywrightElement' });
   }
 
   /**
    * Fill an input elem with text
    * @param value - The value to fill the input with
+   * @param options - Options including isSensitive to mask logging
    */
   @boxedStep
-  async fill(value: string): Promise<void> {
+  async fill(
+    value: string,
+    options: GestureOptions & { isSensitive?: boolean } = {
+      elemDescription: 'input',
+      isSensitive: false,
+    },
+  ): Promise<void> {
+    this.logger.debug(
+      `Filling input with value: ${options.isSensitive ? '***' : value}`,
+    );
     await this.elem.setValue(value);
   }
 
   /**
    * Click an elem
+   * @param options - Options including elemDescription for logging
    */
   @boxedStep
-  async click(): Promise<void> {
+  async click(options: GestureOptions = {}): Promise<void> {
+    this.logger.debug(
+      `Clicking element: ${options.elemDescription || this.elem.selector}`,
+    );
     await this.elem.click();
   }
 
@@ -41,7 +59,10 @@ export class PlaywrightElement {
    * Get the text content of the elem
    */
   @boxedStep
-  async textContent(): Promise<string> {
+  async textContent(options: GestureOptions = {}): Promise<string> {
+    this.logger.debug(
+      `Getting text content of element: ${options.elemDescription || this.elem.selector}`,
+    );
     return await this.elem.getText();
   }
 
@@ -50,7 +71,10 @@ export class PlaywrightElement {
    * Maps to WebdriverIO's isDisplayed()
    */
   @boxedStep
-  async isVisible(): Promise<boolean> {
+  async isVisible(options: GestureOptions = {}): Promise<boolean> {
+    this.logger.debug(
+      `Checking if element is visible: ${options.elemDescription || this.elem.selector}`,
+    );
     return await this.elem.isDisplayed();
   }
 
@@ -59,7 +83,10 @@ export class PlaywrightElement {
    * Maps to WebdriverIO's isEnabled()
    */
   @boxedStep
-  async isEnabled(): Promise<boolean> {
+  async isEnabled(options: GestureOptions = {}): Promise<boolean> {
+    this.logger.debug(
+      `Checking if element is enabled: ${options.elemDescription || this.elem.selector}`,
+    );
     return await this.elem.isEnabled();
   }
 
@@ -70,7 +97,13 @@ export class PlaywrightElement {
    * @returns The value of the attribute or null if the attribute does not exist
    */
   @boxedStep
-  async getAttribute(name: string): Promise<string | null> {
+  async getAttribute(
+    name: string,
+    options: GestureOptions = {},
+  ): Promise<string | null> {
+    this.logger.debug(
+      `Getting attribute value of element: ${options.elemDescription || this.elem.selector}`,
+    );
     return await this.elem.getAttribute(name);
   }
 
@@ -79,7 +112,10 @@ export class PlaywrightElement {
    * @param text - The text to type
    */
   @boxedStep
-  async type(text: string): Promise<void> {
+  async type(text: string, options: GestureOptions = {}): Promise<void> {
+    this.logger.debug(
+      `Typing text into element: ${options.elemDescription || this.elem.selector}`,
+    );
     await this.elem.addValue(text);
   }
 
@@ -88,7 +124,10 @@ export class PlaywrightElement {
    * Maps to WebdriverIO's clearValue()
    */
   @boxedStep
-  async clear(): Promise<void> {
+  async clear(options: GestureOptions = {}): Promise<void> {
+    this.logger.debug(
+      `Clearing element: ${options.elemDescription || this.elem.selector}`,
+    );
     await this.elem.clearValue();
   }
 
@@ -96,10 +135,14 @@ export class PlaywrightElement {
    * Wait for elem to be displayed
    */
   @boxedStep
-  async waitForDisplayed(options?: {
-    timeout?: number;
-    reverse?: boolean;
-  }): Promise<void> {
+  async waitForDisplayed(
+    options: GestureOptions & {
+      reverse?: boolean;
+    } = {},
+  ): Promise<void> {
+    this.logger.debug(
+      `Waiting for element to be displayed: ${options.elemDescription || this.elem.selector}`,
+    );
     await this.elem.waitForDisplayed(options);
   }
 
@@ -107,10 +150,14 @@ export class PlaywrightElement {
    * Wait for elem to be enabled
    */
   @boxedStep
-  async waitForEnabled(options?: {
-    timeout?: number;
-    reverse?: boolean;
-  }): Promise<void> {
+  async waitForEnabled(
+    options: GestureOptions & {
+      reverse?: boolean;
+    } = {},
+  ): Promise<void> {
+    this.logger.debug(
+      `Waiting for element to be enabled: ${options.elemDescription || this.elem.selector}`,
+    );
     await this.elem.waitForEnabled(options);
   }
 
@@ -120,7 +167,13 @@ export class PlaywrightElement {
    * Note: Use click() if touchAction has compatibility issues
    */
   @boxedStep
-  async tapOnCoordinates({ x, y }: { x: number; y: number }): Promise<void> {
+  async tapOnCoordinates(
+    { x, y }: { x: number; y: number },
+    options: GestureOptions = {},
+  ): Promise<void> {
+    this.logger.debug(
+      `Tapping on coordinates: ${x}, ${y} for element: ${options.elemDescription || this.elem.selector}`,
+    );
     // Use WebdriverIO's touch action to tap at coordinates
     await this.elem.touchAction([
       {
