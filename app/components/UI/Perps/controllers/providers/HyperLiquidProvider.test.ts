@@ -4828,7 +4828,8 @@ describe('HyperLiquidProvider', () => {
         userFills: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await provider.getOrderFills();
+      // Skip cache to test API transformation directly
+      const result = await provider.getOrderFills({ skipCache: true });
       expect(result).toEqual([]);
     });
 
@@ -4837,7 +4838,8 @@ describe('HyperLiquidProvider', () => {
         historicalOrders: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await provider.getOrders();
+      // Skip cache to test API transformation directly
+      const result = await provider.getOrders({ skipCache: true });
       expect(result).toEqual([]);
     });
 
@@ -4897,7 +4899,8 @@ describe('HyperLiquidProvider', () => {
         ]),
       });
 
-      const result = await provider.getOrders();
+      // Pass skipCache to bypass cache and ensure API mock is called
+      const result = await provider.getOrders({ skipCache: true });
 
       expect(result).toHaveLength(3);
 
@@ -5101,7 +5104,8 @@ describe('HyperLiquidProvider', () => {
         userFunding: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await provider.getFunding();
+      // Skip cache to test API transformation directly
+      const result = await provider.getFunding({ skipCache: true });
       expect(result).toEqual([]);
     });
 
@@ -5159,7 +5163,8 @@ describe('HyperLiquidProvider', () => {
         }),
       );
 
-      const fills = await provider.getOrderFills();
+      // Skip cache to test API transformation directly
+      const fills = await provider.getOrderFills({ skipCache: true });
 
       expect(fills[0].liquidation).toEqual({
         liquidatedUser: '0x123',
@@ -5188,7 +5193,8 @@ describe('HyperLiquidProvider', () => {
         }),
       );
 
-      const fills = await provider.getOrderFills();
+      // Skip cache to test API transformation directly
+      const fills = await provider.getOrderFills({ skipCache: true });
       expect(fills[0].liquidation).toBeUndefined();
     });
   });

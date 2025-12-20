@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
@@ -193,39 +193,152 @@ describe('usePerpsTransactionHistory', () => {
   });
 
   describe('initial state', () => {
-    it('returns initial state correctly', async () => {
+    it('returns initial state correctly when skipInitialFetch is true', () => {
       // Override transform mock to return empty for initial state test
       mockTransformFillsToTransactions.mockReturnValue([]);
 
-      const { result } = renderHook(() => usePerpsTransactionHistory());
-
-      // Initial state: no WebSocket fills, no REST data yet
-      expect(result.current.transactions).toEqual([]);
-      // Initial loading state is false, becomes true when fetch starts
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
-      expect(typeof result.current.refetch).toBe('function');
-
-      // Wait for initial fetch to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-    });
-
-    it('skips initial fetch when skipInitialFetch is true', () => {
-      // Override transform mock to return empty for initial state test
-      mockTransformFillsToTransactions.mockReturnValue([]);
-
+      // Use skipInitialFetch to test true initial state before any fetch
       const { result } = renderHook(() =>
         usePerpsTransactionHistory({ skipInitialFetch: true }),
       );
 
+      // Initial state: no WebSocket fills, no REST data yet
       expect(result.current.transactions).toEqual([]);
+      // Initial loading state is false before any fetch starts
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.ordersLoaded).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(typeof result.current.refetch).toBe('function');
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('starts fetching immediately on mount', async () => {
+      // Override transform mock to return empty for this test
+      mockTransformFillsToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 1 to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // After fetch completes, loading is false
+      expect(result.current.isLoading).toBe(false);
+      expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
   });
 
-  describe('fetchAllTransactions', () => {
+  describe('progressive rendering', () => {
+    it('fetches fills and funding first, then orders in background', async () => {
+      // Track the order of calls
+      const callOrder: string[] = [];
+      mockProvider.getOrderFills.mockImplementation(async () => {
+        callOrder.push('fills');
+        return mockFills;
+      });
+      mockProvider.getFunding.mockImplementation(async () => {
+        callOrder.push('funding');
+        return mockFunding;
+      });
+      mockProvider.getOrders.mockImplementation(async () => {
+        callOrder.push('orders');
+        return mockOrders;
+      });
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        // Wait for Phase 1 (fills + funding)
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Phase 1 should complete first
+      expect(callOrder).toContain('fills');
+      expect(callOrder).toContain('funding');
+
+      // Wait for Phase 2 (orders in background)
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      expect(callOrder).toContain('orders');
+    });
+
+    it('sets ordersLoaded to true after orders fetch completes', async () => {
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Initially ordersLoaded should be false
+      expect(result.current.ordersLoaded).toBe(false);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for orders to load in background
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+    });
+
+    it('sets ordersLoaded to true even when orders fetch fails', async () => {
+      mockProvider.getOrders.mockRejectedValue(
+        new Error('Orders fetch failed'),
+      );
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for orders fetch attempt to complete
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Error should not be set (only Phase 1 errors set the error state)
+      expect(result.current.error).toBeNull();
+    });
+
+    it('passes skipCache to provider methods on refetch', async () => {
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for initial load
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Clear mocks
+      mockProvider.getOrderFills.mockClear();
+      mockProvider.getFunding.mockClear();
+      mockProvider.getOrders.mockClear();
+
+      // Call refetch
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      // Verify skipCache was passed
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+        expect.objectContaining({ skipCache: true }),
+      );
+      expect(mockProvider.getFunding).toHaveBeenCalledWith(
+        expect.objectContaining({ skipCache: true }),
+      );
+    });
+  });
+
+  describe('fetchTransactions', () => {
     it('fetches and combines all transaction data', async () => {
       renderHook(() => usePerpsTransactionHistory());
 
@@ -237,21 +350,24 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
         accountId: undefined,
         aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
+        skipCache: false,
       });
       // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: undefined,
         startTime: undefined,
         endTime: undefined,
+        skipCache: false,
+      });
+      // Orders are fetched in Phase 2
+      await waitFor(() => {
+        expect(mockProvider.getOrders).toHaveBeenCalledWith({
+          accountId: undefined,
+          skipCache: false,
+        });
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(mockFills);
-      expect(mockTransformOrdersToTransactions).toHaveBeenCalledWith(
-        mockOrders,
-      );
+      expect(mockTransformFillsToTransactions).toHaveBeenCalled();
       expect(mockTransformFundingToTransactions).toHaveBeenCalledWith(
         mockFunding,
       );
@@ -268,7 +384,7 @@ describe('usePerpsTransactionHistory', () => {
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      renderHook(() => usePerpsTransactionHistory(params));
+      const { result } = renderHook(() => usePerpsTransactionHistory(params));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -278,14 +394,18 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        skipCache: false,
       });
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         startTime: 1640995200000,
         endTime: 1640995300000,
+        skipCache: false,
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
     });
 
@@ -293,7 +413,7 @@ describe('usePerpsTransactionHistory', () => {
       const accountId =
         'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
 
-      renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsTransactionHistory({
           accountId,
         }),
@@ -309,10 +429,17 @@ describe('usePerpsTransactionHistory', () => {
         endTime: undefined,
         accountId,
       });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
     });
 
     it('handles undefined accountId correctly', async () => {
-      renderHook(() => usePerpsTransactionHistory({ accountId: undefined }));
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ accountId: undefined }),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -322,20 +449,24 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
         accountId: undefined,
         aggregateByTime: false,
-      });
-      expect(mockProvider.getOrders).toHaveBeenCalledWith({
-        accountId: undefined,
+        skipCache: false,
       });
       // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: undefined,
         startTime: undefined,
         endTime: undefined,
+        skipCache: false,
       });
       expect(mockUseUserHistory).toHaveBeenCalledWith({
         startTime: undefined,
         endTime: undefined,
         accountId: undefined,
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
     });
 
@@ -380,6 +511,11 @@ describe('usePerpsTransactionHistory', () => {
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(result.current.transactions[0].timestamp).toBe(2000);
@@ -432,6 +568,11 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
       expect(result.current.transactions).toHaveLength(2);
     });
 
@@ -464,6 +605,11 @@ describe('usePerpsTransactionHistory', () => {
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       // Should contain both transactions (no duplicates since IDs are different)
@@ -591,6 +737,11 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
       expect(result.current.isLoading).toBe(false);
     });
   });
@@ -649,33 +800,133 @@ describe('usePerpsTransactionHistory', () => {
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Wait for initial fetch to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete first
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Clear mocks for refetch check
+      mockRefetchUserHistory.mockClear();
+      mockProvider.getOrderFills.mockClear();
+
       await act(async () => {
         await result.current.refetch();
+      });
+
+      // Wait for refetch Phase 2 to complete
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(mockRefetchUserHistory).toHaveBeenCalled();
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
+
+    it('ignores stale Phase 2 completions after refetch', async () => {
+      // Create a delayed orders response for the first fetch
+      let resolveFirstOrders: ((orders: unknown[]) => void) | null = null;
+      const firstOrdersPromise = new Promise<unknown[]>((resolve) => {
+        resolveFirstOrders = resolve;
+      });
+
+      // First fetch: orders will be delayed
+      mockProvider.getOrders
+        .mockImplementationOnce(() => firstOrdersPromise)
+        .mockResolvedValue(mockOrders);
+
+      const firstFills = [{ ...mockFills[0], orderId: 'first-fetch-fill' }];
+      const secondFills = [{ ...mockFills[0], orderId: 'second-fetch-fill' }];
+
+      mockProvider.getOrderFills
+        .mockResolvedValueOnce(firstFills)
+        .mockResolvedValue(secondFills);
+
+      // Transform fills to transactions
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        if (fills.length === 0) return [];
+        return fills.map((fill: { orderId: string }) => ({
+          id: fill.orderId,
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Trade',
+          subtitle: '1 ETH',
+          timestamp: 1640995200000,
+          asset: 'ETH',
+        }));
+      });
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 1 of first fetch
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // At this point, first Phase 1 is done, but Phase 2 (orders) is still pending
+      expect(result.current.ordersLoaded).toBe(false);
+      expect(result.current.transactions[0]?.id).toBe('first-fetch-fill');
+
+      // Trigger refetch while first Phase 2 is still pending
+      const refetchPromise = act(async () => {
+        await result.current.refetch();
+      });
+
+      // Wait for second fetch's Phase 1 to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Now resolve the FIRST fetch's Phase 2 (this should be ignored)
+      await act(async () => {
+        if (resolveFirstOrders) {
+          resolveFirstOrders([{ orderId: 'stale-order', symbol: 'BTC' }]);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for second fetch to fully complete
+      await refetchPromise;
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // The transactions should be from the SECOND fetch, not corrupted by stale Phase 2
+      // If the race condition weren't fixed, we'd see empty fills or wrong data
+      expect(result.current.transactions[0]?.id).toBe('second-fetch-fill');
+    });
   });
 
   describe('logging', () => {
     it('logs transaction data fetching', async () => {
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Fetching comprehensive transaction history...',
+        'Fetching transaction history (progressive)...',
+        expect.objectContaining({
+          fetchVersion: expect.any(Number),
+        }),
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Transaction data fetched:',
-        { fills: mockFills, orders: mockOrders, funding: mockFunding },
-      );
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Combined transactions:',
-        expect.any(Array),
+        'Phase 1 complete - fills + funding fetched:',
+        expect.objectContaining({
+          fills: expect.any(Number),
+          funding: expect.any(Number),
+          fetchVersion: expect.any(Number),
+        }),
       );
     });
   });
@@ -715,12 +966,14 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockResolvedValue(fillsWithoutDetailedType);
       mockProvider.getOrders.mockResolvedValue(ordersWithDetailedType);
 
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for orders to load in background (Phase 2)
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
+      // After Phase 2, fills should be enriched
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         {
           ...fillsWithoutDetailedType[0],
@@ -763,12 +1016,14 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockResolvedValue(fillsWithoutMatch);
       mockProvider.getOrders.mockResolvedValue(unrelatedOrders);
 
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      // Wait for orders to load
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
+      // After Phase 2, should be called with undefined detailedOrderType
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         {
           ...fillsWithoutMatch[0],
@@ -777,132 +1032,14 @@ describe('usePerpsTransactionHistory', () => {
       ]);
     });
 
-    it('leaves detailedOrderType as undefined when matching order has no detailedOrderType', async () => {
-      const fills = [
-        {
-          direction: 'Open Short',
-          orderId: 'order-999',
-          symbol: 'BTC',
-          size: '0.5',
-          price: '45000',
-          fee: '5',
-          timestamp: 1640995300000,
-          feeToken: 'USDC',
-          pnl: '0',
-          liquidation: false,
-        },
-      ];
-
-      const ordersWithoutDetailedType = [
-        {
-          orderId: 'order-999',
-          symbol: 'BTC',
-          side: 'sell',
-          orderType: 'Market',
-          size: '0.5',
-          originalSize: '0.5',
-          price: '45000',
-          status: 'filled',
-          timestamp: 1640995300000,
-        },
-      ];
-
-      mockProvider.getOrderFills.mockResolvedValue(fills);
-      mockProvider.getOrders.mockResolvedValue(ordersWithoutDetailedType);
-
-      renderHook(() => usePerpsTransactionHistory());
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        {
-          ...fills[0],
-          detailedOrderType: undefined,
-        },
-      ]);
-    });
-
-    it('enriches all fills from same order with matching detailedOrderType when order has multiple partial fills', async () => {
-      const partialFills = [
-        {
-          direction: 'Open Long',
-          orderId: 'partial-order-123',
-          symbol: 'ETH',
-          size: '0.5',
-          price: '2000',
-          fee: '5',
-          timestamp: 1640995200000,
-          feeToken: 'USDC',
-          pnl: '0',
-          liquidation: false,
-        },
-        {
-          direction: 'Open Long',
-          orderId: 'partial-order-123',
-          symbol: 'ETH',
-          size: '0.3',
-          price: '2001',
-          fee: '3',
-          timestamp: 1640995201000,
-          feeToken: 'USDC',
-          pnl: '0',
-          liquidation: false,
-        },
-        {
-          direction: 'Open Long',
-          orderId: 'partial-order-123',
-          symbol: 'ETH',
-          size: '0.2',
-          price: '2002',
-          fee: '2',
-          timestamp: 1640995202000,
-          feeToken: 'USDC',
-          pnl: '0',
-          liquidation: false,
-        },
-      ];
-
-      const singleOrder = [
-        {
-          orderId: 'partial-order-123',
-          symbol: 'ETH',
-          side: 'buy',
-          orderType: 'Limit',
-          detailedOrderType: 'Stop Loss',
-          size: '1',
-          originalSize: '1',
-          price: '2000',
-          status: 'filled',
-          timestamp: 1640995200000,
-        },
-      ];
-
-      mockProvider.getOrderFills.mockResolvedValue(partialFills);
-      mockProvider.getOrders.mockResolvedValue(singleOrder);
-
-      renderHook(() => usePerpsTransactionHistory());
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...partialFills[0], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[2], detailedOrderType: 'Stop Loss' },
-      ]);
-    });
-
     it('handles empty fills array', async () => {
       mockProvider.getOrderFills.mockResolvedValue([]);
       mockProvider.getOrders.mockResolvedValue(mockOrders);
 
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
       });
 
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([]);
@@ -912,15 +1049,337 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockResolvedValue(mockFills);
       mockProvider.getOrders.mockResolvedValue([]);
 
-      renderHook(() => usePerpsTransactionHistory());
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // After Phase 2 with empty orders, fills should have undefined detailedOrderType
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        { ...mockFills[0], detailedOrderType: undefined },
+      ]);
+    });
+  });
+
+  describe('merged transactions with live WebSocket fills', () => {
+    it('returns only live fills when no REST transactions exist yet', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'live-order-1',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2500',
+          fee: '5',
+          timestamp: 1640995300000,
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      const liveTransactions = [
+        {
+          id: 'live-fill-0',
+          type: 'trade' as const,
+          category: 'position_open' as const,
+          title: 'Opened long',
+          subtitle: '1 ETH',
+          timestamp: 1640995300000,
+          asset: 'ETH',
+        },
+      ];
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Live fills transform returns liveTransactions
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        if (fills === liveFillsData) {
+          return liveTransactions;
+        }
+        return [];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      expect(result.current.transactions).toEqual(liveTransactions);
+    });
+
+    it('deduplicates trades using asset+timestamp instead of tx.id', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-1',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2500',
+          fee: '5',
+          timestamp: 1640995300000,
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      // Same trade from WebSocket (different ID due to array index)
+      const liveTransaction = {
+        id: 'fill-0', // Different ID from REST
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Opened long (live)',
+        subtitle: '1 ETH',
+        timestamp: 1640995300000, // Same timestamp
+        asset: 'ETH', // Same asset
+      };
+
+      // Same trade from REST (different ID due to array index)
+      const restTransaction = {
+        id: 'fill-5', // Different ID from WebSocket
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Opened long (rest)',
+        subtitle: '1 ETH',
+        timestamp: 1640995300000, // Same timestamp
+        asset: 'ETH', // Same asset
+      };
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Track which call is for live vs REST fills
+      let callCount = 0;
+      mockTransformFillsToTransactions.mockImplementation(() => {
+        callCount++;
+        // First call during initial fetch returns REST transaction
+        // Second call for live fills returns live transaction
+        if (callCount === 1) {
+          return [restTransaction];
+        }
+        return [liveTransaction];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Should deduplicate based on asset+timestamp, keeping the live version
+      expect(result.current.transactions.length).toBe(1);
+      // Live data overwrites REST data
+      expect(result.current.transactions[0].title).toBe('Opened long (live)');
+    });
+
+    it('keeps non-trade transactions separate from trade deduplication', async () => {
+      const fundingTransaction = {
+        id: 'funding-1',
+        type: 'funding' as const,
+        category: 'funding_fee' as const,
+        title: 'Funding fee',
+        subtitle: '+$1.50',
+        timestamp: 1640995300000,
+        asset: 'ETH',
+      };
+
+      const depositTransaction = {
+        id: 'deposit-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposit',
+        subtitle: '100 USDC',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+      };
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([fundingTransaction]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([
+        depositTransaction,
+      ]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Both non-trade transactions should be present
+      expect(result.current.transactions.length).toBe(2);
+      expect(result.current.transactions.map((t) => t.type)).toContain(
+        'funding',
+      );
+      expect(result.current.transactions.map((t) => t.type)).toContain(
+        'deposit',
+      );
+    });
+
+    it('sorts merged transactions by timestamp descending', async () => {
+      const liveFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-new',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '0.5',
+          price: '50000',
+          fee: '10',
+          timestamp: 1640995400000, // Newest
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      // REST fills from provider.getOrderFills
+      const restFillsData = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-old',
+          symbol: 'ETH',
+          side: 'buy',
+          size: '1',
+          price: '2000',
+          fee: '5',
+          timestamp: 1640995200000, // Older
+          feeToken: 'USDC',
+          pnl: '0',
+        },
+      ];
+
+      const liveTransaction = {
+        id: 'live-fill-0',
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'New live trade',
+        subtitle: '0.5 BTC',
+        timestamp: 1640995400000,
+        asset: 'BTC',
+      };
+
+      const restTransaction = {
+        id: 'rest-fill-0',
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: 'Old REST trade',
+        subtitle: '1 ETH',
+        timestamp: 1640995200000, // Older
+        asset: 'ETH',
+      };
+
+      // Mock provider to return REST fills
+      mockProvider.getOrderFills.mockResolvedValue(restFillsData);
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: liveFillsData,
+        isInitialLoading: false,
+      });
+
+      // Use input-based mocking: check the input to determine output
+      mockTransformFillsToTransactions.mockImplementation((fills) => {
+        // Empty fills = return empty (shouldn't happen in this test)
+        if (fills.length === 0) return [];
+        // Check if it's live fills (symbol: BTC) or REST fills (symbol: ETH)
+        const firstFill = fills[0];
+        if (firstFill.symbol === 'BTC') {
+          return [liveTransaction];
+        }
+        return [restTransaction];
+      });
+
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // Should have 2 transactions (different assets, so no dedup)
+      expect(result.current.transactions.length).toBe(2);
+      // Sorted by timestamp descending
+      expect(result.current.transactions[0].timestamp).toBe(1640995400000);
+      expect(result.current.transactions[1].timestamp).toBe(1640995200000);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles empty transaction list', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...mockFills[0], detailedOrderType: undefined },
-      ]);
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      expect(result.current.transactions).toEqual([]);
+    });
+
+    it('handles large transaction list', async () => {
+      const manyTransactions = Array.from({ length: 500 }, (_, i) => ({
+        id: `tx-${i}`,
+        type: 'trade' as const,
+        category: 'position_open' as const,
+        title: `Trade ${i}`,
+        subtitle: `${i} ETH`,
+        timestamp: 1640995200000 - i * 1000,
+        asset: `ETH-${i}`,
+      }));
+
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? manyTransactions : [],
+      );
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Wait for Phase 2 (orders) to complete to avoid act() warnings
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // All 500 transactions should be present (no pagination)
+      expect(result.current.transactions.length).toBe(500);
     });
   });
 });

@@ -11,6 +11,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
+import type { OrderFill, Order, Funding } from '../controllers/types';
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -22,6 +23,7 @@ interface UsePerpsTransactionHistoryParams {
 interface UsePerpsTransactionHistoryResult {
   transactions: PerpsTransaction[];
   isLoading: boolean;
+  ordersLoaded: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
@@ -30,6 +32,12 @@ interface UsePerpsTransactionHistoryResult {
  * Comprehensive hook to fetch and combine all perps transaction data
  * Includes trades, orders, funding, and user history (deposits/withdrawals)
  * Uses HyperLiquid user history as the single source of truth for withdrawals
+ *
+ * Performance optimization: Progressive rendering
+ * - Phase 1: Fetch fills + funding immediately, render as soon as ready
+ * - Phase 2: Fetch orders in background for enrichment + Orders tab
+ *
+ * FlashList handles rendering virtualization, so we don't need client-side pagination.
  */
 export const usePerpsTransactionHistory = ({
   startTime,
@@ -37,9 +45,20 @@ export const usePerpsTransactionHistory = ({
   accountId,
   skipInitialFetch = false,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
+  // Core state
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Store fetched data in refs for re-enrichment when orders arrive
+  const fillsRef = useRef<OrderFill[]>([]);
+  const fundingRef = useRef<Funding[]>([]);
+  const ordersRef = useRef<Order[]>([]);
+
+  // Fetch version counter to detect stale Phase 2 completions
+  // Incremented on each new fetch; Phase 2 checks this before updating state
+  const fetchVersionRef = useRef(0);
 
   // Get user history (includes deposits/withdrawals) - single source of truth
   const {
@@ -53,50 +72,30 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
-  // Store userHistory in ref to avoid recreating fetchAllTransactions callback
+  // Store userHistory in ref to avoid recreating fetchTransactions callback
   const userHistoryRef = useRef(userHistory);
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
+
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
 
-  const fetchAllTransactions = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const controller = Engine.context.PerpsController;
-      if (!controller) {
-        throw new Error('PerpsController not available');
-      }
-
-      const provider = controller.getActiveProvider();
-      if (!provider) {
-        throw new Error('No active provider available');
-      }
-
-      DevLogger.log('Fetching comprehensive transaction history...');
-
-      // Fetch all transaction data in parallel
-      const [fills, orders, funding] = await Promise.all([
-        provider.getOrderFills({
-          accountId,
-          aggregateByTime: false,
-        }),
-        provider.getOrders({ accountId }),
-        provider.getFunding({
-          accountId,
-          startTime,
-          endTime,
-        }),
-      ]);
-
-      DevLogger.log('Transaction data fetched:', { fills, orders, funding });
-
+  /**
+   * Build transactions from current data (fills, orders, funding, userHistory)
+   * Called after Phase 1 and again after Phase 2 when orders arrive
+   */
+  const buildTransactions = useCallback(
+    (
+      fills: OrderFill[],
+      orders: Order[],
+      funding: Funding[],
+      includeOrders: boolean,
+    ): PerpsTransaction[] => {
+      // Create order map for fill enrichment (TP/SL pills)
       const orderMap = new Map(orders.map((order) => [order.orderId, order]));
 
-      // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
+      // Enrich fills with detailedOrderType for TP/SL pill display
       const enrichedFills = fills.map((fill) => ({
         ...fill,
         detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
@@ -104,19 +103,23 @@ export const usePerpsTransactionHistory = ({
 
       // Transform each data type to PerpsTransaction format
       const fillTransactions = transformFillsToTransactions(enrichedFills);
-      const orderTransactions = transformOrdersToTransactions(orders);
       const fundingTransactions = transformFundingToTransactions(funding);
       const userHistoryTransactions = transformUserHistoryToTransactions(
         userHistoryRef.current,
       );
 
-      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
+      // Build combined transactions
       const allTransactions = [
         ...fillTransactions,
-        ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
       ];
+
+      // Include order transactions only when orders are loaded
+      if (includeOrders) {
+        const orderTransactions = transformOrdersToTransactions(orders);
+        allTransactions.push(...orderTransactions);
+      }
 
       // Sort by timestamp descending (newest first)
       allTransactions.sort((a, b) => b.timestamp - a.timestamp);
@@ -130,34 +133,173 @@ export const usePerpsTransactionHistory = ({
         return acc;
       }, [] as PerpsTransaction[]);
 
-      DevLogger.log('Combined transactions:', uniqueTransactions);
-      setTransactions(uniqueTransactions);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch transaction history';
-      DevLogger.log('Error fetching transaction history:', errorMessage);
-      setError(errorMessage);
-      setTransactions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [startTime, endTime, accountId]);
+      return uniqueTransactions;
+    },
+    [],
+  );
 
+  /**
+   * Main fetch function with progressive rendering
+   * Phase 1: Fetch fills + funding, render immediately
+   * Phase 2: Fetch orders in background, re-render with enrichment
+   */
+  const fetchTransactions = useCallback(
+    async (skipCache = false) => {
+      // Increment fetch version to invalidate any pending Phase 2 from previous fetches
+      const currentFetchVersion = ++fetchVersionRef.current;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        setOrdersLoaded(false);
+
+        const controller = Engine.context.PerpsController;
+        if (!controller) {
+          throw new Error('PerpsController not available');
+        }
+
+        const provider = controller.getActiveProvider();
+        if (!provider) {
+          throw new Error('No active provider available');
+        }
+
+        DevLogger.log('Fetching transaction history (progressive)...', {
+          fetchVersion: currentFetchVersion,
+        });
+
+        // PHASE 1: Fetch fills + funding in parallel (fast path)
+        const [fills, funding] = await Promise.all([
+          provider.getOrderFills({
+            accountId,
+            aggregateByTime: false,
+            skipCache,
+          }),
+          provider.getFunding({
+            accountId,
+            startTime,
+            endTime,
+            skipCache,
+          }),
+        ]);
+
+        // Check if this fetch is still current (not superseded by a newer fetch)
+        if (fetchVersionRef.current !== currentFetchVersion) {
+          DevLogger.log('Phase 1 superseded by newer fetch, skipping update', {
+            fetchVersion: currentFetchVersion,
+            currentVersion: fetchVersionRef.current,
+          });
+          return;
+        }
+
+        DevLogger.log('Phase 1 complete - fills + funding fetched:', {
+          fills: fills.length,
+          funding: funding.length,
+          fetchVersion: currentFetchVersion,
+        });
+
+        // Store in refs for later re-enrichment
+        fillsRef.current = fills;
+        fundingRef.current = funding;
+
+        // Build and render immediately WITHOUT orders (no enrichment yet)
+        const phase1Transactions = buildTransactions(fills, [], funding, false);
+        setTransactions(phase1Transactions);
+        setIsLoading(false); // UI is now interactive!
+
+        DevLogger.log('Phase 1 rendered:', {
+          transactionCount: phase1Transactions.length,
+        });
+
+        // PHASE 2: Fetch orders in background (for enrichment + Orders tab)
+        provider
+          .getOrders({ accountId, skipCache })
+          .then((orders) => {
+            // Check if this Phase 2 is still current (not superseded by a newer fetch)
+            if (fetchVersionRef.current !== currentFetchVersion) {
+              DevLogger.log(
+                'Phase 2 superseded by newer fetch, skipping update',
+                {
+                  fetchVersion: currentFetchVersion,
+                  currentVersion: fetchVersionRef.current,
+                },
+              );
+              return;
+            }
+
+            DevLogger.log('Phase 2 complete - orders fetched:', {
+              orders: orders.length,
+              fetchVersion: currentFetchVersion,
+            });
+
+            // Store orders in ref
+            ordersRef.current = orders;
+
+            // Re-build transactions with orders (now enriched with TP/SL pills)
+            const phase2Transactions = buildTransactions(
+              fillsRef.current,
+              orders,
+              fundingRef.current,
+              true,
+            );
+            setTransactions(phase2Transactions);
+            setOrdersLoaded(true);
+
+            DevLogger.log('Phase 2 rendered:', {
+              transactionCount: phase2Transactions.length,
+            });
+          })
+          .catch((err) => {
+            // Check if this Phase 2 error is still relevant
+            if (fetchVersionRef.current !== currentFetchVersion) {
+              return;
+            }
+            // Orders failed - fills/funding still work, just no TP/SL pills or Orders tab
+            DevLogger.log('Failed to fetch orders for enrichment:', err);
+            // Don't set error - Phase 1 data is still valid
+            // Mark orders as "loaded" so Orders tab shows empty state instead of spinner
+            setOrdersLoaded(true);
+          });
+      } catch (err) {
+        // Check if this error is still relevant
+        if (fetchVersionRef.current !== currentFetchVersion) {
+          return;
+        }
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Failed to fetch transaction history';
+        DevLogger.log('Error fetching transaction history:', errorMessage);
+        setError(errorMessage);
+        setTransactions([]);
+        setIsLoading(false);
+      }
+    },
+    [startTime, endTime, accountId, buildTransactions],
+  );
+
+  /**
+   * Refetch all data (bypasses cache)
+   * Used for pull-to-refresh
+   */
   const refetch = useCallback(async () => {
+    // Reset refs
+    fillsRef.current = [];
+    fundingRef.current = [];
+    ordersRef.current = [];
+
     // Fetch user history first, then fetch all transactions
     const freshUserHistory = await refetchUserHistory();
     userHistoryRef.current = freshUserHistory;
-    await fetchAllTransactions();
-  }, [fetchAllTransactions, refetchUserHistory]);
+    await fetchTransactions(true); // skipCache = true for refresh
+  }, [fetchTransactions, refetchUserHistory]);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (!skipInitialFetch && !initialFetchDone.current) {
       initialFetchDone.current = true;
-      refetch();
+      fetchTransactions(false); // Use cache on initial load
     }
-  }, [skipInitialFetch, refetch]);
+  }, [skipInitialFetch, fetchTransactions]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(
@@ -231,6 +373,7 @@ export const usePerpsTransactionHistory = ({
   return {
     transactions: mergedTransactions,
     isLoading: combinedIsLoading,
+    ordersLoaded,
     error: combinedError,
     refetch,
   };

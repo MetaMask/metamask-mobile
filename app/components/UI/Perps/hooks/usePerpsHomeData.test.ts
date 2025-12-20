@@ -283,6 +283,7 @@ describe('usePerpsHomeData', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn().mockResolvedValue(undefined),
     });
@@ -757,6 +758,7 @@ describe('usePerpsHomeData', () => {
       mockUsePerpsTransactionHistory.mockReturnValue({
         transactions: [],
         isLoading: false,
+        ordersLoaded: true,
         error: null,
         refetch: jest.fn().mockResolvedValue(undefined),
       });

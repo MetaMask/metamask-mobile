@@ -72,9 +72,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [selectedAddress, currentChainId]);
 
   // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
+  // Progressive rendering: fills/funding load first, orders load in background
   const {
     transactions: allTransactions,
     isLoading: transactionsLoading,
+    ordersLoaded,
     refetch: refreshTransactions,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
@@ -354,18 +356,24 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(
-    () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
-  );
+  // For Orders tab, also show skeleton while orders are loading in background
+  const isInitialLoading = useMemo(() => {
+    // Show loading if we're connecting or if transaction data is loading
+    if (isConnecting || transactionsLoading) {
+      return true;
+    }
+    // For Orders tab, show loading until orders are loaded
+    if (activeFilter === 'Orders' && !ordersLoaded) {
+      return true;
+    }
+    return false;
+  }, [isConnecting, transactionsLoading, activeFilter, ordersLoaded]);
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
   // Only measures once per session (no reset on refresh/tab switch)
   usePerpsMeasurement({
     traceName: TraceName.PerpsTransactionsView,
-    conditions: [!isInitialLoading],
+    conditions: [!transactionsLoading && !isConnecting],
     resetConditions: [], // Prevent automatic reset on subsequent loads
   });
 

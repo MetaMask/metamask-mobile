@@ -138,6 +138,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -237,6 +238,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: mockRefetch,
     });
@@ -256,6 +258,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -278,6 +281,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
+      ordersLoaded: true,
       error: 'API Error',
       refetch: jest.fn(),
     });
@@ -336,6 +340,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [todayTransaction, yesterdayTransaction, oldTransaction],
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -369,6 +374,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: unsortedTransactions,
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -387,6 +393,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
+      ordersLoaded: true,
       error: 'Network error',
       refetch: jest.fn(),
     });
@@ -409,6 +416,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -524,6 +532,7 @@ describe('PerpsTransactionsView', () => {
     mockUsePerpsTransactionHistory.mockReturnValue({
       transactions: [],
       isLoading: false,
+      ordersLoaded: true,
       error: null,
       refetch: jest.fn(),
     });
