@@ -2,7 +2,7 @@ name: iOS E2E Regression Tests
 
 on:
   # schedule: # Currently disabled to fine-tune test suites
-  #   - cron: '0 */3 * * *'  # Every 3 hours
+  #   - cron: '0 */3 * * *'  # Every 3 hours (disabled via job condition)
   workflow_dispatch:
     inputs:
       notify_on_pass:
@@ -18,7 +18,7 @@ permissions:
 jobs:
   build-ios-apps:
     name: 'Build iOS Apps'
-    if: ${{ github.event_name != 'merge_group' }}
+    if: false # Disabled - only Flask E2E tests are enabled
     permissions:
       contents: read
       id-token: write

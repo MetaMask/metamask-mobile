@@ -2,7 +2,7 @@ name: Android E2E Regression Tests
 
 on:
   schedule:
-    - cron: '0 */3 * * *' # Every 3 hours
+    - cron: '0 */3 * * *' # Every 3 hours (disabled via job condition)
   workflow_dispatch:
     inputs:
       notify_on_pass:
@@ -18,7 +18,7 @@ permissions:
 jobs:
   build-android-apks:
     name: 'Build Android APKs'
-    if: ${{ github.event_name != 'merge_group' }}
+    if: false # Disabled - only Flask E2E tests are enabled
     permissions:
       contents: read
       id-token: write
