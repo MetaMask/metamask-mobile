@@ -187,7 +187,7 @@ const SecureKeychain = {
 
     const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
-      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_ANY;
 
       await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
