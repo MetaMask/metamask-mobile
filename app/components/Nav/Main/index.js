@@ -52,7 +52,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -138,7 +137,6 @@ const Main = (props) => {
   useNotificationHandler();
   useIdentityEffects();
   useMinimumVersions();
-  useOTAUpdates();
 
   const { chainId, networkClientId } = props;
 

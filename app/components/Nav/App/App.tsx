@@ -161,6 +161,7 @@ import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hoo
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1101,7 +1102,7 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-
+  useOTAUpdates();
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,

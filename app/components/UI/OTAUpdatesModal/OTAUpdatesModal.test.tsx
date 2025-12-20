@@ -104,7 +104,7 @@ describe('OTAUpdatesModal', () => {
     );
   });
 
-  it('reloads app and tracks primary action when button is pressed', async () => {
+  it('tracks primary action when reload button is pressed', async () => {
     const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
@@ -115,6 +115,15 @@ describe('OTAUpdatesModal', () => {
           event: MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
         }),
       );
+    });
+  });
+
+  it('reloads app when reload button is pressed', async () => {
+    const { getByText } = render(<OTAUpdatesModal />);
+
+    fireEvent.press(getByText('Reload'));
+
+    await waitFor(() => {
       expect(mockReloadAsync).toHaveBeenCalledTimes(1);
     });
   });

@@ -98,7 +98,7 @@ describe('useOTAUpdates', () => {
     });
   });
 
-  it('checks for updates when feature flag is enabled and logs when no update is available', async () => {
+  it('logs no available update when feature flag is enabled', async () => {
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       isRollBackToEmbedded: false,
@@ -172,7 +172,7 @@ describe('useOTAUpdates', () => {
     });
   });
 
-  it('logs error and continues when update check fails', async () => {
+  it('logs error on update check failure', async () => {
     const mockError = new Error('Update check failed');
     mockCheckForUpdateAsync.mockRejectedValue(mockError);
 

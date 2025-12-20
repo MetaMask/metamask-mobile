@@ -37,10 +37,6 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
   NativeRampsSdk: jest.fn(),
 }));
 
-jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn(),
-}));
-
 const mockStore = configureMockStore();
 const mockInitialState = {
   user: {

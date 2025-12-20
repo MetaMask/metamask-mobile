@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import { BackHandler, Image, Platform } from 'react-native';
+import { Image } from 'react-native';
 import { reloadAsync } from 'expo-updates';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -37,7 +37,6 @@ const OTAUpdatesModal = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
-  const isReloadingRef = useRef(false);
 
   useEffect(() => {
     trackEvent(
@@ -53,34 +52,6 @@ const OTAUpdatesModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet(cb);
 
   const onPress = useCallback(() => {
-    if (isReloadingRef.current) {
-      return;
-    }
-
-    isReloadingRef.current = true;
-
-    // Android: avoid in-place reload and exit app instead so the OTA
-    // applies on the next cold start (workaround for native crash during
-    // React Native instance teardown).
-    if (Platform.OS === 'android') {
-      dismissBottomSheet(() => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
-          )
-            .addProperties({
-              ...generateDeviceAnalyticsMetaData(),
-            })
-            .build(),
-        );
-
-        BackHandler.exitApp();
-      });
-
-      return;
-    }
-
-    // iOS: keep existing reloadAsync behavior.
     dismissBottomSheet(async () => {
       trackEvent(
         createEventBuilder(
@@ -99,9 +70,6 @@ const OTAUpdatesModal = () => {
           error as Error,
           'OTA Updates: Error reloading app after modal reload pressed',
         );
-
-        // Allow retry if reload failed
-        isReloadingRef.current = false;
       }
     });
   }, [trackEvent, createEventBuilder]);

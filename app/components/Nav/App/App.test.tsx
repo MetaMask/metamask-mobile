@@ -112,6 +112,10 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+jest.mock('../../hooks/useOTAUpdates', () => ({
+  useOTAUpdates: jest.fn(),
+}));
+
 // Mock the navigation hook
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
