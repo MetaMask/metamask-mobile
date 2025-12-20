@@ -16,7 +16,6 @@ import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -1804,6 +1803,26 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
     headerTitle: () => (
       <NavbarTitle
         title={strings('bridge_transaction_details.transaction_details')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
+export function getBridgeTokenSelectorNavbar(navigation) {
+  const leftAction = () => navigation.goBack();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge.select_token')}
         disableNetwork
         showSelectedNetwork={false}
         translate={false}
