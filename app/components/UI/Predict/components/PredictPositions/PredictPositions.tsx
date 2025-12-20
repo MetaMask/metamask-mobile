@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -12,7 +13,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { PredictPosition as PredictPositionType } from '../../types';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
+import {
+  PredictPosition as PredictPositionType,
+  PriceQuery,
+} from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
@@ -55,6 +60,56 @@ const PredictPositions = forwardRef<
     refreshOnFocus: true,
   });
 
+  // Build price queries for fetching real-time CLOB prices
+  const priceQueries: PriceQuery[] = useMemo(
+    () =>
+      positions.map((position) => ({
+        marketId: position.marketId,
+        outcomeId: position.outcomeId,
+        outcomeTokenId: position.outcomeTokenId,
+      })),
+    [positions],
+  );
+
+  // Fetch real-time prices with 5-second polling
+  const { prices } = usePredictPrices({
+    queries: priceQueries,
+    providerId: 'polymarket',
+    enabled: !isLoading && priceQueries.length > 0,
+    pollingInterval: 5000,
+  });
+
+  // Create positions with updated currentValue from real-time prices
+  const positionsWithPrices = useMemo(() => {
+    if (!prices.results.length) {
+      return positions;
+    }
+
+    return positions.map((position) => {
+      const priceResult = prices.results.find(
+        (r) => r.outcomeTokenId === position.outcomeTokenId,
+      );
+      if (!priceResult) {
+        return position;
+      }
+
+      const realTimePrice = priceResult.entry.buy;
+      const updatedCurrentValue = realTimePrice * position.size;
+      const updatedPercentPnl =
+        position.initialValue > 0
+          ? ((updatedCurrentValue - position.initialValue) /
+              position.initialValue) *
+            100
+          : 0;
+
+      return {
+        ...position,
+        currentValue: updatedCurrentValue,
+        percentPnl: updatedPercentPnl,
+      };
+    });
+  }, [positions, prices.results]);
+
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
     const combinedError = error || claimableError;
@@ -83,6 +138,7 @@ const PredictPositions = forwardRef<
     ({ item }: { item: PredictPositionType }) => (
       <PredictPosition
         position={item}
+        skipOptimisticRefresh
         onPress={() => {
           navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
@@ -138,7 +194,7 @@ const PredictPositions = forwardRef<
           <PredictPositionEmpty />
         ) : (
           <>
-            {positions.map((item) => (
+            {positionsWithPrices.map((item) => (
               <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
                 {renderPosition({ item })}
               </React.Fragment>
