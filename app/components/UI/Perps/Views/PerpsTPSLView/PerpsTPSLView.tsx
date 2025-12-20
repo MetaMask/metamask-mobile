@@ -201,6 +201,8 @@ const PerpsTPSLView: React.FC = () => {
     takeProfitError,
     stopLossError,
     stopLossLiquidationError,
+    takeProfitPrecisionWarning,
+    stopLossPrecisionWarning,
   } = tpslForm.validation;
   const {
     formattedTakeProfitPercentage,
@@ -671,6 +673,13 @@ const PerpsTPSLView: React.FC = () => {
                 {takeProfitError}
               </Text>
             )}
+
+            {/* Precision warning (non-blocking) */}
+            {Boolean(takeProfitPrecisionWarning) && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                {takeProfitPrecisionWarning}
+              </Text>
+            )}
           </View>
 
           {/* Stop Loss Section */}
@@ -831,6 +840,13 @@ const PerpsTPSLView: React.FC = () => {
             {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {stopLossError || stopLossLiquidationError}
+              </Text>
+            )}
+
+            {/* Precision warning (non-blocking) */}
+            {Boolean(stopLossPrecisionWarning) && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                {stopLossPrecisionWarning}
               </Text>
             )}
           </View>

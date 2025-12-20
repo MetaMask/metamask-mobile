@@ -13,6 +13,84 @@
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
+/**
+ * Counts the number of significant figures in a numeric string
+ * This matches HyperLiquid's validation rules:
+ * - Trailing decimal zeros are trimmed first (via parseFloat().toString())
+ * - Count non-zero integer digits (without leading zeros)
+ * - Count ALL decimal digits (including leading zeros after decimal point)
+ *
+ * @param priceString - The price value as a string (may include $ or ,)
+ * @returns The count of significant figures
+ *
+ * @example
+ * countSignificantFigures('123.45') // 5 (3 integer + 2 decimal)
+ * countSignificantFigures('123.4500') // 5 (trailing zeros trimmed first)
+ * countSignificantFigures('0.000123') // 6 (0 integer + 6 decimal)
+ * countSignificantFigures('12.345') // 5 (2 integer + 3 decimal)
+ * countSignificantFigures('12000') // 2 (trailing zeros in integer not counted)
+ */
+export const countSignificantFigures = (priceString: string): number => {
+  if (!priceString) return 0;
+
+  // Clean the string - remove currency symbols and commas
+  const cleaned = priceString.replace(/[$,]/g, '').trim();
+
+  // Parse and convert back to string to trim trailing decimal zeros
+  // This matches formatHyperLiquidPrice: parseFloat(formattedPrice).toString()
+  const num = parseFloat(cleaned);
+  if (isNaN(num) || num === 0) return 0;
+
+  // Normalize to remove trailing zeros (e.g., "123.4500" -> "123.45")
+  const normalized = num.toString();
+
+  // Split into integer and decimal parts
+  const [integerPart, decimalPart = ''] = normalized.split('.');
+
+  // Remove leading zeros and negative sign from integer part
+  const trimmedInteger = integerPart.replace(/^-?0+/, '') || '';
+
+  // For integers without decimal, trailing zeros are ambiguous
+  // We treat them as not significant (matching HyperLiquid behavior)
+  const effectiveIntegerLength = decimalPart
+    ? trimmedInteger.length
+    : trimmedInteger.replace(/0+$/, '').length ||
+      (trimmedInteger.length > 0 ? 1 : 0);
+
+  // Count ALL decimal digits (including leading zeros like 0.000123)
+  // This matches HyperLiquid's validation behavior
+  return effectiveIntegerLength + decimalPart.length;
+};
+
+/**
+ * Checks if a price will be rounded due to exceeding significant figures
+ * Only applies when the price has decimals - integers are never rounded
+ * This matches the behavior in formatHyperLiquidPrice
+ *
+ * @param priceString - The price value as a string
+ * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
+ * @returns true if the price will be rounded, false otherwise
+ */
+export const hasExceededSignificantFigures = (
+  priceString: string,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
+): boolean => {
+  if (!priceString || priceString.trim() === '') return false;
+
+  // Clean the string and normalize (trim trailing zeros)
+  const cleaned = priceString.replace(/[$,]/g, '').trim();
+  const num = parseFloat(cleaned);
+  if (isNaN(num)) return false;
+
+  // Normalize to check for decimal presence after trimming trailing zeros
+  const normalized = num.toString();
+
+  // If there's no decimal part after normalization, the price won't be rounded
+  if (!normalized.includes('.')) return false;
+
+  return countSignificantFigures(priceString) > maxSigFigs;
+};
+
 interface ValidationParams {
   currentPrice: number;
   direction?: 'long' | 'short';
