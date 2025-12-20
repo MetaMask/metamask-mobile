@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
 
@@ -44,7 +44,9 @@ import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSe
 import {
   AvatarToken,
   AvatarTokenSize,
+  Box,
 } from '@metamask/design-system-react-native';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -60,7 +62,7 @@ export const createTokenSelectModalNavigationDetails =
 
 function TokenSelectModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<FlashListRef<CryptoCurrency>>(null);
 
   const { tokens } = useParams<TokenSelectModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
@@ -277,17 +279,19 @@ function TokenSelectModal() {
               testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             />
           </View>
-          <FlatList
-            style={styles.list}
-            ref={listRef}
-            data={searchTokenResults}
-            extraData={selectedAsset?.id}
-            renderItem={renderToken}
-            keyExtractor={(item) => item.id}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="none"
-            keyboardShouldPersistTaps="always"
-          />
+          <Box style={[styles.list]}>
+            <FlashList
+              ref={listRef}
+              data={searchTokenResults}
+              extraData={selectedAsset?.id}
+              renderItem={renderToken}
+              keyExtractor={(item, idx) => `token-selection-${item.id}-${idx}`}
+              ListEmptyComponent={renderEmptyList}
+              keyboardDismissMode="none"
+              keyboardShouldPersistTaps="always"
+              renderScrollComponent={ScrollView}
+            />
+          </Box>
         </>
       )}
     </BottomSheet>

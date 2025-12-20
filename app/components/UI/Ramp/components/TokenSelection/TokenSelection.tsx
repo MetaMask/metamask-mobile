@@ -6,7 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -44,7 +45,7 @@ export const createTokenSelectionNavDetails = createNavigationDetails(
 );
 
 function TokenSelection() {
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<FlashListRef<RampsToken>>(null);
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
@@ -231,14 +232,15 @@ function TokenSelection() {
             )}
           />
         </Box>
-        <FlatList
+        <FlashList
           ref={listRef}
           data={searchTokenResults as unknown as RampsToken[]}
           renderItem={renderToken}
-          keyExtractor={(item) => item.assetId}
+          keyExtractor={(item, idx) => `token-selection-${item.assetId}-${idx}`}
           ListEmptyComponent={renderEmptyList}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="always"
+          renderScrollComponent={ScrollView}
         />
       </ScreenLayout.Body>
     </ScreenLayout>
