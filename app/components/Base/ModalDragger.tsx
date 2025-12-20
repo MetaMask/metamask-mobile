@@ -19,6 +19,7 @@ const createStyles = (colors: Theme['colors']) =>
       borderColor: colors.border.muted,
     },
     borderless: {
+      borderBottomWidth: 0,
       borderColor: importedColors.transparent,
     },
     dragger: {
