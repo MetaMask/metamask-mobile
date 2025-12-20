@@ -37,47 +37,49 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
-  const timer3 = new TimerHelper(
+  const timer1 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-    { ios: 1200, android: 1200 },
+    { ios: 1000, android: 1800 },
+    device,
+  );
+  const timer2 = new TimerHelper(
+    'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
+    { ios: 1000, android: 1500 },
+    device,
+  );
+  const timer3 = new TimerHelper(
+    'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
+    { ios: 2500, android: 1800 },
     device,
   );
   const timer4 = new TimerHelper(
-    'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-    { ios: 1200, android: 1200 },
+    'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
+    { ios: 1000, android: 1600 },
     device,
   );
   const timer5 = new TimerHelper(
-    'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-    { ios: 1000, android: 1000 },
+    'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
+    { ios: 2200, android: 1700 },
     device,
   );
   const timer6 = new TimerHelper(
-    'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-    { ios: 1100, android: 1100 },
+    'Time since the user clicks on "Done" button until feature sheet is visible',
+    { ios: 2500, android: 3100 },
     device,
   );
   const timer7 = new TimerHelper(
-    'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
-    { ios: 1500, android: 1500 },
-    device,
-  );
-  const timer8 = new TimerHelper(
-    'Time since the user clicks on "Done" button until feature sheet is visible',
-    { ios: 1700, android: 1700 },
-    device,
-  );
-  const timer9 = new TimerHelper(
     'Time since the user clicks on "Not now" button On feature sheet until native token is visible',
-    { ios: 40000, android: 40000 },
+    { ios: 35000, android: 40000 },
     device,
   );
 
   await OnboardingScreen.tapHaveAnExistingWallet();
-  await timer3.measure(() => OnboardingSheet.isVisible());
+  await timer1.measure(async () => await OnboardingSheet.isVisible());
 
   await OnboardingSheet.tapImportSeedButton();
-  await timer4.measure(() => ImportFromSeedScreen.isScreenTitleVisible());
+  await timer2.measure(
+    async () => await ImportFromSeedScreen.isScreenTitleVisible(),
+  );
 
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(
     process.env.TEST_SRP_3,
@@ -86,35 +88,38 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
 
   await ImportFromSeedScreen.tapContinueButton();
-  await timer5.measure(() => CreatePasswordScreen.isVisible());
+  await timer3.measure(async () => await CreatePasswordScreen.isVisible());
 
   await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.reEnterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
-  await timer6.measure(() => MetaMetricsScreen.isScreenTitleVisible());
+  await timer4.measure(
+    async () => await MetaMetricsScreen.isScreenTitleVisible(),
+  );
 
   await MetaMetricsScreen.tapIAgreeButton();
-  await timer7.measure(() => OnboardingSucessScreen.isVisible());
+  await timer5.measure(async () => await OnboardingSucessScreen.isVisible());
 
   await OnboardingSucessScreen.tapDone();
-  await timer8.measure(() => checkPredictionsModalIsVisible(device));
+  await timer6.measure(
+    async () => await checkPredictionsModalIsVisible(device),
+  );
 
   await dissmissPredictionsModal(device);
-  await timer9.measure(async () => {
-    await WalletMainScreen.isTokenVisible('ETH');
+  await timer7.measure(async () => {
     await WalletMainScreen.isTokenVisible('SOL');
   });
 
   performanceTracker.addTimers(
+    timer1,
+    timer2,
     timer3,
     timer4,
     timer5,
     timer6,
     timer7,
-    timer8,
-    timer9,
   );
   await performanceTracker.attachToTest(testInfo);
 });

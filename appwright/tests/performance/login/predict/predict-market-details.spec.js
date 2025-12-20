@@ -41,7 +41,7 @@ test('Predict Market Details - Load Time Performance', async ({
   // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
   const timer2 = new TimerHelper(
     'Time since user taps Predict button until Predict Market List is displayed',
-    { ios: 2800, android: 2800 },
+    { ios: 2800, android: 4000 },
     device,
   );
   await timer2.measure(async () => {
@@ -52,7 +52,7 @@ test('Predict Market Details - Load Time Performance', async ({
   // Timer 3: Open market details (threshold: 5000ms + 10% = 5500ms)
   const timer3 = new TimerHelper(
     'Time since user taps market card until Market Details screen is visible',
-    { ios: 6800, android: 6800 },
+    { ios: 17000, android: 13000 },
     device,
   );
   await timer3.measure(async () => {

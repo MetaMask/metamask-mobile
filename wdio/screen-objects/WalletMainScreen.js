@@ -312,28 +312,66 @@ class WalletMainScreen {
 
   async waitForBalanceToStabilize(options = {}) {
     const { 
-      maxWaitTime = 60000,         // 1 minute timeout
+      maxWaitTime = 60000,
       pollInterval = 100, 
-      sameResultTimeout = 20000    // 20 seconds with the same result = stable
+      sameResultTimeout = 8000
     } = options;
 
     const startTime = Date.now();
+    const isIOS = AppwrightSelectors.isIOS(this._device);
+    
+
+    // iOS: Element lookups are extremely slow (15-30s each via Appwright).
+    // Skip stability loop and just wait for a valid balance once.
+    if (isIOS) {
+      while (Date.now() - startTime < maxWaitTime) {
+        try {
+          const balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+          const rawBalance = await balanceElement.getText();
+          const balance = (rawBalance || '').trim();
+          
+          if (balance && balance !== '' && balance !== '$0.00') {
+            return balance;
+          }
+        } catch (error) {
+        }
+        await AppwrightGestures.wait(1000);
+      }
+      return '';
+    }
+
+    // Android: Fast element lookups, use stability polling
+    let balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
     let previousBalance = '';
     let sameResultStartTime = null;
+    let iterationCount = 0;
 
     while (true) {
-      // Check if we exceeded the maximum wait time (1 minute)
-      if (Date.now() - startTime > maxWaitTime) {
-        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+      iterationCount++;
+      const elapsedTime = Date.now() - startTime;
+
+      if (elapsedTime > maxWaitTime) {
         return previousBalance;
       }
 
-      const currentBalance = await this.getTotalBalanceText();
+      let rawBalance;
+      try {
+        rawBalance = await balanceElement.getText();
+      } catch (error) {
+        balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+        await AppwrightGestures.wait(pollInterval);
+        continue;
+      }
 
-      if (currentBalance === previousBalance && previousBalance !== '') {
-        // Same result - check if 20 seconds have passed
+      const currentBalance = (rawBalance || '').trim();
+
+      if (!currentBalance || currentBalance === '' || currentBalance === '$0.00') {
+        await AppwrightGestures.wait(pollInterval);
+        continue;
+      }
+
+      if (currentBalance === previousBalance) {
         const timeSinceSameResult = Date.now() - sameResultStartTime;
-        
         if (timeSinceSameResult >= sameResultTimeout) {
           return currentBalance;
         }
