@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -200,86 +200,152 @@ export const useWithdrawalRequests = (
     }
   }, [startTime, selectedAddress]);
 
-  // Combine pending and completed withdrawals
+  // Track which withdrawals have already been updated in the controller
+  // to prevent duplicate updateWithdrawalStatus calls
+  const updatedWithdrawalIdsRef = useRef<Set<string>>(new Set());
+
+  /**
+   * Helper function to find a matching pending/bridging withdrawal for a completed one
+   * Matches by amount and asset only - timestamps can differ significantly for bridging
+   * operations (can take hours, not just 15 minutes)
+   */
+  const findMatchingPendingWithdrawal = useCallback(
+    (
+      completedWithdrawal: WithdrawalRequest,
+      pendingList: WithdrawalRequest[],
+    ): WithdrawalRequest | undefined =>
+      pendingList.find((w) => {
+        if (w.status !== 'pending' && w.status !== 'bridging') {
+          return false;
+        }
+
+        // Match by amount - allow for small differences (fees, rounding)
+        const amountDiff = Math.abs(
+          parseFloat(w.amount) - parseFloat(completedWithdrawal.amount),
+        );
+        const isAmountMatch = amountDiff < 0.01; // Allow up to 1 cent difference
+
+        // Asset must match
+        const isAssetMatch = w.asset === completedWithdrawal.asset;
+
+        // Note: Removed timestamp constraint - bridging operations from HyperLiquid
+        // to Arbitrum can take hours, so matching by initiation vs completion time
+        // is unreliable. Amount + asset matching is sufficient for deduplication.
+
+        return isAmountMatch && isAssetMatch;
+      }),
+    [],
+  );
+
+  // Combine pending and completed withdrawals (pure data transformation, no side effects)
   const allWithdrawals = useMemo(() => {
-    // More nuanced approach: only mark as completed if we have a matching completed withdrawal
-    // with a transaction hash (indicating it reached Arbitrum)
-    const combined = [...pendingWithdrawals, ...completedWithdrawals];
+    // Build a list that merges pending withdrawals with their completed counterparts
+    const result: WithdrawalRequest[] = [];
 
-    // Remove duplicates by matching pending/bridging withdrawals with completed ones
-    const uniqueWithdrawals = combined.reduce((acc, withdrawal) => {
-      // For pending and bridging withdrawals, keep them as-is
-      if (withdrawal.status === 'pending' || withdrawal.status === 'bridging') {
-        acc.push(withdrawal);
-        return acc;
-      }
+    // First, add all pending/bridging withdrawals
+    for (const pending of pendingWithdrawals) {
+      if (pending.status === 'pending' || pending.status === 'bridging') {
+        // Check if this pending withdrawal has a matching completed one
+        const matchingCompleted = completedWithdrawals.find((completed) => {
+          if (!completed.txHash) return false;
 
-      // For completed withdrawals, try to match with a pending or bridging one
-      if (withdrawal.status === 'completed') {
-        // Only match if the completed withdrawal has a transaction hash (reached Arbitrum)
-        if (withdrawal.txHash) {
-          // Look for a pending or bridging withdrawal with similar timestamp and amount
-          const pendingMatch = acc.findIndex((w) => {
-            if (w.status !== 'pending' && w.status !== 'bridging') {
-              return false;
-            }
+          const amountDiff = Math.abs(
+            parseFloat(pending.amount) - parseFloat(completed.amount),
+          );
+          const isAmountMatch = amountDiff < 0.01;
+          const isAssetMatch = pending.asset === completed.asset;
 
-            // More flexible amount matching - allow for small differences
-            const amountDiff = Math.abs(
-              parseFloat(w.amount) - parseFloat(withdrawal.amount),
-            );
-            const isAmountMatch = amountDiff < 0.01; // Allow up to 1 cent difference
+          return isAmountMatch && isAssetMatch;
+        });
 
-            // More flexible timestamp matching - allow up to 15 minutes
-            const timeDiff = Math.abs(w.timestamp - withdrawal.timestamp);
-            const isTimeMatch = timeDiff < 900000; // 15 minutes
-
-            // Asset must match
-            const isAssetMatch = w.asset === withdrawal.asset;
-
-            return isAmountMatch && isTimeMatch && isAssetMatch;
+        if (matchingCompleted) {
+          // Merge: use pending's ID but update with completed data
+          result.push({
+            ...pending,
+            status: 'completed',
+            txHash: matchingCompleted.txHash,
+            withdrawalId: matchingCompleted.withdrawalId,
           });
-
-          if (pendingMatch >= 0) {
-            // Update the pending/bridging withdrawal with completed data
-            const matchedWithdrawal = acc[pendingMatch];
-            acc[pendingMatch] = {
-              ...matchedWithdrawal,
-              status: 'completed',
-              txHash: withdrawal.txHash,
-              withdrawalId: withdrawal.withdrawalId,
-            };
-
-            // Update the controller state to reflect the completion
-            const controller = Engine.context.PerpsController;
-            if (controller) {
-              controller.updateWithdrawalStatus(
-                matchedWithdrawal.id,
-                'completed',
-                withdrawal.txHash,
-              );
-            }
-          } else {
-            // No pending/bridging match found, add as new completed withdrawal
-            acc.push(withdrawal);
-          }
         } else {
-          // Completed withdrawal without txHash - don't match, keep as separate
-          acc.push(withdrawal);
+          // No match found, keep as pending/bridging
+          result.push(pending);
         }
       } else {
-        // For failed withdrawals, add as-is
-        acc.push(withdrawal);
+        // Already completed or failed in controller state
+        result.push(pending);
+      }
+    }
+
+    // Add completed withdrawals that don't match any pending ones
+    // (historical withdrawals that were completed before the app started tracking)
+    for (const completed of completedWithdrawals) {
+      if (!completed.txHash) {
+        result.push(completed);
+        continue;
       }
 
-      return acc;
-    }, [] as WithdrawalRequest[]);
+      const hasPendingMatch = pendingWithdrawals.some((pending) => {
+        if (pending.status !== 'pending' && pending.status !== 'bridging') {
+          return false;
+        }
+        const amountDiff = Math.abs(
+          parseFloat(pending.amount) - parseFloat(completed.amount),
+        );
+        return amountDiff < 0.01 && pending.asset === completed.asset;
+      });
+
+      if (!hasPendingMatch) {
+        result.push(completed);
+      }
+    }
 
     // Sort by timestamp (newest first)
-    const sorted = uniqueWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
-
-    return sorted;
+    return result.sort((a, b) => b.timestamp - a.timestamp);
   }, [pendingWithdrawals, completedWithdrawals]);
+
+  // Update controller state when we detect completed withdrawals that match pending ones
+  // This is a side effect that should be in useEffect, not useMemo
+  useEffect(() => {
+    const controller = Engine.context.PerpsController;
+    if (!controller) return;
+
+    for (const completed of completedWithdrawals) {
+      // Skip if no txHash (not confirmed on chain)
+      if (!completed.txHash) continue;
+
+      // Find matching pending withdrawal in controller state
+      const matchingPending = findMatchingPendingWithdrawal(
+        completed,
+        pendingWithdrawals,
+      );
+
+      if (matchingPending) {
+        // Check if we've already updated this withdrawal to prevent duplicate calls
+        if (updatedWithdrawalIdsRef.current.has(matchingPending.id)) {
+          continue;
+        }
+
+        DevLogger.log(
+          'useWithdrawalRequests: Updating withdrawal status to completed',
+          {
+            pendingId: matchingPending.id,
+            txHash: completed.txHash,
+            amount: completed.amount,
+          },
+        );
+
+        // Mark as updated before calling to prevent race conditions
+        updatedWithdrawalIdsRef.current.add(matchingPending.id);
+
+        // Update the controller state to reflect the completion
+        controller.updateWithdrawalStatus(
+          matchingPending.id,
+          'completed',
+          completed.txHash,
+        );
+      }
+    }
+  }, [completedWithdrawals, pendingWithdrawals, findMatchingPendingWithdrawal]);
 
   // Initial fetch when component mounts
   useEffect(() => {
