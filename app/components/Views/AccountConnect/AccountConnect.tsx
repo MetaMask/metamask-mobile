@@ -874,7 +874,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         animationOut="slideOutDown"
         style={styles.fullScreenModal}
         backdropOpacity={1}
-        backdropColor={colors.error.default}
+        backdropColor={colors.background.alternative}
         animationInTiming={300}
         animationOutTiming={300}
         useNativeDriver
@@ -891,7 +891,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ),
     [
       blockedUrl,
-      colors.error.default,
+      colors.background.alternative,
       continueToPhishingSite,
       goBackToSafety,
       goToETHPhishingDetector,
