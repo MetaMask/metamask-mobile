@@ -58,6 +58,17 @@ jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
 }));
 
+const mockNavigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
 describe('Approve', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);

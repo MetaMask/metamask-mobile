@@ -107,6 +107,17 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
+const mockNavigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
 describe('ContractInteraction', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);

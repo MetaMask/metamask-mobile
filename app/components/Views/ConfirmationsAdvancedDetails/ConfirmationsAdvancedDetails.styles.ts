@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../../util/theme/models';
+import { Theme } from '../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -11,6 +11,11 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background.alternative,
+      padding: 16,
+    },
     nonceText: isNonceChangeDisabled
       ? {
           color: theme.colors.text.default,
@@ -18,22 +23,8 @@ const styleSheet = (params: {
       : {
           color: theme.colors.primary.default,
         },
-    infoRowOverride: {
-      paddingBottom: 4,
-      paddingHorizontal: 8,
-    },
     dataScrollContainer: {
       height: 200,
-    },
-    skeletonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingBottom: 8,
-      paddingHorizontal: 8,
-    },
-    skeletonBorderRadius: {
-      borderRadius: 4,
     },
   });
 };

@@ -2299,3 +2299,45 @@ export function getCloseOnlyNavbar({
     headerStyle: innerStyles.headerStyle,
   };
 }
+
+/**
+ * Function that returns the navigation options for the Advanced Details screen
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to navigate
+ * @param {Object} themeColors - Theme colors object
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getConfirmationsAdvancedDetailsNavbarOptions(
+  title,
+  navigation,
+  themeColors,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.alternative,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerLeft: {
+      marginHorizontal: 16,
+    },
+  });
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle showSelectedNetwork={false} title={title} />
+    ),
+    headerLeft: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.ArrowLeft}
+        onPress={() => navigation.goBack()}
+        style={innerStyles.headerLeft}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+      />
+    ),
+    headerStyle: innerStyles.headerStyle,
+    headerShown: true,
+  };
+}
