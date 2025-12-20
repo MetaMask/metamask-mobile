@@ -586,6 +586,15 @@ jest.mock(
     }),
     useKeyboardHandler: () => {},
     useGenericKeyboardHandler: () => {},
+    useKeyboardState: (selector) => {
+      const defaultState = {
+        isVisible: false,
+        height: 0,
+        duration: 0,
+        timestamp: 0,
+      };
+      return selector ? selector(defaultState) : defaultState;
+    },
     KeyboardEvents: {
       addListener: jest.fn(() => ({ remove: jest.fn() })),
     },
