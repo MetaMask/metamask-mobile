@@ -4,3 +4,5 @@ export {
   type BrowserStackSessionDetails,
 } from './BrowserStackAPI';
 export { BrowserStackConfigBuilder } from './BrowserStackConfigBuilder';
+export { AppProfilingDataHandler } from './AppProfilingDataHandler';
+export * from './types';
