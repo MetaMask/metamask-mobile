@@ -95,6 +95,7 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { CardVerification } from '../../UI/Card/sdk';
+import { isE2E } from '../../../util/test/utils';
 
 const Stack = createStackNavigator();
 
@@ -193,9 +194,11 @@ const Main = (props) => {
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
 
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+        if (!isE2E) {
+          BackgroundTimer.runBackgroundTimer(async () => {
+            await updateIncomingTransactions();
+          }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+        }
       }
     },
     [backgroundMode, removeNotVisibleNotifications],
