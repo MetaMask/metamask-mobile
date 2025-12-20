@@ -91,6 +91,7 @@ const handleAssetNavigation = async (rawSymbol: string) => {
     );
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
     });
     return;
   }
@@ -282,6 +283,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     // Fallback to markets list on error
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
     });
   }
 };

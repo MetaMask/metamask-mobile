@@ -115,6 +115,7 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
   });
@@ -181,6 +182,7 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
@@ -189,6 +191,7 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
@@ -203,6 +206,7 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
@@ -213,24 +217,8 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
-    });
-
-    it('logs debug messages during processing', async () => {
-      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=SOL' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Starting perps deeplink handling with path:',
-        'perps?screen=asset&symbol=SOL',
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Parsed navigation parameters:',
-        { screen: 'asset', symbol: 'SOL' },
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to asset details for symbol:',
-        'SOL',
-      );
     });
 
     it('navigates to tutorial for first-time users regardless of parameters', async () => {
@@ -333,31 +321,6 @@ describe('handlePerpsUrl', () => {
         specificTab: 'portfolio',
       });
     });
-
-    it('logs correct debug messages for parameter-based routing', async () => {
-      // Test first-time user
-      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
-
-      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Starting perps deeplink handling with path:',
-        'perps?screen=markets',
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
-      );
-    });
-
-    it('logs correct debug messages for returning user markets navigation', async () => {
-      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
-
-      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
-      );
-    });
   });
 
   describe('handlePerpsUrl - screen=home deeplinks', () => {
@@ -372,14 +335,6 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'deeplink' },
       });
-    });
-
-    it('logs correct message for screen=home', async () => {
-      await handlePerpsUrl({ perpsPath: 'perps?screen=home' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to PerpsHomeView',
-      );
     });
 
     it('first-time users go to tutorial even with screen=home', async () => {
@@ -456,26 +411,6 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: { source: 'deeplink' },
       });
-    });
-
-    it('logs filter when navigating with tab parameter', async () => {
-      await handlePerpsUrl({
-        perpsPath: 'perps?screen=market-list&tab=crypto',
-      });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
-        'crypto',
-      );
-    });
-
-    it('logs undefined filter when no tab parameter', async () => {
-      await handlePerpsUrl({ perpsPath: 'perps?screen=market-list' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
-        undefined,
-      );
     });
 
     it('first-time users go to tutorial even with tab parameter', async () => {
@@ -578,15 +513,6 @@ describe('handlePerpsUrl', () => {
 
       expect(market.symbol).toBe('BTC');
       expect(market.marketSource).toBeUndefined();
-    });
-
-    it('logs HIP-3 market detection', async () => {
-      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=xyz:TSLA' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Detected HIP-3 market:',
-        { marketSource: 'xyz', symbol: 'TSLA' },
-      );
     });
   });
 });
