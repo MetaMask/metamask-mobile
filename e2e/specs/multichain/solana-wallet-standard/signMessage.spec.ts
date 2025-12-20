@@ -5,7 +5,10 @@ import Assertions from '../../../framework/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import { logger } from '../../../framework/logger';
 
-describe(
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24149
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {

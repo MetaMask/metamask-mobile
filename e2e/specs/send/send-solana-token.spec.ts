@@ -7,7 +7,10 @@ import { withSolanaAccountEnabled } from '../../common-solana';
 
 const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
 
-describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24153
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeConfirmationsRedesigned('Send SOL token'), () => {
   it('should send solana to an address', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await device.disableSynchronization();

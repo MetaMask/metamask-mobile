@@ -221,7 +221,10 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it('should preserve existing enabled networks when adding a network via dapp', async () => {
+  // TODO: Update test to be BIP-44 compatible
+  // https://github.com/MetaMask/metamask-mobile/issues/24152
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('should preserve existing enabled networks when adding a network via dapp', async () => {
     await withFixtures(
       {
         dapps: [

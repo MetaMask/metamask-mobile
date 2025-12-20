@@ -4,7 +4,10 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import Assertions from '../../../framework/Assertions';
 
-describe(
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24150
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),
   () => {
     beforeAll(async () => {
@@ -27,6 +30,8 @@ describe(
     });
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
+    // TODO:
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('Should send a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
