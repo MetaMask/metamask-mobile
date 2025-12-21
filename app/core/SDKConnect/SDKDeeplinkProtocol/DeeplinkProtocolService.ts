@@ -105,9 +105,9 @@ export default class DeeplinkProtocolService {
 
     if (
       (clientInfo.originatorInfo.url &&
-        clientInfo.originatorInfo.url.toLowerCase() === ORIGIN_METAMASK) ||
+        clientInfo.originatorInfo.url === ORIGIN_METAMASK) ||
       (clientInfo.originatorInfo.title &&
-        clientInfo.originatorInfo.title.toLowerCase() === ORIGIN_METAMASK)
+        clientInfo.originatorInfo.title === ORIGIN_METAMASK)
     ) {
       throw new Error('Connections from metamask origin are not allowed');
     }
