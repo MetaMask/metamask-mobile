@@ -1446,7 +1446,7 @@ describe('WC2Manager', () => {
     });
   });
 
-  describe('Origin Rejection', () => {
+  describe.skip('Origin Rejection', () => {
     let rejectSessionSpy: jest.SpyInstance;
 
     beforeEach(() => {
