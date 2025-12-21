@@ -16,6 +16,7 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -169,6 +170,12 @@ export class ConnectionRegistry {
 
     try {
       const connReq = this.parseConnectionRequest(url);
+      if (
+        (connReq.metadata.dapp.url && connReq.metadata.dapp.url.toLowerCase() === ORIGIN_METAMASK.toLowerCase()) ||
+        (connReq.metadata.dapp.name && connReq.metadata.dapp.name.toLowerCase() === ORIGIN_METAMASK.toLowerCase())
+      ) {
+        throw new Error('Connections from metamask origin are not allowed');
+      }
       connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
