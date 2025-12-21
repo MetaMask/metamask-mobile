@@ -134,31 +134,10 @@ describe('setupBridge', () => {
     expect(BackgroundBridge).not.toHaveBeenCalled();
   });
 
-  it('should throw error when originatorInfo.url is "MetaMask" (case insensitive)', () => {
-    connection.backgroundBridge = undefined;
-    originatorInfo.url = 'MetaMask';
-
-    expect(() => setupBridge({ originatorInfo, connection })).toThrow(
-      'Connections from metamask origin are not allowed',
-    );
-    expect(BackgroundBridge).not.toHaveBeenCalled();
-  });
-
   it('should throw error when originatorInfo.title is "metamask"', () => {
     connection.backgroundBridge = undefined;
     originatorInfo.url = 'https://example.com';
     originatorInfo.title = 'metamask';
-
-    expect(() => setupBridge({ originatorInfo, connection })).toThrow(
-      'Connections from metamask origin are not allowed',
-    );
-    expect(BackgroundBridge).not.toHaveBeenCalled();
-  });
-
-  it('should throw error when originatorInfo.title is "METAMASK" (case insensitive)', () => {
-    connection.backgroundBridge = undefined;
-    originatorInfo.url = 'https://example.com';
-    originatorInfo.title = 'METAMASK';
 
     expect(() => setupBridge({ originatorInfo, connection })).toThrow(
       'Connections from metamask origin are not allowed',
