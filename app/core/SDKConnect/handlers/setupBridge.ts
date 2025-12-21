@@ -5,6 +5,7 @@ import getRpcMethodMiddleware, {
 } from '../../RPCMethods/RPCMethodMiddleware';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -21,6 +22,15 @@ export const setupBridge = ({
   if (connection.backgroundBridge) {
     DevLogger.log(`setupBridge:: backgroundBridge already exists`);
     return connection.backgroundBridge;
+  }
+
+  if (
+    (originatorInfo.url &&
+      originatorInfo.url.toLowerCase() === ORIGIN_METAMASK.toLowerCase()) ||
+    (originatorInfo.title &&
+      originatorInfo.title.toLowerCase() === ORIGIN_METAMASK.toLowerCase())
+  ) {
+    throw new Error('Connections from metamask origin are not allowed');
   }
   const backgroundBridge = new BackgroundBridge({
     webview: null,
