@@ -49,6 +49,25 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
 
@@ -595,7 +614,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText('My Account')).toBeTruthy();
           expect(queryByText('Test Account')).toBeFalsy();
         },
-        { timeout: 500 },
+        { timeout: 1000 }, // Increased timeout for debounced search
       );
 
       // Test mixed case search
