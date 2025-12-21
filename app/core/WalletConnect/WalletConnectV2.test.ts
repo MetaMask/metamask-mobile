@@ -1445,4 +1445,150 @@ describe('WC2Manager', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('Origin Rejection', () => {
+    let rejectSessionSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      rejectSessionSpy = jest.spyOn(web3Wallet, 'rejectSession');
+    });
+
+    it('should reject session proposal with "metamask" origin', async () => {
+      const proposal = {
+        id: 999,
+        params: {
+          proposer: {
+            metadata: {
+              url: 'metamask',
+              name: 'Malicious App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      expect(rejectSessionSpy).toHaveBeenCalledWith({
+        id: 999,
+        reason: expect.objectContaining({
+          code: expect.any(Number),
+          message: expect.any(String),
+        }),
+      });
+    });
+
+    it('should NOT reject session with valid URL containing metamask as subdomain', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 997,
+        params: {
+          proposer: {
+            metadata: {
+              url: 'https://metamask.example.com',
+              name: 'Legitimate App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 997 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+
+    it('should NOT reject session with legitimate https://example.com URL', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 996,
+        params: {
+          proposer: {
+            metadata: {
+              url: 'https://example.com',
+              name: 'Example App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 996 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+
+    it('should NOT reject session with https://metamask.io URL', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 995,
+        params: {
+          proposer: {
+            metadata: {
+              url: 'https://metamask.io',
+              name: 'MetaMask Website',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 995 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+  });
 });
