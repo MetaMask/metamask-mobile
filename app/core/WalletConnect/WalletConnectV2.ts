@@ -1,8 +1,5 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import {
-  toChecksumHexAddress,
-  ORIGIN_METAMASK,
-} from '@metamask/controller-utils';
+import { toChecksumHexAddress , ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
