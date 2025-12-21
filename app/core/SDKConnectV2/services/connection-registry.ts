@@ -169,6 +169,14 @@ export class ConnectionRegistry {
 
     try {
       const connReq = this.parseConnectionRequest(url);
+      if (
+        (connReq.metadata.dapp.url &&
+          connReq.metadata.dapp.url === ORIGIN_METAMASK) ||
+        (connReq.metadata.dapp.name &&
+          connReq.metadata.dapp.name === ORIGIN_METAMASK)
+      ) {
+        throw new Error('Connections from metamask origin are not allowed');
+      }
       connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
