@@ -16,6 +16,7 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
