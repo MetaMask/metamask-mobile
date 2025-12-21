@@ -1,5 +1,8 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import { toChecksumHexAddress , ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  toChecksumHexAddress,
+  ORIGIN_METAMASK,
+} from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -119,7 +122,7 @@ export class WC2Manager {
 
     if (activeSessions) {
       activeSessions.forEach(async (session) => {
-        if (session.peer.metadata.url?.toLowerCase() === ORIGIN_METAMASK) {
+        if (session.peer.metadata.url === ORIGIN_METAMASK) {
           console.warn(
             `WC2::init skipping session with invalid url: ${session.topic}`,
           );
@@ -439,7 +442,7 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
-    if (url.toLowerCase() === ORIGIN_METAMASK) {
+    if (url === ORIGIN_METAMASK) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,

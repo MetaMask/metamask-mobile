@@ -25,10 +25,8 @@ export const setupBridge = ({
   }
 
   if (
-    (originatorInfo.url &&
-      originatorInfo.url.toLowerCase() === ORIGIN_METAMASK.toLowerCase()) ||
-    (originatorInfo.title &&
-      originatorInfo.title.toLowerCase() === ORIGIN_METAMASK.toLowerCase())
+    (originatorInfo.url && originatorInfo.url === ORIGIN_METAMASK) ||
+    (originatorInfo.title && originatorInfo.title === ORIGIN_METAMASK)
   ) {
     throw new Error('Connections from metamask origin are not allowed');
   }

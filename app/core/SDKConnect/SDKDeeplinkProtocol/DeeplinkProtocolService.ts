@@ -2,7 +2,10 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { ORIGIN_METAMASK , toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  ORIGIN_METAMASK,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -102,11 +105,9 @@ export default class DeeplinkProtocolService {
 
     if (
       (clientInfo.originatorInfo.url &&
-        clientInfo.originatorInfo.url.toLowerCase() ===
-          ORIGIN_METAMASK.toLowerCase()) ||
+        clientInfo.originatorInfo.url.toLowerCase() === ORIGIN_METAMASK) ||
       (clientInfo.originatorInfo.title &&
-        clientInfo.originatorInfo.title.toLowerCase() ===
-          ORIGIN_METAMASK.toLowerCase())
+        clientInfo.originatorInfo.title.toLowerCase() === ORIGIN_METAMASK)
     ) {
       throw new Error('Connections from metamask origin are not allowed');
     }
