@@ -2,6 +2,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { ORIGIN_METAMASK , toChecksumHexAddress } from '@metamask/controller-utils';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -23,7 +24,6 @@ import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -98,6 +98,17 @@ export default class DeeplinkProtocolService {
 
     if (this.bridgeByClientId[clientInfo.clientId]) {
       return;
+    }
+
+    if (
+      (clientInfo.originatorInfo.url &&
+        clientInfo.originatorInfo.url.toLowerCase() ===
+          ORIGIN_METAMASK.toLowerCase()) ||
+      (clientInfo.originatorInfo.title &&
+        clientInfo.originatorInfo.title.toLowerCase() ===
+          ORIGIN_METAMASK.toLowerCase())
+    ) {
+      throw new Error('Connections from metamask origin are not allowed');
     }
 
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
