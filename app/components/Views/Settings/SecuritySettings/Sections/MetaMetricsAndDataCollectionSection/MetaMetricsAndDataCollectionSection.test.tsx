@@ -5,13 +5,9 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import {
-  MetaMetrics,
-  MetaMetricsEvents,
-} from '../../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEventBuilder';
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
@@ -58,11 +54,25 @@ jest.mock('../../../../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock MetaMetrics for events
-jest.mock('../../../../../../core/Analytics/MetaMetrics', () => ({
-  MetaMetricsEvents: jest.requireActual('../../../../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-}));
+// Mock MetaMetrics for events and getInstance
+jest.mock('../../../../../../core/Analytics/MetaMetrics', () => {
+  const mockInstance = {
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: {
+      getInstance: jest.fn(() => mockInstance),
+    },
+    MetaMetricsEvents: jest.requireActual(
+      '../../../../../../core/Analytics/MetaMetrics.events',
+    ).MetaMetricsEvents,
+  };
+});
 
 jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
   updateMarketingOptInStatus: jest.fn(),
@@ -84,6 +94,8 @@ jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
 import { analytics } from '../../../../../../util/analytics/analytics';
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
+// Alias for tests that reference mockMetrics
+const mockMetrics = mockAnalytics;
 
 const mockUpdateMarketingOptInStatus =
   OAuthService.updateMarketingOptInStatus as jest.MockedFunction<
@@ -349,15 +361,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             userProp: 'User value',
           });
           expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            )
-              .addProperties({
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
                 location: 'settings',
-              })
-              .build(),
+              }),
+            }),
           );
         });
       });
@@ -543,7 +554,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(true);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).toHaveBeenCalled();
+            expect(mockAnalytics.optIn).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockAnalytics.identify).toHaveBeenCalled();
             expect(mockAnalytics.trackEvent).toHaveBeenCalled();
@@ -651,15 +662,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             });
             expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
               1,
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-              )
-                .addProperties({
+              expect.objectContaining({
+                name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+                properties: expect.objectContaining({
                   is_metrics_opted_in: true,
                   location: 'settings',
                   updated_after_onboarding: true,
-                })
-                .build(),
+                }),
+              }),
             );
           }
 
@@ -673,15 +683,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
             // if MetaMetrics is initially disabled, trackEvent is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            )
-              .addProperties({
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
                 has_marketing_consent: true,
                 location: 'settings',
                 updated_after_onboarding: true,
-              })
-              .build(),
+              }),
+            }),
           );
         });
       };
@@ -731,15 +740,14 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           });
           expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            )
-              .addProperties({
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
                 has_marketing_consent: false,
                 location: 'settings',
                 updated_after_onboarding: true,
-              })
-              .build(),
+              }),
+            }),
           );
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.MODAL.ROOT_MODAL_FLOW,

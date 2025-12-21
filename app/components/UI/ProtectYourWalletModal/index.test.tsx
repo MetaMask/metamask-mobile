@@ -10,18 +10,34 @@ import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboar
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn().mockReturnValue({
-          name: 'Test Event',
-        }),
-      }),
-    }),
+const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({
+    name: 'Wallet Security Reminder Engaged',
+    properties: { source: 'Modal', wallet_protection_required: false },
+    saveDataRecording: true,
+    sensitiveProperties: {},
   }),
+}));
+
+// Mock useMetrics hook which is used by withMetricsAwareness HOC
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+    isEnabled: mockMetricsIsEnabled,
+  }),
+  withMetricsAwareness:
+    (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+      <Component
+        {...props}
+        metrics={{
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+          isEnabled: mockMetricsIsEnabled,
+        }}
+      />
+    ),
 }));
 
 const mockStore = configureMockStore();
@@ -46,9 +62,6 @@ interface ProtectYourWalletModalProps {
   navigation?: {
     navigate: jest.Mock;
   };
-  metrics: {
-    isEnabled: jest.Mock;
-  };
 }
 
 const mockNavigation = {
@@ -57,12 +70,12 @@ const mockNavigation = {
 
 const defaultProps: ProtectYourWalletModalProps = {
   navigation: mockNavigation,
-  metrics: {
-    isEnabled: mockMetricsIsEnabled,
-  },
 };
 
 describe('ProtectYourWalletModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('render matches snapshot', () => {
     const { toJSON } = render(
       <Provider store={store}>
@@ -150,7 +163,7 @@ describe('ProtectYourWalletModal', () => {
     });
   });
 
-  it('render confirm button and navigate to set password flow', async () => {
+  it('navigates to set password flow when cancel button is pressed', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
@@ -159,13 +172,13 @@ describe('ProtectYourWalletModal', () => {
       </Provider>,
     );
 
-    const confirmButton = getByTestId(
-      ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON,
+    const cancelButton = getByTestId(
+      ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
     );
-    expect(confirmButton).toBeOnTheScreen();
+    expect(cancelButton).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(confirmButton);
+      fireEvent.press(cancelButton);
     });
 
     await waitFor(() => {
