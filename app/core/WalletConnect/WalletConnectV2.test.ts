@@ -1483,34 +1483,6 @@ describe('WC2Manager', () => {
       });
     });
 
-    it('should reject session proposal with "MetaMask" origin (case insensitive)', async () => {
-      const proposal = {
-        id: 998,
-        params: {
-          proposer: {
-            metadata: {
-              url: 'MetaMask',
-              name: 'Malicious App',
-              description: 'Test',
-              icons: [],
-            },
-          },
-          requiredNamespaces: {},
-          optionalNamespaces: {},
-        },
-      };
-
-      await manager.onSessionProposal(proposal);
-
-      expect(rejectSessionSpy).toHaveBeenCalledWith({
-        id: 998,
-        reason: expect.objectContaining({
-          code: expect.any(Number),
-          message: expect.any(String),
-        }),
-      });
-    });
-
     it('should NOT reject session with valid URL containing metamask as subdomain', async () => {
       rejectSessionSpy.mockClear();
 

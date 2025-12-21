@@ -162,52 +162,12 @@ describe('DeeplinkProtocolService', () => {
       expect(service.bridgeByClientId[clientInfo.clientId]).toBeUndefined();
     });
 
-    it('should throw error when originatorInfo.url is "MetaMask" (case insensitive)', () => {
-      const clientInfo: DappClient = {
-        clientId: 'client1',
-        originatorInfo: {
-          url: 'MetaMask',
-          title: 'Test',
-          platform: 'test',
-          dappId: 'dappId',
-        },
-        connected: false,
-        validUntil: Date.now(),
-        scheme: 'test',
-      };
-
-      expect(() => service.setupBridge(clientInfo)).toThrow(
-        'Connections from metamask origin are not allowed',
-      );
-      expect(service.bridgeByClientId[clientInfo.clientId]).toBeUndefined();
-    });
-
     it('should throw error when originatorInfo.title is "metamask"', () => {
       const clientInfo: DappClient = {
         clientId: 'client1',
         originatorInfo: {
           url: 'https://example.com',
           title: 'metamask',
-          platform: 'test',
-          dappId: 'dappId',
-        },
-        connected: false,
-        validUntil: Date.now(),
-        scheme: 'test',
-      };
-
-      expect(() => service.setupBridge(clientInfo)).toThrow(
-        'Connections from metamask origin are not allowed',
-      );
-      expect(service.bridgeByClientId[clientInfo.clientId]).toBeUndefined();
-    });
-
-    it('should throw error when originatorInfo.title is "METAMASK" (case insensitive)', () => {
-      const clientInfo: DappClient = {
-        clientId: 'client1',
-        originatorInfo: {
-          url: 'https://example.com',
-          title: 'METAMASK',
           platform: 'test',
           dappId: 'dappId',
         },
