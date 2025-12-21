@@ -5,7 +5,7 @@ import getRpcMethodMiddleware, {
 } from '../../RPCMethods/RPCMethodMiddleware';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { ORIGIN_METAMASK , ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
