@@ -20,6 +20,25 @@ const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
   }),
 }));
 
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
 // Mock useMetrics hook which is used by withMetricsAwareness HOC
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -31,11 +50,13 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     (Component: React.ComponentType) => (props: Record<string, unknown>) => (
       <Component
         {...props}
-        metrics={{
-          trackEvent: mockTrackEvent,
-          createEventBuilder: mockCreateEventBuilder,
-          isEnabled: mockMetricsIsEnabled,
-        }}
+        {...({
+          metrics: {
+            trackEvent: mockTrackEvent,
+            createEventBuilder: mockCreateEventBuilder,
+            isEnabled: mockMetricsIsEnabled,
+          },
+        } as Record<string, unknown>)}
       />
     ),
 }));
