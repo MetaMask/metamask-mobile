@@ -7,10 +7,12 @@ import { useRoute } from '@react-navigation/native';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
@@ -41,9 +43,11 @@ describe('MusdConversionInfo', () => {
   const mockUseTransactionPayAvailableTokens = jest.mocked(
     useTransactionPayAvailableTokens,
   );
+  const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMusdConversionNavbar.mockReturnValue(undefined);
     mockUseCustomAmount.mockReturnValue({
       shouldShowOutputAmountTag: false,
       outputAmount: null,
@@ -170,6 +174,22 @@ describe('MusdConversionInfo', () => {
       });
 
       expect(mockUseTransactionPayAvailableTokens).toHaveBeenCalled();
+    });
+  });
+
+  describe('useMusdConversionNavbar', () => {
+    it('calls useMusdConversionNavbar with outputChainId', () => {
+      mockRoute.params = {
+        outputChainId: '0xe708' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(mockUseMusdConversionNavbar).toHaveBeenCalledWith('0xe708');
     });
   });
 });
