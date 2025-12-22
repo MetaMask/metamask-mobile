@@ -120,7 +120,7 @@ export default function migrate(versionedState: unknown) {
           failoverUrls: [],
           networkClientId:
             MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].networkClientId,
-          type: RpcEndpointType.Custom,
+          type: 'custom',
           url: MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].url,
         });
         megaethTestnetV2Configuration.defaultRpcEndpointIndex =
