@@ -39,6 +39,14 @@ const CONFIG_MAP = {
     checkAutomatically: 'NEVER',
     fallbackToCacheTimeout: 0,
   },
+  production: {
+    channel: 'production',
+    runtimeVersion: RUNTIME_VERSION,
+    updatesEnabled: true,
+    updateUrl: UPDATE_URL,
+    checkAutomatically: 'NEVER',
+    fallbackToCacheTimeout: 0,
+  },
 };
 
 // Official Expo Updates configuration keys
