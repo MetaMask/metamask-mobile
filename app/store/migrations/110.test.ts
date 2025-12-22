@@ -1,6 +1,5 @@
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
-import { RpcEndpointType } from '@metamask/network-controller';
 
 import { ensureValidState } from './util';
 import migrate, {
@@ -32,7 +31,7 @@ const mainnetConfiguration = {
     rpcEndpoints: [
       {
         networkClientId: 'mainnet',
-        type: RpcEndpointType.Custom,
+        type: 'custom',
         url: 'https://mainnet.com',
       },
     ],
@@ -50,7 +49,7 @@ const lineaSepoliaConfiguration = {
     rpcEndpoints: [
       {
         networkClientId: 'linea-sepolia',
-        type: RpcEndpointType.Custom,
+        type: 'custom',
         url: 'https://mainnet.com',
       },
     ],
@@ -68,7 +67,7 @@ const megaEthTestnetV1Configuration = {
     rpcEndpoints: [
       {
         networkClientId: 'megaeth-testnet',
-        type: RpcEndpointType.Custom,
+        type: 'custom',
         url: 'https://rpc.com',
       },
     ],
@@ -154,7 +153,7 @@ describe(`migration #${migrationVersion}`, () => {
                   rpcEndpoints: [
                     {
                       networkClientId: 'megaeth-testnet',
-                      type: RpcEndpointType.Custom,
+                      type: 'custom',
                       url: 'https://rpc.com',
                     },
                   ],
@@ -188,7 +187,7 @@ describe(`migration #${migrationVersion}`, () => {
                   rpcEndpoints: [
                     {
                       networkClientId: 'megaeth-testnet',
-                      type: RpcEndpointType.Custom,
+                      type: 'custom',
                       url: 'https://rpc.com',
                     },
                   ],
@@ -236,7 +235,7 @@ describe(`migration #${migrationVersion}`, () => {
                 rpcEndpoints: [
                   {
                     networkClientId: 'megaeth-testnet',
-                    type: RpcEndpointType.Custom,
+                    type: 'custom',
                     url: 'https://rpc.com',
                   },
                 ],

@@ -7,13 +7,35 @@ import {
   isObject,
   KnownCaipNamespace,
 } from '@metamask/utils';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
 
 import { ensureValidState, ValidState } from './util';
 import { cloneDeep } from 'lodash';
+
+/**
+ * A Copy of the RpcEndpoint type from the network controller,
+ * This is used to avoid the dependency on the network controller.
+ */
+type RpcEndpoint = {
+  failoverUrls?: string[];
+  name?: string;
+  networkClientId: string;
+  url: string;
+  type: string;
+}
+
+/**
+ * A Copy of the NetworkConfiguration type from the network controller,
+ * This is used to avoid the dependency on the network controller.
+ */
+type NetworkConfiguration = {
+  blockExplorerUrls: string[];
+  chainId: Hex;
+  defaultBlockExplorerUrlIndex?: number;
+  defaultRpcEndpointIndex: number;
+  name: string;
+  nativeCurrency: string;
+  rpcEndpoints: RpcEndpoint[];
+}
 
 export const migrationVersion = 110;
 
@@ -30,7 +52,7 @@ export const MEGAETH_TESTNET_V2_CONFIG: NetworkConfiguration = {
     {
       failoverUrls: [],
       networkClientId: 'megaeth-testnet-v2',
-      type: RpcEndpointType.Custom,
+      type: 'custom',
       url: 'https://timothy.megaeth.com/rpc',
     },
   ],
