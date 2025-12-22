@@ -3,7 +3,6 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   DeFiPositionsControllerInitMessenger,
-  getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
 } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import {
@@ -11,10 +10,11 @@ import {
   DeFiPositionsControllerMessenger,
 } from '@metamask/assets-controllers';
 import { defiPositionsControllerInit } from './defi-positions-controller-init';
-import { MetaMetrics } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 
 jest.mock('.../../../../store', () => ({
   store: {
@@ -32,10 +32,14 @@ function getInitRequestMock(
     DeFiPositionsControllerInitMessenger
   >
 > {
+  const mockInitMessenger = {
+    call: jest.fn(),
+  } as unknown as DeFiPositionsControllerInitMessenger;
+
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getDeFiPositionsControllerMessenger(baseMessenger),
-    initMessenger: getDeFiPositionsControllerInitMessenger(baseMessenger),
+    initMessenger: mockInitMessenger,
   };
 
   return requestMock;
@@ -44,6 +48,13 @@ function getInitRequestMock(
 describe('DeFiPositionsControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({
+        name: 'test-event',
+        properties: { totalPositions: 1, totalMarketValueUSD: 100 },
+      }),
+    });
   });
 
   it('returns controller instance', () => {
@@ -63,14 +74,12 @@ describe('DeFiPositionsControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      defiPositionsControllerInit(getInitRequestMock());
+    it('calls AnalyticsController:trackEvent via initMessenger', () => {
+      const requestMock = getInitRequestMock();
+      defiPositionsControllerInit(requestMock);
 
       const controllerMock = jest.mocked(DeFiPositionsController);
       const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
-
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
 
       trackEvent?.({
         event: 'test-event',
@@ -81,13 +90,14 @@ describe('DeFiPositionsControllerInit', () => {
         },
       });
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'test-event',
+      );
+      expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
         expect.objectContaining({
           name: 'test-event',
-          properties: {
-            totalPositions: 1,
-            totalMarketValueUSD: 100,
-          },
+          properties: { totalPositions: 1, totalMarketValueUSD: 100 },
         }),
       );
     });

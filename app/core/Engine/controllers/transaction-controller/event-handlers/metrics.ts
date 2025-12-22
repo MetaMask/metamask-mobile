@@ -6,8 +6,9 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { MetaMetrics } from '../../../../Analytics';
 import { RootExtendedMessenger } from '../../../types';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import {
   generateDefaultTransactionMetrics,
   generateEvent,
@@ -59,7 +60,21 @@ const createTransactionEventHandler =
 
       log('Event', event);
 
-      MetaMetrics.getInstance().trackEvent(event);
+      // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+      const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+        event.name,
+      )
+        .addProperties(event.properties as AnalyticsEventProperties)
+        .addSensitiveProperties(
+          event.sensitiveProperties as AnalyticsEventProperties,
+        )
+        .setSaveDataRecording(event.saveDataRecording)
+        .build();
+
+      transactionEventHandlerRequest.initMessenger.call(
+        'AnalyticsController:trackEvent',
+        analyticsEvent,
+      );
     } catch (error) {
       log('Error in transaction event handler', error);
     }
@@ -160,7 +175,19 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     log('Finalized event', event);
 
-    MetaMetrics.getInstance().trackEvent(event);
+    // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+    const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
+      .addProperties(event.properties as AnalyticsEventProperties)
+      .addSensitiveProperties(
+        event.sensitiveProperties as AnalyticsEventProperties,
+      )
+      .setSaveDataRecording(event.saveDataRecording)
+      .build();
+
+    transactionEventHandlerRequest.initMessenger.call(
+      'AnalyticsController:trackEvent',
+      analyticsEvent,
+    );
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }

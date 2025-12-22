@@ -8,6 +8,7 @@ import {
   TokenDetectionControllerMessenger,
 } from '@metamask/assets-controllers';
 import { RootMessenger } from '../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 /**
  * Get the messenger for the token detection controller. This is scoped to the
@@ -58,7 +59,8 @@ export function getTokenDetectionControllerMessenger(
 }
 
 type AllowedInitializationActions =
-  AssetsContractControllerGetBalancesInSingleCallAction;
+  | AssetsContractControllerGetBalancesInSingleCallAction
+  | AnalyticsControllerActions;
 
 type AllowedInitializationEvents = never;
 
@@ -87,7 +89,10 @@ export function getTokenDetectionControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AssetsContractController:getBalancesInSingleCall'],
+    actions: [
+      'AssetsContractController:getBalancesInSingleCall',
+      'AnalyticsController:trackEvent',
+    ],
     events: [],
     messenger,
   });

@@ -5,8 +5,9 @@ import {
 import type { ControllerInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountTreeControllerInitMessenger } from '../../messengers/account-tree-controller-messenger';
 
@@ -33,13 +34,21 @@ export const accountTreeControllerInit: ControllerInitFunction<
       trace,
       backupAndSync: {
         onBackupAndSyncEvent: (event) => {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+          try {
+            const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
             )
-              .addProperties(event)
-              .build(),
-          );
+              .addProperties((event as AnalyticsEventProperties) || {})
+              .build();
+
+            initMessenger.call(
+              'AnalyticsController:trackEvent',
+              analyticsEvent,
+            );
+          } catch (error) {
+            // Analytics tracking failures should not break account tree functionality
+            // Error is logged but not thrown
+          }
         },
       },
     },

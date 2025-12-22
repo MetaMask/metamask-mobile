@@ -43,6 +43,7 @@ import { PreferencesControllerGetStateAction } from '@metamask/preferences-contr
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
 import { RootMessenger } from '../../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 type Actions =
   | GetEndowments
@@ -144,7 +145,8 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 type InitActions =
   | KeyringControllerGetKeyringsByTypeAction
   | PreferencesControllerGetStateAction
-  | SetClientActive;
+  | SetClientActive
+  | AnalyticsControllerActions;
 
 type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
@@ -174,6 +176,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
       'KeyringController:getKeyringsByType',
       'PreferencesController:getState',
       'SnapController:setClientActive',
+      'AnalyticsController:trackEvent',
     ],
     events: ['KeyringController:lock', 'KeyringController:unlock'],
     messenger,

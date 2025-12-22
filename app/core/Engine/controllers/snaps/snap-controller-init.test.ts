@@ -15,10 +15,11 @@ import {
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
-import { MetaMetrics } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 
 jest.mock('.../../../../store', () => ({
   store: {
@@ -48,6 +49,13 @@ function getInitRequestMock(
 describe('SnapControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({
+        name: 'test-event',
+        properties: { testProperty: 'test-value' },
+      }),
+    });
   });
 
   it('initializes the controller', () => {
@@ -202,14 +210,26 @@ describe('SnapControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      snapControllerInit(getInitRequestMock());
+    it('calls AnalyticsController:trackEvent via initMessenger', () => {
+      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+
+      const mockInitMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+      } as unknown as SnapControllerInitMessenger;
+
+      const requestMock = {
+        ...buildControllerInitRequestMock(baseMessenger),
+        controllerMessenger: getSnapControllerMessenger(baseMessenger),
+        initMessenger: mockInitMessenger,
+      };
+
+      snapControllerInit(requestMock);
 
       const controllerMock = jest.mocked(SnapController);
       const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
-
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
 
       trackEvent({
         event: 'test-event',
@@ -219,12 +239,14 @@ describe('SnapControllerInit', () => {
         },
       });
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'test-event',
+      );
+      expect(mockInitMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
         expect.objectContaining({
           name: 'test-event',
-          properties: {
-            testProperty: 'test-value',
-          },
+          properties: { testProperty: 'test-value' },
         }),
       );
     });

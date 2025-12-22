@@ -1,6 +1,7 @@
 import trackDappViewedEvent from './index';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 import { createMockAccountsControllerState } from '../../test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/testUtils';
 
@@ -13,18 +14,18 @@ const MOCK_DEFAULT_ACCOUNTS_CONTROLLER_STATE =
 const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_ONE_ACCOUNT =
   createMockAccountsControllerState([MOCK_ADDRESS_1]);
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+// Mock the analytics utility
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+
 // Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
 jest.mock(
   '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
   () => jest.fn(),
 );
-
-const mockMetrics = {
-  trackEvent: jest.fn(),
-};
-
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 // Mock store.getState
 let mockGetState: jest.Mock;
@@ -81,13 +82,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
       .build();
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('does not tracks as first visit when dapp hostname is in history', () => {
@@ -115,13 +116,13 @@ describe('trackDappViewedEvent', () => {
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
       .build();
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks connected accounts number', () => {
@@ -150,13 +151,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
       .build();
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks account number', () => {
@@ -185,13 +186,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
       .build();
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks dapp url', () => {
@@ -220,12 +221,12 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
     )
       .addProperties(expectedMetrics)
       .build();
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 });

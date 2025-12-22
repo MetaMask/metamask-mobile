@@ -3,7 +3,6 @@ import {
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
 import { ControllerInitFunction } from '../types';
-import { MetaMetrics } from '../../Analytics';
 
 /**
  * Initialize the profile metrics controller.
@@ -22,23 +21,36 @@ export const profileMetricsControllerInit: ControllerInitFunction<
   controllerMessenger,
   persistedState,
   getController,
-  metaMetricsId,
+  analyticsId,
   getState,
 }) => {
   const remoteFeatureFlagController = getController(
     'RemoteFeatureFlagController',
   );
-  const assertUserOptedIn = () =>
-    remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
-      true &&
-    MetaMetrics.getInstance().isEnabled() === true &&
-    getState().legalNotices.isPna25Acknowledged === true;
+  const assertUserOptedIn = () => {
+    try {
+      const isEnabled = (
+        controllerMessenger as unknown as {
+          call: (action: string) => boolean;
+        }
+      ).call('AnalyticsController:isEnabled') as boolean;
+      return (
+        remoteFeatureFlagController.state.remoteFeatureFlags
+          .extensionUxPna25 === true &&
+        isEnabled === true &&
+        getState().legalNotices.isPna25Acknowledged === true
+      );
+    } catch {
+      // If messenger call fails, return false (conservative approach)
+      return false;
+    }
+  };
 
   const controller = new ProfileMetricsController({
     messenger: controllerMessenger,
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
-    getMetaMetricsId: () => metaMetricsId,
+    getMetaMetricsId: () => analyticsId,
   });
 
   return {

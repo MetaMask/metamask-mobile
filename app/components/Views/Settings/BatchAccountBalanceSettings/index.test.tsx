@@ -17,7 +17,7 @@ const mockEngine = Engine;
 jest.mock('../../../../core/Engine', () => {
   mockSetIsMultiAccountBalancesEnabled = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init(''),
     context: {
       PreferencesController: {
         setIsMultiAccountBalancesEnabled: mockSetIsMultiAccountBalancesEnabled,

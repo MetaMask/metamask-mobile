@@ -1,6 +1,7 @@
-import { MetaMetrics } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
 import { InteractionManager } from 'react-native';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 /**
  * track onboarding event or save it for when metrics are enabled
@@ -13,13 +14,15 @@ const trackOnboarding = (
   saveOnboardingEvent?: (...args: [ITrackingEvent]) => void,
 ): void => {
   InteractionManager.runAfterInteractions(async () => {
-    const metrics = MetaMetrics.getInstance();
     const isOnboardingDelayedEvent =
-      !metrics.isEnabled() && saveOnboardingEvent;
+      !analytics.isEnabled() && saveOnboardingEvent;
     if (isOnboardingDelayedEvent) {
       saveOnboardingEvent(event);
     } else {
-      metrics.trackEvent(event);
+      // Convert ITrackingEvent to AnalyticsTrackingEvent format
+      const analyticsEvent =
+        AnalyticsEventBuilder.createEventBuilder(event).build();
+      analytics.trackEvent(analyticsEvent);
     }
   });
 };

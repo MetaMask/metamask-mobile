@@ -3,9 +3,10 @@ import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
+import type { UserStorageControllerInitMessenger } from '../../messengers/identity/user-storage-controller-messenger';
 import { calculateScryptKey } from './calculate-scrypt-key';
-import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
 
 /**
@@ -17,8 +18,9 @@ import { trace } from '../../../../util/trace';
  */
 export const userStorageControllerInit: ControllerInitFunction<
   UserStorageController,
-  UserStorageControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
+  UserStorageControllerMessenger,
+  UserStorageControllerInitMessenger
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const controller = new UserStorageController({
     messenger: controllerMessenger,
 
@@ -33,35 +35,45 @@ export const userStorageControllerInit: ControllerInitFunction<
     config: {
       contactSyncing: {
         onContactUpdated: (profileId) => {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+          try {
+            const event = AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
             )
               .addProperties({
                 profile_id: profileId,
                 feature_name: 'Contacts Sync',
                 action: 'Contacts Sync Contact Updated',
               })
-              .build(),
-          );
+              .build();
+
+            initMessenger.call('AnalyticsController:trackEvent', event);
+          } catch (error) {
+            // Analytics tracking failures should not break user storage functionality
+            // Error is logged but not thrown
+          }
         },
         onContactDeleted: (profileId) => {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+          try {
+            const event = AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
             )
               .addProperties({
                 profile_id: profileId,
                 feature_name: 'Contacts Sync',
                 action: 'Contacts Sync Contact Deleted',
               })
-              .build(),
-          );
+              .build();
+
+            initMessenger.call('AnalyticsController:trackEvent', event);
+          } catch (error) {
+            // Analytics tracking failures should not break user storage functionality
+            // Error is logged but not thrown
+          }
         },
         onContactSyncErroneousSituation(profileId, situationMessage) {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+          try {
+            const event = AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
             )
               .addProperties({
                 profile_id: profileId,
@@ -69,8 +81,13 @@ export const userStorageControllerInit: ControllerInitFunction<
                 action: 'Contacts Sync Erroneous Situation',
                 additional_description: situationMessage,
               })
-              .build(),
-          );
+              .build();
+
+            initMessenger.call('AnalyticsController:trackEvent', event);
+          } catch (error) {
+            // Analytics tracking failures should not break user storage functionality
+            // Error is logged but not thrown
+          }
         },
       },
     },

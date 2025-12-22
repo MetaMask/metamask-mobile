@@ -353,17 +353,20 @@ describe('Critical Error Handling', () => {
         106: (state: unknown) => ({ ...(state as object), step106: true }),
         107: (state: unknown) => ({ ...(state as object), step107: true }),
         108: (state: unknown) => ({ ...(state as object), step108: true }),
+        109: (state: unknown) => ({ ...(state as object), step109: true }),
       };
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       let state = stateWithoutControllers;
       state = (await asyncMigrations['106'](state)) as PersistedState;
       state = (await asyncMigrations['107'](state)) as PersistedState;
-      const finalState = await asyncMigrations['108'](state);
+      state = (await asyncMigrations['108'](state)) as PersistedState;
+      const finalState = await asyncMigrations['109'](state);
 
       expect((finalState as Record<string, unknown>).step106).toBe(true);
       expect((finalState as Record<string, unknown>).step107).toBe(true);
       expect((finalState as Record<string, unknown>).step108).toBe(true);
+      expect((finalState as Record<string, unknown>).step109).toBe(true);
       expect(
         mockedControllerStorage.getAllPersistedState,
       ).toHaveBeenCalledTimes(1);

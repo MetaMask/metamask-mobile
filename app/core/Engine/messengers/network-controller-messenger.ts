@@ -14,6 +14,7 @@ import {
 } from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../types';
 import { ControllerStateChangeEvent } from '@metamask/base-controller';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 /**
  * Get the messenger for the network controller. This is scoped to the
@@ -42,7 +43,9 @@ export function getNetworkControllerMessenger(
   return messenger;
 }
 
-type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+type AllowedInitializationActions =
+  | RemoteFeatureFlagControllerGetStateAction
+  | AnalyticsControllerActions;
 
 type AllowedInitializationEvents =
   | NetworkControllerRpcEndpointDegradedEvent
@@ -77,7 +80,10 @@ export function getNetworkControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
+    ],
     events: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',
