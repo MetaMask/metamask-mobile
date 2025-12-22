@@ -562,6 +562,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
         : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
       [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
@@ -584,6 +585,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
         });
 
         return;
@@ -631,6 +636,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const handleAddFundsPress = async () => {
+    // Track deposit button click from asset screen
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+    });
+
     try {
       if (!isEligible) {
         setIsEligibilityModalVisible(true);

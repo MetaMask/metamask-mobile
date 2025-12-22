@@ -573,8 +573,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "initialEnqueueCompleted": false,
         "syncQueue": {},
       },
+      "RampsController": {
+        "geolocation": null,
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -1346,8 +1351,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "initialEnqueueCompleted": false,
         "syncQueue": {},
       },
+      "RampsController": {
+        "geolocation": null,
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {

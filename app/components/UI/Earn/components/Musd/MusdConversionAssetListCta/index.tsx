@@ -24,9 +24,17 @@ import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { toChecksumAddress } from '../../../../../../util/address';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -36,6 +44,9 @@ const MusdConversionAssetListCta = () => {
   const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
   const { initiateConversion } = useMusdConversion();
+
+  const { shouldShowCta, showNetworkIcon, selectedChainId } =
+    useMusdCtaVisibility();
 
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
@@ -54,7 +65,10 @@ const MusdConversionAssetListCta = () => {
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
     if (!canConvert) {
       const rampIntent: RampIntent = {
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        assetId:
+          MUSD_TOKEN_ASSET_ID_BY_CHAIN[
+            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
+          ],
       };
       goToBuy(rampIntent);
       return;
@@ -84,17 +98,43 @@ const MusdConversionAssetListCta = () => {
     }
   };
 
+  // Don't render if visibility conditions are not met
+  if (!shouldShowCta) {
+    return null;
+  }
+
+  const renderTokenAvatar = () => (
+    <AvatarToken
+      name={MUSD_TOKEN.symbol}
+      imageSource={MUSD_TOKEN.imageSource}
+      size={AvatarSize.Lg}
+    />
+  );
+
   return (
     <View
       style={styles.container}
       testID={EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA}
     >
       <View style={styles.assetInfo}>
-        <AvatarToken
-          name={MUSD_TOKEN.symbol}
-          imageSource={MUSD_TOKEN.imageSource}
-          size={AvatarSize.Lg}
-        />
+        {showNetworkIcon && selectedChainId ? (
+          <BadgeWrapper
+            style={styles.badge}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={getNetworkImageSource({
+                  chainId: selectedChainId,
+                })}
+              />
+            }
+          >
+            {renderTokenAvatar()}
+          </BadgeWrapper>
+        ) : (
+          renderTokenAvatar()
+        )}
         <View>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD

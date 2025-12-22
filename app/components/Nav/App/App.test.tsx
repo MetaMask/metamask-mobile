@@ -811,7 +811,7 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share Address')).toBeTruthy();
+        expect(getByText('Share address')).toBeTruthy();
       });
     });
   });

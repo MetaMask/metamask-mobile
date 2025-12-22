@@ -79,6 +79,7 @@ import {
   AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -656,9 +657,23 @@ class ResetPassword extends PureComponent {
         view: RESET_PASSWORD,
       });
     } catch (e) {
+      // Don't show warning if password is not set with biometrics
+      if (
+        e.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        return;
+      }
+
+      // Show warning if password is incorrect
       const msg = strings('reveal_credential.warning_incorrect_password');
       this.setState({
         warningIncorrectPassword: msg,
+      });
+    } finally {
+      // Resolve UI loading state
+      this.setState({
         ready: true,
       });
     }
