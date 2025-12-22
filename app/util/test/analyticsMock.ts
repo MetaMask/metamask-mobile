@@ -5,14 +5,14 @@
  */
 
 export interface MockAnalytics {
-  isEnabled: jest.Mock<() => boolean>;
-  trackEvent: jest.Mock<(event: unknown) => void>;
-  optIn: jest.Mock<() => Promise<void>>;
-  optOut: jest.Mock<() => Promise<void>>;
-  getAnalyticsId: jest.Mock<() => Promise<string>>;
-  identify: jest.Mock<(traits?: unknown) => void>;
-  trackView: jest.Mock<(name: string, properties?: unknown) => void>;
-  isOptedIn: jest.Mock<() => Promise<boolean>>;
+  isEnabled: jest.Mock<boolean, []>;
+  trackEvent: jest.Mock<void, [event: unknown]>;
+  optIn: jest.Mock<Promise<void>, []>;
+  optOut: jest.Mock<Promise<void>, []>;
+  getAnalyticsId: jest.Mock<Promise<string>, []>;
+  identify: jest.Mock<void, [traits?: unknown]>;
+  trackView: jest.Mock<void, [name: string, properties?: unknown]>;
+  isOptedIn: jest.Mock<Promise<boolean>, []>;
 }
 
 /**
@@ -26,7 +26,7 @@ export function createMockAnalytics(
   overrides?: Partial<MockAnalytics>,
 ): MockAnalytics {
   const defaultMock: MockAnalytics = {
-    isEnabled: jest.fn(() => false),
+    isEnabled: jest.fn<boolean, []>().mockReturnValue(false),
     trackEvent: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
@@ -46,12 +46,9 @@ export function createMockAnalytics(
  * @param overrides - Optional overrides for specific methods
  * @returns Jest mock module
  */
-export function createAnalyticsMockModule(
-  overrides?: Partial<MockAnalytics>,
-) {
+export function createAnalyticsMockModule(overrides?: Partial<MockAnalytics>) {
   const mockAnalytics = createMockAnalytics(overrides);
   return {
     analytics: mockAnalytics,
   };
 }
-

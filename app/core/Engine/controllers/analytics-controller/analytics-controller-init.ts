@@ -6,6 +6,8 @@ import {
   getDefaultAnalyticsControllerState,
 } from '@metamask/analytics-controller';
 import { createPlatformAdapter } from './platform-adapter';
+import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
+import { isE2E } from '../../../../util/test/utils';
 
 /**
  * Initialize the analytics controller.
@@ -29,7 +31,9 @@ export const analyticsControllerInit: ControllerInitFunction<
     analyticsId,
   };
 
-  const platformAdapter = createPlatformAdapter();
+  const platformAdapter = isE2E
+    ? createE2EPlatformAdapter()
+    : createPlatformAdapter();
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,

@@ -75,8 +75,8 @@ describe('createAnalyticsQueueManager', () => {
 
       // Now resolve whenEngineReady and set messenger
       mockGetEngineMessenger.mockReturnValue(mockMessenger);
-      if (whenEngineReadyResolve) {
-        whenEngineReadyResolve();
+      if (whenEngineReadyResolve !== null) {
+        (whenEngineReadyResolve as () => void)();
       }
 
       await queuePromise;

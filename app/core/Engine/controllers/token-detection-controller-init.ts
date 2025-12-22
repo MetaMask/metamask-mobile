@@ -2,6 +2,7 @@ import { ControllerInitFunction } from '../types';
 import {
   TokenDetectionController,
   type TokenDetectionControllerMessenger,
+  type AssetsContractControllerGetBalancesInSingleCallAction,
 } from '@metamask/assets-controllers';
 import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
 import { MetaMetricsEvents } from '../../Analytics';
@@ -25,13 +26,23 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
 > = ({ controllerMessenger, initMessenger, getController, getState }) => {
   const networkController = getController('NetworkController');
 
+  const getBalancesInSingleCall = (
+    selectedAddress: string,
+    tokensToDetect: string[],
+    networkClientId?: string,
+  ) => initMessenger.call(
+      'AssetsContractController:getBalancesInSingleCall',
+      selectedAddress,
+      tokensToDetect,
+      networkClientId,
+    ) as ReturnType<
+      AssetsContractControllerGetBalancesInSingleCallAction['handler']
+    >;
+
   const controller = new TokenDetectionController({
     messenger: controllerMessenger,
     disabled: false,
-    getBalancesInSingleCall: initMessenger.call.bind(
-      initMessenger,
-      'AssetsContractController:getBalancesInSingleCall',
-    ),
+    getBalancesInSingleCall,
     useTokenDetection: () => selectUseTokenDetection(getState()),
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     trackMetaMetricsEvent: () => {
