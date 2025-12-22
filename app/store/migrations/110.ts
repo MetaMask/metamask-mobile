@@ -196,17 +196,17 @@ export default function migrate(versionedState: unknown) {
       console.warn(
         `Migration ${migrationVersion}: Missing or invalid NetworkEnablementController state, skip the NetworkEnablementController migration`,
       );
-    }
 
-    if (
-      selectedNetworkClientId === 'megaeth-testnet' ||
-      isNetworkClientIdExists(
-        MEGAETH_TESTNET_V1_CHAIN_ID,
-        selectedNetworkClientId,
-        networkConfigurationsByChainId,
-      )
-    ) {
-      networkState.selectedNetworkClientId = 'mainnet';
+      if (
+        selectedNetworkClientId === 'megaeth-testnet' ||
+        isNetworkClientIdExists(
+          MEGAETH_TESTNET_V1_CHAIN_ID,
+          selectedNetworkClientId,
+          networkConfigurationsByChainId,
+        )
+      ) {
+        networkState.selectedNetworkClientId = 'mainnet';
+      }
     }
 
     // It is safe to remove the MegaETH Testnet v1 network configuration,
