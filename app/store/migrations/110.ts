@@ -15,7 +15,7 @@ import { cloneDeep } from 'lodash';
  * A Copy of the RpcEndpoint type from the network controller,
  * This is used to avoid the dependency on the network controller.
  */
-type RpcEndpoint = {
+interface RpcEndpoint {
   failoverUrls?: string[];
   name?: string;
   networkClientId: string;
@@ -27,7 +27,7 @@ type RpcEndpoint = {
  * A Copy of the NetworkConfiguration type from the network controller,
  * This is used to avoid the dependency on the network controller.
  */
-type NetworkConfiguration = {
+interface NetworkConfiguration {
   blockExplorerUrls: string[];
   chainId: Hex;
   defaultBlockExplorerUrlIndex?: number;
