@@ -3,7 +3,6 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkState,
-  RpcEndpointType,
   type NetworkControllerMessenger,
 } from '@metamask/network-controller';
 import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
@@ -23,7 +22,7 @@ import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
-export const ADDITIONAL_DEFAULT_NETWORKS = [ChainId['monad-testnet']];
+export const ADDITIONAL_DEFAULT_NETWORKS = [ChainId['monad-testnet'], ChainId['megaeth-testnet-v2']];
 
 export function getInitialNetworkControllerState(persistedState: {
   NetworkController?: Partial<NetworkState>;
@@ -35,25 +34,6 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState = getDefaultNetworkControllerState(
       ADDITIONAL_DEFAULT_NETWORKS,
     );
-
-    // TODO: Remove this once the MegaETH Testnet v2 is released from the controller utils
-    initialNetworkControllerState.networkConfigurationsByChainId['0x18c7'] = {
-      chainId: '0x18c7', // 6343
-      name: 'MegaETH Testnet',
-      nativeCurrency: 'MegaETH',
-      blockExplorerUrls: ['https://megaeth-testnet-v2.blockscout.com'],
-      defaultRpcEndpointIndex: 0,
-      defaultBlockExplorerUrlIndex: 0,
-      rpcEndpoints: [
-        {
-          // to align the same networkClientId from the controller utils
-          networkClientId: 'megaeth-testnet-v2',
-          url: 'https://timothy.megaeth.com/rpc',
-          type: RpcEndpointType.Custom,
-          failoverUrls: [],
-        },
-      ],
-    };
 
     // Add failovers for default Infura RPC endpoints
     initialNetworkControllerState.networkConfigurationsByChainId[
