@@ -87,7 +87,9 @@ module.exports = {
   },
   expo: {
     owner: 'metamask',
-    runtimeVersion: RUNTIME_VERSION,
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
     updates: {
       codeSigningCertificate: CODE_SIGNING_CERTS[OTA_ENV],
       codeSigningMetadata: {
