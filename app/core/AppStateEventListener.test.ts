@@ -105,8 +105,12 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(mockAttribution);
-    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(mockEventBuilder.build());
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      mockAttribution,
+    );
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      mockEventBuilder.build(),
+    );
   });
 
   it('tracks event when app becomes active without attribution data', () => {
@@ -121,7 +125,9 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
-    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(mockEventBuilder.build());
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      mockEventBuilder.build(),
+    );
   });
 
   it('identifies user when app starts', () => {

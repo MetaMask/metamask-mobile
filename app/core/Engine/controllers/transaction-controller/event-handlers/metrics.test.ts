@@ -326,7 +326,9 @@ describe('Transaction Metric Event Handlers', () => {
         }),
       );
 
-      expect(mockMetricsEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+      expect(
+        mockMetricsEventBuilder.addSensitiveProperties,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           builder_sensitive_test: true,
         }),
@@ -360,7 +362,9 @@ describe('Transaction Metric Event Handlers', () => {
             mockTransactionMetricRequest,
           );
 
-          expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect(
+            mockMetricsEventBuilder.addProperties,
+          ).not.toHaveBeenCalledWith(
             expect.objectContaining({
               transaction_hash: mockTransactionMeta.hash,
             }),
@@ -375,7 +379,9 @@ describe('Transaction Metric Event Handlers', () => {
             mockTransactionMetricRequest,
           );
 
-          expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect(
+            mockMetricsEventBuilder.addProperties,
+          ).not.toHaveBeenCalledWith(
             expect.objectContaining({
               transaction_hash: mockTransactionMeta.hash,
             }),

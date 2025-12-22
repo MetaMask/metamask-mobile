@@ -30,7 +30,8 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
     selectedAddress: string,
     tokensToDetect: string[],
     networkClientId?: string,
-  ) => initMessenger.call(
+  ) =>
+    initMessenger.call(
       'AssetsContractController:getBalancesInSingleCall',
       selectedAddress,
       tokensToDetect,

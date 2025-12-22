@@ -204,7 +204,8 @@ jest.mock(
         {...props}
         metrics={{
           isEnabled: () => mockAnalytics.isEnabled(),
-          trackEvent: (event: unknown) => mockAnalytics.trackEvent(event as never),
+          trackEvent: (event: unknown) =>
+            mockAnalytics.trackEvent(event as never),
           enable: async (enable?: boolean) => {
             if (enable === false) {
               await mockAnalytics.optOut();

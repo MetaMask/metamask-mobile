@@ -56,7 +56,10 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<BridgeControllerMessenger, BridgeControllerInitMessenger>
+  ControllerInitRequest<
+    BridgeControllerMessenger,
+    BridgeControllerInitMessenger
+  >
 > {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
@@ -88,7 +91,9 @@ describe('BridgeController Init', () => {
     jest.resetAllMocks();
     (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({ name: 'bridge_completed', properties: {} }),
+      build: jest
+        .fn()
+        .mockReturnValue({ name: 'bridge_completed', properties: {} }),
     });
     (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });

@@ -1,5 +1,11 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity , Appearance } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Appearance,
+} from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
