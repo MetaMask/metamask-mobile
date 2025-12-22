@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
