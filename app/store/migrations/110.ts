@@ -388,15 +388,15 @@ function isNetworkClientIdExists(
   networkClientId: string,
   networkConfigurationsByChainId: Record<Hex, unknown>,
 ): boolean {
-  if (
-    !hasProperty(networkConfigurationsByChainId, chainId) ||
-    !isValidNetworkConfiguration(networkConfigurationsByChainId[chainId])
-  ) {
+  if (!hasProperty(networkConfigurationsByChainId, chainId)) {
     return false;
   }
   const config = networkConfigurationsByChainId[chainId];
-  return config.rpcEndpoints.some(
-    (rpcEndpoint) => rpcEndpoint.networkClientId === networkClientId,
+  return (
+    isValidNetworkConfiguration(config) &&
+    config.rpcEndpoints.some(
+      (rpcEndpoint) => rpcEndpoint.networkClientId === networkClientId,
+    )
   );
 }
 
