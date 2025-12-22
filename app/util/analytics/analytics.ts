@@ -33,7 +33,7 @@ export interface AnalyticsHelper {
  * Engine is only accessed at runtime, not at module load time
  */
 const getEngine = () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../core/Engine/Engine').default;
 
 /**

@@ -12,7 +12,6 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { merge } from 'lodash';
-import MetaMetrics from '../../core/Analytics/MetaMetrics';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
@@ -90,11 +89,6 @@ jest.mock(
     getFeatureFlagAppDistribution: jest.fn(() => 'Main'),
   }),
 );
-
-// Import analytics to access mocks
-import { analytics } from '../../util/analytics/analytics';
-
-const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 describe('logs :: generateStateLogs', () => {
   beforeEach(() => {
