@@ -22,7 +22,10 @@ import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
-export const ADDITIONAL_DEFAULT_NETWORKS = [ChainId['monad-testnet'], ChainId['megaeth-testnet-v2']];
+export const ADDITIONAL_DEFAULT_NETWORKS = [
+  ChainId['megaeth-testnet-v2'],
+  ChainId['monad-testnet'],
+];
 
 export function getInitialNetworkControllerState(persistedState: {
   NetworkController?: Partial<NetworkState>;
