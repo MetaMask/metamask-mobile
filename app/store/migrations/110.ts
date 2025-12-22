@@ -21,7 +21,7 @@ type RpcEndpoint = {
   networkClientId: string;
   url: string;
   type: string;
-}
+};
 
 /**
  * A Copy of the NetworkConfiguration type from the network controller,
@@ -35,7 +35,7 @@ type NetworkConfiguration = {
   name: string;
   nativeCurrency: string;
   rpcEndpoints: RpcEndpoint[];
-}
+};
 
 export const migrationVersion = 110;
 
@@ -92,14 +92,9 @@ export default function migrate(versionedState: unknown) {
         MEGAETH_TESTNET_V2_CONFIG.chainId,
       )
     ) {
-      const megaethTestnetV2Configuration = networkConfigurationsByChainId[
-        MEGAETH_TESTNET_V2_CONFIG.chainId
-      ];
-      if (
-        !isValidNetworkConfiguration(
-          megaethTestnetV2Configuration,
-        )
-      ) {
+      const megaethTestnetV2Configuration =
+        networkConfigurationsByChainId[MEGAETH_TESTNET_V2_CONFIG.chainId];
+      if (!isValidNetworkConfiguration(megaethTestnetV2Configuration)) {
         console.warn(
           `Migration ${migrationVersion}: Invalid MegaETH Testnet v2 network configuration, skip the migration`,
         );
@@ -149,11 +144,14 @@ export default function migrate(versionedState: unknown) {
 
     // Only perform the NetworkEnablementController migration if the NetworkEnablementController state is valid.
     if (networkEnablementState !== undefined) {
-      const eip155NetworkMap = networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155];
+      const eip155NetworkMap =
+        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155];
 
       // Add the MegaETH Testnet v2 network configuration to the enabled network map if it doesn't exist.
       if (!hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V2_CONFIG.chainId)) {
-        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155][MEGAETH_TESTNET_V2_CONFIG.chainId] = false;
+        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155][
+          MEGAETH_TESTNET_V2_CONFIG.chainId
+        ] = false;
       }
 
       const isMegaEthTestnetV1EnablementMapExists = hasProperty(
@@ -183,12 +181,16 @@ export default function migrate(versionedState: unknown) {
       ) {
         // force mainnet to be enabled
         networkState.selectedNetworkClientId = 'mainnet';
-        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155]['0x1'] = true;
+        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155][
+          '0x1'
+        ] = true;
       }
 
       // Remove the MegaETH Testnet v1 enablement map if it exists.
       if (isMegaEthTestnetV1EnablementMapExists) {
-        delete networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155][MEGAETH_TESTNET_V1_CHAIN_ID];
+        delete networkEnablementState.enabledNetworkMap[
+          KnownCaipNamespace.Eip155
+        ][MEGAETH_TESTNET_V1_CHAIN_ID];
       }
     } else {
       console.warn(
@@ -235,9 +237,7 @@ function validateNetworkController(state: ValidState):
       selectedNetworkClientId: string;
     }
   | undefined {
-  if (
-    !hasProperty(state.engine.backgroundState, 'NetworkController')
-  ) {
+  if (!hasProperty(state.engine.backgroundState, 'NetworkController')) {
     // We catch the exception here, as we don't expect the NetworkController state is missing.
     captureException(
       new Error(
@@ -259,9 +259,9 @@ function validateNetworkController(state: ValidState):
 
 function validateNetworkEnablementController(state: ValidState):
   | {
-      enabledNetworkMap : {
-        [KnownCaipNamespace.Eip155]: Record<string, boolean>
-      }
+      enabledNetworkMap: {
+        [KnownCaipNamespace.Eip155]: Record<string, boolean>;
+      };
     }
   | undefined {
   if (
@@ -282,9 +282,7 @@ function validateNetworkEnablementController(state: ValidState):
   return networkEnablementState;
 }
 
-function isValidNetworkControllerState(
-  value: unknown,
-): value is {
+function isValidNetworkControllerState(value: unknown): value is {
   networkConfigurationsByChainId: Record<Hex, unknown>;
   selectedNetworkClientId: string;
 } {
@@ -306,7 +304,9 @@ function isValidNetworkControllerState(
     return false;
   }
 
-  if (!isValidNetworkConfigurationsByChainId(value.networkConfigurationsByChainId)) {
+  if (
+    !isValidNetworkConfigurationsByChainId(value.networkConfigurationsByChainId)
+  ) {
     captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid NetworkController state: networkConfigurationsByChainId is not a valid Record<Hex, unknown>`,
@@ -339,14 +339,22 @@ function isValidNetworkControllerState(
 function isValidNetworkConfigurationsByChainId(
   value: unknown,
 ): value is Record<Hex, unknown> {
-  return isObject(value) && Object.entries(value).every(([chainId]) => typeof chainId === 'string' && isHexString(chainId));
+  return (
+    isObject(value) &&
+    Object.entries(value).every(
+      ([chainId]) => typeof chainId === 'string' && isHexString(chainId),
+    )
+  );
 }
 
-function isValidNetworkConfiguration(object: unknown): object is NetworkConfiguration {
+function isValidNetworkConfiguration(
+  object: unknown,
+): object is NetworkConfiguration {
   return (
     isObject(object) &&
     hasProperty(object, 'chainId') &&
-    typeof object.chainId === 'string' && isHexString(object.chainId) &&
+    typeof object.chainId === 'string' &&
+    isHexString(object.chainId) &&
     hasProperty(object, 'rpcEndpoints') &&
     Array.isArray(object.rpcEndpoints) &&
     object.rpcEndpoints.every(isValidRpcEndpoint) &&
@@ -392,12 +400,10 @@ function isNetworkClientIdExists(
   );
 }
 
-function isValidNetworkEnablementControllerState(
-  value: unknown,
-): value is {
-  enabledNetworkMap : {
-    [KnownCaipNamespace.Eip155]: Record<string, boolean>
-  }
+function isValidNetworkEnablementControllerState(value: unknown): value is {
+  enabledNetworkMap: {
+    [KnownCaipNamespace.Eip155]: Record<string, boolean>;
+  };
 } {
   if (!isObject(value)) {
     captureException(
@@ -426,12 +432,7 @@ function isValidNetworkEnablementControllerState(
     return false;
   }
 
-  if (
-    !hasProperty(
-      value.enabledNetworkMap,
-      KnownCaipNamespace.Eip155,
-    )
-  ) {
+  if (!hasProperty(value.enabledNetworkMap, KnownCaipNamespace.Eip155)) {
     captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid NetworkEnablementController state: NetworkEnablementController.enabledNetworkMap missing property Eip155.`,
@@ -440,7 +441,9 @@ function isValidNetworkEnablementControllerState(
     return false;
   }
 
-  if (!isValidEip155NetworkMap(value.enabledNetworkMap[KnownCaipNamespace.Eip155])) {
+  if (
+    !isValidEip155NetworkMap(value.enabledNetworkMap[KnownCaipNamespace.Eip155])
+  ) {
     captureException(
       new Error(
         `Migration ${migrationVersion}: Invalid NetworkEnablementController state: NetworkEnablementController.enabledNetworkMap[Eip155] is not a valid enabledNetworkMap.`,
@@ -455,9 +458,11 @@ function isValidNetworkEnablementControllerState(
 function isValidEip155NetworkMap(
   value: unknown,
 ): value is Record<string, boolean> {
-  return isObject(value) && Object.entries(value).every(
-    ([chainId, isEnabled]) =>
-      typeof chainId === 'string' && typeof isEnabled === 'boolean',
+  return (
+    isObject(value) &&
+    Object.entries(value).every(
+      ([chainId, isEnabled]) =>
+        typeof chainId === 'string' && typeof isEnabled === 'boolean',
+    )
   );
 }
-
