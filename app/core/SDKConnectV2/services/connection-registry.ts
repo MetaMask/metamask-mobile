@@ -16,6 +16,8 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { rpcErrors } from '@metamask/rpc-errors';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -120,6 +122,13 @@ export class ConnectionRegistry {
         throw new Error('Connections from metamask origin are not allowed');
       }
       connInfo = this.toConnectionInfo(connReq);
+      // Prevent external connections from using internal origins
+      // This is an external connection (SDK V2), so block any internal origin
+      if (INTERNAL_ORIGINS.includes(connInfo.id)) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,

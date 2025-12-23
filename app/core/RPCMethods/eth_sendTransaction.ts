@@ -13,6 +13,10 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import { store } from '../../store';
+import { INTERNAL_ORIGINS } from '../../constants/transaction';
+import Engine from '../Engine';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -112,6 +116,30 @@ async function eth_sendTransaction({
     from: req.params[0].from,
     chainId: nChainId,
   });
+
+  // Prevent external transactions from using internal origins
+  if (INTERNAL_ORIGINS.includes(hostname)) {
+    const { PermissionController } = Engine.context as {
+      PermissionController: {
+        getPermission: (origin: string, permission: string) => unknown;
+      };
+    };
+    try {
+      // If there's a permission for an internal origin, it means an external connection is trying to use it
+      PermissionController.getPermission(
+        hostname,
+        Caip25EndowmentPermissionName,
+      );
+      throw rpcErrors.invalidParams({
+        message: 'External transactions cannot use internal origins',
+      });
+    } catch (err) {
+      // If PermissionDoesNotExistError, it's a legitimate internal transaction
+      if (!(err instanceof PermissionDoesNotExistError)) {
+        throw err;
+      }
+    }
+  }
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
