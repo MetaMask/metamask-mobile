@@ -326,6 +326,16 @@ describe(`migration #${migrationVersion}`, () => {
       state: {
         engine: {
           backgroundState: {
+            NetworkEnablementController: { enabledNetworkMap: {} },
+          },
+        },
+      },
+      scenario: 'missing Eip155 in enabledNetworkMap',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
             NetworkEnablementController: {
               enabledNetworkMap: { [KnownCaipNamespace.Eip155]: 'invalid' },
             },
@@ -601,6 +611,16 @@ describe(`migration #${migrationVersion}`, () => {
                 ...MEGAETH_TESTNET_V2_CONFIG,
                 name: 'Mega Testnet',
                 nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet-v2',
+                    url: 'https://rpc.com',
+                    type: 'custom',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://explorer.com'],
               },
             },
           },
@@ -625,7 +645,23 @@ describe(`migration #${migrationVersion}`, () => {
             networksMetadata: {},
             networkConfigurationsByChainId: {
               ...mainnetConfiguration,
-              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet-v2',
+                    url: 'https://rpc.com',
+                    type: 'custom',
+                  },
+                  ...MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints,
+                ],
+                defaultRpcEndpointIndex: 1,
+                defaultBlockExplorerUrlIndex: 1,
+                blockExplorerUrls: [
+                  'https://explorer.com',
+                  ...MEGAETH_TESTNET_V2_CONFIG.blockExplorerUrls,
+                ],
+              },
             },
           },
           NetworkEnablementController: {
@@ -633,6 +669,54 @@ describe(`migration #${migrationVersion}`, () => {
               [KnownCaipNamespace.Eip155]: {
                 [MEGAETH_TESTNET_V2_CONFIG.chainId]: true,
                 '0x1': false,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(orgState);
+
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('returns the original state if the megaeth testnet v2 network configuration exists but is invalid', async () => {
+    const orgState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: 'invalid',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: 'invalid',
               },
             },
           },
