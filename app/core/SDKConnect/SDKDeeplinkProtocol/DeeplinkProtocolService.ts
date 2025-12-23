@@ -494,7 +494,6 @@ export default class DeeplinkProtocolService {
 
       return;
     }
-
     await SDKConnect.getInstance().addDappConnection({
       id: clientInfo.clientId,
       lastAuthorized: Date.now(),
@@ -538,7 +537,7 @@ export default class DeeplinkProtocolService {
     // Prevent external transactions from using internal origins
     // This is an external connection (SDK), so block any internal origin
     if (requestObject.method === 'eth_sendTransaction') {
-      if (INTERNAL_ORIGINS.includes(params.channelId)) {
+      if (INTERNAL_ORIGINS.includes(params.url)) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });

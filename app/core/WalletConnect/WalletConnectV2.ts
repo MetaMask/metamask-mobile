@@ -472,7 +472,7 @@ export class WC2Manager {
     try {
       // Prevent external connections from using internal origins
       // This is an external connection (WalletConnect), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(channelId)) {
+      if (INTERNAL_ORIGINS.includes(origin)) {
         await this.web3Wallet.rejectSession({
           id: proposal.id,
           reason: getSdkError('USER_REJECTED_METHODS'),
