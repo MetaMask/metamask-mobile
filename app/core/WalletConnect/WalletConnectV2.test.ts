@@ -1452,7 +1452,9 @@ describe('WC2Manager', () => {
     beforeEach(() => {
       const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
-      rejectSessionSpy = jest.spyOn(web3Wallet, 'rejectSession');
+      rejectSessionSpy = jest
+        .spyOn(web3Wallet, 'rejectSession')
+        .mockResolvedValue(undefined);
     });
 
     it('should reject session proposal with "metamask" origin', async () => {

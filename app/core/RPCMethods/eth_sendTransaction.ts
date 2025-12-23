@@ -15,7 +15,6 @@ import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import { store } from '../../store';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import Engine from '../Engine';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 /**
@@ -124,21 +123,12 @@ async function eth_sendTransaction({
         getPermission: (origin: string, permission: string) => unknown;
       };
     };
-    try {
-      // If there's a permission for an internal origin, it means an external connection is trying to use it
-      PermissionController.getPermission(
-        hostname,
-        Caip25EndowmentPermissionName,
-      );
-      throw rpcErrors.invalidParams({
-        message: 'External transactions cannot use internal origins',
-      });
-    } catch (err) {
-      // If PermissionDoesNotExistError, it's a legitimate internal transaction
-      if (!(err instanceof PermissionDoesNotExistError)) {
-        throw err;
-      }
-    }
+
+    // If there's a permission for an internal origin, it means an external connection is trying to use it
+    PermissionController.getPermission(hostname, Caip25EndowmentPermissionName);
+    throw rpcErrors.invalidParams({
+      message: 'External transactions cannot use internal origins',
+    });
   }
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
