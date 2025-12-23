@@ -214,7 +214,7 @@ export const useTopTokens = ({
         aggregators: bridgeAsset.aggregators,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
-        metadata: bridgeAsset.metadata,
+        rwaData: bridgeAsset.rwaData,
       };
     });
 
