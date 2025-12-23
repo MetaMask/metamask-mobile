@@ -15,7 +15,6 @@ import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
@@ -113,22 +112,18 @@ export class ConnectionRegistry {
 
     try {
       const connReq = this.parseConnectionRequest(url);
-      if (
-        (connReq.metadata.dapp.url &&
-          connReq.metadata.dapp.url === ORIGIN_METAMASK) ||
-        (connReq.metadata.dapp.name &&
-          connReq.metadata.dapp.name === ORIGIN_METAMASK)
-      ) {
-        throw new Error('Connections from metamask origin are not allowed');
-      }
-      connInfo = this.toConnectionInfo(connReq);
       // Prevent external connections from using internal origins
       // This is an external connection (SDK V2), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(connInfo.id)) {
+      if (
+        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
+        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
+      ) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });
       }
+      connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,

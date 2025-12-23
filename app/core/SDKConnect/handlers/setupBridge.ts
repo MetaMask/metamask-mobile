@@ -59,8 +59,10 @@ export const setupBridge = ({
       );
       // Prevent external connections from using internal origins
       // This is an external connection (SDK), so block any internal origin
-      const origin = connection.channelId ?? connection.origin;
-      if (INTERNAL_ORIGINS.includes(origin)) {
+      if (
+        INTERNAL_ORIGINS.includes(originatorInfo.url) ||
+        INTERNAL_ORIGINS.includes(originatorInfo.title)
+      ) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });
