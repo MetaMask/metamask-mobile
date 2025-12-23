@@ -65,7 +65,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode, CowSwapQuoteResponse } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -343,7 +343,7 @@ const BridgeView = () => {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
         await submitBridgeTx({
-          quoteResponse: activeQuote,
+          quoteResponse: activeQuote as CowSwapQuoteResponse & QuoteMetadata,
         });
       }
     } catch (error) {

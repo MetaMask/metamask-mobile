@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -162,6 +162,20 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+const INTENT_STATUS = {
+  SUBMITTED: 'SUBMITTED',
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+};
+
+const TRANSACTION_STATUS = {
+  SUBMITTED: 'submitted',
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -449,6 +463,24 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  mapIntentStatusToTransactionStatus = (intentStatus) => {
+    if (intentStatus === INTENT_STATUS.PENDING) {
+      return TRANSACTION_STATUS.PENDING;
+    }
+    if (intentStatus === INTENT_STATUS.COMPLETE) {
+      return TRANSACTION_STATUS.CONFIRMED;
+    }
+    if (intentStatus === INTENT_STATUS.FAILED) {
+      return TRANSACTION_STATUS.FAILED;
+    }
+    if (intentStatus === INTENT_STATUS.SUBMITTED) {
+      return TRANSACTION_STATUS.SUBMITTED;
+    }
+
+    // if it is unknown status, default to failed
+    return TRANSACTION_STATUS.FAILED;
+  };
+
   /**
    * Renders an horizontal bar with basic tx information
    *
@@ -468,14 +500,23 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+    // transform the status from bridgeTxHistoryItem to the status of the transaction
+    let transactionStatus = status;
+    if (bridgeTxHistoryItem) {
+      transactionStatus = this.mapIntentStatusToTransactionStatus(
+        bridgeTxHistoryItem.status.status,
+      );
+    }
 
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const renderUnsignedQRActions =
-      status === 'approved' && isQRHardwareAccount;
+      transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     let title = actionKey;
@@ -484,62 +525,65 @@ class TransactionElement extends PureComponent {
     }
 
     return (
-      <ListItem>
-        <ListItem.Date style={styles.listItemDate}>
-          {this.renderTxTime()}
-        </ListItem.Date>
-        <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>
-            {this.renderTxElementIcon(transactionElement, tx)}
-          </ListItem.Icon>
-          <ListItem.Body>
-            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-              {title}
-            </ListItem.Title>
-            {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-            isBridgeTransaction &&
-            !isBridgeComplete ? (
-              <BridgeActivityItemTxSegments
-                bridgeTxHistoryItem={bridgeTxHistoryItem}
-                transactionStatus={this.props.tx.status}
-              />
-            ) : (
-              <StatusText
-                testID={`transaction-status-${i}`}
-                status={status}
-                style={styles.listItemStatus}
-              />
-            )}
-          </ListItem.Body>
-          {Boolean(value) && (
-            <ListItem.Amounts>
-              {!isTestNet(chainId) && (
-                <ListItem.FiatAmount style={styles.listItemFiatAmount}>
-                  {fiatValue}
-                </ListItem.FiatAmount>
+      <>
+        {accountImportTime > time && this.renderImportTime()}
+        <ListItem>
+          <ListItem.Date style={styles.listItemDate}>
+            {this.renderTxTime()}
+          </ListItem.Date>
+          <ListItem.Content style={styles.listItemContent}>
+            <ListItem.Icon>
+              {this.renderTxElementIcon(transactionElement, tx)}
+            </ListItem.Icon>
+            <ListItem.Body>
+              <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+                {title}
+              </ListItem.Title>
+              {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
+              isBridgeTransaction &&
+              !isBridgeComplete ? (
+                <BridgeActivityItemTxSegments
+                  bridgeTxHistoryItem={bridgeTxHistoryItem}
+                  transactionStatus={this.props.tx.status}
+                />
+              ) : (
+                <StatusText
+                  testID={`transaction-status-${i}`}
+                  status={transactionStatus}
+                  style={styles.listItemStatus}
+                />
               )}
-              <ListItem.Amount style={styles.listItemAmount}>
-                {value}
-              </ListItem.Amount>
-            </ListItem.Amounts>
+            </ListItem.Body>
+            {Boolean(value) && (
+              <ListItem.Amounts>
+                {!isTestNet(chainId) && (
+                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                    {fiatValue}
+                  </ListItem.FiatAmount>
+                )}
+                <ListItem.Amount style={styles.listItemAmount}>
+                  {value}
+                </ListItem.Amount>
+              </ListItem.Amounts>
+            )}
+          </ListItem.Content>
+          {renderNormalActions && (
+            <ListItem.Actions>
+              {this.renderSpeedUpButton()}
+              {this.renderCancelButton()}
+            </ListItem.Actions>
           )}
-        </ListItem.Content>
-        {renderNormalActions && (
-          <ListItem.Actions>
-            {this.renderSpeedUpButton()}
-            {this.renderCancelButton()}
-          </ListItem.Actions>
-        )}
-        {renderUnsignedQRActions && (
-          <ListItem.Actions>
-            {this.renderQRSignButton()}
-            {this.renderCancelUnsignedButton()}
-          </ListItem.Actions>
-        )}
-        {renderLedgerActions && (
-          <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
-        )}
-      </ListItem>
+          {renderUnsignedQRActions && (
+            <ListItem.Actions>
+              {this.renderQRSignButton()}
+              {this.renderCancelUnsignedButton()}
+            </ListItem.Actions>
+          )}
+          {renderLedgerActions && (
+            <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
+          )}
+        </ListItem>
+      </>
     );
   };
 
