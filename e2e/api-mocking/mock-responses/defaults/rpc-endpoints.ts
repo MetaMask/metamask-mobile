@@ -7,7 +7,7 @@ import { MockEventsObject } from '../../../framework';
 export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
   POST: [
     {
-      urlEndpoint: 'https://carrot.megaeth.com/rpc',
+      urlEndpoint: 'https://timothy.megaeth.com/rpc',
       responseCode: 200,
       response: {
         jsonrpc: '2.0',
