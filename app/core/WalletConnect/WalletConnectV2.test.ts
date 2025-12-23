@@ -1452,14 +1452,19 @@ describe('WC2Manager', () => {
     beforeEach(() => {
       const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
-      rejectSessionSpy = jest.spyOn(web3Wallet, 'rejectSession');
+      rejectSessionSpy = jest
+        .spyOn(web3Wallet, 'rejectSession')
+        .mockResolvedValue(undefined);
     });
 
     it('should reject session proposal with "metamask" origin', async () => {
       const proposal = {
         id: 999,
         params: {
+          id: 999,
+          pairingTopic: 'test-pairing-999',
           proposer: {
+            publicKey: 'test-public-key',
             metadata: {
               url: 'metamask',
               name: 'Malicious App',
@@ -1467,8 +1472,17 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {},
           optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'metamask',
+            validation: 'VALID' as const,
+            origin: 'metamask',
+          },
         },
       };
 
@@ -1489,7 +1503,10 @@ describe('WC2Manager', () => {
       const proposal = {
         id: 997,
         params: {
+          id: 997,
+          pairingTopic: 'test-pairing-997',
           proposer: {
+            publicKey: 'test-public-key',
             metadata: {
               url: 'https://metamask.example.com',
               name: 'Legitimate App',
@@ -1497,6 +1514,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1505,6 +1524,13 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://metamask.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://metamask.example.com',
+          },
         },
       };
 
@@ -1525,7 +1551,10 @@ describe('WC2Manager', () => {
       const proposal = {
         id: 996,
         params: {
+          id: 996,
+          pairingTopic: 'test-pairing-996',
           proposer: {
+            publicKey: 'test-public-key',
             metadata: {
               url: 'https://example.com',
               name: 'Example App',
@@ -1533,6 +1562,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1541,6 +1572,13 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com',
+          },
         },
       };
 
@@ -1561,7 +1599,10 @@ describe('WC2Manager', () => {
       const proposal = {
         id: 995,
         params: {
+          id: 995,
+          pairingTopic: 'test-pairing-995',
           proposer: {
+            publicKey: 'test-public-key',
             metadata: {
               url: 'https://metamask.io',
               name: 'MetaMask Website',
@@ -1569,6 +1610,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1577,6 +1620,13 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://metamask.io',
+            validation: 'VALID' as const,
+            origin: 'https://metamask.io',
+          },
         },
       };
 
