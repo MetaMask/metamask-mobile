@@ -5,12 +5,14 @@ import getRpcMethodMiddleware, {
 } from '../../RPCMethods/RPCMethodMiddleware';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { ORIGIN_METAMASK , ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import handleSendMessage from './handleSendMessage';
 import { ImageSourcePropType } from 'react-native';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { rpcErrors } from '@metamask/rpc-errors';
 
 export const setupBridge = ({
   originatorInfo,
@@ -55,6 +57,16 @@ export const setupBridge = ({
       DevLogger.log(
         `getRpcMethodMiddleware origin=${connection.origin} url=${originatorInfo.url} `,
       );
+      // Prevent external connections from using internal origins
+      // This is an external connection (SDK), so block any internal origin
+      if (
+        INTERNAL_ORIGINS.includes(originatorInfo.url) ||
+        INTERNAL_ORIGINS.includes(originatorInfo.title)
+      ) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
       return getRpcMethodMiddleware({
         hostname: connection.origin,
         channelId: connection.channelId,
