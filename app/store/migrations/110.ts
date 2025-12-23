@@ -21,7 +21,7 @@ interface RpcEndpoint {
   networkClientId: string;
   url: string;
   type: string;
-};
+}
 
 /**
  * A Copy of the NetworkConfiguration type from the network controller,
@@ -35,7 +35,7 @@ interface NetworkConfiguration {
   name: string;
   nativeCurrency: string;
   rpcEndpoints: RpcEndpoint[];
-};
+}
 
 export const migrationVersion = 110;
 
