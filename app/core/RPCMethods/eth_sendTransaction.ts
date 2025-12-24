@@ -13,6 +13,7 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import { store } from '../../store';
+import { INTERNAL_ORIGINS } from '../../constants/transaction';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -112,6 +113,12 @@ async function eth_sendTransaction({
     from: req.params[0].from,
     chainId: nChainId,
   });
+  // Prevent external transactions from using internal origins
+  if (INTERNAL_ORIGINS.includes(hostname)) {
+    throw rpcErrors.invalidParams({
+      message: 'External transactions cannot use internal origins',
+    });
+  }
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,

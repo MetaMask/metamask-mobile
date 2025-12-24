@@ -246,6 +246,10 @@ const mockState = {
           },
         },
       },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [],
+      },
     },
   },
 } as unknown as RootState;
@@ -760,6 +764,10 @@ describe('Earn Controller Selectors', () => {
             selectedNetworkClientId: 'mainnet',
             networkConfigurationsByChainId: {},
             networksMetadata: {},
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [],
           },
         },
       },

@@ -83,3 +83,15 @@ export const parseFloatSafe = (input: string): number => {
 
   return parseFloat(result);
 };
+
+/**
+ * Truncates a number to 2 decimal places and removes trailing zeros (no rounding)
+ * @param number - The number to truncate
+ * @returns The truncated number
+ */
+export const truncateNumber = (number: string | number): string => {
+  const value = Number(number);
+  const truncatedToTwoDecimals = Math.trunc(value * 100) / 100;
+  // String() omits trailing zeros
+  return String(truncatedToTwoDecimals);
+};

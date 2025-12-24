@@ -13,6 +13,7 @@ import extractURLParams from '../../utils/extractURLParams';
 import handleRampUrl from './handleRampUrl';
 import handleDepositCashUrl from './handleDepositCashUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
+import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -30,6 +31,11 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
+
+  const channelId = params?.channelId;
+  if (channelId && INTERNAL_ORIGINS.includes(channelId)) {
+    throw new Error('External transactions cannot use internal origins');
+  }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
@@ -52,7 +58,7 @@ export function handleMetaMaskDeeplink({
           hideReturnToApp: !!params.hr,
         },
       );
-    } else if (params.channelId) {
+    } else if (channelId) {
       // differentiate between  deeplink callback and socket connection
       if (params.comm === 'deeplinking') {
         if (!params.scheme) {
@@ -60,7 +66,7 @@ export function handleMetaMaskDeeplink({
         }
 
         SDKConnect.getInstance().state.deeplinkingService?.handleConnection({
-          channelId: params.channelId,
+          channelId,
           url,
           scheme: params.scheme ?? '',
           dappPublicKey: params.pubkey,
@@ -83,7 +89,7 @@ export function handleMetaMaskDeeplink({
           });
         }
         handleDeeplink({
-          channelId: params.channelId,
+          channelId,
           origin,
           url,
           protocolVersion,
@@ -113,7 +119,7 @@ export function handleMetaMaskDeeplink({
     }
 
     SDKConnect.getInstance().state.deeplinkingService?.handleMessage({
-      channelId: params.channelId,
+      channelId,
       url,
       message: params.message,
       dappPublicKey: params.pubkey,

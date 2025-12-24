@@ -14,7 +14,7 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import {
   selectIsMusdConversionFlowEnabledFlag,
@@ -42,33 +42,49 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   DAI: '5.0',
 };
 
+const mockGetEarnToken = jest.fn((token: TokenI) => {
+  const experienceType =
+    token.symbol === 'USDC'
+      ? EARN_EXPERIENCES.STABLECOIN_LENDING
+      : EARN_EXPERIENCES.POOLED_STAKING;
+
+  const experiences = [
+    {
+      type: experienceType as EARN_EXPERIENCES,
+      apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+      estimatedAnnualRewardsFormatted: '',
+      estimatedAnnualRewardsFiatNumber: 0,
+    },
+  ];
+
+  const baseEarnToken = {
+    ...token,
+    balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+    balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+    balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+    balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+  };
+
+  const adjustedEarnToken =
+    token.symbol === 'TRX'
+      ? {
+          ...baseEarnToken,
+          balanceMinimalUnit: '1',
+        }
+      : baseEarnToken;
+
+  return {
+    ...adjustedEarnToken,
+    experiences,
+    tokenUsdExchangeRate: 0,
+    experience: experiences[0],
+  };
+});
+
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
   default: () => ({
-    getEarnToken: (token: TokenI) => {
-      const experienceType =
-        token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
-
-      const experiences = [
-        {
-          type: experienceType as EARN_EXPERIENCES,
-          apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
-          estimatedAnnualRewardsFormatted: '',
-          estimatedAnnualRewardsFiatNumber: 0,
-        },
-      ];
-
-      return {
-        ...token,
-        balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-        balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-        balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-        balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-        experiences,
-        tokenUsdExchangeRate: 0,
-        experience: experiences[0],
-      };
-    },
+    getEarnToken: (token: TokenI) => mockGetEarnToken(token),
   }),
 }));
 
@@ -169,6 +185,24 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn().mockReturnValue(true),
+  }),
+);
+
+const mockIsTronChainId = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../../../core/Multichain/utils', () => {
+  const actual = jest.requireActual('../../../../../core/Multichain/utils');
+  return {
+    ...actual,
+    isTronChainId: (...args: unknown[]) =>
+      mockIsTronChainId(...(args as [string])),
+  };
+});
+
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -228,6 +262,10 @@ const renderComponent = (state = STATE_MOCK) =>
   renderWithProvider(<StakeButton asset={MOCK_ETH_MAINNET_ASSET} />, {
     state,
   });
+
+const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
+  '../../../../../selectors/earnController/earn',
+).earnSelectors.selectPrimaryEarnExperienceTypeForAsset as jest.Mock;
 
 describe('StakeButton', () => {
   beforeEach(() => {
@@ -359,6 +397,43 @@ describe('StakeButton', () => {
           screen: Routes.STAKING.STAKE,
           params: {
             token: MOCK_USDC_MAINNET_ASSET,
+          },
+        });
+      });
+    });
+  });
+
+  describe('Tron staking', () => {
+    const MOCK_TRX_ASSET: TokenI = {
+      ...MOCK_ETH_MAINNET_ASSET,
+      symbol: 'TRX',
+      name: 'Tron',
+      chainId: TrxScope.Mainnet as unknown as string,
+      isNative: true,
+      // Ensure ETH-specific logic does not apply
+      isETH: false,
+    };
+
+    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.POOLED_STAKING,
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: MOCK_TRX_ASSET,
           },
         });
       });
