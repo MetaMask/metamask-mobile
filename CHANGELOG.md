@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.61.3]
+
+### Fixed
+
+- feat: add Tron stakeComputeFee and other improvements ([#24209](https://github.com/MetaMask/metamask-mobile/pull/24209))
+- feat: NWNT-681: Add useTronStakeApy hook ([#24206](https://github.com/MetaMask/metamask-mobile/pull/24206))
+- feat: add support for accountChanged for Tron network ([#24207](https://github.com/MetaMask/metamask-mobile/pull/24207))
+- chore: update @metamask/keyring-api and @metamask/tron-wallet-snap versions ([#24205](https://github.com/MetaMask/metamask-mobile/pull/24205))
+- chore: adds localization method and other improvements ([#24204](https://github.com/MetaMask/metamask-mobile/pull/24204))
+- chore: add support for fiat use in tron staking/unstaking flows ([#24199](https://github.com/MetaMask/metamask-mobile/pull/24199))
+- chore: adds the Tron staking details preview ([#24198](https://github.com/MetaMask/metamask-mobile/pull/24198))
+- fix(ramp): use ScrollView from react-native-gesture-handler in PaymentMethodSelectorModal ([#24197](https://github.com/MetaMask/metamask-mobile/pull/24197))
+- chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
+
 ## [7.61.2]
 
 ### Fixed
@@ -9647,7 +9661,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.2...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.3...HEAD
+[7.61.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.2...v7.61.3
 [7.61.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.1...v7.61.2
 [7.61.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.0...v7.61.1
 [7.61.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.4...v7.61.0
