@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: robustness deeplinking ([#24227](https://github.com/MetaMask/metamask-mobile/pull/24227))
+- chore: refine hardware signing flow ([#24228](https://github.com/MetaMask/metamask-mobile/pull/24228))
 
 ## [7.61.4]
 
