@@ -297,6 +297,8 @@ const RootRPCMethodsUI = (props) => {
       const { id: transactionId } = transactionMeta;
 
       try {
+        // unified swaps and bridge no longer goes through this path.
+        // TODO: to remove this in the near future
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
