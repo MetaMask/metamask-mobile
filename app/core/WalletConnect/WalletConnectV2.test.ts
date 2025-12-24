@@ -1446,13 +1446,15 @@ describe('WC2Manager', () => {
     });
   });
 
-  describe.skip('Origin Rejection', () => {
+  describe('Origin Rejection', () => {
     let rejectSessionSpy: jest.SpyInstance;
 
     beforeEach(() => {
       const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
-      rejectSessionSpy = jest.spyOn(web3Wallet, 'rejectSession');
+      rejectSessionSpy = jest
+        .spyOn(web3Wallet, 'rejectSession')
+        .mockResolvedValue(undefined);
     });
 
     it('should reject session proposal with "metamask" origin', async () => {
@@ -1460,7 +1462,7 @@ describe('WC2Manager', () => {
         id: 999,
         params: {
           id: 999,
-          pairingTopic: 'test-pairing',
+          pairingTopic: 'test-pairing-999',
           proposer: {
             publicKey: 'test-public-key',
             metadata: {
@@ -1470,16 +1472,16 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
-          requiredNamespaces: {},
-          optionalNamespaces: {},
           expiryTimestamp: Date.now() + 300000,
           relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {},
         },
         verifyContext: {
           verified: {
-            verifyUrl: 'https://example.com',
+            verifyUrl: 'metamask',
             validation: 'VALID' as const,
-            origin: 'https://example.com',
+            origin: 'metamask',
           },
         },
       };
@@ -1502,7 +1504,7 @@ describe('WC2Manager', () => {
         id: 997,
         params: {
           id: 997,
-          pairingTopic: 'test-pairing',
+          pairingTopic: 'test-pairing-997',
           proposer: {
             publicKey: 'test-public-key',
             metadata: {
@@ -1512,6 +1514,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1520,14 +1524,12 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
-          expiryTimestamp: Date.now() + 300000,
-          relays: [{ protocol: 'irn' }],
         },
         verifyContext: {
           verified: {
-            verifyUrl: 'https://example.com',
+            verifyUrl: 'https://metamask.example.com',
             validation: 'VALID' as const,
-            origin: 'https://example.com',
+            origin: 'https://metamask.example.com',
           },
         },
       };
@@ -1550,7 +1552,7 @@ describe('WC2Manager', () => {
         id: 996,
         params: {
           id: 996,
-          pairingTopic: 'test-pairing',
+          pairingTopic: 'test-pairing-996',
           proposer: {
             publicKey: 'test-public-key',
             metadata: {
@@ -1560,6 +1562,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1568,8 +1572,6 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
-          expiryTimestamp: Date.now() + 300000,
-          relays: [{ protocol: 'irn' }],
         },
         verifyContext: {
           verified: {
@@ -1598,7 +1600,7 @@ describe('WC2Manager', () => {
         id: 995,
         params: {
           id: 995,
-          pairingTopic: 'test-pairing',
+          pairingTopic: 'test-pairing-995',
           proposer: {
             publicKey: 'test-public-key',
             metadata: {
@@ -1608,6 +1610,8 @@ describe('WC2Manager', () => {
               icons: [],
             },
           },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
           requiredNamespaces: {
             eip155: {
               chains: ['eip155:1'],
@@ -1616,14 +1620,12 @@ describe('WC2Manager', () => {
             },
           },
           optionalNamespaces: {},
-          expiryTimestamp: Date.now() + 300000,
-          relays: [{ protocol: 'irn' }],
         },
         verifyContext: {
           verified: {
-            verifyUrl: 'https://example.com',
+            verifyUrl: 'https://metamask.io',
             validation: 'VALID' as const,
-            origin: 'https://example.com',
+            origin: 'https://metamask.io',
           },
         },
       };
