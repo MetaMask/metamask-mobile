@@ -38,4 +38,5 @@ export enum NetworkToCaipChainId {
   LOCALHOST = 'eip155:1337',
   ETHEREUM_SEPOLIA = 'eip155:11155111',
   LINEA_SEPOLIA = 'eip155:59141',
+  SEI = 'eip155:1329',
 }

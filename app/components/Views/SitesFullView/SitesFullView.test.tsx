@@ -158,6 +158,28 @@ describe('SitesFullView', () => {
     },
   ];
 
+  const setupMockWithSearchFilter = () => {
+    mockUseSitesData.mockImplementation((searchQuery: string) => {
+      let filteredSites = mockSites;
+
+      if (searchQuery?.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        filteredSites = mockSites.filter(
+          (site) =>
+            site.name.toLowerCase().includes(query) ||
+            site.displayUrl.toLowerCase().includes(query) ||
+            site.url.toLowerCase().includes(query),
+        );
+      }
+
+      return {
+        sites: filteredSites,
+        isLoading: false,
+        refetch: mockRefetch,
+      };
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockRefetch.mockClear();
@@ -208,7 +230,7 @@ describe('SitesFullView', () => {
       const { getAllByTestId } = render(<SitesFullView />);
 
       const skeletons = getAllByTestId('site-skeleton');
-      expect(skeletons.length).toBe(10);
+      expect(skeletons.length).toBe(15);
     });
 
     it('renders RefreshControl', () => {
@@ -243,11 +265,7 @@ describe('SitesFullView', () => {
 
   describe('Search Functionality', () => {
     it('filters sites by name, URL, and display URL', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        refetch: mockRefetch,
-      });
+      setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
@@ -272,11 +290,7 @@ describe('SitesFullView', () => {
     });
 
     it('shows all sites when search query is empty', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        refetch: mockRefetch,
-      });
+      setupMockWithSearchFilter();
 
       const { getByTestId } = render(<SitesFullView />);
 
@@ -373,7 +387,7 @@ describe('SitesFullView', () => {
 
       render(<SitesFullView />);
 
-      expect(mockUseSitesData).toHaveBeenCalledWith({ limit: 100 });
+      expect(mockUseSitesData).toHaveBeenCalledWith('', 100);
     });
 
     it('calls refetch when refresh is triggered', async () => {
@@ -442,11 +456,7 @@ describe('SitesFullView', () => {
     });
 
     it('performs case-insensitive search', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        refetch: mockRefetch,
-      });
+      setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 

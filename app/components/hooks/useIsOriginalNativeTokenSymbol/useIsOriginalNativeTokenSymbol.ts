@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../constants/network';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
-import axios from 'axios';
-
-const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
+import { useSafeChains } from '../useSafeChains';
 
 /**
  * Hook that check if the used symbol match with the original symbol of given network
@@ -16,6 +14,8 @@ function useIsOriginalNativeTokenSymbol(
   ticker: string | undefined,
   type: string,
 ): boolean | null {
+  const { safeChains: safeChainsList, error: safeChainsError } =
+    useSafeChains();
   const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState<
     boolean | null
   >(null);
@@ -49,12 +49,21 @@ function useIsOriginalNativeTokenSymbol(
           return;
         }
 
-        // check safety network using a third part
-        const { data: safeChainsList } = await axios.get(CHAIN_ID_NETWORK_URL);
+        // If chains API failed, can't verify - assume unsafe
+        if (safeChainsError) {
+          setIsOriginalNativeSymbol(false);
+          return;
+        }
 
+        // Wait for safeChainsList to load before checking
+        // Keep state as null (loading) to avoid false warnings
+        if (!safeChainsList || safeChainsList.length === 0) {
+          return;
+        }
+
+        // check safety network using a third part
         const matchedChain = safeChainsList.find(
-          (network: { chainId: number }) =>
-            network.chainId === parseInt(networkId),
+          (network) => network.chainId === parseInt(networkId),
         );
 
         const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
@@ -68,11 +77,12 @@ function useIsOriginalNativeTokenSymbol(
     }
     getNativeTokenSymbol(chainId);
   }, [
-    isOriginalNativeSymbol,
     chainId,
     ticker,
     type,
     useSafeChainsListValidation,
+    safeChainsList,
+    safeChainsError,
   ]);
 
   return isOriginalNativeSymbol;

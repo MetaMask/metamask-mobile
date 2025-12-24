@@ -13,6 +13,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 export function TotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -35,7 +36,11 @@ export function TotalRow() {
         label={strings('confirm.label.total')}
         rowVariant={InfoRowVariant.Small}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          testID={ConfirmationRowComponentIDs.TOTAL}
+        >
           {totalUsd}
         </Text>
       </InfoRow>

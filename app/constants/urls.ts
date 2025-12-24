@@ -61,9 +61,7 @@ export const LINEA_DEFAULT_RPC_URL = `https://linea-mainnet.infura.io/v3/${infur
 export const MM_PHISH_DETECT_URL =
   'https://github.com/metamask/eth-phishing-detect';
 export const MM_BLOCKLIST_ISSUE_URL =
-  'https://github.com/metamask/eth-phishing-detect/issues/new';
-export const PHISHFORT_BLOCKLIST_ISSUE_URL =
-  'https://github.com/phishfort/phishfort-lists/issues/new';
+  'https://github.com/metamask/eth-phishing-detect/issues';
 
 // https://github.com/MetaMask/metamask-mobile/tree/gh-pages
 export const MM_APP_CONFIG_URL =

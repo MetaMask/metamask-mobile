@@ -1,6 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
-import AndroidService from '../AndroidSDK/AndroidService';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import asyncInit from './asyncInit';
@@ -26,12 +25,6 @@ async function init({
       instance.state.connections,
     );
     return;
-  }
-
-  if (!instance.state.androidSDKStarted && Platform.OS === 'android') {
-    DevLogger.log(`SDKConnect::init() - starting android service`);
-    instance.state.androidService = new AndroidService();
-    instance.state.androidSDKStarted = true;
   }
 
   if (!instance.state.deeplinkingServiceStarted && Platform.OS === 'ios') {

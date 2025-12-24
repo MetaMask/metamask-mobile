@@ -96,7 +96,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw new Error('Card SDK not initialized');
       }
 
-      const policy = selectedCountry === 'US' ? 'us' : 'global';
+      const policy = selectedCountry?.key === 'US' ? 'us' : 'global';
 
       try {
         // Reset state and start loading

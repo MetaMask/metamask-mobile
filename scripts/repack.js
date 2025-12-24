@@ -16,18 +16,12 @@ const logger = {
   warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
 
-const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
-
-/**
- * Get Android keystore configuration
- * Currently supports 'flask' and 'main' build types
- */
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
@@ -37,11 +31,12 @@ function getKeystoreConfig() {
     process.exit(1);
   }
 
+  // apksigner requires 'pass:' prefix for passwords (especially those with special characters)
   const config = {
     keyStorePath: keystorePath || 'android/app/debug.keystore',
-    keyStorePassword: `pass:${keystorePassword || 'android'}`,
+    keyStorePassword: keystorePassword ? `pass:${keystorePassword}` : 'pass:android',
     keyAlias: keyAlias || 'androiddebugkey',
-    keyPassword: `pass:${keyPassword || 'android'}`,
+    keyPassword: keyPassword ? `pass:${keyPassword}` : 'pass:android',
   };
 
   logger.info(`Using keystore: ${config.keyStorePath}`);
@@ -55,9 +50,9 @@ function getKeystoreConfig() {
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const repackedApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release-repack.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-  const finalApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+  const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
   const workingDir = 'android/app/build/repack-working-main';
 
@@ -73,12 +68,13 @@ async function repackAndroid() {
     // Ensure directories exist
     fs.mkdirSync(path.dirname(sourcemapPath), { recursive: true });
     fs.mkdirSync(workingDir, { recursive: true });
+    fs.mkdirSync(path.dirname(repackedApk), { recursive: true });
+    fs.mkdirSync(path.dirname(finalApk), { recursive: true });
 
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
+    const keystoreConfig = getKeystoreConfig();
 
-    // Repack APK
-    logger.info('⏱️  Repacking APK with updated JavaScript...');
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
@@ -86,20 +82,20 @@ async function repackAndroid() {
       outputPath: repackedApk,
       workingDirectory: workingDir,
       verbose: true,
-      androidSigningOptions: getKeystoreConfig(),
+      androidSigningOptions: keystoreConfig,
       exportEmbedOptions: {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
     });
 
-    // Verify and move repacked APK
-    if (!fs.existsSync(repackedApk)) {
-      throw new Error(`Repacked APK not found: ${repackedApk}`);
-    }
-
+    // Copy to final location
     fs.copyFileSync(repackedApk, finalApk);
-    fs.unlinkSync(repackedApk);
+    if (repackedApk !== finalApk) {
+      try { fs.unlinkSync(repackedApk); } catch (e) {
+        // Ignore errors when cleaning up intermediate file
+      }
+    }
     fs.rmSync(workingDir, { recursive: true, force: true });
 
     const duration = Math.round((Date.now() - startTime) / 1000);

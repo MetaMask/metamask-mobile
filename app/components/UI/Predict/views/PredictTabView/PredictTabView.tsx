@@ -104,6 +104,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
       style={tw.style(
         isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
       )}
+      testID={
+        isHomepageRedesignV1Enabled
+          ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+          : undefined
+      }
     >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />

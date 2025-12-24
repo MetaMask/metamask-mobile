@@ -14,6 +14,7 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -34,10 +35,13 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
   const onPressLink = useCallback(
     (url: string) => {
-      navigation.navigate('TrendingBrowser', {
-        newTabUrl: url,
-        timestamp: Date.now(),
-        fromTrending: true,
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
       });
     },
     [navigation],

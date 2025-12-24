@@ -388,7 +388,7 @@ describe('PredictBuyPreview', () => {
             image: 'https://example.com/outcome2.png',
             status: 'open' as const,
             volume: 500000,
-            groupItemTitle: 'Market Cap',
+            groupItemTitle: 'Market cap',
             tokens: [
               {
                 id: 'outcome-token-791',

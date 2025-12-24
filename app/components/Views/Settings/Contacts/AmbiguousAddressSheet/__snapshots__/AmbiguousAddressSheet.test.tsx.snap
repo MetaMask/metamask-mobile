@@ -444,7 +444,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -473,7 +473,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -489,7 +489,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -518,7 +518,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -532,7 +532,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -601,7 +601,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

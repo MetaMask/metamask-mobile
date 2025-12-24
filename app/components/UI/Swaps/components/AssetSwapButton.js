@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import Text from '../../../Base/Text';
 import AssetActionButton from '../../AssetOverview/AssetActionButton';
-import InfoModal from './InfoModal';
+import InfoModal from '../../../Base/InfoModal';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { strings } from '../../../../../locales/i18n';

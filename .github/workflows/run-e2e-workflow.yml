@@ -56,7 +56,6 @@ jobs:
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
-      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
     env:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
@@ -77,7 +76,6 @@ jobs:
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEEDLESS_ONBOARDING_ENABLED: 'true'
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -100,7 +98,6 @@ jobs:
         with:
           ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha || github.sha }}
           clean: true
-          fetch-depth: 0
 
       - name: Install Android System Images
         if: ${{ inputs.platform == 'android' }}
@@ -110,7 +107,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -132,14 +129,12 @@ jobs:
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
               echo "artifact_name=app-flask-release"
             } >> "$GITHUB_OUTPUT"
           elif [[ "${{ inputs.build_type }}" == "main" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/prod/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
               echo "artifact_name=app-prod-release"
             } >> "$GITHUB_OUTPUT"
           else
@@ -153,7 +148,6 @@ jobs:
           echo "🏗 Setting up Android artifacts from build job..."
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
-          mkdir -p ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' }}

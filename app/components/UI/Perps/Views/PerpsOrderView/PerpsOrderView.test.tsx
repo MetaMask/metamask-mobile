@@ -70,6 +70,7 @@ import PerpsOrderView from './PerpsOrderView';
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useFocusEffect: jest.fn((callback) => callback()),
 }));
 
 // Mock i18n strings
@@ -352,6 +353,8 @@ jest.mock('../../../../../core/Engine', () => ({
         unrealizedPnl: '0',
       }),
       placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      savePendingTradeConfiguration: jest.fn(),
+      clearPendingTradeConfiguration: jest.fn(),
     },
   },
 }));

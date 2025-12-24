@@ -72,7 +72,7 @@ jest.mock('../../../../core/SDKConnectV2', () => ({
   },
 }));
 
-jest.mock('../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => ({
   default: {
     init: jest.fn(),
   },

@@ -129,7 +129,7 @@ describe('MultichainAccountActions', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
     expect(getByText('Test Account Group')).toBeTruthy();
-    expect(getByText('Account Details')).toBeTruthy();
+    expect(getByText('Account details')).toBeTruthy();
     expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
   });

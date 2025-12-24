@@ -15,7 +15,7 @@ const NftGridSkeleton = () => {
         highlightColor={colors.background.subsection}
       >
         <View style={tw.style('flex-row flex-wrap justify-between gap-2')}>
-          {Array.from({ length: 18 }, (_, index) => (
+          {Array.from({ length: 9 }, (_, index) => (
             <View key={index} style={tw.style('w-[30%] mb-2')}>
               <View style={tw.style('w-full aspect-square rounded-xl mb-3')} />
               <View>

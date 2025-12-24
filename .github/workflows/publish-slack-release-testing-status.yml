@@ -7,15 +7,18 @@ on:
 
 jobs:
   call-publish-slack-release-testing-status:
+    name: Publish Slack release testing status
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@bce51a03da4736bef72f67b71ca77714a38fc067
-    with:
-      platform: 'mobile'
-      test-only: 'true'
-      google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ'
-    secrets:
-      slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
-      github-token: ${{ secrets.PR_TOKEN }}
-      google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
+    steps:
+      - name: Publish Slack release testing status
+        uses: MetaMask/github-tools/.github/actions/publish-slack-release-testing-status@v1
+        with:
+          platform: 'mobile'
+          test-only: 'true'
+          google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ'
+          slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
+          github-token: ${{ secrets.PR_TOKEN }}
+          google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}

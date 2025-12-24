@@ -49,6 +49,7 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeToken } from '../Bridge/types';
 
 export * from './types';
 
@@ -254,13 +255,25 @@ const UrlAutocomplete = forwardRef<
     sourcePage: 'MainView',
   });
 
-  const goToSwaps = useCallback(async () => {
-    try {
-      await goToSwapsHook();
-    } catch (error) {
-      return;
-    }
-  }, [goToSwapsHook]);
+  const goToSwaps = useCallback(
+    async (tokenResult: TokenSearchResult) => {
+      try {
+        const bridgeToken = {
+          address: tokenResult.address,
+          name: tokenResult.name,
+          symbol: tokenResult.symbol,
+          image: tokenResult.logoUrl,
+          decimals: tokenResult.decimals,
+          chainId: tokenResult.chainId,
+        } satisfies BridgeToken;
+
+        goToSwapsHook(bridgeToken);
+      } catch (error) {
+        return;
+      }
+    },
+    [goToSwapsHook],
+  );
 
   const renderSectionHeader = useCallback(
     ({ section: { category } }: { section: ResultsWithCategory }) => (

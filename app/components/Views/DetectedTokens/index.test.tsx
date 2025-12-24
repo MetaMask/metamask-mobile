@@ -149,7 +149,7 @@ describe('DetectedTokens Component', () => {
       </ThemeContext.Provider>,
     );
 
-    const hideAllButton = getByText('Hide All');
+    const hideAllButton = getByText('Hide all');
     fireEvent.press(hideAllButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(

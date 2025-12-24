@@ -59,10 +59,10 @@ describe('useBridgeQuoteEvents', () => {
     [{ hasInsufficientGas: true }, ['insufficient_gas_for_selected_quote']],
     [{ hasInsufficientBalance: true }, ['insufficient_balance']],
     [{ hasTxAlert: true }, ['tx_alert']],
-    [{ isPriceImpactWarningVisible: true }, ['price_impact_warning']],
+    [{ isPriceImpactWarningVisible: true }, ['price_impact']],
     [
       { hasTxAlert: true, isPriceImpactWarningVisible: true },
-      ['tx_alert', 'price_impact_warning'],
+      ['tx_alert', 'price_impact'],
     ],
     [{}, []],
   ])(

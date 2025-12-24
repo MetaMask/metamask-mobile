@@ -191,6 +191,6 @@ describe('ContractInteraction', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Switching To')).toBeDefined();
+    expect(getByText('Switching to')).toBeDefined();
   });
 });

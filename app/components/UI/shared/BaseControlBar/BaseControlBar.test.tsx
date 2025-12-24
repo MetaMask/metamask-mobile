@@ -38,8 +38,7 @@ jest.mock('../../../hooks/useStyles', () => ({
   useStyles: jest.fn(),
 }));
 
-jest.mock('../../Tokens/TokensBottomSheet', () => ({
-  createTokenBottomSheetFilterNavDetails: jest.fn(() => ['TokenFilter', {}]),
+jest.mock('../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 

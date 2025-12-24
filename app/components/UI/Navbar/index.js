@@ -19,9 +19,9 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -983,7 +983,9 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await Authentication.importAccountFromPrivateKey(
+                  data.private_key,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -1302,6 +1304,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        twClassName="h-auto"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}
@@ -2185,7 +2188,7 @@ export function getStakingNavbar(
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
-          <Icon name={IconName.Question} />
+          <Icon name={IconName.Question} size={IconSize.Lg} />
         </TouchableOpacity>
       ) : (
         <></>
@@ -2245,5 +2248,54 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
         />
       </View>
     ),
+  };
+}
+
+/**
+ * Generic navbar with only a close button on the right
+ * @param {Object} navigation - Navigation object
+ * @param {Object} themeColors - Theme colors object
+ * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
+ * @returns {Object} - Navigation options
+ */
+export function getCloseOnlyNavbar({
+  navigation,
+  themeColors,
+  backgroundColor = themeColors.background.default,
+  onClose = undefined,
+}) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerRight: {
+      marginHorizontal: 16,
+    },
+  });
+
+  const handleClosePress = () => {
+    if (onClose) {
+      onClose();
+      return;
+    }
+
+    navigation.goBack();
+  };
+
+  return {
+    headerShown: true,
+    headerTitle: () => null,
+    headerLeft: () => null,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={handleClosePress}
+        style={innerStyles.headerRight}
+      />
+    ),
+    headerStyle: innerStyles.headerStyle,
   };
 }

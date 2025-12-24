@@ -685,6 +685,8 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
 // Specific channel for fills
 class FillStreamChannel extends StreamChannel<OrderFill[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
@@ -715,6 +717,42 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
   protected getClearedData(): OrderFill[] {
     return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches fills data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('FillStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('FillStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
   }
 }
 

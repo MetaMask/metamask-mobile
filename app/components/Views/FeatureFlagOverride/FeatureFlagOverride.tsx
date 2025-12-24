@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,12 +25,14 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
+  FeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
-
+import { selectRawRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import { useSelector } from 'react-redux';
+import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
   onToggle: (key: string, newValue: unknown) => void;
@@ -34,10 +42,32 @@ export interface MinimumVersionFlagValue {
   enabled: boolean;
   minimumVersion: string;
 }
+interface AbTestType {
+  name: string;
+  value: unknown;
+}
+
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
+  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
+  // Track whether the user is actively editing a text input to prevent
+  // background flag refreshes from overwriting partially typed input
+  const isEditingRef = useRef(false);
+  // Track whether a reset is in progress to prevent onEndEditing from
+  // reinstating the override with stale closure values
+  const isResettingRef = useRef(false);
+
+  useEffect(() => {
+    // Sync localValue with flag.value when the flag is not overridden
+    // and the user is not actively editing the input field.
+    // This handles both clearing overrides and background config refreshes
+    // while preventing race conditions during user input.
+    if (!flag.isOverridden && !isEditingRef.current) {
+      setLocalValue(flag.value);
+    }
+  }, [flag.value, flag.isOverridden]);
   const minimumVersion = (localValue as MinimumVersionFlagValue)
     ?.minimumVersion;
   const isVersionSupported = useMemo(
@@ -46,23 +76,21 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   );
 
   const handleResetOverride = () => {
+    // Set resetting flag to prevent onEndEditing from reinstating the override
+    // with stale closure values when the input loses focus due to button press
+    isResettingRef.current = true;
     setLocalValue(flag.originalValue);
     onToggle(flag.key, null); // null indicates removal of override
   };
 
   const renderValueEditor = () => {
     switch (flag.type) {
-      case 'boolean with minimumVersion':
+      case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion:
         return (
           <Box twClassName="items-end">
             <Switch
               value={(localValue as MinimumVersionFlagValue).enabled}
-              disabled={
-                !isVersionSupported &&
-                !Object.values(FeatureFlagNames).includes(
-                  flag.key as FeatureFlagNames,
-                )
-              }
+              disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
                 const updatedValue = {
                   ...(localValue as MinimumVersionFlagValue),
@@ -93,14 +121,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             </Text>
           </Box>
         );
-      case 'boolean':
+      case FeatureFlagType.FeatureFlagBoolean:
         return (
           <Switch
-            disabled={
-              !Object.values(FeatureFlagNames).includes(
-                flag.key as FeatureFlagNames,
-              )
-            }
             value={localValue as boolean}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);
@@ -114,18 +137,106 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ios_backgroundColor={theme.colors.border.muted}
           />
         );
-      case 'string':
-      case 'number':
+      case FeatureFlagType.FeatureFlagBooleanNested:
+        return (
+          <Switch
+            value={(localValue as { value: boolean })?.value ?? false}
+            onValueChange={(newValue: boolean) => {
+              const updatedValue = {
+                ...(localValue as { value: boolean }),
+                value: newValue,
+              };
+              setLocalValue(updatedValue);
+              onToggle(flag.key, updatedValue);
+            }}
+            trackColor={{
+              true: theme.colors.primary.default,
+              false: theme.colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            ios_backgroundColor={theme.colors.border.muted}
+          />
+        );
+      case FeatureFlagType.FeatureFlagAbTest: {
+        const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
+          | AbTestType[]
+          | undefined;
+        const isOptionsAvailable =
+          abTestOptions && Array.isArray(abTestOptions);
+
+        const handleSelectOption = (name: string) => {
+          if (!isOptionsAvailable) return;
+          const selectedOption = abTestOptions.find(
+            (option: { name: string }) => option.name === name,
+          );
+          if (selectedOption === undefined) {
+            return;
+          }
+          setLocalValue(selectedOption);
+          onToggle(flag.key, selectedOption);
+        };
+
+        // Safely extract name from localValue if it has AbTestType shape
+        const selectedName =
+          localValue &&
+          typeof localValue === 'object' &&
+          'name' in localValue &&
+          typeof (localValue as AbTestType).name === 'string'
+            ? (localValue as AbTestType).name
+            : undefined;
+
+        return (
+          <Box
+            twClassName="flex-1 ml-2 justify-center min-w-[160px]"
+            pointerEvents={isOptionsAvailable ? 'auto' : 'none'}
+          >
+            <SelectOptionSheet
+              options={
+                isOptionsAvailable
+                  ? abTestOptions.map((option: AbTestType) => ({
+                      label: option.name,
+                      value: option.name,
+                    }))
+                  : []
+              }
+              label={flag.key}
+              defaultValue={selectedName}
+              onValueChange={handleSelectOption}
+              selectedValue={selectedName}
+            />
+          </Box>
+        );
+      }
+      case FeatureFlagType.FeatureFlagString:
+      case FeatureFlagType.FeatureFlagNumber:
         return (
           <Box twClassName="flex-1 ml-2">
             <TextInput
               value={String(localValue)}
+              onFocus={() => {
+                isEditingRef.current = true;
+                // Reset any stale resetting state from a previous Reset button click
+                // that occurred when the input wasn't focused (so onEndEditing never fired)
+                isResettingRef.current = false;
+              }}
               onChangeText={(text) => {
                 const newValue =
                   flag.type === 'number' ? Number(text) || 0 : text;
                 setLocalValue(newValue);
               }}
-              onEndEditing={() => onToggle(flag.key, localValue)}
+              onEndEditing={() => {
+                isEditingRef.current = false;
+                // Skip onToggle if a reset was just triggered to prevent
+                // reinstating the override with stale closure values
+                if (isResettingRef.current) {
+                  isResettingRef.current = false;
+                  return;
+                }
+                onToggle(flag.key, localValue);
+              }}
+              onBlur={() => {
+                isEditingRef.current = false;
+              }}
               style={[
                 tw.style('border rounded p-2 text-sm'),
                 {
@@ -141,20 +252,22 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           </Box>
         );
 
-      case 'object':
+      case FeatureFlagType.FeatureFlagObject:
         return (
           <View>
-            {Object.keys(localValue as object).map((itemKey: string) => (
-              <Text key={itemKey}>
-                {itemKey}:{' '}
-                {JSON.stringify(
-                  (localValue as object)[itemKey as keyof object],
-                )}
-              </Text>
-            ))}
+            {Object.keys((localValue as object) || {}).map(
+              (itemKey: string) => (
+                <Text key={itemKey}>
+                  {itemKey}:{' '}
+                  {JSON.stringify(
+                    (localValue as object)[itemKey as keyof object],
+                  )}
+                </Text>
+              ),
+            )}
           </View>
         );
-      case 'array':
+      case FeatureFlagType.FeatureFlagArray:
         return (
           <Button
             variant={ButtonVariant.Secondary}
@@ -163,16 +276,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               Alert.alert(
                 `${flag.key} (${flag.type})`,
                 JSON.stringify(localValue, null, 2),
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Reset to Default',
-                    onPress: () => {
-                      setLocalValue(flag.value);
-                      onToggle(flag.key, flag.value);
-                    },
-                  },
-                ],
+                [{ text: 'Cancel', style: 'cancel' }],
               );
             }}
           >
@@ -205,10 +309,6 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           >
             <Text variant={TextVariant.BodyMd}>{flag.key}</Text>
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            Type: {flag.type}
-            {flag.description && ` • ${flag.description}`}
-          </Text>
           {flag.isOverridden && flag.originalValue !== undefined && (
             <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
               Original: {JSON.stringify(flag.originalValue)}
@@ -255,8 +355,14 @@ const FeatureFlagOverride: React.FC = () => {
   const tw = useTailwind();
 
   const flagStats = useFeatureFlagStats();
-  const { setOverride, removeOverride, clearAllOverrides, featureFlagsList } =
-    useFeatureFlagOverride();
+  const {
+    setOverride,
+    removeOverride,
+    clearAllOverrides,
+    featureFlagsList,
+    getOverrideCount,
+  } = useFeatureFlagOverride();
+  const overrideCount = getOverrideCount();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'boolean'>('all');
@@ -269,18 +375,16 @@ const FeatureFlagOverride: React.FC = () => {
     if (typeFilter === 'boolean') {
       flags = flags.filter(
         (flag) =>
-          flag.type === 'boolean' ||
-          flag.type === 'boolean with minimumVersion' ||
-          flag.type === 'boolean nested',
+          flag.type === FeatureFlagType.FeatureFlagBoolean ||
+          flag.type === FeatureFlagType.FeatureFlagBooleanWithMinimumVersion ||
+          flag.type === FeatureFlagType.FeatureFlagBooleanNested,
       );
     }
 
     // Apply search filter
     if (searchQuery.trim()) {
-      flags = flags.filter(
-        (flag) =>
-          flag.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          flag.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      flags = flags.filter((flag) =>
+        flag.key.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -426,7 +530,7 @@ const FeatureFlagOverride: React.FC = () => {
             size={ButtonSize.Sm}
             onPress={handleClearAllOverrides}
           >
-            Clear All Overrides
+            {`Clear All Overrides (${overrideCount})`}
           </Button>
         </Box>
       </Box>

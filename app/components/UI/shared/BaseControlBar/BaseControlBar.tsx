@@ -19,7 +19,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { createTokensBottomSheetNavDetails } from '../../Tokens/TokensBottomSheet';
+import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
@@ -172,12 +172,14 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const renderNetworkLabel = () => (
     <View style={styles.networkManagerWrapper}>
       {!areAllNetworksSelected && (
-        <Avatar
-          variant={AvatarVariant.Network}
-          size={AvatarSize.Xs}
-          name={networkName}
-          imageSource={networkImageSource}
-        />
+        <View style={styles.networkAvatarWrapper}>
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            name={networkName}
+            imageSource={networkImageSource}
+          />
+        </View>
       )}
       <TextComponent
         variant={TextVariant.BodyMDMedium}

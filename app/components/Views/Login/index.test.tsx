@@ -3,7 +3,13 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Alert,
+  Image,
+  Platform,
+} from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
@@ -145,6 +151,11 @@ jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  isE2E: false,
+}));
+
 // Mock Rive animations
 jest.mock('rive-react-native', () => ({
   __esModule: true,
@@ -160,6 +171,24 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('react-native-keyboard-aware-scroll-view', () => ({
+  KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardController: {
+    setInputMode: jest.fn(),
+    setDefaultMode: jest.fn(),
+  },
+  AndroidSoftInputModes: {
+    SOFT_INPUT_ADJUST_NOTHING: 0,
+    SOFT_INPUT_ADJUST_PAN: 1,
+    SOFT_INPUT_ADJUST_RESIZE: 2,
+    SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+  },
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -1377,6 +1406,56 @@ describe('Login', () => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
         expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
       });
+    });
+  });
+
+  describe('KeyboardAwareScrollView Configuration', () => {
+    let originalPlatform: string;
+
+    beforeEach(() => {
+      originalPlatform = Platform.OS;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('sets extraScrollHeight to 50 on Android', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { UNSAFE_root } = renderWithProvider(<Login />);
+
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 50 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.extraScrollHeight).toBe(50);
+    });
+
+    it('sets extraScrollHeight to 0 on iOS', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { UNSAFE_root } = renderWithProvider(<Login />);
+
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.extraScrollHeight).toBe(0);
     });
   });
 });

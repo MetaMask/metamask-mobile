@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../../../../constants/address';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useNestedTransactionTransferRecipients,

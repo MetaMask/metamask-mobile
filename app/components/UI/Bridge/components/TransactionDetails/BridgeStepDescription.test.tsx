@@ -12,6 +12,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
+import { fontStyles } from '../../../../../styles/common';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
@@ -128,7 +129,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      fontStyles.medium.fontFamily,
     );
   });
 
@@ -157,7 +158,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      fontStyles.normal.fontFamily,
     );
   });
 
@@ -175,7 +176,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      fontStyles.normal.fontFamily,
     );
   });
 
@@ -194,7 +195,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      fontStyles.normal.fontFamily,
     );
   });
 
@@ -215,7 +216,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      fontStyles.medium.fontFamily,
     );
   });
 
@@ -236,7 +237,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      fontStyles.medium.fontFamily,
     );
   });
 
@@ -285,7 +286,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      fontStyles.normal.fontFamily,
     );
   });
 
@@ -299,7 +300,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      fontStyles.normal.fontFamily,
     );
   });
 

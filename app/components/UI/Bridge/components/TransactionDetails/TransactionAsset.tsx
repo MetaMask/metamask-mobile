@@ -24,7 +24,7 @@ import {
   NETWORK_TO_SHORT_NETWORK_NAME_MAP,
 } from '../../../../../constants/bridge';
 import { StyleSheet } from 'react-native';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../../Base/TokenIcon';
 import { BridgeToken } from '../../types';
 import { TransactionType } from '@metamask/transaction-controller';
 import { isNativeAddress } from '@metamask/bridge-controller';

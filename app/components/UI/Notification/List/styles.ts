@@ -58,13 +58,6 @@ export const createStyles = ({ colors }: Theme) =>
       height: 32,
     },
     containerFill: { flex: 1 },
-    badgeWrapper: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      position: 'absolute',
-      top: '10%',
-    },
     circleLogo: {
       width: 32,
       height: 32,

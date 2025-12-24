@@ -547,6 +547,7 @@ describe('usePerpsLiveOrderBook', () => {
         symbol: 'BTC',
         levels: 10,
         nSigFigs: 5,
+        mantissa: undefined,
         callback: expect.any(Function),
         onError: expect.any(Function),
       });
@@ -559,6 +560,7 @@ describe('usePerpsLiveOrderBook', () => {
         symbol: 'ETH',
         levels: 10,
         nSigFigs: 5,
+        mantissa: undefined,
         callback: expect.any(Function),
         onError: expect.any(Function),
       });
@@ -587,6 +589,7 @@ describe('usePerpsLiveOrderBook', () => {
         symbol: 'BTC',
         levels: 20,
         nSigFigs: 5,
+        mantissa: undefined,
         callback: expect.any(Function),
         onError: expect.any(Function),
       });
@@ -597,12 +600,12 @@ describe('usePerpsLiveOrderBook', () => {
       mockSubscribeToOrderBook.mockReturnValue(mockUnsubscribe);
 
       const { rerender } = renderHook(
-        ({ nSigFigs }) =>
+        ({ nSigFigs }: { nSigFigs: 2 | 3 | 4 | 5 }) =>
           usePerpsLiveOrderBook({
             symbol: 'BTC',
             nSigFigs,
           }),
-        { initialProps: { nSigFigs: 5 } },
+        { initialProps: { nSigFigs: 5 as 2 | 3 | 4 | 5 } },
       );
 
       expect(mockSubscribeToOrderBook).toHaveBeenCalledTimes(1);
@@ -615,6 +618,7 @@ describe('usePerpsLiveOrderBook', () => {
         symbol: 'BTC',
         levels: 10,
         nSigFigs: 3,
+        mantissa: undefined,
         callback: expect.any(Function),
         onError: expect.any(Function),
       });

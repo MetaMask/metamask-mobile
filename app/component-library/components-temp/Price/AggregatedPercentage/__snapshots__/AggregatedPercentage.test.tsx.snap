@@ -14,7 +14,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     style={
       {
         "color": "#457a39",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -29,7 +29,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     style={
       {
         "color": "#457a39",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

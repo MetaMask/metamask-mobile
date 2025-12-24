@@ -20,6 +20,7 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
@@ -81,10 +82,6 @@ export const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [NETWORKS_CHAIN_ID.MONAD]: 14,
 };
 
-const ShortChainNames: Record<Hex | CaipChainId, string> = {
-  [CHAIN_IDS.MAINNET]: 'Ethereum',
-};
-
 export const BridgeDestNetworksBar = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -141,7 +138,10 @@ export const BridgeDestNetworksBar = () => {
                     size={AvatarSize.Xs}
                   />
                 ) : null}
-                <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
+                <Text>
+                  {NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ??
+                    chain.name}
+                </Text>
               </Box>
             }
             style={

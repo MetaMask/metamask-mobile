@@ -36,7 +36,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Engine from '../../../core/Engine';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
@@ -95,8 +95,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
   // Feature flag for full-page account list
-  const isFullPageAccountList = useFeatureFlag(
-    FeatureFlagNames.fullPageAccountList,
+  const isFullPageAccountList = useSelector(
+    selectFullPageAccountListEnabledFlag,
   );
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -143,6 +143,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const accountsParams = useMemo(
     () => ({
       isLoading: reloadAccounts,
+      fetchENS: false,
     }),
     [reloadAccounts],
   );

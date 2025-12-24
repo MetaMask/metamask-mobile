@@ -37,8 +37,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "flex": 1,
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -46,21 +45,6 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       }
     >
       Title
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#121314",
-          "flex": 1,
-          "fontFamily": "Geist Medium",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Description
     </Text>
   </View>
   <RCTSwitch

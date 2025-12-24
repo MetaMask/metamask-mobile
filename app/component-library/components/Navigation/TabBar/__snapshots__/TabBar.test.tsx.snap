@@ -120,7 +120,7 @@ exports[`TabBar renders correctly 1`] = `
               {
                 "color": "#121314",
                 "flexShrink": 0,
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -230,7 +230,7 @@ exports[`TabBar renders correctly 1`] = `
               {
                 "color": "#686e7d",
                 "flexShrink": 0,
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -340,7 +340,7 @@ exports[`TabBar renders correctly 1`] = `
               {
                 "color": "#686e7d",
                 "flexShrink": 0,
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -450,7 +450,7 @@ exports[`TabBar renders correctly 1`] = `
               {
                 "color": "#686e7d",
                 "flexShrink": 0,
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -560,7 +560,7 @@ exports[`TabBar renders correctly 1`] = `
               {
                 "color": "#686e7d",
                 "flexShrink": 0,
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,

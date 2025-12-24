@@ -20,6 +20,7 @@ import type {
   TransactionMetricsBuilder,
 } from '../types';
 import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
+import { getSimulationValuesProperties } from '../event_properties/simulation-values';
 import Engine from '../../../Engine';
 import { createProjectLogger } from '@metamask/utils';
 
@@ -27,6 +28,7 @@ const log = createProjectLogger('transaction-metrics');
 
 const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getMetaMaskPayProperties,
+  getSimulationValuesProperties,
 ];
 
 // Generic handler for simple transaction events

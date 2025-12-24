@@ -10,18 +10,21 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selector
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import {
-  isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { constants } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 /**
  *
@@ -59,7 +62,56 @@ export const useInitialSourceToken = (
     ? selectedEvmChainId
     : selectedNonEvmNetworkChainId;
 
+  /**
+   * Switches to the appropriate network if the token's chain differs from current chain.
+   * @returns true if network switch was initiated, false otherwise
+   */
+  const handleNetworkSwitch = useCallback(
+    (tokenChainId: Hex | CaipChainId): boolean => {
+      const tokenCaipChainId = formatChainIdToCaip(tokenChainId);
+      const currentCaipChainId = formatChainIdToCaip(chainId);
+
+      if (tokenCaipChainId !== currentCaipChainId) {
+        if (isNonEvmChainId(tokenCaipChainId)) {
+          onNonEvmNetworkChange(tokenCaipChainId);
+          return true;
+        }
+
+        const hexChainId = formatChainIdToHex(tokenCaipChainId);
+        onSetRpcTarget(
+          evmNetworkConfigurations[hexChainId] as NetworkConfiguration,
+        );
+        return true;
+      }
+      return false;
+    },
+    [chainId, evmNetworkConfigurations, onNonEvmNetworkChange, onSetRpcTarget],
+  );
+
   useEffect(() => {
+    // If initial source token is already set in Redux (pre-populated before navigation),
+    // only handle network switching if needed.
+    // Must compare both address AND chainId since native tokens on different chains
+    // share the same zero address (0x0000...0000)
+    if (
+      initialSourceToken &&
+      sourceToken?.chainId &&
+      areAddressesEqual(sourceToken.address, initialSourceToken.address) &&
+      formatChainIdToCaip(sourceToken.chainId) ===
+        formatChainIdToCaip(initialSourceToken.chainId)
+    ) {
+      // Set source amount if provided
+      if (initialSourceAmount) {
+        dispatch(setSourceAmount(initialSourceAmount));
+      }
+
+      // Change network if necessary
+      if (initialSourceToken.chainId) {
+        handleNetworkSwitch(initialSourceToken.chainId);
+      }
+      return;
+    }
+
     // If no initial source token is provided,
     // set the source token to the bip44 default pair (preferred) or the native token of the current chain
     if (!initialSourceToken && !sourceToken) {
@@ -92,30 +144,16 @@ export const useInitialSourceToken = (
 
     // Change network if necessary
     if (initialSourceToken?.chainId) {
-      // Convert both chain IDs to CAIP format for accurate comparison
-      const sourceCaipChainId = formatChainIdToCaip(initialSourceToken.chainId);
-      const currentCaipChainId = formatChainIdToCaip(chainId);
-
-      if (sourceCaipChainId !== currentCaipChainId) {
-        if (isNonEvmChainId(sourceCaipChainId)) {
-          onNonEvmNetworkChange(sourceCaipChainId);
-          return;
-        }
-
-        const hexChainId = formatChainIdToHex(sourceCaipChainId);
-        onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
-      }
+      handleNetworkSwitch(initialSourceToken.chainId);
     }
   }, [
     initialSourceToken,
     sourceToken,
-    evmNetworkConfigurations,
     chainId,
-    onSetRpcTarget,
-    onNonEvmNetworkChange,
     dispatch,
     initialSourceAmount,
     prevInitialSourceToken,
     bip44DefaultPair,
+    handleNetworkSwitch,
   ]);
 };

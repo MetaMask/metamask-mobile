@@ -48,7 +48,7 @@ exports[`SdkErrorAlert disables retry button when isRetrying is true 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -69,7 +69,7 @@ exports[`SdkErrorAlert disables retry button when isRetrying is true 1`] = `
         {
           "backgroundColor": "transparent",
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -82,14 +82,14 @@ exports[`SdkErrorAlert disables retry button when isRetrying is true 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
           }
         }
       >
-        Try Again
+        Try again
       </Text>
     </Text>
   </View>
@@ -144,7 +144,7 @@ exports[`SdkErrorAlert does not render retry button when onRetry is not provided
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -205,7 +205,7 @@ exports[`SdkErrorAlert renders payment methods error message 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -226,7 +226,7 @@ exports[`SdkErrorAlert renders payment methods error message 1`] = `
         {
           "backgroundColor": "transparent",
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -239,14 +239,14 @@ exports[`SdkErrorAlert renders payment methods error message 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
           }
         }
       >
-        Try Again
+        Try again
       </Text>
     </Text>
   </View>
@@ -301,7 +301,7 @@ exports[`SdkErrorAlert renders regions error message 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -322,7 +322,7 @@ exports[`SdkErrorAlert renders regions error message 1`] = `
         {
           "backgroundColor": "transparent",
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -335,14 +335,14 @@ exports[`SdkErrorAlert renders regions error message 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
           }
         }
       >
-        Try Again
+        Try again
       </Text>
     </Text>
   </View>
@@ -397,7 +397,7 @@ exports[`SdkErrorAlert renders tokens error message 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -418,7 +418,7 @@ exports[`SdkErrorAlert renders tokens error message 1`] = `
         {
           "backgroundColor": "transparent",
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -431,14 +431,14 @@ exports[`SdkErrorAlert renders tokens error message 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
           }
         }
       >
-        Try Again
+        Try again
       </Text>
     </Text>
   </View>
@@ -493,7 +493,7 @@ exports[`SdkErrorAlert renders user details error message 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -514,7 +514,7 @@ exports[`SdkErrorAlert renders user details error message 1`] = `
         {
           "backgroundColor": "transparent",
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -527,14 +527,14 @@ exports[`SdkErrorAlert renders user details error message 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
           }
         }
       >
-        Try Again
+        Try again
       </Text>
     </Text>
   </View>

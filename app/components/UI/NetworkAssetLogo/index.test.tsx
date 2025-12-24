@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkAssetLogo from '.';
-import TokenIcon from '../Swaps/components/TokenIcon';
+import TokenIcon from '../../Base/TokenIcon';
 import { ChainId } from '@metamask/controller-utils';
 
 // Mock the TokenIcon component
-jest.mock('../Swaps/components/TokenIcon', () => jest.fn(() => null));
+jest.mock('../../Base/TokenIcon', () => jest.fn(() => null));
 
 describe('NetworkAssetLogo Component', () => {
   it('matches the snapshot for non-mainnet', () => {

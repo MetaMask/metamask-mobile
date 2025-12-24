@@ -6,6 +6,7 @@ import {
   DepositSDKContext,
   DepositSDKProvider,
   useDepositSDK,
+  DEPOSIT_ENVIRONMENT,
 } from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
@@ -15,11 +16,7 @@ import {
 } from '../testUtils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
-import {
-  NativeRampsSdk,
-  SdkEnvironment,
-  Context,
-} from '@consensys/native-ramps-sdk';
+import { NativeRampsSdk, Context } from '@consensys/native-ramps-sdk';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -157,8 +154,9 @@ describe('Deposit SDK Context', () => {
         {
           apiKey: 'test-provider-api-key',
           context: Context.MobileIOS,
+          locale: 'en',
         },
-        SdkEnvironment.Staging,
+        DEPOSIT_ENVIRONMENT,
       );
     });
   });

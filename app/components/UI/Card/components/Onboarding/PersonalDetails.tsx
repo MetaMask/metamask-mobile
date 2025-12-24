@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -19,9 +26,9 @@ import {
   resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
+  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
-import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
@@ -32,24 +39,36 @@ import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import {
+  clearOnValueChange,
+  createRegionSelectorModalNavigationDetails,
+  Region,
+  setOnValueChange,
+} from './RegionSelectorModal';
+import { TouchableOpacity } from 'react-native';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { setUser, user: userData } = useCardSDK();
+  const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [dateError, setDateError] = useState('');
-  const [nationality, setNationality] = useState('');
+  const [nationalityKey, setNationalityKey] = useState(''); // ISO 3166-1 alpha-2 country code
   const [SSN, setSSN] = useState('');
   const [isSSNError, setIsSSNError] = useState(false);
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   // If user data is available, set the state values
   useEffect(() => {
@@ -78,13 +97,12 @@ const PersonalDetails = () => {
       } else {
         setDateOfBirth('');
       }
-      setNationality(userData.countryOfResidence || '');
+      setNationalityKey(userData.countryOfNationality || '');
       setSSN(userData.ssn || '');
     }
   }, [userData]);
 
-  // Create select options from registration settings data
-  const selectOptions = useMemo(() => {
+  const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
       return [];
     }
@@ -92,10 +110,29 @@ const PersonalDetails = () => {
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((country) => ({
         key: country.iso3166alpha2,
-        value: country.iso3166alpha2,
-        label: country.name,
+        name: country.name,
+        emoji: countryCodeToFlag(country.iso3166alpha2),
+        areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
+
+  const nationalityName = useMemo(
+    () => regions.find((region) => region.key === nationalityKey)?.name,
+    [regions, nationalityKey],
+  );
+
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === userData?.countryOfResidence),
+    [initialSelectedCountry, regions, userData?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
+    }
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const {
     registerPersonalDetails,
@@ -105,13 +142,17 @@ const PersonalDetails = () => {
     reset: resetRegisterPersonalDetails,
   } = useRegisterPersonalDetails();
 
-  const handleNationalitySelect = useCallback(
-    (value: string) => {
-      resetRegisterPersonalDetails();
-      setNationality(value);
-    },
-    [resetRegisterPersonalDetails],
-  );
+  const handleNationalitySelect = useCallback(() => {
+    resetRegisterPersonalDetails();
+    setOnValueChange((region) => {
+      setNationalityKey(region.key);
+    });
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({
+        regions,
+      }),
+    );
+  }, [navigation, regions, resetRegisterPersonalDetails]);
 
   const handleDateOfBirthChange = useCallback(
     (timestamp: string) => {
@@ -165,20 +206,22 @@ const PersonalDetails = () => {
     } else setDateError('');
   }, [dateOfBirth]);
 
+  useEffect(() => () => clearOnValueChange(), []);
+
   const handleContinue = async () => {
     if (
       !onboardingId ||
       !firstName ||
       !lastName ||
       !dateOfBirth ||
-      !nationality ||
-      (!SSN && selectedCountry === 'US')
+      !nationalityKey ||
+      (!SSN && selectedCountry?.key === 'US')
     ) {
       return;
     }
 
     // Validate SSN before submitting if it's a US user
-    if (selectedCountry === 'US') {
+    if (selectedCountry?.key === 'US') {
       const isSSNValid = /^\d{9}$/.test(SSN);
       if (!isSSNValid) {
         setIsSSNError(true);
@@ -191,7 +234,7 @@ const PersonalDetails = () => {
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
             action: CardActions.PERSONAL_DETAILS_BUTTON,
-            country_of_residence: selectedCountry,
+            country_of_residence: selectedCountry?.key,
           })
           .build(),
       );
@@ -200,13 +243,16 @@ const PersonalDetails = () => {
         firstName,
         lastName,
         dateOfBirth: formatDateOfBirth(dateOfBirth),
-        countryOfNationality: nationality,
+        countryOfNationality: nationalityKey,
         ssn: SSN,
       });
 
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+        });
       }
     } catch (error) {
       if (
@@ -235,7 +281,7 @@ const PersonalDetails = () => {
   const isDisabled = useMemo(() => {
     // Check the actual SSN value, not the debounced one
     const isSSNValid =
-      SSN && selectedCountry === 'US' ? /^\d{9}$/.test(SSN) : true;
+      SSN && selectedCountry?.key === 'US' ? /^\d{9}$/.test(SSN) : true;
 
     return (
       registerLoading ||
@@ -243,8 +289,8 @@ const PersonalDetails = () => {
       !firstName ||
       !lastName ||
       !dateOfBirth ||
-      !nationality ||
-      (!SSN && selectedCountry === 'US') ||
+      !nationalityKey ||
+      (!SSN && selectedCountry?.key === 'US') ||
       !isSSNValid ||
       !!dateError ||
       !onboardingId
@@ -255,7 +301,7 @@ const PersonalDetails = () => {
     firstName,
     lastName,
     dateOfBirth,
-    nationality,
+    nationalityKey,
     SSN,
     selectedCountry,
     dateError,
@@ -272,9 +318,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setFirstName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.first_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={firstName}
@@ -295,9 +338,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setLastName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.last_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={lastName}
@@ -324,23 +364,22 @@ const PersonalDetails = () => {
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
         <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            label={strings(
-              'card.card_onboarding.personal_details.nationality_label',
-            )}
-            selectedValue={nationality}
-            options={selectOptions}
-            onValueChange={handleNationalitySelect}
-            defaultValue={strings(
-              'card.card_onboarding.personal_details.nationality_placeholder',
-            )}
+          <TouchableOpacity
+            onPress={handleNationalitySelect}
             testID="personal-details-nationality-select"
-          />
+          >
+            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+              <Text variant={TextVariant.BodyMd}>
+                {nationalityName || nationalityKey}
+              </Text>
+              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+            </Box>
+          </TouchableOpacity>
         </Box>
       </Box>
 
       {/* SSN */}
-      {selectedCountry === 'US' && (
+      {selectedCountry?.key === 'US' && (
         <Box>
           <Label>
             {strings('card.card_onboarding.personal_details.ssn_label')}
@@ -348,9 +387,6 @@ const PersonalDetails = () => {
           <TextField
             autoCapitalize={'none'}
             onChangeText={handleSSNChange}
-            placeholder={strings(
-              'card.card_onboarding.personal_details.ssn_placeholder',
-            )}
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={SSN}
@@ -377,16 +413,7 @@ const PersonalDetails = () => {
   );
 
   const renderActions = () => (
-    <Box>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
-        isDisabled={isDisabled}
-        testID="personal-details-continue-button"
-      />
+    <Box twClassName="flex flex-col justify-center gap-2">
       {!!registerError && (
         <Text
           variant={TextVariant.BodySm}
@@ -396,6 +423,16 @@ const PersonalDetails = () => {
           {registerError}
         </Text>
       )}
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        loading={registerLoading}
+        testID="personal-details-continue-button"
+      />
     </Box>
   );
 

@@ -51,9 +51,8 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView/TrendingView';
-import SwapsAmountView from '../../UI/Swaps';
-import SwapsQuotesView from '../../UI/Swaps/QuotesView';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -101,9 +100,13 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
+  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -118,7 +121,6 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -133,8 +135,6 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
-import BrowserWrapper from '../../Views/TrendingView/components/BrowserWrapper/BrowserWrapper';
-import BridgeView from '../../UI/Bridge/Views/BridgeView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -171,7 +171,11 @@ const WalletModalFlow = () => (
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name={'Asset'}
       component={Asset}
@@ -185,9 +189,8 @@ const AssetStackFlow = (props) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = (props) => (
+const AssetNavigator = (props) => (
   <Stack.Navigator
-    mode={'modal'}
     initialRouteName={'AssetStackFlow'}
     screenOptions={clearStackNavigatorOptions}
   >
@@ -278,25 +281,6 @@ const RewardsHome = () => (
   </Stack.Navigator>
 );
 
-// Persist the last trending screen across unmounts
-export const lastTrendingScreenRef = { current: 'TrendingFeed' };
-
-// Callback to update the last trending screen (outside component to persist)
-export const updateLastTrendingScreen = (screenName) => {
-  // eslint-disable-next-line react-compiler/react-compiler
-  lastTrendingScreenRef.current = screenName;
-};
-
-const TrendingHome = () => (
-  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen
-      name={Routes.TRENDING_VIEW}
-      component={TrendingView}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
   <Stack.Navigator
@@ -320,6 +304,63 @@ const BrowserFlow = (props) => (
       name={Routes.BROWSER.ASSET_VIEW}
       component={Asset}
       initialParams={props.route.params}
+    />
+  </Stack.Navigator>
+);
+
+const ExploreHome = () => (
+  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
+    <Stack.Screen
+      name={Routes.TRENDING_FEED}
+      component={ExploreFeed}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.EXPLORE_SEARCH}
+      component={ExploreSearchScreen}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_FULL_VIEW}
+      component={SitesFullView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    {/* Trending Browser Stack (uses existing browser flow) */}
+    <Stack.Screen
+      name={Routes.BROWSER.HOME}
+      component={BrowserFlow}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -599,7 +640,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: true,
+      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -642,10 +683,12 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    if (
-      isBrowserFullscreen &&
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
-    ) {
+    const currentStackRouteName =
+      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
+    const isInBrowser =
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
+      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
+    if (isBrowserFullscreen && isInBrowser) {
       return null;
     }
 
@@ -669,21 +712,32 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       {isAssetsTrendingTokensEnabled ? (
-        <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={options.trending}
-          component={TrendingHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
+            }}
+            component={ExploreHome}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              isHidden: true,
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            tabBarButton: isAssetsTrendingTokensEnabled
-              ? () => null
-              : undefined,
-          }}
+          options={options.browser}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
@@ -896,23 +950,16 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
-  );
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -950,26 +997,6 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
-      <Stack.Screen
-        name="TrendingBrowser"
-        component={BrowserWrapper}
-        options={{
-          headerShown: false,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
@@ -1013,7 +1040,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="Asset"
+        component={AssetNavigator}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
@@ -1033,25 +1078,7 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen
-        name={Routes.SITES_FULL_VIEW}
-        component={SitesFullView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
+
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1073,10 +1100,43 @@ const MainNavigator = () => {
         component={NotificationsModeView}
       />
       <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-      <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+      <Stack.Screen
+        name="NftDetails"
+        component={NftDetailsModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
@@ -1101,7 +1161,26 @@ const MainNavigator = () => {
         component={BridgeModalStack}
         options={clearStackNavigatorOptions}
       />
-      <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+      <Stack.Screen
+        name="StakeScreens"
+        component={StakeScreenStack}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
@@ -1250,6 +1329,19 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{
           headerShown: true,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       {

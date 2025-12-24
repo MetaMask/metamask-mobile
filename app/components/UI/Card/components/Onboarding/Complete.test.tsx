@@ -81,6 +81,49 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return {
+    Box: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(View, props, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<
+      { testID?: string } & Record<string, unknown>
+    >) => React.createElement(Text, { testID, ...props }, children),
+    TextVariant: {
+      BodyMd: 'BodyMd',
+      DisplayLg: 'DisplayLg',
+    },
+    FontFamily: {
+      Accent: 'accent',
+      Default: 'default',
+      Hero: 'hero',
+    },
+    FontWeight: {
+      Regular: '400',
+      Medium: '500',
+      Bold: '700',
+    },
+  };
+});
+
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
 // Mock Button component
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -153,7 +196,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.complete.title': 'Complete',
       'card.card_onboarding.complete.description':
         'Your card setup is complete!',
-      'card.card_onboarding.confirm_button': 'Continue',
+      'card.card_onboarding.complete.confirm_button': 'Continue',
     };
     return translations[key] || key;
   }),
@@ -200,16 +243,18 @@ describe('Complete Component', () => {
       expect(getByTestId('onboarding-step')).toBeTruthy();
     });
 
-    it('renders with correct title and description', () => {
+    it('renders with empty title and description props to OnboardingStep', () => {
       const { getByTestId } = render(<Complete />);
 
+      // OnboardingStep receives empty strings for title and description
+      // as they are now rendered inside formFields
       const title = getByTestId('onboarding-step-title');
       expect(title).toBeTruthy();
-      expect(title.props.children).toBe('Complete');
+      expect(title.props.children).toBe('');
 
       const description = getByTestId('onboarding-step-description');
       expect(description).toBeTruthy();
-      expect(description.props.children).toBe('Your card setup is complete!');
+      expect(description.props.children).toBe('');
     });
 
     it('renders OnboardingStep with correct structure', () => {
@@ -217,7 +262,8 @@ describe('Complete Component', () => {
 
       const formFields = getByTestId('onboarding-step-form-fields');
       expect(formFields).toBeTruthy();
-      expect(formFields.props.children).toBeNull();
+      // formFields now contains the image, title, and description
+      expect(formFields.props.children).not.toBeNull();
 
       const actions = getByTestId('onboarding-step-actions');
       expect(actions).toBeTruthy();
@@ -326,17 +372,16 @@ describe('Complete Component', () => {
       const onboardingStep = getByTestId('onboarding-step');
       expect(onboardingStep).toBeTruthy();
 
-      // Verify title is passed correctly
+      // Verify title and description are empty strings (content is in formFields)
       const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('Complete');
+      expect(title.props.children).toBe('');
 
-      // Verify description is passed correctly
       const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('Your card setup is complete!');
+      expect(description.props.children).toBe('');
 
-      // Verify form fields are passed (null in this case)
+      // Verify form fields contain content (image, title, and description)
       const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields.props.children).toBeNull();
+      expect(formFields.props.children).not.toBeNull();
 
       // Verify actions are passed
       const actions = getByTestId('onboarding-step-actions');
@@ -373,22 +418,24 @@ describe('Complete Component', () => {
         'card.card_onboarding.complete.description',
       );
       expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.confirm_button',
+        'card.card_onboarding.complete.confirm_button',
       );
     });
 
-    it('renders translated title', () => {
+    it('renders empty OnboardingStep title prop', () => {
       const { getByTestId } = render(<Complete />);
 
+      // Title is now rendered in formFields, not passed to OnboardingStep
       const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('Complete');
+      expect(title.props.children).toBe('');
     });
 
-    it('renders translated description', () => {
+    it('renders empty OnboardingStep description prop', () => {
       const { getByTestId } = render(<Complete />);
 
+      // Description is now rendered in formFields, not passed to OnboardingStep
       const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('Your card setup is complete!');
+      expect(description.props.children).toBe('');
     });
 
     it('renders translated button label', () => {

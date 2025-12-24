@@ -79,17 +79,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: (transaction) => {
-          const { origin, type } = transaction;
-          return (
-            REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType) &&
-            !hasTransactionType(transaction, [TransactionType.relayDeposit]) &&
-            !(
-              origin === ORIGIN_METAMASK &&
-              type === TransactionType.tokenMethodApprove
-            )
-          );
-        },
+        isAutomaticGasFeeUpdateEnabled,
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -367,6 +357,23 @@ function beforeSign(
 ) {
   const predictController = request.getController('PredictController');
   return predictController.beforeSign(hookRequest);
+}
+
+function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
+  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+    return false;
+  }
+
+  if (
+    transaction.origin === ORIGIN_METAMASK &&
+    transaction.type === TransactionType.tokenMethodApprove
+  ) {
+    return false;
+  }
+
+  return REDESIGNED_TRANSACTION_TYPES.includes(
+    transaction.type as TransactionType,
+  );
 }
 
 function addTransactionControllerListeners(

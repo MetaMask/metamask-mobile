@@ -45,7 +45,7 @@ interface DelegationParams {
  * Hook to handle the complete delegation flow for spending limit increases
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  *
- * Note: Currently only supports EVM chains (Linea)
+ * Note: Currently only supports EVM chains
  */
 export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const { sdk } = useCardSDK();
@@ -147,11 +147,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
             'TransactionController:transactionConfirmed',
             async (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
-                Logger.log(
-                  'controllerMessenger::Transaction confirmed',
-                  transactionMeta.id,
-                  transactionId,
-                );
                 try {
                   await sdk.completeEVMDelegation({
                     address,

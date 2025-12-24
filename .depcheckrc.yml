@@ -1,4 +1,5 @@
 # List things here that *are - 'used, that depcheck is wrong about'
+
 ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
@@ -34,6 +35,8 @@ ignores:
   # ESBuild is used for AI E2E script compilation
   - 'esbuild'
   - 'esbuild-register'
+  # xml2js is used in .github/scripts/ for E2E test report processing
+  - 'xml2js'
 
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
@@ -43,19 +46,11 @@ ignores:
   ## Unused dependencies to investigate
   - '@babel/preset-env'
   - '@babel/runtime'
-  - '@cucumber/message-streams'
-  - '@cucumber/messages'
   - '@metamask/mobile-provider'
-  - '@rpii/wdio-html-reporter'
   - '@testing-library/react'
   - '@testing-library/react-hooks'
   - '@types/jest'
   - '@types/react-native-video'
-  - '@wdio/appium-service'
-  - '@wdio/browserstack-service'
-  - '@wdio/junit-reporter'
-  - '@wdio/local-runner'
-  - '@wdio/spec-reporter'
   - 'appium'
   - 'assert'
   - 'babel-core'
@@ -67,7 +62,6 @@ ignores:
   - 'execa'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
-  - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'
@@ -114,6 +108,7 @@ ignores:
   - 'cross-spawn'
   - 'expo-build-properties'
   - 'expo-dev-client'
+  - 'expo-font'
 
   ## react native
   - '@react-native-community/cli'

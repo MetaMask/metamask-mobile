@@ -450,6 +450,34 @@ export function createE2EMockStreamManager(): unknown {
         return () => undefined;
       },
     },
+    oiCaps: {
+      subscribe: (params: { callback: (data: string[]) => void }) => {
+        // Return empty array - no markets at OI cap in E2E tests by default
+        setTimeout(() => params.callback([]), 0);
+        return () => undefined;
+      },
+    },
+    topOfBook: {
+      subscribeToSymbol: (params: {
+        symbol: string;
+        callback: (
+          data:
+            | { bestBid?: string; bestAsk?: string; spread?: string }
+            | undefined,
+        ) => void;
+      }) => {
+        // Return undefined - no top of book data in E2E tests by default
+        setTimeout(() => params.callback(undefined), 0);
+        return () => undefined;
+      },
+    },
+    candles: {
+      subscribe: (params: { callback: (data: unknown[]) => void }) => {
+        // Return empty array - no candle data in E2E tests by default
+        setTimeout(() => params.callback([]), 0);
+        return () => undefined;
+      },
+    },
   };
 }
 

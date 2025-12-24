@@ -4,7 +4,6 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "paddingHorizontal": 8,
       "paddingVertical": 4,
@@ -42,7 +41,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -82,7 +81,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

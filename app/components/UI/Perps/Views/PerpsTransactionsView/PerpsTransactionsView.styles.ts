@@ -8,47 +8,21 @@ export const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
     },
-    filterTabText: {
-      color: colors.text.alternative,
-    },
     filterContainer: {
+      paddingVertical: 8,
       paddingHorizontal: 16,
-      paddingVertical: 12,
       backgroundColor: colors.background.default,
-    },
-    filterScrollView: {
-      flexGrow: 0,
-    },
-    filterTabContainer: {
-      gap: 8,
-    },
-    filterTabActive: {
-      backgroundColor: colors.background.defaultPressed,
-    },
-    transactionList: {
-      flex: 1,
-      minHeight: 1, // Prevents FlashList layout issues
     },
     tabDescription: {
       paddingHorizontal: 16,
       paddingTop: 8,
-    },
-    sectionHeader: {
-      paddingTop: 12,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background.default,
-    },
-    sectionHeaderText: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      color: colors.text.alternative,
     },
     transactionItem: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       paddingVertical: 16,
       paddingHorizontal: 16,
-      minHeight: 72, // Consistent height for FlashList
+      minHeight: 72,
     },
     tokenIconContainer: {
       width: 36,
@@ -104,12 +78,11 @@ export const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      paddingVertical: 48,
+      paddingVertical: 40,
     },
-    fillTag: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      gap: 10,
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
   };
 };

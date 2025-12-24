@@ -6,7 +6,6 @@ import {
   reloadAsync,
   UpdateCheckResultNotAvailableReason,
 } from 'expo-updates';
-import { useFeatureFlag } from './useFeatureFlag';
 import { useOTAUpdates } from './useOTAUpdates';
 import Logger from '../../util/Logger';
 
@@ -16,13 +15,15 @@ jest.mock('expo-updates', () => ({
   reloadAsync: jest.fn(),
 }));
 
-jest.mock('./useFeatureFlag', () => {
-  const actual = jest.requireActual('./useFeatureFlag');
-  return {
-    ...actual,
-    useFeatureFlag: jest.fn(),
-  };
-});
+const mockSelectOtaUpdatesEnabledFlag = jest.fn();
+jest.mock('../../selectors/featureFlagController/otaUpdates', () => ({
+  selectOtaUpdatesEnabledFlag: () => mockSelectOtaUpdatesEnabledFlag(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
 
 jest.mock('../../util/Logger', () => ({
   log: jest.fn(),
@@ -42,9 +43,6 @@ const mockManifest = {
 };
 
 describe('useOTAUpdates', () => {
-  const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-    typeof useFeatureFlag
-  >;
   const mockCheckForUpdateAsync = checkForUpdateAsync as jest.MockedFunction<
     typeof checkForUpdateAsync
   >;
@@ -60,12 +58,12 @@ describe('useOTAUpdates', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseFeatureFlag.mockReturnValue(false);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(false);
     (global as unknown as { __DEV__: boolean }).__DEV__ = false;
   });
 
   it('returns isCheckingUpdates as false when feature flag is disabled', async () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(false);
 
     const { result } = renderHook(() => useOTAUpdates());
 
@@ -77,7 +75,7 @@ describe('useOTAUpdates', () => {
 
   it('skips update check in development mode', async () => {
     (global as unknown as { __DEV__: boolean }).__DEV__ = true;
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
 
     const { result } = renderHook(() => useOTAUpdates());
 
@@ -88,7 +86,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('checks for updates when feature flag is enabled', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       isRollBackToEmbedded: false,
@@ -104,7 +102,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('sets isCheckingUpdates to false when no update is available', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       isRollBackToEmbedded: false,
@@ -121,7 +119,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('fetches and reloads when a new update is available', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
       manifest: mockManifest,
@@ -145,7 +143,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('sets isCheckingUpdates to false when update is fetched but not new', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
       manifest: mockManifest,
@@ -168,7 +166,7 @@ describe('useOTAUpdates', () => {
 
   it('logs error and sets isCheckingUpdates to false when check fails', async () => {
     const mockError = new Error('Update check failed');
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockRejectedValue(mockError);
 
     const { result } = renderHook(() => useOTAUpdates());
@@ -184,7 +182,7 @@ describe('useOTAUpdates', () => {
 
   it('does not block app if reload fails', async () => {
     const mockError = new Error('Reload failed');
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
       manifest: mockManifest,
@@ -210,7 +208,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('checks for updates when feature flag changes from disabled to enabled', async () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(false);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       isRollBackToEmbedded: false,
@@ -225,7 +223,7 @@ describe('useOTAUpdates', () => {
       expect(mockCheckForUpdateAsync).not.toHaveBeenCalled();
     });
 
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     rerender();
 
     await waitFor(() => {
@@ -234,7 +232,9 @@ describe('useOTAUpdates', () => {
   });
 
   it('does not check for updates again when feature flag changes from enabled to disabled', async () => {
-    mockUseFeatureFlag.mockReturnValueOnce(true).mockReturnValue(false);
+    mockSelectOtaUpdatesEnabledFlag
+      .mockReturnValueOnce(true)
+      .mockReturnValue(false);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       isRollBackToEmbedded: false,
@@ -256,7 +256,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('starts with isCheckingUpdates as true', () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
 
     const { result } = renderHook(() => useOTAUpdates());
 
@@ -264,7 +264,7 @@ describe('useOTAUpdates', () => {
   });
 
   it('calls update check, fetch, and reload in order', async () => {
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
       manifest: mockManifest,

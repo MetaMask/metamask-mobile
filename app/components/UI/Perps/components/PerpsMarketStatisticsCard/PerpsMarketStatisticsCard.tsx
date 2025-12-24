@@ -16,7 +16,7 @@ import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  // PerpsOrderBookViewSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -35,7 +35,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   dexName,
-  // onOrderBookPress,
+  onOrderBookPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,8 +126,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       {/* Stats rows with card background */}
       <View style={styles.statsRowsContainer}>
         {/* Order Book - Clickable row */}
-        {/* TODO: Re-enable order book row, when feature has been more fully tested */}
-        {/* {onOrderBookPress && (
+        {onOrderBookPress && (
           <TouchableOpacity
             style={[styles.orderBookRow, styles.statsRowFirst]}
             onPress={onOrderBookPress}
@@ -144,7 +143,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color={IconColor.Alternative}
             />
           </TouchableOpacity>
-        )} */}
+        )}
 
         {/* 24h volume */}
         <KeyValueRow
@@ -162,11 +161,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color: TextColor.Default,
             },
           }}
-          style={[
-            styles.statsRow,
-            // !onOrderBookPress &&
-            styles.statsRowFirst,
-          ]}
+          style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
         />
 
         {/* Open interest with tooltip */}

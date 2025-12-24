@@ -160,12 +160,28 @@ export default class Gestures {
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      elemDescription,
+      delay = 0,
+    } = options;
+
+    // Add delay before tapping if provided
+    if (delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    // Use a shorter inner timeout to allow for retries within the overall timeout
+    // If inner timeout equals outer timeout, no retries can happen
+    const innerTimeout = Math.min(3000, timeout / 3);
+
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
-        await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
+        await waitFor(itemElementAtIndex)
+          .toBeVisible()
+          .withTimeout(innerTimeout);
         await itemElementAtIndex.tap();
         const successMessage = elemDescription
           ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
@@ -175,6 +191,7 @@ export default class Gestures {
       {
         timeout,
         description: `tapAtIndex(${index})`,
+        elemDescription,
       },
     );
   }
@@ -448,6 +465,7 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,
+      startOffsetPercentage = { x: NaN, y: NaN },
     } = options;
 
     return Utilities.executeWithRetry(
@@ -462,7 +480,13 @@ export default class Gestures {
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
-        await el.swipe(direction, speed, percentage);
+        await el.swipe(
+          direction,
+          speed,
+          percentage,
+          startOffsetPercentage.x,
+          startOffsetPercentage.y,
+        );
       },
       {
         timeout,

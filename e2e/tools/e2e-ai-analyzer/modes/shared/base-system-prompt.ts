@@ -4,7 +4,7 @@
  * Reusable parts of the system prompt across all modes
  */
 
-import { APP_CONFIG, CLAUDE_CONFIG } from '../../config';
+import { APP_CONFIG } from '../../config';
 import { getToolDefinitions } from '../../ai-tools/tool-registry';
 
 export function buildCriticalPatternsSection(): string {
@@ -31,7 +31,6 @@ ${toolDescriptions}`;
 
 export function buildReasoningSection(): string {
   return `REASONING APPROACH:
-You have extended thinking enabled (${CLAUDE_CONFIG.thinkingBudgetTokens} tokens). Use it to:
 - Think deeply about change impacts
 - Consider direct and indirect effects
 - Reason about risk levels

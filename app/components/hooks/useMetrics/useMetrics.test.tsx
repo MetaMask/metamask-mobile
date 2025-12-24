@@ -34,7 +34,6 @@ const expectedDataDeleteRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
 const mockMetrics = {
   trackEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
-  enableSocialLogin: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   createDataDeletionTask: jest.fn(() =>
     Promise.resolve(expectedDataDeletionTaskResponse),
@@ -81,7 +80,6 @@ describe('useMetrics', () => {
         "createDataDeletionTask": [MockFunction],
         "createEventBuilder": [MockFunction],
         "enable": [MockFunction],
-        "enableSocialLogin": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
         "getMetaMetricsId": [MockFunction],

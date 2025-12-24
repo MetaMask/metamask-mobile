@@ -1,4 +1,4 @@
-import getDefaultBridgeParams from '../SDKConnect/AndroidSDK/getDefaultBridgeParams';
+import getDefaultBridgeParams from '../SDKConnect/getDefaultBridgeParams';
 import BackgroundBridge from './BackgroundBridge';
 import Engine from '../Engine';
 import { getPermittedAccounts } from '../Permissions';

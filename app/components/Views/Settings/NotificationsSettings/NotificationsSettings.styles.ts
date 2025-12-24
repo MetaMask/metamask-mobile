@@ -5,14 +5,15 @@ import { Theme } from '../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      padding: 24,
+      paddingLeft: 16,
+      paddingRight: 16,
       paddingBottom: 48,
     },
     line: {
       borderTopWidth: 1,
       borderTopColor: params.theme.colors.border.muted,
       marginVertical: 16,
-      marginHorizontal: -24,
+      marginHorizontal: -16,
     },
     heading: {
       marginTop: 16,

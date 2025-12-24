@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1`] = `
+exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature flag is disabled 1`] = `
 <RCTScrollView
   automaticallyAdjustContentInsets={false}
   contentInset={
@@ -57,7 +57,7 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -65,14 +65,14 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
         }
       }
     >
-      Sample Feature
+      Sample Feature Title
     </Text>
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -80,11 +80,22 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
         }
       }
     >
-      This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.
+      Sample Feature Description
     </Text>
     <View
       testID="mocked-sample-network-display"
-    />
+    >
+      <View
+        testID="network-name"
+      >
+        Ethereum Mainnet
+      </View>
+      <View
+        testID="network-image"
+      >
+        {"uri":"https://example.com/ethereum.png"}
+      </View>
+    </View>
     <View
       testID="mocked-sample-pet-names"
     />
@@ -92,7 +103,7 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
 </RCTScrollView>
 `;
 
-exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`] = `
+exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature flag is enabled 1`] = `
 <RCTScrollView
   automaticallyAdjustContentInsets={false}
   contentInset={
@@ -149,7 +160,7 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -157,14 +168,14 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
         }
       }
     >
-      Sample Feature
+      Sample Feature Title
     </Text>
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -172,11 +183,22 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
         }
       }
     >
-      This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.
+      Sample Feature Description
     </Text>
     <View
       testID="mocked-sample-network-display"
-    />
+    >
+      <View
+        testID="network-name"
+      >
+        Ethereum Mainnet
+      </View>
+      <View
+        testID="network-image"
+      >
+        {"uri":"https://example.com/ethereum.png"}
+      </View>
+    </View>
     <View
       testID="mocked-sample-counter-pane"
     />

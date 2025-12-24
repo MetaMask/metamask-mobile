@@ -52,6 +52,7 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -59,10 +60,22 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  /**
+   * Optional render function that overrides the default content.
+   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
+   */
+  overrideContent?: (amountHuman: string) => ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, hasMax, preferredToken }) => {
+  ({
+    children,
+    currency,
+    disablePay,
+    hasMax,
+    preferredToken,
+    overrideContent,
+  }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -116,11 +129,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          {overrideContent ? (
+            overrideContent(amountHuman)
+          ) : (
+            <>
+              {disablePay !== true && (
+                <PayTokenAmount
+                  amountHuman={amountHuman}
+                  disabled={!hasTokens}
+                />
+              )}
+              {children}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
           )}
-          {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -241,6 +263,7 @@ function ConfirmButton({
       width={ButtonWidthTypes.Full}
       disabled={disabled}
       onPress={onConfirm}
+      testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     />
   );
 }
@@ -277,7 +300,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirmation_button');
+    return strings('earn.musd_conversion.convert_to_musd');
   }
 
   return strings('confirm.deposit_edit_amount_done');

@@ -56,15 +56,14 @@ const createStyles = ({ colors }) =>
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
       paddingTop:
-        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
-      paddingBottom: 16,
+        Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
     },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
+      justifyContent: 'space-between',
       gap: 16,
-      marginRight: 25,
     },
     action: {
       flex: 0,
@@ -89,7 +88,8 @@ const createStyles = ({ colors }) =>
     },
     actionContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     disabledActionContainer: {
       opacity: 0.3,
@@ -126,7 +126,7 @@ const createStyles = ({ colors }) =>
     },
     illustration: {
       width: Device.isMediumDevice() ? 160 : 200,
-      height: Device.isMediumDevice() ? 120 : 150,
+      height: Device.isMediumDevice() ? 120 : 180,
       alignSelf: 'center',
     },
     flexContainer: {
@@ -440,6 +440,13 @@ class OptinMetrics extends PureComponent {
           testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={PrivacyIllustration}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
+            </View>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
@@ -448,13 +455,6 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <View style={styles.imageContainer}>
-              <Image
-                source={PrivacyIllustration}
-                style={styles.illustration}
-                resizeMode="contain"
-              />
-            </View>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -474,12 +474,6 @@ class OptinMetrics extends PureComponent {
                 activeOpacity={0.7}
               >
                 <View style={styles.checkbox}>
-                  <Checkbox
-                    onPress={this.handleBasicUsageToggle}
-                    isChecked={this.state.isBasicUsageChecked}
-                    accessibilityRole={'checkbox'}
-                    accessible
-                  />
                   <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
@@ -488,6 +482,12 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.gather_basic_usage_title')}
                     </Text>
                   </View>
+                  <Checkbox
+                    onPress={this.handleBasicUsageToggle}
+                    isChecked={this.state.isBasicUsageChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                  />
                 </View>
                 <Text
                   variant={TextVariant.BodySM}
@@ -522,13 +522,6 @@ class OptinMetrics extends PureComponent {
                 disabled={this.isMarketingDisabled}
               >
                 <View style={styles.checkbox}>
-                  <Checkbox
-                    onPress={this.handleMarketingToggle}
-                    isChecked={this.state.isMarketingChecked}
-                    accessibilityRole={'checkbox'}
-                    accessible
-                    disabled={this.isMarketingDisabled}
-                  />
                   <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
@@ -541,6 +534,13 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.checkbox_marketing')}
                     </Text>
                   </View>
+                  <Checkbox
+                    onPress={this.handleMarketingToggle}
+                    isChecked={this.state.isMarketingChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                    disabled={this.isMarketingDisabled}
+                  />
                 </View>
                 <Text
                   variant={TextVariant.BodySM}

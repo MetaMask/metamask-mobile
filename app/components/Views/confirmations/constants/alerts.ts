@@ -5,6 +5,7 @@ export enum AlertKeys {
   Blockaid = 'blockaid',
   BurnAddress = 'burn_address',
   DomainMismatch = 'domain_mismatch',
+  GasEstimateFailed = 'gas_estimate_failed',
   InsufficientBalance = 'insufficient_balance',
   InsufficientPayTokenBalance = 'insufficient_pay_token_balance',
   InsufficientPayTokenNative = 'insufficient_pay_token_native',

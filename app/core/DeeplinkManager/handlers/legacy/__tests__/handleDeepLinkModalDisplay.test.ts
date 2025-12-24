@@ -1,7 +1,7 @@
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import { waitFor } from '@testing-library/react-native';
 import NavigationService from '../../../../NavigationService';
-import { store } from '../../../../../store';
+import ReduxService from '../../../../redux';
 import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -10,9 +10,12 @@ jest.mock('../../../../NavigationService', () => ({
   },
 }));
 
-jest.mock('../../../../../store', () => ({
-  store: {
-    getState: jest.fn(),
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(),
+    },
   },
 }));
 
@@ -27,7 +30,7 @@ jest.mock('../../../../../components/UI/DeepLinkModal', () => ({
 }));
 
 describe('handleDeepLinkModalDisplay', () => {
-  const mockStore = store as jest.Mocked<typeof store>;
+  const mockReduxService = ReduxService as jest.Mocked<typeof ReduxService>;
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -41,12 +44,14 @@ describe('handleDeepLinkModalDisplay', () => {
     ${'invalid'} | ${true}                 | ${true}
     ${'invalid'} | ${false}                | ${true}
   `(
-    'should redirect be $shouldRedirect when linkType is $linkType & isDeepLinkModalDisabled is $isDeepLinkModalDisabled',
+    'redirects to $shouldRedirect when linkType is $linkType & isDeepLinkModalDisabled is $isDeepLinkModalDisabled',
     async ({ linkType, isDeepLinkModalDisabled, shouldRedirect }) => {
       const mockedState = {
         settings: { deepLinkModalDisabled: isDeepLinkModalDisabled },
-      } as jest.Mocked<RootState>;
-      mockStore.getState.mockReturnValue(mockedState);
+      } as RootState;
+      (mockReduxService.store.getState as jest.Mock).mockReturnValue(
+        mockedState,
+      );
       handleDeepLinkModalDisplay({
         linkType,
         pageTitle: 'MetaMask',

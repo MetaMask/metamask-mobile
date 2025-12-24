@@ -57,11 +57,6 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
         <ListItem gap={gap} style={styles.containerColumn}>
           {children}
         </ListItem>
-        {isSelected && (
-          <View style={styles.underlay} accessibilityRole="checkbox" accessible>
-            <View style={styles.underlayBar} />
-          </View>
-        )}
       </TouchableOpacity>
       {showButtonIcon ? (
         <View style={styles.buttonIcon}>

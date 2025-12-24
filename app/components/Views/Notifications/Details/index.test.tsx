@@ -3,12 +3,21 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import {
+  INotification,
+  TRIGGER_TYPES,
+  processNotification,
+} from '@metamask/notification-services-controller/notification-services';
+import {
+  createMockNotificationERC20Received,
+  createMockNotificationERC20Sent,
+  createMockNotificationEthReceived,
+  createMockNotificationEthSent,
+} from '@metamask/notification-services-controller/notification-services/mocks';
 
 import NotificationsDetails from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-// eslint-disable-next-line import/no-namespace
-import * as NotificationStatesModule from '../../../../util/notifications/notification-states';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
@@ -62,40 +71,48 @@ describe('NotificationsDetails', () => {
       .mockReturnValue({ markNotificationAsRead: jest.fn(), loading: false });
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = render(
+  const renderDetailsPage = (notification: INotification) =>
+    render(
       <Provider store={store}>
         <NotificationsDetails
           navigation={navigation}
-          route={{
-            params: {
-              notification: MOCK_NOTIFICATIONS[1],
-            },
-          }}
+          route={{ params: { notification } }}
         />
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+  it('shows the details page with valid notification', () => {
+    const { getByTestId } = renderDetailsPage(MOCK_NOTIFICATIONS[1]);
+
+    expect(getByTestId('notification-details')).toBeOnTheScreen();
   });
 
-  it('returns null if unable to create modal state', () => {
-    jest
-      .spyOn(NotificationStatesModule, 'hasNotificationComponents')
-      .mockReturnValue(false);
+  const nullTests = [
+    { type: 'Invalid-Notification' } as unknown as INotification,
+    ...[
+      processNotification(createMockNotificationEthSent()),
+      processNotification(createMockNotificationEthReceived()),
+      processNotification(createMockNotificationERC20Sent()),
+      processNotification(createMockNotificationERC20Received()),
+    ].map((n) => {
+      if (
+        n.type === TRIGGER_TYPES.ETH_SENT ||
+        n.type === TRIGGER_TYPES.ETH_RECEIVED ||
+        n.type === TRIGGER_TYPES.ERC20_SENT ||
+        n.type === TRIGGER_TYPES.ERC20_RECEIVED
+      ) {
+        n.payload.chain_id = 123; // unsupported chainId
+      }
+      return n;
+    }),
+  ];
 
-    const result = render(
-      <Provider store={store}>
-        <NotificationsDetails
-          navigation={navigation}
-          route={{
-            params: {
-              notification: MOCK_NOTIFICATIONS[1],
-            },
-          }}
-        />
-      </Provider>,
-    );
-    expect(result.toJSON()).toBe(null);
-  });
+  it.each(nullTests)(
+    'returns null on invalid notifications - $type',
+    (notification) => {
+      const result = renderDetailsPage(notification);
+
+      expect(result.toJSON()).toBe(null);
+    },
+  );
 });

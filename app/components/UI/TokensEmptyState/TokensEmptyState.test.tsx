@@ -97,7 +97,7 @@ describe('TokensEmptyState', () => {
       </Provider>,
     );
 
-    expect(getByTestId('tab-empty-state')).toBeOnTheScreen();
+    expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
   });
 
   it('renders empty state icon', () => {

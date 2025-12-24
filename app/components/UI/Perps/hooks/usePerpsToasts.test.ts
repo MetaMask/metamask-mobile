@@ -959,7 +959,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -987,7 +987,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -1025,7 +1025,7 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
         expect(config.closeButtonOptions).toMatchObject({
-          label: 'Go Back',
+          label: 'Go back',
           variant: ButtonVariants.Secondary,
         });
 

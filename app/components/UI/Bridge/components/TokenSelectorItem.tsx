@@ -18,7 +18,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../Base/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { useStyles } from '../../../../component-library/hooks';

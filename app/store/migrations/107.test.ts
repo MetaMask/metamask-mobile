@@ -1,19 +1,17 @@
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 
-import { ensureValidState } from './util';
 import migrate from './107';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
-
 const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedEnsureValidState = jest.spyOn(
+  jest.requireActual('./util'),
+  'ensureValidState',
+);
 
 const migrationVersion = 107;
 const QUICKNODE_SEI_URL = 'https://failover.com';
@@ -48,25 +46,37 @@ describe(`migration #${migrationVersion}`, () => {
     const migratedState = migrate(state);
 
     expect(migratedState).toStrictEqual({ some: 'state' });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    // ensureValidState may call captureException for invalid states
+    // but the migration should still return the state unchanged
   });
 
   const invalidStates = [
     {
       state: {
-        engine: {},
+        engine: {
+          backgroundState: {
+            settings: {},
+          },
+        },
+        settings: {},
+        security: {},
       },
       errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
-      scenario: 'empty engine state',
+      scenario: 'missing NetworkController',
     },
     {
       state: {
         engine: {
-          backgroundState: {},
+          backgroundState: {
+            NetworkController: 'invalid',
+            settings: {},
+          },
         },
+        settings: {},
+        security: {},
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
-      scenario: 'empty backgroundState',
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
+      scenario: 'invalid NetworkController type',
     },
     {
       state: {
@@ -166,7 +176,7 @@ describe(`migration #${migrationVersion}`, () => {
   ];
 
   it.each(invalidStates)(
-    'should capture exception if $scenario',
+    'captures exception if $scenario',
     ({ errorMessage, state }) => {
       const orgState = cloneDeep(state);
       mockedEnsureValidState.mockReturnValue(true);

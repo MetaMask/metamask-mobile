@@ -44,13 +44,10 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
-      // Navigate to appropriate transaction detail view
+      // Navigate to position transaction detail view for trades
       if (transaction.fill) {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: { symbol: transaction.asset, name: transaction.asset },
-          },
+        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
+          transaction,
         });
       }
     },

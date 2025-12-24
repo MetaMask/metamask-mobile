@@ -8,7 +8,7 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../../../../../../UI/StyledButton';
 import Text from '../../../../../../../component-library/components/Texts/Text';
-import InfoModal from '../../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../../Base/InfoModal';
 import Identicon from '../../../../../../UI/Identicon';
 import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../../../../locales/i18n';

@@ -104,7 +104,7 @@ exports[`Onboarding renders correctly 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -143,7 +143,7 @@ exports[`Onboarding renders correctly 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -301,7 +301,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -340,7 +340,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -498,7 +498,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -537,7 +537,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -695,7 +695,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -734,7 +734,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,

@@ -47,7 +47,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
       const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
-      const isSelected = state.index === index;
+      const isSelected = options?.isSelected
+        ? options.isSelected(state.routeNames[state.index])
+        : state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelText = labelKey ? strings(labelKey) : '';
@@ -101,6 +103,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
 
       const isWalletAction =
         rootScreenName === Routes.MODAL.TRADE_WALLET_ACTIONS;
+
+      if (options?.isHidden) {
+        return null;
+      }
 
       return (
         <View key={key} style={tw.style('flex-1 w-full')}>

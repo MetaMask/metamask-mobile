@@ -6,18 +6,14 @@ import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
-import storageWrapper from '../../../store/storage-wrapper';
-import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
-import { useDeleteWallet } from '../DeleteWallet';
+import { Authentication } from '../../../core';
 import Logger from '../../../util/Logger';
 
 const usePromptSeedlessRelogin = () => {
   const metrics = useMetrics();
   const dispatch = useDispatch();
-  const [resetWalletState, deleteUser] = useDeleteWallet();
 
   const [isDeletingInProgress, setIsDeletingInProgress] = useState(false);
   const [deleteWalletError, setDeleteWalletError] = useState<Error | null>(
@@ -58,10 +54,7 @@ const usePromptSeedlessRelogin = () => {
       clearHistory(metrics.isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
-    await resetWalletState();
-    await deleteUser();
-    await storageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    dispatch(setCompletedOnboarding(false));
+    await Authentication.deleteWallet();
     navigateOnboardingRoot();
     setIsDeletingInProgress(false);
   }, [
@@ -70,8 +63,6 @@ const usePromptSeedlessRelogin = () => {
     isDataCollectionForMarketingEnabled,
     navigateOnboardingRoot,
     signOut,
-    resetWalletState,
-    deleteUser,
   ]);
 
   const promptSeedlessRelogin = useCallback(() => {

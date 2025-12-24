@@ -12,20 +12,21 @@ export const CLAUDE_CONFIG = {
    * Claude model to use for analysis
    * - See available models: https://docs.anthropic.com/en/docs/about-claude/models
    */
-  model: 'claude-sonnet-4-5-20250929' as const,
+  model: 'claude-opus-4-5-20251101' as const,
+
+  /**
+   * Temperature controls randomness in responses (0-1)
+   * - 0 = deterministic, consistent outputs for same inputs
+   * - 1 = more creative/varied responses
+   * Using 0 for consistent tag selection across runs
+   */
+  temperature: 0,
 
   /**
    * Maximum tokens allowed for the AI response. Controls the length of reasoning and tool calls
    * Docs: https://docs.anthropic.com/en/api/messages
    */
   maxTokens: 16000,
-
-  /**
-   * Extended thinking budget (tokens). AI uses this for deep reasoning before responding.
-   * Higher = more thorough analysis but slower/costlier
-   * Docs: https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking
-   */
-  thinkingBudgetTokens: 10000,
 
   /**
    * Maximum agentic iterations to prevent infinite loops
@@ -41,7 +42,7 @@ export const CLAUDE_CONFIG = {
    * - Iteration 2: AI investigates dependencies (2-3 tool calls)
    * - Iteration 3: AI calls finalize tool (e.g., finalize_tag_selection) → DONE
    */
-  maxIterations: 15,
+  maxIterations: 20,
 };
 
 /**

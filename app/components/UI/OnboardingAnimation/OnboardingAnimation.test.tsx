@@ -215,7 +215,7 @@ describe('OnboardingAnimation', () => {
       expect(mockSetStartFoxAnimation).toHaveBeenCalledWith(true);
     });
 
-    it('skips Rive animation in E2E mode', () => {
+    it('does not render Rive component in E2E mode', () => {
       // Start with a fresh render in E2E mode
       const { rerender } = render(
         <OnboardingAnimation {...defaultProps} key="e2e-rive-test" />,
@@ -233,15 +233,11 @@ describe('OnboardingAnimation', () => {
         />,
       );
 
-      // In E2E mode, Rive methods should not be called
+      // In E2E mode, Rive component is not rendered at all
       const mockedMethods = __getLastMockedMethods();
 
-      // The Rive component should exist but methods should not be called
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.setInputState).not.toHaveBeenCalled();
-        expect(mockedMethods.fireState).not.toHaveBeenCalled();
-      }
+      // The Rive component should not be rendered in E2E mode
+      expect(mockedMethods).toBeUndefined();
     });
   });
 

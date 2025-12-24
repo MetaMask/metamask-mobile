@@ -33,6 +33,7 @@ describe('PerpsMarketHeader', () => {
       <PerpsMarketHeader
         market={mockMarket}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );
@@ -47,6 +48,7 @@ describe('PerpsMarketHeader', () => {
         market={mockMarket}
         onBackPress={onBackPress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );
@@ -64,6 +66,7 @@ describe('PerpsMarketHeader', () => {
         market={mockMarket}
         onMorePress={onMorePress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );

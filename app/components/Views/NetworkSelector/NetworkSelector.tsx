@@ -60,7 +60,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { InfuraNetworkType } from '@metamask/controller-utils';
-import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';

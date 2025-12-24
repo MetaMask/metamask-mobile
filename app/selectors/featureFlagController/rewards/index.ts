@@ -6,6 +6,16 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 
+// Re-export selectors from rewardsEnabled.ts
+export {
+  selectRewardsEnabledFlag,
+  selectRewardsEnabledRawFlag,
+  selectMusdHoldingEnabledFlag,
+  selectMusdHoldingEnabledRawFlag,
+  REWARDS_ENABLED_FLAG_NAME,
+  MUSD_HOLDING_FLAG_NAME,
+} from './rewardsEnabled';
+
 const DEFAULT_REWARDS_ANNOUNCEMENT_MODAL_ENABLED = false;
 const DEFAULT_CARD_SPEND_ENABLED = false;
 const DEFAULT_MUSD_DEPOSIT_ENABLED = false;

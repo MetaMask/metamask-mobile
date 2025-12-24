@@ -20,7 +20,7 @@ jest.mock('ethereumjs-util', () => ({
 jest.mock('../../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn(),
+    isMwpDeeplink: jest.fn(),
   },
 }));
 
@@ -49,10 +49,9 @@ const mockIsValidAddress = isValidAddress as jest.MockedFunction<
 const mockGetURLProtocol = getURLProtocol as jest.MockedFunction<
   typeof getURLProtocol
 >;
-const mockIsConnectDeeplink =
-  SDKConnectV2.isConnectDeeplink as jest.MockedFunction<
-    typeof SDKConnectV2.isConnectDeeplink
-  >;
+const mockisMwpDeeplink = SDKConnectV2.isMwpDeeplink as jest.MockedFunction<
+  typeof SDKConnectV2.isMwpDeeplink
+>;
 
 describe('getQRType', () => {
   beforeEach(() => {
@@ -62,7 +61,7 @@ describe('getQRType', () => {
     mockFailedSeedPhraseRequirements.mockReturnValue(true);
     mockIsValidAddress.mockReturnValue(false);
     mockGetURLProtocol.mockReturnValue('');
-    mockIsConnectDeeplink.mockReturnValue(false);
+    mockisMwpDeeplink.mockReturnValue(false);
   });
 
   describe('Seed Phrase Detection', () => {
@@ -237,8 +236,8 @@ describe('getQRType', () => {
       expect(result).toBe(QRType.DEEPLINK);
     });
 
-    it('returns DEEPLINK when SDKConnectV2.isConnectDeeplink returns true', () => {
-      mockIsConnectDeeplink.mockReturnValue(true);
+    it('returns DEEPLINK when SDKConnectV2.isMwpDeeplink returns true', () => {
+      mockisMwpDeeplink.mockReturnValue(true);
       const content = 'metamask-sdk://connect';
 
       const result = getQRType(content);

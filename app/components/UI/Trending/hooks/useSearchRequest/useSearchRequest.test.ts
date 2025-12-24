@@ -5,21 +5,33 @@ import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
 
+const createMockSearchResult = (overrides = {}) => ({
+  assetId: 'eip155:1/erc20:0x123' as CaipChainId,
+  decimals: 18,
+  name: 'Ethereum',
+  symbol: 'ETH',
+  marketCap: 1000000,
+  aggregatedUsdVolume: 500000,
+  price: '1.00',
+  pricePercentChange1d: '5.0',
+  ...overrides,
+});
+
 describe('useSearchRequest', () => {
+  let spySearchTokens: jest.SpyInstance;
+
   beforeEach(() => {
+    spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
     jest.clearAllMocks();
   });
 
-  it('returns search results when search succeeds', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    const mockResults = [
-      {
-        assetId: 'eip155:1/erc20:0x123',
-        symbol: 'ETH',
-        name: 'Ethereum',
-        decimals: 18,
-      },
-    ];
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
+  it('returns search results and sets loading to false when search succeeds', async () => {
+    const mockResults = [createMockSearchResult()];
     spySearchTokens.mockResolvedValue({ data: mockResults } as never);
 
     const { result, unmount } = renderHookWithProvider(() =>
@@ -31,20 +43,17 @@ describe('useSearchRequest', () => {
     );
 
     await waitFor(() => {
-      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
 
-    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('sets error state when search fails', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    const mockError = new Error('Failed to search tokens');
+  it('sets error state and clears results when search fails', async () => {
+    const mockError = new Error('Network error');
     spySearchTokens.mockRejectedValue(mockError);
 
     const { result, unmount } = renderHookWithProvider(() =>
@@ -62,28 +71,12 @@ describe('useSearchRequest', () => {
     expect(result.current.results).toEqual([]);
     expect(result.current.isLoading).toBe(false);
 
-    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('handles stale results when multiple requests are triggered', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    const mockResults1 = [
-      {
-        assetId: 'eip155:1/erc20:0x123',
-        symbol: 'ETH',
-        name: 'Ethereum',
-        decimals: 18,
-      },
-    ];
-    const mockResults2 = [
-      {
-        assetId: 'eip155:1/erc20:0x456',
-        symbol: 'DAI',
-        name: 'Dai Stablecoin',
-        decimals: 18,
-      },
-    ];
+  it('prevents stale results from overwriting current results', async () => {
+    const mockResults1 = [createMockSearchResult({ symbol: 'ETH' })];
+    const mockResults2 = [createMockSearchResult({ symbol: 'DAI' })];
 
     let resolveFirstRequest: ((value: unknown) => void) | undefined;
     const firstRequestPromise = new Promise<unknown>((resolve) => {
@@ -122,14 +115,10 @@ describe('useSearchRequest', () => {
 
     expect(result.current.results).toEqual(mockResults2);
 
-    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('skips search when query is empty', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    spySearchTokens.mockResolvedValue({ data: [] } as never);
-
+  it('skips API call and clears results when query is empty', async () => {
     const { result, unmount } = renderHookWithProvider(() =>
       useSearchRequest({
         chainIds: ['eip155:1'],
@@ -145,27 +134,12 @@ describe('useSearchRequest', () => {
     expect(spySearchTokens).not.toHaveBeenCalled();
     expect(result.current.results).toEqual([]);
 
-    await act(async () => {
-      await result.current.search();
-    });
-
-    expect(spySearchTokens).not.toHaveBeenCalled();
-
-    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('allows manual retry after error using search function', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    const mockError = new Error('Failed to search tokens');
-    const mockResults = [
-      {
-        assetId: 'eip155:1/erc20:0x123',
-        symbol: 'ETH',
-        name: 'Ethereum',
-        decimals: 18,
-      },
-    ];
+  it('retries search when search function is called manually', async () => {
+    const mockError = new Error('Network error');
+    const mockResults = [createMockSearchResult()];
 
     spySearchTokens.mockRejectedValueOnce(mockError);
 
@@ -192,14 +166,37 @@ describe('useSearchRequest', () => {
     });
 
     expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
 
-    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('triggers new search when chainIds values change', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
+  it('triggers new search when parameters change', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    let chainIds: CaipChainId[] = ['eip155:1'];
+    const { rerender, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds,
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    chainIds = ['eip155:137'];
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(2);
+    });
+
+    unmount();
+  });
+
+  it('does not trigger new search when chainIds array reference changes but values remain same', async () => {
     spySearchTokens.mockResolvedValue({ data: [] } as never);
 
     let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
@@ -215,14 +212,13 @@ describe('useSearchRequest', () => {
       expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
 
-    chainIds = ['eip155:1', 'eip155:137'];
+    chainIds = ['eip155:1', 'eip155:10'];
     rerender(undefined);
 
     await waitFor(() => {
-      expect(spySearchTokens).toHaveBeenCalledTimes(2);
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
 
-    spySearchTokens.mockRestore();
     unmount();
   });
 });

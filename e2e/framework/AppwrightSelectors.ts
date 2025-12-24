@@ -4,8 +4,9 @@ export default class AppwrightSelectors {
   static async getElementByID(
     testDevice: Device,
     id: string,
+    exact: boolean = false,
   ): Promise<AppwrightLocator> {
-    return await testDevice.getById(id, { exact: true });
+    return await testDevice.getById(id, { exact });
   }
 
   static async getElementByXpath(
@@ -60,5 +61,24 @@ export default class AppwrightSelectors {
   static isAndroid(testDevice: Device): boolean {
     const platform = testDevice.getPlatform();
     return platform === Platform.ANDROID;
+  }
+
+  static async waitForElementToDisappear(
+    element: AppwrightLocator,
+    elementName: string,
+    timeout = 30000,
+  ) {
+    const startTime = Date.now();
+    const pollInterval = 200;
+    while (
+      await element.isVisible({ timeout: pollInterval }).catch(() => false)
+    ) {
+      if (Date.now() - startTime > timeout) {
+        throw new Error(
+          `${elementName} still visible after ${timeout / 1000} seconds`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
   }
 }

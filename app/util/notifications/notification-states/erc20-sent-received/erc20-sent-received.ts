@@ -46,7 +46,11 @@ const modalTitle = (n: ERC20Notification) =>
       });
 
 const state: NotificationState<ERC20Notification> = {
-  guardFn: isERC20Notification,
+  guardFn: [
+    isERC20Notification,
+    (notification) =>
+      !!getNativeTokenDetailsByChainId(notification.payload.chain_id),
+  ],
   createMenuItem: (notification) => ({
     title: menuTitle(notification),
 

@@ -2,7 +2,7 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import { store } from '../../../../store';
+import ReduxService from '../../../redux';
 import { setOnboardingReferralCode } from '../../../../reducers/rewards';
 
 interface HandleRewardsUrlParams {
@@ -59,10 +59,12 @@ export const handleRewardsUrl = async ({
     DevLogger.log('[handleRewardsUrl] Parsed URL parameters:', urlParams);
 
     if (urlParams.referral && urlParams.referral.length > 0) {
-      store.dispatch(setOnboardingReferralCode(urlParams.referral));
+      ReduxService.store.dispatch(
+        setOnboardingReferralCode(urlParams.referral),
+      );
     } else {
       // Clear any existing referral code
-      store.dispatch(setOnboardingReferralCode(null));
+      ReduxService.store.dispatch(setOnboardingReferralCode(null));
     }
     NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
   } catch (error) {

@@ -8,9 +8,6 @@ import { ListItemSelectProps } from './ListItemSelect.types';
 // Defaults
 export const DEFAULT_SELECTITEM_GAP = 16;
 
-// Test IDs
-export const SELECTABLE_ITEM_UNDERLAY_ID = 'selectable-item-underlay';
-
 // Sample consts
 export const SAMPLE_SELECTITEM_PROPS: ListItemSelectProps = {
   isSelected: true,

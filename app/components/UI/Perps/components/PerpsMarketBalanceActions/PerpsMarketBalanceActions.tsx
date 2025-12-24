@@ -29,13 +29,9 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   formatPerpsFiat,
-  formatPnl,
-  formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import type {
-  PerpsNavigationParamList,
-  Position,
-} from '../../controllers/types';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
@@ -47,9 +43,10 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { RootState } from '../../../../../reducers';
+import { PerpsEventValues } from '../../constants/eventNames';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 interface PerpsMarketBalanceActionsProps {
-  positions?: Position[];
   showActionButtons?: boolean;
 }
 
@@ -74,31 +71,76 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 };
 
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
-  positions = [],
   showActionButtons = true,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { isDepositInProgress } = usePerpsDepositProgress();
 
-  // Get withdrawal requests from controller state
-  const withdrawalRequests = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
-  );
+  // Get current selected account address
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
+
+  // Get withdrawal requests from controller state and filter by current account
+  const withdrawalRequests = useSelector((state: RootState) => {
+    const allWithdrawals =
+      state.engine.backgroundState.PerpsController?.withdrawalRequests || [];
+
+    // If no selected address, return empty array (don't show potentially wrong account's data)
+    if (!selectedAddress) {
+      DevLogger.log(
+        'PerpsMarketBalanceActions: No selected address, returning empty array',
+        { totalCount: allWithdrawals.length },
+      );
+      return [];
+    }
+
+    // Filter by current account, normalizing addresses for comparison
+    const filtered = allWithdrawals.filter(
+      (req) =>
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
+    );
+
+    DevLogger.log(
+      'PerpsMarketBalanceActions: Filtered withdrawals by account',
+      {
+        selectedAddress,
+        totalCount: allWithdrawals.length,
+        filteredCount: filtered.length,
+      },
+    );
+
+    return filtered;
+  });
 
   // State for transaction amount
   const [transactionAmountWei, setTransactionAmountWei] = useState<
     string | null
   >(null);
 
+  // Use live account data with 1 second throttle for balance display
+  const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
+    throttleMs: 1000,
+  });
+
+  const totalBalance = perpsAccount?.totalBalance || '0';
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+
   // Use hook for eligibility checks and action handlers
+  // Determine button location based on whether balance is empty (empty state) or not (home)
+  const buttonLocation = isBalanceEmpty
+    ? PerpsEventValues.BUTTON_LOCATION.PERPS_HOME_EMPTY_STATE
+    : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+
   const {
     handleAddFunds,
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions();
+  } = usePerpsHomeActions({
+    buttonLocation,
+  });
 
   // Extract all transaction state logic
   const {
@@ -133,11 +175,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
       withdrawalAmount,
     ],
   );
-
-  // Use live account data with 1 second throttle for balance display
-  const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
-    throttleMs: 1000,
-  });
 
   // Use the reusable hooks for balance animation
   const {
@@ -183,19 +220,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  const totalBalance = perpsAccount?.totalBalance || '0';
   const availableBalance = perpsAccount?.availableBalance || '0';
-  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
-  const hasPositions = positions.length > 0;
-
-  const pnlNum = useMemo(() => parseFloat(unrealizedPnl), [unrealizedPnl]);
-  const pnlColor = useMemo(() => {
-    if (pnlNum > 0) return TextColor.Success;
-    if (pnlNum < 0) return TextColor.Error;
-    return TextColor.Alternative;
-  }, [pnlNum]);
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
@@ -303,7 +328,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             </Button>
           </Box>
         ) : (
-          <Box twClassName="px-4 pt-4 pb-2">
+          <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <Text
                 variant={TextVariant.DisplayMD}
@@ -313,34 +338,20 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 {formatPerpsFiat(totalBalance)}
               </Text>
             </Animated.View>
-            <Box twClassName="flex-row items-center mt-1">
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                }
-              >
-                {formatPerpsFiat(availableBalance)} {strings('perps.available')}
-              </Text>
-              {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
-                <>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {' · P&L '}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={pnlColor}
-                    testID={PerpsMarketBalanceActionsSelectorsIDs.PNL_VALUE}
-                  >
-                    {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
-                  </Text>
-                </>
-              )}
-            </Box>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={tw.style('mt-1')}
+              testID={
+                PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+              }
+            >
+              {formatPerpsFiat(availableBalance, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+                stripTrailingZeros: false,
+              })}{' '}
+              {strings('perps.available')}
+            </Text>
             {/* Action Buttons */}
             {showActionButtons && (
               <Box
