@@ -33,8 +33,8 @@ import { MultichainAddWalletActions } from '../../../component-library/component
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Engine from '../../../core/Engine';
 import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
@@ -460,19 +460,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onOpen={onBottomSheetOpen}
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
     >
-      {screen === AccountSelectorScreens.AccountSelector && (
-        <SheetHeader title={strings('accounts.accounts_title')} />
-      )}
-      {screen === AccountSelectorScreens.AddAccountActions && (
-        <BottomSheetHeader>
-          {strings('account_actions.add_account')}
-        </BottomSheetHeader>
-      )}
-      {screen === AccountSelectorScreens.MultichainAddWalletActions && (
-        <BottomSheetHeader>
-          {strings('multichain_accounts.add_wallet')}
-        </BottomSheetHeader>
-      )}
+      <HeaderCenter
+        title={
+          {
+            [AccountSelectorScreens.AccountSelector]: strings(
+              'accounts.accounts_title',
+            ),
+            [AccountSelectorScreens.AddAccountActions]: strings(
+              'account_actions.add_account',
+            ),
+            [AccountSelectorScreens.MultichainAddWalletActions]: strings(
+              'multichain_accounts.add_wallet',
+            ),
+          }[screen]
+        }
+        onClose={closeModal}
+      />
       {renderAccountScreens()}
     </BottomSheet>
   );
