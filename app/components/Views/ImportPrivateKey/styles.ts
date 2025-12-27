@@ -1,7 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,21 +12,9 @@ const createStyles = (colors: any) =>
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
-    },
-    content: {
-      alignItems: 'flex-start',
-    },
-    title: {
-      fontSize: 32,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'left',
-      ...fontStyles.normal,
-      lineHeight: 40,
     },
     scanPkeyRow: {
       width: '100%',
@@ -40,21 +27,16 @@ const createStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
-      paddingBottom: Platform.select({
-        ios: 36,
-        android: 24,
-      }),
+      paddingBottom: 12,
       backgroundColor: colors.background.default,
     },
-    top: {
-      paddingTop: 0,
-      padding: 24,
-      width: '100%',
+    descriptionContainer: {
+      marginTop: 4,
     },
     bottom: {
       width: '100%',
+      marginTop: 20,
       paddingHorizontal: 16,
-      paddingVertical: 24,
       backgroundColor: colors.background.default,
     },
     input: {
@@ -69,21 +51,6 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       marginVertical: 16,
-    },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
-      marginRight: 16,
-      marginTop: Device.isIphoneX() ? 40 : 24,
-    },
-    textContainer: {
-      width: '90%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      rowGap: 24,
-      marginTop: 16,
-      paddingLeft: 12,
     },
   });
 
