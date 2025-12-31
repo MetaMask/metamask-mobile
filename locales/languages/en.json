@@ -1979,7 +1979,13 @@
       "outcome_at_price": "{{outcome}} at {{price}}¢",
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
-      "resolved_early": "Resolved early"
+      "resolved_early": "Resolved early",
+      "rules": "Rules",
+      "rules_disclaimer": "For complete market rules and resolution details, visit Polymarket.",
+      "view_rules": "View full rules",
+      "outcome_rules": "Outcome Rules",
+      "show_rules": "Show rules",
+      "hide_rules": "Hide rules"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
