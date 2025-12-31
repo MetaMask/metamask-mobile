@@ -3455,7 +3455,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(aboutTab);
 
       expect(
-        screen.getByText('predict.market_details.rules'),
+        screen.getByText('predict.market_details.rules_more_info'),
       ).toBeOnTheScreen();
       expect(
         screen.getByText('predict.market_details.rules_disclaimer'),
@@ -3502,7 +3502,7 @@ describe('PredictMarketDetails', () => {
       });
     });
 
-    it('displays outcome rules for multi-outcome markets', () => {
+    it('displays first outcome description as rules for multi-outcome markets', () => {
       const multiOutcomeMarket = createMockMarket({
         description: 'Event level description',
         outcomes: [
@@ -3540,42 +3540,19 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(aboutTab);
 
+      // Event description is NOT shown for multi-outcome markets (to avoid duplication)
+      expect(screen.queryByText('Event level description')).toBeNull();
+
+      // Rules section shows first outcome's description only (not repeated per-outcome)
       expect(
-        screen.getByText('predict.market_details.outcome_rules'),
+        screen.getByText('predict.market_details.rules'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('↑ $100,000')).toBeOnTheScreen();
       expect(
         screen.getByText('Resolves Yes if BTC reaches $100k on Binance.'),
       ).toBeOnTheScreen();
-    });
-
-    it('hides outcome rules section for single-outcome markets', () => {
-      const singleOutcomeMarket = createMockMarket({
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Will it happen?',
-            description: 'Market rules here.',
-            status: 'open',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.5 },
-              { id: 'token-2', title: 'No', price: 0.5 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      // Single-outcome markets only have About tab at index 0
-      const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
-      );
-      fireEvent.press(aboutTab);
-
+      // Second outcome's description is NOT shown (avoiding repetition)
       expect(
-        screen.queryByText('predict.market_details.outcome_rules'),
+        screen.queryByText('Resolves Yes if BTC reaches $120k on Binance.'),
       ).toBeNull();
     });
   });

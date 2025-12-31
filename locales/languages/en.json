@@ -1981,6 +1981,7 @@
       "ended": "Ended",
       "resolved_early": "Resolved early",
       "rules": "Rules",
+      "rules_more_info": "Disclaimer",
       "rules_disclaimer": "For complete market rules and resolution details, visit Polymarket.",
       "view_rules": "View full rules",
       "outcome_rules": "Outcome Rules",

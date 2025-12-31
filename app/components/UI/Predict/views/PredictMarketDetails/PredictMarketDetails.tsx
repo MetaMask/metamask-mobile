@@ -918,6 +918,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const renderAboutSection = () => {
+    // Get the first outcome's description as the representative rules
+    // (for multi-outcome markets, all outcomes have similar rules with different thresholds)
+    const outcomeRules = market?.outcomes?.find((o) => o.description)?.description;
     const hasMultipleOutcomes = (market?.outcomes?.length ?? 0) > 1;
 
     return (
@@ -1039,45 +1042,36 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
         <Box twClassName="w-full border-t border-muted" />
 
-        {/* Event Description */}
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {market?.description}
-        </Text>
+        {/* Event Description - only show for single-outcome markets */}
+        {/* For multi-outcome markets, skip event description to avoid duplication with outcome rules */}
+        {!hasMultipleOutcomes && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {market?.description}
+          </Text>
+        )}
 
-        {/* Outcome Rules (multi-outcome markets only) */}
-        {hasMultipleOutcomes && (
-          <>
-            <Box twClassName="w-full border-t border-muted" />
-            <Box twClassName="gap-4">
+        {/* Rules - show first outcome's detailed description (representative of all outcomes) */}
+        {outcomeRules && (
+          <Box twClassName="gap-3">
+            {/* Only show divider if event description was shown above */}
+            {!hasMultipleOutcomes && (
+              <Box twClassName="w-full border-t border-muted" />
+            )}
+            <Text
+              variant={TextVariant.HeadingSm}
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.market_details.rules')}
+            </Text>
+            <Box twClassName="p-3 bg-muted rounded-lg">
               <Text
-                variant={TextVariant.HeadingSm}
-                color={TextColor.TextDefault}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
               >
-                {strings('predict.market_details.outcome_rules')}
+                {outcomeRules}
               </Text>
-              {market?.outcomes
-                ?.filter((o) => o.description)
-                .map((outcome) => (
-                  <Box
-                    key={outcome.id}
-                    twClassName="p-3 bg-muted rounded-lg gap-2"
-                  >
-                    <Text
-                      variant={TextVariant.BodyMdBold}
-                      color={TextColor.TextDefault}
-                    >
-                      {outcome.groupItemTitle || outcome.title}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {outcome.description}
-                    </Text>
-                  </Box>
-                ))}
             </Box>
-          </>
+          </Box>
         )}
 
         {/* Disclaimer with Link */}
@@ -1096,7 +1090,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               variant={TextVariant.BodySmBold}
               color={TextColor.WarningDefault}
             >
-              {strings('predict.market_details.rules')}
+              {strings('predict.market_details.rules_more_info')}
             </Text>
           </Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
