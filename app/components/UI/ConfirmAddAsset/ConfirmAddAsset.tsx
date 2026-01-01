@@ -8,7 +8,7 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getImportTokenNavbarOptions } from '../Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -29,7 +29,7 @@ import BottomSheetFooter, {
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Box from '../Ramp/Aggregator/components/Box';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Routes from '../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
@@ -112,11 +112,11 @@ const ConfirmAddAsset = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getImportTokenNavbarOptions(
-        navigation,
-        strings(`add_asset.${TOKEN_TITLE}`),
-        () => setShowExitModal(true),
-      ),
+      getHeaderCenterNavbarOptions({
+        title: strings(`add_asset.${TOKEN_TITLE}`),
+        onBack: () => setShowExitModal(true),
+        includesTopInset: true,
+      }),
     );
   }, [navigation]);
 
@@ -141,7 +141,10 @@ const ConfirmAddAsset = () => {
         testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
         <View style={styles.notch} />
-        <SheetHeader title={strings('wallet.are_you_sure_exit')} />
+        <HeaderCenter
+          title={strings('wallet.are_you_sure_exit')}
+          onClose={() => setShowExitModal(false)}
+        />
 
         <Box style={styles.boxContent}>
           <Text style={styles.title}>
