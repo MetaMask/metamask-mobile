@@ -50,6 +50,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
@@ -1907,63 +1908,34 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    title,
-    headerStyle: {
-      backgroundColor: theme.colors.background.default,
-      elevation: 0,
-      shadowOpacity: 0,
-    },
-    headerTitleStyle: {
-      fontWeight: '600',
-      fontSize: 18,
-      color: theme.colors.text.default,
-    },
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: showBack
-      ? () => (
-          <ButtonIcon
-            onPress={leftAction}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Lg}
-            style={styles.headerLeftButton}
-          />
-        )
-      : showConfiguration
-        ? () => (
-            <ButtonIcon
-              onPress={onConfigurationPress}
-              iconName={IconName.Setting}
-              size={ButtonIconSize.Lg}
-              testID="deposit-configuration-menu-button"
-              style={styles.headerLeftButton}
-            />
-          )
-        : null,
-    headerRight: showClose
-      ? () => (
-          <ButtonIcon
-            style={styles.headerRightButton}
-            iconName={IconName.Close}
-            size={ButtonIconSize.Lg}
-            onPress={() => {
-              navigation.dangerouslyGetParent()?.pop();
-              onClose?.();
-            }}
-            testID="deposit-close-navbar-button"
-          />
-        )
-      : null,
+  const handleClose = () => {
+    navigation.dangerouslyGetParent()?.pop();
+    onClose?.();
   };
+
+  let startButtonIconProps;
+  if (showBack) {
+    startButtonIconProps = {
+      iconName: IconName.ArrowLeft,
+      onPress: () => navigation.pop(),
+    };
+  } else if (showConfiguration) {
+    startButtonIconProps = {
+      iconName: IconName.Setting,
+      onPress: onConfigurationPress,
+      testID: 'deposit-configuration-menu-button',
+    };
+  }
+
+  return getHeaderCenterNavbarOptions({
+    title,
+    startButtonIconProps,
+    onClose: showClose ? handleClose : undefined,
+    closeButtonProps: showClose
+      ? { testID: 'deposit-close-navbar-button' }
+      : undefined,
+    includesTopInset: true,
+  });
 }
 
 export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
