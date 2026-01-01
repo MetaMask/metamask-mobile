@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -24,7 +24,7 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
   return (
     <BottomSheet ref={bottomSheetRef}>
       <View>
-        <BottomSheetHeader onClose={onCloseModal}>{title}</BottomSheetHeader>
+        <HeaderCenter title={title} onClose={onCloseModal} />
         <View style={styles.content}>
           {isValidElement(tooltip) ? (
             tooltip

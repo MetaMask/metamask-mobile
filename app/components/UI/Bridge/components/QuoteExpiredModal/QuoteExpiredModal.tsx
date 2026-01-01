@@ -5,7 +5,7 @@ import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
@@ -71,9 +71,10 @@ const QuoteExpiredModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        {strings('quote_expired_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('quote_expired_modal.title')}
+        onClose={handleClose}
+      />
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMD}>
           {strings('quote_expired_modal.description', {

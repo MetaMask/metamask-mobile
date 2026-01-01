@@ -14,7 +14,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import createStyles from './SlippageModal.styles';
 import { SlippageOption } from './SlippageModal.types';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SegmentedControl from '../../../../../component-library/components-temp/SegmentedControl';
 import { useDispatch, useSelector } from 'react-redux';
@@ -62,9 +62,7 @@ export const SlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        {strings('bridge.slippage')}
-      </BottomSheetHeader>
+      <HeaderCenter title={strings('bridge.slippage')} onClose={handleClose} />
       <View style={styles.container}>
         <Text style={styles.description}>
           {strings('bridge.slippage_info')}
