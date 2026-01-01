@@ -5,7 +5,7 @@ import React, { useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
@@ -39,8 +39,9 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <SheetHeader
+      <HeaderCenter
         title={strings('show_display_nft_media.show_display_nft_media_title')}
+        onClose={onCancel}
       />
       <Text style={styles.textContent}>
         {strings('show_display_nft_media.show_display_nft_media_content_1')}{' '}

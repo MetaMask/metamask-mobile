@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Alert,
   Text,
   TextInput,
   View,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import useTooltipModal from '../../hooks/useTooltipModal';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -137,6 +137,7 @@ const AddCustomCollectible = ({
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { openTooltipModal } = useTooltipModal();
   const styles = createStyles(colors);
 
   const selectedAddress = useSelector(
@@ -224,14 +225,14 @@ const AddCustomCollectible = ({
       );
 
       if (!isOwner)
-        Alert.alert(
+        openTooltipModal(
           strings('collectible.not_owner_error_title'),
           strings('collectible.not_owner_error'),
         );
 
       return isOwner;
     } catch {
-      Alert.alert(
+      openTooltipModal(
         strings('collectible.ownership_verification_error_title'),
         strings('collectible.ownership_verification_error'),
       );

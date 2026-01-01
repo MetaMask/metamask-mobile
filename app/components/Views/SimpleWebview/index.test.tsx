@@ -1,14 +1,15 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import SimpleWebview from './';
-import { getWebviewNavbar } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
-jest.mock('../../UI/Navbar', () => ({
-  getWebviewNavbar: jest.fn(),
-}));
+jest.mock(
+  '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions',
+  () => jest.fn(() => ({})),
+);
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -33,23 +34,20 @@ describe('SimpleWebview', () => {
     (Share.open as jest.Mock).mockImplementation(() => Promise.resolve());
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(<SimpleWebview />);
 
-    // Test that WebView is rendered with correct URL
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should set navigation options on mount', () => {
+  it('sets navigation options on mount', () => {
     render(<SimpleWebview />);
 
-    // Test that getWebviewNavbar is called with the correct arguments
     expect(mockNavigation.setOptions).toHaveBeenCalled();
-    expect(mockNavigation.setParams).toHaveBeenCalled();
-    expect(getWebviewNavbar).toHaveBeenCalled();
+    expect(getHeaderCenterNavbarOptions).toHaveBeenCalled();
   });
 
-  it('should call share function when dispatch is called', () => {
+  it('calls share function when dispatch is called', () => {
     mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
     render(<SimpleWebview />);
 
@@ -57,7 +55,7 @@ describe('SimpleWebview', () => {
     expect(open).toHaveBeenCalled();
   });
 
-  it('should log error when share function fails', async () => {
+  it('logs error when share function fails', async () => {
     const log = jest.spyOn(Logger, 'log');
     jest
       .spyOn(Share, 'open')
