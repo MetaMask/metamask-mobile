@@ -27,7 +27,7 @@ import HeaderWithTitleLeft from '../../../../../component-library/components-tem
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -588,11 +588,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           shouldNavigateBack={false}
           onClose={handleDepthBandSheetClose}
         >
-          <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.order_book.depth_band.title')}
-            </Text>
-          </BottomSheetHeader>
+          <HeaderCenter
+            title={strings('perps.order_book.depth_band.title')}
+            onClose={handleDepthBandSheetClose}
+          />
           <View style={styles.depthBandSheetContent}>
             {groupingOptions.map((value) => (
               <TouchableOpacity

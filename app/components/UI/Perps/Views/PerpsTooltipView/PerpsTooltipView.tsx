@@ -77,13 +77,9 @@ const PerpsTooltipView: React.FC = () => {
     },
   ];
 
-  // Content keys that render their own header (with icon)
-  const hasCustomHeader =
-    contentKey === 'market_hours' || contentKey === 'after_hours_trading';
-
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack onClose={handleClose}>
-      {!hasCustomHeader && <HeaderCenter title={title} onClose={handleClose} />}
+      <HeaderCenter title={title} onClose={handleClose} />
       <View style={styles.contentContainer}>{renderContent()}</View>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}

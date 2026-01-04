@@ -25,7 +25,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import {
   ButtonSize,
   ButtonVariants,
@@ -587,11 +587,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       shouldNavigateBack={false}
       onClose={onClose}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.leverage_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.order.leverage_modal.title')}
+        onClose={onClose}
+      />
 
       <View style={styles.container}>
         {/* Large leverage display */}
