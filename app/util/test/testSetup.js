@@ -420,10 +420,16 @@ jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
  * Mock the reanimated module temporarily while the infinite style issue is being investigated
  * Issue: https://github.com/software-mansion/react-native-reanimated/issues/6645
  */
-jest.mock('react-native-reanimated', () =>
+jest.mock('react-native-reanimated', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('react-native-reanimated/mock'),
-);
+  const reanimatedMock = require('react-native-reanimated/mock');
+  return {
+    ...reanimatedMock,
+    // useFrameCallback which is not included in the default mock
+    useFrameCallback: jest.fn(),
+    setNativeProps: jest.fn(),
+  };
+});
 
 NativeModules.RNGestureHandlerModule = {
   getConstants: jest.fn(() => ({
