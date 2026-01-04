@@ -470,7 +470,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - NitroModules (0.29.6):
+  - NitroModules (0.29.8):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -494,6 +494,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - OpenSSL-Universal (3.3.3001)
+  - PerformanceToolkit (0.2.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - PromisesObjC (2.4.0)
@@ -3004,6 +3028,7 @@ DEPENDENCIES:
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - OpenSSL-Universal
+  - PerformanceToolkit (from `../node_modules/react-native-performance-toolkit`)
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -3234,6 +3259,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@metamask/native-utils"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
+  PerformanceToolkit:
+    :path: "../node_modules/react-native-performance-toolkit"
   Permission-BluetoothPeripheral:
     :path: "../node_modules/react-native-permissions/ios/BluetoothPeripheral"
   RCT-Folly:
@@ -3524,8 +3551,9 @@ SPEC CHECKSUMS:
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: e1d5591114bd87ba0b91348477f77b029cd361b8
-  NitroModules: 54cf4604a7e458d788aeecb3ba1ff7db43ed17f2
+  NitroModules: abee9ec40ca6a176792dcc0a54ba4e2a74f6526a
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
+  PerformanceToolkit: 94068f085b444a6e57fb965852bb164358e2d5ac
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: ea9d9256ba7f9322ef911169a9f696e5857b9e17
