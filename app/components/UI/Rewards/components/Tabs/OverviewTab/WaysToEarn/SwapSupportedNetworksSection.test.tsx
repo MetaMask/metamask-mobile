@@ -50,7 +50,7 @@ const mockSelectAdditionalNetworksBlacklistFeatureFlag =
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
-      'rewards.ways_to_earn.supported_networks': 'Supported Networks',
+      'rewards.ways_to_earn.supported_networks': 'Supported networks',
     };
     return mockStrings[key] || key;
   }),
@@ -139,7 +139,7 @@ describe('SwapSupportedNetworksSection', () => {
     const { getByText } = render(<SwapSupportedNetworksSection />);
 
     // Assert
-    expect(getByText('Supported Networks')).toBeOnTheScreen();
+    expect(getByText('Supported networks')).toBeOnTheScreen();
   });
 
   it('renders supported networks', () => {
