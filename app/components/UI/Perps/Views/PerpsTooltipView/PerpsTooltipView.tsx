@@ -3,13 +3,13 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import {
   ButtonSize,
   ButtonVariants,
@@ -36,12 +36,12 @@ const PerpsTooltipView: React.FC = () => {
   const { contentKey, data } = route.params || {};
 
   const handleClose = useCallback(() => {
-    // BottomSheet will handle navigation.goBack() when shouldNavigateBack is true
+    bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleGotItPress = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
+    handleClose();
+  }, [handleClose]);
 
   if (!contentKey) {
     return null;
@@ -83,11 +83,7 @@ const PerpsTooltipView: React.FC = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack onClose={handleClose}>
-      {!hasCustomHeader && (
-        <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        </BottomSheetHeader>
-      )}
+      {!hasCustomHeader && <HeaderCenter title={title} onClose={handleClose} />}
       <View style={styles.contentContainer}>{renderContent()}</View>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}

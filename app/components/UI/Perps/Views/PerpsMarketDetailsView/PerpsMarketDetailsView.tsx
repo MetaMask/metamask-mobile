@@ -20,7 +20,10 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  ButtonSize as ButtonSizeRNDesignSystem,
+  IconName,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -32,7 +35,10 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import { PerpsLeverage } from '../../components/PerpsLeverage';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -118,6 +124,9 @@ import { getMarketHoursStatus } from '../../utils/marketHours';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import HeaderWithTitleLeftScrollable, {
+  useHeaderWithTitleLeftScrollable,
+} from '../../../../../component-library/components-temp/HeaderWithTitleLeftScrollable';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
@@ -900,6 +909,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Simplified styles - no complex calculations needed
   const { styles } = useStyles(createStyles, {});
 
+  // Scroll sync hook for collapsible header
+  const {
+    onScroll: handleHeaderScroll,
+    scrollY: headerScrollY,
+    expandedHeight,
+    setExpandedHeight,
+  } = useHeaderWithTitleLeftScrollable();
+
   if (!market) {
     return (
       <SafeAreaView style={styles.container}>
@@ -920,26 +937,52 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      {/* Fixed Header Section */}
-      <View>
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBackPress}
-          onFavoritePress={handleWatchlistPress}
-          onFullscreenPress={handleFullscreenChartOpen}
-          isFavorite={isWatchlist}
-          testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
-          currentPrice={chartCurrentPrice}
-        />
-      </View>
+      {/* Collapsible Header */}
+      <HeaderWithTitleLeftScrollable
+        title={`${getPerpsDisplaySymbol(market.symbol)}-USD`}
+        onBack={handleBackPress}
+        scrollY={headerScrollY}
+        onExpandedHeightChange={setExpandedHeight}
+        insideSafeAreaView
+        titleLeftProps={{
+          title: `${getPerpsDisplaySymbol(market.symbol)}-USD`,
+          titleAccessory: (
+            <PerpsLeverage
+              maxLeverage={market.maxLeverage}
+              style={styles.headerLeverage}
+            />
+          ),
+          endAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+          bottomAccessory: (
+            <LivePriceHeader
+              symbol={market.symbol}
+              currentPrice={chartCurrentPrice}
+              throttleMs={1000}
+            />
+          ),
+        }}
+        endButtonIconProps={[
+          { iconName: IconName.Expand, onPress: handleFullscreenChartOpen },
+          {
+            iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
+            onPress: handleWatchlistPress,
+          },
+        ]}
+        testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+      />
 
       {/* Scrollable Content Container */}
       <View style={styles.scrollableContentContainer}>
         <ScrollView
           style={styles.mainContentScrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            { paddingTop: expandedHeight },
+          ]}
           showsVerticalScrollIndicator={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+          onScroll={handleHeaderScroll}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }

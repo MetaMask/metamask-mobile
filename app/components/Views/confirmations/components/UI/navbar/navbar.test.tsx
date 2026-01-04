@@ -1,25 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { getNavbar } from './navbar';
-import { Theme } from '../../../../../../util/theme/models';
 
-describe('getStakingDepositNavbar', () => {
+describe('getNavbar', () => {
   it('renders the header title correctly', () => {
     const title = 'Test Title';
     const { getByText } = render(
-      <>
-        {getNavbar({
-          onReject: jest.fn(),
-          theme: {
-            colors: {
-              background: {
-                alternative: 'red',
-              },
-            },
-          } as Theme,
-          title,
-        }).headerTitle()}
-      </>,
+      <>{getNavbar({ title, onReject: jest.fn() }).header()}</>,
     );
 
     expect(getByText(title)).toBeTruthy();
@@ -27,24 +14,17 @@ describe('getStakingDepositNavbar', () => {
 
   it('calls onReject when the back button is pressed', () => {
     const onRejectMock = jest.fn();
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <>
         {getNavbar({
-          onReject: onRejectMock,
-          theme: {
-            colors: {
-              background: {
-                alternative: 'red',
-              },
-            },
-          } as Theme,
           title: 'Test Title',
-        }).headerLeft()}
+          onReject: onRejectMock,
+        }).header()}
       </>,
     );
 
-    const backButton = getByTestId('Test Title-navbar-back-button');
-    backButton.props.onPress();
+    const backButton = getByRole('button');
+    fireEvent.press(backButton);
 
     expect(onRejectMock).toHaveBeenCalled();
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -9,17 +9,19 @@ import { useStyles } from '../../../../hooks/useStyles';
 
 interface PerpsLeverageProps {
   maxLeverage: string;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
 const PerpsLeverage = ({
   maxLeverage,
+  style,
   testID = 'perps-leverage',
 }: PerpsLeverageProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.maxLeverage} testID={testID}>
+    <View style={[styles.maxLeverage, style]} testID={testID}>
       <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
         {maxLeverage}
       </Text>

@@ -82,4 +82,7 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       lineHeight: 14,
       paddingTop: 8,
     },
+    headerLeverage: {
+      marginLeft: 4,
+    },
   });

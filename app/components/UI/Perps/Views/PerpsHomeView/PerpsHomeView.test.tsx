@@ -42,7 +42,6 @@ jest.mock(
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
-const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -52,7 +51,7 @@ jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
     navigateToMarketDetails: jest.fn(),
-    navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketList: jest.fn(),
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
@@ -229,64 +228,58 @@ jest.mock('../../constants/eventNames', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
+// Mock HeaderWithTitleLeftScrollable component
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderWithTitleLeftScrollable',
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
-  interface MockPerpsHomeHeaderProps {
-    onSearchToggle: () => void;
-    onBack: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID: string;
-  }
-
-  return function MockPerpsHomeHeader({
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (isSearchVisible) {
-      return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      );
+    interface EndButtonIconProps {
+      iconName: string;
+      onPress?: () => void;
     }
 
-    return (
-      <View>
+    interface MockHeaderProps {
+      onBack?: () => void;
+      testID?: string;
+      endButtonIconProps?: EndButtonIconProps[];
+    }
+
+    const MockHeaderWithTitleLeftScrollable = ({
+      onBack,
+      testID,
+      endButtonIconProps,
+    }: MockHeaderProps) => (
+      <View testID={testID}>
         <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
           <View testID="back-button" />
           <Text>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
+        {endButtonIconProps?.map((props, index) => (
+          <TouchableOpacity
+            key={index}
+            testID={`${testID}-${props.iconName.toLowerCase()}-button`}
+            onPress={props.onPress}
+          >
+            <Text>{props.iconName}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     );
-  };
-});
+
+    return {
+      __esModule: true,
+      default: MockHeaderWithTitleLeftScrollable,
+      useHeaderWithTitleLeftScrollable: () => ({
+        onScroll: jest.fn(),
+        scrollY: { value: 0 },
+        expandedHeight: 140,
+        setExpandedHeight: jest.fn(),
+        scrollTriggerPosition: 140,
+      }),
+    };
+  },
+);
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -455,7 +448,6 @@ describe('PerpsHomeView', () => {
     jest.clearAllMocks();
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
-    mockNavigateToMarketList.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
 
@@ -465,7 +457,6 @@ describe('PerpsHomeView', () => {
 
     // Assert - Component renders with essential elements
     expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
   });
 
   it('shows header with navigation controls', () => {
@@ -474,37 +465,6 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
-  });
-
-  it('shows search toggle button', () => {
-    // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Assert
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
-  });
-
-  it('navigates to market list view with search enabled when search button is pressed', () => {
-    // Arrange
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
-
-    // Assert - Search bar should not be visible initially
-    expect(queryByTestId('perps-home-search-bar')).toBeNull();
-
-    // Act - Press search toggle
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
-
-    // Assert - Should navigate to MarketListView with search enabled
-    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultSearchVisible: true,
-      source: 'homescreen_tab',
-      fromHome: true,
-      button_clicked: 'magnifying_glass',
-      button_location: 'perps_home',
-    });
-    // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
-    expect(queryByTestId('perps-home-search-bar')).toBeNull();
   });
 
   it('shows positions section when positions exist', () => {
