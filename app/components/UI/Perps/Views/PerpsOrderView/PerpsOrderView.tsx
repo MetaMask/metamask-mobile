@@ -95,6 +95,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import {
   usePerpsLiveAccount,
   usePerpsLivePrices,
@@ -162,6 +163,10 @@ interface PerpsOrderViewContentProps {
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
 }) => {
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -745,6 +750,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false; // Reset flag on early return
@@ -762,6 +771,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false;
@@ -835,6 +848,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           feeDiscountPercentage: feeResults.feeDiscountPercentage,
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
+          source,
         },
       };
 
@@ -891,6 +905,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
+    source,
     isButtonColorTestEnabled,
     buttonColorVariant,
   ]);
@@ -992,7 +1007,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemOnly]}>
+            <View
+              style={[
+                styles.detailItem,
+                // If there are items below (limit price or TP/SL), only round top corners
+                // Otherwise, round all corners
+                orderForm.type === 'limit' || !hideTPSL
+                  ? styles.detailItemFirst
+                  : styles.detailItemOnly,
+              ]}
+            >
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1030,7 +1054,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Limit price - only show for limit orders */}
             {orderForm.type === 'limit' && (
-              <View style={styles.detailItem}>
+              <View
+                style={[
+                  styles.detailItem,
+                  // If TP/SL is hidden, this is the last item so round bottom corners
+                  hideTPSL && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>

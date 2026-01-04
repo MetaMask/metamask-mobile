@@ -81,7 +81,8 @@ enum EVENT_NAME {
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
-  NETWORK_ADDED = 'Network Added',
+  RPC_ADDED = 'RPC Added',
+  RPC_REMOVED = 'RPC Removed',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
@@ -222,7 +223,6 @@ enum EVENT_NAME {
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
-  BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   RAMP_REGION_SELECTED = 'Ramp Region Selected',
   ONRAMP_GET_STARTED_CLICKED = 'On-ramp Get Started Clicked',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -246,7 +246,6 @@ enum EVENT_NAME {
   RAMP_REGION_RESET = 'Ramp Region Reset',
 
   // Off Ramp
-  SELL_BUTTON_CLICKED = 'Sell Button Clicked',
   OFFRAMP_GET_STARTED_CLICKED = 'Off-ramp Get Started Clicked',
   OFFRAMP_PAYMENT_METHOD_SELECTED = 'Off-ramp Payment Method Selected',
   OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'Off-ramp Continue To Amount Clicked',
@@ -306,7 +305,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  TOAST_DISPLAYED = 'Toast Displayed',
+  NOTICE_UPDATE_DISPLAYED = 'Notice Update Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -556,6 +555,7 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_DEEPLINK_HANDLED = 'Card Deeplink Handled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -585,6 +585,9 @@ enum EVENT_NAME {
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
   PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
   PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
+
+  // Trending
+  TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -716,7 +719,8 @@ const events = {
   VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
-  NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
+  RPC_ADDED: generateOpt(EVENT_NAME.RPC_ADDED),
+  RPC_REMOVED: generateOpt(EVENT_NAME.RPC_REMOVED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
   SEND_TRANSACTION_STARTED: generateOpt(EVENT_NAME.SEND_TRANSACTION_STARTED),
@@ -895,7 +899,6 @@ const events = {
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
 
   // ONRAMP
-  BUY_BUTTON_CLICKED: generateOpt(EVENT_NAME.BUY_BUTTON_CLICKED),
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
   ONRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.ONRAMP_GET_STARTED_CLICKED,
@@ -933,7 +936,6 @@ const events = {
   RAMP_REGION_RESET: generateOpt(EVENT_NAME.RAMP_REGION_RESET),
 
   // OFFRAMP
-  SELL_BUTTON_CLICKED: generateOpt(EVENT_NAME.SELL_BUTTON_CLICKED),
   OFFRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.OFFRAMP_GET_STARTED_CLICKED,
   ),
@@ -1466,6 +1468,7 @@ const events = {
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
+  CARD_DEEPLINK_HANDLED: generateOpt(EVENT_NAME.CARD_DEEPLINK_HANDLED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1517,6 +1520,8 @@ const events = {
   ),
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
+  TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
+
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
 
@@ -1524,8 +1529,8 @@ const events = {
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 
-  // Toast
-  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
+  // Privacy Notice
+  NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
 };
 
 /**

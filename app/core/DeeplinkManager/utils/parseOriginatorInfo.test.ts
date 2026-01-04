@@ -1,7 +1,7 @@
 import parseOriginatorInfo from './parseOriginatorInfo'; // Adjust the import path as needed
 
 describe('parseOriginatorInfo', () => {
-  it('should correctly parse a valid base64-encoded OriginatorInfo', () => {
+  it('parses a valid base64-encoded OriginatorInfo', () => {
     const validOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',
@@ -20,7 +20,7 @@ describe('parseOriginatorInfo', () => {
     expect(result).toEqual(validOriginatorInfo);
   });
 
-  it('should correctly parse a valid base64-encoded OriginatorInfo with only required fields', () => {
+  it('parses a valid base64-encoded OriginatorInfo with only required fields', () => {
     const validOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',
@@ -36,7 +36,7 @@ describe('parseOriginatorInfo', () => {
     expect(result).toEqual(validOriginatorInfo);
   });
 
-  it('should throw an error for invalid base64 string', () => {
+  it('throws an error for invalid base64 string', () => {
     const invalidBase64 = 'not a valid base64 string';
 
     expect(() =>
@@ -44,7 +44,7 @@ describe('parseOriginatorInfo', () => {
     ).toThrow('Invalid base64 string');
   });
 
-  it('should throw an error for non-UTF-8 encoded base64 string', () => {
+  it('throws an error for non-UTF-8 encoded base64 string', () => {
     // This is a valid base64 string, but it doesn't decode to valid UTF-8
     const nonUtf8Base64 = Buffer.from([255, 254, 253]).toString('base64');
 
@@ -53,7 +53,7 @@ describe('parseOriginatorInfo', () => {
     ).toThrow('Invalid base64 string');
   });
 
-  it('should throw an error for invalid JSON', () => {
+  it('throws an error for invalid JSON', () => {
     const invalidJson = Buffer.from('{invalid json}').toString('base64');
 
     expect(() =>
@@ -61,7 +61,7 @@ describe('parseOriginatorInfo', () => {
     ).toThrow('Invalid JSON format');
   });
 
-  it('should throw an error for missing required fields', () => {
+  it('throws an error for missing required fields', () => {
     const invalidOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',
@@ -76,7 +76,7 @@ describe('parseOriginatorInfo', () => {
     );
   });
 
-  it('should throw an error for incorrect field types', () => {
+  it('throws an error for incorrect field types', () => {
     const invalidOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',
@@ -92,7 +92,7 @@ describe('parseOriginatorInfo', () => {
     );
   });
 
-  it('should accept valid optional fields', () => {
+  it('accepts valid optional fields', () => {
     const validOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',
@@ -111,7 +111,7 @@ describe('parseOriginatorInfo', () => {
     expect(result).toEqual(validOriginatorInfo);
   });
 
-  it('should reject invalid optional field types', () => {
+  it('rejects invalid optional field types', () => {
     const invalidOriginatorInfo = {
       url: 'https://example.com',
       title: 'Example DApp',

@@ -24,7 +24,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
@@ -216,7 +216,7 @@ const QRScanner = ({
         }
       }
 
-      if (SDKConnectV2.isConnectDeeplink(response.data)) {
+      if (SDKConnectV2.isMwpDeeplink(response.data)) {
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -233,7 +233,7 @@ const QRScanner = ({
             .build(),
         );
 
-        SDKConnectV2.handleConnectDeeplink(response.data);
+        SDKConnectV2.handleMwpDeeplink(response.data);
         end();
         return;
       }
@@ -519,7 +519,6 @@ const QRScanner = ({
           return;
         }
 
-        // Checking if it can be handled like deeplinks
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           onHandled: () => {

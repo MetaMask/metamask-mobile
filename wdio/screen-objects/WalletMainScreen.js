@@ -10,6 +10,7 @@ import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.se
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
+import TimerHelper from 'appwright/utils/TimersHelper.js';
 
 class WalletMainScreen {
 
@@ -223,14 +224,14 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); 
+      await AppwrightGestures.tap(await this.accountIcon); 
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); 
+      await AppwrightGestures.tap(await this.swapButton); 
     }
   }
 
@@ -239,7 +240,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); 
+      await AppwrightGestures.tap(await this.networkInNavBar); 
     }
   }
 
@@ -253,7 +254,8 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const container = await this.WalletScreenContainer;
+    await appwrightExpect(container).toBeVisible();
   }
 
   async clickOnMainScreen() { // to close account actions bottom sheet
@@ -292,6 +294,19 @@ class WalletMainScreen {
       const balanceContainerText = await balanceContainer.getText();
 
       return balanceContainerText;
+    }
+  }
+
+  async isMenuButtonVisible() {
+    if (!this._device) {
+      return await this.balanceContainer.isVisible();
+    } else {
+      const menuButton = await AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON);
+      const timer = new TimerHelper('Time for the menu button to be visible');
+      timer.start();
+      await appwrightExpect(menuButton).toBeVisible();
+      timer.stop();
+      return timer;
     }
   }
 
@@ -354,7 +369,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); 
+      await AppwrightGestures.tap(await this.accountActionsButton); 
     }
   }
 

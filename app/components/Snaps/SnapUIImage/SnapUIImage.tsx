@@ -1,11 +1,13 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { isValidUrl } from '@metamask/snaps-utils';
 import React from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle, ImageStyle } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import { Image } from 'expo-image';
 
 export interface SnapUIImageProps {
   value: string;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle & ImageStyle>;
   width?: number;
   height?: number;
   borderRadius?: number;
@@ -68,6 +70,25 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   style,
   borderRadius,
 }) => {
+  if (isValidUrl(value)) {
+    return (
+      <Image
+        source={{ uri: value }}
+        style={[
+          // eslint-disable-next-line react-native/no-inline-styles
+          {
+            height: propHeight,
+            width: propWidth,
+            borderRadius,
+            maxWidth: '100%',
+            maxHeight: '100%',
+          },
+          style,
+        ]}
+      />
+    );
+  }
+
   const dimensions = getDimensions(value);
   const aspectRatio = dimensions?.aspectRatio ?? 1;
   const width = propWidth ?? dimensions?.width;

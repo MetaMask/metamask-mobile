@@ -71,8 +71,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 
 // Mock the navigation details creators
-jest.mock('../TokensBottomSheet', () => ({
-  createTokenBottomSheetFilterNavDetails: jest.fn(() => ['TokenFilter', {}]),
+jest.mock('../TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
@@ -132,20 +131,6 @@ jest.mock('../../../../util/theme', () => ({
       text: { default: '#000000' },
       border: { muted: '#e0e0e0' },
     },
-  }),
-}));
-
-// Mock the styles
-jest.mock('../styles', () => ({
-  __esModule: true,
-  default: () => ({
-    actionBarWrapper: {},
-    controlButtonOuterWrapper: {},
-    controlButtonInnerWrapper: {},
-    controlButton: {},
-    controlButtonDisabled: {},
-    controlButtonText: {},
-    controlIconButton: {},
   }),
 }));
 
