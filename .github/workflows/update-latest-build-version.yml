@@ -28,18 +28,9 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}
           token: ${{ secrets.PR_TOKEN }}
+      - id: bump-script
+        uses: ./.github/actions/bump-build-version
+        with:
+          build-version: ${{ needs.generate-build-version.outputs.build-version }}
+          ref: ${{ inputs.base-branch }}
 
-      - name: Bump script
-        env:
-          HEAD_REF: ${{ inputs.base-branch }}
-        run: |
-          ./scripts/set-build-version.sh ${{ needs.generate-build-version.outputs.build-version }}
-          git diff
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
-          git add bitrise.yml
-          git add package.json
-          git add ios/MetaMask.xcodeproj/project.pbxproj
-          git add android/app/build.gradle
-          git commit -m "[skip ci] Bump version number to ${{ needs.generate-build-version.outputs.build-version }}"
-          git push origin HEAD:"$HEAD_REF" --force-with-lease
