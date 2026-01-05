@@ -528,8 +528,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                   style={
                                     {
                                       "backgroundColor": "#f3f5f9",
-                                      "borderRadius": 10,
-                                      "marginTop": 16,
+                                      "borderRadius": 12,
                                       "maxHeight": "auto",
                                       "minHeight": 264,
                                       "paddingTop": 16,
@@ -631,10 +630,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                                 "fontWeight": "400",
                                                 "height": 66,
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 24,
                                                 "opacity": 1,
                                                 "paddingBottom": 12,
-                                                "paddingTop": 12,
                                                 "paddingVertical": 0,
                                               }
                                             }
@@ -724,10 +722,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                                 "fontWeight": "400",
                                                 "height": 66,
                                                 "letterSpacing": 0,
-                                                "lineHeight": 20,
+                                                "lineHeight": 24,
                                                 "opacity": 1,
                                                 "paddingBottom": 12,
-                                                "paddingTop": 12,
                                                 "paddingVertical": 0,
                                               }
                                             }
