@@ -206,8 +206,12 @@ const RevealPrivateCredential = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
-        // we should not show the error message if the error is because biometric is not enabled
-        if (e.message.includes(ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED)) {
+        // we should not show the error message if the error is because password is not set with biometrics
+        if (
+          e.message.includes(
+            ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+          )
+        ) {
           return;
         }
         let msg = strings('reveal_credential.warning_incorrect_password');
