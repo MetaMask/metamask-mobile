@@ -133,6 +133,35 @@ export const TokenListItem = React.memo(
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
+    const handleConvertToMUSD = useCallback(async () => {
+      try {
+        if (!asset?.address || !asset?.chainId) {
+          throw new Error('Asset address or chain ID is not set');
+        }
+
+        const assetChainId = toHex(asset.chainId);
+
+        await initiateConversion({
+          outputChainId: getMusdOutputChainId(assetChainId),
+          preferredPaymentToken: {
+            address: toHex(asset.address),
+            chainId: assetChainId,
+          },
+          navigationStack: Routes.EARN.ROOT,
+        });
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[mUSD Conversion] Failed to initiate conversion',
+        );
+      }
+    }, [
+      asset?.address,
+      asset?.chainId,
+      getMusdOutputChainId,
+      initiateConversion,
+    ]);
+
     // Secondary balance shows percentage change (if available and not on testnet)
     const hasPercentageChange =
       !isTestNet(chainId) &&
@@ -141,39 +170,41 @@ export const TokenListItem = React.memo(
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
 
-    // Determine the color for percentage change
-    let secondaryBalanceColor = TextColor.Alternative;
-    if (shouldShowConvertToMusdCta) {
-      secondaryBalanceColor = TextColor.Primary;
-    } else if (hasPercentageChange) {
-      if (pricePercentChange1d === 0) {
-        secondaryBalanceColor = TextColor.Alternative;
-      } else if (pricePercentChange1d > 0) {
-        secondaryBalanceColor = TextColor.Success;
-      } else {
-        secondaryBalanceColor = TextColor.Error;
-      }
-    }
-
-    const secondaryBalance = useMemo(() => {
+    const secondaryBalanceDisplay = useMemo(() => {
       if (shouldShowConvertToMusdCta) {
-        return strings('earn.musd_conversion.convert_to_musd');
+        return {
+          text: strings('earn.musd_conversion.convert_to_musd'),
+          color: TextColor.Primary,
+          onPress: handleConvertToMUSD,
+        };
       }
 
-      if (hasPercentageChange) {
-        return `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
-          2,
-        )}%`;
+      if (!hasPercentageChange) {
+        return {
+          text: undefined,
+          color: TextColor.Alternative,
+          onPress: undefined,
+        };
       }
 
-      const percentageText = hasPercentageChange
-        ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
-            2,
-          )}%`
-        : undefined;
+      const text = `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+        2,
+      )}%`;
 
-      return percentageText;
-    }, [hasPercentageChange, pricePercentChange1d, shouldShowConvertToMusdCta]);
+      let color = TextColor.Alternative;
+      if (pricePercentChange1d > 0) {
+        color = TextColor.Success;
+      } else if (pricePercentChange1d < 0) {
+        color = TextColor.Error;
+      }
+
+      return { text, color, onPress: undefined };
+    }, [
+      handleConvertToMUSD,
+      hasPercentageChange,
+      pricePercentChange1d,
+      shouldShowConvertToMusdCta,
+    ]);
 
     const earnToken = getEarnToken(asset as TokenI);
 
@@ -226,35 +257,6 @@ export const TokenListItem = React.memo(
       isStakeable,
     ]);
 
-    const handleConvertToMUSD = useCallback(async () => {
-      try {
-        if (!asset?.address || !asset?.chainId) {
-          throw new Error('Asset address or chain ID is not set');
-        }
-
-        const assetChainId = toHex(asset.chainId);
-
-        await initiateConversion({
-          outputChainId: getMusdOutputChainId(assetChainId),
-          preferredPaymentToken: {
-            address: toHex(asset.address),
-            chainId: assetChainId,
-          },
-          navigationStack: Routes.EARN.ROOT,
-        });
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          '[mUSD Conversion] Failed to initiate conversion',
-        );
-      }
-    }, [
-      asset?.address,
-      asset?.chainId,
-      getMusdOutputChainId,
-      initiateConversion,
-    ]);
-
     if (!asset || !chainId) {
       return null;
     }
@@ -269,13 +271,11 @@ export const TokenListItem = React.memo(
         onLongPress={asset.isNative ? null : showRemoveMenu}
         asset={asset}
         balance={asset.balanceFiat}
-        secondaryBalance={secondaryBalance}
-        secondaryBalanceColor={secondaryBalanceColor}
+        secondaryBalance={secondaryBalanceDisplay.text}
+        secondaryBalanceColor={secondaryBalanceDisplay.color}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
-        onSecondaryBalancePress={
-          shouldShowConvertToMusdCta ? handleConvertToMUSD : undefined
-        }
+        onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
       >
         <BadgeWrapper
           style={styles.badge}
