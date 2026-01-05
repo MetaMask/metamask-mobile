@@ -3944,9 +3944,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      // Check cache for full fetches (no time params and not skipping cache)
-      const isFullFetch = params?.startTime === undefined;
-      if (isFullFetch && !params?.skipCache) {
+      // Cache-first strategy: return cached fills if available and not explicitly skipped
+      if (!params?.skipCache) {
         const cacheKey = this.getTransactionCacheKey(userAddress);
         const cached = this.transactionHistoryCache.get(cacheKey);
         if (cached?.fills) {
@@ -3955,22 +3954,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Use time-based pagination when startTime is provided (for infinite scroll)
-      // Otherwise fall back to userFills for initial load
-      let rawFills;
-      if (params?.startTime !== undefined) {
-        rawFills = await infoClient.userFillsByTime({
-          user: userAddress,
-          startTime: params.startTime,
-          endTime: params.endTime,
-          aggregateByTime: params?.aggregateByTime || false,
-        });
-      } else {
-        rawFills = await infoClient.userFills({
-          user: userAddress,
-          aggregateByTime: params?.aggregateByTime || false,
-        });
-      }
+      // Fetch fills from API
+      const rawFills = await infoClient.userFills({
+        user: userAddress,
+        aggregateByTime: params?.aggregateByTime || false,
+      });
 
       DevLogger.log('User fills received:', rawFills);
 
@@ -4004,11 +3992,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return acc;
       }, []);
 
-      // Cache full fetches only (not time-windowed fetches)
-      if (isFullFetch) {
-        const cacheKey = this.getTransactionCacheKey(userAddress);
-        this.updateTransactionCache(cacheKey, { fills });
-      }
+      // Cache the fetched fills
+      const cacheKey = this.getTransactionCacheKey(userAddress);
+      this.updateTransactionCache(cacheKey, { fills });
 
       return fills;
     } catch (error) {
