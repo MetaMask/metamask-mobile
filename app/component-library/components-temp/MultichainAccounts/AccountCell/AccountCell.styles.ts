@@ -68,10 +68,6 @@ const styleSheet = (params: { theme: Theme; vars: unknown }) => {
       verticalAlign: 'middle',
     },
     menuButton: {
-      backgroundColor: colors.background.muted,
-      borderRadius: 8,
-      height: 28,
-      width: 28,
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',

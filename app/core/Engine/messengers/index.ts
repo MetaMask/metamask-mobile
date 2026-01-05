@@ -111,14 +111,22 @@ import {
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
+import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
+import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
-import { getTransactionPayControllerMessenger } from './transaction-pay-controller-messenger';
+import {
+  getTransactionPayControllerInitMessenger,
+  getTransactionPayControllerMessenger,
+} from './transaction-pay-controller-messenger';
+import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -174,7 +182,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getTransactionPayControllerInitMessenger,
   },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
@@ -214,6 +222,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
+    getInitMessenger: noop,
+  },
+  StorageService: {
+    getMessenger: getStorageServiceMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
@@ -358,6 +370,14 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getRewardsDataServiceMessenger,
     getInitMessenger: noop,
   },
+  RampsController: {
+    getMessenger: getRampsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RampsService: {
+    getMessenger: getRampsServiceMessenger,
+    getInitMessenger: noop,
+  },
   TokenBalancesController: {
     getMessenger: getTokenBalancesControllerMessenger,
     getInitMessenger: getTokenBalancesControllerInitMessenger,
@@ -392,6 +412,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsController: {
+    getMessenger: getProfileMetricsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsService: {
+    getMessenger: getProfileMetricsServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;

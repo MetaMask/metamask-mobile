@@ -35,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('useRegisterPhysicalAddress', () => {
   const mockRegisterPhysicalAddress = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     registerPhysicalAddress: mockRegisterPhysicalAddress,
@@ -66,11 +65,8 @@ describe('useRegisterPhysicalAddress', () => {
 
     // Default mocks - SDK available
     const mockCardSDK: ICardSDK = {
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     };
     mockUseCardSDK.mockReturnValue(mockCardSDK);
 
@@ -148,11 +144,8 @@ describe('useRegisterPhysicalAddress', () => {
 
     it('handles SDK not available error', async () => {
       const mockCardSDKNull: ICardSDK = {
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKNull);
 
@@ -339,7 +332,7 @@ describe('useRegisterPhysicalAddress', () => {
         await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -411,7 +404,7 @@ describe('useRegisterPhysicalAddress', () => {
         await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -458,11 +451,8 @@ describe('useRegisterPhysicalAddress', () => {
 
     it('handles undefined SDK gracefully', async () => {
       const mockCardSDKUndefined: ICardSDK = {
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
 

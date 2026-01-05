@@ -351,8 +351,7 @@ const mockState = ({
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('builds the initial state object', () => {
     const result = selectAssetsBySelectedAccountGroup(mockState());
-
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       '0x1': [
         {
           accountType: 'eip155:eoa',

@@ -22,7 +22,10 @@ import PredictMarketSkeleton from '../PredictMarketSkeleton';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { ScrollCoordinator } from '../../types/scrollCoordinator';
 import PredictOffline from '../PredictOffline';
-
+import { strings } from '../../../../../../locales/i18n';
+import PredictionsDark from '../../../../../images/predictions-no-search-results-dark.svg';
+import PredictionsLight from '../../../../../images/predictions-no-search-results-light.svg';
+import { useAssetFromTheme } from '../../../../../util/theme';
 interface MarketListContentProps {
   q?: string;
   category: PredictCategory;
@@ -43,6 +46,10 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   scrollCoordinator,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const ThemedPredictions = useAssetFromTheme(
+    PredictionsLight,
+    PredictionsDark,
+  );
   const tw = useTailwind();
   const {
     marketData,
@@ -115,6 +122,25 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     return <PredictOffline onRetry={handleRefresh} />;
   }
 
+  if (q && q.length > 0 && marketData.length === 0) {
+    return (
+      <Box
+        testID={getPredictMarketListSelector.emptyState()}
+        style={styles.emptySearchContainer}
+      >
+        <ThemedPredictions
+          testID="icon"
+          width={100}
+          height={100}
+          style={tw.style('mb-4')}
+        />
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('predict.search_no_markets_found', { q })}
+        </Text>
+      </Box>
+    );
+  }
+
   if (!marketData || marketData.length === 0) {
     return (
       <Box
@@ -122,7 +148,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
         style={styles.emptyContainer}
       >
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          No {category} markets available
+          {strings('predict.search_empty_state', { category })}
         </Text>
       </Box>
     );

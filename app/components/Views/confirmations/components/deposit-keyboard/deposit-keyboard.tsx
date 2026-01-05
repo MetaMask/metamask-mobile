@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './deposit-keyboard.styles';
@@ -9,10 +9,10 @@ import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
+import { noop } from 'lodash';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -28,14 +28,21 @@ const PERCENTAGE_BUTTONS = [
     value: 50,
   },
   {
-    label: 'Max',
-    value: 100,
+    label: '90%',
+    value: 90,
   },
 ];
 
+const MAX_BUTTON = {
+  label: 'Max',
+  value: 100,
+};
+
 export interface DepositKeyboardProps {
   alertMessage?: string;
+  doneLabel?: string;
   hasInput?: boolean;
+  hasMax?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -45,7 +52,9 @@ export interface DepositKeyboardProps {
 export const DepositKeyboard = memo(
   ({
     alertMessage,
+    doneLabel,
     hasInput,
+    hasMax,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -69,6 +78,17 @@ export const DepositKeyboard = memo(
       [onPercentagePress],
     );
 
+    const buttons = useMemo(() => {
+      const newButtons = [...PERCENTAGE_BUTTONS];
+
+      if (hasMax) {
+        newButtons.pop();
+        newButtons.push(MAX_BUTTON);
+      }
+
+      return newButtons;
+    }, [hasMax]);
+
     return (
       <View>
         <Box
@@ -78,17 +98,22 @@ export const DepositKeyboard = memo(
           gap={10}
         >
           {alertMessage && (
-            <Box style={styles.alertContainer}>
-              <Text style={styles.alertText}>{alertMessage}</Text>
-            </Box>
+            <Button
+              testID="deposit-keyboard-alert"
+              label={alertMessage}
+              style={[styles.button, styles.disabledButton]}
+              onPress={noop}
+              disabled
+              variant={ButtonVariants.Primary}
+            />
           )}
           {!alertMessage &&
             !hasInput &&
-            PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
+            buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
                 label={label}
-                style={styles.percentageButton}
+                style={styles.button}
                 onPress={() => handlePercentagePress(buttonValue)}
                 variant={ButtonVariants.Secondary}
               />
@@ -96,8 +121,8 @@ export const DepositKeyboard = memo(
           {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
-              label={strings('confirm.deposit_edit_amount_done')}
-              style={styles.percentageButton}
+              label={doneLabel ?? strings('confirm.edit_amount_done')}
+              style={styles.button}
               onPress={onDonePress}
               variant={ButtonVariants.Primary}
             />

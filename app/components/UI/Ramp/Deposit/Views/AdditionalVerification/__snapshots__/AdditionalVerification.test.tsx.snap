@@ -224,14 +224,14 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Additional Verification
+                  Additional verification
                 </Text>
               </TouchableOpacity>
             </View>
@@ -558,6 +558,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -582,7 +583,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -591,14 +592,14 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Additional Verification
+                              Additional verification
                             </Text>
                             <Text
                               accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -613,7 +614,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -631,6 +632,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -665,7 +667,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

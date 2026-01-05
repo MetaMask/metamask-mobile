@@ -24,42 +24,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks/usePhoneVerificationSend');
 jest.mock('../../hooks/useRegistrationSettings');
 jest.mock('../../../../hooks/useDebouncedValue');
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
 
-// Mock SelectComponent with proper interaction simulation
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  return (props: {
-    testID?: string;
-    onValueChange?: (value: string) => void;
-    selectedValue?: string;
-    defaultValue?: string;
-    options?: { key: string; value: string; label: string }[];
-    [key: string]: unknown;
-  }) => {
-    const handlePress = () => {
-      // Simulate selecting the first available option
-      if (props.options && props.options.length > 0 && props.onValueChange) {
-        props.onValueChange(props.options[0].value);
-      }
-    };
-
-    return React.createElement(
-      TouchableOpacity,
-      {
-        testID: props.testID,
-        onPress: handlePress,
-        ...props,
-      },
-      React.createElement(
-        Text,
-        {},
-        props.selectedValue || props.defaultValue || 'Select...',
-      ),
-    );
-  };
-});
+import { useCardSDK } from '../../sdk';
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -95,14 +64,19 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Create test store
+// Create test store with country object format
 const createTestStore = (initialState = {}) =>
   configureStore({
     reducer: {
       card: (
         state = {
           onboarding: {
-            selectedCountry: 'US',
+            selectedCountry: {
+              key: 'US',
+              name: 'United States',
+              emoji: '🇺🇸',
+              areaCode: '1',
+            },
             contactVerificationId: 'test-verification-id',
           },
           ...initialState,
@@ -143,14 +117,38 @@ describe('SetPhoneNumber Component', () => {
     (useRegistrationSettings as jest.Mock).mockReturnValue({
       data: {
         countries: [
-          { iso3166alpha2: 'US', name: 'United States', callingCode: '1' },
-          { iso3166alpha2: 'CA', name: 'Canada', callingCode: '1' },
-          { iso3166alpha2: 'GB', name: 'United Kingdom', callingCode: '44' },
+          {
+            iso3166alpha2: 'US',
+            name: 'United States',
+            callingCode: '1',
+            canSignUp: true,
+          },
+          {
+            iso3166alpha2: 'CA',
+            name: 'Canada',
+            callingCode: '1',
+            canSignUp: true,
+          },
+          {
+            iso3166alpha2: 'GB',
+            name: 'United Kingdom',
+            callingCode: '44',
+            canSignUp: true,
+          },
         ],
       },
     });
 
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
+
+    (useCardSDK as jest.Mock).mockReturnValue({
+      sdk: null,
+      isLoading: false,
+      user: null,
+      setUser: jest.fn(),
+      logoutFromProvider: jest.fn(),
+      fetchUserData: jest.fn(),
+    });
 
     store = createTestStore();
   });
@@ -287,7 +285,20 @@ describe('SetPhoneNumber Component', () => {
   });
 
   describe('Country Area Code Selection', () => {
-    it('allows country area code selection', () => {
+    it('renders country area code selector', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      expect(countrySelect).toBeTruthy();
+    });
+
+    it('navigates to region selector modal on press', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SetPhoneNumber />
@@ -299,38 +310,7 @@ describe('SetPhoneNumber Component', () => {
       );
       fireEvent.press(countrySelect);
 
-      expect(countrySelect).toBeTruthy();
-    });
-
-    it('displays initial area code based on selected country', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SetPhoneNumber />
-        </Provider>,
-      );
-
-      const countrySelect = getByTestId(
-        'set-phone-number-country-area-code-select',
-      );
-      // Should show +1 for US (initial selected country)
-      expect(countrySelect.props.selectedValue).toBe('1');
-    });
-
-    it('updates area code when different country is selected', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SetPhoneNumber />
-        </Provider>,
-      );
-
-      const countrySelect = getByTestId(
-        'set-phone-number-country-area-code-select',
-      );
-
-      // Mock selecting UK (+44)
-      fireEvent.press(countrySelect);
-
-      expect(countrySelect).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 
@@ -588,7 +568,12 @@ describe('SetPhoneNumber Component', () => {
     it('handles missing contact verification ID', () => {
       const storeWithoutVerificationId = createTestStore({
         onboarding: {
-          selectedCountry: 'US',
+          selectedCountry: {
+            key: 'US',
+            name: 'United States',
+            emoji: '🇺🇸',
+            areaCode: '1',
+          },
           contactVerificationId: null,
         },
       });
@@ -614,31 +599,37 @@ describe('SetPhoneNumber Component', () => {
         </Provider>,
       );
 
+      // Should still render the area code selector
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      expect(countrySelect.props.options).toEqual([]);
+      expect(countrySelect).toBeTruthy();
     });
 
-    it('handles missing selected country in registration settings', () => {
-      const storeWithUnknownCountry = createTestStore({
+    it('handles missing selected country area code', () => {
+      const storeWithNoAreaCode = createTestStore({
         onboarding: {
-          selectedCountry: 'XX', // Unknown country code
+          selectedCountry: {
+            key: 'XX',
+            name: 'Unknown Country',
+            emoji: '🏳️',
+            // areaCode is undefined
+          },
           contactVerificationId: 'test-verification-id',
         },
       });
 
       const { getByTestId } = render(
-        <Provider store={storeWithUnknownCountry}>
+        <Provider store={storeWithNoAreaCode}>
           <SetPhoneNumber />
         </Provider>,
       );
 
+      // Should still render the component without errors
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      // Should default to +1
-      expect(countrySelect.props.selectedValue).toBe('1');
+      expect(countrySelect).toBeTruthy();
     });
   });
 });

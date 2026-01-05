@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PredictFeeCollection } from '../types/flags';
 
 export interface GetMarketsParams {
   providerId?: string;
@@ -72,6 +73,8 @@ export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
   totalFee: number;
+  totalFeePercentage: number;
+  collector: Hex;
 }
 
 export interface GeoBlockResponse {
@@ -142,6 +145,7 @@ export interface GetPositionsParams {
   address?: string;
   claimable?: boolean;
   marketId?: string;
+  outcomeId?: string;
   limit?: number;
   offset?: number;
 }
@@ -232,7 +236,10 @@ export interface PredictProvider {
 
   // Order management
   previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & { signer: Signer },
+    params: Omit<PreviewOrderParams, 'providerId'> & {
+      signer: Signer;
+      feeCollection?: PredictFeeCollection;
+    },
   ): Promise<OrderPreview>;
   placeOrder(
     params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },

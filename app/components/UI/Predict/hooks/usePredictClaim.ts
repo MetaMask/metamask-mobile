@@ -4,7 +4,6 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -12,6 +11,8 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -30,6 +31,8 @@ export const usePredictClaim = ({
     try {
       navigateToConfirmation({
         headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
       await claimWinnings({ providerId });

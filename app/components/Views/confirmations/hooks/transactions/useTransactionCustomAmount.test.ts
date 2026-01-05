@@ -294,7 +294,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1061.72');
+      expect(result.current.amountFiat).toBe('530.86');
     });
 
     it('minus buffers if 100', async () => {
@@ -342,8 +342,6 @@ describe('useTransactionCustomAmount', () => {
         {},
       ] as TransactionPayRequiredToken[]);
 
-      useParamsMock.mockReturnValue({ amount: '43.21' });
-
       const { result } = runHook();
 
       await act(async () => {
@@ -368,7 +366,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
     });
 
-    it('to percentage of predict balance', async () => {
+    it('to percentage of predict balance converted to USD', async () => {
       usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
 
       const { result } = runHook({
@@ -381,7 +379,23 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1858.12');
+      expect(result.current.amountFiat).toBe('3716.25');
+    });
+
+    it('to total predict balance with no buffers if 100', async () => {
+      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('8642.46');
     });
   });
 });

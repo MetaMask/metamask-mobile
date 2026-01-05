@@ -19,6 +19,7 @@ export enum UserProfileProperty {
   REWARDS_REFERRED = 'rewards_referred',
   REWARDS_REFERRAL_CODE_USED = 'rewards_referral_code_used',
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
+  CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
 }
 
 export interface UserProfileMetaData {
@@ -38,4 +39,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.REWARDS_REFERRED]?: boolean;
   [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]?: string;
   [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]?: number;
+  [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]?: boolean;
 }

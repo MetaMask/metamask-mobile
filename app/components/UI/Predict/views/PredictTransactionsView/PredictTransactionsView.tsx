@@ -9,7 +9,9 @@ import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
-
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
@@ -60,7 +62,19 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isVisible,
 }) => {
   const tw = useTailwind();
-  const { activity, isLoading } = usePredictActivity({});
+  const { activity, isLoading, isRefreshing, loadActivity } =
+    usePredictActivity({});
+
+  // Track screen load performance (activity data loaded)
+  usePredictMeasurement({
+    traceName: TraceName.PredictTransactionHistoryView,
+    conditions: [!isLoading, activity !== undefined, isVisible === true],
+    debugContext: {
+      activityCount: activity?.length,
+      hasActivity: !!activity,
+      isLoading,
+    },
+  });
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
@@ -181,16 +195,19 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     });
 
     // Convert to sections array, maintaining chronological order
-    const sections: ActivitySection[] = [];
+    const activitySections: ActivitySection[] = [];
 
     // Add Today first if it exists
     if (groupedByDate[todayLabel]) {
-      sections.push({ title: todayLabel, data: groupedByDate[todayLabel] });
+      activitySections.push({
+        title: todayLabel,
+        data: groupedByDate[todayLabel],
+      });
     }
 
     // Add Yesterday second if it exists
     if (groupedByDate[yesterdayLabel]) {
-      sections.push({
+      activitySections.push({
         title: yesterdayLabel,
         data: groupedByDate[yesterdayLabel],
       });
@@ -199,11 +216,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     // Add all other dates in chronological order
     sectionOrder.forEach((label) => {
       if (label !== todayLabel && label !== yesterdayLabel) {
-        sections.push({ title: label, data: groupedByDate[label] });
+        activitySections.push({ title: label, data: groupedByDate[label] });
       }
     });
 
-    return sections;
+    return activitySections;
   }, [activity]);
 
   const renderSectionHeader = useCallback(
@@ -231,41 +248,37 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
 
-  return (
-    <Box twClassName="flex-1">
-      {isLoading ? (
-        <Box twClassName="items-center justify-center h-full">
-          <ActivityIndicator size="small" testID="activity-indicator" />
-        </Box>
-      ) : sections.length === 0 ? (
-        <Box twClassName="px-4">
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative py-2"
-          >
-            {strings('predict.transactions.no_transactions')}
-          </Text>
-        </Box>
-      ) : (
-        // TODO: Improve loading state, pagination, consider FlashList for better performance, pull down to refresh, etc.
-        <SectionList<PredictActivityItem, ActivitySection>
-          sections={sections}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={tw.style('p-2')}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          stickySectionHeadersEnabled
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          initialNumToRender={10}
-          windowSize={5}
-        />
-      )}
+  const shouldShowLoadingState = isLoading && sections.length === 0;
+
+  const renderContent = shouldShowLoadingState ? (
+    <Box twClassName="items-center justify-center h-full">
+      <ActivityIndicator size="small" testID="activity-indicator" />
     </Box>
+  ) : sections.length === 0 ? (
+    <Box twClassName="items-center justify-center py-10">
+      <TabEmptyState
+        description={strings('predict.transactions.no_transactions')}
+      />
+    </Box>
+  ) : (
+    <SectionList<PredictActivityItem, ActivitySection>
+      sections={sections}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      contentContainerStyle={tw.style('p-2')}
+      showsVerticalScrollIndicator={false}
+      style={tw.style('flex-1')}
+      stickySectionHeadersEnabled
+      refreshing={isRefreshing}
+      onRefresh={() => loadActivity({ isRefresh: true })}
+      maxToRenderPerBatch={20}
+      initialNumToRender={20}
+      windowSize={12}
+    />
   );
+
+  return <Box twClassName="flex-1">{renderContent}</Box>;
 };
 
 export default PredictTransactionsView;

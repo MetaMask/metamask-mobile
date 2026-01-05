@@ -7,6 +7,7 @@ import {
   MAX_SERIES,
   formatPriceHistoryLabel,
   formatTickValue,
+  DAY_IN_MS,
 } from './utils';
 
 describe('PredictDetailsChart utils', () => {
@@ -141,6 +142,30 @@ describe('PredictDetailsChart utils', () => {
         );
 
         expect(result).toMatch(/^[A-Z][a-z]{2}\s\d{2}$/);
+      });
+
+      it('formats MAX interval with month and day when time range is under 30 days', () => {
+        const timestamp = createSecondsTimestamp('2024-01-15T12:00:00.000Z');
+
+        const result = formatPriceHistoryLabel(
+          timestamp,
+          PredictPriceHistoryInterval.MAX,
+          { timeRangeMs: 15 * DAY_IN_MS },
+        );
+
+        expect(result).toMatch(/^[A-Z][a-z]{2}\s\d{1,2}$/);
+      });
+
+      it('formats MAX interval with time when time range is under 1 day', () => {
+        const timestamp = createSecondsTimestamp('2024-01-15T12:00:00.000Z');
+
+        const result = formatPriceHistoryLabel(
+          timestamp,
+          PredictPriceHistoryInterval.MAX,
+          { timeRangeMs: 0.5 * DAY_IN_MS },
+        );
+
+        expect(result).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)?$/);
       });
 
       it('formats unknown interval as month and 2-digit year', () => {

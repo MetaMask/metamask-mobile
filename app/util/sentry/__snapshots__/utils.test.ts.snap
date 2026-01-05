@@ -184,6 +184,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "networkId": "1",
   },
   "legalNotices": {
+    "isPna25Acknowledged": true,
     "newPrivacyPolicyToastClickedOrClosed": true,
     "newPrivacyPolicyToastShownDate": null,
   },

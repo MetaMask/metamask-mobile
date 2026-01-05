@@ -162,6 +162,40 @@ export const POLYMARKET_CURRENT_POSITIONS_RESPONSE = [
     negativeRisk: true,
   },
 ];
+
+export const POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    asset:
+      '51851880223290407825872150827934296608070009371891114025629582819868766043137',
+    conditionId:
+      '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
+    size: 11.904758,
+    avgPrice: 0.83,
+    initialValue: 10,
+    currentValue: 10.7142822,
+    cashPnl: 0.83333306,
+    percentPnl: 8.433734939,
+    totalBought: 11.904758,
+    realizedPnl: 0,
+    percentRealizedPnl: 0,
+    curPrice: 0.9,
+    redeemable: false,
+    mergeable: false,
+    title: 'Celtics vs. Nets',
+    slug: 'nba-bos-bkn-2025-11-18',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+    eventId: '79682',
+    eventSlug: 'nba-bos-bkn-2025-11-18',
+    outcome: 'Celtics',
+    outcomeIndex: 0,
+    oppositeOutcome: 'Nets',
+    oppositeAsset:
+      '51090123154876409384652748958994213129207000557350215937559106819875795938227',
+    endDate: '2025-11-19',
+    negativeRisk: false,
+  },
+];
 /*
 *endpoint: /positions?user&redeemable=true
 This contains all lost positions in resolved markets (no winning positions)
@@ -258,37 +292,6 @@ export const POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE = [
     oppositeAsset:
       '27924733395446062545587979072749182408671191217777211201081876786090294186139',
     endDate: '2025-10-14',
-    negativeRisk: false,
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    asset:
-      '58716612325563573083695434995001914264547326571961868286450107533347570622844',
-    conditionId:
-      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
-    size: 6,
-    avgPrice: 0.66,
-    initialValue: 3.96,
-    currentValue: 0,
-    cashPnl: -3.96,
-    percentPnl: -100,
-    totalBought: 6,
-    realizedPnl: 0,
-    percentRealizedPnl: -100,
-    curPrice: 0,
-    redeemable: true,
-    mergeable: true,
-    title: 'Blue Jays vs. Mariners',
-    slug: 'mlb-tor-sea-2025-10-17',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
-    eventId: '60362',
-    eventSlug: 'mlb-tor-sea-2025-10-17',
-    outcome: 'Blue Jays',
-    outcomeIndex: 0,
-    oppositeOutcome: 'Mariners',
-    oppositeAsset:
-      '42939601076825532550105235762150970758026025994237741085435131668957359315522',
-    endDate: '2025-10-24',
     negativeRisk: false,
   },
   {

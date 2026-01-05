@@ -4,12 +4,12 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils.ts';
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal/StateSelectorModal.tsx';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
 const mockPop = jest.fn();
 const mockGoBack = jest.fn();
@@ -51,6 +51,10 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
     stateName: 'New York',
     onStateSelect: mockOnStateSelect,
   })),
+}));
+
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 function render(Component: React.ComponentType) {
@@ -99,7 +103,7 @@ describe('UnsupportedStateModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('handles select different state button press correctly', () => {

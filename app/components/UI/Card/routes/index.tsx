@@ -28,6 +28,9 @@ import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { colors } from '../../../../styles/common';
+import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
+import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
+import ConfirmModal from '../components/Onboarding/ConfirmModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -43,32 +46,8 @@ export const headerStyle = StyleSheet.create({
   title: { alignSelf: 'center' },
 });
 
+// Default navigation has only back button on the left
 export const cardDefaultNavigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => <View />,
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.Close}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-});
-
-export const cardAuthenticationNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
@@ -81,15 +60,7 @@ export const cardAuthenticationNavigationOptions = ({
       onPress={() => navigation.goBack()}
     />
   ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
+  headerTitle: () => <View />,
   headerRight: () => <View />,
 });
 
@@ -148,12 +119,12 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.WELCOME}
         component={CardWelcome}
-        options={cardDefaultNavigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
-        options={cardAuthenticationNavigationOptions}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.SPENDING_LIMIT}
@@ -164,6 +135,11 @@ const MainRoutes = () => {
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.CARD.VERIFYING_REGISTRATION}
+        component={VerifyingRegistration}
+        options={cardDefaultNavigationOptions}
       />
     </Stack.Navigator>
   );
@@ -181,6 +157,14 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ASSET_SELECTION}
       component={AssetSelectionBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.REGION_SELECTION}
+      component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CONFIRM_MODAL}
+      component={ConfirmModal}
     />
   </ModalsStack.Navigator>
 );

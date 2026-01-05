@@ -5,42 +5,43 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
 import TokenListItem from '../TokenListItem';
+import { createUnsupportedTokenModalNavigationDetails } from '../UnsupportedTokenModal/UnsupportedTokenModal';
 
+import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
-import styleSheet from './TokenSelection.styles';
-import { useStyles } from '../../../../hooks/useStyles';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
+import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
 
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { getDepositNavbarOptions } from '../../../Navbar';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
-// TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
-//https://consensyssoftware.atlassian.net/browse/TRAM-2816
+import { useRampNavigation } from '../../hooks/useRampNavigation';
+import useAnalytics from '../../hooks/useAnalytics';
+import {
+  getRampRoutingDecision,
+  getDetectedGeolocation,
+} from '../../../../../reducers/fiatOrders';
 
-interface TokenSelectionParams {
-  rampType: 'BUY' | 'DEPOSIT';
-  selectedCryptoAssetId?: string;
-}
+export const createTokenSelectionNavDetails = createNavigationDetails(
+  Routes.RAMP.TOKEN_SELECTION,
+);
 
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
@@ -48,15 +49,21 @@ function TokenSelection() {
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
-  const { styles } = useStyles(styleSheet, {});
-
-  const { colors } = useTheme();
   const theme = useTheme();
+
   const navigation = useNavigation();
 
-  const { selectedCryptoAssetId } = useParams<TokenSelectionParams>();
+  const { topTokens, allTokens, isLoading, error } = useRampTokens();
+  const trackEvent = useAnalytics();
+  const getNetworkName = useDepositCryptoCurrencyNetworkName();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const detectedGeolocation = useSelector(getDetectedGeolocation);
 
-  const supportedTokens = MOCK_CRYPTOCURRENCIES;
+  // Use topTokens for initial display, allTokens when searching
+  const supportedTokens = useMemo(() => {
+    const tokensToUse = searchString.trim() ? allTokens : topTokens;
+    return tokensToUse || [];
+  }, [searchString, allTokens, topTokens]);
 
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
@@ -64,10 +71,41 @@ function TokenSelection() {
     searchString,
   });
 
-  const handleSelectAssetIdCallback = useCallback((_assetId: string) => {
-    // TODO: Handle token by routing to the appropriate agg or deposit screen with asset id as param and pre-select it
-    // https://consensyssoftware.atlassian.net/browse/TRAM-2795
-  }, []);
+  const { goToBuy } = useRampNavigation();
+
+  const handleSelectAssetIdCallback = useCallback(
+    (assetId: string) => {
+      const selectedToken = supportedTokens.find(
+        (token) => token.assetId === assetId,
+      );
+      if (selectedToken) {
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'UNIFIED BUY',
+          region: detectedGeolocation || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_destination_symbol: selectedToken.symbol,
+          currency_destination_network: getNetworkName(selectedToken.chainId),
+          currency_source: '',
+          is_authenticated: false,
+          token_caip19: selectedToken.assetId,
+          token_symbol: selectedToken.symbol,
+          ramp_routing: rampRoutingDecision ?? undefined,
+        });
+      }
+      navigation.dangerouslyGetParent()?.goBack();
+      goToBuy({ assetId });
+    },
+    [
+      supportedTokens,
+      trackEvent,
+      getNetworkName,
+      detectedGeolocation,
+      rampRoutingDecision,
+      goToBuy,
+      navigation,
+    ],
+  );
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
@@ -90,20 +128,20 @@ function TokenSelection() {
     handleSearchTextChange('');
   }, [handleSearchTextChange]);
 
+  const handleUnsupportedInfoPress = useCallback(() => {
+    navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
+  }, [navigation]);
+
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => (
+    ({ item: token }: { item: RampsToken }) => (
       <TokenListItem
         token={token}
-        isSelected={selectedCryptoAssetId === token.assetId}
         onPress={() => handleSelectAssetIdCallback(token.assetId)}
-        textColor={colors.text.alternative}
+        isDisabled={!token.tokenSupported}
+        onInfoPress={handleUnsupportedInfoPress}
       />
     ),
-    [
-      colors.text.alternative,
-      handleSelectAssetIdCallback,
-      selectedCryptoAssetId,
-    ],
+    [handleSelectAssetIdCallback, handleUnsupportedInfoPress],
   );
 
   const renderEmptyList = useCallback(
@@ -128,62 +166,82 @@ function TokenSelection() {
   }, [supportedTokens]);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerLeft: () => null,
-      headerTitle: () => (
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.token_modal.select_token')}
-        </Text>
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        {
+          title: strings('deposit.token_modal.select_token'),
+          showBack: false,
+        },
+        theme,
       ),
-      headerRight: () => (
-        <ButtonIcon
-          size={ButtonIconSize.Lg}
-          iconName={IconName.Close}
-          onPress={() => navigation.goBack()}
-          twClassName="mr-1"
-          testID="token-selection-close-button"
-        />
-      ),
-      headerStyle: {
-        backgroundColor: theme.colors.background.default,
-        shadowColor: 'transparent',
-        elevation: 0,
-      },
-    });
-  }, [navigation, theme.colors.background.default]);
+    );
+  }, [navigation, theme]);
+
+  if (isLoading) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <Box twClassName="flex-1 items-center justify-center">
+            <ActivityIndicator
+              size="large"
+              color={theme.colors.primary.default}
+            />
+          </Box>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <Box twClassName="flex-1 items-center justify-center px-4">
+            <Box twClassName="text-center">
+              <Text variant={TextVariant.BodyMD}>
+                {strings('deposit.token_modal.error_loading_tokens')}
+              </Text>
+            </Box>
+          </Box>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
-      <View style={styles.filterBarContainer}>
-        <TokenNetworkFilterBar
-          networks={uniqueNetworks}
-          networkFilter={networkFilter}
-          setNetworkFilter={setNetworkFilter}
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <Box twClassName="py-2">
+          <TokenNetworkFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={setNetworkFilter}
+          />
+        </Box>
+        <Box twClassName="px-4 py-3">
+          <TextFieldSearch
+            value={searchString}
+            showClearButton={searchString.length > 0}
+            onPressClearButton={clearSearchText}
+            onFocus={scrollToTop}
+            onChangeText={handleSearchTextChange}
+            placeholder={strings(
+              'deposit.token_modal.search_by_name_or_address',
+            )}
+          />
+        </Box>
+        <FlatList
+          ref={listRef}
+          data={searchTokenResults as unknown as RampsToken[]}
+          renderItem={renderToken}
+          keyExtractor={(item) => item.assetId}
+          ListEmptyComponent={renderEmptyList}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
         />
-      </View>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchString}
-          showClearButton={searchString.length > 0}
-          onPressClearButton={clearSearchText}
-          onFocus={scrollToTop}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('deposit.token_modal.search_by_name_or_address')}
-        />
-      </View>
-      <FlatList
-        style={styles.list}
-        ref={listRef}
-        data={searchTokenResults}
-        renderItem={renderToken}
-        extraData={selectedCryptoAssetId}
-        keyExtractor={(item) => item.assetId}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="always"
-      />
-    </SafeAreaView>
+      </ScreenLayout.Body>
+    </ScreenLayout>
   );
 }
 

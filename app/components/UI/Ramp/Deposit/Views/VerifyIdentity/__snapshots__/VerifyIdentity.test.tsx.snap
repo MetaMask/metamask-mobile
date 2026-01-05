@@ -361,6 +361,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -386,7 +387,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -402,7 +403,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -417,7 +418,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -431,7 +432,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -448,7 +449,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -463,7 +464,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -486,6 +487,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -499,7 +501,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -514,7 +516,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                 style={
                                   {
                                     "color": "#b7bbc8",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "letterSpacing": 0.25,
                                     "lineHeight": 20,
@@ -531,7 +533,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                 style={
                                   {
                                     "color": "#b7bbc8",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "letterSpacing": 0.25,
                                     "lineHeight": 20,
@@ -570,7 +572,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

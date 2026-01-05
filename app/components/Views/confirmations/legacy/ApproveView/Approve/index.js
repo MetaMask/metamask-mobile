@@ -78,10 +78,7 @@ import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../../util/smart-transactions/smart-publish-hook';
 import { selectTransactions } from '../../../../../../selectors/transactionController';
-import {
-  selectPrimaryCurrency,
-  selectShowCustomNonce,
-} from '../../../../../../selectors/settings';
+import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../../util/confirmation/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -168,10 +165,6 @@ class Approve extends PureComponent {
      * Set proposed nonce (from network)
      */
     setProposedNonce: PropTypes.func,
-    /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
     /**
      * Object that represents the navigator
      */
@@ -291,7 +284,6 @@ class Approve extends PureComponent {
   };
 
   componentDidMount = async () => {
-    const { showCustomNonce } = this.props;
     if (!this.props?.transaction?.id) {
       this.props.hideModal();
       return null;
@@ -300,9 +292,7 @@ class Approve extends PureComponent {
 
     this.startPolling();
 
-    if (showCustomNonce) {
-      await this.setNetworkNonce();
-    }
+    await this.setNetworkNonce();
     this.appStateListener = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
@@ -449,7 +439,7 @@ class Approve extends PureComponent {
   };
 
   prepareTransaction = () => {
-    const { gasEstimateType, showCustomNonce, transaction } = this.props;
+    const { gasEstimateType, transaction } = this.props;
 
     const {
       legacyGasTransaction: gasDataLegacy,
@@ -460,7 +450,6 @@ class Approve extends PureComponent {
       gasDataEIP1559,
       gasDataLegacy,
       gasEstimateType,
-      showCustomNonce,
       transaction,
     });
   };
@@ -992,7 +981,6 @@ const mapStateToProps = (state) => {
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     conversionRate: selectConversionRateByChainId(state, chainId),
     currentCurrency: selectCurrentCurrency(state),
-    showCustomNonce: selectShowCustomNonce(state),
     addressBook: selectAddressBook(state),
     providerType: selectProviderTypeByChainId(state, chainId),
     providerRpcTarget: selectRpcUrlByChainId(state, chainId),

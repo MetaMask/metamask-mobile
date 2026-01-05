@@ -353,6 +353,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -457,7 +458,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -473,7 +474,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -483,6 +484,34 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                             >
                               Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "flex-end",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="otp-code-paste-button"
+                              >
+                                Paste
+                              </Text>
+                            </View>
                             <View
                               style={
                                 [
@@ -520,7 +549,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -553,7 +582,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -586,7 +615,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -619,7 +648,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -652,7 +681,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -685,7 +714,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -747,7 +776,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -766,6 +795,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -804,7 +834,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1193,6 +1223,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -1297,7 +1328,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -1313,7 +1344,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1323,6 +1354,34 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                             >
                               Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "flex-end",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="otp-code-paste-button"
+                              >
+                                Paste
+                              </Text>
+                            </View>
                             <View
                               style={
                                 [
@@ -1360,7 +1419,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1393,7 +1452,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1426,7 +1485,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1459,7 +1518,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1492,7 +1551,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1525,7 +1584,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1587,7 +1646,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1605,7 +1664,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1626,6 +1685,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1664,7 +1724,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2053,6 +2113,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2157,7 +2218,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -2173,7 +2234,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2183,6 +2244,34 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                             >
                               Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "flex-end",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="otp-code-paste-button"
+                              >
+                                Paste
+                              </Text>
+                            </View>
                             <View
                               style={
                                 [
@@ -2220,7 +2309,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2253,7 +2342,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2286,7 +2375,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2319,7 +2408,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2352,7 +2441,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2385,7 +2474,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2447,7 +2536,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2466,6 +2555,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2504,7 +2594,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2893,6 +2983,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2997,7 +3088,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -3013,7 +3104,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3023,6 +3114,34 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                             >
                               Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "flex-end",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="otp-code-paste-button"
+                              >
+                                Paste
+                              </Text>
+                            </View>
                             <View
                               style={
                                 [
@@ -3060,7 +3179,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3095,7 +3214,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3130,7 +3249,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3165,7 +3284,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3200,7 +3319,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3235,7 +3354,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3284,7 +3403,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               style={
                                 {
                                   "color": "#ca3542",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3313,7 +3432,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3331,7 +3450,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3352,6 +3471,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3389,7 +3509,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3778,6 +3898,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -3882,7 +4003,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
                                   "letterSpacing": 0,
@@ -3898,7 +4019,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3908,6 +4029,34 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                             >
                               Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "flex-end",
+                                    "display": "flex",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="otp-code-paste-button"
+                              >
+                                Paste
+                              </Text>
+                            </View>
                             <View
                               style={
                                 [
@@ -3945,7 +4094,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3978,7 +4127,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4011,7 +4160,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4044,7 +4193,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4077,7 +4226,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4110,7 +4259,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4172,7 +4321,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4191,6 +4340,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -4229,7 +4379,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

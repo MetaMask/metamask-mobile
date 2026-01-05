@@ -40,7 +40,7 @@ test.skip('@metamask/connect-multichain - Connect to the Multichain Test Dapp', 
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
   // Accept in MetaMask app
-  // await login(device, { shouldDismissModals: false });
+  // await login(device, { dismissModals: false });
 
   await DappConnectionModal.tapConnectButton();
 

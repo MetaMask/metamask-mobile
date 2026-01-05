@@ -97,11 +97,8 @@ describe('PerpsMarketStatisticsCard', () => {
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
-    // Check 24h high/low row
-    expect(getByText('perps.market.24h_high')).toBeOnTheScreen();
-    expect(getByText('perps.market.24h_low')).toBeOnTheScreen();
-    expect(getByText('$50,000.00')).toBeOnTheScreen();
-    expect(getByText('$45,000.00')).toBeOnTheScreen();
+    // Check stats title
+    expect(getByText('perps.market.stats')).toBeOnTheScreen();
 
     // Check volume and open interest row
     expect(getByText('perps.market.24h_volume')).toBeOnTheScreen();
@@ -112,6 +109,9 @@ describe('PerpsMarketStatisticsCard', () => {
     // Check funding rate row
     expect(getByText('perps.market.funding_rate')).toBeOnTheScreen();
     expect(getByText('0.0125%')).toBeOnTheScreen();
+
+    // Check oracle price label
+    expect(getByText('perps.market.oracle_price')).toBeOnTheScreen();
   });
 
   it('displays positive funding rate in success color', () => {
@@ -191,19 +191,6 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');
   });
 
-  it('renders with correct test IDs for all statistics', () => {
-    const { getByTestId } = render(
-      <PerpsMarketStatisticsCard {...defaultProps} />,
-    );
-
-    // Check all test IDs are present
-    expect(getByTestId('perps-statistics-high-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-low-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-volume-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-open-interest')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-funding-rate')).toBeOnTheScreen();
-  });
-
   it('handles edge case with very small funding rate values', () => {
     const smallFundingStats = {
       ...mockMarketStats,
@@ -241,9 +228,7 @@ describe('PerpsMarketStatisticsCard', () => {
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
-    // Verify all values are displayed
-    expect(getByText('$50,000.00')).toBeOnTheScreen(); // high24h
-    expect(getByText('$45,000.00')).toBeOnTheScreen(); // low24h
+    // Verify all values are displayed (component now shows volume, open interest, funding rate, oracle price)
     expect(getByText('$1,234,567.89')).toBeOnTheScreen(); // volume24h
     expect(getByText('$987,654.32')).toBeOnTheScreen(); // openInterest
     expect(getByText('0.0125%')).toBeOnTheScreen(); // fundingRate

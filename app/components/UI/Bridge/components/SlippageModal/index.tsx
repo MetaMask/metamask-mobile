@@ -3,9 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -65,9 +63,7 @@ export const SlippageModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('bridge.slippage')}
-        </Text>
+        {strings('bridge.slippage')}
       </BottomSheetHeader>
       <View style={styles.container}>
         <Text style={styles.description}>

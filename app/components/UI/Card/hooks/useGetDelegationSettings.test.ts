@@ -7,6 +7,7 @@ import {
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
 } from '../types';
+import { CardSDK } from '../sdk/CardSDK';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -29,7 +30,6 @@ const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
 
 describe('useGetDelegationSettings', () => {
   const mockGetDelegationSettings = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -80,7 +80,7 @@ describe('useGetDelegationSettings', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -90,11 +90,8 @@ describe('useGetDelegationSettings', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
@@ -117,7 +114,7 @@ describe('useGetDelegationSettings', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.error).toBe(null);
       expect(result.current.fetchData).toBe(mockFetchData);
     });
 
@@ -139,6 +136,7 @@ describe('useGetDelegationSettings', () => {
         expect.any(Function),
         {
           cacheDuration: 600000, // 10 minutes in milliseconds
+          fetchOnMount: true,
         },
       );
     });
@@ -151,6 +149,7 @@ describe('useGetDelegationSettings', () => {
 
       expect(options).toEqual({
         cacheDuration: 10 * 60 * 1000,
+        fetchOnMount: true,
       });
     });
   });
@@ -158,11 +157,8 @@ describe('useGetDelegationSettings', () => {
   describe('Prerequisites Check', () => {
     it('returns null when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useGetDelegationSettings());
@@ -362,7 +358,7 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: mockDelegationSettingsResponse,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -375,7 +371,7 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -388,13 +384,13 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: true,
+        error: new Error('Test error'),
         fetchData: mockFetchData,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
 
-      expect(result.current.error).toBe(true);
+      expect(result.current.error).toBeInstanceOf(Error);
     });
 
     it('uses consistent cache key across renders', () => {
@@ -424,11 +420,8 @@ describe('useGetDelegationSettings', () => {
       } as any;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: newMockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       rerender();
@@ -481,7 +474,7 @@ describe('useGetDelegationSettings', () => {
       const { result } = renderHook(() => useGetDelegationSettings());
 
       expect(typeof result.current.isLoading).toBe('boolean');
-      expect(typeof result.current.error).toBe('boolean');
+      expect(typeof result.current.error).toBe('object');
       expect(typeof result.current.fetchData).toBe('function');
     });
   });
@@ -513,12 +506,8 @@ describe('useGetDelegationSettings', () => {
 
     it('handles SDK method not available', async () => {
       mockUseCardSDK.mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sdk: {} as any, // SDK without getDelegationSettings method
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
+        ...jest.requireMock('../sdk'),
+        sdk: {} as unknown as CardSDK, // SDK wi thout getDelegationSettings method
       });
 
       renderHook(() => useGetDelegationSettings());

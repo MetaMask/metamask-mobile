@@ -60,6 +60,7 @@ import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -94,7 +95,16 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Custom,
+  });
+  const { disableNetwork, enableNetwork, enabledNetworksByNamespace } =
+    useNetworkEnablement();
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -304,17 +314,24 @@ const NetworkManager = () => {
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
+      const otherNetwork = networksToUse.find(
+        (network) => network.caipChainId !== caipChainId,
+      );
 
+      // Remove the network from controller and disable it
       NetworkController.removeNetwork(chainId);
-      disableNetwork(showConfirmDeleteModal.caipChainId);
 
+      if (otherNetwork?.caipChainId) {
+        enableNetwork(otherNetwork.caipChainId);
+      }
+      disableNetwork(showConfirmDeleteModal.caipChainId);
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork]);
+  }, [showConfirmDeleteModal, disableNetwork, networksToUse, enableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -422,11 +439,7 @@ const NetworkManager = () => {
             shouldNavigateBack={false}
           >
             <BottomSheetHeader>
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('app_settings.delete')}{' '}
-                {showConfirmDeleteModal.networkName}{' '}
-                {strings('asset_details.network')}
-              </Text>
+              {`${strings('app_settings.delete')} ${showConfirmDeleteModal.networkName} ${strings('asset_details.network')}`}
             </BottomSheetHeader>
             <View style={styles.containerDeleteText}>
               <Text style={styles.textCentred}>
