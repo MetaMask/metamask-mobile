@@ -575,6 +575,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RampsController": {
         "geolocation": null,
+        "requests": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1353,6 +1354,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RampsController": {
         "geolocation": null,
+        "requests": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
