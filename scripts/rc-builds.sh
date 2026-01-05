@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+# Validate required environment variables
+: "${SEMVER:?SEMVER environment variable must be set}"
+: "${BUILD_NUMBER:?BUILD_NUMBER environment variable must be set}"
+: "${BITRISE_APP_ID:?BITRISE_APP_ID environment variable must be set}"
+: "${BITRISE_BUILD_TRIGGER_TOKEN:?BITRISE_BUILD_TRIGGER_TOKEN environment variable must be set}"
+: "${BITRISE_API_TOKEN:?BITRISE_API_TOKEN environment variable must be set}"
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
 COMMIT_HASH=$(git rev-parse HEAD)
 
