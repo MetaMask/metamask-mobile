@@ -682,6 +682,15 @@ describe('App', () => {
   });
 
   describe('Renders multichain account details', () => {
+    const mockAccountGroupId = 'keyring:test-hd/ethereum' as const;
+    const mockAccountGroup = {
+      id: mockAccountGroupId,
+      accounts: [mockAccount.id],
+      metadata: {
+        name: 'Account Group',
+      },
+    };
+
     const mockLoggedInState = {
       ...initialState,
       user: {
@@ -706,6 +715,21 @@ describe('App', () => {
                 accounts: [mockAccount.address],
               },
             ],
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'test-hd': {
+                  id: 'test-hd',
+                  metadata: {
+                    name: 'Test Keyring',
+                  },
+                  groups: {
+                    [mockAccountGroupId]: mockAccountGroup,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -797,11 +821,11 @@ describe('App', () => {
         index: 0,
         routes: [
           {
-            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
             params: {
               screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
               params: {
-                account: mockAccount,
+                accountGroup: mockAccountGroup,
               },
             },
           },
