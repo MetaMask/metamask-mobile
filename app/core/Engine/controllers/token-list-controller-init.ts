@@ -23,6 +23,9 @@ export const tokenListControllerInit: ControllerInitFunction<
   const controller = new TokenListController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
+    // Disable caching for development
+    cacheRefreshThreshold: 0,
+    interval: 120 * 1000, // Check every 2 minutes
     onNetworkStateChange: (listener) =>
       initMessenger.subscribe(
         'NetworkController:stateChange',

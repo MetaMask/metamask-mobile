@@ -21,7 +21,6 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
-import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { Asset, TokenListToken } from '@metamask/assets-controllers';
 import packageJSON from '../../../../../../package.json';
@@ -29,7 +28,7 @@ import { getTokenIconUrl } from '../../utils';
 
 const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
-export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
+export const memoizedFetchBridgeTokens = fetchBridgeTokens;
 
 /**
  * Only needed for BTC
@@ -51,6 +50,7 @@ const getAccountType = (
 /**
  * Convert cached tokens from TokenListController to BridgeToken format
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formatCachedTokenListControllerTokens = (
   cachedTokens: Record<string, TokenListToken>,
   chainId: Hex | CaipChainId,
@@ -173,12 +173,12 @@ export const useTopTokens = ({
     }
 
     // If we have cached tokens, use them instead of fetching from bridge API
-    if (hasCachedTokens && cachedEvmTokensForChain) {
-      return formatCachedTokenListControllerTokens(
-        cachedEvmTokensForChain,
-        chainId,
-      );
-    }
+    // if (hasCachedTokens && cachedEvmTokensForChain) {
+    //   return formatCachedTokenListControllerTokens(
+    //     cachedEvmTokensForChain,
+    //     chainId,
+    //   );
+    // }
 
     // Fallback to bridge API if no cached tokens available
     const rawBridgeAssets = await memoizedFetchBridgeTokens(
