@@ -391,6 +391,9 @@ export const Browser = React.memo((props) => {
 
   const showTabsView = useCallback(async () => {
     try {
+      if (!activeTabUrl) {
+        throw new Error('Active tab URL is not set');
+      }
       await takeScreenshot(activeTabUrl, activeTabId);
     } catch (e) {
       Logger.error(e);
