@@ -73,16 +73,28 @@ fi
 ANDROID_WORKFLOW_ID=$(echo "$BUILD_RESPONSE" | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
 IOS_WORKFLOW_ID=$(echo "$BUILD_RESPONSE" | jq -r '.workflows | .[] | select(.name=="build_ios_rc_and_upload_sourcemaps") | .external_id')
 
+if [[ -z "$ANDROID_WORKFLOW_ID" || "$ANDROID_WORKFLOW_ID" == "null" ]]; then
+  echo "Error: Failed to get Android workflow ID"
+  exit 1
+fi
+
+if [[ -z "$IOS_WORKFLOW_ID" || "$IOS_WORKFLOW_ID" == "null" ]]; then
+  echo "Error: Failed to get iOS workflow ID"
+  exit 1
+fi
 ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
 
 ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.is_public_page_enabled==true) | .slug')
 
-ANDROID_APK=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-  "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
-
-ANDROID_PUBLIC_URL=$(echo "$ANDROID_APK" | jq -r '.data.public_install_page_url')
-
+if [[ -z "$ANDROID_ARTIFACT_ID" || "$ANDROID_ARTIFACT_ID" == "null" ]]; then
+  echo "Warning: No public Android artifact found"
+  ANDROID_PUBLIC_URL="N/A"
+else
+  ANDROID_APK=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+    "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
+  ANDROID_PUBLIC_URL=$(echo "$ANDROID_APK" | jq -r '.data.public_install_page_url')
+fi
 echo "Pipeline ID: $BUILD_SLUG"
 echo "Android build ID: $ANDROID_WORKFLOW_ID"
 echo "iOS Build ID: $IOS_WORKFLOW_ID"
