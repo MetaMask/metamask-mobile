@@ -224,14 +224,14 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); 
+      await AppwrightGestures.tap(await this.accountIcon); 
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); 
+      await AppwrightGestures.tap(await this.swapButton); 
     }
   }
 
@@ -240,7 +240,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); 
+      await AppwrightGestures.tap(await this.networkInNavBar); 
     }
   }
 
@@ -254,7 +254,8 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const container = await this.WalletScreenContainer;
+    await appwrightExpect(container).toBeVisible();
   }
 
   async clickOnMainScreen() { // to close account actions bottom sheet
@@ -368,7 +369,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); 
+      await AppwrightGestures.tap(await this.accountActionsButton); 
     }
   }
 

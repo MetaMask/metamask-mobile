@@ -60,6 +60,28 @@ jest.mock('../../../../hooks/useMetrics', () => ({
 
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
+// Mock hasMinimumRequiredVersion
+const mockHasMinimumRequiredVersion = jest.fn();
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: (version: string) =>
+    mockHasMinimumRequiredVersion(version),
+}));
+
+// Mock useTheme
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    themeAppearance: 'light',
+    colors: {
+      background: {
+        default: '#FFFFFF',
+      },
+      text: {
+        muted: '#999999',
+      },
+    },
+  }),
+}));
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -77,6 +99,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "You didn't earn rewards this season, but there's always next time.",
       'rewards.previous_season_summary.verifying_rewards':
         "We're making sure everything's correct before you claim your rewards.",
+      'rewards.previous_season_summary.to_claim_rewards': ' to claim rewards',
+      'rewards.previous_season_summary.check_back_soon':
+        'Check back soon for claiming',
     };
     let result = translations[key] || key;
     if (params) {
@@ -119,14 +144,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   const TextComponent = ({
     children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactActual.createElement(Text, props, children);
-
-  const TextButton = ({
-    children,
     onPress,
     ...props
   }: {
@@ -134,16 +151,25 @@ jest.mock('@metamask/design-system-react-native', () => {
     onPress?: () => void;
     [key: string]: unknown;
   }) =>
+    onPress
+      ? ReactActual.createElement(
+          TouchableOpacity,
+          { onPress, ...props },
+          ReactActual.createElement(Text, {}, children),
+        )
+      : ReactActual.createElement(Text, props, children);
+
+  const Icon = ({ name, ...props }: { name: string; [key: string]: unknown }) =>
     ReactActual.createElement(
-      TouchableOpacity,
-      { onPress, ...props },
-      ReactActual.createElement(Text, {}, children),
+      View,
+      { testID: `icon-${name}`, ...props },
+      ReactActual.createElement(Text, {}, `Icon-${name}`),
     );
 
   return {
     Box,
     Text: TextComponent,
-    TextButton,
+    Icon,
     BoxFlexDirection: {
       Row: 'row',
       Column: 'column',
@@ -159,18 +185,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       HeadingMd: 'HeadingMd',
       BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
     },
     FontWeight: {
       Bold: 'bold',
       Medium: 'medium',
     },
     IconName: {
-      Warning: 'Warning',
+      Danger: 'Danger',
+      Question: 'Question',
     },
     IconSize: {
+      Sm: 'Sm',
       Md: 'Md',
     },
     IconColor: {
+      IconAlternative: 'IconAlternative',
       PrimaryAlternative: 'PrimaryAlternative',
     },
   };
@@ -403,6 +433,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     });
 
     mockLinkingOpenURL.mockResolvedValue(undefined);
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
   });
 
   it('renders error banner when there is an error and not loading and endOfSeasonRewards is null', () => {
@@ -518,7 +549,50 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(queryByText('Regular Reward')).not.toBeOnTheScreen();
   });
 
-  it('renders update MetaMask button when no version specified', () => {
+  it('renders check back soon message when has minimum required version', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
+      return undefined;
+    });
+
+    const { getByText, getByTestId } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
+
+    expect(getByText('Check back soon for claiming')).toBeOnTheScreen();
+    expect(getByTestId('icon-Question')).toBeOnTheScreen();
+  });
+
+  it('renders update MetaMask version message when version required and not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
+      return undefined;
+    });
+
+    const { getByText, getByTestId } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
+
+    expect(getByText('Update MetaMask to version 1.2.3')).toBeOnTheScreen();
+    expect(getByText(' to claim rewards')).toBeOnTheScreen();
+    expect(getByTestId('icon-Danger')).toBeOnTheScreen();
+  });
+
+  it('renders check back soon message when no minimum version specified', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
       if (selector === selectUnlockedRewardLoading) return false;
@@ -529,12 +603,18 @@ describe('PreviousSeasonUnlockedRewards', () => {
       return undefined;
     });
 
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
+    const { getByText, getByTestId } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
 
-    expect(getByText('Update MetaMask')).toBeOnTheScreen();
+    expect(getByText('Check back soon for claiming')).toBeOnTheScreen();
+    expect(getByTestId('icon-Question')).toBeOnTheScreen();
   });
 
-  it('renders update MetaMask version button when version is specified', () => {
+  it('opens iOS app store when update button is pressed on iOS', () => {
+    Platform.OS = 'ios';
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
       if (selector === selectUnlockedRewardLoading) return false;
@@ -547,33 +627,16 @@ describe('PreviousSeasonUnlockedRewards', () => {
 
     const { getByText } = render(<PreviousSeasonUnlockedRewards />);
 
-    expect(getByText('Update MetaMask to version 1.2.3')).toBeOnTheScreen();
-  });
-
-  it('opens iOS app store when button is pressed on iOS', () => {
-    Platform.OS = 'ios';
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
-      if (selector === selectUnlockedRewardLoading) return false;
-      if (selector === selectUnlockedRewardError) return false;
-      if (selector === selectSeasonTiers) return mockSeasonTiers;
-      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
-      return undefined;
-    });
-
-    const { getByText } = render(<PreviousSeasonUnlockedRewards />);
-
-    const updateButton = getByText('Update MetaMask');
+    const updateButton = getByText('Update MetaMask to version 1.2.3');
     fireEvent.press(updateButton);
 
     expect(mockLinkingOpenURL).toHaveBeenCalledWith(MM_APP_STORE_LINK);
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('opens Android play store when button is pressed on Android', () => {
+  it('opens Android play store when update button is pressed on Android', () => {
     Platform.OS = 'android';
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
@@ -581,13 +644,13 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
+      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
       return undefined;
     });
 
     const { getByText } = render(<PreviousSeasonUnlockedRewards />);
 
-    const updateButton = getByText('Update MetaMask');
+    const updateButton = getByText('Update MetaMask to version 1.2.3');
     fireEvent.press(updateButton);
 
     expect(mockLinkingOpenURL).toHaveBeenCalledWith(MM_PLAY_STORE_LINK);
@@ -596,6 +659,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
 
   it('tracks analytics event when app store button is pressed', () => {
     Platform.OS = 'ios';
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
@@ -603,13 +667,13 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
+      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
       return undefined;
     });
 
     const { getByText } = render(<PreviousSeasonUnlockedRewards />);
 
-    const updateButton = getByText('Update MetaMask');
+    const updateButton = getByText('Update MetaMask to version 1.2.3');
     fireEvent.press(updateButton);
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -620,6 +684,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
 
   it('handles Linking.openURL error gracefully', () => {
     Platform.OS = 'ios';
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
     const consoleWarnSpy = jest
       .spyOn(console, 'warn')
       .mockImplementation(() => {
@@ -634,13 +699,13 @@ describe('PreviousSeasonUnlockedRewards', () => {
       if (selector === selectUnlockedRewardError) return false;
       if (selector === selectSeasonTiers) return mockSeasonTiers;
       if (selector === selectCurrentTier) return { pointsNeeded: 100 };
-      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
+      if (selector === selectSeasonShouldInstallNewVersion) return '1.2.3';
       return undefined;
     });
 
     const { getByText } = render(<PreviousSeasonUnlockedRewards />);
 
-    const updateButton = getByText('Update MetaMask');
+    const updateButton = getByText('Update MetaMask to version 1.2.3');
     fireEvent.press(updateButton);
 
     return new Promise<void>((resolve) => {
@@ -754,5 +819,21 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { queryByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     expect(queryByTestId('rewards-error-banner')).not.toBeOnTheScreen();
+  });
+
+  it('calls hasMinimumRequiredVersion with correct version', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      if (selector === selectSeasonShouldInstallNewVersion) return '2.0.0';
+      return undefined;
+    });
+
+    render(<PreviousSeasonUnlockedRewards />);
+
+    expect(mockHasMinimumRequiredVersion).toHaveBeenCalledWith('2.0.0');
   });
 });
