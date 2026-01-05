@@ -143,6 +143,8 @@ export function useRampsControllerRequest<T>(
   }, [cacheKey]);
 
   const hasExecutedRef = useRef(false);
+  const abortRef = useRef(abort);
+  abortRef.current = abort;
 
   useEffect(() => {
     if (onMount && !hasExecutedRef.current) {
@@ -151,12 +153,11 @@ export function useRampsControllerRequest<T>(
         // Error is already stored in state
       });
     }
+  }, [onMount, execute]);
 
-    // Abort in-flight request on unmount
-    return () => {
-      abort();
-    };
-  }, [onMount, execute, abort]);
+  useEffect(() => () => {
+      abortRef.current();
+    }, []);
 
   return {
     data,
