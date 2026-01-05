@@ -3,18 +3,6 @@
 set -euo pipefail
 
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
-GH_REF_NAME="release/${SEMVER}"
-
-./scripts/set-build-version.sh $BUILD_NUMBER
-git diff
-git config user.name metamaskbot
-git config user.email metamaskbot@users.noreply.github.com
-git add bitrise.yml
-git add package.json
-git add ios/MetaMask.xcodeproj/project.pbxproj
-git add android/app/build.gradle
-git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
-git push origin HEAD:$GH_REF_NAME --force-with-lease
 COMMIT_HASH=$(git rev-parse HEAD)
 
 

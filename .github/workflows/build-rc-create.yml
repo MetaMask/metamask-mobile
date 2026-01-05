@@ -19,19 +19,33 @@ jobs:
     permissions:
       id-token: write
 
-  bump-version-and-build-rc:
+  bump-version:
     runs-on: ubuntu-latest
-    needs: generate-build-version
+    needs:
+      - generate-build-version
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: release/${{ inputs.semver }}
           token: ${{ secrets.PR_TOKEN }}
+      - id: bump-script
+        uses: ./.github/actions/bump-build-version
+        with:
+          build-version: ${{ needs.generate-build-version.outputs.build-version }}
+          ref: release/${{ inputs.semver }}
 
-      - name: Build RC
+  trigger-rc-build:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-build-version
+      - bump-version
+    steps:
+      - name: Trigger RC Build
         env:
           SEMVER: ${{ inputs.semver }}
+          GH_REF_NAME: release/${{ inputs.semver }}
+          COMMIT_HASH: ${{ needs.bump-version.outputs.commit-hash }}
           BUILD_NUMBER: ${{ needs.generate-build-version.outputs.build-version }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
