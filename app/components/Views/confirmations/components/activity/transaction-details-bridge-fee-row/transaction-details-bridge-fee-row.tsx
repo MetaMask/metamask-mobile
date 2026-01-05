@@ -5,6 +5,7 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsBridgeFeeRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -25,7 +26,9 @@ export function TransactionDetailsBridgeFeeRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.bridge_fee')}
     >
-      <Text>{bridgeFeeFiatFormatted}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.TRANSACTION_FEE}>
+        {bridgeFeeFiatFormatted}
+      </Text>
     </TransactionDetailsRow>
   );
 }

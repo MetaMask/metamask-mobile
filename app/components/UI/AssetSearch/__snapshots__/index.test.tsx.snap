@@ -56,7 +56,7 @@ exports[`AssetSearch renders correctly with allTokens 1`] = `
       onBlur={[Function]}
       onChangeText={[Function]}
       onFocus={[Function]}
-      placeholder="Search Tokens"
+      placeholder="Search tokens"
       placeholderTextColor="#b7bbc8"
       style={
         {
