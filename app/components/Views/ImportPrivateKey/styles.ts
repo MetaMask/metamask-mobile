@@ -38,7 +38,7 @@ const createStyles = (colors: any, insets: EdgeInsets) =>
       flex: 1,
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
-      paddingBottom: insets.bottom ?? 16,
+      paddingBottom: insets.bottom || 16,
       backgroundColor: colors.background.default,
     },
     top: {

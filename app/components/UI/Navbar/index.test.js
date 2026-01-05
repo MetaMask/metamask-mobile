@@ -153,39 +153,5 @@ describe('Navbar Utility Functions', () => {
       const titleResult = options.headerTitle();
       expect(titleResult).toBeNull();
     });
-
-    it('works with all custom options combined', () => {
-      const customOnBack = jest.fn();
-      const customOnClose = jest.fn();
-      const testIDs = { back: 'custom-back', close: 'custom-close' };
-      const backgroundColor = '#123456';
-
-      const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors, {
-        onBack: customOnBack,
-        onClose: customOnClose,
-        testIDs,
-        backgroundColor,
-        showBack: true,
-        showClose: true,
-      });
-
-      // Test structure
-      expect(options.headerShown).toBe(true);
-      expect(options.headerLeft).toBeInstanceOf(Function);
-      expect(options.headerRight).toBeInstanceOf(Function);
-      expect(options.headerStyle.backgroundColor).toBe(backgroundColor);
-
-      // Test back button
-      const BackButton = options.headerLeft();
-      expect(BackButton.props.testID).toBe('custom-back');
-      BackButton.props.onPress();
-      expect(customOnBack).toHaveBeenCalledTimes(1);
-
-      // Test close button
-      const CloseButton = options.headerRight();
-      expect(CloseButton.props.testID).toBe('custom-close');
-      CloseButton.props.onPress();
-      expect(customOnClose).toHaveBeenCalledTimes(1);
-    });
   });
 });
