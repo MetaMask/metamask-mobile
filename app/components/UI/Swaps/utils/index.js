@@ -5,7 +5,6 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 const allowedChainIds = [

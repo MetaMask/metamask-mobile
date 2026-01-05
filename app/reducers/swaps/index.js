@@ -12,13 +12,12 @@ import {
 } from '../../selectors/tokensController';
 import { selectTokenList } from '../../selectors/tokenListController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
-import { getChainFeatureFlags, getSwapsLiveness } from './utils';
+import { getSwapsLiveness } from './utils';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert, omit } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 
 // Identity function, will be removed when legacy swaps is removed,
 // but keep it for now to keep changes atomic.
