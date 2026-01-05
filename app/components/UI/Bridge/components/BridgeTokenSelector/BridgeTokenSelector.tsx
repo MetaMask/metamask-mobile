@@ -29,11 +29,19 @@ import {
 } from '@metamask/bridge-controller';
 import {
   Box,
+  Button,
+  ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
   IconColor,
   IconName,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
+import { useAssetFromTheme } from '../../../../../util/theme';
+import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
+import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
 import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -64,6 +72,12 @@ export const BridgeTokenSelector: React.FC = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const flatListRef = useRef<FlatList>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  // Get themed SVG for empty state
+  const NoSearchResultsIcon = useAssetFromTheme(
+    NoSearchResultsLight,
+    NoSearchResultsDark,
+  );
 
   // Check if search string meets minimum length requirement
   const isValidSearch = useMemo(
@@ -305,6 +319,12 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch(text);
   };
 
+  const handleClearSearch = useCallback(() => {
+    setSearchString('');
+    debouncedSearch.cancel();
+    resetSearch();
+  }, [debouncedSearch, resetSearch]);
+
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
       const networkName = getNetworkName(item.chainId, networkConfigurations);
@@ -427,6 +447,48 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
+  // Render empty state when no tokens found
+  const renderEmptyState = useCallback(() => {
+    // Only show empty state when search is active and not loading
+    if (!isValidSearch || isSearchLoading) {
+      return null;
+    }
+
+    return (
+      <Box
+        testID="bridge-token-selector-empty-state"
+        style={styles.emptyStateContainer}
+      >
+        <NoSearchResultsIcon width={72} height={78} />
+        <Text
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
+          style={styles.emptyStateTitle}
+        >
+          {strings('bridge.no_tokens_found')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          style={styles.emptyStateDescription}
+        >
+          {strings('bridge.no_tokens_found_description')}
+        </Text>
+        <Button variant={ButtonVariant.Secondary} onPress={handleClearSearch}>
+          {strings('wallet.view_all_tokens')}
+        </Button>
+      </Box>
+    );
+  }, [
+    isValidSearch,
+    isSearchLoading,
+    styles.emptyStateContainer,
+    styles.emptyStateTitle,
+    styles.emptyStateDescription,
+    NoSearchResultsIcon,
+    handleClearSearch,
+  ]);
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Box style={styles.buttonContainer}>
@@ -462,6 +524,7 @@ export const BridgeTokenSelector: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={400}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
       />
     </SafeAreaView>

@@ -6144,6 +6144,8 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
