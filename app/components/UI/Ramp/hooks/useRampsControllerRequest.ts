@@ -88,9 +88,11 @@ export function useRampsControllerRequest<T>(
 ): UseRampsControllerRequestResult<T> {
   const { onMount = true, forceRefresh = false, ttl } = options;
 
+  const paramsKey = JSON.stringify(params);
   const cacheKey = useMemo(
     () => createCacheKey(method, params),
-    [method, params],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [method, paramsKey],
   );
 
   const selectStatus = useMemo(
@@ -155,9 +157,12 @@ export function useRampsControllerRequest<T>(
     }
   }, [onMount, execute]);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       abortRef.current();
-    }, []);
+    },
+    [],
+  );
 
   return {
     data,
