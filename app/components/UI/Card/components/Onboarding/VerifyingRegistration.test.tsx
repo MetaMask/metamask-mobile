@@ -450,7 +450,7 @@ describe('VerifyingRegistration Component', () => {
       });
     });
 
-    it('navigates to Card Home when continue button is pressed', async () => {
+    it('navigates to COMPLETE when continue button is pressed', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
@@ -466,7 +466,12 @@ describe('VerifyingRegistration Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          {
+            screen: Routes.CARD.ONBOARDING.COMPLETE,
+          },
+        );
       });
     });
 
@@ -487,7 +492,10 @@ describe('VerifyingRegistration Component', () => {
 
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+          expect.objectContaining({
+            routeName: Routes.CARD.ONBOARDING.ROOT,
+            type: 'REPLACE',
+          }),
         );
       });
     });
