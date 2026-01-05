@@ -6,7 +6,15 @@ import { MockEventsObject } from '../../../framework';
  */
 
 export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
-  GET: [
+  POST: [
+    {
+      urlEndpoint:
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/auth\/mobile-login$/,
+      responseCode: 401,
+      response: {
+        error: 'Unauthorized',
+      },
+    },
     {
       urlEndpoint:
         /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/rewards\/ois$/,
@@ -16,14 +24,22 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
       },
     },
   ],
-  POST: [
+  GET: [
     {
       urlEndpoint:
-        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/auth\/mobile-login$/,
-      responseCode: 401,
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/seasons\/status$/,
+      responseCode: 200,
       response: {
-        error: 'Unauthorized',
+        previous: null,
+        current: {},
+        next: null,
       },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/rewards\.(uat|dev)-api\.cx\.metamask\.io\/public\/seasons\/[a-f0-9-]+\/metadata$/,
+      responseCode: 200,
+      response: {},
     },
   ],
 };
