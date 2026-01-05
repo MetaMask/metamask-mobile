@@ -135,6 +135,13 @@ import type {
 } from '../../types/perps-types';
 import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
+/**
+ * Type guard to check if a status is an object (not a string literal like "waitingForFill")
+ * The SDK returns status as a union of object types and string literals.
+ */
+const isStatusObject = (status: unknown): status is Record<string, unknown> =>
+  typeof status === 'object' && status !== null;
+
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
   coin: string;
@@ -1181,12 +1188,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check order status
       const status = result.response?.data?.statuses?.[0];
-      if (status && 'error' in status) {
+      if (isStatusObject(status) && 'error' in status) {
         return { success: false, error: String(status.error) };
       }
 
       const filledSize =
-        status && 'filled' in status
+        isStatusObject(status) && 'filled' in status
           ? parseFloat(status.filled?.totalSz || '0')
           : 0;
 
@@ -2442,8 +2449,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const status = result.response?.data?.statuses?.[0];
       const restingOrder =
-        status && 'resting' in status ? status.resting : null;
-      const filledOrder = status && 'filled' in status ? status.filled : null;
+        isStatusObject(status) && 'resting' in status ? status.resting : null;
+      const filledOrder =
+        isStatusObject(status) && 'filled' in status ? status.filled : null;
 
       // Success - auto-rebalance excess funds
       if (isHip3Order && transferInfo && dexName) {
@@ -3155,7 +3163,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Parse response statuses (one per order)
       const statuses = result.response.data.statuses;
       const successCount = statuses.filter(
-        (s) => 'filled' in s || 'resting' in s,
+        (s) => isStatusObject(s) && ('filled' in s || 'resting' in s),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -3163,7 +3171,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (!this.useDexAbstraction) {
         for (let i = 0; i < statuses.length; i++) {
           const status = statuses[i];
-          const isSuccess = 'filled' in status || 'resting' in status;
+          const isSuccess =
+            isStatusObject(status) &&
+            ('filled' in status || 'resting' in status);
 
           if (isSuccess && hip3Transfers[i]) {
             const { sourceDex, freedMargin } = hip3Transfers[i];
@@ -3187,9 +3197,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         failureCount,
         results: statuses.map((status, index) => ({
           coin: positionsToClose[index].coin,
-          success: 'filled' in status || 'resting' in status,
+          success:
+            isStatusObject(status) &&
+            ('filled' in status || 'resting' in status),
           error:
-            'error' in status ? (status as { error: string }).error : undefined,
+            isStatusObject(status) && 'error' in status
+              ? String(status.error)
+              : undefined,
         })),
       };
     } catch (error) {
@@ -3822,7 +3836,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 },
               );
 
-              parentOrder.children.forEach((childOrder: FrontendOrder) => {
+              parentOrder.children.forEach((childOrderUnknown) => {
+                const childOrder = childOrderUnknown as FrontendOrder;
                 if (childOrder.isTrigger && childOrder.reduceOnly) {
                   if (
                     childOrder.orderType === 'Take Profit Market' ||
@@ -6131,7 +6146,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       // Use SDK's built-in ready() method which checks socket.readyState === OPEN
       // This is much more efficient than creating a subscription just for health check
-      await subscriptionClient.transport.ready(controller.signal);
+      await subscriptionClient.config_.transport.ready(controller.signal);
 
       DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
     } catch (error) {
