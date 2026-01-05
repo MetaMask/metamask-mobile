@@ -1391,8 +1391,7 @@
       "set": "Set",
       "clear": "Clear",
       "expected_profit": "Expected profit: {{amount}}",
-      "expected_loss": "Expected loss: {{amount}}",
-      "price_precision_warning": "Decimal precision may be reduced after submitting."
+      "expected_loss": "Expected loss: {{amount}}"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
