@@ -338,6 +338,49 @@ describe('useRampsControllerRequest', () => {
         });
       });
     });
+
+    it('passes params to the controller method before options', async () => {
+      const store = createMockStore();
+      const mockGetCountries = jest.fn().mockResolvedValue([]);
+      setupMockRampsController({ getCountries: mockGetCountries });
+
+      renderHook(
+        () =>
+          useRampsControllerRequest('getCountries', ['sell'], {
+            onMount: true,
+            forceRefresh: true,
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      await waitFor(() => {
+        expect(mockGetCountries).toHaveBeenCalledWith('sell', {
+          forceRefresh: true,
+          ttl: undefined,
+        });
+      });
+    });
+
+    it('passes multiple params to the controller method', async () => {
+      const store = createMockStore();
+      const mockMethod = jest.fn().mockResolvedValue('result');
+      setupMockRampsController({ customMethod: mockMethod });
+
+      renderHook(
+        () =>
+          useRampsControllerRequest('customMethod', ['arg1', 'arg2', 123], {
+            onMount: true,
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      await waitFor(() => {
+        expect(mockMethod).toHaveBeenCalledWith('arg1', 'arg2', 123, {
+          forceRefresh: false,
+          ttl: undefined,
+        });
+      });
+    });
   });
 
   describe('error handling', () => {

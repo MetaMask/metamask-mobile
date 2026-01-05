@@ -131,9 +131,13 @@ export function useRampsControllerRequest<T>(
         ttl: executeOptions?.ttl ?? ttl,
       };
 
-      return methodFn.call(RampsController, mergedOptions) as Promise<T>;
+      return methodFn.call(
+        RampsController,
+        ...params,
+        mergedOptions,
+      ) as Promise<T>;
     },
-    [method, forceRefresh, ttl],
+    [method, params, forceRefresh, ttl],
   );
 
   const abort = useCallback((): boolean => {
