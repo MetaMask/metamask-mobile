@@ -126,6 +126,12 @@ describe('TPSL Validation Utilities', () => {
 
         expect(result).toBe(0);
       });
+
+      it('returns 5 for negative number with 2 integer and 3 decimal digits', () => {
+        const result = countSignificantFigures('-12.345');
+
+        expect(result).toBe(5);
+      });
     });
   });
 

@@ -48,7 +48,7 @@ export const countSignificantFigures = (priceString: string): number => {
   const [integerPart, decimalPart = ''] = normalized.split('.');
 
   // Remove leading zeros and negative sign from integer part
-  const trimmedInteger = integerPart.replace(/^-?0+/, '') || '';
+  const trimmedInteger = integerPart.replace(/^-?0*/, '') || '';
 
   // For integers without decimal, trailing zeros are ambiguous
   // We treat them as not significant (matching HyperLiquid behavior)
