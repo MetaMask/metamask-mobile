@@ -168,7 +168,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Standard Account')).toBeTruthy();
+    expect(getByText('Standard account')).toBeTruthy();
   });
 
   it('renders SwitchAccountType for smart account type - upgrade confirmations', () => {

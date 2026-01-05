@@ -52,6 +52,12 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
+  get predictDeposit(): DetoxElement {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
+    );
+  }
+
   transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
@@ -111,18 +117,22 @@ class ActivitiesView {
     const el = this.swapActivityTitle(sourceToken, destinationToken);
     await Gestures.waitAndTap(el);
   }
+
   async tapConfirmedTransaction(): Promise<void> {
     await Gestures.waitAndTap(this.confirmedLabel);
   }
+
   async swipeDown(): Promise<void> {
     await Gestures.swipe(this.container, 'down', {
       speed: 'slow',
       percentage: 0.5,
     });
   }
+
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
+
   async tapOnPredictionsTab(): Promise<void> {
     // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
     await Gestures.swipe(this.tabsBar, 'left', {
@@ -134,6 +144,7 @@ class ActivitiesView {
       elemDescription: 'Predictions Tab in Activity View',
     });
   }
+
   async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(el, {

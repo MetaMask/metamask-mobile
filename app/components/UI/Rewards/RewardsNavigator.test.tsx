@@ -119,7 +119,7 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
-      'rewards.auth_fail_title': 'Authentication Failed',
+      'rewards.auth_fail_title': 'Authentication failed',
       'rewards.auth_fail_description': 'Please try again later',
       'navigation.back': 'Back',
     };
