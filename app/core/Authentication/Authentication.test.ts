@@ -4173,10 +4173,10 @@ describe('Authentication', () => {
       alertSpy.mockRestore();
     });
 
-    it('converts BIOMETRIC_NOT_ENABLED error to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS', async () => {
-      // Mock reauthenticate to throw BIOMETRIC_NOT_ENABLED error
+    it('converts PASSWORD_NOT_SET_WITH_BIOMETRICS error to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS', async () => {
+      // Mock reauthenticate to throw PASSWORD_NOT_SET_WITH_BIOMETRICS error
       const biometricNotEnabledError = new Error(
-        `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: Biometric is not enabled`,
+        `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored with biometrics in keychain.`,
       );
       jest
         .spyOn(Authentication, 'reauthenticate')
@@ -4419,39 +4419,18 @@ describe('Authentication', () => {
       expect(result.password).toBe('test-password');
     });
 
-    it('throws PASSWORD_REQUIRED error when no biometric credentials are available', async () => {
+    it('throws PASSWORD_NOT_SET_WITH_BIOMETRICS error when password is not set using biometric credentials', async () => {
       const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
-      const getItemSpy = jest
-        .spyOn(StorageWrapper, 'getItem')
-        .mockResolvedValueOnce(null as never);
       const getPasswordSpy = jest
         .spyOn(Authentication, 'getPassword')
         .mockResolvedValueOnce(null);
 
       await expect(Authentication.reauthenticate()).rejects.toThrow(
-        ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+        ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
       );
 
-      expect(getItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE);
-      expect(getPasswordSpy).not.toHaveBeenCalled();
-      expect(verifyPasswordSpy).not.toHaveBeenCalled();
-    });
-
-    it('uses stored biometric password when no password is provided', async () => {
-      const verifyPasswordSpy = Engine.context.KeyringController.verifyPassword;
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-      const getPasswordSpy = jest
-        .spyOn(Authentication, 'getPassword')
-        .mockResolvedValue({
-          password: 'stored-password',
-        } as unknown as Keychain.UserCredentials);
-
-      const result = await Authentication.reauthenticate();
-
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(BIOMETRY_CHOICE);
       expect(getPasswordSpy).toHaveBeenCalled();
-      expect(verifyPasswordSpy).toHaveBeenCalledWith('stored-password');
-      expect(result.password).toBe('stored-password');
+      expect(verifyPasswordSpy).not.toHaveBeenCalled();
     });
 
     it('propagates error when password verification fails', async () => {

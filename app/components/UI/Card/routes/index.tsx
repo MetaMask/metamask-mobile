@@ -30,6 +30,7 @@ import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/A
 import { colors } from '../../../../styles/common';
 import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
+import ConfirmModal from '../components/Onboarding/ConfirmModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -160,6 +161,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.REGION_SELECTION}
       component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CONFIRM_MODAL}
+      component={ConfirmModal}
     />
   </ModalsStack.Navigator>
 );
