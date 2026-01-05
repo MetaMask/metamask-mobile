@@ -1130,7 +1130,7 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      throw new Error('ISubscription client not available');
+      throw new Error('Subscription client not available');
     }
 
     try {
@@ -1217,7 +1217,7 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      throw new Error('ISubscription client not available');
+      throw new Error('Subscription client not available');
     }
 
     try {
@@ -1990,7 +1990,7 @@ export class HyperLiquidSubscriptionService {
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
       } else if (subscription) {
-        // ISubscription exists but unsubscribe is not a function or doesn't return a Promise
+        // Subscription exists but unsubscribe is not a function or doesn't return a Promise
         // Just clean up the reference
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
@@ -2246,7 +2246,7 @@ export class HyperLiquidSubscriptionService {
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
     } else if (subscription) {
-      // ISubscription exists but unsubscribe is not a function or doesn't return a Promise
+      // Subscription exists but unsubscribe is not a function or doesn't return a Promise
       // Just clean up the reference
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
@@ -2258,7 +2258,7 @@ export class HyperLiquidSubscriptionService {
    * Creates a dedicated L2Book subscription for the requested symbol
    * and processes data into OrderBookData format for UI consumption
    *
-   * @param params - ISubscription parameters
+   * @param params - Subscription parameters
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
@@ -2277,9 +2277,9 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      const error = new Error('ISubscription client not available');
+      const error = new Error('Subscription client not available');
       onError?.(error);
-      DevLogger.log('subscribeToOrderBook: ISubscription client not available');
+      DevLogger.log('subscribeToOrderBook: Subscription client not available');
       return () => {
         // No-op cleanup
       };
@@ -2674,7 +2674,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     DevLogger.log(
-      'HyperLiquid: ISubscription service cleared (multi-DEX with individual subscriptions)',
+      'HyperLiquid: Subscription service cleared (multi-DEX with individual subscriptions)',
       {
         timestamp: new Date().toISOString(),
       },
