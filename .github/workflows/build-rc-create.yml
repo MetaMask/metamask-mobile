@@ -2,7 +2,7 @@
 #
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
 # You need to provide the semantic version of the release and the release branch
-# must exists on the repository
+# must exist on the repository
 #
 ##############################################################################################
 name: Create RC builds

@@ -80,7 +80,7 @@ ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.i
 
 ANDROID_APK=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
-#
+
 ANDROID_PUBLIC_URL=$(echo "$ANDROID_APK" | jq -r '.data.public_install_page_url')
 
 echo "Pipeline ID: $BUILD_SLUG"
