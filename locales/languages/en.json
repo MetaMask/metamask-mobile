@@ -6506,7 +6506,7 @@
       "deposit": "Fund with cash",
       "deposit_description": "Low-cost card or bank transfer",
       "swap": "Fund with crypto",
-      "swap_description": "Swap tokens into {{symbol}} on Linea",
+      "swap_description": "Swap tokens into {{symbol}} on {{chainName}}",
       "select_method": "Select method"
     },
     "card_onboarding": {
@@ -6532,8 +6532,7 @@
         "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
         "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
-        "resend_cooldown": "Resend available in {{seconds}} seconds",
-        "account_exists": "Please log in to proceed with your onboarding"
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
         "title": "Confirm your phone number",
@@ -6546,7 +6545,7 @@
       "confirm_phone_number": {
         "title": "Confirm your phone number",
         "description": "Enter the verification code sent to\n{{phoneNumber}}",
-         "didnt_receive_code": "Didn't receive the code? ",
+        "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
@@ -6563,6 +6562,12 @@
         "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
         "cancel_button": "Stay",
         "close_button": "Exit"
+      },
+      "exit_confirmation": {
+        "title": "Exit card setup?",
+        "message": "Your progress has been saved. You can continue setting up your card anytime.",
+        "cancel_button": "Continue",
+        "exit_button": "Exit"
       },
       "validating_kyc": {
         "title": "Awaiting approval",
@@ -6622,6 +6627,16 @@
         "title": "You're in!",
         "description": "Let's set up your card so you can start spending your crypto.",
         "confirm_button": "Set up my card"
+      },
+      "account_exists": {
+        "title": "You already have an account",
+        "description": "The email address {{email}} is already associated with a Card account.",
+        "confirm_button": "Log in"
+      },
+      "keep_going":{
+        "title": "Let's keep going",
+        "description": "Pick up where you left off and finish setting up your card.",
+        "confirm_button": "Continue"
       },
       "continue_button": "Next",
       "confirm_button": "Confirm",
@@ -6764,13 +6779,11 @@
       "solana_not_supported_button_description": "Enable on card.metamask.io"
     },
     "card_authentication": {
-      "title": "Log in to your MetaMask Card account",
+      "title": "Log in to your card account",
       "location_button_text": "International",
-      "location_button_text_us": "US account",
+      "location_button_text_us": "United States",
       "email_label": "Email",
       "password_label": "Password",
-      "email_placeholder": "Enter your email address",
-      "password_placeholder": "Enter your password",
       "login_button": "Log in",
       "signup_button": "I don't have an account",
       "errors": {
@@ -6789,13 +6802,15 @@
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
       "back_to_login_button": "Back to Login",
-      "resend_timer": "Resend code in {{seconds}}s",
-      "resend_code": "Resend code"
+      "didnt_receive_code": "Didn't receive the code? ",
+      "resend_verification": "Resend it",
+      "resend_cooldown": "Resend available in {{seconds}} seconds"
+
     }
   },
   "onboarding_error_fallback": {
