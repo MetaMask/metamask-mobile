@@ -116,15 +116,18 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   /**
    * Render the bottom (navigation/options) bar
    */
-  const renderBottomBar = () =>
-    isTabActive && !isUrlBarFocused ? (
-      <BrowserBottomBar
-        canGoBack={false}
-        canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
-      />
-    ) : null;
+  const renderBottomBar = useCallback(
+    () =>
+      isTabActive && !isUrlBarFocused ? (
+        <BrowserBottomBar
+          canGoBack={false}
+          canGoForward={false}
+          showTabs={showTabs}
+          showUrlModal={toggleUrlModal}
+        />
+      ) : null,
+    [isTabActive, isUrlBarFocused, showTabs, toggleUrlModal],
+  );
 
   /**
    * Main render
