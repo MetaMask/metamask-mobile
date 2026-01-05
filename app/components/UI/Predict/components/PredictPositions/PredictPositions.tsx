@@ -84,7 +84,7 @@ const PredictPositions = forwardRef<
       <PredictPosition
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
@@ -103,7 +103,7 @@ const PredictPositions = forwardRef<
       <PredictPositionResolved
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,

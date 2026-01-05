@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
-import Keypad from '../../../../Base/Keypad';
 import {
   MAX_INPUT_LENGTH,
   TokenInputArea,
@@ -18,7 +17,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -56,9 +54,6 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -83,9 +78,13 @@ import { useRecipientInitialization } from '../../hooks/useRecipientInitializati
 import ApprovalTooltip from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
+import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
+import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -142,8 +141,11 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  // Update gasIncluded state based on source chain capabilities
-  useGasIncluded(sourceToken?.chainId);
+  // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
+  useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
+
+  // Update isGasIncluded7702Supported state
+  useIsGasIncluded7702Supported(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
@@ -208,8 +210,25 @@ const BridgeView = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  // Check if quote is sponsored: both tokens must be on the same chain and that chain must be sponsored
+  const isQuoteSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) return false;
+    // Both tokens must be on the same chain
+    if (sourceToken.chainId !== destToken.chainId) return false;
+    // Check if the chain is sponsored
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+  }, [
+    sourceToken?.chainId,
+    destToken?.chainId,
+    isGasFeesSponsoredNetworkEnabled,
+  ]);
+
   const isSubmitDisabled =
-    isLoading ||
+    (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
@@ -332,6 +351,12 @@ const BridgeView = () => {
     } finally {
       dispatch(setIsSubmittingTx(false));
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    }
+  };
+
+  const handleSourceMaxPress = () => {
+    if (latestSourceBalance?.displayBalance) {
+      dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
     }
   };
 
@@ -479,7 +504,7 @@ const BridgeView = () => {
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box style={styles.content}>
-        <Box style={styles.inputsContainer} gap={8}>
+        <Box style={styles.inputsContainer}>
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
@@ -499,27 +524,15 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
-            onMaxPress={() => {
-              if (latestSourceBalance?.displayBalance) {
-                dispatch(
-                  setSourceAmountAsMax(latestSourceBalance.displayBalance),
-                );
-              }
-            }}
+            onMaxPress={handleSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
+            isQuoteSponsored={isQuoteSponsored}
           />
-          <Box style={styles.arrowContainer}>
-            <Box style={styles.arrowCircle}>
-              <ButtonIcon
-                iconName={IconName.SwapVertical}
-                onPress={handleSwitchTokens}
-                disabled={!destChainId || !destToken}
-                testID="arrow-button"
-                size={ButtonIconSizes.Lg}
-              />
-            </Box>
-          </Box>
+          <FLipQuoteButton
+            onPress={handleSwitchTokens(destTokenAmount)}
+            disabled={!destChainId || !destToken || !sourceToken}
+          />
           <TokenInputArea
             amount={destTokenAmount}
             token={destToken}
@@ -533,6 +546,7 @@ const BridgeView = () => {
             onTokenPress={handleDestTokenPress}
             isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
+            isQuoteSponsored={isQuoteSponsored}
           />
         </Box>
 
@@ -549,15 +563,15 @@ const BridgeView = () => {
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box style={styles.keypadContainer}>
-                <Keypad
-                  style={styles.keypad}
-                  value={sourceAmount || '0'}
-                  onChange={handleKeypadChange}
-                  currency={sourceToken?.symbol || 'ETH'}
-                  decimals={sourceToken?.decimals || 18}
-                />
-              </Box>
+              <SwapsKeypad
+                value={sourceAmount || '0'}
+                onChange={handleKeypadChange}
+                currency={sourceToken?.symbol || 'ETH'}
+                decimals={sourceToken?.decimals || 18}
+                token={sourceToken}
+                tokenBalance={latestSourceBalance}
+                onMaxPress={handleSourceMaxPress}
+              />
             ) : null}
           </Box>
         </ScrollView>

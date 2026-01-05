@@ -1,31 +1,24 @@
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../Base/Text';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { QuickAmount } from '../types';
 
-const INSET = 25;
+const INSET = 16;
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     content: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       paddingVertical: 12,
     },
     amount: {
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: colors.border.default,
       marginRight: 5,
       minWidth: 78,
-      padding: 7,
-      flexDirection: 'row',
-      justifyContent: 'center',
     },
   });
 
@@ -38,7 +31,7 @@ interface AmountProps {
   disabled?: boolean;
 }
 
-const Amount = ({ amount, onPress, isBuy, ...props }: AmountProps) => {
+const Amount = ({ amount, onPress, isBuy, disabled }: AmountProps) => {
   const { value, isNative, label } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -46,29 +39,18 @@ const Amount = ({ amount, onPress, isBuy, ...props }: AmountProps) => {
     onPress(amount);
   }, [onPress, amount]);
 
+  const showSparkleIcon = !isBuy && value === 1 && isNative;
+
   return (
-    <TouchableOpacity
-      style={styles.amount}
+    <Button
+      variant={ButtonVariants.Secondary}
+      size={ButtonSize.Sm}
+      label={label}
       onPress={handlePress}
-      accessibilityRole="button"
-      accessible
-      {...props}
-    >
-      {/*
-        We need to show the sparkle icon only when the value is 1 (100%) and is native token
-        to account for the gas estimation
-      */}
-      {!isBuy && value === 1 && isNative ? (
-        <Icon
-          name={IconName.Sparkle}
-          color={IconColor.Alternative}
-          size={IconSize.Sm}
-        />
-      ) : null}
-      <Text grey small centered noMargin>
-        {label}
-      </Text>
-    </TouchableOpacity>
+      style={styles.amount}
+      startIconName={showSparkleIcon ? IconName.Sparkle : undefined}
+      isDisabled={disabled}
+    />
   );
 };
 
@@ -81,13 +63,7 @@ interface Props {
   onAmountPress: (amount: QuickAmount) => any;
 }
 
-const QuickAmounts = ({
-  amounts,
-  onAmountPress,
-  isBuy,
-  disabled,
-  ...props
-}: Props) => {
+const QuickAmounts = ({ amounts, onAmountPress, isBuy, disabled }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -104,7 +80,6 @@ const QuickAmounts = ({
             onPress={onAmountPress}
             key={index}
             disabled={disabled}
-            {...props}
           />
         ))}
       </ScrollView>

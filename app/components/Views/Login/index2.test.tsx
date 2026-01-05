@@ -6,14 +6,6 @@ import { VAULT_ERROR } from './constants';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
-import {
-  SeedlessOnboardingControllerErrorMessage,
-  RecoveryError as SeedlessOnboardingControllerRecoveryError,
-} from '@metamask/seedless-onboarding-controller';
-import {
-  SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
-} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
@@ -21,17 +13,14 @@ import { Authentication } from '../../../core';
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
-import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
-import { EndTraceRequest, TraceName } from '../../../util/trace';
+import { EndTraceRequest } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
@@ -55,16 +44,6 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
-// Mock usePromptSeedlessRelogin hook
-const mockPromptSeedlessRelogin = jest.fn();
-const mockIsDeletingInProgress = jest.fn().mockReturnValue(false);
-jest.mock('../../hooks/SeedlessHooks', () => ({
-  usePromptSeedlessRelogin: () => ({
-    isDeletingInProgress: mockIsDeletingInProgress(),
-    promptSeedlessRelogin: mockPromptSeedlessRelogin,
-  }),
-}));
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
@@ -77,9 +56,6 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       verifyPassword: jest.fn(),
       submitPassword: jest.fn(),
-    },
-    SeedlessOnboardingController: {
-      submitGlobalPassword: jest.fn(),
     },
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
@@ -154,12 +130,65 @@ jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
 }));
 
 describe('Login test suite 2', () => {
+  const createMockReduxStore = (
+    stateOverrides?: RecursivePartial<RootState>,
+  ) => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RecursivePartial<RootState>;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  beforeEach(() => {
+    jest
+      .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+      .mockResolvedValue(false);
+
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+  });
+
+  afterAll(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
-          oauthLoginSuccess: true,
+          oauthLoginSuccess: false,
         },
       });
     });
@@ -168,7 +197,7 @@ describe('Login test suite 2', () => {
       jest.clearAllMocks();
     });
 
-    it('handle vault corruption successfully with valid password', async () => {
+    it('navigates to restore wallet screen when vault is corrupted and password is valid', async () => {
       mockGetVaultFromBackup.mockResolvedValueOnce({
         success: true,
         vault: 'mock-vault',
@@ -176,7 +205,7 @@ describe('Login test suite 2', () => {
       mockParseVaultValue.mockResolvedValueOnce('mock-seed');
 
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
       jest
@@ -186,7 +215,7 @@ describe('Login test suite 2', () => {
         });
 
       jest
-        .spyOn(Authentication, 'storePassword')
+        .spyOn(Authentication, 'updateAuthPreference')
         .mockResolvedValueOnce(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -218,7 +247,7 @@ describe('Login test suite 2', () => {
       mockParseVaultValue.mockResolvedValueOnce(undefined);
 
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -236,7 +265,7 @@ describe('Login test suite 2', () => {
 
     it('handle vault corruption when password requirements are not met', async () => {
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -258,7 +287,7 @@ describe('Login test suite 2', () => {
         error: 'Backup error',
       });
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -276,24 +305,14 @@ describe('Login test suite 2', () => {
 
     it('handle vault corruption when storePassword fails', async () => {
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
+      // Mock getVaultFromBackup to return an error to trigger error handling
       mockGetVaultFromBackup.mockResolvedValueOnce({
-        success: true,
-        vault: 'mock-vault',
+        success: false,
+        error: 'Store password failed',
       });
-      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
-
-      jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        });
-
-      jest
-        .spyOn(Authentication, 'storePassword')
-        .mockRejectedValueOnce(new Error('Store password failed'));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -305,7 +324,9 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
     });
 
     it('handle vault corruption when vault seed cannot be parsed', async () => {
@@ -316,7 +337,7 @@ describe('Login test suite 2', () => {
       mockParseVaultValue.mockResolvedValueOnce(undefined);
 
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -333,337 +354,20 @@ describe('Login test suite 2', () => {
     });
   });
 
-  describe('handleSeedlessOnboardingControllerError', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
-      mockRoute.mockClear();
-    });
-
-    it('handle seedless onboarding controller error with remaining time of > 0', async () => {
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 1, numberOfAttempts: 1 },
-      );
-
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0:00:01',
-      );
-    });
-
-    it('handle countdown behavior and disable input during tooManyAttemptsError', async () => {
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 3, numberOfAttempts: 1 },
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0:00:03',
-      );
-
-      expect(passwordInput.props.editable).toBe(false);
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0:00:02',
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0:00:01',
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
-      expect(passwordInput.props.editable).not.toBe(false);
-    });
-
-    it('clean up timeout on component unmount during countdown', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 5, numberOfAttempts: 1 },
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId, unmount } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-
-      await act(async () => {
-        unmount();
-      });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-    });
-
-    it('handle SeedlessOnboardingControllerRecoveryError Invalid Password', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId, unmount } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-
-      await act(async () => {
-        unmount();
-      });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-    });
-
-    it('handle generic SeedlessOnboardingControllerRecoveryError (else case)', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'generic error cases',
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId, unmount } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('Error: generic error cases');
-
-      await act(async () => {
-        unmount();
-      });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-    });
-
-    it('handle generic error when metrics are disabled', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      mockIsEnabled.mockReturnValue(false);
-
-      const seedlessError = new Error(
-        'SeedlessOnboardingController - generic error cases',
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByText, getByTestId, unmount } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Expect ErrorBoundary UI instead of login form error
-      expect(getByText('An error occurred')).toBeTruthy();
-      expect(
-        getByText(
-          'Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.',
-        ),
-      ).toBeTruthy();
-
-      await act(async () => {
-        unmount();
-      });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-      mockIsEnabled.mockReturnValue(true);
-      clearTimeoutSpy.mockRestore();
-    });
-
-    it('handle generic error when metrics are enabled', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      mockIsEnabled.mockReturnValue(true);
-
-      const seedlessError = new Error(
-        'SeedlessOnboardingController - generic error cases',
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId, unmount } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Expect normal login form error instead of ErrorBoundary
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('generic error cases');
-
-      await act(async () => {
-        unmount();
-      });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-      clearTimeoutSpy.mockRestore();
-    });
-  });
-
-  describe('handleSyncPasswordAndUnlockWallet', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
+  describe('updateBiometryChoice', () => {
+    it('updates biometry choice to disabled when biometric auth is cancelled', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: false,
         },
       });
-    });
-
-    it('handle seedless onboarding controller error on syncPasswordAndUnlockWallet', async () => {
-      jest
-        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
-        .mockResolvedValue(true);
-
-      // mock keyring controller verifyPassword
-      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
-        undefined,
-      );
-      mockEngine.context.SeedlessOnboardingController.submitGlobalPassword.mockRejectedValue(
-        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.seedless_password_outdated'),
-      );
-    });
-  });
-  describe('updateBiometryChoice', () => {
-    it('update biometry choice to disabled', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
         undefined,
       );
 
       jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(new Error('Error: Cancel'));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -676,92 +380,15 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(updateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
-
       mockRoute.mockClear();
     });
   });
 
-  describe('OAuth Login', () => {
+  describe('Non-OAuth Login Success Flow', () => {
     afterEach(() => {
+      jest.clearAllTimers();
       mockNavigate.mockReset();
       jest.clearAllMocks();
-    });
-
-    it('navigate back and reset OAuth state', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
-      const spyResetOauthState = jest.spyOn(OAuthService, 'resetOauthState');
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      const otherMethodsButton = getByTestId(
-        LoginViewSelectors.OTHER_METHODS_BUTTON,
-      );
-
-      await act(async () => {
-        fireEvent.press(otherMethodsButton);
-      });
-
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(spyResetOauthState).toHaveBeenCalled();
-    });
-
-    it('handle OAuth login success when metrics UI is seen', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          onboardingTraceCtx: 'mockTraceContext',
-        },
-      });
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
-        return null;
-      });
-
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'mock-vault',
-            },
-          },
-        },
-      };
-      // mock Redux store
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: jest.fn(() => mockState),
-      } as unknown as ReduxStore);
-
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
-      const spyRehydrateSeedPhrase = jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockResolvedValue(undefined);
-
-      mockEndTrace.mockClear();
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingExistingSocialLogin,
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingJourneyOverall,
-      });
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
     it('handle non OAuth login success when metrics UI is not seen', async () => {
@@ -777,6 +404,12 @@ describe('Login test suite 2', () => {
         return null;
       });
       const mockState: RecursivePartial<RootState> = {
+        user: {
+          existingUser: false,
+        },
+        security: {
+          allowLoginWithRememberMe: false,
+        },
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -789,56 +422,15 @@ describe('Login test suite 2', () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: jest.fn(() => mockState),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
       } as unknown as ReduxStore);
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
-    });
-
-    it('replace navigation when non-OAuth login', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          onboardingTraceCtx: 'mockTraceContext',
-        },
-      });
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
-        return null;
-      });
-
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'mock-vault',
-            },
-          },
-        },
-      };
-      // mock Redux store
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: jest.fn(() => mockState),
-      } as unknown as ReduxStore);
-
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
-      const spyRehydrateSeedPhrase = jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
+      jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
+      jest
+        .spyOn(Authentication, 'updateAuthPreference')
         .mockResolvedValue(undefined);
 
-      mockEndTrace.mockClear();
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -849,31 +441,15 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingExistingSocialLogin,
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingJourneyOverall,
-      });
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
-      expect(mockReset).not.toHaveBeenCalledWith({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
     });
   });
 
   describe('Global Password changed', () => {
+    afterEach(() => {
+      jest.clearAllTimers();
+    });
+
     it('show biometric when password is not outdated', async () => {
       mockRoute.mockReturnValue({
         params: {
@@ -933,248 +509,6 @@ describe('Login test suite 2', () => {
         },
         { timeout: 4000 },
       );
-    });
-
-    it('show error and disable biometric accesory when password is outdated', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'mock-vault',
-              passwordOutdatedCache: {
-                isExpiredPwd: true,
-                timestamp: 1718332800,
-              },
-            },
-          },
-        },
-      };
-
-      // mock storage wrapper
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === BIOMETRY_CHOICE_DISABLED) return false;
-        return null;
-      });
-
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
-
-      jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-      }));
-
-      renderWithProvider(<Login />, {
-        // @ts-expect-error - mock state
-        state: mockState,
-      });
-
-      const errorElement = screen.queryByTestId(
-        LoginViewSelectors.PASSWORD_ERROR,
-      );
-      expect(errorElement).toBeTruthy();
-      expect(errorElement?.children[0]).toEqual(
-        strings('login.seedless_password_outdated'),
-      );
-
-      expect(
-        screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-      ).not.toBeTruthy();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-        ).not.toBeTruthy();
-      });
-    });
-  });
-
-  describe('usePromptSeedlessRelogin hook integration - non rehydrate flow', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockPromptSeedlessRelogin.mockClear();
-      mockIsDeletingInProgress.mockReturnValue(false);
-    });
-
-    it('display loading state when isDeletingInProgress is true', async () => {
-      mockIsDeletingInProgress.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      // Button should be disabled when isDeletingInProgress is true
-      expect(loginButton.props.disabled).toBe(true);
-    });
-
-    it('call promptSeedlessRelogin when OAuth login fails with generic error', async () => {
-      mockIsDeletingInProgress.mockReturnValue(false);
-      mockIsEnabled.mockReturnValue(true);
-
-      const seedlessError = new Error(
-        'SeedlessOnboardingController - OAuth rehydration failed',
-      );
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
-    });
-
-    it('disable login button when isDeletingInProgress is true', async () => {
-      mockIsDeletingInProgress.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-
-      // Even with valid password, button should be disabled when isDeletingInProgress is true
-      expect(loginButton.props.disabled).toBe(true);
-    });
-
-    it('handle SeedlessOnboardingControllerError PasswordRecentlyUpdated', async () => {
-      mockIsDeletingInProgress.mockReturnValue(false);
-
-      const seedlessError = new SeedlessOnboardingControllerError(
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-        'Password was recently updated',
-      );
-
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual(
-        strings('login.seedless_password_outdated'),
-      );
-    });
-
-    it('not call promptSeedlessRelogin for rehydrate flow', async () => {
-      mockIsDeletingInProgress.mockReturnValue(false);
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true, // rehydrate flow
-        },
-      });
-
-      const seedlessError = new Error(
-        'SeedlessOnboardingController - Generic error',
-      );
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Should show error message instead of calling promptSeedlessRelogin
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('Generic error');
-      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
-    });
-
-    it('capture exception when metrics enabled and OAuth login fails', async () => {
-      mockIsDeletingInProgress.mockReturnValue(false);
-      mockIsEnabled.mockReturnValue(true);
-
-      // Set up route params for non-OAuth login scenario
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-
-      const seedlessError = new Error(
-        'SeedlessOnboardingController - OAuth rehydration failed',
-      );
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
-    });
-
-    it('handle finalLoading state correctly', async () => {
-      // Test when both loading and isDeletingInProgress are false
-      mockIsDeletingInProgress.mockReturnValue(false);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-
-      // Button should be enabled when both loading states are false and password is valid
-      expect(loginButton.props.disabled).toBe(false);
-
-      // Test when isDeletingInProgress is true
-      mockIsDeletingInProgress.mockReturnValue(true);
-
-      // Re-render to get updated state
-      const { getByTestId: getByTestIdUpdated } = renderWithProvider(<Login />);
-      const loginButtonUpdated = getByTestIdUpdated(
-        LoginViewSelectors.LOGIN_BUTTON_ID,
-      );
-      const passwordInputUpdated = getByTestIdUpdated(
-        LoginViewSelectors.PASSWORD_INPUT,
-      );
-
-      await act(async () => {
-        fireEvent.changeText(passwordInputUpdated, 'valid-password123');
-      });
-
-      // Button should be disabled when isDeletingInProgress is true
-      expect(loginButtonUpdated.props.disabled).toBe(true);
     });
   });
 });

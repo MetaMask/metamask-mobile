@@ -52,22 +52,27 @@ body:
  - type: dropdown
    id: stage
    attributes:
-     label: Detection stage
-     description: At what stage was the bug detected?
+     label: Where was this bug found?
+     description: Help us understand where this bug was encountered.
      options:
-       - In production (default)
-       - In public beta
-       - During release testing
-       - On main branch
-       - On a feature branch
+       - Live version (from official store)
+       - Internal release testing
    validations:
      required: true
  - type: input
    id: version
    attributes:
      label: Version
-     description: What version of MetaMask are you running? You can find the version in "Settings" > "About"
+     description: What version of MetaMask are you running? You can find the version in "Settings" > "About MetaMask"
      placeholder: "7.50.0"
+   validations:
+     required: true
+ - type: input
+   id: build-number
+   attributes:
+     label: Build number
+     description: What build number of MetaMask are you running? You can find the build number in "Settings" > "About MetaMask"
+     placeholder: "3055"
    validations:
      required: true
  - type: dropdown

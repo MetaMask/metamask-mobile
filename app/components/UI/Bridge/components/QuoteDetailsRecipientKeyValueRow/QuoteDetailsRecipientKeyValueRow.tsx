@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { KeyValueRowStubs } from '../../../../../component-library/components-temp/KeyValueRow';
@@ -48,7 +49,9 @@ const QuoteDetailsRecipientKeyValueRow = () => {
   return (
     <KeyValueRowStubs.Root>
       <Box style={styles.recipientFieldSection}>
-        <Text variant={TextVariant.BodyMD}>{strings('bridge.recipient')}</Text>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('bridge.recipient')}
+        </Text>
       </Box>
       <Box
         style={styles.recipientValueSection}
@@ -66,12 +69,13 @@ const QuoteDetailsRecipientKeyValueRow = () => {
               variant={TextVariant.BodyMD}
               numberOfLines={1}
               style={styles.accountNameText}
+              color={TextColor.Alternative}
             >
               {destinationWalletName ? `${destinationWalletName} / ` : ''}
               {destinationDisplayName}
             </Text>
           ) : destinationAccountAddress ? (
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {shortenString(destinationAccountAddress, {
                 truncatedCharLimit: 15,
                 truncatedStartChars: 7,
@@ -85,6 +89,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
               numberOfLines={1}
               ellipsizeMode="tail"
               style={styles.recipientText}
+              color={TextColor.Alternative}
             >
               {strings('bridge.select_recipient')}
             </Text>
@@ -92,7 +97,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
           <Icon
             name={IconName.Edit}
             size={IconSize.Sm}
-            color={IconColor.Muted}
+            color={IconColor.Alternative}
           />
         </TouchableOpacity>
       </Box>

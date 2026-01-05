@@ -48,6 +48,7 @@ import {
 import { setupSentry } from '../../../util/sentry/utils';
 import Device from '../../../util/device';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -55,15 +56,14 @@ const createStyles = ({ colors }) =>
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
       paddingTop:
-        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
-      paddingBottom: 16,
+        Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
     },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
+      justifyContent: 'space-between',
       gap: 16,
-      marginRight: 25,
     },
     action: {
       flex: 0,
@@ -88,7 +88,8 @@ const createStyles = ({ colors }) =>
     },
     actionContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     disabledActionContainer: {
       opacity: 0.3,
@@ -125,7 +126,7 @@ const createStyles = ({ colors }) =>
     },
     illustration: {
       width: Device.isMediumDevice() ? 160 : 200,
-      height: Device.isMediumDevice() ? 120 : 150,
+      height: Device.isMediumDevice() ? 120 : 180,
       alignSelf: 'center',
     },
     flexContainer: {
@@ -169,6 +170,10 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * PNA25 feature flag from LaunchDarkly
+     */
+    isPna25FlagEnabled: PropTypes.bool,
   };
 
   state = {
@@ -435,6 +440,13 @@ class OptinMetrics extends PureComponent {
           testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={PrivacyIllustration}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
+            </View>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
@@ -443,13 +455,6 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <View style={styles.imageContainer}>
-              <Image
-                source={PrivacyIllustration}
-                style={styles.illustration}
-                resizeMode="contain"
-              />
-            </View>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -469,12 +474,6 @@ class OptinMetrics extends PureComponent {
                 activeOpacity={0.7}
               >
                 <View style={styles.checkbox}>
-                  <Checkbox
-                    onPress={this.handleBasicUsageToggle}
-                    isChecked={this.state.isBasicUsageChecked}
-                    accessibilityRole={'checkbox'}
-                    accessible
-                  />
                   <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
@@ -483,14 +482,24 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.gather_basic_usage_title')}
                     </Text>
                   </View>
+                  <Checkbox
+                    onPress={this.handleBasicUsageToggle}
+                    isChecked={this.state.isBasicUsageChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                  />
                 </View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                   style={styles.descriptionText}
                 >
-                  {strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                  {this.props.isPna25FlagEnabled
+                    ? strings(
+                        'privacy_policy.gather_basic_usage_description_updated',
+                      ) + ' '
+                    : strings('privacy_policy.gather_basic_usage_description') +
+                      ' '}
                   <Text
                     color={TextColor.Primary}
                     variant={TextVariant.BodySM}
@@ -513,13 +522,6 @@ class OptinMetrics extends PureComponent {
                 disabled={this.isMarketingDisabled}
               >
                 <View style={styles.checkbox}>
-                  <Checkbox
-                    onPress={this.handleMarketingToggle}
-                    isChecked={this.state.isMarketingChecked}
-                    accessibilityRole={'checkbox'}
-                    accessible
-                    disabled={this.isMarketingDisabled}
-                  />
                   <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
@@ -532,6 +534,13 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.checkbox_marketing')}
                     </Text>
                   </View>
+                  <Checkbox
+                    onPress={this.handleMarketingToggle}
+                    isChecked={this.state.isMarketingChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                    disabled={this.isMarketingDisabled}
+                  />
                 </View>
                 <Text
                   variant={TextVariant.BodySM}
@@ -561,6 +570,7 @@ OptinMetrics.navigationOptions = {
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
+  isPna25FlagEnabled: selectIsPna25FlagEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

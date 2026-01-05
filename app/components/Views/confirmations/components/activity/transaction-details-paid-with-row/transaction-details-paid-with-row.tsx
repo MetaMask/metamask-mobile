@@ -1,23 +1,19 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsPaidWithRow() {
   const { transactionMeta } = useTransactionDetails();
   const { metamaskPay } = transactionMeta;
   const { chainId, tokenAddress } = metamaskPay || {};
-  const chainIds = useMemo(() => (chainId ? [chainId] : []), [chainId]);
-  const tokens = useTokensWithBalance({ chainIds });
-
-  const token = tokens.find(
-    (t) => t.address.toLowerCase() === tokenAddress?.toLowerCase(),
-  );
+  const token = useTokenWithBalance(tokenAddress ?? '0x0', chainId ?? '0x0');
 
   if (!chainId || !tokenAddress || !token) {
     return null;
@@ -37,7 +33,9 @@ export function TransactionDetailsPaidWithRow() {
           address={tokenAddress}
           variant={TokenIconVariant.Row}
         />
-        <Text>{token.symbol}</Text>
+        <Text testID={TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL}>
+          {token.symbol}
+        </Text>
       </Box>
     </TransactionDetailsRow>
   );

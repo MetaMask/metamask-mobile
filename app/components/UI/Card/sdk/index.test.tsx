@@ -32,6 +32,7 @@ import {
 import Logger from '../../../../util/Logger';
 import { View } from 'react-native';
 import { UserResponse } from '../types';
+import { getErrorMessage } from '../util/getErrorMessage';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -102,6 +103,10 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock('../util/getErrorMessage', () => ({
+  getErrorMessage: jest.fn(),
+}));
+
 describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
@@ -115,6 +120,7 @@ describe('CardSDK Context', () => {
   const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
   const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
   const mockLogger = jest.mocked(Logger);
+  const mockGetErrorMessage = jest.mocked(getErrorMessage);
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -251,7 +257,9 @@ describe('CardSDK Context', () => {
         isLoading: false,
         user: null,
         setUser: jest.fn(),
+        fetchUserData: jest.fn(),
         logoutFromProvider: jest.fn(),
+        isReturningSession: false,
       };
 
       // When: provider renders with custom value
@@ -292,6 +300,8 @@ describe('CardSDK Context', () => {
         logoutFromProvider: expect.any(Function),
         user: null,
         setUser: expect.any(Function),
+        fetchUserData: expect.any(Function),
+        isReturningSession: expect.any(Boolean),
       });
     });
 
@@ -713,6 +723,222 @@ describe('CardSDK Context', () => {
         'test-onboarding-id',
       );
       expect(result.current.user).toBe(null);
+    });
+
+    it('resets onboarding state when "Invalid onboarding ID" error occurs', async () => {
+      // Given: SDK that throws "Invalid onboarding ID" error
+      const mockError = new Error('Invalid onboarding ID');
+      const mockGetRegistrationStatus = jest.fn().mockRejectedValue(mockError);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // Mock getErrorMessage to return the error message
+      mockGetErrorMessage.mockReturnValue('Invalid onboarding ID');
+
+      // When: provider initializes and fetches user data
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: error should be handled and onboarding state should be reset
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'card/resetOnboardingState',
+      });
+      expect(result.current.user).toBe(null);
+    });
+
+    it('does not reset onboarding state for other errors', async () => {
+      // Given: SDK that throws a different error
+      const mockError = new Error('Network timeout');
+      const mockGetRegistrationStatus = jest.fn().mockRejectedValue(mockError);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // Mock getErrorMessage to return a different error message
+      mockGetErrorMessage.mockReturnValue('Network timeout');
+
+      // Clear any previous dispatch calls
+      mockDispatch.mockClear();
+
+      // When: provider initializes and fetches user data
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: error should be handled but onboarding state should NOT be reset
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
+      // Verify resetOnboardingState was NOT dispatched
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: 'card/resetOnboardingState',
+      });
+      expect(result.current.user).toBe(null);
+    });
+  });
+
+  describe('hasInitialOnboardingId - Race Condition Prevention', () => {
+    const mockUserResponse: UserResponse = {
+      id: 'test-user-id',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      phoneNumber: '+1234567890',
+      phoneCountryCode: '+1',
+      verificationState: 'VERIFIED',
+      dateOfBirth: '1990-01-01',
+      addressLine1: '123 Main St',
+      city: 'Anytown',
+      usState: 'CA',
+      zip: '12345',
+      countryOfResidence: 'US',
+    };
+
+    it('does not auto-fetch user data when onboardingId is set after mount', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result, rerender } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+
+      setupMockUseSelector(mockCardFeatureFlag, null, 'new-onboarding-id');
+      rerender(undefined);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+      expect(result.current.user).toBe(null);
+    });
+
+    it('auto-fetches user data when onboardingId exists at mount', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'existing-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'existing-onboarding-id',
+      );
+      expect(result.current.user).toEqual(mockUserResponse);
+    });
+
+    it('allows manual fetchUserData call regardless of initial onboardingId state', async () => {
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      mockGetRegistrationStatus.mockClear();
+
+      await act(async () => {
+        await result.current.fetchUserData();
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(result.current.user).toEqual(mockUserResponse);
+    });
+
+    it('exposes isReturningSession as true when onboardingId exists at mount', async () => {
+      setupMockSDK({
+        getRegistrationStatus: jest.fn().mockResolvedValue(mockUserResponse),
+      });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'existing-onboarding-id');
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(true);
+    });
+
+    it('exposes isReturningSession as false when no onboardingId exists at mount', async () => {
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(false);
+    });
+
+    it('keeps isReturningSession as false when onboardingId is set after mount', async () => {
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      const { result, rerender } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isReturningSession).toBe(false);
+
+      // Simulate onboardingId being set after mount (e.g., after email verification)
+      setupMockUseSelector(mockCardFeatureFlag, null, 'new-onboarding-id');
+      rerender(undefined);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // isReturningSession should still be false since it was captured at mount
+      expect(result.current.isReturningSession).toBe(false);
     });
   });
 });

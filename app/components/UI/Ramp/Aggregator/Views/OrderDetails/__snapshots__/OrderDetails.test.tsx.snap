@@ -224,14 +224,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -482,6 +482,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -518,7 +519,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -526,14 +527,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Canceled
+                                          Order canceled
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -557,7 +558,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -574,7 +575,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -602,9 +603,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -709,7 +709,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -798,7 +798,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -831,7 +831,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -881,7 +881,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -913,7 +913,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -958,7 +958,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -1008,14 +1008,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -1040,7 +1040,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -1100,14 +1100,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -1132,7 +1132,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -1183,7 +1183,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -1217,7 +1217,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -1269,14 +1269,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -1301,7 +1301,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -1361,14 +1361,14 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -1393,7 +1393,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -1418,6 +1418,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -1427,49 +1428,34 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -1717,14 +1703,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1975,6 +1961,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -2029,7 +2016,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2037,14 +2024,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Successful!
+                                          Order successful!
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -2068,7 +2055,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -2085,7 +2072,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -2113,9 +2100,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -2220,7 +2206,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -2309,7 +2295,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2342,7 +2328,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2392,7 +2378,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2424,7 +2410,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2469,7 +2455,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -2519,14 +2505,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -2551,7 +2537,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2611,14 +2597,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -2643,7 +2629,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -2694,7 +2680,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -2728,7 +2714,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -2780,14 +2766,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -2812,7 +2798,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2872,14 +2858,14 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -2904,7 +2890,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -2929,6 +2915,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -2938,49 +2925,34 @@ exports[`OrderDetails renders a completed order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -3228,14 +3200,14 @@ exports[`OrderDetails renders a created order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3486,6 +3458,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -3570,7 +3543,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3594,7 +3567,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -3611,7 +3584,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -3639,9 +3612,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -3746,7 +3718,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -3835,7 +3807,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -3868,7 +3840,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -3918,7 +3890,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -3950,7 +3922,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -3995,7 +3967,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -4045,14 +4017,14 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -4077,7 +4049,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -4137,14 +4109,14 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -4169,7 +4141,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -4220,7 +4192,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -4254,7 +4226,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -4306,14 +4278,14 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -4338,7 +4310,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -4398,14 +4370,14 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -4430,7 +4402,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -4455,6 +4427,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -4702,14 +4675,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4960,6 +4933,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -4996,7 +4970,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -5004,14 +4978,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             }
                                           }
                                         >
-                                          Order Failed
+                                          Order failed
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -5035,7 +5009,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -5052,7 +5026,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -5080,9 +5054,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -5187,7 +5160,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -5276,7 +5249,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5309,7 +5282,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5359,7 +5332,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5391,7 +5364,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5436,7 +5409,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -5486,14 +5459,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -5518,7 +5491,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5578,14 +5551,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -5610,7 +5583,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -5661,7 +5634,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -5695,7 +5668,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -5747,14 +5720,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -5779,7 +5752,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5839,14 +5812,14 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -5871,7 +5844,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -5896,6 +5869,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -5905,49 +5879,34 @@ exports[`OrderDetails renders a failed order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -6195,14 +6154,14 @@ exports[`OrderDetails renders a pending order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6453,6 +6412,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -6537,7 +6497,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6545,7 +6505,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             }
                                           }
                                         >
-                                          Processing Order
+                                          Processing order
                                         </Text>
                                       </View>
                                     </View>
@@ -6561,7 +6521,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -6578,7 +6538,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -6606,9 +6566,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -6713,7 +6672,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -6802,7 +6761,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -6835,7 +6794,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -6885,7 +6844,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -6917,7 +6876,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -6962,7 +6921,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -7012,14 +6971,14 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -7044,7 +7003,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -7104,14 +7063,14 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -7136,7 +7095,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -7187,7 +7146,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -7221,7 +7180,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -7273,14 +7232,14 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -7305,7 +7264,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -7365,14 +7324,14 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -7397,7 +7356,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -7422,6 +7381,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -7669,14 +7629,14 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8128,14 +8088,14 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8429,7 +8389,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -8453,7 +8413,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -8501,49 +8461,34 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Try again
@@ -8791,14 +8736,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9049,6 +8994,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -9133,7 +9079,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -9141,14 +9087,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             }
                                           }
                                         >
-                                          Order Pending
+                                          Order pending
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -9172,7 +9118,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -9189,7 +9135,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -9217,9 +9163,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -9324,7 +9269,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -9413,7 +9358,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9446,7 +9391,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9496,7 +9441,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9528,7 +9473,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9573,7 +9518,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -9623,14 +9568,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -9655,7 +9600,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9715,14 +9660,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -9747,7 +9692,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -9798,7 +9743,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -9832,7 +9777,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -9884,14 +9829,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -9916,7 +9861,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -9976,14 +9921,14 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -10008,7 +9953,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -10033,6 +9978,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -10054,49 +10000,34 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 12,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff",
-                                            "minHeight": 50,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "#121314",
+                                        "borderRadius": 12,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "Geist Bold",
-                                              "fontSize": 14,
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#ffffff",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#ffffff",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       Continue this order
@@ -10345,14 +10276,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -10603,6 +10534,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -10657,7 +10589,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -10665,14 +10597,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             }
                                           }
                                         >
-                                          Order Successful!
+                                          Order successful!
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -10696,7 +10628,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -10713,7 +10645,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -10740,7 +10672,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#4459ff",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -10768,9 +10700,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -10875,7 +10806,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -10964,7 +10895,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -10997,7 +10928,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11047,7 +10978,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11079,7 +11010,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11124,7 +11055,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -11141,7 +11072,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11149,7 +11080,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Contact Support
+                                                  Contact support
                                                 </Text>
                                               </Text>
                                             </View>
@@ -11193,14 +11124,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Amount
+                                                  Token amount
                                                 </Text>
                                               </View>
                                               <View
@@ -11225,7 +11156,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11285,14 +11216,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -11317,7 +11248,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -11368,7 +11299,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -11402,7 +11333,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -11454,14 +11385,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -11486,7 +11417,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11546,14 +11477,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Purchase Amount Total
+                                                  Purchase amount total
                                                 </Text>
                                               </View>
                                               <View
@@ -11578,7 +11509,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -11603,6 +11534,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -11612,49 +11544,34 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -11902,14 +11819,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -12160,6 +12077,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -12244,7 +12162,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -12268,7 +12186,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -12285,7 +12203,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -12313,9 +12231,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -12420,7 +12337,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -12509,7 +12426,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -12542,7 +12459,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -12592,7 +12509,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -12624,7 +12541,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -12669,7 +12586,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -12719,14 +12636,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -12751,7 +12668,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -12811,14 +12728,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -12843,7 +12760,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -12894,7 +12811,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -12928,7 +12845,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -12980,14 +12897,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -13012,7 +12929,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -13072,14 +12989,14 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -13104,7 +13021,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -13129,6 +13046,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -13376,14 +13294,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Order Details
+                  Order details
                 </Text>
               </TouchableOpacity>
             </View>
@@ -13634,6 +13552,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -13718,7 +13637,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -13733,7 +13652,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -13757,7 +13676,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -13774,7 +13693,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
@@ -13802,9 +13721,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -13909,7 +13827,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -13998,7 +13916,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14031,7 +13949,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14081,7 +13999,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14113,7 +14031,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14158,7 +14076,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -14208,14 +14126,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Token Quantity Sold
+                                                  Token quantity sold
                                                 </Text>
                                               </View>
                                               <View
@@ -14240,7 +14158,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14300,14 +14218,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
                                                     }
                                                   >
-                                                    Exchange Rate
+                                                    Exchange rate
                                                   </Text>
                                                 </View>
                                                 <View
@@ -14332,7 +14250,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -14383,7 +14301,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Regular",
+                                                        "fontFamily": "Geist-Regular",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -14417,7 +14335,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Bold",
+                                                        "fontFamily": "Geist-Bold",
                                                         "fontSize": 14,
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
@@ -14469,14 +14387,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Total Fees
+                                                  Total fees
                                                 </Text>
                                               </View>
                                               <View
@@ -14501,7 +14419,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14561,14 +14479,14 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
                                                   }
                                                 >
-                                                  Amount Received Total
+                                                  Amount received total
                                                 </Text>
                                               </View>
                                               <View
@@ -14593,7 +14511,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -14618,6 +14536,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,

@@ -357,7 +357,7 @@ describe('marketDataTransform', () => {
       expect(result[0].marketType).toBe('commodity');
     });
 
-    it('handles unmapped HIP-3 DEX with marketSource but no marketType', () => {
+    it('handles unmapped HIP-3 DEX - defaults to equity marketType', () => {
       const unknownDexAsset = {
         name: 'unknown:ASSET1',
         maxLeverage: 10,
@@ -376,7 +376,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('unknown:ASSET1');
       expect(result[0].marketSource).toBe('unknown');
-      expect(result[0].marketType).toBeUndefined();
+      expect(result[0].marketType).toBe('equity');
     });
 
     it('handles main DEX assets with no marketSource or marketType', () => {

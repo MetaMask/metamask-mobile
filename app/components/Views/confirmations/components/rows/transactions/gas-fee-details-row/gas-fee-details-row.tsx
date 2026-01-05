@@ -4,7 +4,6 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
@@ -35,7 +34,9 @@ import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
+import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -43,22 +44,20 @@ const PaidByMetaMask = () => (
   </Text>
 );
 
-const SkeletonEstimationInfo = () => (
-  <SkeletonPlaceholder>
-    <SkeletonPlaceholder.Item
-      width={120}
-      height={24}
-      borderRadius={8}
-      marginTop={2}
-    />
-  </SkeletonPlaceholder>
-);
+const SkeletonEstimationInfo = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+  );
+};
 
 const EstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
   fiatOnly,
   isGasFeeSponsored,
+  isBatch = false,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations:
@@ -66,6 +65,7 @@ const EstimationInfo = ({
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  isBatch?: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
   const { styles } = useStyles(styleSheet, {});
@@ -79,6 +79,7 @@ const EstimationInfo = ({
     hideFiatForTestnet || !fiatValue
       ? styles.primaryValue
       : styles.secondaryValue;
+
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, simulationData, networkClientId } =
     (transactionMetadata as TransactionMeta) ?? {};
@@ -87,7 +88,9 @@ const EstimationInfo = ({
     simulationData,
     networkClientId,
   });
-  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
+
+  const isSimulationLoading =
+    !isBatch && (!simulationData || balanceChangesResult.pending);
 
   return (
     <View style={styles.estimationContainer}>
@@ -142,6 +145,7 @@ const BatchEstimateInfo = ({
   const feeCalculations = useFeeCalculationsTransactionBatch(
     transactionBatchesMetadata as TransactionBatchMeta,
   );
+  const isBatch = Boolean(transactionBatchesMetadata);
 
   return (
     <EstimationInfo
@@ -149,6 +153,7 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      isBatch={isBatch}
     />
   );
 };
@@ -276,6 +281,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
+          tooltipColor={IconColor.Alternative}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
@@ -330,5 +336,22 @@ const GasFeesDetailsRow = ({
     </>
   );
 };
+
+export function GasFeesDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <InfoSection>
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={105} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+      </View>
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={50} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+      </View>
+    </InfoSection>
+  );
+}
 
 export default GasFeesDetailsRow;

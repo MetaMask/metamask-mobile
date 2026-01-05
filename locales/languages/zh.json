@@ -1,6 +1,6 @@
 {
   "sample_feature": {
-    "title": "示例功能",
+    "title": "Sample feature",
     "description": "本界面展示如何在 MetaMask 中构建端到端示例功能。",
     "counter": {
       "title": "计数器",
@@ -8,8 +8,8 @@
       "increment": "增量 Redux 计数器"
     },
     "pet_name": {
-      "list_count_text": "此网络上的宠物名称",
-      "add_pet_name_button": "添加宠物名称",
+      "list_count_text": "Pet names on this network",
+      "add_pet_name_button": "Add pet name",
       "address": "地址",
       "address_placeholder": "0x……",
       "name": "名称",
@@ -25,7 +25,7 @@
       "title": "提醒",
       "checkbox_label": "我已知晓风险，但仍想继续",
       "got_it_btn": "知道了",
-      "alert_details": "提醒详情"
+      "alert_details": "Alert details"
     },
     "confirm_modal": {
       "title": "高风险请求",
@@ -52,7 +52,11 @@
     },
     "domain_mismatch": {
       "title": "可疑登录请求",
-      "message": "发起请求的网站并非您要登录的网站。可能试图窃取您的登录凭据。"
+      "message": "The site making the request is not the site you're signing into. This could be an attempt to steal your login credentials."
+    },
+    "gas_estimate_failed": {
+      "title": "Inaccurate fee",
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "资金不足",
@@ -65,7 +69,11 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "存款进行中",
-      "message": "您已有一笔存款正在进行中。需等待该笔交易完成后方可再次进行存款。"
+      "message": "请等待上一笔存款完成后再进行下一笔存款。"
+    },
+    "signed_or_submitted_pay_token": {
+      "title": "待定交易",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
     },
     "pending_transaction": {
       "title": "待定交易",
@@ -83,22 +91,57 @@
       "message": "资金不足"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "{{symbol}} 不足以支付费用。请减少转入金额或选择其他代币继续操作。",
+      "message": "Add less than {{amount}} or use a different token.",
       "title": "资金不足"
     },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
+    },
     "insufficient_pay_token_native": {
-      "message": "{{ticker}} 不足以支付费用。请选择其他网络上的代币继续操作。"
+      "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
+      "title": "资金不足"
     },
     "no_pay_token_quotes": {
-      "message": "目前该支付路径不可用。请调整金额、网络或代币类型，系统将为您匹配最优选项。"
+      "message": "目前该支付路径不可用。请调整金额、网络或代币类型，系统将为您匹配最优选项。",
+      "title": "No quotes"
     },
     "perps_hardware_account": {
       "title": "钱包不获支持",
-      "message": "永续合约不支持硬件钱包。\n请切换账户以继续充值。"
+      "message": "暂不支持硬件钱包。请切换钱包继续操作。"
     },
     "burn_address": {
       "message": "您正在将资产发送至销毁地址。若继续操作，您将损失该笔资产。",
-      "title": "正在向销毁地址发送资产"
+      "title": "Sending assets to burn address"
+    },
+    "token_trust_signal": {
+      "malicious": {
+        "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
+        "title": "Malicious token"
+      },
+      "warning": {
+        "message": "This token shows strong signs of malicious behavior. Continuing may result in loss of funds.",
+        "title": "Suspicious token"
+      }
+    },
+    "address_trust_signal": {
+      "malicious": {
+        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
+        "title": "Malicious address"
+      },
+      "warning": {
+        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
+        "title": "Address needs review"
+      }
+    },
+    "url_trust_signal": {
+      "malicious": {
+        "message": "This has been identified as malicious. We recommend not interacting with this site.",
+        "title": "Malicious site"
+      },
+      "warning": {
+        "message": "This has been identified as suspicious. We recommend not interacting with this site.",
+        "title": "Suspicious site"
+      }
     }
   },
   "blockaid_banner": {
@@ -263,7 +306,7 @@
     "get_started": "开始使用"
   },
   "onboarding_wizard": {
-    "skip_tutorial": "跳过教程",
+    "skip_tutorial": "Skip tutorial",
     "coachmark": {
       "action_back": "不，谢谢",
       "action_next": "进行导览",
@@ -287,7 +330,7 @@
       "content3": "长按以编辑账户名。"
     },
     "step4": {
-      "title": "主选单",
+      "title": "Main menu",
       "content1": "您可以从此选单访问交易历史记录、设置和支持。",
       "content2": "您可以对账户执行更多操作及访问 MetaMask 设置。"
     },
@@ -352,9 +395,9 @@
     "import_from_seed_button": "使用私钥助记词导入"
   },
   "login": {
-    "title": "欢迎回来！",
+    "title": "Welcome back!",
     "password": "密码",
-    "password_placeholder": "输入 MetaMask 密码",
+    "password_placeholder": "输入密码",
     "unlock_button": "解锁",
     "go_back": "返回",
     "forgot_password": "忘记密码？",
@@ -384,7 +427,7 @@
     "seedless_controller_error_prompt_title": "出错了......",
     "seedless_controller_error_prompt_description": "解锁时出现问题。请使用 Google 账号和您的 MetaMask 密码重新登录。",
     "seedless_controller_error_prompt_primary_button_label": "登录",
-    "security_alert_title": "安全警报",
+    "security_alert_title": "Security alert",
     "security_alert_desc": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
     "too_many_attempts": "尝试次数过多。请在 {{remainingTime}} 后重试",
     "apple_button": "使用 Apple 登录",
@@ -439,10 +482,10 @@
     "seed_phrase": "私钥助记词",
     "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
-    "security_alert_title": "安全警报",
+    "security_alert_title": "Security alert",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
     "i_understand": "我了解 MetaMask 无法为我找回此密码。",
-    "learn_more": "了解更多。",
+    "learn_more": "了解详情",
     "secure": "保护钱包安全",
     "confirm": "确认私钥助记词",
     "disable_biometric_error": "您已经禁用了该应用程序的生物识别功能。更新“记住我\"设置，然后再试一次。",
@@ -470,10 +513,10 @@
     "seed_phrase": "私钥助记词",
     "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
-    "security_alert_title": "安全警报",
+    "security_alert_title": "Security alert",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
     "i_understand": "我了解 MetaMask 无法为我找回此密码。",
-    "learn_more": "了解更多。",
+    "learn_more": "了解详情",
     "secure": "保护钱包安全",
     "confirm": "确认私钥助记词",
     "password_updated": "新密码已保存",
@@ -542,7 +585,8 @@
     "activity": "活动",
     "trade": "交易",
     "settings": "设置",
-    "rewards": "奖励"
+    "rewards": "奖励",
+    "trending": "Explore"
   },
   "drawer": {
     "send_button": "发送",
@@ -552,9 +596,9 @@
     "transaction_activity": "活动",
     "request_feature": "请求功能",
     "submit_feedback_message": "选择要发送的反馈类型。",
-    "submit_bug": "错误报告",
+    "submit_bug": "Bug report",
     "submit_general_feedback": "通用",
-    "share_address": "共享我的公钥",
+    "share_address": "Share my public address",
     "view_in_etherscan": "在 Etherscan 上查看",
     "view_in": "在以下位置查看：",
     "browser": "浏览器",
@@ -568,7 +612,7 @@
     "lock_cancel": "否",
     "feedback": "反馈",
     "metamask_support": "MetaMask 支持团队",
-    "public_address": "公钥"
+    "public_address": "Public address"
   },
   "send": {
     "available": "可用",
@@ -601,6 +645,7 @@
     "network_not_found_title": "未找到网络",
     "network_not_found_description": "在您的钱包中没有发现链 ID 为 {{chain_id}} 的网络。请先添加该网络。",
     "network_missing_id": "缺少链 ID。",
+    "search_tokens": "搜索代币",
     "search_tokens_and_nfts": "搜索代币和 NFT",
     "tokens": "代币",
     "nfts": "NFT",
@@ -611,6 +656,11 @@
     "invalid_address": "地址无效",
     "contractAddressError": "您正在向代币的合约地址发送代币。这可能导致这些代币丢失。"
   },
+  "unified_ramp": {
+    "networks_filter_bar": {
+      "all_networks": "所有"
+    }
+  },
   "deposit": {
     "title": "保证金",
     "selectRegion": "选择地区",
@@ -620,7 +670,7 @@
       "unexpectedError": "发生意外错误。",
       "quoteFetchError": "获取报价失败。",
       "kycFormsFetchError": "获取 KYC（实名认证）表格失败。",
-      "title": "保证金",
+      "title": "买入",
       "limitExceeded": "该保证金将超出您的 {{period}} 限额。保证金含手续费在内需少于或等于 {{remaining}}。",
       "limitError": "您的保证金限额核验失败。请稍后重试。"
     },
@@ -628,7 +678,10 @@
       "select_a_token": "选择代币",
       "select_token": "选择代币",
       "search_by_name_or_address": "按名称或地址搜索代币",
-      "no_tokens_found": "没有符合“{{searchString}}”的代币"
+      "no_tokens_found": "没有符合“{{searchString}}”的代币",
+      "unsupported_token_title": "不可用",
+      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
+      "error_loading_tokens": "Unable to load tokens. Please try again later."
     },
     "networks_filter_bar": {
       "all_networks": "所有网络"
@@ -640,13 +693,15 @@
       "apply": "应用"
     },
     "configuration_modal": {
-      "title": "选项",
+      "title": "设置",
       "view_order_history": "查看订单历史",
       "contact_support": "联系支持团队",
-      "log_out": "退出登录",
+      "log_out": "Log out of Transak",
       "logged_out_success": "成功退出登录",
       "error_sdk_not_initialized": "SDK 未初始化",
-      "logged_out_error": "退出登录时出错"
+      "logged_out_error": "退出登录时出错",
+      "more_ways_to_buy": "More ways to buy",
+      "more_ways_to_buy_description": "Switch to the classic version"
     },
     "region_modal": {
       "select_a_region": "选择地区",
@@ -659,7 +714,7 @@
       "no_state_results": "没有符合 “{{searchString}}” 的州"
     },
     "payment_modal": {
-      "select_a_payment_method": "选择支付方式"
+      "select_a_payment_method": "Select a payment method"
     },
     "payment_duration": {
       "instant": "即时",
@@ -730,7 +785,8 @@
       "resend_code_button": "重新发送",
       "resend_cooldown": "{{seconds}} 秒后重新发送验证码",
       "contact_support": "联系支持团队",
-      "error": "验证代码时出错"
+      "error": "验证代码时出错",
+      "paste": "粘贴"
     },
     "verify_identity": {
       "title": "验证您的身份",
@@ -749,7 +805,7 @@
       "button": "同意并继续"
     },
     "additional_verification": {
-      "title": "额外验证",
+      "title": "Additional verification",
       "paragraph_1": "对于大额存款，您需要提供有效的身份证件（如驾照）以及实时自拍。",
       "paragraph_2": "为完成身份验证，您需开启摄像头权限。",
       "button": "继续"
@@ -775,7 +831,9 @@
       "dob_required": "出生日期为必填项",
       "dob_invalid": "请输入有效出生日期",
       "ssn_required": "社会保障号码为必填项",
-      "unexpected_error": "发生意外错误。请重试。"
+      "unexpected_error": "发生意外错误。请重试。",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "验证您的身份",
@@ -786,7 +844,7 @@
       "address_line_2": "地址行 2（可选）",
       "state": "州/地区",
       "city": "城市",
-      "postal_code": "邮政编码",
+      "postal_code": "Postal/zip code",
       "country": "国家/地区",
       "select_state": "选择州",
       "address_line_1_required": "地址第 1 行为必填项",
@@ -796,7 +854,7 @@
       "city_invalid": "请输入有效城市",
       "state_required": "州/地区为必填项",
       "state_invalid": "请输入有效州",
-      "postal_code_required": "邮政编码为必填项",
+      "postal_code_required": "Postal/zip code is required",
       "postal_code_invalid": "请输入有效邮政编码",
       "unexpected_error": "意外错误。"
     },
@@ -845,7 +903,7 @@
       "cancel_order_button": "取消订单"
     },
     "order_details": {
-      "title": "存款订单",
+      "title": "Deposit order",
       "error_title": "您的存款订单出错了",
       "error_message": "发生意外错误。"
     },
@@ -897,7 +955,7 @@
       "fetch_payment_methods": "获取支付方式时出现问题。",
       "fetch_user_details": "获取用户详情时出现问题。",
       "try_again": "请重试",
-      "error_details_title": "错误详情",
+      "error_details_title": "Error details",
       "see_more": "查看更多"
     }
   },
@@ -921,6 +979,9 @@
     "withdraw": "提取",
     "refresh_balance": "刷新余额",
     "add_funds": "充值",
+    "trade_perps": "交易永续合约",
+    "trade_perps_description": "使用永续合约以资产的期货价格进行交易。向您的永续合约账户存入资金即可开始交易",
+    "available": "可用",
     "deposit_in_progress": "存款进行中",
     "withdraw_in_progress": "提现处理中",
     "multiple_transactions_in_progress": "交易进行中",
@@ -928,6 +989,20 @@
     "loading_positions": "正在加载头寸……",
     "refreshing_positions": "正在刷新仓位...",
     "no_open_orders": "没有未平仓订单",
+    "auto_close": {
+      "title": "自动平仓",
+      "description": "Protect your margin, lock in gains",
+      "set_button": "设置",
+      "edit_button": "编辑"
+    },
+    "stop_loss_prompt": {
+      "near_liquidation_title": "You are only {{distance}}% from liquidation",
+      "near_liquidation_subtitle": "Add margin to derisk your position",
+      "add_margin_button": "添加",
+      "protect_losses_title": "Protect against further losses",
+      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
+      "set_button": "设置"
+    },
     "deposit": {
       "title": "要存入的金额",
       "get_usdc_hyperliquid": "获取 USDC • Hyperliquid",
@@ -951,19 +1026,19 @@
       "minimum_deposit_error": "最低存款金额为 {{amount}} USDC",
       "processing_title": "正在处理存款",
       "preview": {
-        "title": "存款预览"
+        "title": "Deposit preview"
       },
       "processing": {
         "title": "正在处理存款"
       },
       "deposit_completed": "存款成功！",
       "deposit_failed": "存款失败",
-      "retry_deposit": "重新尝试存款",
+      "retry_deposit": "Retry deposit",
       "go_back": "返回",
-      "view_balance": "查看余额",
+      "view_balance": "View balance",
       "calculating_fee": "正在计算……",
       "quote_expired_modal": {
-        "title": "报价已过期",
+        "title": "Quote expired",
         "description": "您的存款报价在 {{refreshRate}} 秒后已过期。请获取新报价以继续。",
         "get_new_quote": "获取新报价"
       },
@@ -986,13 +1061,13 @@
       "bridge_quote_timeout": "无法获取跨链桥报价。请重试或选择其他代币。",
       "no_quotes_available": "暂无可用兑换路径。请尝试不同的代币或金额。",
       "success": {
-        "title": "存款成功！",
+        "title": "Deposit successful!",
         "description": "您的 USDC 已成功存入您的 HyperLiquid 交易账户",
         "amount": "金额",
-        "processing_time": "处理时间",
+        "processing_time": "Processing time",
         "status": "状态",
         "completed": "已完成",
-        "view_balance": "查看余额",
+        "view_balance": "View balance",
         "view_transaction": "查看交易"
       },
       "success_toast": "您的永续合约账户已充值",
@@ -1041,7 +1116,7 @@
       "available_balance": "可用永续合约余额：{{amount}}",
       "receive": "接收",
       "provider_fee": "服务商费用",
-      "you_will_receive": "您将收到",
+      "you_will_receive": "您收到",
       "continue": "继续",
       "funds_received": "已收到 {{amount}} {{symbol}}"
     },
@@ -1055,7 +1130,7 @@
       "metamask_fee_tooltip_withdrawal": "MetaMask 不收取任何从 Hyperliquid 提款的手续费"
     },
     "order": {
-      "title": "新订单",
+      "title": "New order",
       "leverage": "杠杆",
       "limit_price": "限价",
       "enter_price": "入场价格",
@@ -1091,10 +1166,12 @@
         "invalid_stop_loss": "对于 {{positionType}} 头寸，止损必须设置为 {{direction}} 的当前价格",
         "liquidation_warning": "头寸接近清算价格",
         "limit_price_required": "请为限价订单设置限价",
+        "price_required": "价格为必填项",
         "please_set_a_limit_price": "请设置限价",
         "limit_price_must_be_set_before_configuring_tpsl": "配置止盈/止损前须设定限价",
         "only_hyperliquid_usdc": "目前仅支持使用 Hyperliquid 上的 USDC 进行支付",
-        "limit_price_far_warning": "限价与当前市价相差较多"
+        "limit_price_far_warning": "限价与当前市价相差较多",
+        "oi_cap_reached": "未平仓合约数已达上限。目前暂无法开立新仓位。"
       },
       "error": {
         "placement_failed": "下单失败",
@@ -1114,6 +1191,8 @@
       "tp_sl": "自动平仓",
       "tp": "止盈",
       "sl": "止损",
+      "long_label": "做多",
+      "short_label": "做空",
       "button": {
         "long": "做多 {{asset}}",
         "short": "做空 {{asset}}"
@@ -1142,10 +1221,10 @@
       "leverage_modal": {
         "title": "杠杆",
         "confirm": "确认",
-        "entry_price": "建仓价",
+        "entry_price": "入场价格",
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
-        "liquidation_distance": "清算距离",
+        "liquidation_distance": "Liquidation distance",
         "liquidation_warning": "如果价格{{direction}} {{percentage}}，您将被平仓",
         "drops": "下跌",
         "rises": "上涨",
@@ -1169,12 +1248,12 @@
         "direction": "方向",
         "amount": "金额",
         "orderId": "订单 ID",
-        "viewPositions": "查看头寸",
-        "placeAnother": "再来一单",
+        "viewPositions": "View positions",
+        "placeAnother": "Place another order",
         "backToPerps": "返回永续合约"
       },
       "submitted": "订单已提交",
-      "confirmed": "订单已确认",
+      "confirmed": "Order confirmed",
       "cancelling_order": "正在取消订单",
       "cancelling_order_subtitle": "{{direction}}{{amount}}{{assetSymbol}}",
       "cancelling_order_in_progress": "正在取消 {{detailedOrderType}} 订单",
@@ -1191,6 +1270,24 @@
       "order_failed": "订单下达失败",
       "your_funds_have_been_returned_to_you": "您的资金已退回给您",
       "order_cancelled_success": "{{detailedOrderType}} 订单已取消"
+    },
+    "price_deviation_warning": {
+      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
+    },
+    "order_details": {
+      "title": "订单详情",
+      "cancel_order": "Cancel Order",
+      "date": "日期",
+      "fee": "费用",
+      "limit_buy": "Limit Long",
+      "limit_price": "限价",
+      "limit_sell": "Limit Short",
+      "market_buy": "Market Long",
+      "market_sell": "Market Short",
+      "open": "未平仓",
+      "size": "规模",
+      "status": "状态",
+      "view_explorer": "View on Explorer"
     },
     "close_position": {
       "title": "平仓",
@@ -1214,7 +1311,7 @@
       "you_receive": "您将收到",
       "select_amount": "选择要平仓的金额",
       "error_unknown": "平仓失败",
-      "success_title": "平仓成功",
+      "success_title": "Position closed successfully",
       "position_closed": "仓位已平仓",
       "funds_are_available_to_trade": "资金可用于交易",
       "failed_to_close_position": "平仓失败",
@@ -1229,7 +1326,39 @@
       "no_amount_selected": "请选择要平仓的金额",
       "order_type_reverted_to_market_order": "已改为市价订单",
       "you_need_set_price_limit_order": "限价订单需设置价格。",
-      "your_pnl_is": "Your P&L is"
+      "your_pnl_is": "您的盈亏为"
+    },
+    "modify": {
+      "title": "Modify",
+      "add_to_position": "Increase exposure",
+      "add_to_position_description": "Increase the size of your {{direction}} position",
+      "reduce_position": "Reduce exposure",
+      "reduce_position_description": "Decrease the size of your {{direction}} position by closing it partially",
+      "flip_position": "Reverse position",
+      "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
+    },
+    "flip_position": {
+      "title": "Reverse Position",
+      "direction": "方向",
+      "est_size": "Est. Size",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
+      "cancel": "取消"
+    },
+    "adjust_margin": {
+      "title": "Adjust Margin",
+      "add_margin": "Add Margin",
+      "add_margin_description": "Increase margin to reduce liquidation risk",
+      "reduce_margin": "Remove Margin",
+      "reduce_margin_description": "Withdraw excess margin from position",
+      "add_title": "Add Margin",
+      "remove_title": "Remove Margin",
+      "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
+      "perps_balance": "Perps balance",
+      "liquidation_price": "清算价格",
+      "liquidation_distance": "Liquidation distance"
     },
     "tpsl": {
       "title": "自动平仓",
@@ -1270,6 +1399,8 @@
       "minimumDeposit": "最低存款金额为 {{amount}} USDC",
       "tokenNotSupported": "代币 {{token}} 不支持用于存款",
       "unknownError": "发生未知错误",
+      "position_not_found": "Position not found",
+      "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK 客户端未正确初始化",
       "exchangeClientNotAvailable": "初始化后 ExchangeClient 不可用",
       "infoClientNotAvailable": "初始化后 InfoClient 不可用",
@@ -1302,7 +1433,8 @@
         "coinRequired": "下单需要代币",
         "sizePositive": "数量必须为正数",
         "pricePositive": "若提供价格，则必须为正数",
-        "unknownCoin": "未知代币：{{coin}}"
+        "unknownCoin": "未知代币：{{coin}}",
+        "limitPriceRequired": "限价订单必须指定价格"
       },
       "networkToggleFailed": "切换网络失败：{{error}}",
       "accountBalanceFailed": "获取账户余额失败：{{error}}",
@@ -1316,11 +1448,12 @@
       "assetMappingFailed": "构建资产映射失败",
       "depositFailed": "存款失败",
       "orderLeverageReductionFailed": "无法降低杠杆",
+      "insufficientLiquidity": "流动性不足，无法执行订单。请尝试使用限价订单或稍后重试。",
       "connectionTimeout": "连接超时。请检查网络连接后重试。",
       "connectionFailed": {
-        "title": "永续合约暂时离线",
+        "title": "无法连接永续合约",
         "description": "我们正在努力让它尽快重新上线。",
-        "retry": "重试",
+        "retry": "请重试",
         "go_back": "返回"
       },
       "networkError": {
@@ -1329,14 +1462,29 @@
         "retry": "请重试"
       },
       "unknown": {
-        "title": "出错了",
+        "title": "出错了......",
         "description": "发生意外错误。请稍后重试。",
         "retry": "重试"
+      },
+      "marginValidation": {
+        "exceedsMaxRemovable": "Amount exceeds maximum removable margin",
+        "insufficientMargin": "Position does not have sufficient margin for this reduction"
       }
     },
     "position": {
       "title": "头寸",
       "card": {
+        "position_title": "仓位",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "规模",
+        "margin_label": "保证金",
+        "direction_label": "方向",
+        "entry_label": "入场价格",
+        "liquidation_price_label": "清算价格",
+        "funding_payments_label": "资金费用",
+        "oracle_price_label": "Oracle price",
+        "details_title": "详情",
         "entry_price": "入场价格",
         "funding_cost": "资金",
         "liquidation_price": "清算价格",
@@ -1351,14 +1499,14 @@
       },
       "list": {
         "loading": "正在加载头寸……",
-        "error_title": "加载头寸时出错",
-        "empty_title": "无未平仓头寸",
+        "error_title": "Error loading positions",
+        "empty_title": "No open positions",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
         "first_time_description": "利用高达 40 倍杠杆押注价格走势。",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
-        "open_positions": "未平仓头寸",
+        "open_positions": "Open positions",
         "position_count": "{{count}} 笔头寸",
         "position_count_plural": "{{count}} 笔头寸"
       },
@@ -1367,16 +1515,21 @@
         "section_title": "仓位"
       },
       "account": {
-        "summary_title": "账户摘要",
-        "total_balance": "总余额",
+        "summary_title": "Account summary",
+        "total_balance": "Total balance",
         "available_balance": "可用余额",
-        "margin_used": "已用保证金",
+        "margin_used": "Margin used",
         "total_unrealized_pnl": "未实现盈亏总额",
         "unrealized_pnl": "未实现盈亏"
       },
       "tpsl": {
         "update_success": "止盈/止损更新成功",
         "update_failed": "更新止盈/止损失败"
+      },
+      "margin": {
+        "add_success": "Added ${{amount}} margin to {{asset}} position",
+        "remove_success": "Removed ${{amount}} margin from {{asset}} position",
+        "adjustment_failed": "Margin adjustment failed"
       }
     },
     "markets": {
@@ -1388,25 +1541,33 @@
         "error_message": "未找到市场数据。请返回并重试。"
       },
       "statistics": "概览",
+      "stats": "Stats",
       "24h_high": "24 小时最高价",
       "24h_low": "24 小时最低价",
       "24h_volume": "24 小时交易量",
       "open_interest": "未平仓合约量",
       "funding_rate": "资金费率",
+      "oracle_price": "Oracle price",
+      "order_book": "Order book",
       "countdown": "倒计时",
       "long": "做多",
       "short": "做空",
       "long_lowercase": "做多",
       "short_lowercase": "做空",
+      "modify": "Modify",
+      "close_long": "Close long",
+      "close_short": "Close short",
       "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "头寸",
       "orders": "订单",
       "go_to_activity": "前往活动记录",
-      "trading_24_7": "This asset may be traded 24/7",
-      "expect_more_volatility": "Expect more volatility outside of regular market hours",
-      "after_hours_trading_banner": "After-hours trading",
-      "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "recent_trades": "最近活动",
+      "no_trades": "暂无近期活动",
+      "trading_24_7": "该资产支持全天候交易",
+      "expect_more_volatility": "非交易时段市场波动可能加剧",
+      "after_hours_trading_banner": "非交易时段交易",
+      "pay_attention_to_volatility": "请注意波动性与滑移风险",
       "badge": {
         "experimental": "实验性",
         "equity": "股票",
@@ -1416,11 +1577,11 @@
       }
     },
     "buttons": {
-      "get_account_balance": "获取账户余额",
-      "deposit_funds": "存入资金",
+      "get_account_balance": "Get account balance",
+      "deposit_funds": "Deposit funds",
       "switch_to_mainnet": "切换到主网",
       "switch_to_testnet": "切换到测试网",
-      "view_markets": "查看市场",
+      "view_markets": "View markets",
       "positions": "头寸"
     },
     "tooltips": {
@@ -1431,6 +1592,10 @@
       "liquidation_price": {
         "title": "清算价格",
         "content": "若价格达到该点位，您的仓位将被强制平仓并导致保证金全部损失。杠杆越高，这种情况发生的可能性越大。"
+      },
+      "liquidation_distance": {
+        "title": "Liquidation distance",
+        "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
       },
       "margin": {
         "title": "保证金",
@@ -1445,7 +1610,7 @@
         "discount_message": "您通过 MetaMask Rewards 节省了 {{percentage}}% 的费用。"
       },
       "closing_fees": {
-        "title": "平仓费用",
+        "title": "Closing fees",
         "metamask_fee": "MetaMask 费用",
         "provider_fee": "服务商费用"
       },
@@ -1465,6 +1630,14 @@
         "title": "资金费率",
         "content": "交易者之间为使价格与市场保持一致而支付的每小时费用。当费率为正时，多头向空头支付费用；为负时，空头向多头支付费用。"
       },
+      "oracle_price": {
+        "title": "Oracle price",
+        "content": "The median of external prices reported by validators, used for computing funding rate."
+      },
+      "funding_payments": {
+        "title": "资金费用",
+        "content": "此为自开仓以来您累计支付的资金费用金额。资金费用每小时进行收支结算，以保持永续合约价格与实际代币价格接近。"
+      },
       "geo_block": {
         "title": "永续合约在您所在地区暂不可用",
         "content": "由于当地限制或制裁，永续合约交易在您所在地区暂不可用。"
@@ -1478,7 +1651,7 @@
         "content": "由服务商对每笔提现收取的固定费用。"
       },
       "tp_sl": {
-        "title": "止盈与止损",
+        "title": "Take profit & stop loss",
         "content": "止盈会在达到目标利润时自动平仓。止损则在价格发生不利变动时通过平仓限制亏损。"
       },
       "close_position_you_receive": {
@@ -1502,20 +1675,24 @@
         "content": "积分是您通过完成交易（如兑换、桥接或永续合约交易）获得 MetaMask Rewards 的方式。"
       },
       "market_hours": {
-        "title": "Market hours",
-        "closes_in": "Closes in {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "title": "交易时段",
+        "closes_in": "距收盘 {{time}}",
+        "content": "您当前处于常规交易时段（美东时间上午 9:30 至下午 4点）。休市期间可能面临买卖差价扩大、价格波动加剧及资金费率上升的风险。"
       },
       "after_hours_trading": {
-        "title": "After-hours trading",
-        "reopens_in": "Reopens in {{time}}",
-        "content": "You're trading outside of regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "title": "非交易时段交易",
+        "reopens_in": "距开盘 {{time}}",
+        "content": "您当前处于非常规交易时段（美东时间上午 9:30 至下午 4 点）。休市期间可能面临买卖差价扩大、价格波动加剧及资金费率上升的风险。"
+      },
+      "spread": {
+        "title": "Spread",
+        "content": "The spread is the difference between the best bid (highest buy price) and best ask (lowest sell price). A smaller spread indicates higher liquidity."
       }
     },
     "connection": {
-      "failed": "连接失败",
+      "failed": "Connection failed",
       "error_message": "无法连接到永续合约交易服务。",
-      "retry_connection": "重新尝试连接",
+      "retry_connection": "Retry connection",
       "retrying_connection": "正在连接……",
       "connecting_to_perps": "正在连接到永续合约",
       "timeout_title": "连接耗时超出预期"
@@ -1530,31 +1707,38 @@
         "minutes": "分钟",
         "hours": "小时",
         "days": "天"
+      },
+      "ohlc": {
+        "open": "未平仓",
+        "high": "高",
+        "low": "低级型",
+        "close": "关闭",
+        "volume": "交易量"
       }
     },
-    "cancel": "Cancel",
+    "cancel": "取消",
     "home": {
       "close_all": "全部关闭",
       "cancel_all": "全部取消",
       "no_markets": "暂无可用市场",
-      "recent_activity": "Activity",
+      "recent_activity": "活动",
       "loading": "正在加载...",
       "no_activity": "暂无近期活动",
       "see_all": "查看全部",
-      "positions": "Your positions",
-      "orders": "Your orders",
+      "positions": "您的仓位",
+      "orders": "您的订单",
       "perps": "永续合约",
-      "all": "All",
-      "crypto": "Explore crypto",
+      "all": "所有",
+      "crypto": "探索加密货币",
       "stocks": "股票",
       "commodities": "大宗商品",
-      "stocks_and_commodities": "Explore stocks and commodities",
+      "stocks_and_commodities": "探索股票与大宗商品",
       "tabs": {
-        "all": "All",
-        "crypto": "Crypto",
-        "stocks_and_commodities": "Stocks"
+        "all": "所有",
+        "crypto": "加密货币",
+        "stocks_and_commodities": "股票"
       },
-      "filter_by": "Filter by",
+      "filter_by": "筛选方式",
       "forex": "外汇",
       "watchlist": "关注列表",
       "markets": "市场"
@@ -1565,7 +1749,7 @@
       "cta": "了解详情"
     },
     "support": {
-      "title": "Contact support",
+      "title": "联系支持团队",
       "description": "联系 MetaMask 支持团队获取帮助"
     },
     "close_all_modal": {
@@ -1596,9 +1780,14 @@
       "error_title": "取消订单失败",
       "error_message": "{{count}} 个订单取消失败"
     },
+    "crossMargin": {
+      "title": "Cross margin not supported",
+      "message": "MetaMask 永续合约仅支持逐仓保证金交易。您需要先平掉全仓保证金仓位，才能在 MetaMask 进行交易。",
+      "dismiss": "知道了"
+    },
     "sort": {
       "volume": "成交量",
-      "price_change": "价格变化",
+      "price_change": "Price change",
       "funding_rate": "资金费率",
       "open_interest": "未平仓合约量",
       "high_to_low": "从高到低",
@@ -1629,7 +1818,7 @@
     "mainnet": "主网",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid 网络切换",
-      "simulate_connection_error": "模拟连接错误"
+      "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
       "title": "永续合约",
@@ -1672,11 +1861,25 @@
       },
       "view_on_explorer": "在区块浏览器上查看",
       "empty_state": {
-        "no_transactions": "暂无 {{type}} 交易",
-        "history_will_appear": "您的交易历史将在此处显示"
+        "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "永续合约交易存在风险，您可能会在毫无预警的情况下瞬间损失全部投资。交易风险完全由您自行承担。市场数据由 Hyperliquid 提供。价格图表技术支持来自",
+    "risk_disclaimer": "永续合约交易存在很大风险，您可能会在毫无预警的情况下瞬间损失全部投资。交易风险完全由您自行承担。市场数据由 {{source}} 提供。价格图表技术支持来自",
+    "order_book": {
+      "title": "Order Book",
+      "bids": "Bids",
+      "asks": "Asks",
+      "price": "价格",
+      "size": "规模",
+      "total": "总额",
+      "spread": "Spread",
+      "loading": "Loading order book...",
+      "no_data": "No order book data available",
+      "error": "Failed to load order book",
+      "depth_band": {
+        "title": "Select Price Grouping"
+      }
+    },
     "tutorial": {
       "continue": "继续",
       "skip": "跳过",
@@ -1709,6 +1912,7 @@
         "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperCore，无需任何额外费用。"
       },
       "got_it": "知道了",
+      "lets_go": "立即开始",
       "card": {
         "title": "了解永续合约的基础知识"
       }
@@ -1720,21 +1924,34 @@
     "tp_on_chart": "图表显示止盈",
     "sl_on_chart": "图表显示止损",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
-      "header_title": "Share your trade",
-      "share_button": "Share",
-      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
-      "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
-      "share_failed": "Failed to export image",
-      "export_success": "Exported image",
-      "referral_code_text": "Use my referral code to earn extra rewards."
+      "title": "盈亏核心数据",
+      "header_title": "分享您的交易",
+      "share_button": "共享",
+      "share_message_with_referral_code": "在 MetaMask 上交易 {{asset}} 永续合约。使用我的推荐码 {{code}} 注册，即可赚取额外奖励。{{link}}",
+      "share_message_without_referral_code": "在 MetaMask 交易 {{asset}} 永续合约。",
+      "share_failed": "图片导出失败",
+      "export_success": "已导出图片",
+      "referral_code_text": "使用我的推荐码即可赚取额外奖励。"
     }
   },
   "predict": {
     "title": "MetaMask 预测",
     "prediction_markets": "预测市场",
-    "market_list": "市场列表",
+    "market_list": "Market list",
     "loading": "正在加载...",
+    "buttons": {
+      "back": "返回",
+      "share": "共享"
+    },
+    "toasts": {
+      "copied_to_clipboard": "已复制到剪贴板"
+    },
+    "gtm_content": {
+      "title": "预测赢大奖",
+      "title_description": "对真实事件结果进行下注，例如体育比赛或选举。",
+      "get_started": "开始",
+      "not_now": "暂时不"
+    },
     "market_details": {
       "title": "市场详情",
       "market_ended_on": "市场收盘为 {{outcome}}",
@@ -1745,14 +1962,18 @@
       "end_date": "结束日期",
       "resolver": "解析器",
       "powered_by": "技术支持：",
+      "resolution_details": "结算详情",
       "yes": "是",
       "no": "否",
       "on": "有关",
       "won": "盈利",
       "lost": "损失",
       "market_unavailable": "市场不可用",
-      "amount_on_outcome": "{{outcome}} 投入 ${{amount}}",
-      "outcome_at_price": "{{outcome}} 价格为 {{price}}¢"
+      "amount_on_outcome": "针对 {{outcome}} 下注 {{amount}}",
+      "outcome_at_price": "{{outcome}} 价格为 {{price}}¢",
+      "fee_exemption": "本市场不收取任何费用。",
+      "ended": "已结束",
+      "resolved_early": "已提前结算"
     },
     "tab": {
       "no_predictions_description": "您的预测将在此显示，包括您的持仓量与市场动态。",
@@ -1765,9 +1986,13 @@
       "positions": "头寸",
       "outcomes": "结局"
     },
-    "sell_position": "卖出仓位",
+    "sell_position": "Sell position",
     "cash_out": "提现",
     "cash_out_info": "资金将存入您的可用余额",
+    "at_price_per_share": "以 {{price}} 卖出 {{size}} 股票",
+    "cashout_info": "针对 {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
+    "cashout_info_multiple": "针对 {{outcomeGroupTitle}} • {{outcome}}，以 {{initialPrice}} 的价格下注 {{amount}}",
+    "position_info": "针对 {{outcome}}，下注 {{initialValue}} 以赢得 {{shares}}",
     "buy_yes": "是",
     "buy_no": "否",
     "outcomes": "结果",
@@ -1782,7 +2007,10 @@
     },
     "outcomes_singular": "结局",
     "outcomes_plural": "结果",
-    "resolved_outcomes": "Resolved outcomes",
+    "outcome_winner": "中奖者",
+    "outcome_loser": "未中奖者",
+    "outcome_draw": "流局",
+    "resolved_outcomes": "已结算结果",
     "category": {
       "trending": "趋势",
       "new": "新增",
@@ -1792,6 +2020,8 @@
     },
     "search_placeholder": "搜索预测市场",
     "search_cancel": "取消",
+    "search_empty_state": "暂无 {{category}} 市场可交易",
+    "search_no_markets_found": "未找到 “{{q}}” 的相关结果",
     "claim_button": "领取",
     "markets_won": "已赢取的市场",
     "won_markets_text": "已赢取 {{count}} 个市场{{s}}",
@@ -1804,6 +2034,7 @@
       "title": "您所在区域不可用",
       "description": "因法律限制，预测交易在您所在区域不可用。",
       "link": "查看 Polymarket 条款",
+      "webview_title": "Polymarket 条款",
       "button": "知道了"
     },
     "deposit": {
@@ -1812,17 +2043,28 @@
       "adding_your_funds": "正在存入您的资金",
       "add_funds": "充值",
       "withdraw": "提取",
-      "in_progress_description": "They'll be available in a moment",
+      "in_progress_description": "稍后即提供",
+      "available_in_minutes": "Available in {{minutes}} min",
       "account_ready": "您的账户已就绪",
       "account_ready_description": "{{amount}} 已存入至您的余额",
       "error_title": "出错了......",
       "error_description": "您的账户未存入资金",
       "try_again": "请重试",
-      "in_progress_link": "View"
+      "in_progress_link": "查看",
+      "track": "追踪",
+      "ready_to_trade": "Ready to trade"
     },
     "add_funds_sheet": {
       "title": "充值",
       "description": "您需要为您的预测账户存入资金方可开始交易。您可存入任意代币，即可快速开始首次预测交易。"
+    },
+    "consent_sheet": {
+      "title": "使用条款",
+      "description": "MetaMask 与 Polymarket 携手推出预测市场服务。我们所有可交易的市场、订单及结算均通过 Polymarket 平台完成。",
+      "learn_more": "了解更多。",
+      "agree": "同意",
+      "disagree": "不同意",
+      "disclaimer": "继续操作即表示您接受 Polymarket 的条款。"
     },
     "transactions": {
       "title": "预测",
@@ -1845,7 +2087,9 @@
       "net_pnl": "净盈亏",
       "total_net_pnl": "总净盈亏",
       "market_net_pnl": "市场净盈亏",
-      "activity_details": "活动详情"
+      "activity_details": "活动详情",
+      "today": "今天",
+      "yesterday": "昨天"
     },
     "claim": {
       "toasts": {
@@ -1875,24 +2119,34 @@
       "prediction_placed": "预测已提交",
       "order_failed": "订单下达失败",
       "payments_made_in_usdc": "所有支付均使用 USDC",
-      "prediction_insufficient_funds": "资金不足。请减少金额或存入资金后继续。",
-      "prediction_minimum_bet": "最低投注为 {{amount}}",
+      "prediction_insufficient_funds": "资金不足。您最多可使用 {{amount}}。",
+      "no_funds_enough": "Not enough funds.",
+      "prediction_minimum_bet": "最低金额为 {{amount}}",
       "to_win": "预期收益",
       "order_failed_generic": "交易失败。请重试。"
     },
     "withdraw": {
-      "withdrawing": "正在提款 {{amount}} USDC",
-      "withdrawing_subtitle": "预计 {{time}} 秒",
-      "withdraw_completed": "提取已完成",
-      "withdraw_completed_subtitle": "{{amount}} USDC 已添加到您的余额",
+      "withdrawing": "提取进行中",
+      "withdrawing_subtitle": "约 1 分钟后可用",
+      "withdraw_completed": "提取完成",
+      "withdraw_completed_subtitle": "{{amount}} USDC 已转移到您的钱包",
       "error_title": "出错了......",
       "error_description": "提款处理失败",
       "try_again": "请重试"
     },
     "fee_summary": {
+      "fees": "费用",
+      "provider_fee_label": "Polymarket 费用",
       "provider_fee": "服务商费用",
       "metamask_fee": "MetaMask 费用",
-      "total": "总额"
+      "total": "总额",
+      "estimated_points": "预计积分",
+      "points_tooltip": "积分",
+      "points_tooltip_content_1": "积分是您通过完成交易（如兑换、桥接或预测）获得 MetaMask 奖励的方式。",
+      "points_tooltip_content_2": "请知悉，这一数值为估算值，将在交易完成后最终确定。积分最多可能需要 1 小时才能确认并存入您的奖励余额。",
+      "points_error": "当前无法加载积分",
+      "points_error_content": "您仍会获得这笔交易的所有积分。积分到账后我们将通知您。您也可以约一小时后在奖励选项卡中查看。",
+      "slippage": "滑移"
     },
     "error": {
       "title": "无法连接预测市场",
@@ -1900,13 +2154,17 @@
       "retry": "重试"
     },
     "error_messages": {
+      "not_eligible": "您所在区域不可用",
       "place_order_failed": "下单失败",
       "preview_failed": "预览订单失败",
       "preview_no_order_book": "未找到订单簿",
-      "preview_no_order_match_buy": "未找到匹配的买入订单",
-      "preview_no_order_match_sell": "未找到匹配的卖出订单",
+      "preview_no_order_match_buy": "当前市价可用股票数量不足，无法立即执行您的订单。",
+      "preview_no_order_match_sell": "当前市价需求不足，无法立即变现。",
       "claim_failed": "领取失败",
-      "unknown_error": "发生未知错误"
+      "unknown_error": "发生未知错误",
+      "order_not_fully_filled": "您的订单未能成交",
+      "buy_order_not_fully_filled": "当前市价可用股票数量不足，无法立即执行您的订单。",
+      "sell_order_not_fully_filled": "当前市价需求不足，无法立即变现。"
     }
   },
   "receive": {
@@ -2046,6 +2304,7 @@
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
     "nft_empty_description": "NFT 世界广阔无限，立即开启您的收藏之旅。",
+    "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "导入 NFT",
     "no_transactions": "您没有交易！",
     "switch_network_to_view_transactions": "请切换网络以查看交易",
@@ -2096,6 +2355,7 @@
     "lists": "代币列表",
     "hide_cta": "隐藏代币",
     "options": {
+      "title": "Token options",
       "view_on_portfolio": "在 Portfolio 上查看",
       "view_on_block": "在区块浏览器上查看",
       "token_details": "代币详情",
@@ -2182,12 +2442,13 @@
     "privacy_policy_button": "隐私政策",
     "agree": "我同意",
     "decline": "不，谢谢",
-    "description_title": "帮助优化 MetaMask 服务",
+    "description_title": "Improve MetaMask",
     "description_content_1": "我们希望能获得这些许可。您随时可以选择退出或删除您的使用数据。",
     "description_content_2": "当我们收集指标时，总是...",
     "description_content_3": "了解我们如何在收集您的个人资料使用数据的同时保护您的隐私。",
     "gather_basic_usage_title": "收集基本使用数据",
     "gather_basic_usage_description": "我们将收集基本的产品使用数据，例如大致位置、点击次数和浏览次数。不会存储其他任何信息。",
+    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "了解详情",
     "checkbox_marketing": "营销更新",
     "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
@@ -2213,9 +2474,16 @@
     "action_description_4_legacy": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
     "action_description_5_legacy": "决不收集您的 IP 地址",
     "action_description_never_legacy": "绝不会",
-    "toast_message": "我们已经更新了隐私政策",
+    "toast_message": "We've updated our privacy policy",
     "toast_action_button": "关闭",
-    "toast_read_more": "了解更多"
+    "toast_read_more": "了解更多",
+    "pna25_title": "Privacy and product updates",
+    "pna25_description": "To better serve you, we’re updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask. This helps us improve MetaMask's performance, security, and features in order to make a better, safer wallet.",
+    "pna25_description_2": "We take privacy seriously. We do not use this information for advertising or sell your data to third parties. You can opt out anytime in Settings.",
+    "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
+    "pna25_blog_post_link": "blog post",
+    "pna25_confirm_button": "Accept and close",
+    "pna25_open_settings_button": "Open Settings"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2503,23 +2771,21 @@
     "nft_autodetect_mode": "自动检测 NFT",
     "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
     "show_fiat_on_testnets": "在测试网络上显示兑换",
-    "show_fiat_on_testnets_desc": "选择此项以在测试网络上显示法币兑换",
+    "show_fiat_on_testnets_desc": "选择此项以在测试网络上显示法币兑换.",
     "show_fiat_on_testnets_modal_title": "请小心",
     "show_fiat_on_testnets_modal_description": "如果要求您开启此功能，则您可能会被骗。这些代币没有货币价值，仅用于测试目的。此功能可协助开发者确保应用程序正常工作。",
     "show_fiat_on_testnets_modal_learn_more": "了解更多。",
     "show_fiat_on_testnets_modal_button": "继续",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
-    "show_custom_nonce": "自定义交易 nonce",
-    "custom_nonce_desc": "打开这个功能可以改变确认屏幕上的 nonce（交易号码）。这是一个高级功能，请谨慎使用。",
     "accounts_identicon_title": "账户图标",
     "accounts_identicon_desc": "从三种不同风格的独特图标中选择，助您轻松实现账户清晰显示。",
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "通用",
-    "general_desc": "货币转换、主要货币、语言和搜索引擎",
+    "general_desc": "货币转换、主要货币、语言和搜索引擎.",
     "advanced_title": "高级",
-    "advanced_desc": "访问开发者功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
+    "advanced_desc": "访问开发者功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC.",
     "notifications_title": "通知",
     "notifications_desc": "管理您的通知",
     "allow_notifications": "允许通知",
@@ -2543,9 +2809,9 @@
       "perps_title": "永续合约交易"
     },
     "contacts_title": "联系方式",
-    "contacts_desc": "添加、编辑、删除和管理您的账户",
+    "contacts_desc": "添加、编辑、删除和管理您的账户.",
     "permissions_title": "许可",
-    "permissions_desc": "管理授予网站和应用程序的许可",
+    "permissions_desc": "管理授予网站和应用程序的许可.",
     "no_permissions": "无许可",
     "no_permissions_desc": "如果您将账户连接到网站或应用程序，您可在此处查看。",
     "security_title": "安全和隐私",
@@ -2602,7 +2868,7 @@
     "clear_history_desc": "选择此选项可清除您的整个浏览历史记录。",
     "clear_cookies_desc": "选择此选项可清除您的浏览器的 Cookie。",
     "metametrics_title": "参加 MetaMetrics",
-    "metametrics_description": "允许 MetaMetrics 收集基本使用和诊断数据，以改进我们的产品。您可以为此设备禁用 MetaMetrics。",
+    "metametrics_description": "参加 MetaMetrics 以帮助我们改进 MetaMask。",
     "data_collection_title": "用于营销目的的数据收集",
     "data_collection_description": "我们将使用 MetaMetrics 来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点和其他内容）。",
     "batch_balance_requests_title": "批量账户余额请求",
@@ -2738,7 +3004,7 @@
       },
       "keyring_account_list_item": {
         "account_name": "账户名称",
-        "public_address": "公钥"
+        "public_address": "Public address"
       },
       "snap_permissions": {
         "approved_date": "于{{date}}批准",
@@ -2800,22 +3066,22 @@
     "simulation_details": "预计余额变化",
     "simulation_details_description": "开启此选项，以便在确认交易之前估计交易余额的变化。这并不能保证交易的最终结果。 ",
     "simulation_details_learn_more": "了解更多。",
-    "aes_crypto_test_form_title": "AES 加密 - 测试表",
+    "aes_crypto_test_form_title": "AES crypto - test form",
     "aes_crypto_test_form_description": "专为 E2E 测试开发的部分。如果这在您的应用程序中可见，请向 MetaMask 支持团队报告。",
     "developer_options": {
-      "title": "开发者选项",
-      "generate_trace_test": "生成跟踪测试",
-      "generate_trace_test_desc": "生成开发者测试哨兵跟踪。",
-      "navigate_to_sample_feature": "导航至示例功能",
+      "title": "Developer options",
+      "generate_trace_test": "Generate trace test",
+      "generate_trace_test_desc": "Generate a developer test Sentry trace.",
+      "navigate_to_sample_feature": "Navigate to sample feature",
       "sample_feature_desc": "为开发者提供的示例功能模板。"
     },
     "feature_flag_override": {
-      "title": "功能标签覆盖",
+      "title": "Feature flag override",
       "description": "本地覆盖应用程序的功能标签。"
     }
   },
   "aes_crypto_test_form": {
-    "generate_random_salt": "生成随机盐",
+    "generate_random_salt": "Generate random salt",
     "salt_bytes_count": "盐字节数",
     "generate": "生成",
     "generate_encryption_key": "从密码生成加密密钥",
@@ -2823,7 +3089,7 @@
     "salt": "盐",
     "encrypt_with_key": "使用密钥加密",
     "encrypt": "加密",
-    "encryption_key": "加密密钥",
+    "encryption_key": "Encryption key",
     "data": "数据",
     "decrypt_with_key": "使用密钥解密",
     "decrypt": "解密"
@@ -2834,7 +3100,7 @@
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
     "disconnect_all_accounts": "断开所有账户的连接",
-    "manage_connections": "管理连接",
+    "manage_connections": "Manage connections",
     "manage": "管理",
     "cancel": "取消",
     "loading": "正在连接MetaMask…...",
@@ -2871,9 +3137,9 @@
     "privacy_policy": "隐私政策",
     "terms_of_use": "使用条款",
     "attributions": "参与者",
-    "support_center": "访问我们的支持中心",
+    "support_center": "Visit our support center",
     "web_site": "访问我们的网站",
-    "contact_us": "联系我们"
+    "contact_us": "Contact us"
   },
   "reveal_credential": {
     "seed_phrase_title": "显示私钥助记词",
@@ -2931,7 +3197,7 @@
     "srp_text": "私钥助记词，",
     "private_key_text": "私钥",
     "got_it": "知道了",
-    "learn_more": "了解更多"
+    "learn_more": "Learn more"
   },
   "screenshot_deterrent": {
     "title": "安全警告",
@@ -2951,14 +3217,16 @@
     "deposit_description": "低手续费的银行或卡转账",
     "buy": "买入",
     "buy_description": "适合购买特定代币",
-    "sell": "提款",
+    "buy_unified": "买入",
+    "buy_unified_description": "用现金购买加密货币",
+    "sell": "卖出",
     "sell_description": "卖出加密货币换取现金"
   },
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
     "token_marketplace": "代币市场",
-    "sell_button": "提款",
+    "sell_button": "卖出",
     "receive_button": "接收",
     "portfolio_button": "Portfolio",
     "deposit_button": "存款",
@@ -2970,13 +3238,19 @@
     "swap": "兑换",
     "bridge": "桥接",
     "earn": "赚取",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "交易",
       "daily_resource": "每日资源",
       "bandwidth": "带宽",
       "energy": "能量",
-      "daily_resource_description": "这是基于您的质押 TRX 获得的每日配额。每日可免费获取 600 带宽。",
-      "sufficient_to_cover_trx": "足够支持约 {{amount}} 的 TRX 转账",
-      "sufficient_to_cover_usdt": "足够支持约 {{amount}} 的 USDT"
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. Hold TRX to get 600 bandwidth daily.",
+      "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
+      "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
+      "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
     },
     "disabled_button": {
       "buy": "此账户不支持买入",
@@ -2990,7 +3264,7 @@
       "perps": "此账户不支持永续合约交易"
     },
     "description": "描述",
-    "totalSupply": "总供给量",
+    "totalSupply": "Total supply",
     "address": "地址",
     "were_unable": "我们无法加载您的",
     "balance": "余额。请参阅支持文章",
@@ -3039,10 +3313,10 @@
       "show_less": "收起"
     },
     "activity": "{{symbol}} 活动",
-    "disclaimer": "市场数据由一个或多个第三方数据源提供，包括 CoinGecko。此类第三方内容仅供参考，不应被视为购买、出售或使用任何特定资产的建议。MetaMask 不建议将此内容用于任何特定目的，也不对其准确性负责。"
+    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
   },
   "account_details": {
-    "title": "账户详细信息",
+    "title": "Account details",
     "share_account": "共享",
     "view_account": "在 Etherscan 上查看账户",
     "show_private_key": "显示私钥",
@@ -3062,7 +3336,7 @@
     "title": "找到{{tokenCount}}个新代币",
     "title_plural": "找到{{tokenCount}}个新代币",
     "import_cta": "导入({{tokenCount}})",
-    "hide_cta": "全部隐藏",
+    "hide_cta": "Hide all",
     "token_address": "代币地址: ",
     "token_lists": "代币列表：{{listNames}}",
     "token_more": " + 额外{{remainingListCount}}个",
@@ -3100,7 +3374,8 @@
     "url_redirection_alert_desc": "链接可能会被用于诈骗或网络钓鱼，因此请确保您只访问您信任的网站。",
     "label": "扫描二维码",
     "open_settings": "设置",
-    "camera_not_available": "摄像头不可用"
+    "camera_not_available": "摄像头不可用",
+    "tron_address_not_supported": "Tron addresses are not currently supported"
   },
   "action_view": {
     "cancel": "取消",
@@ -3136,7 +3411,7 @@
     "gas_fee_fast": "快",
     "gas_fee_average": "中",
     "gas_fee_slow": "慢",
-    "hex_data": "十六进制数据",
+    "hex_data": "Hex data",
     "custom_nonce": "Nonce",
     "custom_nonce_tooltip": "这是账户的交易序号。首笔交易的唯一交易标识号为 0，后续按逐次递增顺序排列。",
     "this_is_an_advanced": "这是一个高级功能，用于取消或加快任何未完成交易。",
@@ -3158,7 +3433,7 @@
     "more_to_continue": "需要更多 {{ticker}} 以继续",
     "you_can_also_send_funds": "您也可以从其他账户汇款。",
     "token_marketplace": "代币市场",
-    "token_Marketplace": "代币市场",
+    "token_Marketplace": "Token marketplace",
     "go_to_faucet": "转到水龙头",
     "get_ether": "为 {{networkName}} 网络获取以太币。",
     "insufficient_tokens": "{{token}} 不足",
@@ -3172,13 +3447,13 @@
     "invalid_collectible_ownership": "您并不是此收藏品的所有者",
     "known_asset_contract": "已知资产合约地址",
     "max": "最大",
-    "recipient_address": "接收人地址",
+    "recipient_address": "Recipient address",
     "required": "必需",
     "to": "至",
     "total": "总计",
     "loading": "正在加载...",
     "conversion_not_available": "转换率不可用",
-    "value_not_available": "不可用",
+    "value_not_available": "Not available",
     "rate_not_available": "转换不可用",
     "optional": "可选",
     "no_address_for_ens": "无 ENS 名称的地址",
@@ -3200,7 +3475,7 @@
     "transaction_fee": "网络费",
     "transaction_fee_less": "不收费",
     "total_amount": "总数额",
-    "view_data": "查看数据",
+    "view_data": "View data",
     "adjust_transaction_fee": "调整交易费用",
     "could_not_resolve_ens": "无法解析 ENS",
     "asset": "资产",
@@ -3216,6 +3491,7 @@
     "failed": "失败",
     "cancelled": "已取消",
     "signed": "待定",
+    "unconfirmed": "待定",
     "tokenContractAddressWarning_1": "此地址是 ",
     "tokenContractAddressWarning_2": "代币合约地址",
     "tokenContractAddressWarning_3": ".如果将代币发送到此地址，您将失去代币。",
@@ -3255,7 +3531,7 @@
     "advanced_options": "高级",
     "basic_options": "基本",
     "hide_advanced_options": "隐藏高级选项",
-    "gas_limit": "燃料限额：",
+    "gas_limit": "Gas limit:",
     "gas_price": "燃料价格：(GWEI)",
     "save": "保存",
     "warning_gas_limit": "燃料限额必须大于 20999、小于 7920027",
@@ -3289,8 +3565,8 @@
     "transaction_fee_explanation": "交易费用与此权限关联。",
     "view_details": "查看详细信息",
     "view_transaction_details": "查看交易详情",
-    "view_data": "查看数据",
-    "transaction_details": "交易详细信息",
+    "view_data": "View data",
+    "transaction_details": "Transaction details",
     "site_url": "站点 URL",
     "permission_request": "权限请求",
     "details_explanation": "{{host}} 最多可从该账户访问并支付此最大数额。",
@@ -3336,9 +3612,9 @@
     "welcome": "欢迎！",
     "remove": "删除",
     "new_tab": "新标签页",
-    "tabs_close_all": "全部关闭",
+    "tabs_close_all": "Close all",
     "tabs_done": "完成",
-    "no_tabs_title": "无打开的标签页",
+    "no_tabs_title": "No open tabs",
     "no_tabs_desc": "要浏览去中心化网络，请添加新标签页",
     "got_it": "知道了",
     "max_tabs_title": "达到最大标签页数量限制",
@@ -3368,14 +3644,14 @@
     "right_button": "保护钱包"
   },
   "add_favorite": {
-    "title": "添加收藏",
+    "title": "Add favorite",
     "title_label": "名称",
     "url_label": "URL",
     "add_button": "添加",
     "cancel_button": "取消"
   },
   "approval": {
-    "title": "确认交易"
+    "title": "Confirm transaction"
   },
   "approve": {
     "title": "批准",
@@ -3385,33 +3661,40 @@
   "transactions": {
     "tx_review_confirm": "确认",
     "tx_review_transfer": "转账",
-    "tx_review_contract_deployment": "合约部署",
-    "tx_review_transfer_from": "转移自",
-    "tx_review_unknown": "未知方法",
+    "tx_review_contract_deployment": "Contract deployment",
+    "tx_review_transfer_from": "Transfer from",
+    "tx_review_unknown": "Unknown method",
     "tx_review_approve": "批准",
-    "tx_review_increase_allowance": "增加限额",
-    "tx_review_set_approval_for_all": "设置批准所有",
-    "tx_review_staking_claim": "质押申请",
-    "tx_review_staking_deposit": "质押保证金",
+    "tx_review_increase_allowance": "Increase allowance",
+    "tx_review_set_approval_for_all": "Set approval for all",
+    "tx_review_staking_claim": "Staking claim",
+    "tx_review_staking_deposit": "Staking deposit",
     "tx_review_staking_unstake": "解除质押",
-    "tx_review_lending_deposit": "出借存款",
-    "tx_review_lending_withdraw": "出借提款",
+    "tx_review_lending_deposit": "Lending deposit",
+    "tx_review_lending_withdraw": "Lending withdrawal",
     "tx_review_perps_deposit": "已注资的永续合约",
-    "tx_review_predict_deposit": "预测已存入资金",
-    "tx_review_predict_claim": "已领取收益",
-    "tx_review_predict_withdraw": "预测提现",
+    "tx_review_predict_deposit": "Funded predictions",
+    "tx_review_predict_claim": "Claimed wins",
+    "tx_review_predict_withdraw": "Predictions withdraw",
+    "tx_review_musd_conversion": "mUSD Conversion",
     "sent_ether": "已发送以太币",
-    "self_sent_ether": "已向自己发送以太币",
+    "self_sent_ether": "Sent yourself Ether",
     "received_ether": "已接收以太币",
     "sent_dai": "已发送 DAI",
     "self_sent_dai": "已向自己发送 DAI",
     "received_dai": "已接收 DAI",
-    "sent_tokens": "已发送代币",
+    "sent_tokens": "Sent tokens",
+    "received_tokens": "Received tokens",
     "ether": "以太币",
     "sent_unit": "已发送 {{unit}} 个",
-    "self_sent_unit": "已向自己发送 {{unit}} 个",
+    "self_sent_unit": "Sent yourself {{unit}}",
     "received_unit": "已接收 {{unit}} 个",
-    "sent_collectible": "已发送收藏品",
+    "sent_collectible": "Sent collectible",
+    "received_collectible": "Received collectible",
+    "send_ether": "Send Ether",
+    "send_unit": "Send {{unit}}",
+    "send_collectible": "Send collectible",
+    "receive_collectible": "Receive collectible",
     "sent": "已发送",
     "received": "已接收",
     "receive": "接收",
@@ -3419,32 +3702,33 @@
     "send": "发送",
     "redeposit": "再次存款",
     "interaction": "交互",
-    "contract_deploy": "合约部署",
-    "to_contract": "新合约",
+    "contract_deploy": "Contract deployment",
+    "to_contract": "New contract",
+    "mint": "Mint",
     "tx_details_free": "免费",
     "tx_details_not_available": "不可用",
     "smart_contract_interaction": "智能合约交互",
     "swaps_transaction": "兑换交易",
     "bridge_transaction": "桥接",
     "approve": "批准",
-    "increase_allowance": "增加限额",
-    "set_approval_for_all": "设置批准所有",
+    "increase_allowance": "Increase allowance",
+    "set_approval_for_all": "Set approval for all",
     "hash": "哈希",
     "from": "自",
     "to": "至",
     "details": "详细信息",
     "amount": "数额",
     "fee": {
-      "transaction_fee_in_ether": "交易费用",
-      "transaction_fee_in_usd": "交易费用 (USD)"
+      "transaction_fee_in_ether": "Transaction fee",
+      "transaction_fee_in_usd": "Transaction fee (USD)"
     },
-    "gas_used": "已使用燃料（单位）",
-    "gas_limit": "燃料限额（单位）",
+    "gas_used": "Gas used (units)",
+    "gas_limit": "Gas limit (units)",
     "gas_price": "燃料价格 (GWEI)",
     "base_fee": "基础费用（GWEI）",
     "priority_fee": "优先费用（GWEI）",
-    "multichain_priority_fee": "优先费用",
-    "max_fee": "每单位燃料的最大费用",
+    "multichain_priority_fee": "Priority fee",
+    "max_fee": "Max fee per gas",
     "total": "总计",
     "view_on": "在以下位置查看：",
     "view_on_etherscan": "在 Etherscan 上查看",
@@ -3460,13 +3744,13 @@
     "nonce": "nonce",
     "from_device_label": "从这台设备上",
     "import_wallet_row": "账户已添加到该设备",
-    "import_wallet_label": "已添加账户",
+    "import_wallet_label": "Account added",
     "import_wallet_tip": "以后所有从这台设备进行的交易都会在时间戳旁边加上 “来自这台设备”的标签。对于添加账户之前的交易，该历史记录不会显示哪些传出交易来自该设备。",
     "sign_title_scan": "扫描 ",
     "sign_title_device": "使用您的硬件钱包",
     "sign_description_1": "您使用硬件钱包签名后，",
-    "sign_description_2": "点击‘’获取签名‘’",
-    "sign_get_signature": "获取签名",
+    "sign_description_2": "Tap on get signature",
+    "sign_get_signature": "Get signature",
     "transaction_id": "交易 ID",
     "network": "网络",
     "request_from": "请求来自",
@@ -3487,10 +3771,10 @@
       "medium": "市场型",
       "high": "激进型",
       "network_suggested": "建议网络",
-      "gas_limit": "燃料限制",
+      "gas_limit": "Gas limit",
       "save": "保存",
       "max_base_fee": "最大基础费用",
-      "priority_fee": "优先费用",
+      "priority_fee": "Priority fee",
       "current_priority_fee": "当前：{{min}} - {{max}} GWEI",
       "historical_priority_fee": "12 小时：{{min}} - {{max}} GWEI",
       "estimated_base_fee": "当前：{{value}} GWEI",
@@ -3540,9 +3824,9 @@
     "add_this_address": "将此地址添加至您的通讯簿。",
     "next": "下一步",
     "enter_an_alias_placeholder": "例如，Vitalik B。",
-    "add_contact_title": "添加联系信息",
+    "add_contact_title": "Add contact",
     "add_contact": "添加联系信息",
-    "edit_contact_title": "编辑联系信息",
+    "edit_contact_title": "Edit contact",
     "edit_contact": "编辑联系信息",
     "edit": "编辑",
     "address_already_saved": "已保存联系信息",
@@ -3561,15 +3845,15 @@
     "button": "知道了"
   },
   "transaction_submitted": {
-    "title": "已提交交易",
+    "title": "Transaction submitted",
     "your_tx_hash_is": "您的交易哈希为：",
     "view_on_etherscan": "在 Etherscan 上查看"
   },
   "networks": {
     "title": "网络",
-    "other_networks": "其他网络",
+    "other_networks": "Other networks",
     "close": "关闭",
-    "status_ok": "所有系统运转正常",
+    "status_ok": "All systems operational",
     "status_not_ok": "网络遇到一些问题",
     "want_to_add_network": "想要添加此网络吗？",
     "add_custom_network": "添加自定义网络",
@@ -3588,9 +3872,9 @@
     "review": "查看",
     "view_details": "查看详情",
     "network_details": "网络详情",
-    "network_select_confirm_use_safe_check": "选择“确认”即开启网络详情检查。您可以在下方关闭网络详情检查：",
+    "network_select_confirm_use_safe_check": "Selecting confirm turns on network details check. You can turn off network details check in ",
     "network_settings_security_privacy": "“设置 > 安全和隐私”中",
-    "network_currency_symbol": "货币符号",
+    "network_currency_symbol": "Currency symbol",
     "network_block_explorer_url": "区块浏览器 URL",
     "search": "搜索以前添加的网络",
     "search-short": "Search",
@@ -3602,8 +3886,8 @@
     "edit_network_details": "编辑网络详情",
     "malicious_network_warning": "恶意网络提供商可能会谎报区块链的状态，并记录您的网络活动。仅添加您信任的自定义网络。",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "network_warning_title": "网络信息",
-    "additional_network_information_title": "其他网络信息",
+    "network_warning_title": "Network information",
+    "additional_network_information_title": "Additional networks information",
     "network_warning_desc": "此网络连接依赖于第三方。这种连接可靠程度可能会较低，或会使第三方能够跟踪活动。",
     "additonial_network_information_desc": "这些网络中的其中一些依赖于第三方。此连接可能不太可靠，或使第三方可进行活动跟踪。",
     "connect_more_networks": "连接更多网络",
@@ -3631,8 +3915,9 @@
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
-    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。",
-    "edit_networks_title": "编辑网络"
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "edit_networks_title": "编辑网络",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "此网站想要：",
@@ -3647,11 +3932,11 @@
     "network_connected": "网络已连接 ",
     "see_your_accounts": "查看您的账户并建议交易",
     "connected_to": "已连接到 ",
-    "manage_permissions": "管理权限",
+    "manage_permissions": "Manage permissions",
     "edit": "编辑",
     "cancel": "取消",
     "got_it": "知道了",
-    "connection_details_title": "连接详细信息",
+    "connection_details_title": "Connection details",
     "connection_details_description": "您于 {{connectionDateTime}} 使用 MetaMask 浏览器连接到此网站",
     "title_add_network_permission": "添加网络许可",
     "add_this_network": "添加此网络",
@@ -3672,7 +3957,7 @@
     "done": "完成"
   },
   "signature_request": {
-    "title": "签名请求",
+    "title": "Signature request",
     "cancel": "取消",
     "sign": "签名",
     "sign_requested": "正在请求您的签名",
@@ -3685,7 +3970,7 @@
     "read_more": "了解更多"
   },
   "watch_asset_request": {
-    "title": "添加建议代币",
+    "title": "Add suggested token",
     "cancel": "取消",
     "add": "添加代币",
     "message": "是否要添加此代币？",
@@ -3762,6 +4047,9 @@
   },
   "import_new_secret_recovery_phrase": {
     "title": "导入私钥助记词",
+    "import_wallet_title": "导入钱包",
+    "enter_srp_subtitle": "输入您的私钥助记词",
+    "textarea_placeholder": "在每个单词之间加空格，并确保无人窥视",
     "description": "输入您钱包的私钥助记词。您可以导入任何以太坊、Solana 或比特币私钥助记词。",
     "subtitle": "粘贴您的私钥助记词",
     "cta_text": "继续",
@@ -3782,6 +4070,9 @@
     "error_multiple_srp_word_error_3": " 不正确或拼写错误。",
     "error_invalid_srp": "私钥助记词无效",
     "error_duplicate_srp": "此私钥助记词已导入。",
+    "error_duplicate_account": "The account you are trying to import is a duplicate.",
+    "invalid_qr_code_title": "无效二维码",
+    "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
     "success_1": "钱包",
     "success_2": "已导入"
   },
@@ -4243,13 +4534,13 @@
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect 会话",
-    "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
+    "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表.",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
     "select_provider": "选择您的首选提供商",
     "switch_network": "请切换为 mainnet 或 sepolia",
     "card_title": "始终显示 MetaMask 卡按钮",
-    "card_desc": "MetaMask 卡仅对特定国家/地区的居民开放"
+    "card_desc": "MetaMask 卡仅对特定国家/地区的居民开放."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "您没有活动会话",
@@ -4399,6 +4690,13 @@
     "order_status_completed": "已完成",
     "order_status_failed": "失败",
     "order_status_cancelled": "已取消",
+    "webview_no_url_provided": "No URL was provided to continue",
+    "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "settings_modal": {
+      "title": "设置",
+      "use_new_buy_experience": "More ways to buy",
+      "use_new_buy_experience_description": "Switch to the new version"
+    },
     "onboarding": {
       "what_to_expect": "将会发生什么",
       "quotes": "我们的加密货币买入功能汇合了来自集成供应商的报价，以便为您提供来自这些来源的报价；加密货币将会直接进入您的钱包，无需等待。",
@@ -4445,8 +4743,8 @@
     "quotes_timeout": "报价超时",
     "request_new_quotes": "请重新请求报价以获得最新的最佳价格。",
     "terms_of_service": "服务条款",
-    "amount_to_buy": "购买数额",
-    "amount_to_sell": "要卖出的金额",
+    "amount_to_buy": "买入",
+    "amount_to_sell": "卖出",
     "want_to_buy": "您想购买",
     "want_to_sell": "您想卖出",
     "current_balance": "当前余额",
@@ -4498,6 +4796,17 @@
       "title": "不兼容的账户",
       "description": "您的当前账户不支持 {{networkName}} 网络上的代币。请切换到兼容账户以继续操作。",
       "cta": "知道了"
+    },
+    "eligibility_failed_modal": {
+      "title": "Eligibility Check Failed",
+      "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
+      "contact_support": "联系支持人员",
+      "got_it": "Got It"
+    },
+    "unsupported_region_modal": {
+      "title": "您所在区域不可用",
+      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
+      "got_it": "Got It"
     },
     "region": {
       "buy_crypto_tokens": "购买加密代币",
@@ -5291,6 +5600,7 @@
     "service_interruption_banner": {
       "maintenance_message": "我们正在进行系统维护。即将恢复服务！"
     },
+    "supply": "Supply",
     "deposit": "保证金",
     "approve": "批准",
     "approval": "批准",
@@ -5358,14 +5668,57 @@
       "lending": "头寸历史",
       "staking": "奖励发放记录"
     },
-    "allowance_reset": "授权重设"
+    "allowance_reset": "授权重设",
+    "tron": {
+      "fee": "费用"
+    },
+    "musd_conversion": {
+      "convert_to_musd": "Convert to mUSD",
+      "toasts": {
+        "converting": "Converting {{token}} → mUSD",
+        "eta": "~{{time}}",
+        "delivered": "Your mUSD has been delivered!",
+        "failed": "mUSD conversion failed"
+      },
+      "education": {
+        "heading": "使用 mUSD 赚取奖励",
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "continue_button": "Get started"
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD",
+      "earn_rewards_when": "Earn rewards when",
+      "you_convert_to": "you convert to"
+    },
+    "rewards": {
+      "rewards_tag_label": "奖励",
+      "tooltip_title": "使用 mUSD 赚取奖励",
+      "tooltip_points_suffix": "per $100",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
+      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
+      "tooltip_close": "关闭"
+    }
   },
   "stake": {
     "stake": "Stake",
     "earn": "赚取",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
+      "unstake_completed": "解除质押完成",
+      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_failed": "Unstaking failed",
       "bandwidth": "带宽",
-      "energy": "能量"
+      "energy": "能量",
+      "estimated_annual_reward": "预计年度奖励",
+      "trx_locked_for": "TRX locked for",
+      "trx_locked_for_minimum_time": "~3 days",
+      "trx_released_in": "TRX released in",
+      "trx_released_in_minimum_time": "~14 days",
+      "fee": "费用"
     },
     "stake_eth": "质押 ETH",
     "unstake_eth": "解除质押 ETH",
@@ -5406,6 +5759,11 @@
     "your_balance": "您的余额",
     "stake_your_eth_cta": {
       "base": "使用 MetaMask Pool 质押您的 ETH 并",
+      "annually": "每年赚取奖励。",
+      "learn_more_with_period": "了解更多。"
+    },
+    "stake_your_trx_cta": {
+      "base": "Stake your TRX with MetaMask Pool and earn",
       "annually": "每年赚取奖励。",
       "learn_more_with_period": "了解更多。"
     },
@@ -5556,7 +5914,7 @@
     },
     "estimated_gas_fee": {
       "title": "估算的燃料费",
-      "gas_recipient": "燃料费支付给在以太坊网络上处理交易的加密矿工。MetaMask 不会从燃料费中获利。",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "燃料费是估算的，并将根据网络流量和交易复杂性而波动。",
       "gas_learn_more": "了解更多有关燃料费的信息"
     },
@@ -5634,6 +5992,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "我们将在预测所使用的 Polygon 网络上将您的代币兑换为 USDC.e。兑换提供商可能收取费用，但 MetaMask 不收取费用。"
+      },
+      "musd_conversion": {
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "费用"
@@ -5728,6 +6089,11 @@
       "footer_bottom": "资金将存入您的可用余额",
       "footer_top": "来自 {{count}} 个市场的收益"
     },
+    "custom_amount": {
+      "buy_button": "购买加密货币",
+      "buy_predict": "为钱包充值以使用预测服务。",
+      "buy_perps": "为钱包充值以使用永续合约。"
+    },
     "unlimited": "无限制",
     "all": "所有",
     "none": "无",
@@ -5739,8 +6105,10 @@
     "nested_transaction_heading": "交易 {{index}}",
     "transaction": "交易",
     "available_balance": "可用： ",
-    "edit_amount_done": "完成",
-    "deposit_edit_amount_done": "继续"
+    "edit_amount_done": "继续",
+    "deposit_edit_amount_done": "充值",
+    "deposit_edit_amount_predict_withdraw": "提取",
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -5776,6 +6144,7 @@
     "slippage": "滑移",
     "slippage_info": "如果价格在您下单和确认之间发生变化，称为“滑移”。如果滑移超过您在此设置的最大幅度，您的兑换将自动取消。",
     "network_fee": "网络费",
+    "gas_fees_sponsored": "由 MetaMask 支付",
     "included": "已包含",
     "estimated_time": "预计时间",
     "quote": "报价",
@@ -5787,6 +6156,7 @@
     "quote_info_title": "费率",
     "network_fee_info_title": "网络费",
     "network_fee_info_content": "网络费用取决于网络的繁忙程度及交易的复杂程度。",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "预计积分",
     "points_tooltip": "积分",
     "points_tooltip_content_1": "积分是您通过完成交易（如兑换、桥接或永续合约交易）获得 MetaMask Rewards 的方式。",
@@ -5825,7 +6195,7 @@
     "approval_needed": "批准代币用于兑换。",
     "approval_tooltip_title": "授予精确访问权限",
     "approval_tooltip_content": "您正在授权动用指定金额（{{amount}} {{symbol}}）。该合约将无法动用超出此额度的任何资金。",
-    "minimum_received": "最低收款",
+    "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "最低收款",
     "minimum_received_tooltip_content": "若交易处理期间价格发生波动，根据您设置的滑移容限，此为您将收到的最低金额。该金额来自流动性供应商提供的预估，最终到账金额可能存在差异。",
     "verified_token": "已验证代币",
@@ -6128,123 +6498,128 @@
       "select_method": "选择方式"
     },
     "card_onboarding": {
-      "title": "启用 MetaMask 卡功能",
-      "description": "通过使用您的 Crypto Life 电子邮件和密码登录，来更改您的消费代币和网络。",
-      "verify_account_button": "登录",
-      "non_cardholder_title": "欢迎使用 MetaMask 卡",
-      "non_cardholder_description": "MetaMask 卡助您免费便捷消费加密货币，并享受丰厚的链上奖励。",
-      "non_cardholder_verify_account_button": "开始",
+      "title": "Spend\nand\nEarn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto like cash and earn rewards.",
+      "apply_now_button": "Apply now",
       "sign_up": {
-        "title": "注册",
-        "description": "从 MetaMask 卡提供商 Crypto Life 处注册。使用该凭证管理您的卡。",
+        "title": "Let's get started",
+        "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
         "i_already_have_an_account": "我已有账户",
         "email_label": "电子邮件",
         "password_label": "密码",
-        "confirm_password_label": "重新输入您的密码",
-        "country_label": "居住国家/地区",
-        "email_placeholder": "输入您的电子邮件地址",
         "password_placeholder": "长度需至少 15 个字符",
-        "confirm_password_placeholder": "重新输入您的密码",
+        "confirm_password_label": "确认密码",
+        "country_label": "Country of residence",
         "country_placeholder": "选择您的国家/地区",
-        "password_mismatch": "密码不匹配",
+        "password_mismatch": "Passwords must match",
         "invalid_email": "电子邮件地址无效",
-        "invalid_password": "密码长度需至少 15 个字符，且不包含不可打印字符或连续空格"
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
       },
       "confirm_email": {
         "title": "确认您的电子邮件",
-        "description": "我们已发送确认码至：{{email}}",
-        "confirm_code_label": "确认码",
-        "confirm_code_placeholder": "输入 6 位验证码",
-        "resend_verification": "重新发送验证码",
+        "description": "输入我们发送给 {{email}} 的代码。如果您在收件箱中找不到此代码，请检查垃圾邮件文件夹。",
+        "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "重新发送",
         "resend_cooldown": "{{seconds}} 秒后可重新发送",
         "account_exists": "请登录以继续完成入门流程"
       },
       "set_phone_number": {
-        "title": "电话号码",
-        "description": "我们将向此号码发送验证码",
-        "phone_number_label": "电话号码",
-        "phone_number_placeholder": "输入您的电话号码",
+        "title": "确认您的电话号码",
+        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "phone_number_label": "输入电话号码",
         "country_area_code_label": "国家/地区代码",
         "invalid_phone_number": "电话号码无效",
         "legal_terms": "继续操作即表示您同意接收短信以验证手机号码。"
       },
       "confirm_phone_number": {
         "title": "确认您的电话号码",
-        "description": "我们已向以下号码发送验证码：\n{{phoneNumber}}",
-        "confirm_code_label": "确认码",
-        "resend_verification": "重新发送验证码",
+        "description": "Enter the verification code sent to\n{{phoneNumber}}",
+        "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "重新发送",
         "resend_cooldown": "{{seconds}} 秒后可重新发送"
       },
       "verify_identity": {
-        "title": "下一步，验证身份",
-        "description": "为保障您的账户安全，Crypto Life 需通过 Veriff 验证您的身份。\n\n您的信息将直接发送至 Veriff 和 Crypto Life，MetaMask 从不查看或存储这些信息。\n\n请准备好身份证件和地址证明。这通常需要 5 分钟。",
-        "verify_button": "开始验证",
+        "title": "验证您的身份",
+        "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
+        "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
+        "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "verify_button": "下一步",
         "start_verification_error": "验证启动失败。请稍后重试。"
       },
+      "kyc_webview": {
+        "close_confirmation_title": "Exit verification?",
+        "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
+        "cancel_button": "Stay",
+        "close_button": "Exit"
+      },
       "validating_kyc": {
-        "title": "正在验证您的 KYC（实名认证）......",
-        "timeout_button": "重新开始验证"
+        "title": "Awaiting approval",
+        "description": "Our partner needs to approve your identity. Once you've been approved, you'll be ready to spend.",
+        "timeout_button": "重新开始验证",
+        "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
+      },
+      "verifying_registration": {
+        "title": "正在验证您的身份",
+        "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
+        "verified_title": "已批准！",
+        "verified_description": "您的 KYC（实名认证）已通过。您现在可以使用 MetaMask 卡。",
+        "continue_button": "继续",
+        "timeout_title": "Verification in progress",
+        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time or contact support at\n{{email}}\nfor assistance.",
+        "rejected_title": "Verification incomplete",
+        "rejected_description": "We need a bit more information to complete your verification.",
+        "rejected_message": "Please reach out to our support team and we'll help you complete the process:\n{{email}}",
+        "server_error_title_main": "出错了......",
+        "server_error_title": "We're experiencing server issues",
+        "server_error_message": "Please try again later or contact support at\n{{email}}\nfor assistance.",
+        "success_toast": "Your ID was verified!"
       },
       "kyc_failed": {
-        "title": "已拒绝",
-        "description": "您的 KYC（实名认证）已被拒绝。请重试。"
+        "title": "You're not eligible for MetaMask Card right now",
+        "description": "Our partner approves based on set criteria. Learn more.",
+        "close_button": "Back to home"
       },
       "personal_details": {
-        "title": "现在，我们的合作伙伴需要您的一些信息",
-        "description": "请放心，这些信息属于隐私，我们从不查看",
+        "title": "Add your info",
+        "description": "Enter your personal details. We'll use this info for verification purposes.",
         "first_name_label": "名字",
         "last_name_label": "姓氏",
         "date_of_birth_label": "出生日期",
-        "nationality_label": "国籍",
+        "nationality_label": "Nationality",
         "ssn_label": "社会安全号码",
-        "first_name_placeholder": "输入您的名字",
-        "last_name_placeholder": "输入您的姓氏",
-        "date_of_birth_placeholder": "输入您的出生日期",
-        "nationality_placeholder": "选择您的国籍",
-        "ssn_placeholder": "输入您的社会安全号码",
         "invalid_ssn": "社会安全号码无效",
         "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁"
       },
       "physical_address": {
-        "title": "居住地址",
-        "description": "请向 Crypto Life 提供您的实际居住地址",
+        "title": "Add your address",
+        "description": "Enter your home address. If approved, we'll send your physical card here.",
         "address_line_1_label": "地址行 1",
         "address_line_2_label": "地址行 2",
         "city_label": "城市",
         "state_label": "州/省",
-        "zip_code_label": "邮政编码",
-        "address_line_1_placeholder": "街道地址",
-        "address_line_2_placeholder": "楼层，公寓或套房号",
-        "city_placeholder": "输入您所在城市",
-        "state_placeholder": "输入您所在州/省",
-        "zip_code_placeholder": "输入邮政编码",
-        "same_mailing_address_label": "居住地址与邮寄地址保持一致",
-        "electronic_consent_1": "I agree to the ",
-        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
-        "electronic_consent_3": " and to receive all communications electronically",
-        "terms_and_conditions_1": "I agree to the ",
-        "terms_and_conditions_2": "Terms and Conditions",
-        "terms_and_conditions_3": " of MetaMask Card",
-        "privacy_policy_1": "I agree to the data practices described in the ",
-        "privacy_policy_2": "Privacy Policy",
-        "right_to_information_1": "I have been informed of my ",
-        "right_to_information_2": "Right to Information",
-        "right_to_information_3": " as provided by law",
-        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
-        "account_opening_disclosure_2": "Account Opening Disclosure"
+        "zip_code_label": "Zip code",
+        "country_label": "国家/地区",
+        "electronic_consent_1": "我同意《电子签名法案同意书与披露声明》，并同意以电子方式接收所有通讯. ",
+        "electronic_consent_2": "View document(PDF)"
       },
       "mailing_address": {
         "title": "邮寄地址",
-        "description": "请提供您的邮寄地址"
+        "description": "Please provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "已批准！",
-        "description": "您的 KYC（实名认证）已通过。您现在可以使用 MetaMask 卡。"
+        "title": "You're in!",
+        "description": "Let's set up your card so you can start spending your crypto.",
+        "confirm_button": "Set up my card"
       },
       "continue_button": "下一步",
       "confirm_button": "确认",
       "retry_button": "请重试",
+      "close_button": "知道了",
+      "region_selector": {
+        "title": "Select your Region"
+      },
       "errors": {
+        "no_region_results": "No region matches {{searchString}}",
         "email_already_exists": "电子邮箱已存在。请使用其他电子邮箱。",
         "invalid_email_format": "电子邮箱格式无效。请检查您的电子邮箱后重试。",
         "invalid_verification_code": "验证码无效。请检查您的验证码后重试。",
@@ -6276,6 +6651,7 @@
       "logout_confirmation_message": "确定要退出您的 MetaMask 卡账户吗？",
       "logout_confirmation_cancel": "取消",
       "logout_confirmation_confirm": "退出登录",
+      "enable_card_error": "Failed to enable card. Please try again later.",
       "warnings": {
         "close_spending_limit": {
           "title": "您即将达到消费限额",
@@ -6300,12 +6676,36 @@
           "description": "请联系支持团队为您的卡解除封禁"
         }
       },
+      "kyc_status": {
+        "pending": {
+          "title": "Verification in Progress",
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+        },
+        "rejected": {
+          "title": "Verification Not Approved",
+          "description": "We were unable to verify your identity. Please contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+        },
+        "unverified": {
+          "title": "Verification Required",
+          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+        },
+        "error": {
+          "title": "Verification Status Unavailable",
+          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+        },
+        "ok_button": "OK"
+      },
       "manage_card_options": {
         "manage_spending_limit": "管理消费限额",
         "manage_spending_limit_description_restricted": "限额消费已开启",
         "manage_spending_limit_description_full": "全部权限已开启",
         "manage_card": "管理卡片",
-        "advanced_card_management_description": "查看卡详情、交易记录等信息"
+        "advanced_card_management_description": "查看卡详情、交易记录等信息",
+        "travel_title": "MetaMask Travel",
+        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
+        "card_tos_title": "Card Terms and Conditions",
+        "card_tos_description": "Read the card provider's terms"
       }
     },
     "card_spending_limit": {
@@ -6322,7 +6722,8 @@
       "dismiss": "忽略",
       "update_success": "消费限额更新成功",
       "update_error": "消费限额更新失败",
-      "solana_not_supported": "请在 card.metamask.io 启用 Solana 代币"
+      "solana_not_supported": "请在 card.metamask.io 启用 Solana 代币",
+      "select_token": "选择代币"
     },
     "change_asset": {
       "title": "更改代币和网络",
@@ -6359,7 +6760,7 @@
       "email_placeholder": "输入您的电子邮件地址",
       "password_placeholder": "输入您的密码",
       "login_button": "登录",
-      "signup_button": "注册",
+      "signup_button": "I don't have an account",
       "errors": {
         "invalid_credentials": "登录信息无效",
         "unknown_error": "未知错误，请稍后再试",
@@ -6396,7 +6797,8 @@
     "report_submitted": "错误报告已提交。"
   },
   "pay_with_modal": {
-    "title": "选择付款方式"
+    "title": "选择付款方式",
+    "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
     "title": "连接已删除",
@@ -6486,6 +6888,8 @@
     "activity_empty_link": "查看赚取方式",
     "events": {
       "to": "至",
+      "musd_deposit_for": "日期 {{date}}",
+      "for_deposit_period": "保证金期限",
       "type": {
         "swap": "交换",
         "perps": "永续合约",
@@ -6499,6 +6903,8 @@
         "close_position": "已平仓位",
         "take_profit": "止盈/止损",
         "stop_loss": "止盈/止损",
+        "predict": "预测",
+        "musd_deposit": "mUSD 保证金",
         "uncategorized_event": "未归类事件"
       },
       "date": "日期",
@@ -6508,7 +6914,17 @@
       "points": "积分",
       "points_base": "基数",
       "points_boost": "加成",
-      "points_total": "总额"
+      "points_total": "总额",
+      "description": "描述"
+    },
+    "previous_season_summary": {
+      "title": "{{seasonName}} Results",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
+      "update_metamask": "Update MetaMask to claim your rewards",
+      "point_earned": "point earned",
+      "points_earned": "points earned",
+      "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
+      "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
       "not_supported_region_title": "不支持此地区",
@@ -6516,13 +6932,13 @@
       "not_supported_hardware_account_title": "账户不受支持",
       "not_supported_hardware_account_description": "硬件钱包账户暂不符合奖励领取资格。请切换至其他账户继续操作。",
       "not_supported_account_type_title": "账户类型不受支持",
-      "not_supported_account_type_description": "目前仅限内部以太坊及 Solana 账户可参与奖励计划。请切换至其他账户继续操作。",
+      "not_supported_account_type_description": "目前仅限内部以太坊及 Solana 账户可加入奖励计划。请切换至其他账户继续操作。",
       "not_supported_confirm_go_back": "返回",
       "not_supported_confirm_retry": "重试",
       "auth_fail_title": "认证失败",
       "auth_fail_description": "奖励计划认证失败。请检查连接后重试。",
       "geo_check_fail_title": "无法确定参与资格",
-      "geo_check_fail_description": "我们暂时无法确定您所在国家/地区是否允许参与奖励计划。请检查连接后重试。",
+      "geo_check_fail_description": "我们暂时无法确定您所在地区是否允许加入奖励计划。请检查连接后重试。",
       "gtm_title": "奖励已到",
       "gtm_description": "通过活动赚取积分。 \n提升等级即可解锁奖励。",
       "gtm_confirm": "开始",
@@ -6555,7 +6971,17 @@
       "step4_legal_disclaimer_1": "选择“领取积分”即表示您同意 MetaMask 奖励计划",
       "step4_legal_disclaimer_2": "补充使用条款及隐私声明",
       "step4_legal_disclaimer_3": "。我们将通过追踪链上活动为您自动发放奖励——",
-      "step4_legal_disclaimer_4": "了解详情"
+      "step4_legal_disclaimer_4": "了解详情",
+      "no_active_season": {
+        "title": "Sign up for Rewards",
+        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
+        "sign_up": "注册",
+        "sign_up_loading": "Signing up...",
+        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
+        "legal_disclaimer_2": "补充使用条款及隐私声明",
+        "legal_disclaimer_3": "。我们将通过追踪链上活动为您自动发放奖励——",
+        "legal_disclaimer_4": "了解详情"
+      }
     },
     "settings": {
       "title": "奖励计划设置",
@@ -6569,12 +6995,12 @@
       "link_account_success_title": "{{accountName}} 已成功添加",
       "link_account_error_title": "添加账户失败",
       "link_account_button": "添加",
-      "link_account_failed_error": "关联账户失败",
+      "link_account_failed_error": "添加账户失败",
       "link_account_unknown_error": "发生未知错误"
     },
     "optout": {
       "title": "注销奖励计划账户",
-      "description": "此操作将从奖励计划中移除您的账户，并清空您的积分与进度记录。此操作无法撤销。",
+      "description": "此操作将从奖励计划中注销您的账户，并清空您的积分与进度记录。此操作无法撤销。",
       "confirm": "注销",
       "modal": {
         "confirmation_title": "您确定吗？",
@@ -6609,10 +7035,10 @@
       "supported_networks": "支持的网络",
       "swap": {
         "title": "兑换",
-        "description": "每 100 美元 80 积分",
+        "description": "每 10 美元 8 积分",
         "sheet": {
           "title": "兑换代币",
-          "points": "每 100 美元 80 积分",
+          "points": "每 10 美元 8 积分",
           "description": "在支持的网络上兑换代币，每交易一美元即可赚取积分。",
           "cta_label": "开始兑换"
         }
@@ -6623,7 +7049,7 @@
         "sheet": {
           "title": "交易永续合约",
           "points": "每100美元订单金额可获10积分",
-          "description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单设置以及保证金调整等操作。订单价值基于使用杠杆后的交易规模计算。",
+          "description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单以及保证金调整等操作。订单价值基于使用杠杆后的交易规模计算。如果您享有手续费折扣，则积分也会相应折减。",
           "cta_label": "开始交易"
         }
       },
@@ -6632,7 +7058,7 @@
         "description": "好友每获得 50 积分，您可获 10 积分",
         "sheet": {
           "title": "推荐好友",
-          "points": "每 100 美元 20 积分",
+          "points": "每 50 美元 10 积分",
           "cta_label": "推荐好友"
         }
       },
@@ -6642,8 +7068,18 @@
         "sheet": {
           "title": "忠诚奖励",
           "points": "每 1250 美元 250 积分",
-          "description": "添加在 MetaMask 中进行过兑换或跨链桥操作的账户，即可获取忠诚奖励。每个符合条件的账户将以 250 积分为单位递增解锁奖励，累计最高可达 50000 积分。奖励将在添加账户稍后显示。",
+          "description": "添加以往进行过 MetaMask 钱包内兑换或跨链桥操作的账户，即可赚取忠诚奖励。每个符合条件的账户将以 250 积分为单位递增解锁奖励，累计最高可达 50000 积分。奖励将在添加账户稍后显示。",
           "cta_label": "添加账户"
+        }
+      },
+      "predict": {
+        "title": "预测市场",
+        "description": "为预测每投注10美元可获20积分",
+        "sheet": {
+          "title": "预测市场",
+          "points": "每 10 美元 20 积分",
+          "description": "每交易10美元即可获得积分。",
+          "cta_label": "浏览市场"
         }
       },
       "card": {
@@ -6654,6 +7090,26 @@
           "points": "每消费 1 美元可获得 1 积分",
           "description": "每次使用 MetaMask 卡消费均可赚取积分，并享受 1% 现金返还（金属卡用户可享 3% 返现）。",
           "cta_label": "管理卡片"
+        }
+      },
+      "deposit_musd": {
+        "title": "存入 mUSD",
+        "description": "每存入 $100 即可获得 2 积分",
+        "sheet": {
+          "title": "存入 mUSD",
+          "points": "每 100 美元 2 积分",
+          "description": "每存入 $100 mUSD 即可赚取积分。",
+          "cta_label": "存入 mUSD"
+        }
+      },
+      "hold_musd": {
+        "title": "Hold mUSD",
+        "description": "2 points per $100 held",
+        "sheet": {
+          "title": "Hold mUSD",
+          "points": "每 100 美元 2 积分",
+          "description": "Earn points on every $100 mUSD you hold.",
+          "cta_label": "Buy mUSD"
         }
       }
     },
@@ -6668,14 +7124,17 @@
         "title": "分享您的邀请码以赚取更多",
         "description": "您的好友可获得双倍注册奖励。他们通过交易每赚取 50 积分，您可同步获得 10 积分。"
       },
-      "referral_code_copied": "Referral code copied to clipboard"
+      "referral_code_copied": "推荐码已复制到剪贴板"
     },
     "link_account_group": {
       "link_account": "添加账户",
-      "tracked": "已追踪",
-      "untracked": "未追踪",
+      "tracked": "已加入",
+      "untracked": "未加入",
+      "unsupported": "不支持",
+      "tracked_count": "{{optedIn}}{{total}} 已加入",
       "link_account_success": "{{accountName}} 已成功添加",
-      "link_account_error": "为 {{accountName}} 添加一个或多个地址失败"
+      "link_account_error": "为 {{accountName}} 添加一个或多个地址失败",
+      "link_account_address_error": "无法添加 {{address}}"
     },
     "active_boosts_title": "活跃加成",
     "season_1": "第 1 季",
@@ -6706,7 +7165,9 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "已注资的永续合约账户",
+      "predict_claim": "已领取收益",
       "predict_deposit": "预测账户已存入资金",
+      "predict_withdraw": "提取",
       "default": "交易详情"
     },
     "label": {
@@ -6714,7 +7175,9 @@
       "network_fee": "网络费",
       "paid_with": "已使用以下支付方式付款：",
       "retry_button": "请重试",
-      "total": "总额"
+      "total": "总额",
+      "account": "账户",
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "批准 {{approveSymbol}}",
@@ -6740,9 +7203,17 @@
       "title": "连接错误",
       "description": "建立连接失败。请重试。"
     },
+    "show_rejection": {
+      "title": "Approval rejected",
+      "description": "User rejected the request."
+    },
     "show_return_to_app": {
       "title": "成功",
       "description": "返回应用程序继续操作。"
+    },
+    "show_not_found": {
+      "title": "Connection Not Found",
+      "description": "Please establish a new connection from the app to continue."
     }
   },
   "network_connection_banner": {
@@ -6751,5 +7222,42 @@
     "update_rpc": "更新 RPC（远程过程调用）",
     "check_network_connectivity": "请检查您的网络连接。",
     "check_network_connectivity_or": "请检查您的网络连接或"
+  },
+  "trending": {
+    "title": "Explore",
+    "view_all": "View all",
+    "tokens": "代币",
+    "trending_tokens": "Trending tokens",
+    "price_change": "Price change",
+    "all_networks": "所有网络",
+    "24h": "24h",
+    "time": "时间",
+    "24_hours": "24 小时",
+    "6_hours": "6 小时",
+    "1_hour": "1 hour",
+    "5_minutes": "5 minutes",
+    "networks": "网络",
+    "sort_by": "排序方式",
+    "volume": "交易量",
+    "market_cap": "Market cap",
+    "high_to_low": "High to low",
+    "low_to_high": "Low to high",
+    "apply": "应用",
+    "search_placeholder": "Search tokens, sites, URLs",
+    "cancel": "取消",
+    "perps": "永续合约",
+    "predictions": "预测",
+    "no_results": "No results found",
+    "sites": "网站",
+    "popular_sites": "Popular sites",
+    "search_sites": "Search sites",
+    "enable_basic_functionality": "Enable basic functionality",
+    "basic_functionality_disabled_title": "Explore is not available",
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "empty_error_trending_state": {
+      "title": "Trending tokens is not available",
+      "description": "We can't fetch this page right now",
+      "try_again": "请重试"
+    }
   }
 }

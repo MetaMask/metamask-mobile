@@ -30,6 +30,9 @@ export const PredictEventProperties = {
   ORDER_ID: 'order_id',
   USER_ADDRESS: 'user_address',
 
+  // Trade status
+  STATUS: 'status',
+
   // Performance metrics
   COMPLETION_DURATION: 'completion_duration',
 
@@ -59,6 +62,7 @@ export const PredictEventProperties = {
  */
 export const PredictEventValues = {
   ENTRY_POINT: {
+    CAROUSEL: 'carousel',
     PREDICT_FEED: 'predict_feed',
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
@@ -66,7 +70,11 @@ export const PredictEventValues = {
     HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
     HOMEPAGE_BALANCE: 'homepage_balance',
     MAIN_TRADE_BUTTON: 'main_trade_button',
+    REWARDS: 'rewards',
+    GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
+    TRENDING_SEARCH: 'trending_search',
+    TRENDING: 'trending',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
@@ -97,14 +105,26 @@ export const PredictEventValues = {
 } as const;
 
 /**
- * Event type constants for analytics tracking
+ * Trade transaction status values for analytics tracking
+ * Used as the 'status' property in PREDICT_TRADE_TRANSACTION event
  */
-export const PredictEventType = {
-  INITIATED: 'INITIATED',
-  SUBMITTED: 'SUBMITTED',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
+export const PredictTradeStatus = {
+  INITIATED: 'initiated',
+  SUBMITTED: 'submitted',
+  SUCCEEDED: 'succeeded',
+  FAILED: 'failed',
 } as const;
 
-export type PredictEventTypeValue =
-  (typeof PredictEventType)[keyof typeof PredictEventType];
+export type PredictTradeStatusValue =
+  (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+// Legacy export for backward compatibility during transition
+export const PredictEventType = PredictTradeStatus;
+export type PredictEventTypeValue = PredictTradeStatusValue;
+
+/**
+ * GTM Modal constants for analytics tracking
+ */
+export const PREDICT_GTM_WHATS_NEW_MODAL = 'predict-gtm-whats-new-modal';
+export const PREDICT_GTM_MODAL_ENGAGE = 'engage';
+export const PREDICT_GTM_MODAL_DECLINE = 'decline';

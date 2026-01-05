@@ -9,6 +9,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectBridgeViewMode,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { cloneDeep } from 'lodash';
 import { BridgeViewMode } from '../../types';
@@ -20,8 +21,6 @@ import {
   ARBITRUM_DISPLAY_NAME,
   AVALANCHE_DISPLAY_NAME,
   BASE_DISPLAY_NAME,
-  BNB_DISPLAY_NAME,
-  OPTIMISM_DISPLAY_NAME,
 } from '../../../../../core/Engine/constants';
 
 const mockNavigate = jest.fn();
@@ -44,6 +43,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
+    setIsDestTokenManuallySet: jest.fn(actual.setIsDestTokenManuallySet),
     selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
   };
 });
@@ -104,7 +104,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 describe('getNetworkName', () => {
-  it('returns network name from network configurations when available', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP when available', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations: Record<
       string,
@@ -121,8 +121,9 @@ describe('getNetworkName', () => {
       } as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Ethereum Mainnet');
+    expect(result).toBe('Ethereum');
   });
 
   it('returns nickname from PopularList when network not in configurations', () => {
@@ -147,15 +148,16 @@ describe('getNetworkName', () => {
     expect(result).toBe(ARBITRUM_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for BNB Smart Chain', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP for BNB', () => {
     const chainId = toHex('56') as Hex;
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP returns 'BNB' for this chain
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe(BNB_DISPLAY_NAME);
+    expect(result).toBe('BNB');
   });
 
   it('returns nickname from PopularList for Base', () => {
@@ -169,15 +171,16 @@ describe('getNetworkName', () => {
     expect(result).toBe(BASE_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for OP', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP for Optimism', () => {
     const chainId = toHex('10') as Hex;
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP returns 'Optimism' for this chain
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe(OPTIMISM_DISPLAY_NAME);
+    expect(result).toBe('Optimism');
   });
 
   it('returns "Unknown Network" when network not found anywhere', () => {
@@ -191,7 +194,7 @@ describe('getNetworkName', () => {
     expect(result).toBe('Unknown Network');
   });
 
-  it('prioritizes network configurations over PopularList', () => {
+  it('prioritizes NETWORK_TO_SHORT_NETWORK_NAME_MAP over network configurations', () => {
     const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
@@ -208,30 +211,33 @@ describe('getNetworkName', () => {
       } as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority over network configurations
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Custom Avalanche Name');
+    expect(result).toBe('Avalanche');
   });
 
-  it('handles undefined network configurations gracefully', () => {
+  it('returns short name when network configurations is undefined', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = undefined as unknown as Record<
       string,
       MultichainNetworkConfiguration
     >;
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 
-  it('handles null network configurations gracefully', () => {
+  it('returns short name when network configurations is null', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = null as unknown as Record<
       string,
       MultichainNetworkConfiguration
     >;
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 
   it('handles empty string chainId', () => {
@@ -245,7 +251,7 @@ describe('getNetworkName', () => {
     expect(result).toBe('Unknown Network');
   });
 
-  it('handles network configuration without name property', () => {
+  it('returns short name when network configuration lacks name property', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = {
       [chainId]: {
@@ -259,8 +265,9 @@ describe('getNetworkName', () => {
       } as unknown as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 });
 
@@ -299,7 +306,8 @@ describe('BridgeDestTokenSelector', () => {
 
   // TODO: Fix flaky test - timing issue with debounced token selection (500ms)
   // Test fails intermittently due to race condition between waitFor and debounce
-  it.skip('handles token selection correctly', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('handles token selection correctly and marks dest token as manually set', async () => {
     // Arrange
     const { getByText } = renderScreen(
       BridgeDestTokenSelector,
@@ -320,7 +328,7 @@ describe('BridgeDestTokenSelector', () => {
       jest.advanceTimersByTime(500);
     });
 
-    // Assert - check that actions were called
+    // Assert - check that setDestToken was called with the selected token
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,
@@ -332,6 +340,8 @@ describe('BridgeDestTokenSelector', () => {
         symbol: 'HELLO',
       }),
     );
+    // Also verify the manual flag was set
+    expect(setIsDestTokenManuallySet).toHaveBeenCalledWith(true);
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -372,7 +382,7 @@ describe('BridgeDestTokenSelector', () => {
           symbol: 'HELLO',
           tokenFiatAmount: 200000,
         }),
-        networkName: 'Ethereum Mainnet',
+        networkName: 'Ethereum',
       }),
     });
   });
@@ -522,7 +532,7 @@ describe('BridgeDestTokenSelector', () => {
           token_name: 'Hello Token',
           token_symbol: 'HELLO',
           token_contract: ethToken2Address,
-          chain_name: 'Ethereum Mainnet',
+          chain_name: 'Ethereum',
           chain_id: '0x1',
         },
       );

@@ -5,6 +5,7 @@ import {
   transformUserHistoryToTransactions,
   transformWithdrawalRequestsToTransactions,
   transformDepositRequestsToTransactions,
+  aggregateFillsByTimestamp,
 } from './transactionTransforms';
 import { OrderFill } from '../controllers/types';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
@@ -14,6 +15,437 @@ import {
 } from '../types/transactionHistory';
 
 describe('transactionTransforms', () => {
+  describe('aggregateFillsByTimestamp', () => {
+    // Helper to create a fill with defaults
+    const createFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
+      orderId: 'order-1',
+      symbol: 'BTC',
+      side: 'sell',
+      size: '0.1',
+      price: '90000',
+      pnl: '100',
+      direction: 'Close Long',
+      fee: '5',
+      feeToken: 'USDC',
+      timestamp: 1700000000000,
+      ...overrides,
+    });
+
+    describe('split stop loss aggregation (bug fix)', () => {
+      it('aggregates split stop loss fills into single fill with combined PnL', () => {
+        // Simulating the reported bug: stop loss split into two fills
+        // Fill 1: 0.08833 BTC with $261 PnL
+        // Fill 2: 0.15380 BTC with $455 PnL
+        // Expected: Single aggregated fill with 0.24213 BTC and $716 PnL
+        const fill1 = createFill({
+          orderId: 'order-1',
+          symbol: 'BTC',
+          size: '0.08833',
+          price: '90813',
+          pnl: '261',
+          fee: '10',
+          direction: 'Close Long',
+          timestamp: 1700000000100, // Same second
+          detailedOrderType: 'Stop Market',
+        });
+
+        const fill2 = createFill({
+          orderId: 'order-2', // Different order ID (this is the bug scenario)
+          symbol: 'BTC',
+          size: '0.15380',
+          price: '90813',
+          pnl: '455',
+          fee: '15',
+          direction: 'Close Long',
+          timestamp: 1700000000200, // Same second, different milliseconds
+          detailedOrderType: 'Stop Market',
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
+        expect(parseFloat(result[0].pnl)).toBeCloseTo(716, 0);
+        expect(parseFloat(result[0].fee)).toBeCloseTo(25, 0);
+        expect(result[0].detailedOrderType).toBe('Stop Market');
+        expect(result[0].direction).toBe('Close Long');
+      });
+
+      it('aggregates split take profit fills into single fill', () => {
+        const fill1 = createFill({
+          orderId: 'tp-order-1',
+          size: '0.5',
+          pnl: '500',
+          fee: '10',
+          timestamp: 1700000001000,
+          detailedOrderType: 'Take Profit Market',
+        });
+
+        const fill2 = createFill({
+          orderId: 'tp-order-2',
+          size: '0.5',
+          pnl: '500',
+          fee: '10',
+          timestamp: 1700000001500,
+          detailedOrderType: 'Take Profit Market',
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(1.0);
+        expect(parseFloat(result[0].pnl)).toBe(1000);
+        expect(parseFloat(result[0].fee)).toBe(20);
+        expect(result[0].detailedOrderType).toBe('Take Profit Market');
+      });
+    });
+
+    describe('aggregation criteria', () => {
+      it('does not aggregate fills with different assets', () => {
+        const btcFill = createFill({
+          symbol: 'BTC',
+          timestamp: 1700000000000,
+        });
+
+        const ethFill = createFill({
+          symbol: 'ETH',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByTimestamp([btcFill, ethFill]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('does not aggregate fills with different close directions', () => {
+        const closeLongFill = createFill({
+          direction: 'Close Long',
+          timestamp: 1700000000000,
+        });
+
+        const closeShortFill = createFill({
+          direction: 'Close Short',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByTimestamp([
+          closeLongFill,
+          closeShortFill,
+        ]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('does not aggregate fills in different seconds', () => {
+        const fill1 = createFill({
+          timestamp: 1700000000999, // End of second 1700000000
+        });
+
+        const fill2 = createFill({
+          timestamp: 1700000001000, // Start of second 1700000001
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('aggregates fills within the same second', () => {
+        const fill1 = createFill({
+          timestamp: 1700000000000,
+          size: '0.1',
+          pnl: '100',
+        });
+
+        const fill2 = createFill({
+          timestamp: 1700000000999, // Same second
+          size: '0.1',
+          pnl: '100',
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(0.2);
+        expect(parseFloat(result[0].pnl)).toBe(200);
+      });
+    });
+
+    describe('non-close fills pass through', () => {
+      it('does not aggregate Open Long fills', () => {
+        const fill1 = createFill({
+          direction: 'Open Long',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          direction: 'Open Long',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('does not aggregate Open Short fills', () => {
+        const fill1 = createFill({
+          direction: 'Open Short',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          direction: 'Open Short',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('does not aggregate Buy fills (spot-perps)', () => {
+        const fill1 = createFill({
+          direction: 'Buy',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          direction: 'Buy',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+      });
+    });
+
+    describe('closeable directions aggregate', () => {
+      it('aggregates Sell fills (spot-perps close)', () => {
+        const fill1 = createFill({
+          direction: 'Sell',
+          timestamp: 1700000000000,
+          size: '100',
+          pnl: '50',
+        });
+
+        const fill2 = createFill({
+          direction: 'Sell',
+          timestamp: 1700000000500,
+          size: '100',
+          pnl: '50',
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(200);
+        expect(parseFloat(result[0].pnl)).toBe(100);
+      });
+
+      it('aggregates Auto-Deleveraging fills', () => {
+        const fill1 = createFill({
+          direction: 'Auto-Deleveraging',
+          timestamp: 1700000000000,
+          size: '0.5',
+          pnl: '-100',
+          startPosition: '1.0',
+        });
+
+        const fill2 = createFill({
+          direction: 'Auto-Deleveraging',
+          timestamp: 1700000000500,
+          size: '0.5',
+          pnl: '-100',
+          startPosition: '1.0',
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(1.0);
+        expect(parseFloat(result[0].pnl)).toBe(-200);
+      });
+    });
+
+    describe('VWAP calculation', () => {
+      it('calculates VWAP correctly for fills at different prices', () => {
+        // Fill 1: 0.4 BTC at $90,000
+        // Fill 2: 0.6 BTC at $91,000
+        // VWAP = (0.4 * 90000 + 0.6 * 91000) / 1.0 = (36000 + 54600) / 1.0 = 90600
+        const fill1 = createFill({
+          size: '0.4',
+          price: '90000',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          size: '0.6',
+          price: '91000',
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].price)).toBeCloseTo(90600, 0);
+      });
+    });
+
+    describe('metadata preservation', () => {
+      it('preserves detailedOrderType from first fill with it', () => {
+        const fill1 = createFill({
+          detailedOrderType: undefined,
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          detailedOrderType: 'Stop Market',
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].detailedOrderType).toBe('Stop Market');
+      });
+
+      it('preserves liquidation info from any fill', () => {
+        const fill1 = createFill({
+          liquidation: undefined,
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          liquidation: {
+            liquidatedUser: '0x123',
+            markPx: '89000',
+            method: 'market',
+          },
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].liquidation).toEqual({
+          liquidatedUser: '0x123',
+          markPx: '89000',
+          method: 'market',
+        });
+      });
+
+      it('preserves startPosition from first fill with it', () => {
+        const fill1 = createFill({
+          startPosition: '1.0',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          startPosition: undefined,
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('1.0');
+      });
+
+      it('uses first fill orderId for aggregated result', () => {
+        const fill1 = createFill({
+          orderId: 'first-order',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          orderId: 'second-order',
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].orderId).toBe('first-order');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns empty array for empty input', () => {
+        const result = aggregateFillsByTimestamp([]);
+
+        expect(result).toEqual([]);
+      });
+
+      it('returns single fill unchanged', () => {
+        const fill = createFill();
+
+        const result = aggregateFillsByTimestamp([fill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual(fill);
+      });
+
+      it('sorts result by timestamp descending', () => {
+        const oldFill = createFill({
+          direction: 'Open Long', // Non-aggregatable
+          timestamp: 1700000000000,
+        });
+
+        const newFill = createFill({
+          direction: 'Open Long', // Non-aggregatable
+          timestamp: 1700001000000,
+        });
+
+        const result = aggregateFillsByTimestamp([oldFill, newFill]);
+
+        expect(result[0].timestamp).toBe(1700001000000);
+        expect(result[1].timestamp).toBe(1700000000000);
+      });
+
+      it('handles mixed aggregatable and non-aggregatable fills', () => {
+        const openFill = createFill({
+          direction: 'Open Long',
+          timestamp: 1700000000000,
+        });
+
+        const closeFill1 = createFill({
+          direction: 'Close Long',
+          timestamp: 1700000001000,
+          size: '0.5',
+          pnl: '100',
+        });
+
+        const closeFill2 = createFill({
+          direction: 'Close Long',
+          timestamp: 1700000001500, // Same second as closeFill1
+          size: '0.5',
+          pnl: '100',
+        });
+
+        const result = aggregateFillsByTimestamp([
+          openFill,
+          closeFill1,
+          closeFill2,
+        ]);
+
+        // Should have: 1 aggregated close fill + 1 open fill
+        expect(result).toHaveLength(2);
+
+        const aggregatedClose = result.find(
+          (f) => f.direction === 'Close Long',
+        );
+        expect(aggregatedClose).toBeDefined();
+        if (!aggregatedClose) {
+          throw new Error('Aggregated close fill not found');
+        }
+        expect(parseFloat(aggregatedClose.size)).toBe(1.0);
+        expect(parseFloat(aggregatedClose.pnl)).toBe(200);
+      });
+    });
+  });
+
   describe('transformFillsToTransactions', () => {
     const mockFill = {
       direction: 'Open Long',
@@ -315,6 +747,56 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(0);
     });
 
+    // Integration test for split stop loss bug fix
+    it('aggregates split stop loss fills and shows combined PnL in transaction', () => {
+      // Bug scenario: Stop loss split into two fills with different order IDs
+      const fill1: OrderFill = {
+        orderId: 'sl-order-1',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.08833',
+        price: '90813',
+        pnl: '261',
+        direction: 'Close Long',
+        fee: '10',
+        feeToken: 'USDC',
+        timestamp: 1700000000100,
+        detailedOrderType: 'Stop Market',
+      };
+
+      const fill2: OrderFill = {
+        orderId: 'sl-order-2', // Different order ID
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.15380',
+        price: '90813',
+        pnl: '455',
+        direction: 'Close Long',
+        fee: '15',
+        feeToken: 'USDC',
+        timestamp: 1700000000200, // Same second
+        detailedOrderType: 'Stop Market',
+      };
+
+      const result = transformFillsToTransactions([fill1, fill2]);
+
+      // Should produce single aggregated transaction
+      expect(result).toHaveLength(1);
+
+      const transaction = result[0];
+      expect(transaction.type).toBe('trade');
+      expect(transaction.category).toBe('position_close');
+      expect(transaction.fill?.fillType).toBe(FillType.StopLoss);
+
+      // Combined size: 0.08833 + 0.15380 = 0.24213
+      expect(parseFloat(transaction.fill?.size || '0')).toBeCloseTo(0.24213, 5);
+
+      // Combined net PnL: (261 + 455) - (10 + 15) = 691
+      expect(transaction.fill?.amountNumber).toBeCloseTo(691, 0);
+      expect(transaction.fill?.isPositive).toBe(true);
+      expect(transaction.fill?.amount).toContain('+$');
+    });
+
     it('uses timestamp as fallback ID when orderId is missing', () => {
       const noOrderIdFill = {
         ...mockFill,
@@ -323,7 +805,8 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}`);
+      // ID format: fill-{timestamp}-{index}
+      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {
@@ -357,6 +840,90 @@ describe('transactionTransforms', () => {
       const result = transformFillsToTransactions([regularFill]);
 
       expect(result[0].subtitle).toBe('1 SOL');
+    });
+
+    // Tests for spot-perps and prelaunch markets that use "Buy"/"Sell" directions
+    it('transforms Buy direction fill correctly', () => {
+      const buyFill: OrderFill = {
+        orderId: 'order-buy-1',
+        symbol: '@215',
+        side: 'buy',
+        size: '5191.5',
+        price: '0.005581',
+        fee: '3.488686',
+        feeToken: 'SLAY',
+        timestamp: 1763979989653,
+        pnl: '0.0',
+        direction: 'Buy',
+      };
+
+      const result = transformFillsToTransactions([buyFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_open',
+        title: 'Bought',
+        asset: '@215',
+        fill: {
+          shortTitle: 'Bought',
+          action: 'Bought',
+          isPositive: false, // Fee is always a cost
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('transforms Sell direction fill correctly', () => {
+      const sellFill: OrderFill = {
+        orderId: 'order-sell-1',
+        symbol: '@230',
+        side: 'sell',
+        size: '20.0',
+        price: '0.99998',
+        fee: '0.00268799',
+        feeToken: 'USDH',
+        timestamp: 1763984501474,
+        pnl: '50.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_close',
+        title: 'Sold',
+        asset: '@230',
+        fill: {
+          shortTitle: 'Sold',
+          action: 'Sold',
+          isPositive: true, // PnL - fee is positive
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('handles Sell direction with negative PnL correctly', () => {
+      const sellFillNegative: OrderFill = {
+        orderId: 'order-sell-2',
+        symbol: '@215',
+        side: 'sell',
+        size: '100',
+        price: '0.005',
+        fee: '0.5',
+        feeToken: 'SLAY',
+        timestamp: Date.now(),
+        pnl: '-10.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFillNegative]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fill?.isPositive).toBe(false);
+      expect(result[0].fill?.amount).toBe('-$10.50'); // PnL (-10) minus fee (0.5) = -10.5
     });
   });
 

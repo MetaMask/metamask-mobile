@@ -1,0 +1,212 @@
+name: 'Smart E2E Selection'
+description: 'Run AI-powered E2E test selection based on code changes'
+inputs:
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
+    required: true
+  claude-api-key:
+    description: 'Claude API key for AI analysis'
+    required: true
+  github-token:
+    description: 'GitHub token for PR comments'
+    required: true
+  pr-number:
+    description: 'Pull request number for commenting'
+    required: true
+  repository:
+    description: 'Repository name (owner/repo) for commenting'
+    required: true
+  post-comment:
+    description: 'Whether to post a comment to the PR'
+    required: false
+    default: 'false'
+  base-ref:
+    description: 'Base branch ref (must be main for analysis to run)'
+    required: false
+    default: ''
+
+outputs:
+  ai_e2e_test_tags:
+    description: 'E2E test tags to run (JSON array format)'
+    value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+  ai_confidence:
+    description: 'AI confidence score (0-100)'
+    value: ${{ steps.ai-analysis.outputs.ai_confidence }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout for PR analysis
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1 # Shallow clone - only need PR commit
+
+    - name: Disable sparse checkout and restore all files
+      shell: bash
+      run: |
+        git sparse-checkout disable
+        git checkout HEAD -- .
+
+    - name: Fetch main branch for comparison
+      shell: bash
+      run: |
+        # Unshallow the repository first (if it's shallow)
+        git fetch --unshallow 2>/dev/null || true
+        # Fetch main branch for diff comparison
+        git fetch origin main 2>/dev/null || true
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install minimal dependencies for AI analysis
+      shell: bash
+      run: |
+        echo "📦 Installing only required packages for AI analysis..."
+        # Install to a separate location that won't be overwritten
+        mkdir -p /tmp/ai-deps
+        cd /tmp/ai-deps
+        npm init -y
+        npm install @anthropic-ai/sdk@0.68.0 esbuild-register@3.6.0 --no-audit --no-fund
+        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
+
+    - name: Copy AI dependencies to workspace
+      shell: bash
+      run: |
+        echo "📋 Copying AI dependencies to workspace..."
+        # Create node_modules if it doesn't exist
+        mkdir -p node_modules
+        # Copy our pre-installed dependencies
+        cp -r /tmp/ai-deps/node_modules/* node_modules/
+        echo "✅ AI dependencies available in workspace"
+
+    - name: Check skip-smart-e2e-selection label
+      id: check-skip-label
+      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
+        fi
+
+    - name: Run E2E AI analysis
+      id: ai-analysis
+      shell: bash
+      env:
+        E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
+        EVENT_NAME: ${{ inputs.event-name }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        GITHUB_REPOSITORY: ${{ inputs.repository }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        BASE_REF: ${{ inputs.base-ref }}
+      run: |
+        echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
+        echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
+        SHOULD_SKIP=false
+        SKIP_REASON=""
+
+        if [[ "$EVENT_NAME" != "pull_request" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="only runs on PRs"
+        elif [[ "$BASE_REF" != "main" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="base branch is not main (base: $BASE_REF)"
+        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="skip-smart-e2e-selection label found"
+        fi
+
+        # Export skip status and reason for the comment step
+        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
+        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+
+        if [[ "$SHOULD_SKIP" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - $SKIP_REASON"
+        else
+          echo "✅ Running AI analysis for PR #$PR_NUMBER"
+          # The script will generate the GH output variables
+          node .github/scripts/e2e-smart-selection.mjs
+        fi
+
+    - name: Display AI Analysis Outputs
+      shell: bash
+      run: |
+        echo "📊 Final GitHub Action Outputs:"
+        echo "================================"
+        echo "ai_e2e_test_tags: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}"
+        echo "ai_confidence: ${{ steps.ai-analysis.outputs.ai_confidence }}"
+        echo "================================"
+
+    - name: Delete previous comments
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "🗑️ Deleting all existing Smart E2E selection comments..."
+
+        # Get comment IDs using the HTML marker for precise identification
+        ALL_COMMENT_IDS=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
+          --jq '.[] | select(.body | contains("<!-- smart-e2e-selection -->")) | .id')
+
+        COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
+        echo "📊 Found $COMMENT_COUNT comments"
+
+        if [ -n "$ALL_COMMENT_IDS" ] && [ "$COMMENT_COUNT" -gt 0 ]; then
+          echo "🗑️ Deleting all $COMMENT_COUNT comments..."
+
+          echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
+            if [ -n "$COMMENT_ID" ]; then
+              echo "   Deleting comment: $COMMENT_ID"
+              gh api "repos/${{ inputs.repository }}/issues/comments/$COMMENT_ID" \
+                --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
+            fi
+          done
+          echo "✨ Cleanup completed - deleted all $COMMENT_COUNT comments"
+        else
+          echo "📝 No Smart E2E selection comments found"
+        fi
+
+    - name: Create PR comment
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # Comment configuration (single source of truth)
+        COMMENT_FILE="pr_comment.md"
+        TITLE="## 🔍 Smart E2E Test Selection"
+        FOOTER="[View GitHub Actions results](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }})"
+        MARKER="<!-- smart-e2e-selection -->"
+        COMMENT_BODY=""
+
+        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
+          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
+
+          All E2E tests pre-selected."
+        else
+          # Read analysis results from file
+          if [ -f "$COMMENT_FILE" ]; then
+            COMMENT_BODY=$(cat "$COMMENT_FILE")
+          else
+            echo "⚠️ PR comment file not found: $COMMENT_FILE - using default message"
+            COMMENT_BODY="AI analysis completed but results file was not generated."
+          fi
+        fi
+
+        # Build and post comment
+        FULL_COMMENT="${TITLE}
+        ${COMMENT_BODY}
+
+        ${FOOTER}
+        ${MARKER}"
+
+        gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$FULL_COMMENT"
+        echo "✅ Successfully created comment"

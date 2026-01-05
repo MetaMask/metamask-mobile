@@ -40,8 +40,6 @@ import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { store } from '../../../../store';
 import {
   CaipAccountId,
   parseCaipChainId,
@@ -72,7 +70,7 @@ const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Season metadata cache threshold
-const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
@@ -307,6 +305,8 @@ export class RewardsController extends BaseController<
       startDate: season.startDate.getTime(),
       endDate: season.endDate.getTime(),
       tiers: season.tiers,
+      activityTypes: season.activityTypes,
+      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -324,6 +324,8 @@ export class RewardsController extends BaseController<
         startDate: new Date(seasonMetadata.startDate),
         endDate: new Date(seasonMetadata.endDate),
         tiers: seasonMetadata.tiers,
+        activityTypes: seasonMetadata.activityTypes,
+        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -436,6 +438,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:isRewardsFeatureEnabled',
       this.isRewardsFeatureEnabled.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:hasActiveSeason',
+      this.hasActiveSeason.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:getSeasonMetadata',
@@ -647,6 +653,23 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Set the active account from a candidate account
+   */
+  setActiveAccountFromCandidate(candidate: InternalAccount | null): void {
+    if (!candidate) return;
+
+    const caipAccount = this.convertInternalAccountToCaipAccountId(candidate);
+    if (!caipAccount) return;
+
+    const accountState = this.#getAccountState(caipAccount);
+    if (!accountState) return;
+
+    this.update((state: RewardsControllerState) => {
+      state.activeAccount = accountState;
+    });
+  }
+
+  /**
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async handleAuthenticationTrigger(reason?: string): Promise<void> {
@@ -698,19 +721,7 @@ export class RewardsController extends BaseController<
         // Set the active account to the first successful account or the first account in the sorted accounts array
         const activeAccountCandidate: InternalAccount =
           successAccount || sortedAccounts[0];
-        if (activeAccountCandidate) {
-          const caipAccount = this.convertInternalAccountToCaipAccountId(
-            activeAccountCandidate,
-          );
-          if (caipAccount) {
-            const accountState = this.#getAccountState(caipAccount);
-            if (accountState) {
-              this.update((state: RewardsControllerState) => {
-                state.activeAccount = accountState;
-              });
-            }
-          }
-        }
+        this.setActiveAccountFromCandidate(activeAccountCandidate);
       }
     } catch (error) {
       const errorMessage =
@@ -1074,7 +1085,7 @@ export class RewardsController extends BaseController<
       } else if (account?.startsWith('eip155')) {
         coercedAccount = account.toLowerCase() as CaipAccountId;
       } else {
-        coercedAccount = account as CaipAccountId;
+        coercedAccount = account;
       }
 
       this.update((state: RewardsControllerState) => {
@@ -1585,6 +1596,10 @@ export class RewardsController extends BaseController<
   ): Promise<EstimatedPointsDto> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return { pointsEstimate: 0, bonusBips: 0 };
+
+    const activeSeason = await this.hasActiveSeason();
+    if (!activeSeason) return { pointsEstimate: 0, bonusBips: 0 };
+
     try {
       const estimatedPoints = await this.messenger.call(
         'RewardsDataService:estimatePoints',
@@ -1602,23 +1617,53 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if the rewards feature is enabled via feature flag
+   * Check if the rewards feature is enabled
    * @returns boolean - True if rewards feature is enabled, false otherwise
    */
   isRewardsFeatureEnabled(): boolean {
     const isDisabled = this.#isDisabled();
     if (isDisabled) return false;
-    return selectRewardsEnabledFlag(store.getState());
+    return true;
+  }
+
+  /**
+   * Check if there is an active season
+   * @returns Promise<boolean> - True if there is an active season, false otherwise
+   * An active season exists when getSeasonMetadata('current') returns a value
+   * and the current date is between the season's startDate and endDate
+   */
+  async hasActiveSeason(): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return false;
+    }
+
+    try {
+      const seasonDto = await this.getSeasonMetadata('current');
+      if (!seasonDto) {
+        return false;
+      }
+      return (
+        new Date(seasonDto.endDate) >= new Date() &&
+        new Date(seasonDto.startDate) <= new Date()
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to check active season:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
   }
 
   /**
    * Get season metadata with caching. This fetches and caches the season metadata
-   * including id, name, dates, and tiers.
+   * including id, name, dates, tiers, and activity types.
    * @param type - The type of season to get
    * @returns Promise<SeasonDtoState> - The season metadata
    */
   async getSeasonMetadata(
-    type: 'current' | 'next' = 'current',
+    type: 'current' | 'previous' = 'current',
   ): Promise<SeasonDtoState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -1644,12 +1689,12 @@ export class RewardsController extends BaseController<
           'RewardsDataService:getDiscoverSeasons',
         )) as DiscoverSeasonsDto;
 
-        // Check if the requested season is either current or next
         let seasonInfo = null;
-        if (type === 'current') {
+
+        if (type === 'previous') {
+          seasonInfo = discoverSeasons.previous;
+        } else if (type === 'current') {
           seasonInfo = discoverSeasons.current;
-        } else if (type === 'next') {
-          seasonInfo = discoverSeasons.next;
         }
 
         // If found with valid start date, fetch metadata and populate cache
@@ -1672,6 +1717,9 @@ export class RewardsController extends BaseController<
             startDate: seasonMetadata.startDate,
             endDate: seasonMetadata.endDate,
             tiers: seasonMetadata.tiers,
+            activityTypes: seasonMetadata.activityTypes,
+            shouldInstallNewVersion:
+              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp
@@ -1682,6 +1730,10 @@ export class RewardsController extends BaseController<
 
           return seasonStateWithTimestamp;
         }
+
+        this.update((state: RewardsControllerState) => {
+          delete state.seasons[type];
+        });
 
         throw new Error(
           `No valid season metadata could be found for type: ${type}`,
@@ -1927,9 +1979,13 @@ export class RewardsController extends BaseController<
 
   /**
    * Perform the complete opt-in process for rewards
+   * @param accounts - Array of internal accounts to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(referralCode?: string): Promise<string | null> {
+  async optIn(
+    accounts: InternalAccount[],
+    referralCode?: string,
+  ): Promise<string | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
@@ -1938,14 +1994,8 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const accounts = await this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-
     if (!accounts || accounts.length === 0) {
-      Logger.log(
-        'RewardsController: No accounts found in selected account group, skipping optin',
-      );
+      Logger.log('RewardsController: No accounts provided, skipping optin');
       return null;
     }
 

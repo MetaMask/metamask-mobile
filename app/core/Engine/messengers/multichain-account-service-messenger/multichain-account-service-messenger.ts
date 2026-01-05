@@ -44,6 +44,7 @@ export function getMultichainAccountServiceMessenger(
       'KeyringController:getKeyringsByType',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
+      'ErrorReportingService:captureException',
     ],
     events: [
       'KeyringController:stateChange',

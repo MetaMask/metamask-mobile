@@ -1,4 +1,4 @@
-import { parseFloatSafe } from './number';
+import { parseFloatSafe, truncateNumber } from './number';
 
 describe('parseFloatSafe', () => {
   describe('positive floats', () => {
@@ -190,6 +190,244 @@ describe('parseFloatSafe', () => {
     it('correctly handles complex mixed scenario 2', () => {
       const result = parseFloatSafe('price:$-0.50 (discount)');
       expect(result).toEqual(-0.5);
+    });
+  });
+});
+
+describe('truncateNumber', () => {
+  describe('basic inputs', () => {
+    it('returns truncated string for number input with 2 decimals', () => {
+      const input = 5.78;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.78');
+    });
+
+    it('returns truncated string for string input with 2 decimals', () => {
+      const input = '5.78';
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.78');
+    });
+
+    it('returns whole number without decimal for integer input', () => {
+      const input = 42;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('42');
+    });
+
+    it('returns whole number without decimal for string integer input', () => {
+      const input = '42';
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('42');
+    });
+  });
+
+  describe('truncation behavior', () => {
+    it('truncates instead of rounding up for 3+ decimals', () => {
+      const input = 5.789;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.78');
+    });
+
+    it('truncates instead of rounding when third decimal is 9', () => {
+      const input = 5.999;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.99');
+    });
+
+    it('truncates instead of rounding when third decimal is 5', () => {
+      const input = 5.125;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.12');
+    });
+
+    it('truncates many decimal places to 2', () => {
+      const input = 3.14159265359;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('3.14');
+    });
+  });
+
+  describe('trailing zeros removal', () => {
+    it('removes single trailing zero after decimal', () => {
+      const input = 3.5;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('3.5');
+    });
+
+    it('removes all trailing zeros for whole number result', () => {
+      const input = 5.0;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5');
+    });
+
+    it('preserves non-trailing zeros in decimal', () => {
+      const input = 5.01;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.01');
+    });
+
+    it('removes trailing zero when first decimal is non-zero', () => {
+      const input = 5.2;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.2');
+    });
+  });
+
+  describe('negative numbers', () => {
+    it('truncates negative number with decimals', () => {
+      const input = -5.78;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-5.78');
+    });
+
+    it('returns negative whole number without decimal', () => {
+      const input = -42;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-42');
+    });
+
+    it('truncates negative number instead of rounding', () => {
+      const input = -5.789;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-5.78');
+    });
+
+    it('removes trailing zeros from negative number', () => {
+      const input = -3.5;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-3.5');
+    });
+
+    it('handles negative number truncating to whole number', () => {
+      const input = -5.001;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-5');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('returns zero for zero input', () => {
+      const input = 0;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns zero for very small positive decimal', () => {
+      const input = 0.001;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns zero for very small negative decimal', () => {
+      const input = -0.001;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('0');
+    });
+
+    it('handles number with exactly one decimal place', () => {
+      const input = 5.5;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('5.5');
+    });
+
+    it('handles very large number', () => {
+      const input = 999999999.99;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('999999999.99');
+    });
+
+    it('handles very large whole number', () => {
+      const input = 999999999999;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('999999999999');
+    });
+  });
+
+  describe('special values', () => {
+    it('returns NaN string for NaN input', () => {
+      const input = NaN;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('NaN');
+    });
+
+    it('returns Infinity string for Infinity input', () => {
+      const input = Infinity;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('Infinity');
+    });
+
+    it('returns -Infinity string for negative Infinity input', () => {
+      const input = -Infinity;
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('-Infinity');
+    });
+
+    it('returns NaN string for non-numeric string input', () => {
+      const input = 'abc';
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('NaN');
+    });
+
+    it('returns zero for empty string input', () => {
+      const input = '';
+
+      const result = truncateNumber(input);
+
+      expect(result).toBe('0');
     });
   });
 });

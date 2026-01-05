@@ -13,9 +13,9 @@ class PerpsDepositView {
     return Matchers.getElementByText('Continue');
   }
 
-  // Confirm button on review screen
-  get confirmButtonByText(): DetoxElement {
-    return Matchers.getElementByText('Confirm');
+  // Add funds button on review screen
+  get addFundsByText(): DetoxElement {
+    return Matchers.getElementByText('Add funds', 1);
   }
 
   // Pay with row (open selector)
@@ -75,9 +75,9 @@ class PerpsDepositView {
     });
   }
 
-  async tapConfirm(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButtonByText, {
-      elemDescription: 'Confirm deposit',
+  async tapAddFunds(): Promise<void> {
+    await Gestures.waitAndTap(this.addFundsByText, {
+      elemDescription: 'Add funds',
     });
   }
 }

@@ -3,12 +3,14 @@ import { StyleSheet } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -26,12 +28,14 @@ const createStyles = () =>
 interface NetworkRowProps {
   chainId: Hex | CaipChainId;
   chainName: string;
+  showNoNetworkFeeLabel?: boolean;
   children?: React.ReactNode;
 }
 
 export const NetworkRow: React.FC<NetworkRowProps> = ({
   chainId,
   chainName,
+  showNoNetworkFeeLabel,
   children,
 }) => {
   const { styles } = useStyles(createStyles, {});
@@ -51,7 +55,14 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({
         gap={8}
       >
         <AvatarNetwork imageSource={imageSource} />
-        <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
+        <Box>
+          <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
+          {showNoNetworkFeeLabel ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('networks.no_network_fee')}
+            </Text>
+          ) : null}
+        </Box>
       </Box>
 
       {children ? (

@@ -87,11 +87,24 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: React.PropsWithChildren<Record<string, unknown>>) =>
     React.createElement(RNText, props, children);
 
+  const Icon = ({ name, size, ...props }: { name: string; size: string }) =>
+    React.createElement(View, { testID: 'icon', ...props });
+
   return {
     Box,
     Text,
+    Icon,
     TextVariant: {
       BodySm: 'BodySm',
+      BodyMd: 'BodyMd',
+    },
+    IconName: {
+      ArrowDown: 'arrow-down',
+    },
+    IconSize: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
     },
   };
 });
@@ -254,41 +267,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock SelectComponent
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  return ({
-    testID,
-    onValueChange,
-    options,
-    selectedValue,
-    defaultValue,
-  }: {
-    testID?: string;
-    onValueChange?: (value: string) => void;
-    options?: { key: string; value: string; label: string }[];
-    selectedValue?: string;
-    defaultValue?: string;
-  }) => {
-    const handlePress = () => {
-      if (options && options.length > 0 && onValueChange) {
-        onValueChange(options[0].value);
-      }
-    };
-
-    return React.createElement(
-      TouchableOpacity,
-      {
-        testID,
-        onPress: handlePress,
-      },
-      React.createElement(Text, {}, selectedValue || defaultValue || 'Select'),
-    );
-  };
-});
-
 // Mock utility functions
 jest.mock('../../util/cardTokenVault');
 jest.mock('../../util/mapCountryToLocation');
@@ -298,9 +276,14 @@ jest.mock('../../../../../util/Logger');
 // Mock Routes
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   CARD: {
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       COMPLETE: 'CardOnboardingComplete',
       SIGN_UP: 'CardOnboardingSignUp',
+    },
+    MODALS: {
+      ID: 'CardModals',
+      REGION_SELECTION: 'RegionSelection',
     },
   },
 }));
@@ -361,7 +344,12 @@ const createTestStore = (initialState = {}) =>
       card: (
         state = {
           onboarding: {
-            selectedCountry: 'US',
+            selectedCountry: {
+              key: 'US',
+              name: 'United States',
+              emoji: '🇺🇸',
+              areaCode: '1',
+            },
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
             user: {
@@ -392,6 +380,7 @@ const createTestStore = (initialState = {}) =>
 
 // Mock functions
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -418,6 +407,7 @@ describe('MailingAddress Component', () => {
     // Mock navigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as unknown as ReturnType<typeof useNavigation>);
 
     // Mock useRegisterMailingAddress
@@ -440,6 +430,7 @@ describe('MailingAddress Component', () => {
       isError: false,
       error: null,
       consentSetId: null,
+      getOnboardingConsentSetByOnboardingId: jest.fn(),
       clearError: jest.fn(),
       reset: jest.fn(),
     });
@@ -500,18 +491,20 @@ describe('MailingAddress Component', () => {
         },
       },
       isLoading: false,
-      error: false,
+      error: null,
       fetchData: jest.fn(),
     });
 
     // Mock useCardSDK
     mockUseCardSDK.mockReturnValue({
+      isReturningSession: false,
       sdk: null,
       isLoading: false,
       user: {
         id: 'user-id',
         email: 'test@example.com',
       },
+      fetchUserData: jest.fn(),
       setUser: mockSetUser,
       logoutFromProvider: jest.fn(),
     });
@@ -522,7 +515,12 @@ describe('MailingAddress Component', () => {
       selector({
         card: {
           onboarding: {
-            selectedCountry: 'US',
+            selectedCountry: {
+              key: 'US',
+              name: 'United States',
+              emoji: '🇺🇸',
+              areaCode: '1',
+            },
             onboardingId: 'test-id',
             user: {
               id: 'user-id',
@@ -677,6 +675,28 @@ describe('MailingAddress Component', () => {
     });
 
     it('enables continue button when all required fields are filled', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       const { getByTestId } = render(
         <Provider store={store}>
           <MailingAddress />
@@ -684,9 +704,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       await waitFor(() => {
         const button = getByTestId('mailing-address-continue-button');
@@ -747,7 +766,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },
@@ -769,7 +793,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },
@@ -807,7 +836,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
               onboardingId: 'test-onboarding-id',
             },
           },
@@ -828,7 +862,17 @@ describe('MailingAddress Component', () => {
   describe('Edge Cases', () => {
     it('handles empty Redux state gracefully', () => {
       const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => ({}));
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: null,
+              onboardingId: null,
+              consentSetId: null,
+            },
+          },
+        }),
+      );
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -843,7 +887,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
@@ -860,7 +904,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
@@ -951,7 +995,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
               onboardingId: null,
             },
           },
@@ -1092,7 +1141,29 @@ describe('MailingAddress Component', () => {
       expect(mockRegisterAddress).not.toHaveBeenCalled();
     });
 
-    it('calls registerAddress with correct parameters for US users', async () => {
+    it('calls registerAddress with correct parameters for non-US users', async () => {
+      // Use non-US user to avoid state requirement via modal
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
@@ -1108,7 +1179,7 @@ describe('MailingAddress Component', () => {
         user: { id: 'user-123', email: 'test@example.com' },
       });
 
-      mockMapCountryToLocation.mockReturnValue('us');
+      mockMapCountryToLocation.mockReturnValue('intl');
       mockExtractTokenExpiration.mockReturnValue(3600000);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
@@ -1120,9 +1191,8 @@ describe('MailingAddress Component', () => {
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('address-line-2-input'), 'Apt 4B');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1135,9 +1205,9 @@ describe('MailingAddress Component', () => {
           onboardingId: 'test-id',
           addressLine1: '123 Main St',
           addressLine2: 'Apt 4B',
-          city: 'San Francisco',
-          usState: 'CA',
-          zip: '94102',
+          city: 'Toronto',
+          usState: undefined,
+          zip: 'M5H 2N2',
         });
       });
     });
@@ -1148,7 +1218,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },
@@ -1203,6 +1278,28 @@ describe('MailingAddress Component', () => {
     });
 
     it('updates user via setUser when registration returns updated user', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       const updatedUser = { id: 'user-123', email: 'updated@example.com' };
 
       mockUseRegisterMailingAddress.mockReturnValue({
@@ -1220,7 +1317,7 @@ describe('MailingAddress Component', () => {
         user: updatedUser,
       });
 
-      mockMapCountryToLocation.mockReturnValue('us');
+      mockMapCountryToLocation.mockReturnValue('intl');
       mockExtractTokenExpiration.mockReturnValue(3600000);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
@@ -1231,9 +1328,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1247,6 +1343,28 @@ describe('MailingAddress Component', () => {
     });
 
     it('stores access token and dispatches Redux actions on success', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
@@ -1262,7 +1380,7 @@ describe('MailingAddress Component', () => {
         user: { id: 'user-123', email: 'test@example.com' },
       });
 
-      mockMapCountryToLocation.mockReturnValue('us');
+      mockMapCountryToLocation.mockReturnValue('intl');
       mockExtractTokenExpiration.mockReturnValue(3600000);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
@@ -1273,9 +1391,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1287,12 +1404,34 @@ describe('MailingAddress Component', () => {
         expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
           accessToken: 'test-access-token',
           accessTokenExpiresAt: 3600000,
-          location: 'us',
+          location: 'intl',
         });
       });
     });
 
     it('navigates to complete screen after successful registration', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
@@ -1308,7 +1447,7 @@ describe('MailingAddress Component', () => {
         user: { id: 'user-123', email: 'test@example.com' },
       });
 
-      mockMapCountryToLocation.mockReturnValue('us');
+      mockMapCountryToLocation.mockReturnValue('intl');
       mockExtractTokenExpiration.mockReturnValue(3600000);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
@@ -1319,9 +1458,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1329,12 +1467,41 @@ describe('MailingAddress Component', () => {
         fireEvent.press(button);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'VerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('navigates to sign up when Onboarding ID not found error occurs', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       const { CardError } = jest.requireMock('../../types');
 
       mockUseRegisterMailingAddress.mockReturnValue({
@@ -1358,9 +1525,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1374,6 +1540,28 @@ describe('MailingAddress Component', () => {
     });
 
     it('allows error display for general registration errors', async () => {
+      // Use non-US user to avoid state requirement
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
@@ -1393,9 +1581,8 @@ describe('MailingAddress Component', () => {
       );
 
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
 
@@ -1410,10 +1597,10 @@ describe('MailingAddress Component', () => {
   });
 
   describe('Input Change Handler Error Resets', () => {
-    let mockReset: jest.Mock;
+    let mockResetHandler: jest.Mock;
 
     beforeEach(() => {
-      mockReset = jest.fn();
+      mockResetHandler = jest.fn();
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: jest.fn(),
         isLoading: false,
@@ -1421,7 +1608,7 @@ describe('MailingAddress Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        reset: mockReset,
+        reset: mockResetHandler,
       });
     });
 
@@ -1435,7 +1622,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-1-input');
       fireEvent.changeText(input, '123 Main St');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when address line 2 changes', () => {
@@ -1448,7 +1635,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-2-input');
       fireEvent.changeText(input, 'Apt 4B');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when city changes', () => {
@@ -1461,20 +1648,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('city-input');
       fireEvent.changeText(input, 'San Francisco');
 
-      expect(mockReset).toHaveBeenCalled();
-    });
-
-    it('calls reset when state changes', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <MailingAddress />
-        </Provider>,
-      );
-
-      const input = getByTestId('state-select');
-      fireEvent.press(input);
-
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when zip code changes', () => {
@@ -1487,7 +1661,487 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('zip-code-input');
       fireEvent.changeText(input, '94102');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('Defensive Consent Management', () => {
+    let mockRegisterAddress: jest.Mock;
+    let mockGetOnboardingConsentSetByOnboardingId: jest.Mock;
+    let mockCreateOnboardingConsent: jest.Mock;
+    let mockLinkUserToConsent: jest.Mock;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      mockRegisterAddress = jest.fn();
+      mockGetOnboardingConsentSetByOnboardingId = jest.fn();
+      mockCreateOnboardingConsent = jest.fn();
+      mockLinkUserToConsent = jest.fn();
+      mockDispatch = jest.fn();
+
+      const { useDispatch } = jest.requireMock('react-redux');
+      useDispatch.mockReturnValue(mockDispatch);
+
+      const cardTokenVault = jest.requireMock('../../util/cardTokenVault');
+      cardTokenVault.storeCardBaanxToken = jest
+        .fn()
+        .mockResolvedValue({ success: true });
+
+      const mapCountry = jest.requireMock('../../util/mapCountryToLocation');
+      mapCountry.mapCountryToLocation = jest.fn().mockReturnValue('us');
+
+      const extractToken = jest.requireMock(
+        '../../util/extractTokenExpiration',
+      );
+      extractToken.extractTokenExpiration = jest.fn().mockReturnValue(3600000);
+    });
+
+    it('creates new consent when no existing consent found', async () => {
+      // Given: No consent exists and registration will succeed (non-US user to avoid state requirement)
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue(null);
+      mockCreateOnboardingConsent.mockResolvedValue('new-consent-123');
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should check for existing consent and create new one
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockCreateOnboardingConsent).toHaveBeenCalledWith('test-id');
+      });
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'new-consent-123',
+          'user-123',
+        );
+      });
+    });
+
+    it('reuses existing incomplete consent', async () => {
+      // Given: Incomplete consent exists (non-US user to avoid state requirement)
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue({
+        consentSetId: 'existing-consent-456',
+        userId: null,
+        completedAt: null,
+      });
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should reuse existing consent without creating new one
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'existing-consent-456',
+          'user-123',
+        );
+      });
+    });
+
+    it('skips consent operations when consent already completed', async () => {
+      // Given: Completed consent exists (non-US user to avoid state requirement)
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue({
+        consentSetId: 'completed-consent-789',
+        userId: 'user-123',
+        completedAt: '2024-01-01T00:00:00.000Z',
+      });
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should check for existing consent but skip all consent operations
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+      expect(mockLinkUserToConsent).not.toHaveBeenCalled();
+
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'VerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    it('uses existing consent set ID from Redux when available', async () => {
+      // Given: Consent ID exists in Redux (non-US user to avoid state requirement)
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              consentSetId: 'redux-consent-999',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should use Redux consent ID without checking API
+      expect(mockGetOnboardingConsentSetByOnboardingId).not.toHaveBeenCalled();
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'redux-consent-999',
+          'user-123',
+        );
+      });
+    });
+
+    it('clears consent set ID from Redux after linking consent', async () => {
+      // Given: No consent exists (non-US user to avoid state requirement)
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue(null);
+      mockCreateOnboardingConsent.mockResolvedValue('new-consent-123');
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form and consent is linked
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should dispatch action to clear consent set ID after linking
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'new-consent-123',
+          'user-123',
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: expect.stringContaining('setConsentSetId'),
+            payload: null,
+          }),
+        );
+      });
     });
   });
 
@@ -1498,7 +2152,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
               onboardingId: null,
             },
           },
@@ -1526,7 +2185,12 @@ describe('MailingAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
               onboardingId: 'test-id',
             },
           },

@@ -28,11 +28,6 @@ jest.mock('../../../../core/Engine', () => ({
   context: mockEngineContext,
 }));
 
-// Mock specific selectors directly
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest
     .fn()
@@ -154,6 +149,8 @@ describe('usePerpsOrderFees', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
@@ -424,12 +421,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('should handle rewards disabled', async () => {
-      const { selectRewardsEnabledFlag } = jest.requireMock(
-        '../../../../selectors/featureFlagController/rewards',
-      );
-      selectRewardsEnabledFlag.mockReturnValue(false);
-
+    it('should handle rewards enabled', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,
@@ -791,6 +783,8 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
@@ -1498,6 +1492,8 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),

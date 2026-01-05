@@ -16,6 +16,8 @@ import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Pred
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 interface PredictTabViewProps {
   isVisible?: boolean;
@@ -39,6 +41,25 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   usePredictWithdrawToasts();
 
   const hasError = Boolean(positionsError || headerError);
+
+  // Track positions tab load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictTabView,
+    conditions: [
+      !positionsError,
+      !headerError,
+      !isRefreshing,
+      isVisible === true,
+    ],
+    debugContext: {
+      hasErrors: !!(positionsError || headerError),
+      errorStates: {
+        positionsError: !!positionsError,
+        headerError: !!headerError,
+      },
+      isRefreshing,
+    },
+  });
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -83,6 +104,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
       style={tw.style(
         isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
       )}
+      testID={
+        isHomepageRedesignV1Enabled
+          ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+          : undefined
+      }
     >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />

@@ -4,18 +4,35 @@ import { PredictClaimFooter } from './predict-claim-footer';
 import { merge, noop } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
-import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import {
+  accountMock,
+  otherControllersMock,
+} from '../../../__mocks__/controllers/other-controllers-mock';
 import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
 
-function render({ onPress }: { onPress?: () => void } = {}) {
+function render({
+  onPress,
+  singlePosition,
+}: { onPress?: () => void; singlePosition?: boolean } = {}) {
+  const state = merge(
+    {},
+    simpleSendTransactionControllerMock,
+    transactionApprovalControllerMock,
+    otherControllersMock,
+  );
+
+  if (singlePosition) {
+    state.engine.backgroundState.PredictController.claimablePositions = {
+      [accountMock]: [
+        otherControllersMock.engine.backgroundState.PredictController
+          .claimablePositions[accountMock][0],
+      ],
+    };
+  }
+
   return renderWithProvider(<PredictClaimFooter onPress={onPress ?? noop} />, {
-    state: merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      otherControllersMock,
-    ),
+    state,
   });
 }
 
@@ -78,5 +95,12 @@ describe('PredictClaimFooter', () => {
 
     // Assert - component renders without crashing
     expect(getByTestId('predict-claim-footer')).toBeDefined();
+  });
+
+  it('renders extra info for single win', () => {
+    const { getByText } = render({ singlePosition: true });
+
+    expect(getByText('Market 1')).toBeDefined();
+    expect(getByText('$100 on Yes')).toBeDefined();
   });
 });

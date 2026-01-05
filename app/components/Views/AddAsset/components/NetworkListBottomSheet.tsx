@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import Text from '../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -79,9 +77,7 @@ export default function NetworkListBottomSheet({
           });
         }}
       >
-        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-          {strings('networks.select_network')}
-        </Text>
+        {strings('networks.select_network')}
       </BottomSheetHeader>
 
       <ScrollView>

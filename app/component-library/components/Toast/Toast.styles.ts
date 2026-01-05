@@ -26,6 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       padding,
       flexDirection: 'row',
+      alignItems: 'center',
     },
     avatar: {
       marginRight: 16,

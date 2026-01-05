@@ -25,6 +25,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
     },
@@ -78,6 +79,9 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
+  TRENDING_FEED: 'TrendingFeed',
+  SITES_FULL_VIEW: 'SitesFullView',
+  EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -104,6 +108,7 @@ const Routes = {
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
+    PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
@@ -181,7 +186,6 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
-    TOKEN_FILTER: 'TokenFilter',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
@@ -189,6 +193,8 @@ const Routes = {
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
+    ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
+    UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
@@ -220,6 +226,7 @@ const Routes = {
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
+    TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -228,8 +235,6 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
-  SWAPS: 'Swaps',
-  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
@@ -260,8 +265,14 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    ADJUST_MARGIN: 'PerpsAdjustMargin',
+    SELECT_MODIFY_ACTION: 'PerpsSelectModifyAction',
+    SELECT_ADJUST_MARGIN_ACTION: 'PerpsSelectAdjustMarginAction',
+    SELECT_ORDER_TYPE: 'PerpsSelectOrderType',
+    ORDER_DETAILS: 'PerpsOrderDetailsView',
     PNL_HERO_CARD: 'PerpsPnlHeroCard',
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
+    ORDER_BOOK: 'PerpsOrderBook', // Full order book depth view
     MODALS: {
       ROOT: 'PerpsModals',
       CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',
@@ -287,6 +298,7 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
+      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -319,6 +331,9 @@ const Routes = {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
+    MUSD: {
+      CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+    },
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
@@ -364,12 +379,14 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
+    CARD_MAIN_ROUTES: 'CardMainRoutes',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -389,6 +406,8 @@ const Routes = {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
+      REGION_SELECTION: 'CardRegionSelectionModal',
+      CONFIRM_MODAL: 'CardConfirmModal',
     },
   },
   SEND: {

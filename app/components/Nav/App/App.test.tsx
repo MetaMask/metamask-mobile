@@ -23,13 +23,15 @@ import * as NavigationNative from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { Linking } from 'react-native';
+import { Linking, View as MockView } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -39,6 +41,8 @@ const initialState: DeepPartial<RootState> = {
     backgroundState,
   },
 };
+
+const MOCK_FOX_LOADER_ID = 'FOX_LOADER_ID';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -53,9 +57,14 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  init: jest.fn(),
-  parse: jest.fn(),
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  SharedDeeplinkManager: {
+    getInstance: jest.fn(() => ({
+      parse: jest.fn(),
+    })),
+  },
+  default: jest.fn(),
 }));
 
 const mockIsWC2Enabled = true;
@@ -73,6 +82,24 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
     getMetaMetricsId: jest.fn(),
   }),
 }));
+
+jest.mock('../../hooks/useOTAUpdates', () => ({
+  useOTAUpdates: jest.fn().mockReturnValue({
+    isCheckingUpdates: false,
+  }),
+}));
+
+const mockUseOTAUpdates = useOTAUpdates as jest.MockedFunction<
+  typeof useOTAUpdates
+>;
+
+jest.mock(
+  '../../UI/FoxLoader',
+  () =>
+    function MockFoxLoader() {
+      return <MockView testID={MOCK_FOX_LOADER_ID} />;
+    },
+);
 
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
@@ -140,12 +167,16 @@ const mockMetrics = {
   addTraitsToUser: jest.fn(),
 };
 
+const mockAuthType = AUTHENTICATION_TYPE.BIOMETRIC;
 // Mock Authentication module
 jest.mock('../../../core', () => ({
   Authentication: {
     appTriggeredAuth: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn(),
     checkIsSeedlessPasswordOutdated: jest.fn(),
+    getType: jest.fn().mockResolvedValue({
+      currentAuthType: mockAuthType,
+    }),
   },
 }));
 
@@ -238,6 +269,9 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseOTAUpdates.mockReturnValue({
+      isCheckingUpdates: false,
+    });
     mockNavigate.mockClear();
   });
 
@@ -248,6 +282,20 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
+  });
+
+  it('renders FoxLoader when OTA update check runs', () => {
+    mockUseOTAUpdates.mockReturnValue({
+      isCheckingUpdates: true,
+    });
+
+    const { getByTestId } = renderScreen(
+      App,
+      { name: 'App' },
+      { state: initialState },
+    );
+
+    expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
@@ -309,6 +357,46 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+      });
+    });
+
+    it('navigates to login screen when authentication type is password', async () => {
+      const mockRoutesOther = [
+        { name: 'SomeOtherRoute' },
+        { name: 'AnotherRoute' },
+      ];
+      jest
+        .spyOn(NavigationNative, 'useNavigationState')
+        .mockImplementation((selector: unknown) =>
+          (selector as (state: { routes: { name: string }[] }) => unknown)({
+            routes: mockRoutesOther,
+          }),
+        );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser: true,
+          userLoggedIn: true,
+        },
+      };
+
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.LOGIN }],
+        });
+        expect(Authentication.appTriggeredAuth).not.toHaveBeenCalled();
+      });
+
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
     });
 
@@ -747,7 +835,7 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share Address')).toBeTruthy();
+        expect(getByText('Share address')).toBeTruthy();
       });
     });
   });
@@ -852,7 +940,7 @@ describe('App', () => {
     });
   });
 
-  it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
+  it('use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
     jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
       if (key === OPTIN_META_METRICS_UI_SEEN) {
         return false; // OptinMetrics UI has not been seen
@@ -887,6 +975,67 @@ describe('App', () => {
             },
           },
         ],
+      });
+    });
+  });
+
+  describe('route registration', () => {
+    const renderAppWithRouteState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('registers the eligibility failed modal route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('eligibility-failed-modal')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers the ramp unsupported modal route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('ramp-unsupported-modal')).toBeOnTheScreen();
       });
     });
   });

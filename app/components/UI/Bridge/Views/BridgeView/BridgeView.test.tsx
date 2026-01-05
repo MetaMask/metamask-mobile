@@ -24,8 +24,6 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
-import { useIsSendBundleSupported } from '../../hooks/useIsSendBundleSupported';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -89,6 +87,11 @@ jest.mock('../../../../../core/Engine', () => {
     '../../../../../util/test/keyringControllerTestUtils',
   );
   return {
+    controllerMessenger: {
+      call: jest.fn(),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
     context: {
       SwapsController: {
         fetchAggregatorMetadataWithCache: jest.fn(),
@@ -257,19 +260,40 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-// Mock useGasIncluded hook
-jest.mock('../../hooks/useGasIncluded', () => ({
-  useGasIncluded: jest.fn(),
-}));
-
-// Mock useIsSendBundleSupported hook (dependency of useGasIncluded)
-jest.mock('../../hooks/useIsSendBundleSupported', () => ({
-  useIsSendBundleSupported: jest.fn().mockReturnValue(false),
-}));
-
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
+}));
+
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
+
+// Mock gas included support hooks
+const mockUseIsGasIncludedSTXSendBundleSupported = jest.fn();
+jest.mock(
+  '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts',
+  () => ({
+    useIsGasIncludedSTXSendBundleSupported: (chainId?: string) =>
+      mockUseIsGasIncludedSTXSendBundleSupported(chainId),
+  }),
+);
+
+const mockUseIsGasIncluded7702Supported = jest.fn();
+jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
+  useIsGasIncluded7702Supported: (chainId?: string) =>
+    mockUseIsGasIncluded7702Supported(chainId),
 }));
 
 describe('BridgeView', () => {
@@ -277,9 +301,6 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Set default mock values
-    (useGasIncluded as jest.Mock).mockReturnValue(undefined);
-    (useIsSendBundleSupported as jest.Mock).mockReturnValue(false);
   });
 
   it('renders', async () => {
@@ -423,7 +444,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByText } = renderScreen(
+    const { queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -432,7 +453,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is not present for native token
-    expect(queryByText('Max')).toBeNull();
+    expect(queryByTestId('token-input-area-max-button')).toBeNull();
   });
 
   it('should display max button when source token is not native token', () => {
@@ -452,7 +473,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByText } = renderScreen(
+    const { queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -461,7 +482,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is present for ERC-20 token
-    expect(queryByText('Max')).toBeTruthy();
+    expect(queryByTestId('token-input-area-max-button')).toBeTruthy();
   });
 
   it('should set source amount to maximum balance when max button is pressed', async () => {
@@ -481,7 +502,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByText, getByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -490,7 +511,7 @@ describe('BridgeView', () => {
     );
 
     // Find and press the max button
-    const maxButton = getByText('Max');
+    const maxButton = getByTestId('token-input-area-max-button');
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
@@ -1593,100 +1614,39 @@ describe('BridgeView', () => {
     });
   });
 
-  describe('gasIncluded functionality', () => {
-    it('calls useGasIncluded hook with source chain ID', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
+  describe('gas included support hooks', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('calls gas included support hooks with source token chain ID', () => {
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
           sourceToken: {
             address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             decimals: 18,
+            image: '',
+            name: 'Ether',
             symbol: 'ETH',
           },
         },
-      });
+      };
 
       renderScreen(
         BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      expect(useGasIncluded).toHaveBeenCalledWith('0x1');
-    });
-
-    it('calls useGasIncluded with undefined when source token not set', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: undefined,
+        {
+          name: Routes.BRIDGE.ROOT,
         },
-      });
-
-      renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      expect(useGasIncluded).toHaveBeenCalledWith(undefined);
-    });
-
-    it('updates gasIncluded when source chain changes', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-          },
-        },
-      });
-
-      const { store } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
+      expect(mockUseIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        '0x1',
       );
-
-      // Change source token to different chain
-      act(() => {
-        store.dispatch(
-          setSourceToken({
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0xa', // Optimism
-            decimals: 18,
-            symbol: 'ETH',
-          }),
-        );
-      });
-
-      // useGasIncluded should be called with the new chain ID
-      expect(useGasIncluded).toHaveBeenCalledWith('0xa');
-    });
-
-    it('calls useGasIncluded with non-EVM chainId directly', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: {
-            address: 'SomeNonEvmAddress',
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            decimals: 9,
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      // Hook receives the raw chainId and handles filtering internally
-      expect(useGasIncluded).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
+      expect(mockUseIsGasIncluded7702Supported).toHaveBeenCalledWith('0x1');
     });
   });
 });

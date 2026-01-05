@@ -41,6 +41,58 @@ export const formatRewardsDate = (
     minute: '2-digit',
   }).format(date);
 
+/**
+ * Formats a "YYYY-MM-DD" date string into a localized format without timezone shifts.
+ * @param isoDate - The date string in "YYYY-MM-DD" format.
+ * @param locale - The locale to format for (e.g., 'en-US', 'fr-FR').
+ * @param options - Optional Intl.DateTimeFormat options.
+ * @returns The localized date string.
+ */
+export const formatUTCDate = (
+  isoDate: string,
+  locale: string = I18n.locale,
+  options: Intl.DateTimeFormatOptions = {},
+): string => {
+  // Create a date at midnight UTC
+  const date = new Date(`${isoDate}T00:00:00Z`);
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC', // Ensure UTC interpretation
+  };
+
+  const finalOptions = { ...defaultOptions, ...options };
+
+  return new Intl.DateTimeFormat(locale, finalOptions).format(date);
+};
+
+/**
+ * Formats a date for mUSD deposit payload
+ * @param isoDate - The date string in "YYYY-MM-DD" format
+ * @param locale - Optional locale string, defaults to I18n.locale
+ * @returns Formatted date string specifically for mUSD deposit payload, or null if invalid
+ */
+export const formatRewardsMusdDepositPayloadDate = (
+  isoDate: string | undefined,
+  locale: string = I18n.locale,
+): string | null => {
+  if (
+    !isoDate ||
+    typeof isoDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
+  ) {
+    return null;
+  }
+
+  return formatUTCDate(isoDate, locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
 
@@ -111,3 +163,19 @@ export const formatUrl = (url: string): string => {
     return cleanedUrl;
   }
 };
+
+/**
+ * Resolves templated string in the format of ${placeholder}
+ * @param template - The templated string
+ * @param values - The values to replace the placeholders with
+ * @returns The resolved string
+ */
+
+export const resolveTemplate = (
+  template: string,
+  values: Record<string, string>,
+): string =>
+  template.replace(
+    /\${(\w+)}/g,
+    (match, placeholder) => values[placeholder] || match,
+  );

@@ -433,33 +433,36 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -467,7 +470,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -477,13 +480,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 Select token
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -498,25 +495,25 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -682,7 +679,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -803,8 +800,9 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
+                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "lineHeight": 20,
@@ -927,7 +925,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1389,33 +1387,36 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -1423,7 +1424,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1433,13 +1434,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 Select network
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1454,25 +1449,25 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -1504,7 +1499,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1703,7 +1698,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1870,7 +1865,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2037,7 +2032,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2087,7 +2082,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2546,33 +2541,36 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -2580,7 +2578,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2590,13 +2588,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 Select token
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -2611,25 +2603,25 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -2795,7 +2787,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2916,8 +2908,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
+                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "lineHeight": 20,
@@ -2952,6 +2945,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
                                   "name": "Tether USD",
                                   "symbol": "USDT",
+                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "bip122:000000000019d6689c085ae165831e93/slip44:0",
@@ -2960,6 +2954,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
                                   "name": "Bitcoin",
                                   "symbol": "BTC",
+                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "eip155:1/slip44:60",
@@ -2970,10 +2965,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "symbol": "ETH",
                                 },
                                 {
-                                  "assetId": "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                  "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                                   "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                   "decimals": 6,
-                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                   "name": "USD Coin",
                                   "symbol": "USDC",
                                 },
@@ -3015,8 +3010,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3027,6 +3020,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3196,28 +3190,28 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDC
                                         </Text>
                                       </View>
                                     </View>
@@ -3227,7 +3221,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -3236,19 +3230,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -3257,8 +3239,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3269,6 +3249,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3438,28 +3419,28 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          USDT
+                                          Tether USD
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDT
                                         </Text>
                                       </View>
                                     </View>
@@ -3472,8 +3453,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3484,6 +3463,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-bip122:000000000019d6689c085ae165831e93/slip44:0"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3653,28 +3633,28 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          BTC
+                                          Bitcoin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          Bitcoin
+                                          BTC
                                         </Text>
                                       </View>
                                     </View>
@@ -3687,8 +3667,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3699,6 +3677,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/slip44:60"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3868,28 +3847,28 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          ETH
+                                          Ethereum
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          ETH
                                         </Text>
                                       </View>
                                     </View>
@@ -3902,8 +3881,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3914,6 +3891,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3967,7 +3945,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                                   }
                                                 }
                                                 style={
@@ -4083,28 +4061,28 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
                                           }
                                         >
-                                          Solana
+                                          USDC
                                         </Text>
                                       </View>
                                     </View>

@@ -2,9 +2,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
-  PerpsMarketTabsSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
-  PerpsPositionCardSelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -211,12 +209,6 @@ class PerpsMarketDetailsView {
 
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
-    const ordersTab = Matchers.getElementByID(
-      PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
-    );
-    await Gestures.waitAndTap(ordersTab, {
-      elemDescription: 'Open Orders tab',
-    });
     const openOrderCard = Matchers.getElementByID(
       PerpsOpenOrderCardSelectorsIDs.CARD,
     ) as DetoxElement;
@@ -252,7 +244,7 @@ class PerpsMarketDetailsView {
   // Ensure Close Position button is visible by performing best-effort scrolls, then assert
   async expectClosePositionButtonVisible() {
     const closeBtn = Matchers.getElementByID(
-      PerpsPositionCardSelectorsIDs.CLOSE_BUTTON,
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
     ) as DetoxElement;
 
     for (let i = 0; i < 3; i++) {

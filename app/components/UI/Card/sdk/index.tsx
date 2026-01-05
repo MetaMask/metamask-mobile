@@ -22,8 +22,10 @@ import {
   resetOnboardingState,
   resetAuthenticatedData,
   clearAllCache,
+  setContactVerificationId,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
+import { getErrorMessage } from '../util/getErrorMessage';
 
 // Types
 export interface ICardSDK {
@@ -32,6 +34,8 @@ export interface ICardSDK {
   user: UserResponse | null;
   setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
+  fetchUserData: () => Promise<void>;
+  isReturningSession: boolean;
 }
 
 interface ProviderProps<T> {
@@ -61,10 +65,6 @@ export const CardSDKProvider = ({
   // Add user state management
   const [user, setUser] = useState<UserResponse | null>(null);
 
-  const removeAuthenticatedData = useCallback(() => {
-    dispatch(resetAuthenticatedData());
-  }, [dispatch]);
-
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
@@ -82,26 +82,46 @@ export const CardSDKProvider = ({
     setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
-  // Fetch user data on mount if onboardingId exists
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!sdk || !onboardingId) {
-        return;
-      }
-      setIsLoading(true);
+  const fetchUserData = useCallback(async () => {
+    if (!sdk || !onboardingId) {
+      return;
+    }
 
-      try {
-        const userData = await sdk.getRegistrationStatus(onboardingId);
-        setUser(userData);
-      } catch {
-        // Assume user is not registered
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+
+    try {
+      const userData = await sdk.getRegistrationStatus(onboardingId);
+
+      if (userData.contactVerificationId) {
+        dispatch(setContactVerificationId(userData.contactVerificationId));
       }
-    };
+
+      setUser(userData);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage?.includes('Invalid onboarding ID')) {
+        dispatch(resetOnboardingState());
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sdk, onboardingId, dispatch]);
+
+  // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
+  const [hasInitialOnboardingId] = useState(() => !!onboardingId);
+
+  // Fetch user data ONLY on initial mount if onboardingId already exists.
+  // This prevents fetching when onboardingId is newly set during email verification,
+  // which could cause race conditions and navigation issues.
+  useEffect(() => {
+    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
+      return;
+    }
 
     fetchUserData();
-  }, [sdk, onboardingId]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -109,17 +129,11 @@ export const CardSDKProvider = ({
     }
 
     await removeCardBaanxToken();
-    removeAuthenticatedData();
-
-    // Clear all cached data (card details, priority tokens, etc.)
+    dispatch(resetAuthenticatedData());
     dispatch(clearAllCache());
-
-    // reset onboarding state
     dispatch(resetOnboardingState());
-
-    // Clear user data from context
     setUser(null);
-  }, [sdk, removeAuthenticatedData, dispatch]);
+  }, [sdk, dispatch]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -129,8 +143,18 @@ export const CardSDKProvider = ({
       user,
       setUser,
       logoutFromProvider,
+      fetchUserData,
+      isReturningSession: hasInitialOnboardingId,
     }),
-    [sdk, isLoading, user, setUser, logoutFromProvider],
+    [
+      sdk,
+      isLoading,
+      user,
+      setUser,
+      logoutFromProvider,
+      fetchUserData,
+      hasInitialOnboardingId,
+    ],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;

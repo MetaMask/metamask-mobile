@@ -54,7 +54,6 @@ import {
   selectCurrentTransactionMetadata,
 } from '../../../../../selectors/confirmTransaction';
 import { selectTransactions } from '../../../../../selectors/transactionController';
-import { selectShowCustomNonce } from '../../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
@@ -113,11 +112,6 @@ class Approval extends PureComponent {
      * Tells whether or not dApp transaction modal is visible
      */
     dappTransactionModalVisible: PropTypes.bool,
-    /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
-
     /**
      * A string representing the network chainId
      */
@@ -683,7 +677,7 @@ class Approval extends PureComponent {
    * @param {object} selectedAsset - Asset object
    */
   prepareTransaction = ({ EIP1559GasData, gasEstimateType }) => {
-    const { transaction: rawTransaction, showCustomNonce } = this.props;
+    const { transaction: rawTransaction } = this.props;
     const { assetType, gas, gasPrice, selectedAsset } = rawTransaction;
 
     const transaction = {
@@ -704,7 +698,6 @@ class Approval extends PureComponent {
       gasDataEIP1559: EIP1559GasData,
       gasDataLegacy,
       gasEstimateType,
-      showCustomNonce,
       transaction,
     });
   };
@@ -765,7 +758,6 @@ const mapStateToProps = (state) => {
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     networkType: selectProviderTypeByChainId(state, chainId),
-    showCustomNonce: selectShowCustomNonce(state),
     chainId,
     activeTabUrl: getActiveTabUrl(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),

@@ -77,10 +77,12 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
+  VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
-  NETWORK_ADDED = 'Network Added',
+  RPC_ADDED = 'RPC Added',
+  RPC_REMOVED = 'RPC Removed',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
@@ -138,6 +140,7 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  SOCIAL_LOGIN_FAILED = 'Social Login Failed',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -198,12 +201,19 @@ enum EVENT_NAME {
   // Key Management
   ANDROID_HARDWARE_KEYSTORE = 'Android Hardware Keystore',
 
-  // QR Hardware Wallet
-  CONNECT_HARDWARE_WALLET = 'Clicked Connect Hardware Wallet',
-  CONTINUE_QR_HARDWARE_WALLET = 'Clicked Continue QR Hardware Wallet',
-  CONNECT_HARDWARE_WALLET_SUCCESS = 'Connected Account with hardware wallet',
-  QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
-  HARDWARE_WALLET_ERROR = 'Hardware wallet error',
+  // Common Hardware Wallet
+  ADD_HARDWARE_WALLET = 'Add Hardware Wallet Clicked',
+  CONNECT_HARDWARE_WALLET = 'Connect Hardware Wallet Clicked',
+  HARDWARE_WALLET_FOUND = 'Connect Hardware Wallet Device Found',
+  HARDWARE_WALLET_CONTINUE_CONNECTION = 'Connect Hardware Wallet Continue Button Clicked',
+  HARDWARE_WALLET_PERMISSION_REQUEST = 'Hardware Wallet Permission Request Clicked',
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN = 'Connect Hardware Wallet Account Selector Viewed',
+  HARDWARE_WALLET_MARKETING = 'Hardware Wallet Marketing Button Clicked',
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS = 'Connect Hardware Wallet Instructions Viewed',
+  HARDWARE_WALLET_CONNECTION_RETRY = 'Hardware Wallet Connection Error Retry Button Clicked',
+  HARDWARE_WALLET_ADD_ACCOUNT = 'Hardware Wallet Account Connected',
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware Wallet Forgotten',
+  HARDWARE_WALLET_ERROR = 'Hardware Wallet Connection Failed',
 
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
@@ -213,7 +223,6 @@ enum EVENT_NAME {
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
-  BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   RAMP_REGION_SELECTED = 'Ramp Region Selected',
   ONRAMP_GET_STARTED_CLICKED = 'On-ramp Get Started Clicked',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -237,7 +246,6 @@ enum EVENT_NAME {
   RAMP_REGION_RESET = 'Ramp Region Reset',
 
   // Off Ramp
-  SELL_BUTTON_CLICKED = 'Sell Button Clicked',
   OFFRAMP_GET_STARTED_CLICKED = 'Off-ramp Get Started Clicked',
   OFFRAMP_PAYMENT_METHOD_SELECTED = 'Off-ramp Payment Method Selected',
   OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'Off-ramp Continue To Amount Clicked',
@@ -297,6 +305,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
+  NOTICE_UPDATE_DISPLAYED = 'Notice Update Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -442,16 +451,6 @@ enum EVENT_NAME {
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
-  //Ledger
-  CONNECT_LEDGER = 'Clicked Connect Ledger',
-  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
-  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
-  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-
-  // common hardware wallet
-  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
-
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
   ACCOUNT_REMOVE_FAILED = 'Account remove failed',
@@ -512,6 +511,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
@@ -554,6 +554,8 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
+  CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_DEEPLINK_HANDLED = 'Card Deeplink Handled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -577,18 +579,40 @@ enum EVENT_NAME {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
 
   // Predict
-  PREDICT_ACTION_INITIATED = 'Predict Action Initiated',
-  PREDICT_ACTION_SUBMITTED = 'Predict Action Submitted',
-  PREDICT_ACTION_COMPLETED = 'Predict Action Completed',
-  PREDICT_ACTION_FAILED = 'Predict Action Failed',
+  PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
   PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
   PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
 
+  // Trending
+  TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
+
   // Share
   SHARE_ACTION = 'Share Action',
+
+  // QR Scanner
+  QR_SCANNER_OPENED = 'QR Scanner Opened',
+  QR_SCANNED = 'QR Scanned',
+}
+
+export enum HARDWARE_WALLET_BUTTON_TYPE {
+  TUTORIAL = 'Tutorial',
+  PICKER = 'Picker',
+  BUY_NOW = 'Buy Now',
+  LEARN_MORE = 'Learn More',
+}
+
+export enum HARDWARE_WALLET_DEVICE_TYPE {
+  LEDGER = 'Ledger',
+  Keystone = 'Keystone',
+  NgraveZero = 'Ngrave Zero',
+  AIRGAP_VAULT = 'AirGap Vault',
+  COOL_WALLET = 'Cool Wallet',
+  DCENT = 'DCent',
+  GRID_PLUS = 'Grid Plus',
+  IMToken = 'IMToken',
 }
 
 enum ACTIONS {
@@ -626,6 +650,19 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+}
+
+export enum PERMISSION_RESULT {
+  GRANTED = 'granted',
+  DENIED = 'denied',
+  BLOCKED = 'blocked',
+  LIMITED = 'limited',
+  UNAVAILABLE = 'unavailable',
+}
+
+export enum PERMISSION_TYPE {
+  CAMERA = 'Camera',
+  BLUETOOTH = 'Bluetooth',
 }
 
 const events = {
@@ -679,9 +716,11 @@ const events = {
   DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
     EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
   ),
+  VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
-  NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
+  RPC_ADDED: generateOpt(EVENT_NAME.RPC_ADDED),
+  RPC_REMOVED: generateOpt(EVENT_NAME.RPC_REMOVED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
   SEND_TRANSACTION_STARTED: generateOpt(EVENT_NAME.SEND_TRANSACTION_STARTED),
@@ -756,6 +795,7 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
@@ -825,24 +865,40 @@ const events = {
     EVENT_NAME.REVEAL_PRIVATE_KEY_COMPLETED,
   ),
   ANDROID_HARDWARE_KEYSTORE: generateOpt(EVENT_NAME.ANDROID_HARDWARE_KEYSTORE),
+
+  // Hardware Wallet
+  ADD_HARDWARE_WALLET: generateOpt(EVENT_NAME.ADD_HARDWARE_WALLET),
   CONNECT_HARDWARE_WALLET: generateOpt(EVENT_NAME.CONNECT_HARDWARE_WALLET),
-  CONTINUE_QR_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
+
+  HARDWARE_WALLET_MARKETING: generateOpt(EVENT_NAME.HARDWARE_WALLET_MARKETING),
+  HARDWARE_WALLET_PERMISSION_REQUEST: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_PERMISSION_REQUEST,
   ),
-  CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt(
-    EVENT_NAME.CONNECT_HARDWARE_WALLET_SUCCESS,
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECT_INSTRUCTIONS,
   ),
-  QR_HARDWARE_TRANSACTION_CANCELED: generateOpt(
-    EVENT_NAME.QR_HARDWARE_TRANSACTION_CANCELED,
+  HARDWARE_WALLET_FOUND: generateOpt(EVENT_NAME.HARDWARE_WALLET_FOUND),
+  HARDWARE_WALLET_CONTINUE_CONNECTION: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONTINUE_CONNECTION,
   ),
+  HARDWARE_WALLET_CONNECTION_RETRY: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECTION_RETRY,
+  ),
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+  ),
+  HARDWARE_WALLET_ADD_ACCOUNT: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ADD_ACCOUNT,
+  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
   HARDWARE_WALLET_ERROR: generateOpt(EVENT_NAME.HARDWARE_WALLET_ERROR),
+
   TOKEN_DETECTED: generateOpt(EVENT_NAME.TOKEN_DETECTED),
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
 
   // ONRAMP
-  BUY_BUTTON_CLICKED: generateOpt(EVENT_NAME.BUY_BUTTON_CLICKED),
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
   ONRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.ONRAMP_GET_STARTED_CLICKED,
@@ -880,7 +936,6 @@ const events = {
   RAMP_REGION_RESET: generateOpt(EVENT_NAME.RAMP_REGION_RESET),
 
   // OFFRAMP
-  SELL_BUTTON_CLICKED: generateOpt(EVENT_NAME.SELL_BUTTON_CLICKED),
   OFFRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.OFFRAMP_GET_STARTED_CLICKED,
   ),
@@ -1089,20 +1144,6 @@ const events = {
 
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
-
-  // Ledger
-  CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
-  CONTINUE_LEDGER_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_LEDGER_HARDWARE_WALLET,
-  ),
-  CONNECT_LEDGER_SUCCESS: generateOpt(EVENT_NAME.CONNECT_LEDGER_SUCCESS),
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-  ),
-  LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
-  ),
-  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
@@ -1326,6 +1367,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NetworkConnectionBannerRpcUpdated: generateOpt(
+    EVENT_NAME.NetworkConnectionBannerRpcUpdated,
+  ),
 
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
@@ -1421,6 +1465,10 @@ const events = {
   CARD_DELEGATION_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_FAILED,
   ),
+  CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_DEEPLINK_HANDLED: generateOpt(EVENT_NAME.CARD_DEEPLINK_HANDLED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1461,10 +1509,7 @@ const events = {
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
   // Predict
-  PREDICT_ACTION_INITIATED: generateOpt(EVENT_NAME.PREDICT_ACTION_INITIATED),
-  PREDICT_ACTION_SUBMITTED: generateOpt(EVENT_NAME.PREDICT_ACTION_SUBMITTED),
-  PREDICT_ACTION_COMPLETED: generateOpt(EVENT_NAME.PREDICT_ACTION_COMPLETED),
-  PREDICT_ACTION_FAILED: generateOpt(EVENT_NAME.PREDICT_ACTION_FAILED),
+  PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
     EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
   ),
@@ -1475,8 +1520,17 @@ const events = {
   ),
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
+  TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
+
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
+
+  // QR Scanner
+  QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
+  QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
+
+  // Privacy Notice
+  NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
 };
 
 /**

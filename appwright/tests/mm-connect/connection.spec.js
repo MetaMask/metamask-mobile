@@ -42,7 +42,7 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
   // Accept in MetaMask app
-  // await login(device, { shouldDismissModals: false });
+  // await login(device, { dismissModals: false });
 
   await DappConnectionModal.tapConnectButton();
 

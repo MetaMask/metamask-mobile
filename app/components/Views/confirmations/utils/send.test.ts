@@ -13,6 +13,7 @@ import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
 import {
   addLeadingZeroIfNeeded,
+  ChainType,
   convertCurrency,
   formatToFixedDecimals,
   fromBNWithDecimals,
@@ -44,27 +45,148 @@ jest.mock('../../../../lib/ppom/ppom-util', () => ({
 describe('handleSendPageNavigation', () => {
   it('navigates to legacy send page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(
-      mockNavigate,
-      InitSendLocation.WalletActions,
-      false,
-      {
+    handleSendPageNavigation(mockNavigate, {
+      location: InitSendLocation.WalletActions,
+      isSendRedesignEnabled: false,
+      asset: {
         name: 'ETHEREUM',
       } as AssetType,
-    );
+    });
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
   });
   it('navigates to send redesign page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(
-      mockNavigate,
-      InitSendLocation.WalletActions,
-      true,
-      {
+    handleSendPageNavigation(mockNavigate, {
+      location: InitSendLocation.WalletActions,
+      isSendRedesignEnabled: true,
+      asset: {
         name: 'ETHEREUM',
       } as AssetType,
-    );
+    });
     expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
+  });
+
+  describe('with predefinedRecipient', () => {
+    it('navigates to Asset screen when predefinedRecipient is provided without asset', () => {
+      const mockNavigate = jest.fn();
+      const predefinedRecipient = {
+        address: '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+        chainType: ChainType.EVM,
+      };
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        isSendRedesignEnabled: true,
+        asset: undefined,
+        predefinedRecipient,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Asset',
+        params: {
+          asset: undefined,
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient,
+        },
+      });
+    });
+
+    it('navigates to Amount screen when both asset and predefinedRecipient provided', () => {
+      const mockNavigate = jest.fn();
+      const predefinedRecipient = {
+        address: '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+        chainType: ChainType.EVM,
+      };
+      const asset = { name: 'ETHEREUM' } as AssetType;
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        isSendRedesignEnabled: true,
+        asset,
+        predefinedRecipient,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Amount',
+        params: {
+          asset,
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient,
+        },
+      });
+    });
+
+    it('navigates to Recipient screen for ERC721 NFTs with predefinedRecipient', () => {
+      const mockNavigate = jest.fn();
+      const predefinedRecipient = {
+        address: '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+        chainType: ChainType.EVM,
+      };
+      const nft = {
+        name: 'MyNFT',
+        standard: TokenStandard.ERC721,
+      } as AssetType;
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        isSendRedesignEnabled: true,
+        asset: nft,
+        predefinedRecipient,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Recipient',
+        params: {
+          asset: nft,
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient,
+        },
+      });
+    });
+
+    it('navigates to SendFlowView when send redesign is disabled', () => {
+      const mockNavigate = jest.fn();
+      const predefinedRecipient = {
+        address: '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+        chainType: ChainType.EVM,
+      };
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        isSendRedesignEnabled: false,
+        asset: undefined,
+        predefinedRecipient,
+      });
+
+      // Legacy flow doesn't use params, just navigates to SendFlowView
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+    });
+
+    it('handles empty address in predefinedRecipient', () => {
+      const mockNavigate = jest.fn();
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        isSendRedesignEnabled: true,
+        asset: undefined,
+        predefinedRecipient: {
+          address: '',
+          chainType: ChainType.EVM,
+        },
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Asset',
+        params: {
+          asset: undefined,
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient: {
+            address: '',
+            chainType: ChainType.EVM,
+          },
+        },
+      });
+    });
   });
 });
 

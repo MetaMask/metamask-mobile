@@ -46,16 +46,17 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
   await login(device);
+  await WalletMainScreen.waitForBalanceToStabilize();
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightGestures.terminateApp(device);
   await AppwrightGestures.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',
+    { ios: 1000, android: 3000 },
+    device,
   );
-  timer1.start();
-  await LoginScreen.waitForScreenToDisplay();
-  timer1.stop();
+  await timer1.measure(() => LoginScreen.waitForScreenToDisplay());
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });

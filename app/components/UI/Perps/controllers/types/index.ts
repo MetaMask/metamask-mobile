@@ -13,6 +13,8 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -43,6 +45,16 @@ export interface GetUserHistoryParams {
 // Trade configuration saved per market per network
 export interface TradeConfiguration {
   leverage?: number; // Last used leverage for this market
+  // Pending trade configuration (temporary, expires after 5 minutes)
+  pendingConfig?: {
+    amount?: string; // Order size in USD
+    leverage?: number; // Leverage
+    takeProfitPrice?: string; // Take profit price
+    stopLossPrice?: string; // Stop loss price
+    limitPrice?: string; // Limit price (for limit orders)
+    orderType?: OrderType; // Market vs limit
+    timestamp: number; // When the config was saved (for expiration check)
+  };
 }
 
 // Order type enumeration
@@ -63,22 +75,26 @@ export type InputMethod =
   | 'max';
 
 // Unified tracking data interface for analytics events (never persisted in state)
+// Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
   // Common to all operations
-  totalFee: number; // Total fee for the operation
-  marketPrice: number; // Market price at operation time
-  metamaskFee?: number; // MetaMask fee amount
-  metamaskFeeRate?: number; // MetaMask fee rate
-  feeDiscountPercentage?: number; // Fee discount percentage
-  estimatedPoints?: number; // Estimated reward points
+  totalFee: number; // Total fee for the operation (parsed by hooks)
+  marketPrice: number; // Market price at operation time (parsed by hooks)
+  metamaskFee?: number; // MetaMask fee amount (parsed by hooks)
+  metamaskFeeRate?: number; // MetaMask fee rate (parsed by hooks)
+  feeDiscountPercentage?: number; // Fee discount percentage (parsed by hooks)
+  estimatedPoints?: number; // Estimated reward points (parsed by hooks)
 
   // Order-specific (used for trade operations)
-  marginUsed?: number; // Margin required for this order
+  marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
-  receivedAmount?: number; // Amount user receives after close
-  realizedPnl?: number; // Realized P&L from close
+  receivedAmount?: number; // Amount user receives after close (calculated by hooks)
+  realizedPnl?: number; // Realized P&L from close (calculated by hooks)
+
+  // Entry source for analytics (e.g., 'trending' for Trending page discovery)
+  source?: string;
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -86,23 +102,33 @@ export interface TPSLTrackingData {
   direction: 'long' | 'short'; // Position direction
   source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
   positionSize: number; // Unsigned position size for metrics
+  takeProfitPercentage?: number; // Take profit percentage from entry
+  stopLossPercentage?: number; // Stop loss percentage from entry
+  isEditingExistingPosition?: boolean; // true = editing existing position, false = creating for new order
+  entryPrice?: number; // Entry price for percentage calculations
 }
 
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
-  size: string; // Order size as string
+  size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
+  isFullClose?: boolean; // Indicates closing 100% of position (skips $10 minimum validation)
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
+
+  // USD as source of truth (hybrid approach)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -181,6 +207,12 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+
+  // USD as source of truth (hybrid approach - same as OrderParams)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
 };
@@ -199,6 +231,21 @@ export type ClosePositionsResult = {
     success: boolean;
     error?: string;
   }[];
+};
+
+export type UpdateMarginParams = {
+  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  amount: string; // Amount to adjust as string (positive = add, negative = remove)
+};
+
+export type MarginResult = {
+  success: boolean;
+  error?: string;
+};
+
+export type FlipPositionParams = {
+  coin: string; // Asset symbol to flip
+  position: Position; // Current position to flip
 };
 
 export interface InitializeResult {
@@ -578,7 +625,7 @@ export interface SubscribePositionsParams {
 }
 
 export interface SubscribeOrderFillsParams {
-  callback: (fills: OrderFill[]) => void;
+  callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
 }
@@ -597,6 +644,65 @@ export interface SubscribeAccountParams {
 export interface SubscribeOICapsParams {
   callback: (caps: string[]) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface SubscribeCandlesParams {
+  coin: string;
+  interval: CandlePeriod;
+  duration?: TimeDuration;
+  callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Single price level in the order book
+ */
+export interface OrderBookLevel {
+  /** Price at this level */
+  price: string;
+  /** Size at this level (in base asset) */
+  size: string;
+  /** Cumulative size up to and including this level */
+  total: string;
+  /** Notional value in USD */
+  notional: string;
+  /** Cumulative notional up to and including this level */
+  totalNotional: string;
+}
+
+/**
+ * Full order book data with multiple price levels
+ */
+export interface OrderBookData {
+  /** Bid levels (buy orders) - highest price first */
+  bids: OrderBookLevel[];
+  /** Ask levels (sell orders) - lowest price first */
+  asks: OrderBookLevel[];
+  /** Spread between best bid and best ask */
+  spread: string;
+  /** Spread as a percentage of mid price */
+  spreadPercentage: string;
+  /** Mid price (average of best bid and best ask) */
+  midPrice: string;
+  /** Timestamp of last update */
+  lastUpdated: number;
+  /** Maximum total size across all levels (for scaling depth bars) */
+  maxTotal: string;
+}
+
+export interface SubscribeOrderBookParams {
+  /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Number of levels to return per side (default: 10) */
+  levels?: number;
+  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
+  nSigFigs?: 2 | 3 | 4 | 5;
+  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
+  mantissa?: 2 | 5;
+  /** Callback function receiving order book updates */
+  callback: (orderBook: OrderBookData) => void;
+  /** Callback for errors */
+  onError?: (error: Error) => void;
 }
 
 export interface LiquidationPriceParams {
@@ -671,6 +777,7 @@ export interface Order {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
 }
 
 export interface Funding {
@@ -696,6 +803,7 @@ export interface IPerpsProvider {
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
+  updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
@@ -786,6 +894,8 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
+  subscribeToCandles(params: SubscribeCandlesParams): () => void;
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

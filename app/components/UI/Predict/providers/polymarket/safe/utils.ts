@@ -389,6 +389,7 @@ export const getDeployProxyWalletTransaction = async ({
         to: SAFE_FACTORY_ADDRESS as Hex,
         data: calldata,
       },
+      type: TransactionType.contractInteraction,
     };
   } catch (error) {
     console.error('Error creating proxy wallet', error);
@@ -580,6 +581,7 @@ export const getProxyWalletAllowancesTransaction = async ({
       to: safeAddress as Hex,
       data: callData as Hex,
     },
+    type: TransactionType.contractInteraction,
   };
 };
 

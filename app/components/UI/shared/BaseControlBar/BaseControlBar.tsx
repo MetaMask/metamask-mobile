@@ -16,20 +16,10 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import {
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import {
-  isRemoveGlobalNetworkSelectorEnabled,
-  getNetworkImageSource,
-} from '../../../../util/networks';
-import {
-  createTokenBottomSheetFilterNavDetails,
-  createTokensBottomSheetNavDetails,
-} from '../../Tokens/TokensBottomSheet';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
@@ -98,8 +88,6 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const navigation = useNavigation();
 
   // Shared selectors
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const isMultichainAccountsState2Enabled = useSelector(
@@ -163,14 +151,8 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
-    } else if (useEvmSelectionLogic && isEvmSelected) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-    } else if (!useEvmSelectionLogic) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-    }
-  }, [navigation, isEvmSelected, useEvmSelectionLogic]);
+    navigation.navigate(...createNetworkManagerNavDetails({}));
+  }, [navigation]);
 
   const defaultShowSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
@@ -188,40 +170,28 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared network label rendering
   const renderNetworkLabel = () => (
-    <>
-      {isRemoveGlobalNetworkSelectorEnabled() ? (
-        <View style={styles.networkManagerWrapper}>
-          {!areAllNetworksSelected && (
-            <Avatar
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
-              name={networkName}
-              imageSource={networkImageSource}
-            />
-          )}
-          <TextComponent
-            variant={TextVariant.BodyMDMedium}
-            style={styles.controlButtonText}
-            numberOfLines={1}
-            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
-          >
-            {displayAllNetworks
-              ? strings('wallet.popular_networks')
-              : (currentNetworkName ?? strings('wallet.current_network'))}
-          </TextComponent>
+    <View style={styles.networkManagerWrapper}>
+      {!areAllNetworksSelected && (
+        <View style={styles.networkAvatarWrapper}>
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            name={networkName}
+            imageSource={networkImageSource}
+          />
         </View>
-      ) : (
-        <TextComponent
-          variant={TextVariant.BodyMDMedium}
-          style={styles.controlButtonText}
-          numberOfLines={1}
-        >
-          {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
-            ? strings('wallet.popular_networks')
-            : (networkName ?? strings('wallet.current_network'))}
-        </TextComponent>
       )}
-    </>
+      <TextComponent
+        variant={TextVariant.BodyMDMedium}
+        style={styles.controlButtonText}
+        numberOfLines={1}
+        testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
+      >
+        {displayAllNetworks
+          ? strings('wallet.popular_networks')
+          : (currentNetworkName ?? strings('wallet.current_network'))}
+      </TextComponent>
+    </View>
   );
 
   const networkButton = (

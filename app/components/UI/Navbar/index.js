@@ -19,14 +19,12 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -603,14 +601,8 @@ export function getSendFlowTitle({
       <NavbarTitle
         title={titleToRender}
         disableNetwork={disableNetwork}
-        showSelectedNetwork={
-          isRemoveGlobalNetworkSelectorEnabled()
-            ? showSelectedNetwork
-            : undefined
-        }
-        networkName={
-          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
-        }
+        showSelectedNetwork={showSelectedNetwork}
+        networkName={globalChainId}
       />
     ),
     headerRight: () => (
@@ -918,7 +910,6 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} shouldDisplayCardButton - Whether to display the card button
- * @param {boolean} isRewardsEnabled - Whether rewards are enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -935,9 +926,12 @@ export function getWalletNavbarOptions(
   unreadNotificationCount,
   readNotificationCount,
   shouldDisplayCardButton,
-  isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
+    headerContainer: {
+      height: 72,
+      alignItems: 'center',
+    },
     headerIcon: {
       color: themeColors.primary.default,
     },
@@ -989,7 +983,9 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await Authentication.importAccountFromPrivateKey(
+                  data.private_key,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -1011,7 +1007,7 @@ export function getWalletNavbarOptions(
       );
     } else {
       setTimeout(() => {
-        DeeplinkManager.parse(content, {
+        SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         });
       }, 500);
@@ -1057,8 +1053,6 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
-
   const handleHamburgerPress = () => {
     trackEvent(
       MetricsEventBuilder.createEventBuilder(
@@ -1080,23 +1074,9 @@ export function getWalletNavbarOptions(
   return {
     header: () => (
       <HeaderBase
+        style={innerStyles.headerContainer}
         includesTopInset
         variant={HeaderBaseVariant.Display}
-        startAccessory={
-          !isFeatureFlagEnabled && (
-            <View style={innerStyles.startAccessoryContainer}>
-              <PickerNetwork
-                onPress={onPressTitle}
-                label={networkName}
-                imageSource={networkImageSource}
-                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-                hideNetworkName
-                hitSlop={innerStyles.touchAreaSlop}
-                style={innerStyles.networkPickerStyle}
-              />
-            </View>
-          )
-        }
         endAccessory={
           <View style={innerStyles.endAccessoryContainer}>
             {
@@ -1147,16 +1127,14 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-                {isRewardsEnabled && (
-                  <ButtonIcon
-                    iconProps={{ color: MMDSIconColor.Default }}
-                    onPress={handleHamburgerPress}
-                    iconName={IconName.Menu}
-                    size={ButtonIconSize.Lg}
-                    testID="navbar-hamburger-menu-button"
-                    hitSlop={innerStyles.touchAreaSlop}
-                  />
-                )}
+                <ButtonIcon
+                  iconProps={{ color: MMDSIconColor.Default }}
+                  onPress={handleHamburgerPress}
+                  iconName={IconName.Menu}
+                  size={ButtonIconSize.Lg}
+                  testID="navbar-hamburger-menu-button"
+                  hitSlop={innerStyles.touchAreaSlop}
+                />
               </View>
             }
           </View>
@@ -1326,6 +1304,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        twClassName="h-auto"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}
@@ -1637,7 +1616,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
         title={title}
         disableNetwork
         translate={false}
-        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+        showSelectedNetwork={false}
       />
     ),
     headerLeft: () => <View />,
@@ -2020,7 +1999,6 @@ export const getSettingsNavigationOptions = (
   title,
   themeColors,
   navigation,
-  isRewardsEnabled = false,
 ) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -2042,16 +2020,15 @@ export const getSettingsNavigationOptions = (
         {title}
       </MorphText>
     ),
-    headerRight: () =>
-      isRewardsEnabled ? (
-        <ButtonIcon
-          size={ButtonIconSize.Lg}
-          iconName={IconName.Close}
-          onPress={() => navigation?.goBack()}
-          style={innerStyles.accessories}
-          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-        />
-      ) : null,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={() => navigation?.goBack()}
+        style={innerStyles.accessories}
+        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+      />
+    ),
     ...innerStyles,
   };
 };
@@ -2064,6 +2041,7 @@ export const getSettingsNavigationOptions = (
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @param {import('../Earn/types/lending.types').EarnTokenDetails | null | undefined} [earnToken] - Optional earn token.
+ * @param {string | null | undefined} [aprOverride] - Optional APR override (e.g., for Tron staking).
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -2074,6 +2052,7 @@ export function getStakingNavbar(
   metricsOptions,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   earnToken = null,
+  aprOverride = null,
   ///: END:ONLY_INCLUDE_IF
 ) {
   const {
@@ -2148,7 +2127,9 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const apr = parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1);
+  const apr =
+    aprOverride ??
+    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2171,7 +2152,7 @@ export function getStakingNavbar(
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Success}
               >
-                {`${apr}% ${strings('earn.apr')}`}
+                {`${apr} ${strings('earn.apr')}`}
               </MorphText>
             </View>
           )
@@ -2207,7 +2188,7 @@ export function getStakingNavbar(
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
-          <Icon name={IconName.Question} />
+          <Icon name={IconName.Question} size={IconSize.Lg} />
         </TouchableOpacity>
       ) : (
         <></>
@@ -2267,5 +2248,54 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
         />
       </View>
     ),
+  };
+}
+
+/**
+ * Generic navbar with only a close button on the right
+ * @param {Object} navigation - Navigation object
+ * @param {Object} themeColors - Theme colors object
+ * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
+ * @returns {Object} - Navigation options
+ */
+export function getCloseOnlyNavbar({
+  navigation,
+  themeColors,
+  backgroundColor = themeColors.background.default,
+  onClose = undefined,
+}) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerRight: {
+      marginHorizontal: 16,
+    },
+  });
+
+  const handleClosePress = () => {
+    if (onClose) {
+      onClose();
+      return;
+    }
+
+    navigation.goBack();
+  };
+
+  return {
+    headerShown: true,
+    headerTitle: () => null,
+    headerLeft: () => null,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={handleClosePress}
+        style={innerStyles.headerRight}
+      />
+    ),
+    headerStyle: innerStyles.headerStyle,
   };
 }

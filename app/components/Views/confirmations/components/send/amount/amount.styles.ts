@@ -30,17 +30,16 @@ export const styleSheet = (params: {
   theme: Theme;
   vars: {
     contentLength: number;
-    isNFT: boolean;
   };
 }) => {
   const {
     theme,
-    vars: { contentLength, isNFT },
+    vars: { contentLength },
   } = params;
   return StyleSheet.create({
-    balanceSection: {
+    balanceText: {
       alignSelf: 'center',
-      marginBottom: isNFT ? 40 : 60,
+      marginTop: 16,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -50,7 +49,7 @@ export const styleSheet = (params: {
     },
     currencyTag: {
       alignSelf: 'center',
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       color: theme.colors.text.alternative,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
@@ -60,13 +59,12 @@ export const styleSheet = (params: {
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
-      marginTop: isNFT ? 0 : 80,
       width: '100%',
     },
     inputText: {
       fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
-      fontFamily: 'Geist Medium',
+      fontFamily: 'Geist-Medium',
     },
     inputWrapper: {
       alignItems: 'center',
@@ -76,7 +74,6 @@ export const styleSheet = (params: {
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {
       alignItems: AlignItems.center,
-      marginTop: 32,
       width: '100%',
     },
     tokenSymbolWrapper: {
@@ -84,8 +81,10 @@ export const styleSheet = (params: {
       width: '50%',
     },
     topSection: {
+      flex: 1,
+      alignContent: 'center',
+      justifyContent: 'center',
       paddingHorizontal: 8,
-      paddingVertical: 32,
     },
   });
 };

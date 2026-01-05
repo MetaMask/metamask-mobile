@@ -11,6 +11,27 @@ interface UsePerpsClosePositionOptions {
   onError?: (error: Error) => void;
 }
 
+interface ClosePositionParams {
+  // Required
+  position: Position;
+
+  // Core parameters
+  size?: string;
+  orderType?: 'market' | 'limit';
+  limitPrice?: string;
+
+  // Tracking data
+  trackingData?: TrackingData;
+  marketPrice?: string; // Used for PnL toast to lock in the market price at time of closing
+
+  // Slippage validation (grouped for clarity)
+  slippage?: {
+    usdAmount?: string;
+    priceAtCalculation?: number;
+    maxSlippageBps?: number;
+  };
+}
+
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
 ) => {
@@ -20,14 +41,17 @@ export const usePerpsClosePosition = (
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleClosePosition = useCallback(
-    async (
-      position: Position,
-      size?: string,
-      orderType: 'market' | 'limit' = 'market',
-      limitPrice?: string,
-      trackingData?: TrackingData,
-      marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
-    ) => {
+    async (params: ClosePositionParams) => {
+      const {
+        position,
+        size,
+        orderType = 'market',
+        limitPrice,
+        trackingData,
+        marketPrice,
+        slippage,
+      } = params;
+
       try {
         setIsClosing(true);
         setError(null);
@@ -91,13 +115,17 @@ export const usePerpsClosePosition = (
           }
         }
 
-        // Close position
+        // Close position with slippage parameters for consistent validation
         const result = await closePosition({
           coin: position.coin,
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
           trackingData,
+          // Pass through slippage parameters
+          usdAmount: slippage?.usdAmount,
+          priceAtCalculation: slippage?.priceAtCalculation,
+          maxSlippageBps: slippage?.maxSlippageBps,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);

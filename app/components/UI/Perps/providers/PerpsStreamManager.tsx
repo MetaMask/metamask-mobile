@@ -23,6 +23,7 @@ import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -684,14 +685,26 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
 // Specific channel for fills
 class FillStreamChannel extends StreamChannel<OrderFill[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[]) => {
-        // Append to existing fills (it's a time series)
-        const existing = this.cache.get('fills') || [];
-        const updated = [...existing, ...fills].slice(-100); // Keep last 100
+      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+        let updated: OrderFill[];
+        if (isSnapshot) {
+          // Snapshot: replace cache with initial historical data
+          // Sort by timestamp descending (newest first)
+          updated = [...fills]
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 100);
+        } else {
+          // Streaming: prepend new fills to existing (newest first)
+          const existing = this.cache.get('fills') || [];
+          // New fills go at the beginning since they're most recent
+          updated = [...fills, ...existing].slice(0, 100);
+        }
         this.cache.set('fills', updated);
         this.notifySubscribers(updated);
       },
@@ -704,6 +717,42 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
   protected getClearedData(): OrderFill[] {
     return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches fills data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('FillStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('FillStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
   }
 }
 
@@ -1199,10 +1248,30 @@ export class PerpsStreamManager {
   public readonly marketData = new MarketDataChannel();
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
+  public readonly candles = new CandleStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  /**
+   * Force reconnection of all stream channels after WebSocket reconnection
+   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
+   * will automatically reconnect when subscribers are still active
+   */
+  public clearAllChannels(): void {
+    // Disconnect all channels to clear dead WebSocket subscriptions
+    // Channels will automatically reconnect when subscribers call connect()
+    this.prices.disconnect();
+    this.orders.disconnect();
+    this.positions.disconnect();
+    this.fills.disconnect();
+    this.account.disconnect();
+    this.marketData.disconnect();
+    this.oiCaps.disconnect();
+    this.topOfBook.disconnect();
+    this.candles.disconnect();
+  }
 }
 
 // Singleton instance
@@ -1245,5 +1314,14 @@ export const usePerpsStream = () => {
   }
   return context;
 };
+
+// Type that only includes channel properties (excludes methods like clearAllChannels)
+export type PerpsStreamChannelKey = {
+  [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
+    pause(): void;
+  }
+    ? K
+    : never;
+}[keyof PerpsStreamManager];
 
 // Types are exported from controllers/types

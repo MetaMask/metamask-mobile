@@ -36,12 +36,13 @@ jobs:
 
   run-stable-sync:
     name: Run Stable branch sync
+    runs-on: ubuntu-latest
     needs: get-next-version
-    uses: metamask/github-tools/.github/workflows/stable-sync.yml@701a894f38883ab48560f948e98b76cc6b4d623f
-    secrets:
-      github-token: ${{ secrets.STABLE_SYNC_TOKEN }}
-    with:
-      semver-version: ${{ needs.get-next-version.outputs.next-version }}
-      repo-type: 'mobile' # Accepts 'mobile' or 'extension'
-      github-tools-version: '701a894f38883ab48560f948e98b76cc6b4d623f'
-      stable-branch-name: 'stable'
+    steps:
+      - name: Run stable branch sync
+        uses: MetaMask/github-tools/.github/actions/stable-sync@v1
+        with:
+          semver-version: ${{ needs.get-next-version.outputs.next-version }}
+          repo-type: 'mobile'
+          stable-branch-name: 'stable'
+          github-token: ${{ secrets.STABLE_SYNC_TOKEN }}

@@ -309,7 +309,6 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
     expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(strings('stake.unstake'))).toBeDefined();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 
@@ -358,7 +357,6 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
     expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(strings('stake.unstake'))).toBeDefined();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 });

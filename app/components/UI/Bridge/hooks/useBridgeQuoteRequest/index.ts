@@ -1,6 +1,9 @@
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
-import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import {
+  formatAddressToCaipReference,
+  type GenericQuoteRequest,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -9,7 +12,7 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectGasIncluded,
+  selectGasIncludedQuoteParams,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
@@ -46,13 +49,16 @@ export const useBridgeQuoteRequest = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  // Use a ref to track the latest insufficientBal value without triggering callback recreation
+  const { gasIncluded, gasIncluded7702 } = useSelector(
+    selectGasIncludedQuoteParams,
+  );
+
+  // Prevents infinite requests when user select max balance on
+  // source token input.
   const insufficientBalRef = useRef(insufficientBal);
   useEffect(() => {
     insufficientBalRef.current = insufficientBal;
   }, [insufficientBal]);
-
-  const gasIncluded = useSelector(selectGasIncluded);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -78,15 +84,15 @@ export const useBridgeQuoteRequest = () => {
 
     const params: GenericQuoteRequest = {
       srcChainId: getDecimalChainId(sourceToken.chainId),
-      srcTokenAddress: sourceToken.address,
+      srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
       destChainId: getDecimalChainId(destChainId),
-      destTokenAddress: destToken.address,
+      destTokenAddress: formatAddressToCaipReference(destToken.address),
       srcTokenAmount: normalizedSourceAmount,
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
-      gasIncluded7702: false, // TODO: https://consensyssoftware.atlassian.net/browse/STX-263
+      gasIncluded7702,
       insufficientBal: insufficientBalRef.current,
     };
 
@@ -104,6 +110,7 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     context,
     gasIncluded,
+    gasIncluded7702,
   ]);
 
   // Create a stable debounced function that persists across renders

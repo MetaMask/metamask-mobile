@@ -9,10 +9,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      marginBottom: 12,
+      marginBottom: 8,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     contentContainer: {
       marginHorizontal: 16,

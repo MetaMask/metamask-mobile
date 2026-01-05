@@ -33,12 +33,8 @@ const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
  * @param cardExternalWalletDetail - External wallet detail from API
  * @returns Mapped CardTokenAllowance or null if invalid
  */
-export const mapCardExternalWalletDetailToCardTokenAllowance = (
+const mapCardExternalWalletDetailToCardTokenAllowance = (
   cardExternalWalletsDetail: (CardExternalWalletDetail | undefined)[],
-  totalAllowances: {
-    address: string;
-    allowance: string | undefined;
-  }[],
 ): (CardTokenAllowance | null)[] =>
   cardExternalWalletsDetail.map((cardExternalWalletDetail) => {
     if (!cardExternalWalletDetail) {
@@ -53,16 +49,6 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
     const allowanceState = determineAllowanceState(allowanceFloat);
     const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
-    // Find totalAllowance by matching the token address
-    // Use stagingTokenAddress if available (for staging environment), otherwise use regular address
-    const tokenAddressToMatch =
-      cardExternalWalletDetail.stagingTokenAddress ||
-      cardExternalWalletDetail.tokenDetails.address;
-
-    const totalAllowance = totalAllowances.find(
-      (ta) => ta.address.toLowerCase() === tokenAddressToMatch?.toLowerCase(),
-    );
-
     return {
       address: cardExternalWalletDetail.tokenDetails.address ?? '',
       decimals: cardExternalWalletDetail.tokenDetails.decimals ?? 0,
@@ -71,7 +57,6 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       walletAddress: cardExternalWalletDetail.walletAddress,
       caipChainId: cardExternalWalletDetail.caipChainId,
       allowanceState,
-      totalAllowance: totalAllowance?.allowance,
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
       delegationContract: cardExternalWalletDetail.delegationContractAddress,
@@ -141,12 +126,9 @@ const useGetCardExternalWalletDetails = (
         }
       }
 
-      // Map wallet details without totalAllowance
-      // totalAllowance will be fetched separately only for the priority token using logs
       const mappedWalletDetails =
         mapCardExternalWalletDetailToCardTokenAllowance(
           cardExternalWalletDetails,
-          [], // Empty array - totalAllowance will be populated later for priority token only
         ).filter(Boolean) as CardTokenAllowance[];
 
       // Get priority wallet detail
@@ -181,15 +163,24 @@ const useGetCardExternalWalletDetails = (
     },
   );
 
-  const { data, isLoading, fetchData } = cacheResult;
+  const { data, isLoading, error, fetchData } = cacheResult;
 
   // Manually trigger fetch when all prerequisites are ready
   // This avoids the race condition where SDK isn't available on first render
   useEffect(() => {
-    if (sdk && isAuthenticated && delegationSettings && !isLoading && !data) {
+    if (
+      sdk &&
+      isAuthenticated &&
+      delegationSettings &&
+      !isLoading &&
+      !error &&
+      !data
+    ) {
       fetchData();
     }
-  }, [sdk, isAuthenticated, delegationSettings, isLoading, data, fetchData]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk, isAuthenticated, delegationSettings, isLoading, error, data]);
 
   return cacheResult;
 };

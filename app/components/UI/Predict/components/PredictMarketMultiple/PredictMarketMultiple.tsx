@@ -3,6 +3,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -17,13 +20,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -31,6 +31,7 @@ import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
 import {
   PredictMarket,
+  Recurrence,
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
@@ -38,23 +39,33 @@ import {
   PredictNavigationParamList,
   PredictEntryPoint,
 } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume } from '../../utils/format';
+import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { PredictEventValues } from '../../constants/eventNames';
+
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
+  // Auto-detect entry point based on trending session state
+  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
+    .isFromTrending
+    ? PredictEventValues.ENTRY_POINT.TRENDING
+    : entryPoint;
+
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -67,7 +78,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     (outcome) => outcome.tokens[0].price !== 0 && outcome.tokens[0].price !== 1,
   );
 
-  const getFirstOutcomePrice = (
+  const getOutcomePercentage = (
     outcomePrices?: number[],
   ): string | undefined => {
     if (!outcomePrices) {
@@ -78,7 +89,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       const parsed = outcomePrices;
       if (Array.isArray(parsed) && parsed.length > 0) {
         const firstValue = parsed[0];
-        return (firstValue * 100).toFixed(2);
+        return formatPercentage(firstValue * 100, { truncate: true });
       }
     } catch (error) {
       DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {
@@ -122,13 +133,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
           params: {
             market,
             outcome,
             outcomeToken,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
           },
         });
       },
@@ -148,11 +159,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
             title: market.title,
             image: market.image,
           },
@@ -160,13 +171,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       }}
     >
       <View style={styles.marketContainer}>
-        <Box>
+        <Box twClassName={isCarousel ? 'flex-1' : ''}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-3 gap-4"
+            twClassName={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
           >
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            <Box
+              twClassName={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
+            >
               {market.image && (
                 <Box twClassName="w-full h-full">
                   <Image
@@ -179,9 +192,16 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             </Box>
             <Box twClassName="flex-1">
               <Text
-                variant={TextVariant.HeadingSM}
-                color={TextColor.Default}
-                style={tw.style('font-medium leading-[24px]')}
+                variant={
+                  isCarousel ? TextVariant.BodyMd : TextVariant.HeadingSm
+                }
+                color={TextColor.TextDefault}
+                style={tw.style(
+                  isCarousel
+                    ? 'font-medium leading-[20px]'
+                    : 'font-medium leading-[24px]',
+                )}
+                numberOfLines={isCarousel ? 2 : undefined}
               >
                 {market.title}
               </Text>
@@ -194,14 +214,17 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 key={`${outcome.id}`}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="py-1 gap-4"
+                twClassName={isCarousel ? 'py-0.5 gap-2' : 'py-1 gap-4'}
               >
                 <Box twClassName="flex-1">
                   <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Default}
-                    numberOfLines={2}
-                    style={tw.style('leading-[18px]')}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                    style={tw.style(
+                      'font-medium',
+                      isCarousel ? 'leading-[16px]' : 'leading-[18px]',
+                    )}
                   >
                     {outcome.groupItemTitle}
                   </Text>
@@ -209,24 +232,28 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
                 <Box>
                   <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    twClassName="font-medium"
                   >
-                    {getFirstOutcomePrice(
+                    {getOutcomePercentage(
                       outcome.tokens.map((token) => token.price),
                     ) ?? '0'}
-                    %
                   </Text>
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName={isCarousel ? 'gap-1' : 'gap-2'}
+                >
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     label={
                       <Text
+                        variant={TextVariant.BodySm}
                         style={tw.style('font-medium')}
-                        color={TextColor.Success}
+                        color={TextColor.SuccessDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
                       >
@@ -238,12 +265,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text
+                        variant={
+                          isCarousel ? TextVariant.BodyXs : TextVariant.BodySm
+                        }
                         style={tw.style('font-medium')}
-                        color={TextColor.Error}
+                        color={TextColor.ErrorDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
                       >
@@ -257,52 +287,55 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               </Box>
             );
           })}
+        </Box>
 
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName={isCarousel ? '' : 'mt-3'}
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {filteredOutcomes.length > 3
+              ? `+${filteredOutcomes.length - 3} ${
+                  filteredOutcomes.length - 3 === 1
+                    ? strings('predict.outcomes_singular')
+                    : strings('predict.outcomes_plural')
+                }`
+              : ''}
+          </Text>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-3"
+            twClassName="gap-4"
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {filteredOutcomes.length > 3
-                ? `+${filteredOutcomes.length - 3} ${
-                    filteredOutcomes.length - 3 === 1
-                      ? strings('predict.outcomes_singular')
-                      : strings('predict.outcomes_plural')
-                  }`
-                : ''}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-4"
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
             >
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
-              </Text>
-              {market.recurrence && (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
+              ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
+            </Text>
+            {market.recurrence && market.recurrence !== Recurrence.NONE && (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <Icon
+                  name={IconName.Refresh}
+                  size={IconSize.Md}
+                  color={IconColor.Alternative}
+                  style={tw.style('mr-1')}
+                />
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
-                  <Icon
-                    name={IconName.Refresh}
-                    size={IconSize.Md}
-                    color={TextColor.Alternative}
-                    style={tw.style('mr-1')}
-                  />
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings(
-                      `predict.recurrence.${market.recurrence.toLowerCase()}`,
-                    )}
-                  </Text>
-                </Box>
-              )}
-            </Box>
+                  {strings(
+                    `predict.recurrence.${market.recurrence.toLowerCase()}`,
+                  )}
+                </Text>
+              </Box>
+            )}
           </Box>
         </Box>
       </View>

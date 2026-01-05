@@ -268,6 +268,18 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     predictEnabled: false,
   },
   {
+    predictTradingEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
+    predictGtmOnboardingModalEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
     additionalNetworksBlacklist: [], // Empty by default, can be overridden in tests
   },
   {

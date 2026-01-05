@@ -5,6 +5,7 @@ import { View } from 'react-native';
 
 import Text from '../../../../../component-library/components/Texts/Text';
 import { EditAmountKeyboard } from './edit-amount-keyboard';
+import { strings } from '../../../../../../locales/i18n';
 
 describe('EditAmountKeyboard', () => {
   it('calls onChange when digit pressed', () => {
@@ -37,7 +38,7 @@ describe('EditAmountKeyboard', () => {
       />,
     );
 
-    const doneButton = getByText('Done');
+    const doneButton = getByText(strings('confirm.edit_amount_done'));
     fireEvent.press(doneButton);
 
     expect(onDonePressMock).toHaveBeenCalled();
@@ -53,7 +54,7 @@ describe('EditAmountKeyboard', () => {
       />,
     );
 
-    expect(queryByText('Done')).toBeNull();
+    expect(queryByText(strings('confirm.edit_amount_done'))).toBeNull();
   });
 
   it('calls onPercentagePress when percentage button pressed', () => {
@@ -88,7 +89,7 @@ describe('EditAmountKeyboard', () => {
     );
 
     expect(getByText('Max')).toBeDefined();
-    expect(getByText('Done')).toBeDefined();
+    expect(getByText(strings('confirm.edit_amount_done'))).toBeDefined();
   });
 
   it('does not render additional buttons if showAdditionalKeyboard is false', () => {
@@ -106,7 +107,7 @@ describe('EditAmountKeyboard', () => {
 
     expect(queryByText('25%')).toBeNull();
     expect(queryByText('50%')).toBeNull();
-    expect(queryByText('Done')).toBeNull();
+    expect(queryByText(strings('confirm.edit_amount_done'))).toBeNull();
   });
 
   it('render additional rows passed in additionalRow prop', () => {

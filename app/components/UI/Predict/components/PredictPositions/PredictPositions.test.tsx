@@ -410,7 +410,7 @@ describe('PredictPositions', () => {
       const positionElement = screen.getAllByTestId('predict-position')[0];
       fireEvent.press(positionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: mockPositions[0].marketId,
@@ -439,7 +439,7 @@ describe('PredictPositions', () => {
       );
       fireEvent.press(resolvedPositionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: claimablePosition.marketId,
