@@ -713,82 +713,81 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Function that allows custom handling of any web view requests.
      * Return `true` to continue loading the request and `false` to stop loading.
      */
-    const onShouldStartLoadWithRequest = ({
-      url: urlToLoad,
-    }: {
-      url: string;
-    }) => {
-      webStates.current[urlToLoad] = {
-        ...webStates.current[urlToLoad],
-        requested: true,
-      };
+    const onShouldStartLoadWithRequest = useCallback(
+      ({ url: urlToLoad }: { url: string }) => {
+        webStates.current[urlToLoad] = {
+          ...webStates.current[urlToLoad],
+          requested: true,
+        };
 
-      if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
-        setIpfsBannerVisible(true);
-        return false;
-      }
+        if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+          setIpfsBannerVisible(true);
+          return false;
+        }
 
-      // Check if this is an internal MetaMask deeplink that should be handled within the app
-      if (isInternalDeepLink(urlToLoad)) {
-        // Handle the deeplink internally instead of passing to OS
-        SharedDeeplinkManager.getInstance()
-          .parse(urlToLoad, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
-            browserCallBack: (url: string) => {
-              // If the deeplink handler wants to navigate to a different URL in the browser
-              if (url && webviewRef.current) {
-                webviewRef.current.injectJavaScript(`
+        // Check if this is an internal MetaMask deeplink that should be handled within the app
+        if (isInternalDeepLink(urlToLoad)) {
+          // Handle the deeplink internally instead of passing to OS
+          SharedDeeplinkManager.getInstance()
+            .parse(urlToLoad, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+              browserCallBack: (url: string) => {
+                // If the deeplink handler wants to navigate to a different URL in the browser
+                if (url && webviewRef.current) {
+                  webviewRef.current.injectJavaScript(`
                 window.location.href = '${sanitizeUrlInput(url)}';
                 true;  // Required for iOS
               `);
-              }
-            },
-          })
-          .catch((deeplinkError) => {
-            Logger.error(
-              deeplinkError,
-              'BrowserTab: Failed to handle internal deeplink in browser',
-            );
-          });
-        return false; // Stop the webview from loading this URL
-      }
+                }
+              },
+            })
+            .catch((deeplinkError) => {
+              Logger.error(
+                deeplinkError,
+                'BrowserTab: Failed to handle internal deeplink in browser',
+              );
+            });
+          return false; // Stop the webview from loading this URL
+        }
 
-      const { protocol } = new URLParse(urlToLoad);
+        const { protocol } = new URLParse(urlToLoad);
 
-      if (trustedProtocolToDeeplink.includes(protocol)) {
-        allowLinkOpen(urlToLoad);
+        if (trustedProtocolToDeeplink.includes(protocol)) {
+          allowLinkOpen(urlToLoad);
 
-        // Webview should not load deeplink protocols
-        // We redirect them to the OS linking system instead
+          // Webview should not load deeplink protocols
+          // We redirect them to the OS linking system instead
+          return false;
+        }
+
+        if (protocolAllowList.includes(protocol)) {
+          // Continue with the URL loading on the Webview
+          return true;
+        }
+
+        // Use Sentry Breadcumbs to log the untrusted protocol
+        Logger.log(`Protocol not allowed ${protocol}`);
+
+        // Pop up an alert dialog box to prompt the user for permission
+        // to execute the request
+        const alertMsg = getAlertMessage(protocol, strings);
+        Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+          {
+            text: strings('browser.protocol_alert_options.ignore'),
+            onPress: () => null,
+            style: 'cancel',
+          },
+          {
+            text: strings('browser.protocol_alert_options.allow'),
+            onPress: () => allowLinkOpen(urlToLoad),
+            style: 'default',
+          },
+        ]);
+
         return false;
-      }
-
-      if (protocolAllowList.includes(protocol)) {
-        // Continue with the URL loading on the Webview
-        return true;
-      }
-
-      // Use Sentry Breadcumbs to log the untrusted protocol
-      Logger.log(`Protocol not allowed ${protocol}`);
-
-      // Pop up an alert dialog box to prompt the user for permission
-      // to execute the request
-      const alertMsg = getAlertMessage(protocol, strings);
-      Alert.alert(strings('onboarding.warning_title'), alertMsg, [
-        {
-          text: strings('browser.protocol_alert_options.ignore'),
-          onPress: () => null,
-          style: 'cancel',
-        },
-        {
-          text: strings('browser.protocol_alert_options.allow'),
-          onPress: () => allowLinkOpen(urlToLoad),
-          style: 'default',
-        },
-      ]);
-
-      return false;
-    };
+      },
+      [isIpfsGatewayEnabled, isResolvedIpfsUrl, whitelist, handleNotAllowedUrl],
+    );
 
     /**
      * Sets loading bar progress
@@ -870,53 +869,56 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Handle message from website
      */
-    const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
-      const data = nativeEvent.data;
-      try {
-        if (data.length > MAX_MESSAGE_LENGTH) {
-          console.warn(
-            `message exceeded size limit and will be dropped: ${data.slice(
-              0,
-              1000,
-            )}...`,
-          );
-          return;
-        }
-        const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
-        if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
-          return;
-        }
-        if (dataParsed.type === 'SCROLL_POSITION') {
-          // Update scroll position - gesture wrapper derives "at top" directly from this value
-          scrollY.value = dataParsed.payload?.scrollY || 0;
-          return;
-        }
-        if (
-          dataParsed.type === 'IFRAME_DETECTED' &&
-          Array.isArray(dataParsed.iframeUrls) &&
-          dataParsed.iframeUrls.length > 0
-        ) {
-          const validIframeUrls = dataParsed.iframeUrls.filter(
-            (url: unknown): url is string =>
-              typeof url === 'string' && url.trim().length > 0,
-          );
-          if (validIframeUrls.length > 0) {
-            checkIFrameUrls(validIframeUrls);
+    const onMessage = useCallback(
+      ({ nativeEvent }: WebViewMessageEvent) => {
+        const data = nativeEvent.data;
+        try {
+          if (data.length > MAX_MESSAGE_LENGTH) {
+            console.warn(
+              `message exceeded size limit and will be dropped: ${data.slice(
+                0,
+                1000,
+              )}...`,
+            );
+            return;
           }
-          return;
+          const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
+          if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+            return;
+          }
+          if (dataParsed.type === 'SCROLL_POSITION') {
+            // Update scroll position - gesture wrapper derives "at top" directly from this value
+            scrollY.value = dataParsed.payload?.scrollY || 0;
+            return;
+          }
+          if (
+            dataParsed.type === 'IFRAME_DETECTED' &&
+            Array.isArray(dataParsed.iframeUrls) &&
+            dataParsed.iframeUrls.length > 0
+          ) {
+            const validIframeUrls = dataParsed.iframeUrls.filter(
+              (url: unknown): url is string =>
+                typeof url === 'string' && url.trim().length > 0,
+            );
+            if (validIframeUrls.length > 0) {
+              checkIFrameUrls(validIframeUrls);
+            }
+            return;
+          }
+          if (dataParsed.name) {
+            backgroundBridgeRef.current?.onMessage(dataParsed);
+            return;
+          }
+        } catch (e: unknown) {
+          const onMessageError = e as Error;
+          Logger.error(
+            onMessageError,
+            `Browser::onMessage on ${resolvedUrlRef.current}`,
+          );
         }
-        if (dataParsed.name) {
-          backgroundBridgeRef.current?.onMessage(dataParsed);
-          return;
-        }
-      } catch (e: unknown) {
-        const onMessageError = e as Error;
-        Logger.error(
-          onMessageError,
-          `Browser::onMessage on ${resolvedUrlRef.current}`,
-        );
-      }
-    };
+      },
+      [checkIFrameUrls, scrollY],
+    );
 
     const toggleUrlModal = useCallback(() => {
       urlBarRef.current?.focus();
@@ -1077,12 +1079,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Render the progress bar
      */
-    const renderProgressBar = () => (
-      <View style={styles.progressBarWrapper}>
-        <WebviewProgressBar progress={progress} />
-      </View>
+    const renderProgressBar = useCallback(
+      () => (
+        <View style={styles.progressBarWrapper}>
+          <WebviewProgressBar progress={progress} />
+        </View>
+      ),
+      [progress, styles.progressBarWrapper],
     );
-
     const isExternalLink = useMemo(
       () => linkType === EXTERNAL_LINK_TYPE,
       [linkType],
@@ -1185,30 +1189,43 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Return to the MetaMask Dapp Homepage
      */
-    const returnHome = () => {
+    const returnHome = useCallback(() => {
       onSubmitEditing(HOMEPAGE_HOST);
-    };
+    }, [onSubmitEditing]);
 
     /**
      * Render the bottom navigation bar
      */
-    const renderBottomBar = () =>
-      isTabActive && !isUrlBarFocused ? (
-        <BrowserBottomBar
-          canGoBack={backEnabled}
-          canGoForward={forwardEnabled}
-          goBack={goBack}
-          goForward={goForward}
-          reload={reload}
-          openNewTab={openNewTab}
-          activeUrl={resolvedUrlRef.current}
-          getMaskedUrl={getMaskedUrl}
-          title={titleRef.current}
-          sessionENSNames={sessionENSNamesRef.current}
-          favicon={favicon}
-          icon={iconRef.current}
-        />
-      ) : null;
+    const renderBottomBar = useCallback(
+      () =>
+        isTabActive && !isUrlBarFocused ? (
+          <BrowserBottomBar
+            canGoBack={backEnabled}
+            canGoForward={forwardEnabled}
+            goForward={goForward}
+            goBack={goBack}
+            reload={reload}
+            openNewTab={openNewTab}
+            activeUrl={resolvedUrlRef.current}
+            getMaskedUrl={getMaskedUrl}
+            title={titleRef.current}
+            sessionENSNames={sessionENSNamesRef.current}
+            favicon={favicon}
+            icon={iconRef.current}
+          />
+        ) : null,
+      [
+        isTabActive,
+        isUrlBarFocused,
+        backEnabled,
+        forwardEnabled,
+        goForward,
+        goBack,
+        reload,
+        openNewTab,
+        favicon,
+      ],
+    );
 
     /**
      * Handle autocomplete selection

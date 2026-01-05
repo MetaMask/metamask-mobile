@@ -107,19 +107,22 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
    * Render the bottom (navigation/options) bar
    * Note: DiscoveryTab uses minimal browser bar functionality
    */
-  const renderBottomBar = () =>
-    isTabActive && !isUrlBarFocused ? (
-      <BrowserBottomBar
-        canGoBack={false}
-        canGoForward={false}
-        openNewTab={() => newTab()}
-        activeUrl=""
-        getMaskedUrl={(url) => url}
-        title=""
-        sessionENSNames={{}}
-        favicon={{ uri: '' }}
-      />
-    ) : null;
+  const renderBottomBar = useCallback(
+    () =>
+      isTabActive && !isUrlBarFocused ? (
+        <BrowserBottomBar
+          canGoBack={false}
+          canGoForward={false}
+          openNewTab={() => newTab()}
+          activeUrl=""
+          getMaskedUrl={(url) => url}
+          title=""
+          sessionENSNames={{}}
+          favicon={{ uri: '' }}
+        />
+      ) : null,
+    [isTabActive, isUrlBarFocused, newTab],
+  );
 
   /**
    * Main render
