@@ -21,6 +21,7 @@ describe('useEmptyNavHeaderForConfirmations', () => {
   const mockNavbarOptions = {
     headerTitle: () => <></>,
     headerLeft: () => <></>,
+    headerTitleAlign: 'center' as const,
     headerStyle: {
       backgroundColor: '#ffffff',
       shadowColor: 'transparent',
