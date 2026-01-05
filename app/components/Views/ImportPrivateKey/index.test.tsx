@@ -126,7 +126,7 @@ describe('ImportPrivateKey', () => {
     expect(getByText(strings('import_private_key.subtitle'))).toBeTruthy();
   });
 
-  it('calls dismiss function when close button is pressed', () => {
+  it('navigates back when header back button is pressed', () => {
     // Arrange
     renderScreen(
       ImportPrivateKey,
@@ -140,7 +140,7 @@ describe('ImportPrivateKey', () => {
     // Get the navigation options passed to setOptions
     const setOptionsCall = mockSetOptions.mock.calls[0][0];
 
-    // Act - Simulate pressing the back button by calling the headerLeft component's onPress
+    // Act
     const headerLeftComponent = setOptionsCall.headerLeft();
     const backButtonProps = headerLeftComponent.props;
     backButtonProps.onPress();
