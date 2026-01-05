@@ -2,7 +2,7 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import TimerHelper from './TimersHelper.js';
+import TimerHelper from '../TimersHelper.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -192,16 +192,7 @@ export async function importSRPFlow(device, srp, dismissModals = false) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-<<<<<<< HEAD
-  const { scenarioType = 'login', shouldDismissModals = true } = options;
-||||||| e74317a431
-  const {
-    scenarioType = 'login',
-    shouldDismissModals = true,
-  } = options;
-=======
   const { scenarioType = 'login', dismissModals = false } = options;
->>>>>>> bootstrap-mm-connect-e2e
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock

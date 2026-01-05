@@ -76,7 +76,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await DappConnectionModal.tapEditAccountsButton();
     await DappConnectionModal.tapAccountButton('Account 3');
     await DappConnectionModal.tapUpdateButton();
@@ -107,7 +107,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await SignModal.tapConfirmButton();
   });
 
@@ -134,7 +134,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapCancelButton();
   });
@@ -162,7 +162,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await SwitchChainModal.assertNetworkText('Polygon');
     await SwitchChainModal.tapConnectButton();
   });
@@ -188,7 +188,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Polygon');
     await SignModal.tapCancelButton();
   });
@@ -214,7 +214,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
-    // await login(device, { shouldDismissModals: false });
+    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapCancelButton();
 
