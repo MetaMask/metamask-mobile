@@ -1,7 +1,10 @@
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import {
-  useRampsControllerRequest,
-  type UseRampsControllerRequestOptions,
-} from './useRampsControllerRequest';
+  selectGeolocation,
+  selectGeolocationRequest,
+} from '../../../../selectors/rampsController';
 
 /**
  * Result returned by the useRampsGeolocation hook.
@@ -19,36 +22,41 @@ export interface UseRampsGeolocationResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
+  /**
+   * Manually fetch the geolocation.
+   */
+  fetchGeolocation: (options?: { forceRefresh?: boolean }) => Promise<string>;
 }
 
 /**
- * Hook to get the user's geolocation from RampsController.
+ * Hook to get the user's geolocation state from RampsController.
+ * This hook assumes Engine is already initialized.
  *
- * @param options - Hook options.
- * @returns Geolocation state.
+ * @returns Geolocation state and fetch function.
  *
  * @example
  * ```tsx
- * const { geolocation, isLoading, error } = useRampsGeolocation();
+ * const { geolocation, isLoading, error, fetchGeolocation } = useRampsGeolocation();
  *
  * if (isLoading) return <Loading />;
  * if (error) return <Error message={error} />;
  * return <Text>Your location: {geolocation}</Text>;
  * ```
  */
-export function useRampsGeolocation(
-  options: UseRampsControllerRequestOptions = {},
-): UseRampsGeolocationResult {
-  const { data, error, status } = useRampsControllerRequest<string>(
-    'updateGeolocation',
+export function useRampsGeolocation(): UseRampsGeolocationResult {
+  const geolocation = useSelector(selectGeolocation);
+  const { isFetching, error } = useSelector(selectGeolocationRequest);
+
+  const fetchGeolocation = useCallback(
+    () => Engine.context.RampsController.updateGeolocation(),
     [],
-    options,
   );
 
   return {
-    geolocation: data,
-    isLoading: status === 'loading',
+    geolocation,
+    isLoading: isFetching,
     error,
+    fetchGeolocation,
   };
 }
 

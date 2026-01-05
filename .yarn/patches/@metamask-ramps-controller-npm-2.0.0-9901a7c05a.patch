@@ -1121,14 +1121,14 @@ index 0000000000000000000000000000000000000000..132fb3d1257f7869f195fe1ba855061d
 +{"version":3,"file":"RequestCache.mjs","sourceRoot":"","sources":["../src/RequestCache.ts"],"names":[],"mappings":"AAEA;;GAEG;AACH,MAAM,CAAN,IAAY,aAKX;AALD,WAAY,aAAa;IACvB,8BAAa,CAAA;IACb,oCAAmB,CAAA;IACnB,oCAAmB,CAAA;IACnB,gCAAe,CAAA;AACjB,CAAC,EALW,aAAa,KAAb,aAAa,QAKxB;AAwBD;;GAEG;AACH,MAAM,CAAC,MAAM,yBAAyB,GAAG,EAAE,GAAG,EAAE,GAAG,IAAI,CAAC;AAExD;;GAEG;AACH,MAAM,CAAC,MAAM,8BAA8B,GAAG,GAAG,CAAC;AAElD;;;;;;GAMG;AACH,MAAM,UAAU,cAAc,CAAC,MAAc,EAAE,MAAiB;IAC9D,OAAO,GAAG,MAAM,IAAI,IAAI,CAAC,SAAS,CAAC,MAAM,CAAC,EAAE,CAAC;AAC/C,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,cAAc,CAC5B,YAA0B,EAC1B,MAAc,yBAAyB;IAEvC,IAAI,YAAY,CAAC,MAAM,KAAK,aAAa,CAAC,OAAO,EAAE,CAAC;QAClD,OAAO,IAAI,CAAC;IACd,CAAC;IACD,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO,GAAG,GAAG,YAAY,CAAC,SAAS,GAAG,GAAG,CAAC;AAC5C,CAAC;AAED;;;;GAIG;AACH,MAAM,UAAU,kBAAkB;IAChC,MAAM,GAAG,GAAG,IAAI,CAAC,GAAG,EAAE,CAAC;IACvB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI,EAAE,IAAI;QACV,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,GAAG;QACd,aAAa,EAAE,GAAG;KACnB,CAAC;AACJ,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,kBAAkB,CAChC,IAAU,EACV,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,OAAO;QAC7B,IAAI;QACJ,KAAK,EAAE,IAAI;QACX,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC;AAED;;;;;;GAMG;AACH,MAAM,UAAU,gBAAgB,CAC9B,KAAa,EACb,aAAqB;IAErB,OAAO;QACL,MAAM,EAAE,aAAa,CAAC,KAAK;QAC3B,IAAI,EAAE,IAAI;QACV,KAAK;QACL,SAAS,EAAE,IAAI,CAAC,GAAG,EAAE;QACrB,aAAa;KACd,CAAC;AACJ,CAAC","sourcesContent":["import type { Json } from '@metamask/utils';\n\n/**\n * Status of a cached request.\n */\nexport enum RequestStatus {\n  IDLE = 'idle',\n  LOADING = 'loading',\n  SUCCESS = 'success',\n  ERROR = 'error',\n}\n\n/**\n * State of a single cached request.\n * All properties must be JSON-serializable to satisfy StateConstraint.\n */\nexport type RequestState = {\n  /** Current status of the request */\n  status: `${RequestStatus}`;\n  /** The data returned by the request, if successful */\n  data: Json | null;\n  /** Error message if the request failed */\n  error: string | null;\n  /** Timestamp when the request completed (for TTL calculation) */\n  timestamp: number;\n  /** Timestamp when the fetch started */\n  lastFetchedAt: number;\n};\n\n/**\n * Cache of request states, keyed by cache key.\n */\nexport type RequestCache = Record<string, RequestState>;\n\n/**\n * Default TTL for cached requests in milliseconds (15 minutes).\n */\nexport const DEFAULT_REQUEST_CACHE_TTL = 15 * 60 * 1000;\n\n/**\n * Default maximum number of entries in the request cache.\n */\nexport const DEFAULT_REQUEST_CACHE_MAX_SIZE = 250;\n\n/**\n * Creates a cache key from a method name and parameters.\n *\n * @param method - The method name.\n * @param params - The parameters passed to the method.\n * @returns A unique cache key string.\n */\nexport function createCacheKey(method: string, params: unknown[]): string {\n  return `${method}:${JSON.stringify(params)}`;\n}\n\n/**\n * Checks if a cached request has expired based on TTL.\n *\n * @param requestState - The cached request state.\n * @param ttl - Time to live in milliseconds.\n * @returns True if the cache entry has expired.\n */\nexport function isCacheExpired(\n  requestState: RequestState,\n  ttl: number = DEFAULT_REQUEST_CACHE_TTL,\n): boolean {\n  if (requestState.status !== RequestStatus.SUCCESS) {\n    return true;\n  }\n  const now = Date.now();\n  return now - requestState.timestamp > ttl;\n}\n\n/**\n * Creates an initial loading state for a request.\n *\n * @returns A new RequestState in loading status.\n */\nexport function createLoadingState(): RequestState {\n  const now = Date.now();\n  return {\n    status: RequestStatus.LOADING,\n    data: null,\n    error: null,\n    timestamp: now,\n    lastFetchedAt: now,\n  };\n}\n\n/**\n * Creates a success state for a request.\n *\n * @param data - The data returned by the request.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in success status.\n */\nexport function createSuccessState(\n  data: Json,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.SUCCESS,\n    data,\n    error: null,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Creates an error state for a request.\n *\n * @param error - The error message.\n * @param lastFetchedAt - When the fetch started.\n * @returns A new RequestState in error status.\n */\nexport function createErrorState(\n  error: string,\n  lastFetchedAt: number,\n): RequestState {\n  return {\n    status: RequestStatus.ERROR,\n    data: null,\n    error,\n    timestamp: Date.now(),\n    lastFetchedAt,\n  };\n}\n\n/**\n * Options for executing a cached request.\n */\nexport type ExecuteRequestOptions = {\n  /** Force a refresh even if cached data exists */\n  forceRefresh?: boolean;\n  /** Custom TTL for this request in milliseconds */\n  ttl?: number;\n};\n\n/**\n * Represents a pending request with its promise and abort controller.\n */\nexport type PendingRequest<TResult = unknown> = {\n  promise: Promise<TResult>;\n  abortController: AbortController;\n};\n"]}
 \ No newline at end of file
 diff --git a/dist/index.cjs b/dist/index.cjs
-index ac9da3dc5e113ee50d1be21b16cda836e03c67c4..146825903e5138d3a37e4ddbe598ab9767e3003b 100644
+index ac9da3dc5e113ee50d1be21b16cda836e03c67c4..eccbff7e8d7f008c648113131d3d5521e1247e62 100644
 --- a/dist/index.cjs
 +++ b/dist/index.cjs
-@@ -1,10 +1,19 @@
+@@ -1,10 +1,21 @@
  "use strict";
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.RampsEnvironment = exports.RampsService = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
-+exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = exports.RampsEnvironment = exports.RampsService = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
++exports.createRequestSelector = exports.createErrorState = exports.createSuccessState = exports.createLoadingState = exports.isCacheExpired = exports.createCacheKey = exports.DEFAULT_REQUEST_CACHE_MAX_SIZE = exports.DEFAULT_REQUEST_CACHE_TTL = exports.RequestStatus = exports.RampsEnvironment = exports.RampsService = exports.getDefaultRampsControllerState = exports.RampsController = void 0;
  var RampsController_1 = require("./RampsController.cjs");
  Object.defineProperty(exports, "RampsController", { enumerable: true, get: function () { return RampsController_1.RampsController; } });
  Object.defineProperty(exports, "getDefaultRampsControllerState", { enumerable: true, get: function () { return RampsController_1.getDefaultRampsControllerState; } });
@@ -1144,22 +1144,24 @@ index ac9da3dc5e113ee50d1be21b16cda836e03c67c4..146825903e5138d3a37e4ddbe598ab97
 +Object.defineProperty(exports, "createLoadingState", { enumerable: true, get: function () { return RequestCache_1.createLoadingState; } });
 +Object.defineProperty(exports, "createSuccessState", { enumerable: true, get: function () { return RequestCache_1.createSuccessState; } });
 +Object.defineProperty(exports, "createErrorState", { enumerable: true, get: function () { return RequestCache_1.createErrorState; } });
++var selectors_1 = require("./selectors.cjs");
++Object.defineProperty(exports, "createRequestSelector", { enumerable: true, get: function () { return selectors_1.createRequestSelector; } });
  //# sourceMappingURL=index.cjs.map
 \ No newline at end of file
 diff --git a/dist/index.cjs.map b/dist/index.cjs.map
-index 71476fb050f0a7c44084939047733a9054a6f944..71a1cff2418cc547e3d3debaad1734b88311cfc1 100644
+index 71476fb050f0a7c44084939047733a9054a6f944..c1413095eaf504c066906a9ef28d34268bbb101f 100644
 --- a/dist/index.cjs.map
 +++ b/dist/index.cjs.map
 @@ -1 +1 @@
 -{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;AAQA,yDAG2B;AAFzB,kHAAA,eAAe,OAAA;AACf,iIAAA,8BAA8B,OAAA;AAOhC,mDAAgE;AAAvD,4GAAA,YAAY,OAAA;AAAE,gHAAA,gBAAgB,OAAA","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n"]}
 \ No newline at end of file
-+{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;AASA,yDAG2B;AAFzB,kHAAA,eAAe,OAAA;AACf,iIAAA,8BAA8B,OAAA;AAOhC,mDAAgE;AAAvD,4GAAA,YAAY,OAAA;AAAE,gHAAA,gBAAgB,OAAA;AAQvC,mDASwB;AARtB,6GAAA,aAAa,OAAA;AACb,yHAAA,yBAAyB,OAAA;AACzB,8HAAA,8BAA8B,OAAA;AAC9B,8GAAA,cAAc,OAAA;AACd,8GAAA,cAAc,OAAA;AACd,kHAAA,kBAAkB,OAAA;AAClB,kHAAA,kBAAkB,OAAA;AAClB,gHAAA,gBAAgB,OAAA","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n"]}
++{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;AASA,yDAG2B;AAFzB,kHAAA,eAAe,OAAA;AACf,iIAAA,8BAA8B,OAAA;AAOhC,mDAAgE;AAAvD,4GAAA,YAAY,OAAA;AAAE,gHAAA,gBAAgB,OAAA;AAQvC,mDASwB;AARtB,6GAAA,aAAa,OAAA;AACb,yHAAA,yBAAyB,OAAA;AACzB,8HAAA,8BAA8B,OAAA;AAC9B,8GAAA,cAAc,OAAA;AACd,8GAAA,cAAc,OAAA;AACd,kHAAA,kBAAkB,OAAA;AAClB,kHAAA,kBAAkB,OAAA;AAClB,gHAAA,gBAAgB,OAAA;AAGlB,6CAAoD;AAA3C,kHAAA,qBAAqB,OAAA","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\nexport type { RequestSelectorResult } from './selectors';\nexport { createRequestSelector } from './selectors';\n"]}
 \ No newline at end of file
 diff --git a/dist/index.d.cts b/dist/index.d.cts
-index 25e3ce5bf9ac3d9ed9ee31edf2d65f4b636ad28c..3c97ecdccc610df9ee5a688d0f2df7d64f23a4c3 100644
+index 25e3ce5bf9ac3d9ed9ee31edf2d65f4b636ad28c..2647eb4485e7f27ee8c4f0b6a6b7367347e57db4 100644
 --- a/dist/index.d.cts
 +++ b/dist/index.d.cts
-@@ -1,6 +1,8 @@
+@@ -1,6 +1,10 @@
 -export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, } from "./RampsController.cjs";
 +export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOptions, } from "./RampsController.cjs";
  export { RampsController, getDefaultRampsControllerState, } from "./RampsController.cjs";
@@ -1168,22 +1170,24 @@ index 25e3ce5bf9ac3d9ed9ee31edf2d65f4b636ad28c..3c97ecdccc610df9ee5a688d0f2df7d6
  export type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.cjs";
 +export type { RequestCache, RequestState, ExecuteRequestOptions, PendingRequest, } from "./RequestCache.cjs";
 +export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState, } from "./RequestCache.cjs";
++export type { RequestSelectorResult } from "./selectors.cjs";
++export { createRequestSelector } from "./selectors.cjs";
  //# sourceMappingURL=index.d.cts.map
 \ No newline at end of file
 diff --git a/dist/index.d.cts.map b/dist/index.d.cts.map
-index 9291ed58943af75050748c49007b676f7610dfbc..4e1475dcc8ea9e8592ac4a734dd8151b38767ff1 100644
+index 9291ed58943af75050748c49007b676f7610dfbc..a7564386a20ee07f0bdc3dc90b41e66c495d56b3 100644
 --- a/dist/index.d.cts.map
 +++ b/dist/index.d.cts.map
 @@ -1 +1 @@
 -{"version":3,"file":"index.d.cts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,GAChC,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C"}
 \ No newline at end of file
-+{"version":3,"file":"index.d.cts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB"}
++{"version":3,"file":"index.d.cts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB;AACxB,YAAY,EAAE,qBAAqB,EAAE,wBAAoB;AACzD,OAAO,EAAE,qBAAqB,EAAE,wBAAoB"}
 \ No newline at end of file
 diff --git a/dist/index.d.mts b/dist/index.d.mts
-index 2404168ce09d74d0aeabcf6a661dbb36c92290b2..c83e24a7bcf4fce5797117b476332e8dd1f15f2b 100644
+index 2404168ce09d74d0aeabcf6a661dbb36c92290b2..e60e450590cc27bdd61b7c22b012666eaf8273ea 100644
 --- a/dist/index.d.mts
 +++ b/dist/index.d.mts
-@@ -1,6 +1,8 @@
+@@ -1,6 +1,10 @@
 -export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, } from "./RampsController.mjs";
 +export type { RampsControllerActions, RampsControllerEvents, RampsControllerGetStateAction, RampsControllerMessenger, RampsControllerState, RampsControllerStateChangeEvent, RampsControllerOptions, } from "./RampsController.mjs";
  export { RampsController, getDefaultRampsControllerState, } from "./RampsController.mjs";
@@ -1192,33 +1196,292 @@ index 2404168ce09d74d0aeabcf6a661dbb36c92290b2..c83e24a7bcf4fce5797117b476332e8d
  export type { RampsServiceGetGeolocationAction } from "./RampsService-method-action-types.mjs";
 +export type { RequestCache, RequestState, ExecuteRequestOptions, PendingRequest, } from "./RequestCache.mjs";
 +export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState, } from "./RequestCache.mjs";
++export type { RequestSelectorResult } from "./selectors.mjs";
++export { createRequestSelector } from "./selectors.mjs";
  //# sourceMappingURL=index.d.mts.map
 \ No newline at end of file
 diff --git a/dist/index.d.mts.map b/dist/index.d.mts.map
-index d1dd276022dadc42108a5fb305e18eb83421b1ef..108f51b8112edef66ad3100423bf5760650e2a2e 100644
+index d1dd276022dadc42108a5fb305e18eb83421b1ef..a91b0f07d8f8fb5fb38f8001f2a17f002da9d955 100644
 --- a/dist/index.d.mts.map
 +++ b/dist/index.d.mts.map
 @@ -1 +1 @@
 -{"version":3,"file":"index.d.mts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,GAChC,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C"}
 \ No newline at end of file
-+{"version":3,"file":"index.d.mts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB"}
++{"version":3,"file":"index.d.mts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,sBAAsB,EACtB,qBAAqB,EACrB,6BAA6B,EAC7B,wBAAwB,EACxB,oBAAoB,EACpB,+BAA+B,EAC/B,sBAAsB,GACvB,8BAA0B;AAC3B,OAAO,EACL,eAAe,EACf,8BAA8B,GAC/B,8BAA0B;AAC3B,YAAY,EACV,mBAAmB,EACnB,kBAAkB,EAClB,qBAAqB,GACtB,2BAAuB;AACxB,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAChE,YAAY,EAAE,gCAAgC,EAAE,+CAA2C;AAC3F,YAAY,EACV,YAAY,EACZ,YAAY,EACZ,qBAAqB,EACrB,cAAc,GACf,2BAAuB;AACxB,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,GACjB,2BAAuB;AACxB,YAAY,EAAE,qBAAqB,EAAE,wBAAoB;AACzD,OAAO,EAAE,qBAAqB,EAAE,wBAAoB"}
 \ No newline at end of file
 diff --git a/dist/index.mjs b/dist/index.mjs
-index f8e1d4cad5a6472922ece76faa1f5d468438ac0c..e88617114527c6f2e39d756677e7fa941cacdf3e 100644
+index f8e1d4cad5a6472922ece76faa1f5d468438ac0c..91303e8e086745bdbfaba421ee30b4a99c1ca4e8 100644
 --- a/dist/index.mjs
 +++ b/dist/index.mjs
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,5 @@
  export { RampsController, getDefaultRampsControllerState } from "./RampsController.mjs";
  export { RampsService, RampsEnvironment } from "./RampsService.mjs";
 +export { RequestStatus, DEFAULT_REQUEST_CACHE_TTL, DEFAULT_REQUEST_CACHE_MAX_SIZE, createCacheKey, isCacheExpired, createLoadingState, createSuccessState, createErrorState } from "./RequestCache.mjs";
++export { createRequestSelector } from "./selectors.mjs";
  //# sourceMappingURL=index.mjs.map
 \ No newline at end of file
 diff --git a/dist/index.mjs.map b/dist/index.mjs.map
-index fdaad9c8fd865d53adc5f5488b776ad15d8ccd4e..aaeeff4d986390fb4e427212830ebe903a984dc7 100644
+index fdaad9c8fd865d53adc5f5488b776ad15d8ccd4e..a8a14afec8ed14e4813cdaf2019ca6b3887c5074 100644
 --- a/dist/index.mjs.map
 +++ b/dist/index.mjs.map
 @@ -1 +1 @@
 -{"version":3,"file":"index.mjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAQA,OAAO,EACL,eAAe,EACf,8BAA8B,EAC/B,8BAA0B;AAM3B,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\n"]}
 \ No newline at end of file
-+{"version":3,"file":"index.mjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AASA,OAAO,EACL,eAAe,EACf,8BAA8B,EAC/B,8BAA0B;AAM3B,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAQhE,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,EACjB,2BAAuB","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\n"]}
++{"version":3,"file":"index.mjs","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AASA,OAAO,EACL,eAAe,EACf,8BAA8B,EAC/B,8BAA0B;AAM3B,OAAO,EAAE,YAAY,EAAE,gBAAgB,EAAE,2BAAuB;AAQhE,OAAO,EACL,aAAa,EACb,yBAAyB,EACzB,8BAA8B,EAC9B,cAAc,EACd,cAAc,EACd,kBAAkB,EAClB,kBAAkB,EAClB,gBAAgB,EACjB,2BAAuB;AAExB,OAAO,EAAE,qBAAqB,EAAE,wBAAoB","sourcesContent":["export type {\n  RampsControllerActions,\n  RampsControllerEvents,\n  RampsControllerGetStateAction,\n  RampsControllerMessenger,\n  RampsControllerState,\n  RampsControllerStateChangeEvent,\n  RampsControllerOptions,\n} from './RampsController';\nexport {\n  RampsController,\n  getDefaultRampsControllerState,\n} from './RampsController';\nexport type {\n  RampsServiceActions,\n  RampsServiceEvents,\n  RampsServiceMessenger,\n} from './RampsService';\nexport { RampsService, RampsEnvironment } from './RampsService';\nexport type { RampsServiceGetGeolocationAction } from './RampsService-method-action-types';\nexport type {\n  RequestCache,\n  RequestState,\n  ExecuteRequestOptions,\n  PendingRequest,\n} from './RequestCache';\nexport {\n  RequestStatus,\n  DEFAULT_REQUEST_CACHE_TTL,\n  DEFAULT_REQUEST_CACHE_MAX_SIZE,\n  createCacheKey,\n  isCacheExpired,\n  createLoadingState,\n  createSuccessState,\n  createErrorState,\n} from './RequestCache';\nexport type { RequestSelectorResult } from './selectors';\nexport { createRequestSelector } from './selectors';\n"]}
+\ No newline at end of file
+diff --git a/dist/selectors.cjs b/dist/selectors.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..e6852067eb9b56668a4497f818e4782831a371a5
+--- /dev/null
++++ b/dist/selectors.cjs
+@@ -0,0 +1,62 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.createRequestSelector = void 0;
++const RequestCache_1 = require("./RequestCache.cjs");
++const RequestCache_2 = require("./RequestCache.cjs");
++/**
++ * Creates a selector for a controller method's request state.
++ *
++ * The selector is memoized - it returns the same object reference if
++ * the underlying values haven't changed, so no need for shallowEqual.
++ *
++ * @param getState - Function that extracts RampsControllerState from the client's root state.
++ * @param method - The controller method name (e.g., 'getCryptoCurrencies').
++ * @param params - The parameters passed to the method.
++ * @returns A selector function that returns { data, isFetching, error }.
++ *
++ * @example
++ * ```ts
++ * const getRampsState = (state: RootState) =>
++ *   state.engine.backgroundState.RampsController;
++ *
++ * export const selectCryptoCurrencies = (region: string) =>
++ *   createRequestSelector<RootState, CryptoCurrency[]>(
++ *     getRampsState,
++ *     'getCryptoCurrencies',
++ *     [region],
++ *   );
++ *
++ * // In hook - no shallowEqual needed
++ * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));
++ * ```
++ */
++function createRequestSelector(getState, method, params) {
++    const cacheKey = (0, RequestCache_2.createCacheKey)(method, params);
++    let lastResult = null;
++    let lastData = null;
++    let lastStatus;
++    let lastError = null;
++    return (state) => {
++        const request = getState(state)?.requests?.[cacheKey];
++        const data = request?.data ?? null;
++        const status = request?.status;
++        const error = request?.error ?? null;
++        if (lastResult !== null &&
++            data === lastData &&
++            status === lastStatus &&
++            error === lastError) {
++            return lastResult;
++        }
++        lastData = data;
++        lastStatus = status;
++        lastError = error;
++        lastResult = {
++            data,
++            isFetching: status === RequestCache_1.RequestStatus.LOADING,
++            error,
++        };
++        return lastResult;
++    };
++}
++exports.createRequestSelector = createRequestSelector;
++//# sourceMappingURL=selectors.cjs.map
+\ No newline at end of file
+diff --git a/dist/selectors.cjs.map b/dist/selectors.cjs.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..c464796f6b6eb965193768f70a34633a00d9c506
+--- /dev/null
++++ b/dist/selectors.cjs.map
+@@ -0,0 +1 @@
++{"version":3,"file":"selectors.cjs","sourceRoot":"","sources":["../src/selectors.ts"],"names":[],"mappings":";;;AACA,qDAA+C;AAC/C,qDAAgD;AAWhD;;;;;;;;;;;;;;;;;;;;;;;;;;GA0BG;AACH,SAAgB,qBAAqB,CACnC,QAAqE,EACrE,MAAc,EACd,MAAiB;IAEjB,MAAM,QAAQ,GAAG,IAAA,6BAAc,EAAC,MAAM,EAAE,MAAM,CAAC,CAAC;IAEhD,IAAI,UAAU,GAAwC,IAAI,CAAC;IAC3D,IAAI,QAAQ,GAAiB,IAAI,CAAC;IAClC,IAAI,UAA8B,CAAC;IACnC,IAAI,SAAS,GAAkB,IAAI,CAAC;IAEpC,OAAO,CAAC,KAAiB,EAAgC,EAAE;QACzD,MAAM,OAAO,GAAG,QAAQ,CAAC,KAAK,CAAC,EAAE,QAAQ,EAAE,CAAC,QAAQ,CAAC,CAAC;QACtD,MAAM,IAAI,GAAI,OAAO,EAAE,IAAc,IAAI,IAAI,CAAC;QAC9C,MAAM,MAAM,GAAG,OAAO,EAAE,MAAM,CAAC;QAC/B,MAAM,KAAK,GAAG,OAAO,EAAE,KAAK,IAAI,IAAI,CAAC;QAErC,IACE,UAAU,KAAK,IAAI;YACnB,IAAI,KAAK,QAAQ;YACjB,MAAM,KAAK,UAAU;YACrB,KAAK,KAAK,SAAS,EACnB,CAAC;YACD,OAAO,UAAU,CAAC;QACpB,CAAC;QAED,QAAQ,GAAG,IAAI,CAAC;QAChB,UAAU,GAAG,MAAM,CAAC;QACpB,SAAS,GAAG,KAAK,CAAC;QAClB,UAAU,GAAG;YACX,IAAI;YACJ,UAAU,EAAE,MAAM,KAAK,4BAAa,CAAC,OAAO;YAC5C,KAAK;SACN,CAAC;QAEF,OAAO,UAAU,CAAC;IACpB,CAAC,CAAC;AACJ,CAAC;AAtCD,sDAsCC","sourcesContent":["import type { RampsControllerState } from './RampsController';\nimport { RequestStatus } from './RequestCache';\nimport { createCacheKey } from './RequestCache';\n\n/**\n * Result shape returned by request selectors.\n */\nexport type RequestSelectorResult<TData> = {\n  data: TData | null;\n  isFetching: boolean;\n  error: string | null;\n};\n\n/**\n * Creates a selector for a controller method's request state.\n *\n * The selector is memoized - it returns the same object reference if\n * the underlying values haven't changed, so no need for shallowEqual.\n *\n * @param getState - Function that extracts RampsControllerState from the client's root state.\n * @param method - The controller method name (e.g., 'getCryptoCurrencies').\n * @param params - The parameters passed to the method.\n * @returns A selector function that returns { data, isFetching, error }.\n *\n * @example\n * ```ts\n * const getRampsState = (state: RootState) =>\n *   state.engine.backgroundState.RampsController;\n *\n * export const selectCryptoCurrencies = (region: string) =>\n *   createRequestSelector<RootState, CryptoCurrency[]>(\n *     getRampsState,\n *     'getCryptoCurrencies',\n *     [region],\n *   );\n *\n * // In hook - no shallowEqual needed\n * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));\n * ```\n */\nexport function createRequestSelector<TRootState, TData>(\n  getState: (rootState: TRootState) => RampsControllerState | undefined,\n  method: string,\n  params: unknown[],\n): (state: TRootState) => RequestSelectorResult<TData> {\n  const cacheKey = createCacheKey(method, params);\n\n  let lastResult: RequestSelectorResult<TData> | null = null;\n  let lastData: TData | null = null;\n  let lastStatus: string | undefined;\n  let lastError: string | null = null;\n\n  return (state: TRootState): RequestSelectorResult<TData> => {\n    const request = getState(state)?.requests?.[cacheKey];\n    const data = (request?.data as TData) ?? null;\n    const status = request?.status;\n    const error = request?.error ?? null;\n\n    if (\n      lastResult !== null &&\n      data === lastData &&\n      status === lastStatus &&\n      error === lastError\n    ) {\n      return lastResult;\n    }\n\n    lastData = data;\n    lastStatus = status;\n    lastError = error;\n    lastResult = {\n      data,\n      isFetching: status === RequestStatus.LOADING,\n      error,\n    };\n\n    return lastResult;\n  };\n}\n"]}
+\ No newline at end of file
+diff --git a/dist/selectors.d.cts b/dist/selectors.d.cts
+new file mode 100644
+index 0000000000000000000000000000000000000000..822bab6e3dece8eb156d607e4304736a27f7244a
+--- /dev/null
++++ b/dist/selectors.d.cts
+@@ -0,0 +1,38 @@
++import type { RampsControllerState } from "./RampsController.cjs";
++/**
++ * Result shape returned by request selectors.
++ */
++export type RequestSelectorResult<TData> = {
++    data: TData | null;
++    isFetching: boolean;
++    error: string | null;
++};
++/**
++ * Creates a selector for a controller method's request state.
++ *
++ * The selector is memoized - it returns the same object reference if
++ * the underlying values haven't changed, so no need for shallowEqual.
++ *
++ * @param getState - Function that extracts RampsControllerState from the client's root state.
++ * @param method - The controller method name (e.g., 'getCryptoCurrencies').
++ * @param params - The parameters passed to the method.
++ * @returns A selector function that returns { data, isFetching, error }.
++ *
++ * @example
++ * ```ts
++ * const getRampsState = (state: RootState) =>
++ *   state.engine.backgroundState.RampsController;
++ *
++ * export const selectCryptoCurrencies = (region: string) =>
++ *   createRequestSelector<RootState, CryptoCurrency[]>(
++ *     getRampsState,
++ *     'getCryptoCurrencies',
++ *     [region],
++ *   );
++ *
++ * // In hook - no shallowEqual needed
++ * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));
++ * ```
++ */
++export declare function createRequestSelector<TRootState, TData>(getState: (rootState: TRootState) => RampsControllerState | undefined, method: string, params: unknown[]): (state: TRootState) => RequestSelectorResult<TData>;
++//# sourceMappingURL=selectors.d.cts.map
+\ No newline at end of file
+diff --git a/dist/selectors.d.cts.map b/dist/selectors.d.cts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..a24e0a0bae0c88a967f3085d460988498a9bc7dc
+--- /dev/null
++++ b/dist/selectors.d.cts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"selectors.d.cts","sourceRoot":"","sources":["../src/selectors.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,oBAAoB,EAAE,8BAA0B;AAI9D;;GAEG;AACH,MAAM,MAAM,qBAAqB,CAAC,KAAK,IAAI;IACzC,IAAI,EAAE,KAAK,GAAG,IAAI,CAAC;IACnB,UAAU,EAAE,OAAO,CAAC;IACpB,KAAK,EAAE,MAAM,GAAG,IAAI,CAAC;CACtB,CAAC;AAEF;;;;;;;;;;;;;;;;;;;;;;;;;;GA0BG;AACH,wBAAgB,qBAAqB,CAAC,UAAU,EAAE,KAAK,EACrD,QAAQ,EAAE,CAAC,SAAS,EAAE,UAAU,KAAK,oBAAoB,GAAG,SAAS,EACrE,MAAM,EAAE,MAAM,EACd,MAAM,EAAE,OAAO,EAAE,GAChB,CAAC,KAAK,EAAE,UAAU,KAAK,qBAAqB,CAAC,KAAK,CAAC,CAkCrD"}
+\ No newline at end of file
+diff --git a/dist/selectors.d.mts b/dist/selectors.d.mts
+new file mode 100644
+index 0000000000000000000000000000000000000000..12127a2e21efec6016408aae8d493a348902c823
+--- /dev/null
++++ b/dist/selectors.d.mts
+@@ -0,0 +1,38 @@
++import type { RampsControllerState } from "./RampsController.mjs";
++/**
++ * Result shape returned by request selectors.
++ */
++export type RequestSelectorResult<TData> = {
++    data: TData | null;
++    isFetching: boolean;
++    error: string | null;
++};
++/**
++ * Creates a selector for a controller method's request state.
++ *
++ * The selector is memoized - it returns the same object reference if
++ * the underlying values haven't changed, so no need for shallowEqual.
++ *
++ * @param getState - Function that extracts RampsControllerState from the client's root state.
++ * @param method - The controller method name (e.g., 'getCryptoCurrencies').
++ * @param params - The parameters passed to the method.
++ * @returns A selector function that returns { data, isFetching, error }.
++ *
++ * @example
++ * ```ts
++ * const getRampsState = (state: RootState) =>
++ *   state.engine.backgroundState.RampsController;
++ *
++ * export const selectCryptoCurrencies = (region: string) =>
++ *   createRequestSelector<RootState, CryptoCurrency[]>(
++ *     getRampsState,
++ *     'getCryptoCurrencies',
++ *     [region],
++ *   );
++ *
++ * // In hook - no shallowEqual needed
++ * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));
++ * ```
++ */
++export declare function createRequestSelector<TRootState, TData>(getState: (rootState: TRootState) => RampsControllerState | undefined, method: string, params: unknown[]): (state: TRootState) => RequestSelectorResult<TData>;
++//# sourceMappingURL=selectors.d.mts.map
+\ No newline at end of file
+diff --git a/dist/selectors.d.mts.map b/dist/selectors.d.mts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..c39d773ca5df32968c078e4e3e4087ff354953ea
+--- /dev/null
++++ b/dist/selectors.d.mts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"selectors.d.mts","sourceRoot":"","sources":["../src/selectors.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,oBAAoB,EAAE,8BAA0B;AAI9D;;GAEG;AACH,MAAM,MAAM,qBAAqB,CAAC,KAAK,IAAI;IACzC,IAAI,EAAE,KAAK,GAAG,IAAI,CAAC;IACnB,UAAU,EAAE,OAAO,CAAC;IACpB,KAAK,EAAE,MAAM,GAAG,IAAI,CAAC;CACtB,CAAC;AAEF;;;;;;;;;;;;;;;;;;;;;;;;;;GA0BG;AACH,wBAAgB,qBAAqB,CAAC,UAAU,EAAE,KAAK,EACrD,QAAQ,EAAE,CAAC,SAAS,EAAE,UAAU,KAAK,oBAAoB,GAAG,SAAS,EACrE,MAAM,EAAE,MAAM,EACd,MAAM,EAAE,OAAO,EAAE,GAChB,CAAC,KAAK,EAAE,UAAU,KAAK,qBAAqB,CAAC,KAAK,CAAC,CAkCrD"}
+\ No newline at end of file
+diff --git a/dist/selectors.mjs b/dist/selectors.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..eed4f1ba097e88f89d6879ddb0abea6966a8d39e
+--- /dev/null
++++ b/dist/selectors.mjs
+@@ -0,0 +1,58 @@
++import { RequestStatus } from "./RequestCache.mjs";
++import { createCacheKey } from "./RequestCache.mjs";
++/**
++ * Creates a selector for a controller method's request state.
++ *
++ * The selector is memoized - it returns the same object reference if
++ * the underlying values haven't changed, so no need for shallowEqual.
++ *
++ * @param getState - Function that extracts RampsControllerState from the client's root state.
++ * @param method - The controller method name (e.g., 'getCryptoCurrencies').
++ * @param params - The parameters passed to the method.
++ * @returns A selector function that returns { data, isFetching, error }.
++ *
++ * @example
++ * ```ts
++ * const getRampsState = (state: RootState) =>
++ *   state.engine.backgroundState.RampsController;
++ *
++ * export const selectCryptoCurrencies = (region: string) =>
++ *   createRequestSelector<RootState, CryptoCurrency[]>(
++ *     getRampsState,
++ *     'getCryptoCurrencies',
++ *     [region],
++ *   );
++ *
++ * // In hook - no shallowEqual needed
++ * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));
++ * ```
++ */
++export function createRequestSelector(getState, method, params) {
++    const cacheKey = createCacheKey(method, params);
++    let lastResult = null;
++    let lastData = null;
++    let lastStatus;
++    let lastError = null;
++    return (state) => {
++        const request = getState(state)?.requests?.[cacheKey];
++        const data = request?.data ?? null;
++        const status = request?.status;
++        const error = request?.error ?? null;
++        if (lastResult !== null &&
++            data === lastData &&
++            status === lastStatus &&
++            error === lastError) {
++            return lastResult;
++        }
++        lastData = data;
++        lastStatus = status;
++        lastError = error;
++        lastResult = {
++            data,
++            isFetching: status === RequestStatus.LOADING,
++            error,
++        };
++        return lastResult;
++    };
++}
++//# sourceMappingURL=selectors.mjs.map
+\ No newline at end of file
+diff --git a/dist/selectors.mjs.map b/dist/selectors.mjs.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..cc478f985670342c789926f7e98aaf90b74a6ea4
+--- /dev/null
++++ b/dist/selectors.mjs.map
+@@ -0,0 +1 @@
++{"version":3,"file":"selectors.mjs","sourceRoot":"","sources":["../src/selectors.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,aAAa,EAAE,2BAAuB;AAC/C,OAAO,EAAE,cAAc,EAAE,2BAAuB;AAWhD;;;;;;;;;;;;;;;;;;;;;;;;;;GA0BG;AACH,MAAM,UAAU,qBAAqB,CACnC,QAAqE,EACrE,MAAc,EACd,MAAiB;IAEjB,MAAM,QAAQ,GAAG,cAAc,CAAC,MAAM,EAAE,MAAM,CAAC,CAAC;IAEhD,IAAI,UAAU,GAAwC,IAAI,CAAC;IAC3D,IAAI,QAAQ,GAAiB,IAAI,CAAC;IAClC,IAAI,UAA8B,CAAC;IACnC,IAAI,SAAS,GAAkB,IAAI,CAAC;IAEpC,OAAO,CAAC,KAAiB,EAAgC,EAAE;QACzD,MAAM,OAAO,GAAG,QAAQ,CAAC,KAAK,CAAC,EAAE,QAAQ,EAAE,CAAC,QAAQ,CAAC,CAAC;QACtD,MAAM,IAAI,GAAI,OAAO,EAAE,IAAc,IAAI,IAAI,CAAC;QAC9C,MAAM,MAAM,GAAG,OAAO,EAAE,MAAM,CAAC;QAC/B,MAAM,KAAK,GAAG,OAAO,EAAE,KAAK,IAAI,IAAI,CAAC;QAErC,IACE,UAAU,KAAK,IAAI;YACnB,IAAI,KAAK,QAAQ;YACjB,MAAM,KAAK,UAAU;YACrB,KAAK,KAAK,SAAS,EACnB,CAAC;YACD,OAAO,UAAU,CAAC;QACpB,CAAC;QAED,QAAQ,GAAG,IAAI,CAAC;QAChB,UAAU,GAAG,MAAM,CAAC;QACpB,SAAS,GAAG,KAAK,CAAC;QAClB,UAAU,GAAG;YACX,IAAI;YACJ,UAAU,EAAE,MAAM,KAAK,aAAa,CAAC,OAAO;YAC5C,KAAK;SACN,CAAC;QAEF,OAAO,UAAU,CAAC;IACpB,CAAC,CAAC;AACJ,CAAC","sourcesContent":["import type { RampsControllerState } from './RampsController';\nimport { RequestStatus } from './RequestCache';\nimport { createCacheKey } from './RequestCache';\n\n/**\n * Result shape returned by request selectors.\n */\nexport type RequestSelectorResult<TData> = {\n  data: TData | null;\n  isFetching: boolean;\n  error: string | null;\n};\n\n/**\n * Creates a selector for a controller method's request state.\n *\n * The selector is memoized - it returns the same object reference if\n * the underlying values haven't changed, so no need for shallowEqual.\n *\n * @param getState - Function that extracts RampsControllerState from the client's root state.\n * @param method - The controller method name (e.g., 'getCryptoCurrencies').\n * @param params - The parameters passed to the method.\n * @returns A selector function that returns { data, isFetching, error }.\n *\n * @example\n * ```ts\n * const getRampsState = (state: RootState) =>\n *   state.engine.backgroundState.RampsController;\n *\n * export const selectCryptoCurrencies = (region: string) =>\n *   createRequestSelector<RootState, CryptoCurrency[]>(\n *     getRampsState,\n *     'getCryptoCurrencies',\n *     [region],\n *   );\n *\n * // In hook - no shallowEqual needed\n * const { data, isFetching, error } = useSelector(selectCryptoCurrencies(region));\n * ```\n */\nexport function createRequestSelector<TRootState, TData>(\n  getState: (rootState: TRootState) => RampsControllerState | undefined,\n  method: string,\n  params: unknown[],\n): (state: TRootState) => RequestSelectorResult<TData> {\n  const cacheKey = createCacheKey(method, params);\n\n  let lastResult: RequestSelectorResult<TData> | null = null;\n  let lastData: TData | null = null;\n  let lastStatus: string | undefined;\n  let lastError: string | null = null;\n\n  return (state: TRootState): RequestSelectorResult<TData> => {\n    const request = getState(state)?.requests?.[cacheKey];\n    const data = (request?.data as TData) ?? null;\n    const status = request?.status;\n    const error = request?.error ?? null;\n\n    if (\n      lastResult !== null &&\n      data === lastData &&\n      status === lastStatus &&\n      error === lastError\n    ) {\n      return lastResult;\n    }\n\n    lastData = data;\n    lastStatus = status;\n    lastError = error;\n    lastResult = {\n      data,\n      isFetching: status === RequestStatus.LOADING,\n      error,\n    };\n\n    return lastResult;\n  };\n}\n"]}
 \ No newline at end of file

@@ -8845,12 +8845,12 @@ __metadata:
 
 "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.0.0-9901a7c05a.patch":
   version: 2.0.0
-  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.0.0-9901a7c05a.patch::version=2.0.0&hash=5a3a74"
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.0.0-9901a7c05a.patch::version=2.0.0&hash=7269d0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.16.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/923e03b0ee7022802ae8292ca4b682170bd3a2f1eceab5cf42c348b0fcc5d962f1b9a004e8973085707870a636f54258b91612e011866808c036048c81926dcd
+  checksum: 10/e8004d789a16ef4012cd1bec3a6d6437e453396cc51c537faff2571f51886603e35c942909c194bbb8e9822b03b94236fde3ff278b8b708892c74060aecca97c
   languageName: node
   linkType: hard
 
