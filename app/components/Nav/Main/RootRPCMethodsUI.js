@@ -110,6 +110,15 @@ const RootRPCMethodsUI = (props) => {
           [ExtendedKeyringTypes.ledger],
         );
 
+        const isQRAccount = isHardwareAccount(transactionMeta.txParams.from, [
+          ExtendedKeyringTypes.qr,
+        ]);
+
+        // Only auto-sign for Ledger or QR accounts
+        if (!isLedgerAccount && !isQRAccount) {
+          return;
+        }
+
         // As the `TransactionController:unapprovedTransactionAdded` event is emitted
         // before the approval request is added to `ApprovalController`, we need to wait
         // for the next tick to make sure the approval request is present when auto-approve it
