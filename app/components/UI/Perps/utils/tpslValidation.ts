@@ -93,16 +93,17 @@ export const hasExceededSignificantFigures = (
 
 /**
  * Rounds a price string to the maximum allowed significant figures
- * This ensures preset calculations don't exceed the 5 significant figures limit
+ * Uses the same counting logic as countSignificantFigures:
+ * - Count non-zero integer digits + ALL decimal digits (including leading zeros)
  *
  * @param priceString - The price value as a string
  * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
  * @returns Price string rounded to max significant figures
  *
  * @example
- * roundToSignificantFigures('123.456') // '123.46' (5 sig figs)
- * roundToSignificantFigures('12345.67') // '12346' (5 sig figs)
- * roundToSignificantFigures('0.000123456') // '0.00012346' (5 sig figs in decimal)
+ * roundToSignificantFigures('123.456') // '123.46' (3 int + 2 dec = 5)
+ * roundToSignificantFigures('0.065242') // '0.06524' (0 int + 5 dec = 5)
+ * roundToSignificantFigures('12345.67') // '12346' (5 int + 0 dec = 5)
  */
 export const roundToSignificantFigures = (
   priceString: string,
@@ -110,15 +111,38 @@ export const roundToSignificantFigures = (
 ): string => {
   if (!priceString || priceString.trim() === '') return priceString;
 
-  const cleaned = priceString.replaceAll(/[$,]/g, '').trim();
+  const cleaned = priceString.replace(/[$,]/g, '').trim();
   const num = Number.parseFloat(cleaned);
   if (Number.isNaN(num) || num === 0) return priceString;
 
-  // Use toPrecision for rounding to significant figures
-  const rounded = Number.parseFloat(num.toPrecision(maxSigFigs));
+  // Normalize to remove trailing zeros
+  const normalized = num.toString();
+  const [integerPart, decimalPart = ''] = normalized.split('.');
 
-  // Return as string, removing unnecessary trailing zeros
-  return rounded.toString();
+  // Count integer significant digits (without leading zeros)
+  const trimmedInteger = integerPart.replace(/^-?0+/, '') || '';
+  const integerSigFigs = trimmedInteger.length;
+
+  // If no decimal, return as is (integers are fine)
+  if (!decimalPart) return normalized;
+
+  // Calculate how many decimal digits we can keep
+  const allowedDecimalDigits = maxSigFigs - integerSigFigs;
+
+  if (allowedDecimalDigits <= 0) {
+    // Round to integer
+    return Math.round(num).toString();
+  }
+
+  if (decimalPart.length <= allowedDecimalDigits) {
+    // Already within limit
+    return normalized;
+  }
+
+  // Round to the allowed number of decimal places
+  const rounded = num.toFixed(allowedDecimalDigits);
+  // Remove trailing zeros
+  return Number.parseFloat(rounded).toString();
 };
 
 interface ValidationParams {
