@@ -3,16 +3,6 @@ import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
-export const SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION =
-  'SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION';
-
-/**
- * Seedless onboarding migration versions.
- * - DataType (1): Assigns PrimarySrp/ImportedSrp/ImportedPrivateKey to legacy secrets
- */
-export enum SeedlessOnboardingMigrationVersion {
-  DataType = 1,
-}
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -28,16 +18,10 @@ export interface SetCompletedOnboardingAction {
   completedOnboarding: boolean;
 }
 
-export interface SetSeedlessOnboardingMigrationVersionAction {
-  type: typeof SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION;
-  version: number;
-}
-
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
-  | SetCompletedOnboardingAction
-  | SetSeedlessOnboardingMigrationVersionAction;
+  | SetCompletedOnboardingAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -60,14 +44,5 @@ export function setCompletedOnboarding(
   return {
     type: SET_COMPLETED_ONBOARDING,
     completedOnboarding,
-  };
-}
-
-export function setSeedlessOnboardingMigrationVersion(
-  version: number,
-): SetSeedlessOnboardingMigrationVersionAction {
-  return {
-    type: SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
-    version,
   };
 }

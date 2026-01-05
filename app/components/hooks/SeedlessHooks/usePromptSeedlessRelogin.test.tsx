@@ -9,10 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import storageWrapper from '../../../store/storage-wrapper';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { clearHistory } from '../../../actions/browser';
-import {
-  setCompletedOnboarding,
-  setSeedlessOnboardingMigrationVersion,
-} from '../../../actions/onboarding';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 // Mock dependencies
 jest.mock('../useMetrics');
@@ -54,10 +51,6 @@ const mockClearHistory = clearHistory as jest.MockedFunction<
 >;
 const mockSetCompletedOnboarding =
   setCompletedOnboarding as jest.MockedFunction<typeof setCompletedOnboarding>;
-const mockSetSeedlessOnboardingMigrationVersion =
-  setSeedlessOnboardingMigrationVersion as jest.MockedFunction<
-    typeof setSeedlessOnboardingMigrationVersion
-  >;
 
 describe('usePromptSeedlessRelogin', () => {
   const mockStore = configureMockStore([thunk]);
@@ -112,10 +105,6 @@ describe('usePromptSeedlessRelogin', () => {
     mockSetCompletedOnboarding.mockReturnValue({
       type: 'SET_COMPLETED_ONBOARDING',
       completedOnboarding: expect.any(Boolean),
-    });
-    mockSetSeedlessOnboardingMigrationVersion.mockReturnValue({
-      type: 'SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION',
-      version: 0,
     });
   });
 
@@ -230,7 +219,6 @@ describe('usePromptSeedlessRelogin', () => {
         OPTIN_META_METRICS_UI_SEEN,
       );
       expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(false);
-      expect(mockSetSeedlessOnboardingMigrationVersion).toHaveBeenCalledWith(0);
     });
 
     it('navigates to onboarding root after deletion flow', async () => {
@@ -302,10 +290,6 @@ describe('usePromptSeedlessRelogin', () => {
         {
           type: 'SET_COMPLETED_ONBOARDING',
           completedOnboarding: expect.any(Boolean),
-        },
-        {
-          type: 'SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION',
-          version: 0,
         },
       ]);
     });

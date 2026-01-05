@@ -60,17 +60,11 @@ import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
   EncAccountDataType,
+  SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import {
-  selectCompletedOnboarding,
-  selectSeedlessOnboardingMigrationVersion,
-} from '../../selectors/onboarding';
-import {
-  setSeedlessOnboardingMigrationVersion,
-  SeedlessOnboardingMigrationVersion,
-} from '../../actions/onboarding';
+import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -855,10 +849,8 @@ class AuthenticationService {
 
       // New users already have dataType set on their secrets during creation,
       // so we mark the migration as complete to prevent it from running
-      ReduxService.store.dispatch(
-        setSeedlessOnboardingMigrationVersion(
-          SeedlessOnboardingMigrationVersion.DataType,
-        ),
+      SeedlessOnboardingController.setMigrationVersion(
+        SeedlessOnboardingMigrationVersion.DataType,
       );
 
       this.dispatchOauthReset();
@@ -1342,90 +1334,18 @@ class AuthenticationService {
   runSeedlessOnboardingMigrations = async ({
     skipOnboardingCheck = false,
   } = {}): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
     const state = ReduxService.store.getState();
-    const seedlessOnboardingMigrationVersion =
-      selectSeedlessOnboardingMigrationVersion(state);
     const completedOnboarding = selectCompletedOnboarding(state);
 
     if (!skipOnboardingCheck && !completedOnboarding) {
       return;
     }
 
-    if (
-      seedlessOnboardingMigrationVersion <
-      SeedlessOnboardingMigrationVersion.DataType
-    ) {
-      await this.migrateSeedlessDataTypes();
-    }
-  };
-
-  /**
-   * Assigns dataType to legacy secrets without one.
-   */
-  private migrateSeedlessDataTypes = async (): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
-
     try {
-      const secretDatas =
-        await SeedlessOnboardingController.fetchAllSecretData();
-
-      if (!secretDatas || secretDatas.length === 0) {
-        ReduxService.store.dispatch(
-          setSeedlessOnboardingMigrationVersion(
-            SeedlessOnboardingMigrationVersion.DataType,
-          ),
-        );
-        return;
-      }
-
-      let hasPrimarySrp = secretDatas.some(
-        (secret) => secret.dataType === EncAccountDataType.PrimarySrp,
-      );
-
-      const updates: { itemId: string; dataType: EncAccountDataType }[] = [];
-
-      for (const secret of secretDatas) {
-        if (!secret.itemId) {
-          continue;
-        }
-
-        if (secret.dataType !== undefined && secret.dataType !== null) {
-          continue;
-        }
-
-        let dataType: EncAccountDataType;
-
-        if (secret.type === SecretType.Mnemonic) {
-          if (hasPrimarySrp) {
-            dataType = EncAccountDataType.ImportedSrp;
-          } else {
-            dataType = EncAccountDataType.PrimarySrp;
-            hasPrimarySrp = true;
-          }
-        } else if (secret.type === SecretType.PrivateKey) {
-          dataType = EncAccountDataType.ImportedPrivateKey;
-        } else {
-          continue;
-        }
-
-        updates.push({ itemId: secret.itemId, dataType });
-      }
-
-      if (updates.length === 1) {
-        await SeedlessOnboardingController.updateSecretDataItem(updates[0]);
-      } else if (updates.length > 1) {
-        await SeedlessOnboardingController.batchUpdateSecretDataItems({
-          updates,
-        });
-      }
-
-      ReduxService.store.dispatch(
-        setSeedlessOnboardingMigrationVersion(
-          SeedlessOnboardingMigrationVersion.DataType,
-        ),
-      );
+      await SeedlessOnboardingController.runMigrations();
     } catch (error) {
-      Logger.error(error as Error, 'Error during seedless dataType migration');
+      Logger.error(error as Error, 'Error during seedless migrations');
     }
   };
 }

@@ -2,12 +2,9 @@ import {
   saveOnboardingEvent,
   clearOnboardingEvents,
   setCompletedOnboarding,
-  setSeedlessOnboardingMigrationVersion,
   SAVE_EVENT,
   CLEAR_EVENTS,
   SET_COMPLETED_ONBOARDING,
-  SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
-  SeedlessOnboardingMigrationVersion,
 } from '.';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 
@@ -38,16 +35,6 @@ describe('Onboarding actions', () => {
       expect(setCompletedOnboarding(completedOnboarding)).toEqual({
         type: SET_COMPLETED_ONBOARDING,
         completedOnboarding,
-      });
-    });
-  });
-
-  describe('setSeedlessOnboardingMigrationVersion', () => {
-    it('creates an action to set seedless onboarding migration version', () => {
-      const version = SeedlessOnboardingMigrationVersion.DataType;
-      expect(setSeedlessOnboardingMigrationVersion(version)).toEqual({
-        type: SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
-        version,
       });
     });
   });
