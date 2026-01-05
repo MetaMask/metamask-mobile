@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -51,6 +51,10 @@ export function useRampsGeolocation(): UseRampsGeolocationResult {
     () => Engine.context.RampsController.updateGeolocation(),
     [],
   );
+
+  useEffect(() => {
+    fetchGeolocation();
+  }, [fetchGeolocation]);
 
   return {
     geolocation,
