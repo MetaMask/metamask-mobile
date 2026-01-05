@@ -48,17 +48,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       borderRadius: 20,
     },
-    amountHighlighted: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-      backgroundColor: colors.primary.muted,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      borderRadius: 20,
-    },
   });
 
 interface AmountProps {
