@@ -210,7 +210,7 @@ describe('PerpsMarketTradesList', () => {
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
-      expect(screen.queryByText('See all')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('see-all-button')).not.toBeOnTheScreen();
     });
   });
 
@@ -237,7 +237,7 @@ describe('PerpsMarketTradesList', () => {
       expect(screen.getByText('Recent activity')).toBeOnTheScreen();
     });
 
-    it('does not render See all button when empty', () => {
+    it('renders See all button when empty', () => {
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
         isInitialLoading: false,
@@ -245,7 +245,7 @@ describe('PerpsMarketTradesList', () => {
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
-      expect(screen.queryByText('See all')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('see-all-button')).toBeOnTheScreen();
     });
   });
 
@@ -272,7 +272,7 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       expect(screen.getByText('Recent activity')).toBeOnTheScreen();
-      expect(screen.getByText('See all')).toBeOnTheScreen();
+      expect(screen.getByTestId('see-all-button')).toBeOnTheScreen();
     });
 
     it('renders trade subtitles correctly', () => {
@@ -347,7 +347,7 @@ describe('PerpsMarketTradesList', () => {
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
-      const seeAllButton = screen.getByText('See all');
+      const seeAllButton = screen.getByTestId('see-all-button');
       fireEvent.press(seeAllButton);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);

@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
-import { Alert, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,7 +19,6 @@ import {
   selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
@@ -28,7 +27,6 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
@@ -46,14 +44,21 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
+const styles = StyleSheet.create({
+  stakeButton: {
+    flexDirection: 'row',
+  },
+  dot: {
+    marginLeft: 2,
+    marginRight: 2,
+  },
+});
 interface StakeButtonProps {
   asset: TokenI;
 }
 
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
@@ -87,10 +92,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
-  const { isConversionToken, isMusdSupportedOnChain } =
-    useMusdConversionTokens();
+  const { initiateConversion } = useMusdConversion();
+  const { isConversionToken, getMusdOutputChainId } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -224,33 +227,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
       const assetChainId = toHex(asset.chainId);
 
-      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
-
-      if (!isSupportedChain) {
-        throw new Error('Chain is not supported for mUSD conversion');
-      }
-
-      const config = {
-        outputChainId: assetChainId,
+      await initiateConversion({
+        outputChainId: getMusdOutputChainId(assetChainId),
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: assetChainId,
         },
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -265,14 +249,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset.address,
-    asset.chainId,
-    hasSeenConversionEducationScreen,
-    initiateConversion,
-    isMusdSupportedOnChain,
-    navigation,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion, getMusdOutputChainId]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {
