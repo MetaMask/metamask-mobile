@@ -12,6 +12,7 @@ import { Alert } from 'react-native';
 // Mock dependencies
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 const mockImportAccountFromPrivateKey = jest.fn();
@@ -23,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      setOptions: mockSetOptions,
     }),
   };
 });
@@ -126,17 +128,22 @@ describe('ImportPrivateKey', () => {
 
   it('calls dismiss function when close button is pressed', () => {
     // Arrange
-    const { getByTestId } = renderScreen(
+    renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
     );
 
-    // Act
-    const closeButton = getByTestId(
-      ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
-    );
-    fireEvent.press(closeButton);
+    // Assert that setOptions was called
+    expect(mockSetOptions).toHaveBeenCalled();
+
+    // Get the navigation options passed to setOptions
+    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+
+    // Act - Simulate pressing the back button by calling the headerLeft component's onPress
+    const headerLeftComponent = setOptionsCall.headerLeft();
+    const backButtonProps = headerLeftComponent.props;
+    backButtonProps.onPress();
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
