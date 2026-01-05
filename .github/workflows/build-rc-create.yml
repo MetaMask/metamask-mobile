@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - generate-build-version
+    outputs:
+      commit-hash: ${{ steps.bump-script.outputs.commit-hash }}
     steps:
       - uses: actions/checkout@v3
         with:

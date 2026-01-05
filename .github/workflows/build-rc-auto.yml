@@ -81,6 +81,8 @@ jobs:
       - validate-and-check-label
       - generate-build-version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
+    outputs:
+      commit-hash: ${{ steps.bump-script.outputs.commit-hash }}
     steps:
       - uses: actions/checkout@v3
         with:
