@@ -515,7 +515,7 @@ describe('StakeButton', () => {
         },
       );
 
-      expect(getByText('Convert')).toBeDefined();
+      expect(getByText('Convert to mUSD')).toBeDefined();
     });
 
     it('calls initiateConversion with correct parameters when Convert button pressed', async () => {

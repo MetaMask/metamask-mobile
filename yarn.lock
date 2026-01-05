@@ -9888,10 +9888,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.16.0":
-  version: 1.16.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.16.0"
-  checksum: 10/86be8ef0b7258b8375b9ab43eb4a8f55018f02a226a3784b727a25c03c249afa75e9adacecbf72f982dbf720db4107882a1b8304634bc5dad25ce2db760beff0
+"@metamask/tron-wallet-snap@npm:^1.17.0":
+  version: 1.17.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.17.0"
+  checksum: 10/b7ec689ed01d55342a12dc25cb9da7bd03e2d8df65a52e15c11a2e69842339d57cf7ea30d66ebff1e902d6dd43dff5cf7b559a4b6a5c3d1b910fb1f64192b549
   languageName: node
   linkType: hard
 
@@ -35987,7 +35987,7 @@ __metadata:
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.6.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
     "@metamask/transaction-pay-controller": "npm:^10.5.0"
-    "@metamask/tron-wallet-snap": "npm:^1.16.0"
+    "@metamask/tron-wallet-snap": "npm:^1.17.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.27.1"
