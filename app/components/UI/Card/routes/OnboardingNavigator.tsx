@@ -9,7 +9,7 @@ import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
 import SetPhoneNumber from '../components/Onboarding/SetPhoneNumber';
 import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
-import ValidatingKYC from '../components/Onboarding/ValidatingKYC';
+import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
@@ -246,18 +246,13 @@ const OnboardingNavigator: React.FC = () => {
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
-        component={ValidatingKYC}
-        options={KYCStatusNavigationOptions}
+        name={Routes.CARD.ONBOARDING.WEBVIEW}
+        component={KYCWebview}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.COMPLETE}
-        component={Complete}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.KYC_FAILED}
-        component={KYCFailed}
+        name={Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC}
+        component={VerifyingVeriffKYC}
         options={KYCStatusNavigationOptions}
       />
       <Stack.Screen
@@ -276,9 +271,14 @@ const OnboardingNavigator: React.FC = () => {
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.WEBVIEW}
-        component={KYCWebview}
-        options={PostEmailNavigationOptions}
+        name={Routes.CARD.ONBOARDING.COMPLETE}
+        component={Complete}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_FAILED}
+        component={KYCFailed}
+        options={KYCStatusNavigationOptions}
       />
     </Stack.Navigator>
   );

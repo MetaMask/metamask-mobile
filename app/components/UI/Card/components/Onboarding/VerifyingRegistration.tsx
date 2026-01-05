@@ -9,7 +9,7 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ActivityIndicator, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { useCardSDK } from '../../sdk';
@@ -20,6 +20,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
@@ -33,6 +34,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import MM_CARD_KYC_PENDING from '../../../../../images/mm-card-KYC-pending.png';
 
 const POLLING_INTERVAL = 3000; // 3 seconds
 const TIMEOUT_DURATION = 30000; // 30 seconds
@@ -47,6 +49,7 @@ type VerificationStep =
 const VerifyingRegistration = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { sdk, setUser } = useCardSDK();
   const [step, setStep] = useState<VerificationStep>('polling');
@@ -88,7 +91,12 @@ const VerifyingRegistration = () => {
     );
 
     try {
-      navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+      // Navigate to the Complete screen within the OnboardingNavigator
+      navigation.dispatch(
+        StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
+          screen: Routes.CARD.ONBOARDING.COMPLETE,
+        }),
+      );
     } catch (error) {
       Logger.log('VerifyingRegistration::handleContinue error', error);
     } finally {
@@ -201,6 +209,17 @@ const VerifyingRegistration = () => {
     };
   }, [startPolling, dispatch]);
 
+  // Navigate to KYC_FAILED when rejected
+  useEffect(() => {
+    if (step === 'rejected') {
+      navigation.dispatch(
+        StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
+          screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+        }),
+      );
+    }
+  }, [step, navigation]);
+
   const headerRight = useMemo(
     () =>
       step !== 'polling' && step !== 'verified'
@@ -228,7 +247,23 @@ const VerifyingRegistration = () => {
   const renderFormFields = () => {
     switch (step) {
       case 'verified':
-        return null; // Description will show the success message
+        return (
+          <>
+            <Box twClassName="flex flex-1 items-center justify-center">
+              <Image
+                source={MM_CARD_KYC_PENDING}
+                resizeMode="contain"
+                style={tw.style('w-full h-full')}
+              />
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-center text-text-alternative"
+            >
+              {strings('card.card_onboarding.validating_kyc.terms')}
+            </Text>
+          </>
+        );
 
       case 'error':
         return (
@@ -271,37 +306,83 @@ const VerifyingRegistration = () => {
 
       case 'polling':
         return (
-          <Box twClassName="items-center justify-center py-8">
-            <ActivityIndicator size="large" />
-          </Box>
+          <>
+            <Box twClassName="flex flex-1 items-center justify-center">
+              <Image
+                source={MM_CARD_KYC_PENDING}
+                resizeMode="contain"
+                style={tw.style('w-full h-full')}
+              />
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-center text-text-alternative"
+            >
+              {strings('card.card_onboarding.validating_kyc.terms')}
+            </Text>
+          </>
         );
 
       case 'timeout':
-        return null;
+        return (
+          <>
+            <Box twClassName="flex flex-1 items-center justify-center">
+              <Image
+                source={MM_CARD_KYC_PENDING}
+                resizeMode="contain"
+                style={tw.style('w-full h-full')}
+              />
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-center text-text-alternative"
+            >
+              {strings('card.card_onboarding.validating_kyc.terms')}
+            </Text>
+          </>
+        );
 
       default:
         return null;
     }
   };
 
+  const handleCloseToHome = useCallback(() => {
+    navigation.navigate(Routes.WALLET.HOME);
+  }, [navigation]);
+
   const renderActions = () => {
-    if (step === 'verified') {
-      return (
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings(
-            'card.card_onboarding.verifying_registration.continue_button',
-          )}
-          size={ButtonSize.Lg}
-          onPress={handleContinue}
-          disabled={isHandlingContinue}
-          loading={isHandlingContinue}
-          width={ButtonWidthTypes.Full}
-          testID="verifying-registration-continue-button"
-        />
-      );
+    switch (step) {
+      case 'verified':
+        return (
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings(
+              'card.card_onboarding.verifying_registration.continue_button',
+            )}
+            size={ButtonSize.Lg}
+            onPress={handleContinue}
+            disabled={isHandlingContinue}
+            loading={isHandlingContinue}
+            width={ButtonWidthTypes.Full}
+            testID="verifying-registration-continue-button"
+          />
+        );
+      case 'polling':
+      case 'timeout':
+        return (
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('card.card_onboarding.close_button')}
+            size={ButtonSize.Lg}
+            onPress={handleCloseToHome}
+            width={ButtonWidthTypes.Full}
+            testID="verifying-registration-close-button"
+          />
+        );
+      default:
+        return null;
     }
-    return null;
   };
 
   const getTitle = () => {

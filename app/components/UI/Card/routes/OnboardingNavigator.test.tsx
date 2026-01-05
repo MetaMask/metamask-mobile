@@ -89,7 +89,10 @@ jest.mock(
   () => 'ConfirmPhoneNumber',
 );
 jest.mock('../components/Onboarding/VerifyIdentity', () => 'VerifyIdentity');
-jest.mock('../components/Onboarding/ValidatingKYC', () => 'ValidatingKYC');
+jest.mock(
+  '../components/Onboarding/VerifyingVeriffKYC',
+  () => 'VerifyingVeriffKYC',
+);
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
@@ -157,7 +160,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       SET_PHONE_NUMBER: 'SET_PHONE_NUMBER',
       CONFIRM_PHONE_NUMBER: 'CONFIRM_PHONE_NUMBER',
       VERIFY_IDENTITY: 'VERIFY_IDENTITY',
-      VALIDATING_KYC: 'VALIDATING_KYC',
+      VERIFYING_VERIFF_KYC: 'VERIFYING_VERIFF_KYC',
       KYC_FAILED: 'KYC_FAILED',
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',

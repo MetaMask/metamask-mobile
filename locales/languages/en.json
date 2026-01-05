@@ -6575,6 +6575,11 @@
         "timeout_button": "Restart verification",
         "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
       },
+      "verifying_veriff_kyc": {
+        "title": "Verifying your identity",
+        "description": "Please wait while we verify your identity.",
+        "helper_text": "This usually takes a few seconds. Please don't close the app."
+      },
       "verifying_registration": {
         "title": "Verifying your identity",
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
