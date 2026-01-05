@@ -212,14 +212,7 @@ const OptinMetrics = () => {
    */
   const onPressLink = useCallback(
     (linkParams: { url: string; title: string }) => {
-      (
-        navigation as unknown as {
-          navigate: (
-            screen: string,
-            params: { screen: string; params: { url: string; title: string } },
-          ) => void;
-        }
-      ).navigate('Webview', {
+      navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: linkParams,
       });
