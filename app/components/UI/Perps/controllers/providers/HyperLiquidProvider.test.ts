@@ -1880,8 +1880,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with default timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1899,8 +1901,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with custom timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1932,8 +1936,10 @@ describe('HyperLiquidProvider', () => {
               ),
           );
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1949,8 +1955,10 @@ describe('HyperLiquidProvider', () => {
           .fn()
           .mockRejectedValue(new Error('WebSocket closed'));
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
