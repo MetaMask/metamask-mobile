@@ -42,6 +42,11 @@ import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { toHex } from '@metamask/controller-utils';
+import Logger from '../../../../../util/Logger';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -115,7 +120,10 @@ export const TokenListItem = React.memo(
       selectIsMusdConversionFlowEnabledFlag,
     );
 
-    const { isConversionToken } = useMusdConversionTokens();
+    const { isConversionToken, getMusdOutputChainId } =
+      useMusdConversionTokens();
+
+    const { initiateConversion } = useMusdConversion();
 
     const isConvertibleStablecoin =
       isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -132,7 +140,9 @@ export const TokenListItem = React.memo(
 
     // Determine the color for percentage change
     let percentageColor = TextColor.Alternative;
-    if (hasPercentageChange) {
+    if (isConvertibleStablecoin) {
+      percentageColor = TextColor.Primary;
+    } else if (hasPercentageChange) {
       if (pricePercentChange1d === 0) {
         percentageColor = TextColor.Alternative;
       } else if (pricePercentChange1d > 0) {
@@ -142,11 +152,30 @@ export const TokenListItem = React.memo(
       }
     }
 
-    const percentageText = hasPercentageChange
-      ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+    const secondaryBalance = useMemo(() => {
+      if (isConvertibleStablecoin && Number(asset?.balance) > 0) {
+        return strings('earn.musd_conversion.convert_to_musd');
+      }
+
+      if (hasPercentageChange) {
+        return `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
           2,
-        )}%`
-      : undefined;
+        )}%`;
+      }
+
+      const percentageText = hasPercentageChange
+        ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+            2,
+          )}%`
+        : undefined;
+
+      return percentageText;
+    }, [
+      asset?.balance,
+      hasPercentageChange,
+      isConvertibleStablecoin,
+      pricePercentChange1d,
+    ]);
 
     const earnToken = getEarnToken(asset as TokenI);
 
@@ -177,7 +206,8 @@ export const TokenListItem = React.memo(
     );
 
     const renderEarnCta = useCallback(() => {
-      if (!asset) {
+      // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
+      if (!asset || isConvertibleStablecoin) {
         return null;
       }
 
@@ -186,13 +216,7 @@ export const TokenListItem = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
-      if (
-        shouldShowStakeCta ||
-        shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
-      ) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
@@ -203,6 +227,43 @@ export const TokenListItem = React.memo(
       isStablecoinLendingEnabled,
       isStakeable,
     ]);
+
+    const handleConvertToMUSD = useCallback(async () => {
+      try {
+        if (!asset?.address || !asset?.chainId) {
+          throw new Error('Asset address or chain ID is not set');
+        }
+
+        const assetChainId = toHex(asset.chainId);
+
+        await initiateConversion({
+          outputChainId: getMusdOutputChainId(assetChainId),
+          preferredPaymentToken: {
+            address: toHex(asset.address),
+            chainId: assetChainId,
+          },
+          navigationStack: Routes.EARN.ROOT,
+        });
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[mUSD Conversion] Failed to initiate conversion',
+        );
+      }
+    }, [
+      asset?.address,
+      asset?.chainId,
+      getMusdOutputChainId,
+      initiateConversion,
+    ]);
+
+    const handleSecondaryBalancePress = useCallback(() => {
+      if (isConvertibleStablecoin) {
+        handleConvertToMUSD();
+      }
+
+      return undefined;
+    }, [handleConvertToMUSD, isConvertibleStablecoin]);
 
     if (!asset || !chainId) {
       return null;
@@ -218,10 +279,13 @@ export const TokenListItem = React.memo(
         onLongPress={asset.isNative ? null : showRemoveMenu}
         asset={asset}
         balance={asset.balanceFiat}
-        secondaryBalance={percentageText}
+        secondaryBalance={secondaryBalance}
         secondaryBalanceColor={percentageColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
+        onSecondaryBalancePress={
+          isConvertibleStablecoin ? handleSecondaryBalancePress : undefined
+        }
       >
         <BadgeWrapper
           style={styles.badge}
