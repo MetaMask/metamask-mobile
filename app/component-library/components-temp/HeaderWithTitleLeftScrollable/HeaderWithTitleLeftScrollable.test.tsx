@@ -4,6 +4,9 @@ import { render, renderHook } from '@testing-library/react-native';
 import { useSharedValue, SharedValue } from 'react-native-reanimated';
 import { Text } from 'react-native';
 
+// External dependencies.
+import { IconName } from '@metamask/design-system-react-native';
+
 // Internal dependencies.
 import HeaderWithTitleLeftScrollable from './HeaderWithTitleLeftScrollable';
 import useHeaderWithTitleLeftScrollable from './useHeaderWithTitleLeftScrollable';
@@ -21,6 +24,11 @@ jest.mock('react-native-reanimated', () => {
   Reanimated.Extrapolation = { CLAMP: 'clamp' };
   return Reanimated;
 });
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
 
 // Test wrapper component that provides scrollY
 const TestWrapper: React.FC<{
@@ -103,6 +111,103 @@ describe('HeaderWithTitleLeftScrollable', () => {
       );
 
       expect(getByTestId('test-back-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('close button', () => {
+    it('renders close button when onClose provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              onClose={jest.fn()}
+              closeButtonProps={{ testID: 'test-close-button' }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-close-button')).toBeOnTheScreen();
+    });
+
+    it('renders close button when closeButtonProps provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              closeButtonProps={{
+                onPress: jest.fn(),
+                testID: 'test-close-button',
+              }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-close-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('endButtonIconProps', () => {
+    it('renders endButtonIconProps', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              endButtonIconProps={[
+                {
+                  iconName: IconName.Close,
+                  onPress: jest.fn(),
+                  testID: 'end-button',
+                },
+              ]}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('end-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('isInsideSafeAreaView', () => {
+    it('renders with isInsideSafeAreaView false by default', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-container')).toBeOnTheScreen();
+    });
+
+    it('renders with isInsideSafeAreaView true', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              isInsideSafeAreaView
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-container')).toBeOnTheScreen();
     });
   });
 
