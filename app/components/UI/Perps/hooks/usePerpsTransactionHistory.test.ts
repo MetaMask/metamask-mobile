@@ -1411,7 +1411,7 @@ describe('usePerpsTransactionHistory', () => {
       ]);
 
       // Trigger a rerender to update the hook with new user history
-      rerender();
+      rerender({});
 
       // Wait for the rebuild effect to run
       await act(async () => {
