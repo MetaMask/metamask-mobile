@@ -1349,6 +1349,89 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.transactions).toEqual([]);
     });
 
+    it('rebuilds transactions when user history arrives after initial fetch completes', async () => {
+      // This tests the race condition fix where:
+      // 1. Initial fetch completes with fills/funding/orders
+      // 2. User history loads later (async from useUserHistory hook)
+      // 3. Transactions should be rebuilt to include deposits/withdrawals
+
+      const depositTransaction = {
+        id: 'deposit-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposit',
+        subtitle: '1000 USDC',
+        timestamp: 1640995210000,
+        asset: 'USDC',
+      };
+
+      // Start with empty user history (simulating async loading)
+      let currentUserHistory: typeof mockUserHistory = [];
+      mockUseUserHistory.mockImplementation(() => ({
+        userHistory: currentUserHistory,
+        isLoading: currentUserHistory.length === 0,
+        error: null,
+        refetch: jest.fn().mockResolvedValue(mockUserHistory),
+      }));
+
+      // Transform functions return based on userHistoryRef state
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+
+      const { result, rerender } = renderHook(() =>
+        usePerpsTransactionHistory(),
+      );
+
+      // Wait for Phase 1 + Phase 2 to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      await waitFor(() => {
+        expect(result.current.ordersLoaded).toBe(true);
+      });
+
+      // At this point, transactions should NOT include deposits/withdrawals
+      // because user history was empty during the fetch
+      expect(
+        result.current.transactions.some((tx) => tx.type === 'deposit'),
+      ).toBe(false);
+
+      // Now simulate user history arriving later
+      currentUserHistory = mockUserHistory;
+      mockUseUserHistory.mockImplementation(() => ({
+        userHistory: currentUserHistory,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn().mockResolvedValue(mockUserHistory),
+      }));
+
+      // Mock transform to return deposit transaction when user history is populated
+      mockTransformUserHistoryToTransactions.mockReturnValue([
+        depositTransaction,
+      ]);
+
+      // Trigger a rerender to update the hook with new user history
+      rerender();
+
+      // Wait for the rebuild effect to run
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Now transactions should include the deposit from user history
+      await waitFor(() => {
+        expect(
+          result.current.transactions.some((tx) => tx.type === 'deposit'),
+        ).toBe(true);
+      });
+
+      // Verify the deposit transaction is present
+      const depositTx = result.current.transactions.find(
+        (tx) => tx.type === 'deposit',
+      );
+      expect(depositTx?.id).toBe('deposit-1');
+    });
+
     it('handles large transaction list', async () => {
       const manyTransactions = Array.from({ length: 500 }, (_, i) => ({
         id: `tx-${i}`,

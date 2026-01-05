@@ -77,6 +77,7 @@ export const usePerpsTransactionHistory = ({
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
 
+  // Keep userHistoryRef in sync (used by buildTransactions)
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
@@ -137,6 +138,33 @@ export const usePerpsTransactionHistory = ({
     },
     [],
   );
+
+  // Rebuild transactions when userHistory changes after initial fetch
+  // This fixes the race condition where fetchTransactions completes before
+  // useUserHistory has loaded, causing deposits/withdrawals to be missing
+  useEffect(() => {
+    // Rebuild transactions if:
+    // 1. userHistory has data (not initial empty state)
+    // 2. fills have been fetched (fetchTransactions has run)
+    // 3. Not currently loading (avoid conflicts with in-progress fetch)
+    const hasUserHistory = userHistory.length > 0;
+    const hasFetchedFills = fillsRef.current.length > 0;
+
+    if (hasUserHistory && hasFetchedFills && !isLoading) {
+      DevLogger.log('Rebuilding transactions with updated user history', {
+        userHistoryCount: userHistory.length,
+        fillsCount: fillsRef.current.length,
+      });
+
+      const rebuiltTransactions = buildTransactions(
+        fillsRef.current,
+        ordersRef.current,
+        fundingRef.current,
+        ordersLoaded,
+      );
+      setTransactions(rebuiltTransactions);
+    }
+  }, [userHistory, buildTransactions, ordersLoaded, isLoading]);
 
   /**
    * Main fetch function with progressive rendering
