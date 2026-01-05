@@ -5,7 +5,6 @@ import {
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import Icon from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
@@ -121,7 +120,7 @@ const Price = ({
             )}
           </Text>
         )}
-        <Text>
+        <Text allowFontScaling={false}>
           {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
@@ -136,40 +135,25 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <View style={styles.priceDiffContainer}>
+            <Text
+              style={styles.priceDiff}
+              variant={TextVariant.BodyMDMedium}
+              allowFontScaling={false}
+            >
+              {diff > 0 ? '+' : ''}
+              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : ''}
+              {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
+              %){' '}
               <Text
-                style={styles.priceDiff}
+                testID="price-label"
+                color={TextColor.Alternative}
                 variant={TextVariant.BodyMDMedium}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.5}
+                allowFontScaling={false}
               >
-                {
-                  <Icon
-                    name={
-                      diff > 0
-                        ? 'trending-up'
-                        : diff < 0
-                          ? 'trending-down'
-                          : 'minus'
-                    }
-                    size={16}
-                    style={styles.priceDiffIcon}
-                  />
-                }{' '}
-                {addCurrencySymbol(diff, currentCurrency, true)} (
-                {diff > 0 ? '+' : ''}
-                {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-                %){' '}
-                <Text
-                  testID="price-label"
-                  color={TextColor.Alternative}
-                  variant={TextVariant.BodyMDMedium}
-                >
-                  {date}
-                </Text>
+                {date}
               </Text>
-            </View>
+            </Text>
           ) : null}
         </Text>
       </View>

@@ -111,7 +111,6 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
@@ -182,6 +181,7 @@ import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
+import { useSafeChains } from '../../hooks/useSafeChains';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -739,6 +739,8 @@ const Wallet = ({
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
 
+  useSafeChains();
+
   const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
@@ -1279,11 +1281,7 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        {isMultichainAccountsState2Enabled ? (
-          <AccountGroupBalance />
-        ) : (
-          <PortfolioBalance />
-        )}
+        <AccountGroupBalance />
 
         <AssetDetailsActions
           displayBuyButton={displayBuyButton}
