@@ -91,6 +91,36 @@ export const hasExceededSignificantFigures = (
   return countSignificantFigures(priceString) > maxSigFigs;
 };
 
+/**
+ * Rounds a price string to the maximum allowed significant figures
+ * This ensures preset calculations don't exceed the 5 significant figures limit
+ *
+ * @param priceString - The price value as a string
+ * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
+ * @returns Price string rounded to max significant figures
+ *
+ * @example
+ * roundToSignificantFigures('123.456') // '123.46' (5 sig figs)
+ * roundToSignificantFigures('12345.67') // '12346' (5 sig figs)
+ * roundToSignificantFigures('0.000123456') // '0.00012346' (5 sig figs in decimal)
+ */
+export const roundToSignificantFigures = (
+  priceString: string,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
+): string => {
+  if (!priceString || priceString.trim() === '') return priceString;
+
+  const cleaned = priceString.replaceAll(/[$,]/g, '').trim();
+  const num = Number.parseFloat(cleaned);
+  if (Number.isNaN(num) || num === 0) return priceString;
+
+  // Use toPrecision for rounding to significant figures
+  const rounded = Number.parseFloat(num.toPrecision(maxSigFigs));
+
+  // Return as string, removing unnecessary trailing zeros
+  return rounded.toString();
+};
+
 interface ValidationParams {
   currentPrice: number;
   direction?: 'long' | 'short';

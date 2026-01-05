@@ -20,6 +20,7 @@ import {
   isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
+  roundToSignificantFigures,
   safeParseRoEPercentage,
   sanitizePercentageInput,
   validateTPSLPrices,
@@ -721,8 +722,9 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        const priceString = price.toString();
-        const formattedPriceString = formatPerpsFiat(priceString, {
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
@@ -774,8 +776,9 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        const priceString = price.toString();
-        const formattedPriceString = formatPerpsFiat(priceString, {
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
