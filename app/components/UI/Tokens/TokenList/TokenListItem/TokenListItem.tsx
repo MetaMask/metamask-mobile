@@ -128,6 +128,9 @@ export const TokenListItem = React.memo(
     const isConvertibleStablecoin =
       isMusdConversionFlowEnabled && isConversionToken(asset);
 
+    const shouldShowConvertToMusdCta =
+      isConvertibleStablecoin && Number(asset?.balance) > 0;
+
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     // Secondary balance shows percentage change (if available and not on testnet)
@@ -139,21 +142,21 @@ export const TokenListItem = React.memo(
       Number.isFinite(pricePercentChange1d);
 
     // Determine the color for percentage change
-    let percentageColor = TextColor.Alternative;
-    if (isConvertibleStablecoin) {
-      percentageColor = TextColor.Primary;
+    let secondaryBalanceColor = TextColor.Alternative;
+    if (shouldShowConvertToMusdCta) {
+      secondaryBalanceColor = TextColor.Primary;
     } else if (hasPercentageChange) {
       if (pricePercentChange1d === 0) {
-        percentageColor = TextColor.Alternative;
+        secondaryBalanceColor = TextColor.Alternative;
       } else if (pricePercentChange1d > 0) {
-        percentageColor = TextColor.Success;
+        secondaryBalanceColor = TextColor.Success;
       } else {
-        percentageColor = TextColor.Error;
+        secondaryBalanceColor = TextColor.Error;
       }
     }
 
     const secondaryBalance = useMemo(() => {
-      if (isConvertibleStablecoin && Number(asset?.balance) > 0) {
+      if (shouldShowConvertToMusdCta) {
         return strings('earn.musd_conversion.convert_to_musd');
       }
 
@@ -170,12 +173,7 @@ export const TokenListItem = React.memo(
         : undefined;
 
       return percentageText;
-    }, [
-      asset?.balance,
-      hasPercentageChange,
-      isConvertibleStablecoin,
-      pricePercentChange1d,
-    ]);
+    }, [hasPercentageChange, pricePercentChange1d, shouldShowConvertToMusdCta]);
 
     const earnToken = getEarnToken(asset as TokenI);
 
@@ -257,14 +255,6 @@ export const TokenListItem = React.memo(
       initiateConversion,
     ]);
 
-    const handleSecondaryBalancePress = useCallback(() => {
-      if (isConvertibleStablecoin) {
-        handleConvertToMUSD();
-      }
-
-      return undefined;
-    }, [handleConvertToMUSD, isConvertibleStablecoin]);
-
     if (!asset || !chainId) {
       return null;
     }
@@ -280,11 +270,11 @@ export const TokenListItem = React.memo(
         asset={asset}
         balance={asset.balanceFiat}
         secondaryBalance={secondaryBalance}
-        secondaryBalanceColor={percentageColor}
+        secondaryBalanceColor={secondaryBalanceColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
         onSecondaryBalancePress={
-          isConvertibleStablecoin ? handleSecondaryBalancePress : undefined
+          shouldShowConvertToMusdCta ? handleConvertToMUSD : undefined
         }
       >
         <BadgeWrapper
