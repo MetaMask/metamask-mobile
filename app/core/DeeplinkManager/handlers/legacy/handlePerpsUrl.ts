@@ -242,9 +242,10 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
 
       case 'market-list': {
         // Navigate to PerpsMarketListView with optional market type filter
-        const marketTypeFilter = navParams.tab
-          ? TAB_TO_FILTER_MAP[navParams.tab]
-          : undefined;
+        const marketTypeFilter =
+          navParams.tab && Object.hasOwn(TAB_TO_FILTER_MAP, navParams.tab)
+            ? TAB_TO_FILTER_MAP[navParams.tab]
+            : undefined;
         DevLogger.log(
           '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
           marketTypeFilter,
