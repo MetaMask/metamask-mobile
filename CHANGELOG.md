@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.61.5]
+
+### Fixed
+
+- fix: robustness deeplinking ([#24227](https://github.com/MetaMask/metamask-mobile/pull/24227))
+- chore: refine hardware signing flow ([#24228](https://github.com/MetaMask/metamask-mobile/pull/24228))
+
 ## [7.61.4]
 
 ### Fixed
@@ -26,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: adds the Tron staking details preview ([#24198](https://github.com/MetaMask/metamask-mobile/pull/24198))
 - fix(ramp): use ScrollView from react-native-gesture-handler in PaymentMethodSelectorModal ([#24197](https://github.com/MetaMask/metamask-mobile/pull/24197))
 - chore: broadcast staking TRX transaction cp-7.61.3 ([#24196](https://github.com/MetaMask/metamask-mobile/pull/24196))
+- chore: connection updates and improvements ([#24215](https://github.com/MetaMask/metamask-mobile/pull/24215))
 
 ## [7.61.2]
 
@@ -9667,7 +9675,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.4...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.5...HEAD
+[7.61.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.4...v7.61.5
 [7.61.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.3...v7.61.4
 [7.61.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.2...v7.61.3
 [7.61.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.1...v7.61.2
