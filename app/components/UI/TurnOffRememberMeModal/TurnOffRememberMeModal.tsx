@@ -92,16 +92,15 @@ const TurnOffRememberMeModal = () => {
         : AUTHENTICATION_TYPE.PASSWORD;
 
       // Use the password entered in the modal to restore auth method
-      await Authentication.updateAuthPreference(
-        authTypeToRestore,
-        passwordText,
-      );
+      await Authentication.updateAuthPreference({
+        authType: authTypeToRestore,
+        password: passwordText,
+      });
       // Clear the stored previous auth type after successful restoration
       await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
       // Only set Redux state after operation completes successfully
       dispatch(setAllowLoginWithRememberMe(false));
-      Authentication.lockApp();
-      // Dismiss modal after successful operation
+
       dismissModal();
     } catch (error) {
       // If update fails, still disable remember me and lock app
@@ -111,7 +110,7 @@ const TurnOffRememberMeModal = () => {
         error as Error,
         'Failed to restore auth preference when disabling remember me',
       );
-      Authentication.lockApp();
+
       // Dismiss modal even on error
       dismissModal();
     } finally {
