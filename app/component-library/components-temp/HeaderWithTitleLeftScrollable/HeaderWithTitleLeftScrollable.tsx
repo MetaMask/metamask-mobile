@@ -20,6 +20,7 @@ import {
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Internal dependencies.
 import HeaderBase from '../../components/HeaderBase';
@@ -69,17 +70,22 @@ const HeaderWithTitleLeftScrollable: React.FC<
   title,
   onBack,
   backButtonProps,
+  onClose,
+  closeButtonProps,
   titleLeft,
   titleLeftProps,
   scrollTriggerPosition,
   scrollY,
   startButtonIconProps,
+  endButtonIconProps,
   twClassName,
   onExpandedHeightChange,
   testID,
+  isInsideSafeAreaView = false,
   ...headerBaseProps
 }) => {
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
 
   // Measure actual content height for dynamic sizing
   const [measuredHeight, setMeasuredHeight] = useState(DEFAULT_EXPANDED_HEIGHT);
@@ -118,6 +124,26 @@ const HeaderWithTitleLeftScrollable: React.FC<
 
     return undefined;
   }, [startButtonIconProps, onBack, backButtonProps]);
+
+  // Build endButtonIconProps with close button if onClose or closeButtonProps is provided
+  const resolvedEndButtonIconProps = useMemo(() => {
+    const props: ButtonIconProps[] = [];
+
+    if (onClose || closeButtonProps) {
+      const closeProps: ButtonIconProps = {
+        iconName: IconName.Close,
+        ...(closeButtonProps || {}),
+        onPress: closeButtonProps?.onPress ?? onClose,
+      };
+      props.push(closeProps);
+    }
+
+    if (endButtonIconProps) {
+      props.push(...endButtonIconProps);
+    }
+
+    return props.length > 0 ? props : undefined;
+  }, [endButtonIconProps, onClose, closeButtonProps]);
 
   // Animated style for the header container height (uses measured content height)
   const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -181,19 +207,23 @@ const HeaderWithTitleLeftScrollable: React.FC<
     return <TitleLeft title={title} {...titleLeftProps} />;
   };
 
+  const containerStyle = useMemo(
+    () => [
+      tw.style('absolute left-0 right-0 z-10'),
+      { top: isInsideSafeAreaView ? insets.top : 0 },
+      headerAnimatedStyle,
+    ],
+    [tw, isInsideSafeAreaView, insets.top, headerAnimatedStyle],
+  );
+
   return (
-    <Animated.View
-      style={[
-        tw.style('absolute top-0 left-0 right-0 z-10'),
-        headerAnimatedStyle,
-      ]}
-      testID={testID}
-    >
+    <Animated.View style={containerStyle} testID={testID}>
       {/* Header content - measured for dynamic height */}
       <View onLayout={handleLayout}>
         {/* HeaderBase with compact title */}
         <HeaderBase
           startButtonIconProps={resolvedStartButtonIconProps}
+          endButtonIconProps={resolvedEndButtonIconProps}
           twClassName={
             twClassName ? `${twClassName} bg-default px-2` : 'bg-default px-2'
           }
