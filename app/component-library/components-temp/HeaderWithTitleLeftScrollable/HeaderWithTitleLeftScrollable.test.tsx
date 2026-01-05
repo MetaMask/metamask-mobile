@@ -177,23 +177,29 @@ describe('HeaderWithTitleLeftScrollable', () => {
   });
 
   describe('isInsideSafeAreaView', () => {
-    it('renders with isInsideSafeAreaView false by default', () => {
+    it('positions header at top 0 when isInsideSafeAreaView is false', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollYValue) => (
             <HeaderWithTitleLeftScrollable
               title="Test"
               scrollY={scrollYValue}
+              isInsideSafeAreaView={false}
               testID="test-container"
             />
           )}
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-container')).toBeOnTheScreen();
+      const container = getByTestId('test-container');
+      const flattenedStyle = Array.isArray(container.props.style)
+        ? Object.assign({}, ...container.props.style)
+        : container.props.style;
+
+      expect(flattenedStyle.top).toBe(0);
     });
 
-    it('renders with isInsideSafeAreaView true', () => {
+    it('positions header at insets.top when isInsideSafeAreaView is true', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollYValue) => (
@@ -207,7 +213,12 @@ describe('HeaderWithTitleLeftScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId('test-container')).toBeOnTheScreen();
+      const container = getByTestId('test-container');
+      const flattenedStyle = Array.isArray(container.props.style)
+        ? Object.assign({}, ...container.props.style)
+        : container.props.style;
+
+      expect(flattenedStyle.top).toBe(44);
     });
   });
 
