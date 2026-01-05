@@ -312,7 +312,8 @@ async function handleUniversalLink({
       return;
     }
     case SUPPORTED_ACTIONS.PERPS:
-    case SUPPORTED_ACTIONS.PERPS_MARKETS: {
+    case SUPPORTED_ACTIONS.PERPS_MARKETS:
+    case SUPPORTED_ACTIONS.PERPS_ASSET: {
       handlePerpsUrl({
         perpsPath: actionBasedRampPath,
       });
