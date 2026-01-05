@@ -152,7 +152,7 @@ export default defineConfig({
           name: 'Pixel_5_API_34', // this can be changed to your emulator name
           osVersion: '14', // this can be changed to your emulator version
         },
-        buildPath: '/Users/jiexi/Downloads/metamask-main-rc-2818.apk', // Path to your .apk file
+        buildPath: '/Users/jiexi/Downloads/metamask-main-rc-3092.apk', // Path to your .apk file
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
