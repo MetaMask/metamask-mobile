@@ -35,6 +35,8 @@ import {
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../../Permissions';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { rpcErrors } from '@metamask/rpc-errors';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
 export default class DeeplinkProtocolService {
@@ -492,7 +494,6 @@ export default class DeeplinkProtocolService {
 
       return;
     }
-
     await SDKConnect.getInstance().addDappConnection({
       id: clientInfo.clientId,
       lastAuthorized: Date.now(),
@@ -532,6 +533,16 @@ export default class DeeplinkProtocolService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any;
     };
+
+    // Prevent external transactions from using internal origins
+    // This is an external connection (SDK), so block any internal origin
+    if (requestObject.method === 'eth_sendTransaction') {
+      if (INTERNAL_ORIGINS.includes(params.url)) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
+    }
 
     // Handle custom rpc method
     const processedRpc = await handleCustomRpcCalls({
