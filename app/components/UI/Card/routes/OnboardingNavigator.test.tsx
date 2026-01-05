@@ -451,7 +451,7 @@ describe('OnboardingNavigator', () => {
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
-              // addressLine1 is undefined
+              countryOfNationality: 'US',
             },
             isLoading: false,
             sdk: null,
@@ -472,7 +472,7 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns COMPLETE route when all address data exists', () => {
+        it('returns PERSONAL_DETAILS route when countryOfNationality is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
@@ -481,6 +481,36 @@ describe('OnboardingNavigator', () => {
               addressLine1: '123 Main St',
               city: 'New York',
               zip: '10001',
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+            isReturningSession: false,
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+          );
+        });
+
+        it('returns COMPLETE route when all address data and countryOfNationality exists', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'VERIFIED',
+              addressLine1: '123 Main St',
+              city: 'New York',
+              zip: '10001',
+              countryOfNationality: 'US',
             },
             isLoading: false,
             sdk: null,

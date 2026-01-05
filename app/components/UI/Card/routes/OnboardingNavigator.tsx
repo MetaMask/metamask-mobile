@@ -165,6 +165,10 @@ const OnboardingNavigator: React.FC = () => {
       }
 
       if (user.verificationState === 'VERIFIED') {
+        if (!user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
+
         if (!user?.addressLine1 || !user?.city || !user?.zip) {
           return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
         }
