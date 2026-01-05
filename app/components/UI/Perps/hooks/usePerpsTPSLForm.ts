@@ -85,8 +85,6 @@ interface TPSLFormValidation {
   takeProfitError: string;
   stopLossError: string;
   stopLossLiquidationError: string;
-  takeProfitPrecisionWarning: string;
-  stopLossPrecisionWarning: string;
 }
 
 interface TPSLFormDisplay {
@@ -333,6 +331,12 @@ export function usePerpsTPSLForm(
       )
         return;
 
+      if (
+        hasExceededSignificantFigures(sanitized) &&
+        sanitized.length > takeProfitPrice.length
+      )
+        return;
+
       setTakeProfitPrice(sanitized);
 
       // Set price as source of truth when user is actively typing
@@ -429,6 +433,12 @@ export function usePerpsTPSLForm(
       if (
         parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
         sanitized.length >= stopLossPrice.length
+      )
+        return;
+
+      if (
+        hasExceededSignificantFigures(sanitized) &&
+        sanitized.length > stopLossPrice.length
       )
         return;
 
@@ -875,17 +885,6 @@ export function usePerpsTPSLForm(
         })
       : '';
 
-  // Precision warning - HyperLiquid rounds to max 5 significant figures
-  const takeProfitPrecisionWarning =
-    takeProfitPrice && hasExceededSignificantFigures(takeProfitPrice)
-      ? strings('perps.tpsl.price_precision_warning')
-      : '';
-
-  const stopLossPrecisionWarning =
-    stopLossPrice && hasExceededSignificantFigures(stopLossPrice)
-      ? strings('perps.tpsl.price_precision_warning')
-      : '';
-
   // Display helpers
   const formattedTakeProfitPercentage = formatRoEPercentageDisplay(
     takeProfitPercentage,
@@ -1014,8 +1013,6 @@ export function usePerpsTPSLForm(
       takeProfitError,
       stopLossError,
       stopLossLiquidationError,
-      takeProfitPrecisionWarning,
-      stopLossPrecisionWarning,
     },
     display: {
       formattedTakeProfitPercentage,
