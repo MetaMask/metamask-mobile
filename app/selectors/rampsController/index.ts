@@ -1,26 +1,27 @@
-import {
-  createRequestSelector,
-  type RampsControllerState,
-} from '@metamask/ramps-controller';
+import { createSelector } from 'reselect';
+import { createRequestSelector } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
 /**
- * Extracts RampsController state from Redux.
- * This is the single point of integration with the mobile state shape.
+ * Selects the RampsController state from Redux.
  */
-const getRampsState = (state: RootState): RampsControllerState | undefined =>
-  state.engine.backgroundState.RampsController;
+export const selectRampsControllerState = createSelector(
+  (state: RootState) => state.engine.backgroundState.RampsController,
+  (rampsControllerState) => rampsControllerState,
+);
 
 /**
- * Selects the user's geolocation directly from state.
+ * Selects the user's geolocation from state.
  */
-export const selectGeolocation = (state: RootState): string | null =>
-  getRampsState(state)?.geolocation ?? null;
+export const selectGeolocation = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.geolocation ?? null,
+);
 
 /**
- * Selects the geolocation request state (from updateGeolocation method).
+ * Selects the geolocation request state
  */
 export const selectGeolocationRequest = createRequestSelector<
   RootState,
   string
->(getRampsState, 'updateGeolocation', []);
+>(selectRampsControllerState, 'updateGeolocation', []);

@@ -1,13 +1,22 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useRampsControllerInit } from './useRampsControllerInit';
-import Engine from '../../../../core/Engine';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
-    },
-  },
+const mockFetchGeolocation = jest.fn().mockResolvedValue('US');
+
+jest.mock('./useRampsGeolocation', () => ({
+  __esModule: true,
+  default: () => ({
+    geolocation: null,
+    isLoading: false,
+    error: null,
+    fetchGeolocation: mockFetchGeolocation,
+  }),
+  useRampsGeolocation: () => ({
+    geolocation: null,
+    isLoading: false,
+    error: null,
+    fetchGeolocation: mockFetchGeolocation,
+  }),
 }));
 
 describe('useRampsControllerInit', () => {
@@ -16,42 +25,36 @@ describe('useRampsControllerInit', () => {
   });
 
   describe('initialization behavior', () => {
-    it('calls updateGeolocation on mount', async () => {
+    it('calls fetchGeolocation on mount with forceRefresh false by default', async () => {
       renderHook(() => useRampsControllerInit());
 
       await waitFor(() => {
-        expect(
-          Engine.context.RampsController.updateGeolocation,
-        ).toHaveBeenCalledWith({
+        expect(mockFetchGeolocation).toHaveBeenCalledWith({
           forceRefresh: false,
         });
       });
     });
 
-    it('calls updateGeolocation with forceRefresh when specified', async () => {
+    it('calls fetchGeolocation with forceRefresh true when specified', async () => {
       renderHook(() =>
         useRampsControllerInit({ forceGeolocationRefresh: true }),
       );
 
       await waitFor(() => {
-        expect(
-          Engine.context.RampsController.updateGeolocation,
-        ).toHaveBeenCalledWith({
+        expect(mockFetchGeolocation).toHaveBeenCalledWith({
           forceRefresh: true,
         });
       });
     });
 
-    it('only calls updateGeolocation once on re-renders', async () => {
+    it('only calls fetchGeolocation once on re-renders', async () => {
       const { rerender } = renderHook(() => useRampsControllerInit());
 
       rerender({});
       rerender({});
 
       await waitFor(() => {
-        expect(
-          Engine.context.RampsController.updateGeolocation,
-        ).toHaveBeenCalledTimes(1);
+        expect(mockFetchGeolocation).toHaveBeenCalledTimes(1);
       });
     });
   });

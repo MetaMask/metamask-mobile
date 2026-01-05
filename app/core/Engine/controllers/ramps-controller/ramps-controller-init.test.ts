@@ -9,6 +9,8 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
+
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
     '@metamask/ramps-controller',
@@ -17,7 +19,9 @@ jest.mock('@metamask/ramps-controller', () => {
   return {
     getDefaultRampsControllerState:
       actualRampsController.getDefaultRampsControllerState,
-    RampsController: jest.fn(),
+    RampsController: jest.fn().mockImplementation(() => ({
+      updateGeolocation: mockUpdateGeolocation,
+    })),
   };
 });
 
@@ -29,6 +33,7 @@ describe('ramps controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockUpdateGeolocation.mockResolvedValue('US');
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -71,5 +76,17 @@ describe('ramps controller init', () => {
       rampsControllerClassMock.mock.calls[0][0].state;
 
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
+  });
+
+  it('calls updateGeolocation at startup', () => {
+    rampsControllerInit(initRequestMock);
+
+    expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles updateGeolocation failure gracefully', async () => {
+    mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+
+    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
   });
 });

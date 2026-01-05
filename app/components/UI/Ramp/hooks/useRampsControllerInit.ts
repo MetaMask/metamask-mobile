@@ -2,10 +2,22 @@ import { useEffect, useRef } from 'react';
 import useRampsGeolocation from './useRampsGeolocation';
 
 /**
+ * Options for the useRampsControllerInit hook.
+ */
+interface UseRampsControllerInitOptions {
+  /**
+   * Whether to force a geolocation refresh, bypassing cache.
+   * Defaults to false.
+   */
+  forceGeolocationRefresh?: boolean;
+}
+
+/**
  * Hook to initialize the RampsController on mount.
  * Fetches geolocation as part of initialization.
  *
  * @param options - Hook options.
+ * @param options.forceGeolocationRefresh - Whether to force a geolocation refresh.
  *
  * @example
  * ```tsx
@@ -16,7 +28,10 @@ import useRampsGeolocation from './useRampsGeolocation';
  * }
  * ```
  */
-export function useRampsControllerInit(): void {
+export function useRampsControllerInit(
+  options: UseRampsControllerInitOptions = {},
+): void {
+  const { forceGeolocationRefresh = false } = options;
   const hasInitializedRef = useRef(false);
   const { fetchGeolocation } = useRampsGeolocation();
 
@@ -26,8 +41,8 @@ export function useRampsControllerInit(): void {
     }
     hasInitializedRef.current = true;
 
-    fetchGeolocation();
-  }, [fetchGeolocation]);
+    fetchGeolocation({ forceRefresh: forceGeolocationRefresh });
+  }, [fetchGeolocation, forceGeolocationRefresh]);
 }
 
 export default useRampsControllerInit;

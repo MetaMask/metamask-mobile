@@ -113,7 +113,7 @@ describe('useRampsGeolocation', () => {
   });
 
   describe('fetchGeolocation', () => {
-    it('calls updateGeolocation with forceRefresh true by default', async () => {
+    it('calls updateGeolocation without options when called with no arguments', async () => {
       const store = createMockStore();
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -121,6 +121,20 @@ describe('useRampsGeolocation', () => {
       });
 
       await result.current.fetchGeolocation();
+
+      expect(
+        Engine.context.RampsController.updateGeolocation,
+      ).toHaveBeenCalledWith(undefined);
+    });
+
+    it('calls updateGeolocation with forceRefresh true when specified', async () => {
+      const store = createMockStore();
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await result.current.fetchGeolocation({ forceRefresh: true });
 
       expect(
         Engine.context.RampsController.updateGeolocation,

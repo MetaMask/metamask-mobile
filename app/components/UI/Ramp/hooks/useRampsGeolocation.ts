@@ -5,6 +5,7 @@ import {
   selectGeolocation,
   selectGeolocationRequest,
 } from '../../../../selectors/rampsController';
+import { ExecuteRequestOptions } from '@metamask/ramps-controller';
 
 /**
  * Result returned by the useRampsGeolocation hook.
@@ -19,6 +20,7 @@ export interface UseRampsGeolocationResult {
    */
   isLoading: boolean;
   /**
+   *
    * The error message if the request failed, or null.
    */
   error: string | null;
@@ -48,7 +50,8 @@ export function useRampsGeolocation(): UseRampsGeolocationResult {
   const { isFetching, error } = useSelector(selectGeolocationRequest);
 
   const fetchGeolocation = useCallback(
-    () => Engine.context.RampsController.updateGeolocation(),
+    (options?: ExecuteRequestOptions) =>
+      Engine.context.RampsController.updateGeolocation(options),
     [],
   );
 
