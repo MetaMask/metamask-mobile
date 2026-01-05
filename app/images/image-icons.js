@@ -123,5 +123,6 @@ export default {
   HYPE,
   OKB: X_LAYER,
   BOB,
-  ROOTSTOCK,
+  RBTC: ROOTSTOCK,
+  TRBTC: ROOTSTOCK,
 };
