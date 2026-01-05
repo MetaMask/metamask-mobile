@@ -2264,6 +2264,21 @@ class FixtureBuilder {
     });
   }
 
+  withTokenRates(chainId: string, tokenAddress: string, price: number) {
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: {
+          [tokenAddress]: {
+            tokenAddress,
+            price,
+          },
+        },
+      },
+    });
+
+    return this;
+  }
+
   /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.

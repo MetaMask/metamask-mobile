@@ -52,7 +52,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
-import ExploreSearchScreen from '../../Views/TrendingView/ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -171,7 +171,11 @@ const WalletModalFlow = () => (
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name={'Asset'}
       component={Asset}
@@ -185,9 +189,8 @@ const AssetStackFlow = (props) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = (props) => (
+const AssetNavigator = (props) => (
   <Stack.Navigator
-    mode={'modal'}
     initialRouteName={'AssetStackFlow'}
     screenOptions={clearStackNavigatorOptions}
   >
@@ -637,7 +640,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: true,
+      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -720,7 +723,6 @@ const HomeTabs = () => {
                 ),
             }}
             component={ExploreHome}
-            layout={({ children }) => UnmountOnBlurComponent(children)}
           />
           <Tab.Screen
             name={Routes.BROWSER.HOME}
@@ -1038,7 +1040,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="Asset"
+        component={AssetNavigator}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}

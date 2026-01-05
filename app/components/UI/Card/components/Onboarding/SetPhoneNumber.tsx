@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -13,7 +13,6 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import SelectComponent from '../../../SelectComponent';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -21,22 +20,32 @@ import {
   resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
+  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import {
+  clearOnValueChange,
+  createRegionSelectorModalNavigationDetails,
+  Region,
+  setOnValueChange,
+} from './RegionSelectorModal';
+import { TouchableOpacity } from 'react-native';
+import { useCardSDK } from '../../sdk';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: registrationSettings } = useRegistrationSettings();
+  const { user } = useCardSDK();
 
-  const selectOptions = useMemo(() => {
+  const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
       return [];
     }
@@ -45,28 +54,40 @@ const SetPhoneNumber = () => {
       .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
-        value: `${country.iso3166alpha2}-${country.callingCode}`,
-        label: `${countryCodeToFlag(country.iso3166alpha2)} +${country.callingCode}`,
+        name: country.name,
+        emoji: countryCodeToFlag(country.iso3166alpha2),
+        areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
 
-  const initialSelectedCountryAreaCode = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return '1';
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === user?.countryOfResidence),
+    [initialSelectedCountry, regions, user?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
     }
-    const selectedCountryWithCallingCode = registrationSettings.countries.find(
-      (country) => country.iso3166alpha2 === selectedCountry,
-    );
-    return selectedCountryWithCallingCode?.callingCode || '1';
-  }, [selectedCountry, registrationSettings]);
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
-    useState<string>(initialSelectedCountryAreaCode);
-  const [selectedCountryIsoCode, setSelectedCountryIsoCode] = useState<string>(
-    selectedCountry || 'US',
+    useState<string>(selectedCountry?.areaCode || '');
+  const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
+    selectedCountry?.emoji || '',
   );
+
+  // Sync local state when selectedCountry changes (e.g., after regions load)
+  useEffect(() => {
+    if (selectedCountry) {
+      setSelectedCountryAreaCode(selectedCountry.areaCode || '');
+      setSelectedCountryEmoji(selectedCountry.emoji || '');
+    }
+  }, [selectedCountry]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {
@@ -131,12 +152,21 @@ const SetPhoneNumber = () => {
     }
   };
 
-  const handleCountrySelect = (value: string) => {
+  const handleCountrySelect = useCallback(() => {
     resetPhoneVerificationSend();
-    const [key, areaCode] = value.split('-');
-    setSelectedCountryAreaCode(areaCode);
-    setSelectedCountryIsoCode(key);
-  };
+
+    setOnValueChange((region) => {
+      setSelectedCountryAreaCode(region.areaCode || '');
+      setSelectedCountryEmoji(region.emoji || '');
+    });
+
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({
+        regions,
+        renderAreaCode: true,
+      }),
+    );
+  }, [navigation, regions, resetPhoneVerificationSend]);
 
   const handlePhoneNumberChange = (text: string) => {
     resetPhoneVerificationSend();
@@ -173,6 +203,8 @@ const SetPhoneNumber = () => {
     phoneVerificationIsError,
   ]);
 
+  useEffect(() => () => clearOnValueChange(), []);
+
   const renderFormFields = () => (
     <Box>
       <Label>
@@ -180,17 +212,18 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg">
-          <Box twClassName="w-22">
-            <SelectComponent
-              options={selectOptions}
-              selectedValue={`${selectedCountryIsoCode}-${selectedCountryAreaCode}`}
-              onValueChange={handleCountrySelect}
-              label={strings(
-                'card.card_onboarding.set_phone_number.country_area_code_label',
-              )}
+        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg h-full">
+          <Box twClassName="w-26 justify-center items-center flex">
+            <TouchableOpacity
+              onPress={handleCountrySelect}
               testID="set-phone-number-country-area-code-select"
-            />
+            >
+              <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+                <Text variant={TextVariant.BodyMd}>
+                  {`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
+                </Text>
+              </Box>
+            </TouchableOpacity>
           </Box>
         </Box>
 
@@ -242,6 +275,7 @@ const SetPhoneNumber = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={phoneVerificationIsLoading}
         testID="set-phone-number-continue-button"
       />
       <Text

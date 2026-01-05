@@ -15,7 +15,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
+import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
 import { useNavigation } from '@react-navigation/native';
 
 export interface SectionHeaderProps {

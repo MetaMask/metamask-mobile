@@ -88,28 +88,58 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       {/* Values Row */}
       <View style={styles.valuesRow}>
         <View style={styles.column}>
-          <Text style={styles.valueText} color={TextColor.Default}>
+          <Text
+            style={styles.valueText}
+            color={TextColor.Default}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {formattedValues.open}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.valueText} color={TextColor.Default}>
+          <Text
+            style={styles.valueText}
+            color={TextColor.Default}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {formattedValues.close}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.valueText} color={TextColor.Default}>
+          <Text
+            style={styles.valueText}
+            color={TextColor.Default}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {formattedValues.high}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.valueText} color={TextColor.Default}>
+          <Text
+            style={styles.valueText}
+            color={TextColor.Default}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {formattedValues.low}
           </Text>
         </View>
         {formattedValues.volume && (
           <View style={styles.column}>
-            <Text style={styles.valueText} color={TextColor.Default}>
+            <Text
+              style={styles.valueText}
+              color={TextColor.Default}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
               {formattedValues.volume}
             </Text>
           </View>
