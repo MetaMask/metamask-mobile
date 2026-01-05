@@ -1,12 +1,13 @@
 import { Theme } from '../../../../../util/theme/models';
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
+    safeArea: {
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       flex: 1,
       backgroundColor: colors.background.default,
     },
@@ -33,6 +34,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
       padding: 10,
       width: '100%',
+    },
+    header: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: 16,
     },
   });
 };

@@ -727,17 +727,17 @@ const MultichainAccountGroupDetails = () => {
         }}
       />
       <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
         options={{
-          headerShown: true,
+          headerShown: false,
           animationEnabled: true,
         }}
       />
       <Stack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails}
-        initialParams={route?.params}
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
         options={{
           headerShown: false,
           animationEnabled: true,

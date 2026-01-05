@@ -21,11 +21,18 @@ import Button, {
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import { View, TextInput } from 'react-native';
+import { TextInput, SafeAreaView } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import HeaderBase from '../../../../../component-library/components/HeaderBase/HeaderBase';
+import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -86,7 +93,20 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <HeaderBase
+        style={styles.header}
+        startAccessory={
+          <ButtonLink
+            testID={AccountDetailsIds.BACK_BUTTON}
+            labelTextVariant={TextVariant.BodyMDMedium}
+            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            onPress={() => navigation.goBack()}
+          />
+        }
+      >
+        {accountGroup?.metadata?.name || 'Account Group'}
+      </HeaderBase>
       <Box
         style={styles.contentContainer}
         testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
@@ -127,6 +147,6 @@ export const EditMultichainAccountName = () => {
           testID={EditAccountNameIds.SAVE_BUTTON}
         />
       </Box>
-    </View>
+    </SafeAreaView>
   );
 };
