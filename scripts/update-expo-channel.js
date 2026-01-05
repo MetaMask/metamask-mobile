@@ -21,7 +21,6 @@ const CERTIFICATE_PATH = path.join(__dirname, '..', 'certs', 'certificate.pem');
 const CODE_SIGNING_KEY_ID = 'main';
 const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
-//TODO: add production channel when it's ready
 const CONFIG_MAP = {
   exp: {
     channel: 'exp',
@@ -475,8 +474,11 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
-  // only enable expo updates for exp and rc builds
-  if (!(environment === 'exp' || environment === 'rc')) {
+  // Only apply configuration for environments that have a CONFIG_MAP entry
+  // (currently: exp, rc, production)
+  const config = getConfigForEnvironment(environment);
+
+  if (!config) {
     console.log('✓ No configuration changes made');
     return;
   }
@@ -489,7 +491,7 @@ function main() {
     updateUrl,
     checkAutomatically,
     fallbackToCacheTimeout,
-  } = getConfigForEnvironment(environment);
+  } = config;
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
