@@ -73,7 +73,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
-      expect(screen.getByText('$2.5B')).toBeOnTheScreen();
+      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
     });
 
     it('renders as a touchable component', () => {
@@ -173,7 +173,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={customVolumeMarket} />);
 
-      expect(screen.getByText('$150M')).toBeOnTheScreen();
+      expect(screen.getByText('$150M Vol')).toBeOnTheScreen();
     });
 
     it('handles large price changes', () => {
@@ -313,7 +313,7 @@ describe('PerpsMarketRowItem', () => {
       // Should show the new live price
       expect(screen.getByText('$55,000')).toBeOnTheScreen();
       // Should show updated volume (2 decimals with formatVolume)
-      expect(screen.getByText('$3.00B')).toBeOnTheScreen();
+      expect(screen.getByText('$3.00B Vol')).toBeOnTheScreen();
     });
 
     it('does not update when live price matches current price', () => {
@@ -371,9 +371,9 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Price and volume both show $0.00, so check for multiple instances
-      const zeroElements = screen.getAllByText('$0.00');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(1);
+      // Price shows $0, volume shows $0.00 Vol
+      expect(screen.getByText('$0')).toBeOnTheScreen();
+      expect(screen.getByText('$0.00 Vol')).toBeOnTheScreen();
     });
 
     it('formats different volume ranges correctly', () => {
@@ -384,28 +384,28 @@ describe('PerpsMarketRowItem', () => {
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$5.50B')).toBeOnTheScreen(); // B shows 2 decimals
+      expect(screen.getByText('$5.50B Vol')).toBeOnTheScreen(); // B shows 2 decimals
 
       // Test millions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 750000000 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$750.00M')).toBeOnTheScreen(); // M shows 2 decimals
+      expect(screen.getByText('$750.00M Vol')).toBeOnTheScreen(); // M shows 2 decimals
 
       // Test thousands (0 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 50000 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$50K')).toBeOnTheScreen(); // K shows no decimals
+      expect(screen.getByText('$50K Vol')).toBeOnTheScreen(); // K shows no decimals
 
       // Test small values (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 123.45 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$123.45')).toBeOnTheScreen(); // Shows 2 decimals
+      expect(screen.getByText('$123.45 Vol')).toBeOnTheScreen(); // Shows 2 decimals
     });
 
     it('handles missing live price fields gracefully', () => {
@@ -420,7 +420,7 @@ describe('PerpsMarketRowItem', () => {
       // Should keep original change data when percentChange24h is missing
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
-      expect(screen.getByText('$2.5B')).toBeOnTheScreen();
+      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
     });
 
     it('handles live prices for multiple symbols independently', () => {
@@ -506,7 +506,7 @@ describe('PerpsMarketRowItem', () => {
       // With 5 significant digits, this rounds to $100,000,000 (trailing zeros removed)
       expect(screen.getByText('$100,000,000')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
-      expect(screen.getByText('$10.00B')).toBeOnTheScreen();
+      expect(screen.getByText('$10.00B Vol')).toBeOnTheScreen();
     });
   });
 
@@ -571,7 +571,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display formatted funding rate using formatFundingRate utility
-      expect(screen.getByText('0.0500%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('displays negative funding rate correctly', () => {
@@ -588,7 +588,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display negative funding rate
-      expect(screen.getByText('-0.2300%')).toBeOnTheScreen();
+      expect(screen.getByText('-0.2300% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is undefined', () => {
@@ -605,7 +605,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate using formatFundingRate utility
-      expect(screen.getByText('0.0000%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is null', () => {
@@ -622,7 +622,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate
-      expect(screen.getByText('0.0000%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is 0', () => {
@@ -639,7 +639,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate
-      expect(screen.getByText('0.0000%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('updates funding rate from live WebSocket data', () => {
@@ -664,7 +664,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the updated live funding rate
-      expect(screen.getByText('0.0500%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('updates funding rate even when price has not changed', () => {
@@ -690,7 +690,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the updated funding rate even though price didn't change
-      expect(screen.getByText('0.1200%')).toBeOnTheScreen();
+      expect(screen.getByText('0.1200% Funding')).toBeOnTheScreen();
       // Price should remain the same
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
     });
@@ -718,7 +718,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the original funding rate
-      expect(screen.getByText('0.0500%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('handles very small funding rates correctly', () => {
@@ -736,7 +736,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display with 4 decimal places
-      expect(screen.getByText('0.0001%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0001% Funding')).toBeOnTheScreen();
     });
 
     it('handles large funding rates correctly', () => {
@@ -754,7 +754,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display with 4 decimal places
-      expect(screen.getByText('15.7500%')).toBeOnTheScreen();
+      expect(screen.getByText('15.7500% Funding')).toBeOnTheScreen();
     });
 
     it('uses formatFundingRate utility for consistent formatting', () => {
@@ -773,7 +773,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Should use formatFundingRate which formats to 4 decimal places
       // This ensures consistency with PerpsMarketStatisticsCard
-      expect(screen.getByText('1.2500%')).toBeOnTheScreen();
+      expect(screen.getByText('1.2500% Funding')).toBeOnTheScreen();
     });
 
     it('passes updated funding rate to onPress callback', () => {
@@ -829,7 +829,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should keep the original funding rate when live data doesn't have funding
-      expect(screen.getByText('0.0500%')).toBeOnTheScreen();
+      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
   });
 });

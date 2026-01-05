@@ -24,6 +24,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks/usePhoneVerificationSend');
 jest.mock('../../hooks/useRegistrationSettings');
 jest.mock('../../../../hooks/useDebouncedValue');
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
+
+import { useCardSDK } from '../../sdk';
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -135,6 +140,15 @@ describe('SetPhoneNumber Component', () => {
     });
 
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
+
+    (useCardSDK as jest.Mock).mockReturnValue({
+      sdk: null,
+      isLoading: false,
+      user: null,
+      setUser: jest.fn(),
+      logoutFromProvider: jest.fn(),
+      fetchUserData: jest.fn(),
+    });
 
     store = createTestStore();
   });
