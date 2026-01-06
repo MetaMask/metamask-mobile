@@ -358,15 +358,16 @@ describe('usePerpsMarketFills', () => {
       renderHook(() => usePerpsMarketFills({ symbol: 'BTC' }));
 
       // Assert - verify lookback is approximately 3 months (90 days)
+      const expectedStartTime = mockNow - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
       await waitFor(() => {
-        const callArgs = mockProvider.getOrderFills.mock.calls[0][0];
-        const expectedStartTime = mockNow - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
-        expect(callArgs.startTime).toBe(expectedStartTime);
-        // Verify the constant is approximately 90 days in milliseconds
-        expect(PERPS_CONSTANTS.FILLS_LOOKBACK_MS).toBe(
-          90 * 24 * 60 * 60 * 1000,
+        expect(mockProvider.getOrderFills).toHaveBeenCalledWith(
+          expect.objectContaining({
+            startTime: expectedStartTime,
+          }),
         );
       });
+      // Verify the constant is approximately 90 days in milliseconds
+      expect(PERPS_CONSTANTS.FILLS_LOOKBACK_MS).toBe(90 * 24 * 60 * 60 * 1000);
 
       jest.restoreAllMocks();
     });
