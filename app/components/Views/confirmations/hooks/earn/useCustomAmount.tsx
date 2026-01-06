@@ -42,7 +42,7 @@ export const useCustomAmount = ({
     isMusdConversionFlowEnabled &&
     hasTransactionType(transactionMeta, [TransactionType.musdConversion]);
 
-  // Output amount tag logic - currently for mUSD conversion only
+  // Output amount tag logic - currently for MUSD conversion only
   const shouldShowOutputAmountTag = isMusdConversion;
 
   const outputAmount = useMemo(() => {
@@ -56,8 +56,8 @@ export const useCustomAmount = ({
     if (!shouldShowOutputAmountTag) {
       return null;
     }
-    // For mUSD conversion, the output symbol is always mUSD
-    return 'mUSD';
+    // For MUSD conversion, the output symbol is always MUSD
+    return 'MUSD';
   }, [shouldShowOutputAmountTag]);
 
   return {

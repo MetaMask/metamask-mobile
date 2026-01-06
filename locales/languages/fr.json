@@ -753,11 +753,11 @@
       "bullet_3_title": "Plus rapide que les banques",
       "bullet_3_description": "Envoyez et recevez des fonds en quelques minutes, sans attendre les heures d’ouverture des banques ou les délais de traitement des virements internationaux.",
       "button": "Commencer",
-      "title_musd": "Il est facile d’utiliser les mUSD",
+      "title_musd": "Il est facile d’utiliser les MUSD",
       "bullet_1_title_musd": "Crypto-monnaie stable",
-      "bullet_1_description_musd": "Le mUSD est un dollar numérique indexé à 1 pour 1 sur le dollar américain.",
+      "bullet_1_description_musd": "Le MUSD est un dollar numérique indexé à 1 pour 1 sur le dollar américain.",
       "bullet_2_title_musd": "Faible volatilité",
-      "bullet_2_description_musd": "Le mUSD est conçu pour rester stable, ce qui facilite la gestion de l’épargne, des dépenses et des investissements.",
+      "bullet_2_description_musd": "Le MUSD est conçu pour rester stable, ce qui facilite la gestion de l’épargne, des dépenses et des investissements.",
       "bullet_3_title_musd": "Plus rapide que les banques",
       "bullet_3_description_musd": "Envoyez et recevez des fonds en quelques minutes, sans attendre les heures d’ouverture des banques ou les délais de traitement des virements internationaux."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Échanger",
     "bridge": "Passerelle",
     "earn": "Gagner",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Ether reçu(s)",
@@ -5673,29 +5673,29 @@
       "fee": "Frais"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "Gagnez des récompenses avec mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "Gagnez des récompenses avec MUSD",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Récompenses",
-      "tooltip_title": "Gagnez des récompenses avec mUSD",
+      "tooltip_title": "Gagnez des récompenses avec MUSD",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Fermer"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Nous échangerons vos jetons contre des USDC.e sur Polygon, le réseau utilisé par Predict. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Continuer",
     "deposit_edit_amount_done": "Ajouter des fonds",
     "deposit_edit_amount_predict_withdraw": "Retirer",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
@@ -6904,7 +6904,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "predict": "Prédiction",
-        "musd_deposit": "Dépôt en mUSD",
+        "musd_deposit": "Dépôt en MUSD",
         "uncategorized_event": "Événement non classé"
       },
       "date": "Date",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "Déposer des mUSD",
+        "title": "Déposer des MUSD",
         "description": "2 points par tranche de 100 $ déposés",
         "sheet": {
-          "title": "Déposer des mUSD",
+          "title": "Déposer des MUSD",
           "points": "2 points par tranche de 100 $",
-          "description": "Gagnez des points sur chaque tranche de 100 mUSD que vous déposez.",
-          "cta_label": "Déposer des mUSD"
+          "description": "Gagnez des points sur chaque tranche de 100 MUSD que vous déposez.",
+          "cta_label": "Déposer des MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "2 points par tranche de 100 $",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

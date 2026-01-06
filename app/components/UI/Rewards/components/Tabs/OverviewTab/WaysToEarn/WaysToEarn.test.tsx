@@ -173,23 +173,23 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
         'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
       'rewards.ways_to_earn.card.sheet.cta_label': 'Manage card',
       // Deposit MUSD strings
-      'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.title': 'Deposit MUSD',
       'rewards.ways_to_earn.deposit_musd.description':
         '2 points per $100 deposited',
-      'rewards.ways_to_earn.deposit_musd.sheet.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.sheet.title': 'Deposit MUSD',
       'rewards.ways_to_earn.deposit_musd.sheet.points': '2 points per $100',
       'rewards.ways_to_earn.deposit_musd.sheet.description':
-        'Earn points on every $100 mUSD you deposit.',
-      'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit mUSD',
+        'Earn points on every $100 MUSD you deposit.',
+      'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit MUSD',
       // Hold MUSD strings
-      'rewards.ways_to_earn.hold_musd.title': 'Hold mUSD',
+      'rewards.ways_to_earn.hold_musd.title': 'Hold MUSD',
       'rewards.ways_to_earn.hold_musd.description':
         '10 points per $100 deposited',
-      'rewards.ways_to_earn.hold_musd.sheet.title': 'Hold mUSD',
+      'rewards.ways_to_earn.hold_musd.sheet.title': 'Hold MUSD',
       'rewards.ways_to_earn.hold_musd.sheet.points': '10 points per $100',
       'rewards.ways_to_earn.hold_musd.sheet.description':
-        'Earn points on every $100 mUSD you hold.',
-      'rewards.ways_to_earn.hold_musd.sheet.cta_label': 'Hold mUSD',
+        'Earn points on every $100 MUSD you hold.',
+      'rewards.ways_to_earn.hold_musd.sheet.cta_label': 'Hold MUSD',
     };
     return mockStrings[key] || key;
   }),
@@ -334,9 +334,9 @@ describe('WaysToEarn', () => {
     // MM Card Spend hidden when flag disabled
     expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
     // Deposit mUSD hidden when flag disabled
-    expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
+    expect(queryByText('Deposit MUSD')).not.toBeOnTheScreen();
     // Hold mUSD hidden when flag disabled
-    expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+    expect(queryByText('Hold MUSD')).not.toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -710,20 +710,20 @@ describe('WaysToEarn', () => {
     });
   });
 
-  describe('Deposit mUSD', () => {
+  describe('Deposit MUSD', () => {
     it('shows Deposit mUSD earning way only when feature flag is enabled', () => {
       // Arrange
       const { queryByText, rerender } = render(<WaysToEarn />);
 
       // Assert hidden by default
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Deposit MUSD')).not.toBeOnTheScreen();
 
       // Enable flag
       mockIsMusdDepositEnabled = true;
       rerender(<WaysToEarn />);
 
       // Assert visible now
-      expect(queryByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(queryByText('Deposit MUSD')).toBeOnTheScreen();
       expect(queryByText('2 points per $100 deposited')).toBeOnTheScreen();
     });
 
@@ -731,7 +731,7 @@ describe('WaysToEarn', () => {
       // Arrange
       mockIsMusdDepositEnabled = true;
       const { getByText } = render(<WaysToEarn />);
-      const depositMusdButton = getByText('Deposit mUSD');
+      const depositMusdButton = getByText('Deposit MUSD');
 
       // Act
       fireEvent.press(depositMusdButton);
@@ -744,7 +744,7 @@ describe('WaysToEarn', () => {
           showIcon: false,
           showCancelButton: false,
           confirmAction: expect.objectContaining({
-            label: 'Deposit mUSD',
+            label: 'Deposit MUSD',
             variant: 'Primary',
           }),
         }),
@@ -759,7 +759,7 @@ describe('WaysToEarn', () => {
       // Arrange
       mockIsMusdDepositEnabled = true;
       const { getByText } = render(<WaysToEarn />);
-      const depositMusdButton = getByText('Deposit mUSD');
+      const depositMusdButton = getByText('Deposit MUSD');
 
       // Act
       fireEvent.press(depositMusdButton);
@@ -785,20 +785,20 @@ describe('WaysToEarn', () => {
     });
   });
 
-  describe('Hold mUSD', () => {
+  describe('Hold MUSD', () => {
     it('shows Hold mUSD earning way only when feature flag is enabled', () => {
       // Arrange
       const { queryByText, rerender } = render(<WaysToEarn />);
 
       // Assert hidden by default
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Hold MUSD')).not.toBeOnTheScreen();
 
       // Enable flag
       mockIsMusdHoldingEnabled = true;
       rerender(<WaysToEarn />);
 
       // Assert visible now
-      expect(queryByText('Hold mUSD')).toBeOnTheScreen();
+      expect(queryByText('Hold MUSD')).toBeOnTheScreen();
       expect(queryByText('10 points per $100 deposited')).toBeOnTheScreen();
     });
 
@@ -806,7 +806,7 @@ describe('WaysToEarn', () => {
       // Arrange
       mockIsMusdHoldingEnabled = true;
       const { getByText } = render(<WaysToEarn />);
-      const holdMusdButton = getByText('Hold mUSD');
+      const holdMusdButton = getByText('Hold MUSD');
 
       // Act
       fireEvent.press(holdMusdButton);
@@ -819,7 +819,7 @@ describe('WaysToEarn', () => {
           showIcon: false,
           showCancelButton: false,
           confirmAction: expect.objectContaining({
-            label: 'Hold mUSD',
+            label: 'Hold MUSD',
             variant: 'Primary',
           }),
         }),
@@ -834,7 +834,7 @@ describe('WaysToEarn', () => {
       // Arrange
       mockIsMusdHoldingEnabled = true;
       const { getByText } = render(<WaysToEarn />);
-      const holdMusdButton = getByText('Hold mUSD');
+      const holdMusdButton = getByText('Hold MUSD');
 
       // Act
       fireEvent.press(holdMusdButton);
@@ -1014,8 +1014,8 @@ describe('WaysToEarn', () => {
       // Feature-flagged ways should be hidden
       expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
       expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Deposit MUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Hold MUSD')).not.toBeOnTheScreen();
     });
   });
 
@@ -1037,8 +1037,8 @@ describe('WaysToEarn', () => {
       expect(getByText('Loyalty bonus')).toBeOnTheScreen();
       expect(getByText('Prediction markets')).toBeOnTheScreen();
       expect(getByText('MetaMask Card')).toBeOnTheScreen();
-      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(getByText('Hold mUSD')).toBeOnTheScreen();
+      expect(getByText('Deposit MUSD')).toBeOnTheScreen();
+      expect(getByText('Hold MUSD')).toBeOnTheScreen();
     });
 
     it('filters out disabled earning ways correctly', () => {
@@ -1060,8 +1060,8 @@ describe('WaysToEarn', () => {
       // Assert - Feature-flagged ways should be hidden
       expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
       expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
-      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
-      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Deposit MUSD')).not.toBeOnTheScreen();
+      expect(queryByText('Hold MUSD')).not.toBeOnTheScreen();
     });
 
     it('displays only feature-flagged earning ways when core ways are filtered', () => {
@@ -1082,8 +1082,8 @@ describe('WaysToEarn', () => {
         'Loyalty bonus',
         'Prediction markets',
         'MetaMask Card',
-        'Deposit mUSD',
-        'Hold mUSD',
+        'Deposit MUSD',
+        'Hold MUSD',
       ];
 
       allWays.forEach((way) => {
@@ -1212,8 +1212,8 @@ describe('WaysToEarn', () => {
       const flaggedTypes = [
         { type: WayToEarnType.PREDICT, buttonText: 'Prediction markets' },
         { type: WayToEarnType.CARD, buttonText: 'MetaMask Card' },
-        { type: WayToEarnType.DEPOSIT_MUSD, buttonText: 'Deposit mUSD' },
-        { type: WayToEarnType.HOLD_MUSD, buttonText: 'Hold mUSD' },
+        { type: WayToEarnType.DEPOSIT_MUSD, buttonText: 'Deposit MUSD' },
+        { type: WayToEarnType.HOLD_MUSD, buttonText: 'Hold MUSD' },
       ];
 
       // Act & Assert - All flagged types should work without throwing
@@ -1281,16 +1281,16 @@ describe('WaysToEarn', () => {
         },
         {
           type: WayToEarnType.DEPOSIT_MUSD,
-          buttonText: 'Deposit mUSD',
-          expectedCTALabel: 'Deposit mUSD',
+          buttonText: 'Deposit MUSD',
+          expectedCTALabel: 'Deposit MUSD',
           enableFlag: () => {
             mockIsMusdDepositEnabled = true;
           },
         },
         {
           type: WayToEarnType.HOLD_MUSD,
-          buttonText: 'Hold mUSD',
-          expectedCTALabel: 'Hold mUSD',
+          buttonText: 'Hold MUSD',
+          expectedCTALabel: 'Hold MUSD',
           enableFlag: () => {
             mockIsMusdHoldingEnabled = true;
           },
@@ -1395,7 +1395,7 @@ describe('WaysToEarn', () => {
             expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT),
         },
         {
-          buttonText: 'Deposit mUSD',
+          buttonText: 'Deposit MUSD',
           enableFlag: () => {
             mockIsMusdDepositEnabled = true;
           },
@@ -1405,7 +1405,7 @@ describe('WaysToEarn', () => {
             ),
         },
         {
-          buttonText: 'Hold mUSD',
+          buttonText: 'Hold MUSD',
           enableFlag: () => {
             mockIsMusdHoldingEnabled = true;
           },

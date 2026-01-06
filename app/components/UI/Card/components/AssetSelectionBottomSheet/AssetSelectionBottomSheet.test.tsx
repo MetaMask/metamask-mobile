@@ -933,7 +933,7 @@ describe('AssetSelectionBottomSheet', () => {
 
     it('goes back when no caller route is provided in navigation mode', () => {
       const token = createMockToken({
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         address: '0xmusd',
       });
       const delegationSettings = createMockDelegationSettings();
@@ -942,7 +942,7 @@ describe('AssetSelectionBottomSheet', () => {
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
         {
           address: '0xmusd',
-          symbol: 'mUSD',
+          symbol: 'MUSD',
           name: 'MetaMask USD',
           decimals: 6,
         },
@@ -956,7 +956,7 @@ describe('AssetSelectionBottomSheet', () => {
         callerParams: undefined,
       });
 
-      fireEvent.press(getByText(/mUSD on/));
+      fireEvent.press(getByText(/MUSD on/));
 
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -1011,7 +1011,7 @@ describe('AssetSelectionBottomSheet', () => {
   describe('wallet address display', () => {
     it('displays truncated wallet address when available', () => {
       const token = createMockToken({
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         address: '0xmusd',
         walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
       });
@@ -1021,7 +1021,7 @@ describe('AssetSelectionBottomSheet', () => {
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
         {
           address: '0xmusd',
-          symbol: 'mUSD',
+          symbol: 'MUSD',
           name: 'MetaMask USD',
           decimals: 6,
         },
@@ -1065,7 +1065,7 @@ describe('AssetSelectionBottomSheet', () => {
   describe('token merging from delegation settings', () => {
     it('adds supported tokens from delegation settings not in user wallet', () => {
       const userToken = createMockToken({
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         address: '0x123',
       });
       const delegationSettings: DelegationSettingsResponse = {
@@ -1077,7 +1077,7 @@ describe('AssetSelectionBottomSheet', () => {
             delegationContract: '0xdelegation',
             tokens: {
               mUSD: {
-                symbol: 'mUSD',
+                symbol: 'MUSD',
                 decimals: 6,
                 address: '0x123',
               },
@@ -1097,7 +1097,7 @@ describe('AssetSelectionBottomSheet', () => {
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
         {
           address: '0x123',
-          symbol: 'mUSD',
+          symbol: 'MUSD',
           name: 'MetaMask USD',
           decimals: 6,
         },
@@ -1114,13 +1114,13 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(getByText(/mUSD on/)).toBeOnTheScreen();
+      expect(getByText(/MUSD on/)).toBeOnTheScreen();
       expect(getByText(/EURe on/)).toBeOnTheScreen();
     });
 
     it('does not duplicate tokens already in user wallet', () => {
       const userToken = createMockToken({
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         address: '0x123',
       });
       const delegationSettings: DelegationSettingsResponse = {
@@ -1132,7 +1132,7 @@ describe('AssetSelectionBottomSheet', () => {
             delegationContract: '0xdelegation',
             tokens: {
               mUSD: {
-                symbol: 'mUSD',
+                symbol: 'MUSD',
                 decimals: 6,
                 address: '0x123',
               },
@@ -1147,7 +1147,7 @@ describe('AssetSelectionBottomSheet', () => {
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
         {
           address: '0x123',
-          symbol: 'mUSD',
+          symbol: 'MUSD',
           name: 'MetaMask USD',
           decimals: 6,
         },
@@ -1158,7 +1158,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      const musdElements = getAllByText(/mUSD on/);
+      const musdElements = getAllByText(/MUSD on/);
       expect(musdElements.length).toBe(1);
     });
   });

@@ -753,11 +753,11 @@
       "bullet_3_title": "比银行更快",
       "bullet_3_description": "几分钟即可完成收发，无需等待银行工作时间，同时避免跨境延迟。",
       "button": "开始",
-      "title_musd": "使用 mUSD 轻松起步",
+      "title_musd": "使用 MUSD 轻松起步",
       "bullet_1_title_musd": "稳定加密货币",
-      "bullet_1_description_musd": "mUSD 是与美元 1:1 挂钩的数字美元。",
+      "bullet_1_description_musd": "MUSD 是与美元 1:1 挂钩的数字美元。",
       "bullet_2_title_musd": "低波动性",
-      "bullet_2_description_musd": "mUSD 专为保持稳定而设计，助您更轻松规划、储蓄与消费。",
+      "bullet_2_description_musd": "MUSD 专为保持稳定而设计，助您更轻松规划、储蓄与消费。",
       "bullet_3_title_musd": "比银行更快",
       "bullet_3_description_musd": "几分钟即可完成收发，无需等待银行工作时间，同时避免跨境延迟。"
     },
@@ -3238,7 +3238,7 @@
     "swap": "兑换",
     "bridge": "桥接",
     "earn": "赚取",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "已发送以太币",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "已接收以太币",
@@ -5673,29 +5673,29 @@
       "fee": "费用"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "使用 mUSD 赚取奖励",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "使用 MUSD 赚取奖励",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "奖励",
-      "tooltip_title": "使用 mUSD 赚取奖励",
+      "tooltip_title": "使用 MUSD 赚取奖励",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "关闭"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "我们将在预测所使用的 Polygon 网络上将您的代币兑换为 USDC.e。兑换提供商可能收取费用，但 MetaMask 不收取费用。"
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "费用"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "继续",
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_predict_withdraw": "提取",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -6904,7 +6904,7 @@
         "take_profit": "止盈/止损",
         "stop_loss": "止盈/止损",
         "predict": "预测",
-        "musd_deposit": "mUSD 保证金",
+        "musd_deposit": "MUSD 保证金",
         "uncategorized_event": "未归类事件"
       },
       "date": "日期",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "存入 mUSD",
+        "title": "存入 MUSD",
         "description": "每存入 $100 即可获得 2 积分",
         "sheet": {
-          "title": "存入 mUSD",
+          "title": "存入 MUSD",
           "points": "每 100 美元 2 积分",
-          "description": "每存入 $100 mUSD 即可赚取积分。",
-          "cta_label": "存入 mUSD"
+          "description": "每存入 $100 MUSD 即可赚取积分。",
+          "cta_label": "存入 MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "每 100 美元 2 积分",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

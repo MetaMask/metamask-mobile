@@ -753,11 +753,11 @@
       "bullet_3_title": "Mais rápido que nos bancos",
       "bullet_3_description": "Envie e receba em minutos, sem horário bancário nem atrasos internacionais.",
       "button": "Começar",
-      "title_musd": "É fácil começar com mUSD",
+      "title_musd": "É fácil começar com MUSD",
       "bullet_1_title_musd": "Criptomoeda estável",
-      "bullet_1_description_musd": "O mUSD é um dólar digital com paridade de 1 para 1 com o dólar dos EUA.",
+      "bullet_1_description_musd": "O MUSD é um dólar digital com paridade de 1 para 1 com o dólar dos EUA.",
       "bullet_2_title_musd": "Baixa volatilidade",
-      "bullet_2_description_musd": "O mUSD foi projetado para continuar estável, facilitando planejar, guardar e gastar.",
+      "bullet_2_description_musd": "O MUSD foi projetado para continuar estável, facilitando planejar, guardar e gastar.",
       "bullet_3_title_musd": "Mais rápido que nos bancos",
       "bullet_3_description_musd": "Envie e receba em minutos, sem horário bancário nem atrasos internacionais."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Troca",
     "bridge": "Ponte",
     "earn": "Ganhe",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Ethers enviados",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Ethers recebidos",
@@ -5673,29 +5673,29 @@
       "fee": "Taxa"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "Ganhe recompensas com mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "Ganhe recompensas com MUSD",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Recompensas",
-      "tooltip_title": "Ganhe recompensas com mUSD",
+      "tooltip_title": "Ganhe recompensas com MUSD",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Fechar"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Trocaremos seus tokens por USDC.e na Polygon, a rede usada pela Predict. Provedores de Swaps talvez cobrem taxas, mas a MetaMask não cobra."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Taxas"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Adicionar fundos",
     "deposit_edit_amount_predict_withdraw": "Sacar",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",
@@ -6904,7 +6904,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "predict": "Previsão",
-        "musd_deposit": "Depósito em mUSD",
+        "musd_deposit": "Depósito em MUSD",
         "uncategorized_event": "Evento não categorizado"
       },
       "date": "Data",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "Depósito em mUSD",
+        "title": "Depósito em MUSD",
         "description": "2 pontos por cada US$ 100 depositados",
         "sheet": {
-          "title": "Depósito em mUSD",
+          "title": "Depósito em MUSD",
           "points": "2 pontos por US$ 100",
-          "description": "Ganhe pontos a cada US$ 100 mUSD que você depositar.",
-          "cta_label": "Depósito em mUSD"
+          "description": "Ganhe pontos a cada US$ 100 MUSD que você depositar.",
+          "cta_label": "Depósito em MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "2 pontos por US$ 100",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

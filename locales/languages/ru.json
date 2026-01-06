@@ -753,11 +753,11 @@
       "bullet_3_title": "Быстрее, чем банки",
       "bullet_3_description": "Отправляйте и получайте деньги за считанные минуты — без ожидания банковских часов и без задержек международных платежей.",
       "button": "С чего начать",
-      "title_musd": "Начните легко с mUSD",
+      "title_musd": "Начните легко с MUSD",
       "bullet_1_title_musd": "Стабильная криптовалюта",
-      "bullet_1_description_musd": "mUSD — это цифровой доллар, курс которого привязан к доллару США в соотношении 1 к 1.",
+      "bullet_1_description_musd": "MUSD — это цифровой доллар, курс которого привязан к доллару США в соотношении 1 к 1.",
       "bullet_2_title_musd": "Низкая волатильность",
-      "bullet_2_description_musd": "mUSD создан для того, чтобы оставаться стабильным, что упрощает планирование, сбережения и траты.",
+      "bullet_2_description_musd": "MUSD создан для того, чтобы оставаться стабильным, что упрощает планирование, сбережения и траты.",
       "bullet_3_title_musd": "Быстрее, чем банки",
       "bullet_3_description_musd": "Отправляйте и получайте деньги за считанные минуты — без ожидания банковских часов и без задержек международных платежей."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Обменять",
     "bridge": "Мост",
     "earn": "Заработать",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Отправлен эфир",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Получен эфир",
@@ -5673,29 +5673,29 @@
       "fee": "Комиссия"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "Зарабатывайте бонусы с mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "Зарабатывайте бонусы с MUSD",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Награды",
-      "tooltip_title": "Зарабатывайте бонусы с mUSD",
+      "tooltip_title": "Зарабатывайте бонусы с MUSD",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Закрыть"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Мы обменяем ваши токены на USDC.e в Polygon, сети, используемой функцией «Прогнозирование». Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Комиссии"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Продолжить",
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -6904,7 +6904,7 @@
         "take_profit": "ТП/СЛ",
         "stop_loss": "ТП/СЛ",
         "predict": "Прогноз",
-        "musd_deposit": "Депозит mUSD",
+        "musd_deposit": "Депозит MUSD",
         "uncategorized_event": "Событие без категории"
       },
       "date": "Дата",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "Внесите mUSD",
+        "title": "Внесите MUSD",
         "description": "2 балла за внесенные 100 $",
         "sheet": {
-          "title": "Внести mUSD",
+          "title": "Внести MUSD",
           "points": "2 баллов за 100 $",
-          "description": "Зарабатывайте баллы за каждые 100 $ mUSD, которые вы вносите.",
-          "cta_label": "Внести mUSD"
+          "description": "Зарабатывайте баллы за каждые 100 $ MUSD, которые вы вносите.",
+          "cta_label": "Внести MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "2 баллов за 100 $",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

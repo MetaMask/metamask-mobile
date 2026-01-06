@@ -753,11 +753,11 @@
       "bullet_3_title": "Lebih cepat dari bank",
       "bullet_3_description": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional.",
       "button": "Mulai",
-      "title_musd": "Memulai dengan mudah menggunakan mUSD",
+      "title_musd": "Memulai dengan mudah menggunakan MUSD",
       "bullet_1_title_musd": "Mata uang kripto stabil",
-      "bullet_1_description_musd": "mUSD merupakan dolar digital yang dipatok 1 banding 1 dengan dolar AS.",
+      "bullet_1_description_musd": "MUSD merupakan dolar digital yang dipatok 1 banding 1 dengan dolar AS.",
       "bullet_2_title_musd": "Volatilitas rendah",
-      "bullet_2_description_musd": "mUSD dirancang untuk tetap stabil, menjadikannya semakin mudah untuk membuat rencana, menabung, dan berbelanja.",
+      "bullet_2_description_musd": "MUSD dirancang untuk tetap stabil, menjadikannya semakin mudah untuk membuat rencana, menabung, dan berbelanja.",
       "bullet_3_title_musd": "Lebih cepat dari bank",
       "bullet_3_description_musd": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Tukar",
     "bridge": "Bridge",
     "earn": "Dapatkan",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Mengirim Ether",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Menerima Ether",
@@ -5673,29 +5673,29 @@
       "fee": "Biaya"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "Dapatkan reward dengan mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "Dapatkan reward dengan MUSD",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Reward",
-      "tooltip_title": "Dapatkan reward dengan mUSD",
+      "tooltip_title": "Dapatkan reward dengan MUSD",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Tutup"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Kami akan menukar token Anda dengan USDC.e di Polygon, jaringan yang digunakan oleh Predict. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Biaya"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Lanjutkan",
     "deposit_edit_amount_done": "Tambahkan dana",
     "deposit_edit_amount_predict_withdraw": "Tarik",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -6904,7 +6904,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "predict": "Prediksi",
-        "musd_deposit": "Deposit mUSD",
+        "musd_deposit": "Deposit MUSD",
         "uncategorized_event": "Acara yang tidak dikategorikan"
       },
       "date": "Tanggal",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "Depositkan mUSD",
+        "title": "Depositkan MUSD",
         "description": "2 poin per $100 yang didepositkan",
         "sheet": {
-          "title": "Depositkan mUSD",
+          "title": "Depositkan MUSD",
           "points": "2 poin per $100",
           "description": "Dapatkan poin pada setiap $100 juta Usd yang didepositkan.",
-          "cta_label": "Depositkan mUSD"
+          "cta_label": "Depositkan MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "2 poin per $100",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

@@ -753,11 +753,11 @@
       "bullet_3_title": "Mas mabilis kaysa sa mga bangko",
       "bullet_3_description": "Magpadala at tumanggap sa ilang minuto, hindi kailangang maghintay sa pagbubukas ng bangko at wala ring internasyonal na mga pagkaantala.",
       "button": "Magsimula",
-      "title_musd": "Madali lang magsimula sa mUSD",
+      "title_musd": "Madali lang magsimula sa MUSD",
       "bullet_1_title_musd": "Matatag na cryptocurrency",
-      "bullet_1_description_musd": "Isang digital dollar ang mUSD na naka-peg nang 1 sa isa sa US dollar.",
+      "bullet_1_description_musd": "Isang digital dollar ang MUSD na naka-peg nang 1 sa isa sa US dollar.",
       "bullet_2_title_musd": "Mababang volatility",
-      "bullet_2_description_musd": "Idinisenyo ang mUSD para hindi magpabago-bago, kaya pinapadali nito na magplano, mag-save, at gumastos.",
+      "bullet_2_description_musd": "Idinisenyo ang MUSD para hindi magpabago-bago, kaya pinapadali nito na magplano, mag-save, at gumastos.",
       "bullet_3_title_musd": "Mas mabilis kaysa sa mga bangko",
       "bullet_3_description_musd": "Magpadala at tumanggap sa ilang minuto, hindi kailangang maghintay sa pagbubukas ng bangko at wala ring internasyonal na mga pagkaantala."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Mag-swap",
     "bridge": "Mag-bridge",
     "earn": "Kumita",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Nagpadala ng Ether",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Nakatanggap ng Ether",
@@ -5673,29 +5673,29 @@
       "fee": "Bayarin"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "Kumita ng mga reward gamit ang mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "Kumita ng mga reward gamit ang MUSD",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Mga Reward",
-      "tooltip_title": "Kumita ng mga reward gamit ang mUSD",
+      "tooltip_title": "Kumita ng mga reward gamit ang MUSD",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Isara"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Isu-swap namin ang mga token mo para sa USDE.e sa Polygon, ang network na ginamit ng Predict. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Mga Bayarin"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",
@@ -6904,7 +6904,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "predict": "Prediksyon",
-        "musd_deposit": "depositong mUSD",
+        "musd_deposit": "depositong MUSD",
         "uncategorized_event": "Hindi nakakategoryang event"
       },
       "date": "Petsa",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "Magdeposito ng mUSD",
+        "title": "Magdeposito ng MUSD",
         "description": "2 points kada $100 na idineposito",
         "sheet": {
-          "title": "Magdeposito ng mUSD",
+          "title": "Magdeposito ng MUSD",
           "points": "2 point kada $100",
-          "description": "Makakuha ng points sa bawat $100 mUSD na idedeposito mo.",
-          "cta_label": "Magdeposito ng mUSD"
+          "description": "Makakuha ng points sa bawat $100 MUSD na idedeposito mo.",
+          "cta_label": "Magdeposito ng MUSD"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "2 point kada $100",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

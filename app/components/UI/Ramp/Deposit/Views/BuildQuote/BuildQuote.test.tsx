@@ -408,7 +408,7 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const tokenButton = screen.getByText('mUSD');
+      const tokenButton = screen.getByText('MUSD');
       fireEvent.press(tokenButton);
 
       expect(mockTrackEvent).toHaveBeenCalledWith(

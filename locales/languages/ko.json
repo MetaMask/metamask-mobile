@@ -753,11 +753,11 @@
       "bullet_3_title": "은행보다 빠른 속도",
       "bullet_3_description": "몇 분 만에 송금하고 받을 수 있으며, 은행 업무 시간을 기다릴 필요가 없고, 국제 전신망 문제로 인한 지연이 발생하지 않습니다.",
       "button": "지금 시작하세요",
-      "title_musd": "mUSD로 쉽게 시작하기",
+      "title_musd": "MUSD로 쉽게 시작하기",
       "bullet_1_title_musd": "스테이블 코인",
-      "bullet_1_description_musd": "mUSD는 미국 달러와 일대일로 연동된 디지털 달러입니다.",
+      "bullet_1_description_musd": "MUSD는 미국 달러와 일대일로 연동된 디지털 달러입니다.",
       "bullet_2_title_musd": "낮은 변동성",
-      "bullet_2_description_musd": "mUSD는 안정적인 가치를 유지하도록 설계되어 계획, 저축, 지출을 더 쉽게 해줍니다.",
+      "bullet_2_description_musd": "MUSD는 안정적인 가치를 유지하도록 설계되어 계획, 저축, 지출을 더 쉽게 해줍니다.",
       "bullet_3_title_musd": "은행보다 빠른 속도",
       "bullet_3_description_musd": "몇 분 만에 송금하고 받을 수 있으며, 은행 업무 시간을 기다릴 필요가 없고, 국제 전신망 문제로 인한 지연이 발생하지 않습니다."
     },
@@ -3238,7 +3238,7 @@
     "swap": "스와프",
     "bridge": "브릿지",
     "earn": "수익 창출",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "보낸 이더",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "받은 이더",
@@ -5673,29 +5673,29 @@
       "fee": "수수료"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "mUSD로 보상 받기",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "MUSD로 보상 받기",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "보상",
-      "tooltip_title": "mUSD로 보상 받기",
+      "tooltip_title": "MUSD로 보상 받기",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "닫기"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "예측을 위해 사용하는 Polygon 네트워크를 통해 귀하의 토큰을 USDC.e로 스왑합니다. 스왑 제공업체는 수수료를 부과할 수 있으나 MetaMask는 수수료가 없습니다."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "계속",
     "deposit_edit_amount_done": "자금 추가",
     "deposit_edit_amount_predict_withdraw": "출금",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -6904,7 +6904,7 @@
         "take_profit": "익절/손절",
         "stop_loss": "익절/손절",
         "predict": "예측",
-        "musd_deposit": "mUSD 예치",
+        "musd_deposit": "MUSD 예치",
         "uncategorized_event": "미분류 이벤트"
       },
       "date": "날짜",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "mUSD 예치",
+        "title": "MUSD 예치",
         "description": "$100 예치당 2 포인트",
         "sheet": {
-          "title": "mUSD 예치",
+          "title": "MUSD 예치",
           "points": "$100당 2포인트",
-          "description": "$100 mUSD를 예치할 때마다 포인트를 획득하세요.",
-          "cta_label": "mUSD 예치"
+          "description": "$100 MUSD를 예치할 때마다 포인트를 획득하세요.",
+          "cta_label": "MUSD 예치"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "$100당 2포인트",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

@@ -753,11 +753,11 @@
       "bullet_3_title": "Bankalardan daha hızlıdır",
       "bullet_3_description": "Dakikalar içinde gönderin ve alın; banka saatlerini veya uluslararası gecikmeleri beklemenize gerek yok.",
       "button": "Başlarken",
-      "title_musd": "mUSD ile başlamak kolaydır",
+      "title_musd": "MUSD ile başlamak kolaydır",
       "bullet_1_title_musd": "Stabil kripto para",
-      "bullet_1_description_musd": "mUSD, 1'e 1 Amerikan dolarına sabitlenmiş dijital bir dolardır.",
+      "bullet_1_description_musd": "MUSD, 1'e 1 Amerikan dolarına sabitlenmiş dijital bir dolardır.",
       "bullet_2_title_musd": "Düşük volatilite",
-      "bullet_2_description_musd": "mUSD, stabil olmak için tasarlanmıştır ve planlamayı, biriktirmeyi ve harcamayı kolay hale getirir.",
+      "bullet_2_description_musd": "MUSD, stabil olmak için tasarlanmıştır ve planlamayı, biriktirmeyi ve harcamayı kolay hale getirir.",
       "bullet_3_title_musd": "Bankalardan daha hızlıdır",
       "bullet_3_description_musd": "Dakikalar içinde gönderin ve alın; banka saatlerini veya uluslararası gecikmeleri beklemenize gerek yok."
     },
@@ -3238,7 +3238,7 @@
     "swap": "Kaydır",
     "bridge": "Köprü",
     "earn": "Kazan",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "Ether Gönderdi",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "Ether Aldı",
@@ -5673,29 +5673,29 @@
       "fee": "Ücret"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "mUSD ile ödül kazan",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "MUSD ile ödül kazan",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Ödüller",
-      "tooltip_title": "mUSD ile ödül kazan",
+      "tooltip_title": "MUSD ile ödül kazan",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Kapat"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Token'larınızı Predict'in kullandığı Polygon ağı üzerinden USDC ile takas edeceğiz. Takas sağlayıcıları ücret alabilir ancak MetaMask ücret talep etmez."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Ücretler"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "Devam et",
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_predict_withdraw": "Çek",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -6904,7 +6904,7 @@
         "take_profit": "KA/ZD",
         "stop_loss": "KA/ZD",
         "predict": "Tahmin",
-        "musd_deposit": "mUSD yatır",
+        "musd_deposit": "MUSD yatır",
         "uncategorized_event": "Kategorize edilmemiş etkinlik"
       },
       "date": "Tarih",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "mUSD yatır",
+        "title": "MUSD yatır",
         "description": "Yatırılan her 100$ için 2 puan",
         "sheet": {
-          "title": "mUSD yatır",
+          "title": "MUSD yatır",
           "points": "Her 100$ için 2 puan",
-          "description": "Yatırdığınız her 100$ mUSD'de puan kazanın.",
-          "cta_label": "mUSD yatır"
+          "description": "Yatırdığınız her 100$ MUSD'de puan kazanın.",
+          "cta_label": "MUSD yatır"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "Her 100$ için 2 puan",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },

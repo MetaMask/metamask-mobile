@@ -59,7 +59,7 @@ const defaultCardFeatureFlag: CardFeatureFlag = {
           decimals: 6,
           enabled: true,
           name: 'MetaMask USD',
-          symbol: 'mUSD',
+          symbol: 'MUSD',
         },
       ],
     },

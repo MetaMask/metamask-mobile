@@ -753,11 +753,11 @@
       "bullet_3_title": "銀行よりも高速",
       "bullet_3_description": "銀行の営業時間を待ったり、国際送金の遅延を心配したりすることなく、数分で送金・受け取りが可能です。",
       "button": "開始",
-      "title_musd": "mUSDで簡単に開始できます",
+      "title_musd": "MUSDで簡単に開始できます",
       "bullet_1_title_musd": "ステーブル仮想通貨",
-      "bullet_1_description_musd": "mUSDは、米ドルに1対1でペッグされたデジタルドルです。",
+      "bullet_1_description_musd": "MUSDは、米ドルに1対1でペッグされたデジタルドルです。",
       "bullet_2_title_musd": "低ボラティリティ",
-      "bullet_2_description_musd": "mUSDは価値が安定するよう設計されているため、計画、貯蓄、使用が容易になります。",
+      "bullet_2_description_musd": "MUSDは価値が安定するよう設計されているため、計画、貯蓄、使用が容易になります。",
       "bullet_3_title_musd": "銀行よりも高速",
       "bullet_3_description_musd": "銀行の営業時間を待ったり、国際送金の遅延を心配したりすることなく、数分で送金・受け取りが可能です。"
     },
@@ -3238,7 +3238,7 @@
     "swap": "スワップ",
     "bridge": "ブリッジ",
     "earn": "獲得",
-    "convert_to_musd": "Convert to mUSD",
+    "convert_to_musd": "Convert to MUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3676,7 +3676,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
-    "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_musd_conversion": "MUSD Conversion",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "Sent yourself Ether",
     "received_ether": "受け取ったイーサ",
@@ -5673,29 +5673,29 @@
       "fee": "手数料"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "convert_to_musd": "Convert to MUSD",
       "toasts": {
-        "converting": "Converting {{token}} → mUSD",
+        "converting": "Converting {{token}} → MUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
-        "failed": "mUSD conversion failed"
+        "delivered": "Your MUSD has been delivered!",
+        "failed": "MUSD conversion failed"
       },
       "education": {
-        "heading": "mUSDで報酬を獲得",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
+        "heading": "MUSDで報酬を獲得",
+        "description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
+      "buy_musd": "Buy MUSD",
+      "get_musd": "Get MUSD",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "報酬",
-      "tooltip_title": "mUSDで報酬を獲得",
+      "tooltip_title": "MUSDで報酬を獲得",
       "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for MUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "閉じる"
@@ -5994,7 +5994,7 @@
         "transaction_fee": "Polygon (Predictで使用されるネットワーク) 上でトークンをUSDCにスワップします。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "MUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "手数料"
@@ -6108,7 +6108,7 @@
     "edit_amount_done": "続行",
     "deposit_edit_amount_done": "資金を追加",
     "deposit_edit_amount_predict_withdraw": "出金",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to MUSD"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -6904,7 +6904,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "predict": "予測",
-        "musd_deposit": "mUSDデポジット",
+        "musd_deposit": "MUSDデポジット",
         "uncategorized_event": "未分類のイベント"
       },
       "date": "日付",
@@ -7093,23 +7093,23 @@
         }
       },
       "deposit_musd": {
-        "title": "mUSDをデポジット",
+        "title": "MUSDをデポジット",
         "description": "$100のデポジットごとに2ポイント",
         "sheet": {
-          "title": "mUSDをデポジット",
+          "title": "MUSDをデポジット",
           "points": "$100ごとに2ポイント",
-          "description": "$100相当のmUSDをデポジットするごとにポイントを獲得できます。",
-          "cta_label": "mUSDをデポジット"
+          "description": "$100相当のMUSDをデポジットするごとにポイントを獲得できます。",
+          "cta_label": "MUSDをデポジット"
         }
       },
       "hold_musd": {
-        "title": "Hold mUSD",
+        "title": "Hold MUSD",
         "description": "2 points per $100 held",
         "sheet": {
-          "title": "Hold mUSD",
+          "title": "Hold MUSD",
           "points": "$100ごとに2ポイント",
-          "description": "Earn points on every $100 mUSD you hold.",
-          "cta_label": "Buy mUSD"
+          "description": "Earn points on every $100 MUSD you hold.",
+          "cta_label": "Buy MUSD"
         }
       }
     },
