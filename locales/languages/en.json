@@ -7295,7 +7295,9 @@
   },
   "ota_update_modal": {
     "title": "Update available",
-    "description": "A new version of the app is available, please restart to continue",
-    "primary_action": "Reload"
+    "description_ios": "A new version of the app is available. Reload to apply the update now.",
+    "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
+    "primary_action_reload": "Reload",
+    "primary_action_acknowledge": "Got it"
   }
 }

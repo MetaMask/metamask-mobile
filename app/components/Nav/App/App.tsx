@@ -1102,7 +1102,9 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
   useOTAUpdates();
+
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,

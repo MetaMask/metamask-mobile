@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
 import OTAUpdatesModal from './OTAUpdatesModal';
 import Logger from '../../../util/Logger';
@@ -92,6 +93,7 @@ jest.mock('../../hooks/useMetrics', () => ({
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (Platform as unknown as { OS: string }).OS = 'ios';
   });
 
   it('tracks view event on mount', () => {
@@ -104,7 +106,7 @@ describe('OTAUpdatesModal', () => {
     );
   });
 
-  it('tracks primary action when reload button is pressed', async () => {
+  it('tracks primary action when primary button is pressed', async () => {
     const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
@@ -118,13 +120,25 @@ describe('OTAUpdatesModal', () => {
     });
   });
 
-  it('reloads app when reload button is pressed', async () => {
+  it('reloads app when reload button is pressed on iOS', async () => {
     const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
     await waitFor(() => {
       expect(mockReloadAsync).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not reload app when reload button is pressed on Android', async () => {
+    (Platform as unknown as { OS: string }).OS = 'android';
+
+    const { getByText } = render(<OTAUpdatesModal />);
+
+    fireEvent.press(getByText('Got it'));
+
+    await waitFor(() => {
+      expect(mockReloadAsync).not.toHaveBeenCalled();
     });
   });
 

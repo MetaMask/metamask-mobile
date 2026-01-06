@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import { Image } from 'react-native';
+import { Image, Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -63,16 +63,28 @@ const OTAUpdatesModal = () => {
           .build(),
       );
 
-      try {
-        await reloadAsync();
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'OTA Updates: Error reloading app after modal reload pressed',
-        );
+      if (Platform.OS === 'ios') {
+        try {
+          await reloadAsync();
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'OTA Updates: Error reloading app after modal reload pressed',
+          );
+        }
       }
     });
   }, [trackEvent, createEventBuilder]);
+
+  const primaryActionLabel =
+    Platform.OS === 'ios'
+      ? strings('ota_update_modal.primary_action_reload')
+      : strings('ota_update_modal.primary_action_acknowledge');
+
+  const description =
+    Platform.OS === 'ios'
+      ? strings('ota_update_modal.description_ios')
+      : strings('ota_update_modal.description_android');
 
   return (
     <BottomSheet
@@ -107,14 +119,14 @@ const OTAUpdatesModal = () => {
           {strings('ota_update_modal.title')}
         </Text>
         <Text variant={TextVariant.BodyMD} style={tw.style('text-center')}>
-          {strings('ota_update_modal.description')}
+          {description}
         </Text>
       </ScrollView>
       <Box twClassName="w-full p-4">
         <Button
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
-          label={strings('ota_update_modal.primary_action')}
+          label={primaryActionLabel}
           onPress={onPress}
           style={tw.style('my-2 py-2')}
         />
