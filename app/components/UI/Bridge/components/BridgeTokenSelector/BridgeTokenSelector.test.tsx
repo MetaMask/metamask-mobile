@@ -1,12 +1,54 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { CaipChainId } from '@metamask/utils';
 import {
   createMockToken,
   createMockPopularToken,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
+import { BridgeTokenSelector } from './BridgeTokenSelector';
+
+let mockBridgeFeatureFlags = {
+  chainRanking: [
+    { chainId: MOCK_CHAIN_IDS.ethereum },
+    { chainId: MOCK_CHAIN_IDS.polygon },
+  ],
+};
+
+// Create a Redux store with all the state needed by the component
+const createMockStore = () =>
+  configureStore({
+    reducer: {
+      user: () => ({ appTheme: 'light' }),
+      engine: () => ({
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': { name: 'Ethereum Mainnet', chainId: '0x1' },
+              '0x89': { name: 'Polygon', chainId: '0x89' },
+            },
+          },
+          BridgeController: {
+            bridgeState: {
+              bridgeFeatureFlags: mockBridgeFeatureFlags,
+            },
+          },
+        },
+      }),
+      bridge: () => ({
+        sourceToken: null,
+        destToken: null,
+      }),
+    },
+  });
+
+const mockStore = createMockStore();
+
+// Helper function to render with Redux Provider
+const renderWithReduxProvider = (component: React.ReactElement) =>
+  render(<Provider store={mockStore}>{component}</Provider>);
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -22,22 +64,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
-let mockBridgeFeatureFlags = {
-  chainRanking: [
-    { chainId: MOCK_CHAIN_IDS.ethereum },
-    { chainId: MOCK_CHAIN_IDS.polygon },
-  ],
-};
+// Mock selectors to return test data
+jest.mock('../../../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(() => ({
+    '0x1': { name: 'Ethereum Mainnet', chainId: '0x1' },
+    '0x89': { name: 'Polygon', chainId: '0x89' },
+  })),
+}));
 
-jest.mock('react-redux', () => ({
-  useDispatch: () => jest.fn(),
-  useSelector: jest.fn((selector) => {
-    if (selector.toString().includes('bridgeFeatureFlags'))
-      return mockBridgeFeatureFlags;
-    if (selector.toString().includes('sourceToken')) return null;
-    if (selector.toString().includes('destToken')) return null;
-    return { '0x1': { name: 'Ethereum Mainnet' } };
-  }),
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectBridgeFeatureFlags: jest.fn(() => mockBridgeFeatureFlags),
 }));
 
 let mockPopularTokensState = {
@@ -287,14 +323,16 @@ describe('BridgeTokenSelector', () => {
 
   describe('rendering', () => {
     it('renders and sets navigation options', () => {
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
       expect(mockSetOptions).toHaveBeenCalled();
     });
 
     it('renders skeleton items during loading', async () => {
       mockPopularTokensState = { popularTokens: [], isLoading: true };
-      const { getAllByTestId } = render(<BridgeTokenSelector />);
+      const { getAllByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       await waitFor(() => {
         expect(getAllByTestId('skeleton-item').length).toBe(8);
       });
@@ -306,7 +344,9 @@ describe('BridgeTokenSelector', () => {
         searchResults: [createSearchToken('ETH')],
         isLoadingMore: true,
       };
-      const { getAllByTestId } = render(<BridgeTokenSelector />);
+      const { getAllByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       await waitFor(() =>
         expect(getAllByTestId('skeleton-item').length).toBeGreaterThan(0),
       );
@@ -322,17 +362,23 @@ describe('BridgeTokenSelector', () => {
         ],
         isLoading: false,
       };
-      const { getByTestId, rerender } = render(<BridgeTokenSelector />);
+      const { getByTestId, rerender } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
       mockRouteParams = { type: 'dest' };
-      rerender(<BridgeTokenSelector />);
+      rerender(
+        <Provider store={mockStore}>
+          <BridgeTokenSelector />
+        </Provider>,
+      );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
   });
 
   describe('search', () => {
     it('triggers debounced search on text change', () => {
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
       expect(mockDebouncedSearch).toHaveBeenCalledWith('ETH');
     });
@@ -343,7 +389,7 @@ describe('BridgeTokenSelector', () => {
         searchResults: [createSearchToken('WETH')],
         currentSearchQuery: 'WET',
       };
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
       await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
     });
@@ -351,7 +397,7 @@ describe('BridgeTokenSelector', () => {
 
   describe('token selection', () => {
     it('calls handleTokenPress when token pressed', async () => {
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
       fireEvent.press(getByTestId('token-USDC'));
       expect(mockHandleTokenPress).toHaveBeenCalled();
@@ -360,14 +406,14 @@ describe('BridgeTokenSelector', () => {
     it('handles dest route type with selected token', async () => {
       mockRouteParams = { type: 'dest' };
       mockSelectedToken = createMockToken({ symbol: 'USDC', chainId: '0x1' });
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
   });
 
   describe('chain selection', () => {
     it('cancels search and resets when chain changes', async () => {
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
       await act(async () => {
         fireEvent.press(getByTestId('select-eth-network'));
@@ -378,7 +424,7 @@ describe('BridgeTokenSelector', () => {
 
     it('returns empty chain array when chainRanking unavailable', () => {
       mockBridgeFeatureFlags = { chainRanking: undefined as never };
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
     });
   });
@@ -391,7 +437,9 @@ describe('BridgeTokenSelector', () => {
         searchCursor: 'next-cursor',
         currentSearchQuery: 'WET',
       };
-      const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
+      const { getByTestId, UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
       await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
       mockSearchTokens.mockClear();
@@ -430,7 +478,7 @@ describe('BridgeTokenSelector', () => {
           currentSearchQuery: 'WET',
           ...stateOverrides,
         };
-        const { getByTestId, UNSAFE_getByType } = render(
+        const { getByTestId, UNSAFE_getByType } = renderWithReduxProvider(
           <BridgeTokenSelector />,
         );
         fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
@@ -452,7 +500,7 @@ describe('BridgeTokenSelector', () => {
 
   describe('navigation and tracking', () => {
     it('navigates and tracks event on info button press', async () => {
-      const { getByTestId } = render(<BridgeTokenSelector />);
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
