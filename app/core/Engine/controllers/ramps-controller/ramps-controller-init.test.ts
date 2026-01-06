@@ -9,46 +9,35 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-const mockStore = (() => {
-  const store: { updateGeolocation?: jest.Mock } = {};
-  return store;
-})();
+const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
 
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
     '@metamask/ramps-controller',
   );
 
-  if (!mockStore.updateGeolocation) {
-    mockStore.updateGeolocation = jest.fn().mockResolvedValue('US');
-  }
+  const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
+    const instance = Object.create(MockRampsControllerSpy.prototype);
+    instance.constructor = MockRampsControllerSpy;
+    instance.updateGeolocation = mockUpdateGeolocation;
+    return instance;
+  });
 
-  const MockRampsController = jest.fn().mockImplementation(() => ({
-      updateGeolocation: mockStore.updateGeolocation,
-    }));
-
-  Object.setPrototypeOf(
-    MockRampsController.prototype,
+  MockRampsControllerSpy.prototype = Object.create(
     actualRampsController.RampsController.prototype,
   );
+  MockRampsControllerSpy.prototype.constructor = MockRampsControllerSpy;
   Object.setPrototypeOf(
-    MockRampsController,
+    MockRampsControllerSpy,
     actualRampsController.RampsController,
   );
 
   return {
     getDefaultRampsControllerState:
       actualRampsController.getDefaultRampsControllerState,
-    RampsController: MockRampsController,
+    RampsController: MockRampsControllerSpy,
   };
 });
-
-const mockUpdateGeolocation = (() => {
-  if (!mockStore.updateGeolocation) {
-    mockStore.updateGeolocation = jest.fn().mockResolvedValue('US');
-  }
-  return mockStore.updateGeolocation;
-})();
 
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
@@ -57,7 +46,7 @@ describe('ramps controller init', () => {
   >;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
     mockUpdateGeolocation.mockResolvedValue('US');
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
