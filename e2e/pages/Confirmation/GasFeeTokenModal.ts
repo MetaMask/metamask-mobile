@@ -37,6 +37,11 @@ class GasFeeTokenModal {
     const amountFiatElement = await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
     );
+
+    await Assertions.expectElementToBeVisible(amountFiatElement, {
+      description: `Amount fiat for ${symbol} is visible`,
+    });
+
     const amountFiatElementAttributes = await amountFiatElement.getAttributes();
     const amountFiatElementLabel = this.elementSafe(
       amountFiatElementAttributes,
