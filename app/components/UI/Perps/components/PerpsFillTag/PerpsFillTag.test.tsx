@@ -77,20 +77,20 @@ describe('PerpsFillTag', () => {
   it('renders Take Profit pill', () => {
     const transaction = createMockTransaction(FillType.TakeProfit);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
-    expect(getByText('Take Profit')).toBeTruthy();
+    expect(getByText('Take profit')).toBeTruthy();
   });
 
   it('renders Stop Loss pill', () => {
     const transaction = createMockTransaction(FillType.StopLoss);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
-    expect(getByText('Stop Loss')).toBeTruthy();
+    expect(getByText('Stop loss')).toBeTruthy();
   });
 
   it('renders ADL pill and opens URL on press', () => {
     const transaction = createMockTransaction(FillType.AutoDeleveraging);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
-    const adlTag = getByText('ADL');
+    const adlTag = getByText('Auto-Deleveraging');
     expect(adlTag).toBeTruthy();
 
     // Find and press the TouchableOpacity wrapping the tag
