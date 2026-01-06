@@ -109,8 +109,8 @@ describe('useSendNavbar', () => {
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
 
-      expect(getByTestId('send-navbar-back-button')).toBeTruthy();
-      expect(getByTestId('send-navbar-close-button')).toBeTruthy();
+      expect(getByTestId('send-navbar-back-button')).toBeOnTheScreen();
+      expect(getByTestId('send-navbar-close-button')).toBeOnTheScreen();
     });
 
     it('renders title in header', () => {
@@ -120,7 +120,7 @@ describe('useSendNavbar', () => {
       const Header = Amount.header;
       const { getByText } = render(<Header />);
 
-      expect(getByText('send.title')).toBeTruthy();
+      expect(getByText('send.title')).toBeOnTheScreen();
     });
 
     it('navigates to wallet view when back button is pressed with no previous routes', () => {
@@ -282,7 +282,7 @@ describe('useSendNavbar', () => {
       const Header = Asset.header;
       const { getByText } = render(<Header />);
 
-      expect(getByText('send.title')).toBeTruthy();
+      expect(getByText('send.title')).toBeOnTheScreen();
     });
   });
 
@@ -302,8 +302,8 @@ describe('useSendNavbar', () => {
       const Header = Recipient.header;
       const { getByTestId } = render(<Header />);
 
-      expect(getByTestId('send-navbar-back-button')).toBeTruthy();
-      expect(getByTestId('send-navbar-close-button')).toBeTruthy();
+      expect(getByTestId('send-navbar-back-button')).toBeOnTheScreen();
+      expect(getByTestId('send-navbar-close-button')).toBeOnTheScreen();
     });
 
     it('uses same back navigation logic as Amount route', () => {
@@ -348,7 +348,7 @@ describe('useSendNavbar', () => {
       const Header = Recipient.header;
       const { getByText } = render(<Header />);
 
-      expect(getByText('send.title')).toBeTruthy();
+      expect(getByText('send.title')).toBeOnTheScreen();
     });
   });
 });
