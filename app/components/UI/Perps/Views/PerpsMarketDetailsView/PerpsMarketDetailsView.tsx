@@ -943,7 +943,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onBack={handleBackPress}
         scrollY={headerScrollY}
         onExpandedHeightChange={setExpandedHeight}
-        insideSafeAreaView
+        isInsideSafeAreaView
         titleLeftProps={{
           title: `${getPerpsDisplaySymbol(market.symbol)}-USD`,
           titleAccessory: (
