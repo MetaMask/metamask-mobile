@@ -1215,7 +1215,7 @@ describe('Authentication', () => {
 
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
       expect(setMigrationVersionMock).toHaveBeenCalledWith(
-        SeedlessOnboardingMigrationVersion.DataType,
+        SeedlessOnboardingMigrationVersion.V1,
       );
 
       createWalletSpy.mockRestore();
@@ -2553,10 +2553,13 @@ describe('Authentication', () => {
       ]);
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockImportedAddress,
-        dataType: EncAccountDataType.ImportedPrivateKey,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockImportedAddress,
+        },
+      );
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockImportedAddress,
       );
@@ -2782,10 +2785,13 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-        dataType: EncAccountDataType.ImportedPrivateKey,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
@@ -2822,10 +2828,13 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-        dataType: EncAccountDataType.ImportedPrivateKey,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
@@ -2846,10 +2855,13 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-        dataType: EncAccountDataType.ImportedPrivateKey,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
     });
 
     it('handles SeedlessOnboardingController.addNewSecretData failure', async () => {

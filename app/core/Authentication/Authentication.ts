@@ -850,7 +850,7 @@ class AuthenticationService {
       // New users already have dataType set on their secrets during creation,
       // so we mark the migration as complete to prevent it from running
       SeedlessOnboardingController.setMigrationVersion(
-        SeedlessOnboardingMigrationVersion.DataType,
+        SeedlessOnboardingMigrationVersion.V1,
       );
 
       this.dispatchOauthReset();
@@ -1003,10 +1003,9 @@ class AuthenticationService {
     if (syncWithSocial) {
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
-        SecretType.PrivateKey,
+        EncAccountDataType.ImportedPrivateKey,
         {
           keyringId,
-          dataType: EncAccountDataType.ImportedPrivateKey,
         },
       );
     } else {

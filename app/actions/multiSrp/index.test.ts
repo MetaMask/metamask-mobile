@@ -11,10 +11,7 @@ import { createMockInternalAccount } from '../../util/test/accountsControllerTes
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import {
-  SecretType,
-  EncAccountDataType,
-} from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 
@@ -127,9 +124,9 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: (
         seed: Uint8Array,
-        type: SecretType,
-        options: { keyringId: string; dataType?: EncAccountDataType },
-      ) => mockAddNewSecretData(seed, type, options),
+        dataType: EncAccountDataType,
+        options: { keyringId: string },
+      ) => mockAddNewSecretData(seed, dataType, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -334,10 +331,9 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: 'keyring-id-123',
-            dataType: EncAccountDataType.ImportedSrp,
           },
         );
         expect(mockEndTrace).toHaveBeenCalledWith({
@@ -363,10 +359,9 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: 'keyring-id-123',
-            dataType: EncAccountDataType.ImportedSrp,
           },
         );
         expect(mockTrace).toHaveBeenCalledWith({
@@ -401,10 +396,9 @@ describe('MultiSRP Actions', () => {
 
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: 'test-keyring-id',
-          dataType: EncAccountDataType.ImportedSrp,
         },
       );
       expect(result).toEqual({
