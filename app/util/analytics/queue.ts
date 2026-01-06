@@ -37,6 +37,7 @@ export type QueueAction =
       payload: { processing: boolean; promise: Promise<void> | null };
     }
   | { type: 'CLEAR_QUEUE' }
+  | { type: 'REMOVE_OPERATIONS'; payload: { count: number } }
   | { type: 'RESET' };
 
 /**
@@ -100,6 +101,11 @@ const queueReducer = (state: QueueState, action: QueueAction): QueueState => {
       return {
         ...state,
         queue: [],
+      };
+    case 'REMOVE_OPERATIONS':
+      return {
+        ...state,
+        queue: state.queue.slice(action.payload.count),
       };
     case 'RESET':
       return createInitialState();
@@ -195,11 +201,17 @@ export const createAnalyticsQueueManager = (
       return Promise.resolve();
     }
     const operations = state.queue; // Read-only, already immutable
+    const operationsCount = operations.length;
 
     // Create the processing promise - defer execution to next tick so state can be set first
     const processingPromise = Promise.resolve().then(async () => {
-      // Clear queue immediately (immutable update)
-      dispatch({ type: 'CLEAR_QUEUE' });
+      // Remove only the operations we're processing (immutable update)
+      // This prevents race conditions where new operations are added between
+      // capturing the queue and clearing it
+      dispatch({
+        type: 'REMOVE_OPERATIONS',
+        payload: { count: operationsCount },
+      });
 
       // Process operations (side effects isolated)
       for (const operation of operations) {

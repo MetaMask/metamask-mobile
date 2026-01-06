@@ -535,6 +535,82 @@ describe('createAnalyticsQueueManager', () => {
       expect(mockMessenger.call).toHaveBeenCalledTimes(5);
       expect(queueManager.getQueueLength()).toBe(0);
     });
+
+    it('preserves operations added during processing (race condition fix)', async () => {
+      const event1: AnalyticsTrackingEvent = {
+        name: 'event1',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+
+      const event2: AnalyticsTrackingEvent = {
+        name: 'event2',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+
+      const event3: AnalyticsTrackingEvent = {
+        name: 'event3',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+
+      // Queue first operation
+      const processPromise1 = queueManager.queueOperation('trackEvent', event1);
+
+      // Add second operation while first is being processed (race condition scenario)
+      // The promise execution is deferred, so this will be added after capture but before clear
+      queueManager.queueOperation('trackEvent', event2);
+
+      // Wait for first batch to complete
+      await processPromise1;
+
+      // Add third operation after processing has started but before it completes
+      queueManager.queueOperation('trackEvent', event3);
+
+      // Wait for all processing to complete
+      await queueManager.waitForQueue();
+
+      // All three events should be processed
+      expect(mockMessenger.call).toHaveBeenCalledTimes(3);
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'AnalyticsController:trackEvent',
+        event1,
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'AnalyticsController:trackEvent',
+        event2,
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'AnalyticsController:trackEvent',
+        event3,
+      );
+      expect(queueManager.getQueueLength()).toBe(0);
+    });
   });
 
   describe('state isolation', () => {
