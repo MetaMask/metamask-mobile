@@ -84,7 +84,9 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
+  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { SolScope } from '@metamask/keyring-api';
 import styleSheet from './MultichainAccountConnect.styles.ts';
 import { useStyles } from '../../../../component-library/hooks/index.ts';
 import { getApiAnalyticsProperties } from '../../../../util/metrics/MultichainAPI/getApiAnalyticsProperties.ts';
@@ -180,9 +182,27 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   );
 
   const requestedCaipChainIds = useMemo(
+    () =>
+      getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue).filter(
+        (chainId) => {
+          const { namespace } = parseCaipChainId(chainId);
+          return namespace !== KnownCaipNamespace.Wallet;
+        },
+      ),
+    [requestedCaip25CaveatValue],
+  );
+
+  const requestedScopes = useMemo(
     () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
   );
+
+  const isSolanaWalletStandardRequest =
+    requestedScopes.length === 1 &&
+    requestedScopes[0] === SolScope.Mainnet &&
+    requestedCaip25CaveatValue.sessionProperties[
+      KnownSessionProperties.SolanaAccountChangedNotifications
+    ];
 
   const requestedNamespaces = useMemo(
     () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
@@ -263,6 +283,33 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ...testNetworkCaipChainIds,
     ];
 
+    // If globally selected network is a test network, include that in the default selected networks for connection request
+    const currentlySelectedNetworkChainId = currentlySelectedNetwork.chainId;
+    const selectedNetworkIsTestNetwork = testNetworkCaipChainIds.find(
+      (network) => network === currentlySelectedNetworkChainId,
+    );
+
+    let defaultSelectedNetworkList = selectedNetworkIsTestNetwork
+      ? [...nonTestNetworkCaipChainIds, selectedNetworkIsTestNetwork]
+      : nonTestNetworkCaipChainIds;
+
+    // Filter out Tron networks since they're not yet supported in mobile
+    defaultSelectedNetworkList = defaultSelectedNetworkList.filter(
+      (caipChainId) => {
+        const { namespace } = parseCaipChainId(caipChainId);
+        return namespace !== KnownCaipNamespace.Tron;
+      },
+    );
+
+    // If the request is an EIP-1193 request (with no specific chains requested) or a Solana wallet standard request, return the default selected network list
+    // Note: Tron Wallet Adapter requests are not handled here since Tron is not yet supported in mobile
+    if (
+      (requestedCaipChainIds.length === 0 && isEip1193Request) ||
+      isSolanaWalletStandardRequest
+    ) {
+      return defaultSelectedNetworkList;
+    }
+
     let additionalChains: CaipChainId[] = [];
     if (isEip1193Request) {
       additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
@@ -281,16 +328,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ]),
     );
 
-    // If globally selected network is a test network, include that in the default selected networks for connection request
-    const currentlySelectedNetworkChainId = currentlySelectedNetwork.chainId;
-    const selectedNetworkIsTestNetwork = testNetworkCaipChainIds.find(
-      (network) => network === currentlySelectedNetworkChainId,
-    );
-
-    const defaultSelectedNetworkList = selectedNetworkIsTestNetwork
-      ? [...nonTestNetworkCaipChainIds, selectedNetworkIsTestNetwork]
-      : nonTestNetworkCaipChainIds;
-
+    // if we have specifically requested chains, return the supported requested chains plus the already connected chains
     if (supportedRequestedCaipChainIds.length > 0) {
       return Array.from(
         new Set([
@@ -321,6 +359,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedNamespaces,
     requestedNamespacesWithoutWallet,
     alreadyConnectedCaipChainIds,
+    isSolanaWalletStandardRequest,
   ]);
 
   const {
@@ -850,7 +889,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         animationIn="slideInUp"
         animationOut="slideOutDown"
         backdropOpacity={1}
-        backdropColor={colors.error.default}
+        backdropColor={colors.background.alternative}
         animationInTiming={300}
         animationOutTiming={300}
         useNativeDriver
@@ -867,7 +906,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ),
     [
       blockedUrl,
-      colors.error.default,
+      colors.background.alternative,
       continueToPhishingSite,
       goBackToSafety,
       goToETHPhishingDetector,
