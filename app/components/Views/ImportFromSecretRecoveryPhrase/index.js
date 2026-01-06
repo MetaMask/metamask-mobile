@@ -19,9 +19,9 @@ import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
-  KeyboardStickyView,
-  useKeyboardState,
+  KeyboardExtender,
 } from 'react-native-keyboard-controller';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isE2E, isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -138,7 +138,12 @@ const ImportFromSecretRecoveryPhrase = ({
     selectImportSrpWordSuggestionEnabledFlag,
   );
 
-  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+  // Check if there are suggestions for the current input word
+  const hasSuggestions = useMemo(() => {
+    const trimmedWord = currentInputWord.trim().toLowerCase();
+    if (!trimmedWord) return false;
+    return wordlist.some((word) => word.startsWith(trimmedWord));
+  }, [currentInputWord]);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -797,24 +802,19 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
-      {isSrpWordSuggestionsEnabled &&
-        currentStep === 0 &&
-        isKeyboardVisible && (
-          <KeyboardStickyView
-            offset={{ closed: 0, opened: 0 }}
-            style={styles.keyboardStickyView}
-          >
-            <SrpWordSuggestions
-              currentInputWord={currentInputWord}
-              onSuggestionSelect={(word) => {
-                srpInputGridRef.current?.handleSuggestionSelect(word);
-              }}
-              onPressIn={() => {
-                srpInputGridRef.current?.setSuggestionSelecting(true);
-              }}
-            />
-          </KeyboardStickyView>
-        )}
+      {isSrpWordSuggestionsEnabled && currentStep === 0 && hasSuggestions && (
+        <KeyboardExtender enabled>
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+            onPressIn={() => {
+              srpInputGridRef.current?.setSuggestionSelecting(true);
+            }}
+          />
+        </KeyboardExtender>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

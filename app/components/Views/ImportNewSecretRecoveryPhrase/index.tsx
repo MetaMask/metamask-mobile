@@ -14,10 +14,9 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
-  KeyboardStickyView,
-  useKeyboardState,
+  KeyboardExtender,
 } from 'react-native-keyboard-controller';
-import { isE2E } from '../../../util/test/utils';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
@@ -83,8 +82,12 @@ const ImportNewSecretRecoveryPhrase = () => {
     selectImportSrpWordSuggestionEnabledFlag,
   );
 
-  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
-  const shouldUseKeyboardProvider = !isE2E;
+  // Check if there are suggestions for the current input word
+  const hasSuggestions = useMemo(() => {
+    const trimmedWord = currentInputWord.trim().toLowerCase();
+    if (!trimmedWord) return false;
+    return wordlist.some((word) => word.startsWith(trimmedWord));
+  }, [currentInputWord]);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -350,11 +353,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
         </View>
       </KeyboardAwareScrollView>
-      {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
-        <KeyboardStickyView
-          offset={{ closed: 0, opened: 0 }}
-          style={styles.keyboardStickyView}
-        >
+      {isSrpWordSuggestionsEnabled && hasSuggestions && (
+        <KeyboardExtender enabled>
           <SrpWordSuggestions
             currentInputWord={currentInputWord}
             onSuggestionSelect={(word) => {
@@ -364,17 +364,13 @@ const ImportNewSecretRecoveryPhrase = () => {
               srpInputGridRef.current?.setSuggestionSelecting(true);
             }}
           />
-        </KeyboardStickyView>
+        </KeyboardExtender>
       )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 
-  return shouldUseKeyboardProvider ? (
-    <KeyboardProvider>{content}</KeyboardProvider>
-  ) : (
-    content
-  );
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default ImportNewSecretRecoveryPhrase;

@@ -575,6 +575,7 @@ jest.mock(
     KeyboardAwareScrollView: require('react-native').ScrollView,
     KeyboardGestureArea: require('react-native').View,
     KeyboardStickyView: require('react-native').View,
+    KeyboardExtender: ({ children }) => children,
     KeyboardToolbar: require('react-native').View,
     useKeyboardAnimation: () => ({
       height: { value: 0 },

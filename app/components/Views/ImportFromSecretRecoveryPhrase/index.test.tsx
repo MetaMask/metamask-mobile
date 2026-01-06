@@ -36,16 +36,13 @@ jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   removeListener: jest.fn(),
 }));
 
-// Mock for keyboard state visibility
-const mockUseKeyboardState = jest.fn();
+// Mock for react-native-keyboard-controller
 jest.mock('react-native-keyboard-controller', () => {
-  const { ScrollView, View } = jest.requireActual('react-native');
+  const { ScrollView } = jest.requireActual('react-native');
   return {
     KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
     KeyboardAwareScrollView: ScrollView,
-    KeyboardStickyView: View,
-    useKeyboardState: (selector: (state: { isVisible: boolean }) => boolean) =>
-      mockUseKeyboardState(selector),
+    KeyboardExtender: ({ children }: { children: React.ReactNode }) => children,
   };
 });
 
@@ -149,11 +146,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     // Mock Redux store for all tests
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
-
-    mockUseKeyboardState.mockImplementation(
-      (selector: (state: { isVisible: boolean }) => boolean) =>
-        selector({ isVisible: false }),
-    );
   });
 
   jest
@@ -1899,64 +1891,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       expect(srpInput).toBeTruthy();
-    });
-
-    it('renders KeyboardStickyView with SrpWordSuggestions when keyboard is visible', async () => {
-      // Arrange
-      mockUseKeyboardState.mockImplementation(
-        (selector: (state: { isVisible: boolean }) => boolean) =>
-          selector({ isVisible: true }),
-      );
-
-      const { getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      // Act
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-      await act(async () => {
-        fireEvent.changeText(srpInput, 'ab');
-      });
-
-      // Assert
-      expect(getByTestId('srp-word-suggestions')).toBeTruthy();
-    });
-
-    it('does not render KeyboardStickyView when keyboard is not visible', async () => {
-      // Arrange
-      mockUseKeyboardState.mockImplementation(
-        (selector: (state: { isVisible: boolean }) => boolean) =>
-          selector({ isVisible: false }),
-      );
-
-      const { getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      // Act
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-      await act(async () => {
-        fireEvent.changeText(srpInput, 'ab');
-      });
-
-      // Assert
-      expect(queryByTestId('srp-word-suggestions')).toBeNull();
     });
   });
 
