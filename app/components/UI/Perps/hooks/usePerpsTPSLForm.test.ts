@@ -219,10 +219,11 @@ describe('usePerpsTPSLForm', () => {
         });
 
         act(() => {
-          result.current.handlers.handleTakeProfitPriceChange('55000.50abc');
+          // Use 5000.50 (5 sig figs) instead of 55000.50 (6 sig figs) to stay within limit
+          result.current.handlers.handleTakeProfitPriceChange('5000.50abc');
         });
 
-        expect(result.current.formState.takeProfitPrice).toBe('55000.50');
+        expect(result.current.formState.takeProfitPrice).toBe('5000.50');
       });
 
       it('prevent multiple decimal points in price input', () => {
