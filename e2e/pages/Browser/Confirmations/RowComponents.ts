@@ -82,8 +82,8 @@ class RowComponents {
   }
 
   async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
-    const symbolElement =
-      (await this.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
+    const symbolElement = (await this
+      .NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
     const symbolElementAttributes = await symbolElement.getAttributes();
     return (
       (symbolElementAttributes as { text?: string; label?: string })?.text ??
