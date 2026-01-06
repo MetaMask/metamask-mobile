@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useFeatureFlagOverride } from '../contexts/FeatureFlagOverrideContext';
-import { FeatureFlagInfo } from '../util/feature-flags';
+import { FeatureFlagInfo, FeatureFlagType } from '../util/feature-flags';
 
 /**
  * Hook to get feature flag statistics
@@ -16,12 +16,14 @@ export const useFeatureFlagStats = (): Record<string, number> => {
       string: 0,
       number: 0,
       array: 0,
+      abTest: 0,
     };
 
     featureFlagsList.forEach((flag: FeatureFlagInfo) => {
       if (
-        flag.type === 'boolean with minimumVersion' ||
-        flag.type === 'boolean nested'
+        flag.type === FeatureFlagType.FeatureFlagBoolean ||
+        flag.type === FeatureFlagType.FeatureFlagBooleanWithMinimumVersion ||
+        flag.type === FeatureFlagType.FeatureFlagBooleanNested
       ) {
         stats.boolean++;
       } else {

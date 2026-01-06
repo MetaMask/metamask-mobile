@@ -19,9 +19,9 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -983,7 +983,9 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await Authentication.importAccountFromPrivateKey(
+                  data.private_key,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -1302,6 +1304,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        twClassName="h-auto"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}
@@ -2038,6 +2041,7 @@ export const getSettingsNavigationOptions = (
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @param {import('../Earn/types/lending.types').EarnTokenDetails | null | undefined} [earnToken] - Optional earn token.
+ * @param {string | null | undefined} [aprOverride] - Optional APR override (e.g., for Tron staking).
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -2048,6 +2052,7 @@ export function getStakingNavbar(
   metricsOptions,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   earnToken = null,
+  aprOverride = null,
   ///: END:ONLY_INCLUDE_IF
 ) {
   const {
@@ -2122,7 +2127,11 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const apr = parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1);
+  const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
+  const apr =
+    parsedOverride > 0
+      ? aprOverride
+      : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2145,7 +2154,7 @@ export function getStakingNavbar(
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Success}
               >
-                {`${apr}% ${strings('earn.apr')}`}
+                {`${apr} ${strings('earn.apr')}`}
               </MorphText>
             </View>
           )
@@ -2251,14 +2260,15 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(
+export function getCloseOnlyNavbar({
   navigation,
   themeColors,
+  backgroundColor = themeColors.background.default,
   onClose = undefined,
-) {
+}) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },

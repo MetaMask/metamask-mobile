@@ -101,8 +101,21 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
     };
 
+    // destToken must match the quote's destAsset.assetId for destTokenAmount to be calculated
+    // The address should be in CAIP format to match the quote's assetId
+    const bridgeReducerOverrides = {
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
     const testState = createBridgeTestState({
       bridgeControllerOverrides,
+      bridgeReducerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
@@ -212,6 +225,45 @@ describe('useBridgeQuoteData', () => {
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
     });
+  });
+
+  it('returns undefined destTokenAmount when quote destAsset does not match selected destToken', () => {
+    // Set up mock with a quote for a different destination token (ETH) than what's selected (USDC)
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata, // This quote is for Solana USDC
+      alternativeQuotes: [],
+    }));
+
+    const bridgeControllerOverrides = {
+      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotesLoadingStatus: null,
+      quoteFetchError: null,
+    };
+
+    // Selected destToken is ETH on mainnet, which doesn't match the quote's destAsset (Solana USDC)
+    // This simulates the race condition when user changes destination token
+    const bridgeReducerOverrides = {
+      destToken: {
+        symbol: 'ETH',
+        chainId: CHAIN_IDS.MAINNET,
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // destTokenAmount should be undefined because quote's destAsset doesn't match selected destToken
+    // This prevents showing incorrect amounts when switching destination tokens
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.destTokenAmount).toBeUndefined();
   });
 
   it('handles expired quotes correctly', () => {
@@ -600,7 +652,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -700,7 +753,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -738,7 +792,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };

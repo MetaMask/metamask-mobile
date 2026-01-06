@@ -15,6 +15,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -48,7 +49,11 @@ export function BridgeTimeRow() {
       label={strings('confirm.label.bridge_estimated_time')}
       rowVariant={InfoRowVariant.Small}
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
+      >
         {formattedSeconds}
       </Text>
     </InfoRow>

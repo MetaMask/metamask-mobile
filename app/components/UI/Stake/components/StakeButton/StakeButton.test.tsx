@@ -19,9 +19,9 @@ import Engine from '../../../../../core/Engine';
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectMusdConversionPaymentTokensAllowlist,
+  selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useFeatureFlag } from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -30,10 +30,6 @@ import { Hex } from '@metamask/utils';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 const mockNavigate = jest.fn();
-
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
 
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
   Ethereum: '2.3',
@@ -117,6 +113,7 @@ jest.mock('../../../../../util/environment', () => ({
 
 // Mock the feature flags selector
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
   selectIsMusdConversionFlowEnabledFlag: jest.fn().mockReturnValue(false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn().mockReturnValue({}),
@@ -141,6 +138,7 @@ mockUseMusdConversionTokens.mockReturnValue({
   isConversionToken: jest.fn().mockReturnValue(false),
   tokenFilter: jest.fn(),
   isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+  getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
   tokens: [],
 });
 
@@ -151,16 +149,6 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
     ),
   },
 }));
-
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    useFeatureFlag: jest.fn().mockReturnValue(true),
-    FeatureFlagNames: actual.FeatureFlagNames,
-  };
-});
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: jest.fn(),
@@ -452,7 +440,11 @@ describe('StakeButton', () => {
   });
 
   it('does not render button when all earn experiences are disabled', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -465,7 +457,11 @@ describe('StakeButton', () => {
   });
 
   it('does not render button when all pooled staking experience is disabled and token is ETH', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -500,6 +496,7 @@ describe('StakeButton', () => {
         isConversionToken: jest.fn().mockReturnValue(false),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
     });
@@ -519,6 +516,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -551,6 +549,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -594,6 +593,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 
@@ -632,6 +632,7 @@ describe('StakeButton', () => {
         ),
         tokenFilter: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
         tokens: [],
       });
 

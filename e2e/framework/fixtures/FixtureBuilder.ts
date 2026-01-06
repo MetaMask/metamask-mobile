@@ -814,6 +814,7 @@ class FixtureBuilder {
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
+        '@MetaMask:predictGTMModalShown': 'true',
       },
     };
     return this;
@@ -2261,6 +2262,21 @@ class FixtureBuilder {
         },
       },
     });
+  }
+
+  withTokenRates(chainId: string, tokenAddress: string, price: number) {
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: {
+          [tokenAddress]: {
+            tokenAddress,
+            price,
+          },
+        },
+      },
+    });
+
+    return this;
   }
 
   /**
