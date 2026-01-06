@@ -2048,9 +2048,11 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
   const apr =
-    aprOverride ??
-    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
+    parsedOverride > 0
+      ? aprOverride
+      : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
