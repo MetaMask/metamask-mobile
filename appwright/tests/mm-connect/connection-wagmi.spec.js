@@ -66,4 +66,24 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     // await DappConnectionModal.tapUpdateButton();
     await DappConnectionModal.tapConnectButton();
   });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.isDappConnected();
+      await WagmiTestDapp.assertConnectedChainValue('1');
+      await WagmiTestDapp.assertConnectedAccountsValue(
+        '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
+      );
+      // await WagmiTestDapp.tapPersonalSignButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
 });
