@@ -4,8 +4,11 @@ const styleSheet = () =>
   StyleSheet.create({
     content: {
       paddingHorizontal: 16,
-      flexDirection: 'row',
-      justifyContent: 'center',
+    },
+    footerContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 16,
     },
   });
 

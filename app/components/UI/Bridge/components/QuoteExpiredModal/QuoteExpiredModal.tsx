@@ -9,6 +9,7 @@ import HeaderCenter from '../../../../../component-library/components-temp/Heade
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import {
   ButtonSize,
@@ -76,7 +77,7 @@ const QuoteExpiredModal = () => {
         onClose={handleClose}
       />
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('quote_expired_modal.description', {
             refreshRate,
           })}
