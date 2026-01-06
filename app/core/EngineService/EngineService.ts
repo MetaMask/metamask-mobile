@@ -29,6 +29,7 @@ import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
+import { setExistingUser } from '../../actions/user';
 
 export class EngineService {
   private engineInitialized = false;
@@ -372,6 +373,10 @@ export class EngineService {
       if (instance) {
         // Pass state to detect controllers that changed during init
         this.initializeControllers(instance, state as Record<string, unknown>);
+        // CRITICAL: Set existingUser = true after successful vault unlock from recovery
+        // This prevents the vault recovery screen from appearing again on app restart
+        // Only set after successful unlock to ensure vault is unlocked and credentials are stored
+        ReduxService.store.dispatch(setExistingUser(true));
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {
