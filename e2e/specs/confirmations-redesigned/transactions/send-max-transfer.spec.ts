@@ -111,7 +111,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         await AmountView.tapNextButton();
 
         // Check all expected elements are visible
-        await Assertions.expectTextDisplayed('1,000 ETH');
+        await Assertions.expectTextDisplayed('100000000 ETH');
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
