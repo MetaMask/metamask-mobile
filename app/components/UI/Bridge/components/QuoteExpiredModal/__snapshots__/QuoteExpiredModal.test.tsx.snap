@@ -296,8 +296,10 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
           style={
             {
               "flexDirection": "row",
+              "paddingBottom": 16,
               "paddingHorizontal": 16,
-              "paddingVertical": 20,
+              "paddingTop": 24,
+              "paddingVertical": 4,
             }
           }
           testID="bottomsheetfooter"

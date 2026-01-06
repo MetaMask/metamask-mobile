@@ -273,7 +273,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
         <View
           style={
             {
-              "alignItems": "center",
               "paddingHorizontal": 16,
             }
           }
@@ -326,16 +325,16 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#4459ff1a",
-                      "borderColor": "#4459ff",
-                      "borderRadius": 16,
-                      "borderWidth": 1,
+                      "backgroundColor": "#121314",
+                      "borderRadius": 12,
                       "flexDirection": "row",
-                      "height": 40,
+                      "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
                       "paddingHorizontal": 16,
@@ -347,7 +346,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#4459ff",
+                        "color": "#ffffff",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -374,16 +373,18 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "transparent",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 16,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "transparent",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 40,
+                      "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
                       "paddingHorizontal": 16,
@@ -422,16 +423,18 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "transparent",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 16,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "transparent",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 40,
+                      "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
                       "paddingHorizontal": 16,
@@ -470,16 +473,18 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "transparent",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 16,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "transparent",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 40,
+                      "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
                       "paddingHorizontal": 16,
@@ -509,10 +514,9 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             style={
               {
                 "flexDirection": "row",
-                "marginBottom": 0,
-                "marginTop": 16,
-                "paddingBottom": 0,
-                "paddingHorizontal": 8,
+                "paddingBottom": 16,
+                "paddingHorizontal": 0,
+                "paddingTop": 24,
                 "paddingVertical": 4,
               }
             }
