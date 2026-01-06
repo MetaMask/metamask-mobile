@@ -151,7 +151,7 @@ describe('useAutoUpdateDestToken', () => {
       // Dest is already the default (mUSD for Ethereum)
       const mUsdToken: BridgeToken = {
         address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         name: 'MetaMask USD',
         decimals: 6,
         chainId: ethChainId,
@@ -225,7 +225,7 @@ describe('useAutoUpdateDestToken', () => {
       // Dest should update to the default (mUSD) since source no longer conflicts
       expect(setDestTokenSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbol: 'mUSD',
+          symbol: 'MUSD',
           chainId: ethChainId,
           address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
         }),
@@ -238,7 +238,7 @@ describe('useAutoUpdateDestToken', () => {
       // Current dest is the default mUSD
       const mUsdToken: BridgeToken = {
         address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         name: 'MetaMask USD',
         decimals: 6,
         chainId: ethChainId,
@@ -247,7 +247,7 @@ describe('useAutoUpdateDestToken', () => {
       // New source is also mUSD (conflicts with dest)
       const mUsdSourceToken: BridgeToken = {
         address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         name: 'MetaMask USD',
         decimals: 6,
         chainId: ethChainId,
@@ -314,7 +314,7 @@ describe('useAutoUpdateDestToken', () => {
       // For Ethereum mainnet, the default dest is mUSD at 0xaca92e438df0b2401ff60da7e4337b687a2435da
       const sourceTokenMatchingDefault: BridgeToken = {
         address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        symbol: 'mUSD',
+        symbol: 'MUSD',
         name: 'MetaMask USD',
         decimals: 6,
         chainId: ethChainId,

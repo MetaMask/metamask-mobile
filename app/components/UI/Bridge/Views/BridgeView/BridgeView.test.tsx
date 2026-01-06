@@ -1045,7 +1045,7 @@ describe('BridgeView', () => {
               decimals: 6,
               image: '',
               name: 'MetaMask USD',
-              symbol: 'mUSD',
+              symbol: 'MUSD',
             },
           },
         },
@@ -1088,7 +1088,7 @@ describe('BridgeView', () => {
 
       // Expect translated disclaimer text
       const expected = strings('bridge.no_mm_fee_disclaimer', {
-        destTokenSymbol: 'mUSD',
+        destTokenSymbol: 'MUSD',
       });
       await waitFor(() => {
         expect(getByText(expected)).toBeTruthy();

@@ -10,7 +10,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   [CHAIN_IDS.MAINNET]: {
-    symbol: 'mUSD',
+    symbol: 'MUSD',
     name: 'MetaMask USD',
     address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     decimals: 6,
@@ -73,7 +73,7 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
     chainId: CHAIN_IDS.BASE,
   },
   [CHAIN_IDS.LINEA_MAINNET]: {
-    symbol: 'mUSD',
+    symbol: 'MUSD',
     name: 'MetaMask USD',
     address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     decimals: 6,
@@ -158,7 +158,7 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
     chainId: CHAIN_IDS.MAINNET,
   },
   'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': {
-    symbol: 'mUSD',
+    symbol: 'MUSD',
     name: 'MetaMask USD',
     address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     decimals: 6,

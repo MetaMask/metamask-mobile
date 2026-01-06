@@ -44,7 +44,9 @@ export const getDefaultDestToken = (
 ): BridgeToken | undefined => {
   // Try direct lookup first
   let token = DefaultSwapDestTokens[chainId];
-  if (token) return token;
+  if (token) {
+    return token;
+  }
 
   // If chainId is CAIP format (e.g., "eip155:1"), convert to hex and try again
   if (typeof chainId === 'string' && chainId.includes(':')) {
