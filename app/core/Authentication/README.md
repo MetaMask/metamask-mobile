@@ -38,9 +38,7 @@ interface AuthData {
 
 ## Public API
 
-### Wallet Deletion
-
-#### `deleteWallet`
+### `deleteWallet`
 
 Deletes the wallet by resetting wallet state and deleting user data. This is the main public method for wallet deletion/reset flows.
 
@@ -85,11 +83,9 @@ await Authentication.deleteWallet();
 
 ---
 
-### Authentication Preference Management
+### `updateAuthPreference`
 
-#### `updateAuthPreference`
-
-Updates the user's authentication preference (biometric, passcode, or password). Validates the password before updating and manages all related storage flags.
+Updates the user's authentication preference (biometric, passcode, or password). Validates the password before updating and manages all related storage flags. Used for authentication preference management.
 
 ```typescript
 await Authentication.updateAuthPreference(options: {
@@ -145,11 +141,9 @@ await Authentication.updateAuthPreference({
 
 ---
 
-### Password Verification
+### `reauthenticate`
 
-#### `reauthenticate`
-
-Verifies a password. If no password is provided, attempts to use stored biometric/remember-me password from keychain.
+Verifies a password. If no password is provided, attempts to use stored biometric/remember-me password from keychain. Used for password verification before sensitive operations.
 
 ```typescript
 await Authentication.reauthenticate(
@@ -197,11 +191,9 @@ const passwordToUse = await this.reauthenticate(password);
 
 ---
 
-### Credential Revelation
+### `revealSRP`
 
-#### `revealSRP`
-
-Reveals the secret recovery phrase (SRP) for a specified keyring after verifying the provided password.
+Reveals the secret recovery phrase (SRP) for a specified keyring after verifying the provided password. Used for credential revelation.
 
 ```typescript
 await Authentication.revealSRP(
@@ -235,9 +227,9 @@ privateCredential = await revealSRP(verifiedPassword, keyringId);
 
 ---
 
-#### `revealPrivateKey`
+### `revealPrivateKey`
 
-Reveals the private key for a given account address after verifying the provided password.
+Reveals the private key for a given account address after verifying the provided password. Used for credential revelation.
 
 ```typescript
 await Authentication.revealPrivateKey(
