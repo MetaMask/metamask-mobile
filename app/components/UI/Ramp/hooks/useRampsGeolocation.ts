@@ -7,7 +7,7 @@ import {
 } from '../../../../selectors/rampsController';
 import {
   ExecuteRequestOptions,
-  createCacheKey,
+  RequestSelectorResult,
 } from '@metamask/ramps-controller';
 
 /**
@@ -50,7 +50,9 @@ export interface UseRampsGeolocationResult {
  */
 export function useRampsGeolocation(): UseRampsGeolocationResult {
   const geolocation = useSelector(selectGeolocation);
-  const { isFetching, error } = useSelector(selectGeolocationRequest);
+  const { isFetching, error } = useSelector(
+    selectGeolocationRequest,
+  ) as RequestSelectorResult<string>;
 
   const fetchGeolocation = useCallback(
     (options?: ExecuteRequestOptions) =>
@@ -62,11 +64,6 @@ export function useRampsGeolocation(): UseRampsGeolocationResult {
     fetchGeolocation().catch(() => {
       // Error is stored in state
     });
-
-    return () => {
-      const cacheKey = createCacheKey('updateGeolocation', []);
-      Engine.context.RampsController.abortRequest(cacheKey);
-    };
   }, [fetchGeolocation]);
 
   return {

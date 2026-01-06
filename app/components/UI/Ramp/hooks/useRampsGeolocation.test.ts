@@ -160,20 +160,4 @@ describe('useRampsGeolocation', () => {
       });
     });
   });
-
-  describe('cleanup on unmount', () => {
-    it('aborts in-flight request when component unmounts', () => {
-      const store = createMockStore();
-
-      const { unmount } = renderHook(() => useRampsGeolocation(), {
-        wrapper: wrapper(store),
-      });
-
-      unmount();
-
-      expect(Engine.context.RampsController.abortRequest).toHaveBeenCalledWith(
-        'updateGeolocation:[]',
-      );
-    });
-  });
 });
