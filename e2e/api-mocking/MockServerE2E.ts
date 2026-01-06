@@ -242,7 +242,9 @@ export default class MockServerE2E implements Resource {
           return urlEndpoint === 'https://metametrics.test/track';
         })
         .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
-        .thenCallback(async () => {
+        .thenCallback(async (request) => {
+          // Access body to ensure mockttp buffers it for getSeenRequests()
+          await request.body.getText();
           logger.debug(
             'Mocking POST request to: https://metametrics.test/track',
           );
