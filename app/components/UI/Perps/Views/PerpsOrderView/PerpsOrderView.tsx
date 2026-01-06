@@ -1007,7 +1007,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View style={[styles.detailItem, styles.detailItemOnly]}>
+            <View
+              style={[
+                styles.detailItem,
+                // If there are items below (limit price or TP/SL), only round top corners
+                // Otherwise, round all corners
+                orderForm.type === 'limit' || !hideTPSL
+                  ? styles.detailItemFirst
+                  : styles.detailItemOnly,
+              ]}
+            >
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1045,7 +1054,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Limit price - only show for limit orders */}
             {orderForm.type === 'limit' && (
-              <View style={styles.detailItem}>
+              <View
+                style={[
+                  styles.detailItem,
+                  // If TP/SL is hidden, this is the last item so round bottom corners
+                  hideTPSL && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>
