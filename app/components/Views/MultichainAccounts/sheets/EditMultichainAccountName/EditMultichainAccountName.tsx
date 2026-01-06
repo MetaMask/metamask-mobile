@@ -21,7 +21,12 @@ import Button, {
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import { TextInput, SafeAreaView } from 'react-native';
+import {
+  TextInput,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
@@ -98,7 +103,7 @@ export const EditMultichainAccountName = () => {
         style={styles.header}
         startAccessory={
           <ButtonLink
-            testID={AccountDetailsIds.BACK_BUTTON}
+            testID={AccountDetailsIds.BACK_BUTTON} // TODO: Might not need this testID
             labelTextVariant={TextVariant.BodyMDMedium}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}
@@ -107,46 +112,51 @@ export const EditMultichainAccountName = () => {
       >
         {accountGroup?.metadata?.name || 'Account Group'}
       </HeaderBase>
-      <Box
-        style={styles.contentContainer}
-        testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text variant={TextVariant.BodyMDMedium}>
-          {strings('multichain_accounts.edit_account_name.account_name')}
-        </Text>
-        <TextInput
-          testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
-          style={styles.input}
-          value={accountName}
-          onChangeText={(newName: string) => {
-            setAccountName(newName);
-            // Clear error when user starts typing
-            if (error) {
-              setError(null);
-            }
-          }}
-          placeholder={initialName}
-          placeholderTextColor={colors.text.muted}
-          spellCheck={false}
-          keyboardAppearance={themeAppearance}
-          autoCapitalize="none"
-          autoFocus
-          editable
-        />
-        {error && <Text color={TextColor.Error}>{error}</Text>}
-      </Box>
-      <Box style={styles.saveButtonContainer}>
-        <Button
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
-          label={strings(
-            'multichain_accounts.edit_account_name.confirm_button',
-          )}
-          size={ButtonSize.Lg}
-          onPress={handleAccountNameChange}
-          testID={EditAccountNameIds.SAVE_BUTTON}
-        />
-      </Box>
+        <Box
+          style={styles.contentContainer}
+          testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
+        >
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('multichain_accounts.edit_account_name.account_name')}
+          </Text>
+          <TextInput
+            testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
+            style={styles.input}
+            value={accountName}
+            onChangeText={(newName: string) => {
+              setAccountName(newName);
+              // Clear error when user starts typing
+              if (error) {
+                setError(null);
+              }
+            }}
+            placeholder={initialName}
+            placeholderTextColor={colors.text.muted}
+            spellCheck={false}
+            keyboardAppearance={themeAppearance}
+            autoCapitalize="none"
+            autoFocus
+            editable
+          />
+          {error && <Text color={TextColor.Error}>{error}</Text>}
+        </Box>
+        <Box style={styles.saveButtonContainer}>
+          <Button
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            label={strings(
+              'multichain_accounts.edit_account_name.confirm_button',
+            )}
+            size={ButtonSize.Lg}
+            onPress={handleAccountNameChange}
+            testID={EditAccountNameIds.SAVE_BUTTON}
+          />
+        </Box>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     keyboardAvoidingView: {
+      flex: 1,
       justifyContent: 'space-between',
     },
     contentContainer: {
