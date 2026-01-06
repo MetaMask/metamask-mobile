@@ -53,10 +53,13 @@ export function useSendNavbar() {
       title: strings('send.title'),
       onBack: handleBackPress,
       onClose: handleCancelPress,
+      backButtonProps: { testID: 'send-navbar-back-button' },
+      closeButtonProps: { testID: 'send-navbar-close-button' },
       includesTopInset: true,
     }),
     Asset: getHeaderCenterNavbarOptions({
       onBack: handleCancelPress,
+      backButtonProps: { testID: 'send-navbar-back-button' },
       title: strings('send.title'),
       includesTopInset: true,
     }),
@@ -64,6 +67,8 @@ export function useSendNavbar() {
       title: strings('send.title'),
       onBack: handleBackPress,
       onClose: handleCancelPress,
+      backButtonProps: { testID: 'send-navbar-back-button' },
+      closeButtonProps: { testID: 'send-navbar-close-button' },
       includesTopInset: true,
     }),
   };

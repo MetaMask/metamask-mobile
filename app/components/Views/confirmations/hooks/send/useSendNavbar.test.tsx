@@ -12,28 +12,19 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useNavigationState: jest.fn(),
+  createNavigatorFactory: jest.fn(),
 }));
 
 jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+  createStackNavigator: jest.fn(() => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
-  }),
+  })),
 }));
 
 jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
-  }),
-}));
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#ffffff',
-      },
-    },
   }),
 }));
 
@@ -54,51 +45,19 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
-    Box: ({ children, testID, ...props }: Record<string, unknown>) => (
-      <View testID={testID} {...props}>
-        {children}
-      </View>
+    Box: (props: { testID?: string; children?: React.ReactNode }) => (
+      <View testID={props.testID}>{props.children}</View>
     ),
-    Text: ({
-      children,
-      testID,
-      ...props
-    }: Record<string, unknown> & { children: React.ReactNode }) => (
-      <Text testID={testID} {...props}>
-        {children}
-      </Text>
+    Text: (props: { testID?: string; children?: React.ReactNode }) => (
+      <Text testID={props.testID}>{props.children}</Text>
     ),
-    ButtonIcon: ({
-      onPress,
-      testID,
-      iconName,
-      ...props
-    }: Record<string, unknown>) => (
-      <TouchableOpacity
-        testID={testID || `button-icon-${iconName}`}
-        onPress={onPress}
-        {...props}
-      />
+    ButtonIcon: (props: { testID?: string; onPress?: () => void }) => (
+      <TouchableOpacity testID={props.testID} onPress={props.onPress} />
     ),
-    BoxAlignItems: {
-      Center: 'center',
-    },
-    ButtonIconSize: {
-      Md: 'md',
-      Lg: 'lg',
-    },
-    IconName: {
-      Close: 'Close',
-      ArrowLeft: 'ArrowLeft',
-    },
-    TextVariant: {
-      HeadingMd: 'heading-md',
-      HeadingLg: 'heading-lg',
-      BodyMd: 'body-md',
-    },
-    FontWeight: {
-      Bold: 'bold',
-    },
+    ButtonIconSize: { Md: 'md' },
+    IconName: { Close: 'Close', ArrowLeft: 'ArrowLeft' },
+    TextVariant: { BodyMd: 'body-md' },
+    FontWeight: { Bold: 'bold' },
   };
 });
 
@@ -150,8 +109,8 @@ describe('useSendNavbar', () => {
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
 
-      expect(getByTestId('button-icon-ArrowLeft')).toBeTruthy();
-      expect(getByTestId('button-icon-Close')).toBeTruthy();
+      expect(getByTestId('send-navbar-back-button')).toBeTruthy();
+      expect(getByTestId('send-navbar-close-button')).toBeTruthy();
     });
 
     it('renders title in header', () => {
@@ -174,7 +133,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -194,7 +153,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -213,7 +172,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -241,7 +200,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -271,7 +230,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -286,7 +245,7 @@ describe('useSendNavbar', () => {
 
       const Header = Amount.header;
       const { getByTestId } = render(<Header />);
-      const closeButton = getByTestId('button-icon-Close');
+      const closeButton = getByTestId('send-navbar-close-button');
 
       fireEvent.press(closeButton);
 
@@ -309,7 +268,7 @@ describe('useSendNavbar', () => {
 
       const Header = Asset.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -343,8 +302,8 @@ describe('useSendNavbar', () => {
       const Header = Recipient.header;
       const { getByTestId } = render(<Header />);
 
-      expect(getByTestId('button-icon-ArrowLeft')).toBeTruthy();
-      expect(getByTestId('button-icon-Close')).toBeTruthy();
+      expect(getByTestId('send-navbar-back-button')).toBeTruthy();
+      expect(getByTestId('send-navbar-close-button')).toBeTruthy();
     });
 
     it('uses same back navigation logic as Amount route', () => {
@@ -360,7 +319,7 @@ describe('useSendNavbar', () => {
 
       const Header = Recipient.header;
       const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('button-icon-ArrowLeft');
+      const backButton = getByTestId('send-navbar-back-button');
 
       fireEvent.press(backButton);
 
@@ -375,7 +334,7 @@ describe('useSendNavbar', () => {
 
       const Header = Recipient.header;
       const { getByTestId } = render(<Header />);
-      const closeButton = getByTestId('button-icon-Close');
+      const closeButton = getByTestId('send-navbar-close-button');
 
       fireEvent.press(closeButton);
 
