@@ -137,6 +137,7 @@ export async function handleIntentTransaction(
     }
 
     const message = {
+      appDataHash: normalizeAppData(order.appData),
       sellToken: order.sellToken,
       buyToken: order.buyToken,
       receiver: order.receiver ?? accountAddress,
@@ -171,7 +172,11 @@ export async function handleIntentTransaction(
     };
 
     const txResult = await Engine.context.BridgeStatusController.submitIntent({
-      quoteResponse: normalizedQuoteResponse,
+      // TypeScript struggles with complex intersection types when modifying nested properties
+      // The runtime structure is correct - we're adding the required appDataHash field
+      quoteResponse: normalizedQuoteResponse as unknown as Parameters<
+        typeof Engine.context.BridgeStatusController.submitIntent
+      >[0]['quoteResponse'],
       signature,
       accountAddress: accountAddress as Hex,
     });

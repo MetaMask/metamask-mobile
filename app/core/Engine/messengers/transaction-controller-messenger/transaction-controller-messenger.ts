@@ -169,18 +169,6 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:smartTransaction',
       'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
-    allowedActions: [
-      'ApprovalController:addRequest',
-      'ApprovalController:endFlow',
-      'ApprovalController:startFlow',
-      'ApprovalController:updateRequestState',
-      'KeyringController:signTypedMessage',
-      'BridgeStatusController:submitTx',
-      'DelegationController:signDelegation',
-      'NetworkController:getEIP1559Compatibility',
-      'KeyringController:signEip7702Authorization',
-      'KeyringController:signTypedMessage',
-    ],
     messenger,
   });
 
