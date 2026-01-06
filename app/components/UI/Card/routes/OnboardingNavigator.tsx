@@ -157,11 +157,7 @@ const OnboardingNavigator: React.FC = () => {
           return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
         }
 
-        if (!user?.addressLine1 || !user?.city || !user?.zip) {
-          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
-        }
-
-        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        return Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC;
       }
 
       if (user.verificationState === 'VERIFIED') {

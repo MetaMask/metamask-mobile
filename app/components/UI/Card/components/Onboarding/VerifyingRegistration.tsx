@@ -222,7 +222,7 @@ const VerifyingRegistration = () => {
 
   const headerRight = useMemo(
     () =>
-      step !== 'polling' && step !== 'verified'
+      step === 'error'
         ? () => (
             <ButtonIcon
               style={headerStyle.icon}
@@ -289,21 +289,6 @@ const VerifyingRegistration = () => {
           </Box>
         );
 
-      case 'rejected':
-        return (
-          <Box twClassName="items-center justify-center py-8 px-4">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-default text-center"
-            >
-              {strings(
-                'card.card_onboarding.verifying_registration.rejected_message',
-                { email: CARD_SUPPORT_EMAIL },
-              )}
-            </Text>
-          </Box>
-        );
-
       case 'polling':
         return (
           <>
@@ -348,8 +333,16 @@ const VerifyingRegistration = () => {
   };
 
   const handleCloseToHome = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFYING_REGISTRATION_CLOSE_BUTTON,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const renderActions = () => {
     switch (step) {
@@ -395,10 +388,6 @@ const VerifyingRegistration = () => {
         return strings(
           'card.card_onboarding.verifying_registration.server_error_title_main',
         );
-      case 'rejected':
-        return strings(
-          'card.card_onboarding.verifying_registration.rejected_title',
-        );
       case 'timeout':
         return strings(
           'card.card_onboarding.verifying_registration.timeout_title',
@@ -417,10 +406,6 @@ const VerifyingRegistration = () => {
         );
       case 'error':
         return '';
-      case 'rejected':
-        return strings(
-          'card.card_onboarding.verifying_registration.rejected_description',
-        );
       case 'timeout':
         return strings(
           'card.card_onboarding.verifying_registration.timeout_description',

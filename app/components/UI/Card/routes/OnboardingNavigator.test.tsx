@@ -326,14 +326,13 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns PHYSICAL_ADDRESS route when firstName exists but addressLine1 is missing', () => {
+        it('returns VERIFYING_VERIFF_KYC route when firstName exists', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
               firstName: 'John',
-              // addressLine1 is undefined
             },
             isLoading: false,
             sdk: null,
@@ -350,96 +349,7 @@ describe('OnboardingNavigator', () => {
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns PHYSICAL_ADDRESS route when city is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              addressLine1: '123 Main St',
-              // city is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns PHYSICAL_ADDRESS route when zip is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              addressLine1: '123 Main St',
-              city: 'New York',
-              // zip is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns PERSONAL_DETAILS route when all user data is complete', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              addressLine1: '123 Main St',
-              city: 'New York',
-              zip: '10001',
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+            Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
           );
         });
       });
