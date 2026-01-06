@@ -269,9 +269,6 @@ describe(
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
 
-          // const gasFeeTokenSelected = await getGasFeeTokenSelected();
-          // await Assertions.checkIfTextMatches(gasFeeTokenSelected, 'ETH');
-
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
             { description: 'Gas Fee Token Arrow' },
