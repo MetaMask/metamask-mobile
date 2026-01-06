@@ -766,7 +766,10 @@ export const getParsedMarketsFromPolymarketApi = async (
   }
   const data = await response.json();
 
-  const events: PolymarketApiEvent[] = q ? data.events || [] : data.data || [];
+  const eventsData = q ? data?.events : data?.data;
+  const events: PolymarketApiEvent[] = Array.isArray(eventsData)
+    ? eventsData
+    : [];
 
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
     events,
