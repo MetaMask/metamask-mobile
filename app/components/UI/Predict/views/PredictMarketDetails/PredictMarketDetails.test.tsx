@@ -3444,4 +3444,116 @@ describe('PredictMarketDetails', () => {
       });
     });
   });
+
+  describe('About Tab - Rules Display', () => {
+    it('displays rules disclaimer with Polymarket link', () => {
+      setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
+      expect(
+        screen.getByText('predict.market_details.rules_more_info'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.rules_disclaimer'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.view_rules'),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to Polymarket event page when view rules is pressed', () => {
+      mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
+      // Need to provide a slug for handleViewMarketOnPolymarket to work
+      const marketWithSlug = createMockMarket({
+        slug: 'bitcoin-100k-2024',
+      });
+      const { mockNavigate } = setupPredictMarketDetailsTest(marketWithSlug);
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
+      const viewRulesButton = screen.getByText(
+        'predict.market_details.view_rules',
+      );
+      act(() => {
+        fireEvent.press(viewRulesButton);
+      });
+
+      const callback =
+        runAfterInteractionsCallbacks[
+          runAfterInteractionsCallbacks.length - 1
+        ];
+      act(() => {
+        callback?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: expect.stringContaining('polymarket.com/event/'),
+          title: expect.any(String),
+        },
+      });
+    });
+
+    it('displays first outcome description as rules for multi-outcome markets', () => {
+      const multiOutcomeMarket = createMockMarket({
+        description: 'Event level description',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'BTC $100k',
+            groupItemTitle: '↑ $100,000',
+            description: 'Resolves Yes if BTC reaches $100k on Binance.',
+            status: 'open',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'BTC $120k',
+            groupItemTitle: '↑ $120,000',
+            description: 'Resolves Yes if BTC reaches $120k on Binance.',
+            status: 'open',
+            tokens: [
+              { id: 'token-3', title: 'Yes', price: 0.25 },
+              { id: 'token-4', title: 'No', price: 0.75 },
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(multiOutcomeMarket);
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
+      // Event description is NOT shown for multi-outcome markets (to avoid duplication)
+      expect(screen.queryByText('Event level description')).toBeNull();
+
+      // Rules section shows first outcome's description only (not repeated per-outcome)
+      expect(
+        screen.getByText('predict.market_details.rules'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Resolves Yes if BTC reaches $100k on Binance.'),
+      ).toBeOnTheScreen();
+      // Second outcome's description is NOT shown (avoiding repetition)
+      expect(
+        screen.queryByText('Resolves Yes if BTC reaches $120k on Binance.'),
+      ).toBeNull();
+    });
+  });
 });

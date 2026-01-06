@@ -39,6 +39,7 @@ import {
 } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import PredictOutcomeRules from '../PredictOutcomeRules';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -223,6 +224,9 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             style={[styles.buttonNo, isBiggerLabel && tw.style('h-full py-2')]}
           />
         </View>
+      )}
+      {outcome.description && (
+        <PredictOutcomeRules description={outcome.description} />
       )}
     </View>
   );

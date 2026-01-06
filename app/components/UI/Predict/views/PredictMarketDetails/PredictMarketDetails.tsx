@@ -616,6 +616,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     });
   }, [navigation]);
 
+  const handleViewMarketOnPolymarket = useCallback(() => {
+    if (!market?.slug) return;
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: `https://polymarket.com/event/${market.slug}`,
+          title: market.title,
+        },
+      });
+    });
+  }, [navigation, market?.slug, market?.title]);
+
   type TabKey = 'positions' | 'outcomes' | 'about';
 
   const trackMarketDetailsOpened = useCallback(
@@ -904,127 +917,209 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   };
 
-  const renderAboutSection = () => (
-    <Box twClassName="gap-6">
-      <Box twClassName="gap-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
-        >
+  const renderAboutSection = () => {
+    // Get the first outcome's description as the representative rules
+    // (for multi-outcome markets, all outcomes have similar rules with different thresholds)
+    const outcomeRules = market?.outcomes?.find((o) => o.description)?.description;
+    const hasMultipleOutcomes = (market?.outcomes?.length ?? 0) > 1;
+
+    return (
+      <Box twClassName="gap-6">
+        {/* Market Stats */}
+        <Box twClassName="gap-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
             twClassName="gap-3"
           >
-            <Icon
-              name={IconName.Chart}
-              size={IconSize.Md}
-              color={colors.text.muted}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="font-medium"
-              color={TextColor.TextDefault}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3"
             >
-              {strings('predict.market_details.volume')}
-            </Text>
-          </Box>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="font-medium"
-            color={TextColor.TextDefault}
-          >
-            ${formatVolume(market?.outcomes[0].volume || 0)}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-3"
-          >
-            <Icon
-              name={IconName.Clock}
-              size={IconSize.Md}
-              color={colors.text.muted}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="font-medium"
-              color={TextColor.TextDefault}
-            >
-              {strings('predict.market_details.end_date')}
-            </Text>
-          </Box>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="font-medium"
-            color={TextColor.TextDefault}
-          >
-            {market?.endDate
-              ? new Date(market?.endDate).toLocaleDateString()
-              : 'N/A'}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-3"
-          >
-            <Icon
-              name={IconName.Bank}
-              size={IconSize.Md}
-              color={colors.text.muted}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="font-medium"
-              color={TextColor.TextDefault}
-            >
-              {strings('predict.market_details.resolution_details')}
-            </Text>
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            <Pressable onPress={handlePolymarketResolution}>
+              <Icon
+                name={IconName.Chart}
+                size={IconSize.Md}
+                color={colors.text.muted}
+              />
               <Text
                 variant={TextVariant.BodyMd}
                 twClassName="font-medium"
-                color={TextColor.PrimaryDefault}
+                color={TextColor.TextDefault}
               >
-                Polymarket
+                {strings('predict.market_details.volume')}
               </Text>
-            </Pressable>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={colors.primary.default}
-            />
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
+              ${formatVolume(market?.outcomes[0].volume || 0)}
+            </Text>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-3"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3"
+            >
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Md}
+                color={colors.text.muted}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextDefault}
+              >
+                {strings('predict.market_details.end_date')}
+              </Text>
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
+              {market?.endDate
+                ? new Date(market?.endDate).toLocaleDateString()
+                : 'N/A'}
+            </Text>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-3"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3"
+            >
+              <Icon
+                name={IconName.Bank}
+                size={IconSize.Md}
+                color={colors.text.muted}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextDefault}
+              >
+                {strings('predict.market_details.resolution_details')}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Pressable onPress={handlePolymarketResolution}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.PrimaryDefault}
+                >
+                  Polymarket
+                </Text>
+              </Pressable>
+              <Icon
+                name={IconName.Export}
+                size={IconSize.Sm}
+                color={colors.primary.default}
+              />
+            </Box>
           </Box>
         </Box>
+
+        <Box twClassName="w-full border-t border-muted" />
+
+        {/* Event Description - only show for single-outcome markets */}
+        {/* For multi-outcome markets, skip event description to avoid duplication with outcome rules */}
+        {!hasMultipleOutcomes && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {market?.description}
+          </Text>
+        )}
+
+        {/* Rules - show first outcome's detailed description (representative of all outcomes) */}
+        {outcomeRules && (
+          <Box twClassName="gap-3">
+            {/* Only show divider if event description was shown above */}
+            {!hasMultipleOutcomes && (
+              <Box twClassName="w-full border-t border-muted" />
+            )}
+            <Text
+              variant={TextVariant.HeadingSm}
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.market_details.rules')}
+            </Text>
+            <Box twClassName="p-3 bg-muted rounded-lg">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {outcomeRules}
+              </Text>
+            </Box>
+          </Box>
+        )}
+
+        {/* Disclaimer with Link */}
+        <Box twClassName="p-3 bg-warning-muted rounded-lg gap-2">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={colors.warning.default}
+            />
+            <Text
+              variant={TextVariant.BodySmBold}
+              color={TextColor.WarningDefault}
+            >
+              {strings('predict.market_details.rules_more_info')}
+            </Text>
+          </Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('predict.market_details.rules_disclaimer')}
+          </Text>
+          <Pressable onPress={handleViewMarketOnPolymarket}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="font-medium"
+                color={TextColor.PrimaryDefault}
+              >
+                {strings('predict.market_details.view_rules')}
+              </Text>
+              <Icon
+                name={IconName.Export}
+                size={IconSize.Xs}
+                color={colors.primary.default}
+              />
+            </Box>
+          </Pressable>
+        </Box>
       </Box>
-      <Box twClassName="w-full border-t border-muted" />
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {market?.description}
-      </Text>
-    </Box>
-  );
+    );
+  };
 
   // see if there are any positions with positive percentPnl
   const hasPositivePnl = claimablePositions.some(
