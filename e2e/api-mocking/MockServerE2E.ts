@@ -224,37 +224,6 @@ export default class MockServerE2E implements Resource {
       await this._testSpecificMock(this._server);
     }
 
-    // Create explicit mocked endpoint for metametrics to ensure analytics events are recorded
-    // This handles all AnalyticsPlatformAdapter methods: track, identify, and view
-    // All three methods send to E2E_METAMETRICS_TRACK_URL, so one endpoint covers all
-    // We only create an explicit endpoint for metametrics to avoid interfering with other requests
-    const metametricsMock = this._events.POST?.find(
-      (mock) =>
-        mock.urlEndpoint &&
-        String(mock.urlEndpoint) === 'https://metametrics.test/track',
-    );
-    if (metametricsMock) {
-      await this._server
-        .forPost('/proxy')
-        .matching((request) => {
-          const urlEndpoint = new URL(request.url).searchParams.get('url');
-          // Use exact match to avoid interfering with other requests
-          return urlEndpoint === 'https://metametrics.test/track';
-        })
-        .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
-        .thenCallback(async (request) => {
-          // Access body to ensure mockttp buffers it for getSeenRequests()
-          await request.body.getText();
-          logger.debug(
-            'Mocking POST request to: https://metametrics.test/track',
-          );
-          return {
-            statusCode: metametricsMock.responseCode || 200,
-            body: JSON.stringify(metametricsMock.response),
-          };
-        });
-    }
-
     await this._server
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
