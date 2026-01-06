@@ -95,6 +95,12 @@ const useMetrics = (): IUseMetricsHook =>
           .setSaveDataRecording(saveDataRecording ?? true)
           .build();
         analytics.trackEvent(analyticsEvent);
+
+        // Update data recording flag if needed
+        // TODO: Remove this call when data recording flag logic is migrated out of MetaMetrics
+        MetaMetrics.getInstance().updateDataRecordingFlag(
+          analyticsEvent.saveDataRecording,
+        );
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
