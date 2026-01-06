@@ -74,6 +74,7 @@ export const ShareAddressQR = () => {
       <HeaderCenter
         title={`${accountGroupName} / ${networkName}`}
         onBack={handleOnBack}
+        backButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
       />
       <Box
         flexDirection={BoxFlexDirection.Column}
