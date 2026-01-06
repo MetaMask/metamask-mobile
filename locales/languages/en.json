@@ -1979,7 +1979,8 @@
       "outcome_at_price": "{{outcome}} at {{price}}¢",
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
-      "resolved_early": "Resolved early"
+      "resolved_early": "Resolved early",
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
