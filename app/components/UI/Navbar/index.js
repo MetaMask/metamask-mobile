@@ -1709,7 +1709,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
   return {
     headerTitle: () => (
-      <NavbarTitle title={'title'} disableNetwork translate={false} />
+      <NavbarTitle title={title} disableNetwork translate={false} />
     ),
     headerLeft: () =>
       Device.isAndroid() ? (
