@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
 import type { OrderFill } from '../controllers/types';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { ensureError } from '../utils/perpsErrorHandler';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {
   /**
@@ -53,6 +57,15 @@ export const usePerpsMarketFills = ({
   symbol,
   throttleMs = 0,
 }: UsePerpsMarketFillsParams): UsePerpsMarketFillsReturn => {
+  // Get current selected account address for debugging context
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
+
+  // Use ref to access address in callback without adding as dependency
+  const addressRef = useRef(selectedAddress);
+  addressRef.current = selectedAddress;
+
   // WebSocket fills for real-time updates
   const { fills: liveFills, isInitialLoading } = usePerpsLiveFills({
     throttleMs,
@@ -64,8 +77,12 @@ export const usePerpsMarketFills = ({
 
   // Fetch historical fills via REST API (limited to last 3 months for performance)
   const fetchRestFills = useCallback(async () => {
+    const controller = Engine.context.PerpsController;
+    if (!controller) {
+      return;
+    }
+
     try {
-      const controller = Engine.context.PerpsController;
       const provider = controller?.getActiveProvider();
       if (!provider) {
         return;
@@ -79,9 +96,21 @@ export const usePerpsMarketFills = ({
         startTime,
       });
       setRestFills(fills);
-    } catch (error) {
-      // Log error but don't fail - WebSocket fills still work
-      console.error('[usePerpsMarketFills] Failed to fetch REST fills:', error);
+    } catch (err) {
+      // Get the current account for debugging context
+      const accountAddress = addressRef.current ?? 'unknown';
+
+      // Log error to Sentry but don't fail - WebSocket fills still work
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+        },
+        extra: {
+          hook: 'usePerpsMarketFills',
+          method: 'fetchRestFills',
+          message: `[usePerpsMarketFills] Failed to fetch REST fills for account ${accountAddress}: ${err}`,
+        },
+      });
     }
   }, []);
 
