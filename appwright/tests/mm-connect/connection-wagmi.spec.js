@@ -164,7 +164,17 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     device,
     async () => {
       await WagmiTestDapp.assertConnectedChainValue('42220');
+      await WagmiTestDapp.tapPersonalSignButton();
     },
     WAGMI_TEST_DAPP_URL,
   );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { dismissModals: false });
+    await SignModal.assertNetworkText('Celo');
+    await SignModal.tapCancelButton();
+  });
 });
