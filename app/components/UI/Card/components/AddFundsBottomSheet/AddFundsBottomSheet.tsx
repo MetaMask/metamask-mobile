@@ -39,6 +39,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
   priorityToken?: CardTokenAllowance;
@@ -131,6 +132,9 @@ const AddFundsBottomSheet: React.FC = () => {
       label: strings('card.add_funds_bottomsheet.swap'),
       description: strings('card.add_funds_bottomsheet.swap_description', {
         symbol: priorityToken?.symbol,
+        chainName: mapCaipChainIdToChainName(
+          priorityToken?.caipChainId ?? 'eip155:59144',
+        ),
       }),
       icon: IconName.SwapHorizontal,
       onPress: handleOpenSwaps,

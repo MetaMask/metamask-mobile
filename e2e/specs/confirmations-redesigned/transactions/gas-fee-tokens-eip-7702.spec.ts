@@ -276,6 +276,11 @@ describe(
 
           await TransactionConfirmView.tapGasFeeTokenPill();
 
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText('Select a token'),
+            { description: 'Modal is visible' },
+          );
+
           await GasFeeTokenModal.checkAmountFiat('DAI', daiValues.fiatAmount);
           await GasFeeTokenModal.checkAmountToken('DAI', daiValues.tokenAmount);
           await GasFeeTokenModal.checkBalance('DAI', daiValues.balance);
@@ -293,16 +298,8 @@ describe(
             { description: 'Selected Gas Fee Token is USDC' },
           );
 
-          const symbolElement =
-            (await RowComponents.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
-
-          const symbolElementAttributes = await symbolElement.getAttributes();
           const symbolElementLabel =
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.text ??
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.label ??
-            '';
+            await RowComponents.getNetworkFeeGasFeeTokenSymbolText();
 
           await Assertions.checkIfTextMatches(symbolElementLabel, 'USDC');
           await Assertions.expectTextDisplayed(usdcValues.fiatAmount);
