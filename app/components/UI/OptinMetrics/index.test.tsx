@@ -36,6 +36,7 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
     getDeleteRegulationCreationDate: jest.fn(),
     getDeleteRegulationId: jest.fn(),
     isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
   })),
 }));
 

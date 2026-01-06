@@ -165,6 +165,7 @@ jest.mock('../../../core/Analytics/MetaMetrics');
 const mockMetrics = {
   configure: jest.fn(),
   addTraitsToUser: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 const mockAuthType = AUTHENTICATION_TYPE.BIOMETRIC;

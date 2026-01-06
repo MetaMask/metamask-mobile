@@ -100,6 +100,7 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
     enable: mockEnable,
+    updateDataRecordingFlag: jest.fn(),
   }),
 }));
 

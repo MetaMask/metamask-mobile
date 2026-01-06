@@ -61,6 +61,7 @@ const mockMetrics = {
   getMetaMetricsId: jest.fn(() =>
     Promise.resolve('4d657461-4d61-436b-8e73-46756e212121'),
   ),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
