@@ -1,5 +1,6 @@
 import { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { Metadata } from './metadata';
+import { isUUID } from '../../SDKConnect/utils/isUUID';
 
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
@@ -31,18 +32,16 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const obj = data as any;
-
-  // Validate sessionRequest
+  const obj = data as ConnectionRequest;
   if (!obj.sessionRequest || typeof obj.sessionRequest !== 'object') {
     return false;
   }
 
-  const sessionReq = obj.sessionRequest;
+  const sessionReq = obj.sessionRequest as SessionRequest;
   if (
     !sessionReq.id ||
     typeof sessionReq.id !== 'string' ||
+    !isUUID(sessionReq.id) ||
     !sessionReq.publicKeyB64 ||
     typeof sessionReq.publicKeyB64 !== 'string' ||
     !sessionReq.channel ||
@@ -54,14 +53,11 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  // Validate metadata
   if (!obj.metadata || typeof obj.metadata !== 'object') {
     return false;
   }
 
-  const metadata = obj.metadata;
-
-  // Validate dapp metadata
+  const metadata = obj.metadata as Metadata;
   if (
     !metadata.dapp ||
     typeof metadata.dapp !== 'object' ||
@@ -73,7 +69,6 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  // Validate SDK metadata
   if (
     !metadata.sdk ||
     typeof metadata.sdk !== 'object' ||
@@ -85,7 +80,6 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  // Validate URL format
   try {
     new URL(metadata.dapp.url);
   } catch {
