@@ -211,8 +211,10 @@ export const useTopTokens = ({
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
+        aggregators: bridgeAsset.aggregators,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
+        rwaData: bridgeAsset.rwaData,
       };
     });
 
