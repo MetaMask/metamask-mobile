@@ -311,19 +311,22 @@ const ImportNewSecretRecoveryPhrase = () => {
             )}
             uniqueId={uniqueId}
           />
+
+          <View style={styles.buttonWrapper}>
+            <ButtonPrimary
+              onPress={onSubmit}
+              isDisabled={
+                isSRPContinueButtonDisabled || Boolean(error) || loading
+              }
+              loading={loading}
+              label={strings('import_new_secret_recovery_phrase.cta_text')}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              testID={ImportSRPIDs.IMPORT_BUTTON}
+            />
+          </View>
         </View>
       </KeyboardAwareScrollView>
-      <View style={styles.buttonContainer}>
-        <ButtonPrimary
-          onPress={onSubmit}
-          isDisabled={isSRPContinueButtonDisabled || Boolean(error) || loading}
-          loading={loading}
-          label={strings('import_new_secret_recovery_phrase.cta_text')}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          testID={ImportSRPIDs.IMPORT_BUTTON}
-        />
-      </View>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

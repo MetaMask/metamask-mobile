@@ -133,17 +133,11 @@ describe('ImportPrivateKey', () => {
       { name: 'ImportPrivateKey' },
       { state: initialState },
     );
-
-    // Assert that setOptions was called
-    expect(mockSetOptions).toHaveBeenCalled();
-
-    // Get the navigation options passed to setOptions
     const setOptionsCall = mockSetOptions.mock.calls[0][0];
+    const headerLeftComponent = setOptionsCall.headerLeft();
 
     // Act
-    const headerLeftComponent = setOptionsCall.headerLeft();
-    const backButtonProps = headerLeftComponent.props;
-    backButtonProps.onPress();
+    headerLeftComponent.props.onPress();
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);

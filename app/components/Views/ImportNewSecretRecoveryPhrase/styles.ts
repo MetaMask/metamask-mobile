@@ -88,12 +88,6 @@ const createStyles = (colors: Colors) =>
     button: {
       marginBottom: Device.isIphoneX() ? 20 : 0,
     },
-    buttonContainer: {
-      width: '100%',
-      paddingHorizontal: 16,
-      backgroundColor: colors.background.default,
-      alignItems: 'center',
-    },
     top: {
       paddingTop: 0,
       padding: 30,

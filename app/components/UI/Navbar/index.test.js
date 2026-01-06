@@ -34,6 +34,7 @@ describe('Navbar Utility Functions', () => {
       });
 
       const BackButton = options.headerLeft();
+
       expect(BackButton).toBeTruthy();
       expect(BackButton.props.testID).toBe('test-back-button');
       expect(BackButton.props.iconName).toBe('ArrowLeft');
@@ -46,6 +47,7 @@ describe('Navbar Utility Functions', () => {
       });
 
       const CloseButton = options.headerRight();
+
       expect(CloseButton).toBeTruthy();
       expect(CloseButton.props.testID).toBe('test-close-button');
       expect(CloseButton.props.iconName).toBe('Close');
@@ -151,6 +153,7 @@ describe('Navbar Utility Functions', () => {
       const options = getBackAndCloseNavbar(mockNavigation, mockThemeColors);
 
       const titleResult = options.headerTitle();
+
       expect(titleResult).toBeNull();
     });
   });

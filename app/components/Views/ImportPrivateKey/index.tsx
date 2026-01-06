@@ -175,7 +175,7 @@ const ImportPrivateKey = () => {
               <Text style={styles.title}>
                 {strings('import_private_key.title')}
               </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {isSRP
                   ? strings('import_private_key.description_srp')
                   : strings('import_private_key.description_one')}
@@ -183,7 +183,7 @@ const ImportPrivateKey = () => {
               {isSRP ? (
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Default}
+                  color={TextColor.Alternative}
                   onPress={learnMore}
                 >
                   {strings('import_private_key.learn_more_srp')}{' '}
