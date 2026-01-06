@@ -624,6 +624,15 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
 
+  // Track if tab has ever been active - delays FlashList mount until first activation
+  // This ensures contentOffset prop is applied correctly (not ignored for pre-mounted invisible tabs)
+  const [hasEverBeenActive, setHasEverBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive && !hasEverBeenActive) {
+      setHasEverBeenActive(true);
+    }
+  }, [isActive, hasEverBeenActive]);
+
   const {
     marketData,
     isFetching,
@@ -704,11 +713,9 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     }
   }, [getCurrentHeaderOffset]);
 
-  // On Android, adjust scroll when tab becomes active (component stays mounted)
-  // This handles the case where header state changed while tab was inactive
+  // Android: Adjust scroll when tab becomes active if header state changed while inactive
   const prevIsActive = useRef(isActive);
   useEffect(() => {
-    // Only trigger when becoming active (not on initial mount handled above)
     if (
       Platform.OS === 'android' &&
       isActive &&
@@ -719,8 +726,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     ) {
       const currentHeaderOffset = getCurrentHeaderOffset();
       const currentScrollPos = getTabScrollPosition(tabKey);
-
-      // If header is hidden but tab hasn't scrolled past header area, adjust
       if (currentHeaderOffset > 0 && currentScrollPos < currentHeaderOffset) {
         listRef.current.scrollToOffset({
           offset: currentHeaderOffset,
@@ -788,7 +793,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop],
   );
 
-  if (isFetching && !isRefreshing && !isFetchingMore) {
+  if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton testID={`skeleton-loading-${category}-1`} />
