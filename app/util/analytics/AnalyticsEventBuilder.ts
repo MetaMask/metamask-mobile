@@ -244,16 +244,15 @@ const createEventBuilder = (
       name: eventName, // Use extracted name in case it was from category
       get isAnonymous(): boolean {
         return (
-          existingEvent.sensitiveProperties &&
-          Object.keys(existingEvent.sensitiveProperties).length > 0
+          this.sensitiveProperties &&
+          Object.keys(this.sensitiveProperties).length > 0
         );
       },
       get hasProperties(): boolean {
         return (
-          (existingEvent.properties &&
-            Object.keys(existingEvent.properties).length > 0) ||
-          (existingEvent.sensitiveProperties &&
-            Object.keys(existingEvent.sensitiveProperties).length > 0)
+          (this.properties && Object.keys(this.properties).length > 0) ||
+          (this.sensitiveProperties &&
+            Object.keys(this.sensitiveProperties).length > 0)
         );
       },
     };
