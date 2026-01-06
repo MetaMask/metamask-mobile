@@ -44,6 +44,7 @@ describe('AppStateEventListener', () => {
   let mockAppStateListener: (state: AppStateStatus) => void;
   const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'App Opened',
       properties: {},
@@ -105,6 +106,7 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
+    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       mockAttribution,
     );
@@ -125,6 +127,7 @@ describe('AppStateEventListener', () => {
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
+    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
     expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       mockEventBuilder.build(),
     );

@@ -83,7 +83,7 @@ export class AppStateEventListener {
       // We only track the APP_OPENED event on app state transitions
       const appOpenedEventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.APP_OPENED,
-      );
+      ).setSaveDataRecording(true);
       if (attribution) {
         const { attributionId, ...utmParams } = attribution;
         DevLogger.log(
