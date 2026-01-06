@@ -17,7 +17,6 @@ import {
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isE2E } from '../../../util/test/utils';
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
@@ -84,7 +83,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
-  const shouldUseKeyboardProvider = !isE2E;
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -370,11 +368,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     </SafeAreaView>
   );
 
-  return shouldUseKeyboardProvider ? (
-    <KeyboardProvider>{content}</KeyboardProvider>
-  ) : (
-    content
-  );
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default ImportNewSecretRecoveryPhrase;
