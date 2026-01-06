@@ -22,7 +22,7 @@ import {
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isE2E, isTest } from '../../../util/test/utils';
+import { isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import {
@@ -560,8 +560,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const shouldUseKeyboardProvider = !isE2E;
-
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <KeyboardAwareScrollView
@@ -819,11 +817,7 @@ const ImportFromSecretRecoveryPhrase = ({
     </SafeAreaView>
   );
 
-  return shouldUseKeyboardProvider ? (
-    <KeyboardProvider>{content}</KeyboardProvider>
-  ) : (
-    content
-  );
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {
