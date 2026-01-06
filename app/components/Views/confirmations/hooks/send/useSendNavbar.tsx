@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 
-import getHeaderWithTitleLeftNavbarOptions from '../../../../../component-library/components-temp/HeaderWithTitleLeft/getHeaderWithTitleLeftNavbarOptions';
 import getHeaderCenterNavbarOptions from '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -56,11 +55,9 @@ export function useSendNavbar() {
       onClose: handleCancelPress,
       includesTopInset: true,
     }),
-    Asset: getHeaderWithTitleLeftNavbarOptions({
+    Asset: getHeaderCenterNavbarOptions({
       onBack: handleCancelPress,
-      titleLeftProps: {
-        title: strings('send.title'),
-      },
+      title: strings('send.title'),
       includesTopInset: true,
     }),
     Recipient: getHeaderCenterNavbarOptions({
