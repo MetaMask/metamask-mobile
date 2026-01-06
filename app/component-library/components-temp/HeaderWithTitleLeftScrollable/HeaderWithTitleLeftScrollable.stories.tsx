@@ -168,6 +168,47 @@ export const WithSubtitle = {
   ),
 };
 
+export const OnClose = {
+  render: () => (
+    <ScrollableStoryContainer>
+      {({ scrollYValue, setExpandedHeight }) => (
+        <HeaderWithTitleLeftScrollable
+          title="Send"
+          onClose={() => console.log('Close pressed')}
+          titleLeftProps={{
+            topLabel: 'Send',
+            title: '$4.42',
+            endAccessory: <SampleNFTImage />,
+          }}
+          scrollY={scrollYValue}
+          onExpandedHeightChange={setExpandedHeight}
+        />
+      )}
+    </ScrollableStoryContainer>
+  ),
+};
+
+export const BackAndClose = {
+  render: () => (
+    <ScrollableStoryContainer>
+      {({ scrollYValue, setExpandedHeight }) => (
+        <HeaderWithTitleLeftScrollable
+          title="Send"
+          onBack={() => console.log('Back pressed')}
+          onClose={() => console.log('Close pressed')}
+          titleLeftProps={{
+            topLabel: 'Send',
+            title: '$4.42',
+            endAccessory: <SampleNFTImage />,
+          }}
+          scrollY={scrollYValue}
+          onExpandedHeightChange={setExpandedHeight}
+        />
+      )}
+    </ScrollableStoryContainer>
+  ),
+};
+
 export const EndButtonIconProps = {
   render: () => (
     <ScrollableStoryContainer>
