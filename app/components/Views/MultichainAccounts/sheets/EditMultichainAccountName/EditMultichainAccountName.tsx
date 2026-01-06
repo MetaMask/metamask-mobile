@@ -37,7 +37,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -103,7 +102,6 @@ export const EditMultichainAccountName = () => {
         style={styles.header}
         startAccessory={
           <ButtonLink
-            testID={AccountDetailsIds.BACK_BUTTON} // TODO: Might not need this testID
             labelTextVariant={TextVariant.BodyMDMedium}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}

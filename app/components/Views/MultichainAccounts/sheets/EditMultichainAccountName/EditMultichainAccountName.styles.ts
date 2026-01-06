@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
     saveButtonContainer: {
       paddingHorizontal: 24,
       marginTop: 16,
-      padding: 10,
+      paddingVertical: 10,
       width: '100%',
     },
     header: {
