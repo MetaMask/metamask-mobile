@@ -124,11 +124,8 @@ export const TokenListItem = React.memo(
 
     const { initiateConversion } = useMusdConversion();
 
-    // TODO: Double check is balance check is needed if we only use tokens with balance in useMusdConversionTokens
     const shouldShowConvertToMusdCta =
-      isMusdConversionFlowEnabled &&
-      isTokenWithCta(asset) &&
-      Number(asset?.balance) > 0;
+      isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 

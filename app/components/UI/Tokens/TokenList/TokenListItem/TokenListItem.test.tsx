@@ -13,6 +13,14 @@ import {
 } from '../../../AssetElement/index.constants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { toHex } from '@metamask/controller-utils';
+
+jest.mock('../../../Stake/components/StakeButton', () => ({
+  __esModule: true,
+  StakeButton: () => null,
+  default: () => null,
+}));
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -212,14 +220,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset?: TokenI;
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
-    isConversionToken?: boolean;
+    isTokenWithCta?: boolean;
   }
 
   function prepareMocks({
     asset,
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
-    isConversionToken = false,
+    isTokenWithCta = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -228,9 +236,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isMusdConversionEnabled,
     );
     mockUseMusdConversionTokens.mockReturnValue({
-      isConversionToken: jest.fn().mockReturnValue(isConversionToken),
+      isConversionToken: jest.fn().mockReturnValue(false),
       getMusdOutputChainId: jest.fn().mockReturnValue('0xe708'),
-      isTokenWithCta: jest.fn().mockReturnValue(false),
+      isTokenWithCta: jest.fn().mockReturnValue(isTokenWithCta),
       tokensWithCTAs: [],
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
@@ -242,6 +250,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       (selector: (state: unknown) => unknown) => {
         if (!selector || typeof selector !== 'function') {
           return {};
+        }
+
+        if (selector === selectIsMusdConversionFlowEnabledFlag) {
+          return isMusdConversionEnabled;
         }
 
         const selectorString = selector.toString();
@@ -467,7 +479,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
-        isConversionToken: true,
+        isTokenWithCta: true,
       });
 
       const { getByText } = renderWithProvider(
@@ -487,7 +499,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         asset: usdcAsset,
         pricePercentChange1d: 2.5,
         isMusdConversionEnabled: false,
-        isConversionToken: false,
+        isTokenWithCta: true,
       });
 
       const { getByText, queryByText } = renderWithProvider(
@@ -508,7 +520,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         asset: defaultAsset,
         pricePercentChange1d: 3.2,
         isMusdConversionEnabled: true,
-        isConversionToken: false,
+        isTokenWithCta: false,
       });
 
       const defaultAssetKey: FlashListAssetKey = {
@@ -534,7 +546,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
-        isConversionToken: true,
+        isTokenWithCta: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -552,32 +564,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           outputChainId: '0xe708',
           preferredPaymentToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1',
+            address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
+            chainId: toHex('0x1'),
           },
-          navigationStack: 'EarnScreens',
+          navigationStack: Routes.EARN.ROOT,
         });
       });
-    });
-
-    it('does not display "Convert to mUSD" when asset balance is zero', () => {
-      const zeroBalanceAsset = { ...usdcAsset, balance: '0' };
-      prepareMocks({
-        asset: zeroBalanceAsset,
-        isMusdConversionEnabled: true,
-        isConversionToken: true,
-      });
-
-      const { queryByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByText('Convert to mUSD')).toBeNull();
     });
   });
 });
