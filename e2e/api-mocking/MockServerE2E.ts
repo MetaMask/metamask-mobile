@@ -242,22 +242,7 @@ export default class MockServerE2E implements Resource {
           return urlEndpoint === 'https://metametrics.test/track';
         })
         .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
-        .thenCallback(async (request) => {
-          // Read the request body to ensure it's recorded for test helpers
-          // Use getText() first (like the catch-all handler) to ensure reliable recording
-          // Mockttp records the body when it's first accessed, making it available via getSeenRequests()
-          try {
-            await request.body.getText();
-            // Also try getJson() to ensure it's recorded in JSON format if possible
-            try {
-              await request.body.getJson();
-            } catch (e) {
-              // getJson() might fail if Content-Type isn't set, but getText() should still work
-            }
-          } catch (e) {
-            // If both fail, log but continue - the request will still be recorded
-            logger.debug('Could not read request body:', e);
-          }
+        .thenCallback(async () => {
           logger.debug(
             'Mocking POST request to: https://metametrics.test/track',
           );
