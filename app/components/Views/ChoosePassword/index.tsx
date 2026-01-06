@@ -153,7 +153,6 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
@@ -452,8 +451,6 @@ const ChoosePassword = () => {
           strings('choose_password.security_alert_title'),
           strings('choose_password.security_alert_message'),
         );
-      } else {
-        setError(caughtError.toString());
       }
       setLoading(false);
 
@@ -567,11 +564,7 @@ const ChoosePassword = () => {
       url: learnMoreUrl,
     });
 
-    (
-      navigation as unknown as {
-        push: (screen: string, params?: object) => void;
-      }
-    ).push('Webview', {
+    navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: learnMoreUrl,
@@ -659,21 +652,7 @@ const ChoosePassword = () => {
     initBiometrics();
   }, [route.params?.onboardingTraceCtx]);
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
-  useEffect(() => {
-    if (loading) {
-      // update navigationOptions
-      (
-        navigation as unknown as { setParams: (params: object) => void }
-      ).setParams({
-        headerLeft: EmptyHeaderLeft,
-      });
-    }
-  }, [loading, navigation, EmptyHeaderLeft]);
-
+  //Reset mounted flag and end trace on unmount
   useEffect(
     () => () => {
       mounted.current = false;
@@ -686,16 +665,17 @@ const ChoosePassword = () => {
   );
 
   useEffect(() => {
-    if (error && !keyringControllerPasswordSet.current) {
-      if (mounted.current) {
-        captureException(new Error(error));
-        const err = new Error(error);
-        if (metrics.isEnabled()) {
-          setErrorToThrow(err);
-        }
-      }
+    updateNavBar();
+  }, [updateNavBar]);
+
+  useEffect(() => {
+    if (loading) {
+      // update navigationOptions
+      navigation.setParams({
+        headerLeft: EmptyHeaderLeft,
+      });
     }
-  }, [error, metrics]);
+  }, [loading, navigation, EmptyHeaderLeft]);
 
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
