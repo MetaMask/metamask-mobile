@@ -238,10 +238,14 @@ const createEventBuilder = (
     !('category' in eventOrName)
   ) {
     const existingEvent = eventOrName as AnalyticsTrackingEvent;
-    // Create new event object preserving getters
+    // Create new event object with explicit property assignment
+    // Note: Using explicit assignment instead of spread to ensure properties
+    // are correctly copied when combined with inline getters (Hermes compatibility)
     const event: AnalyticsTrackingEvent = {
-      ...existingEvent,
-      name: eventName, // Use extracted name in case it was from category
+      name: eventName,
+      properties: existingEvent.properties,
+      sensitiveProperties: existingEvent.sensitiveProperties,
+      saveDataRecording: existingEvent.saveDataRecording,
       get isAnonymous(): boolean {
         return (
           this.sensitiveProperties &&
