@@ -235,7 +235,7 @@ export const TokenListItem = React.memo(
 
     const renderEarnCta = useCallback(() => {
       // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
-      if (!asset) {
+      if (!asset || shouldShowConvertToMusdCta) {
         return null;
       }
 
@@ -248,7 +248,13 @@ export const TokenListItem = React.memo(
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
+    }, [
+      asset,
+      earnToken,
+      isStablecoinLendingEnabled,
+      isStakeable,
+      shouldShowConvertToMusdCta,
+    ]);
 
     if (!asset || !chainId) {
       return null;
