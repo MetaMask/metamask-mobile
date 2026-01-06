@@ -1,4 +1,4 @@
-import OptinMetrics from './';
+import OptinMetrics from './index.tsx';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
