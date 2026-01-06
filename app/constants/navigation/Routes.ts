@@ -394,7 +394,7 @@ const Routes = {
       SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
       CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
       VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
-      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
@@ -407,6 +407,7 @@ const Routes = {
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
+      CONFIRM_MODAL: 'CardConfirmModal',
     },
   },
   SEND: {
