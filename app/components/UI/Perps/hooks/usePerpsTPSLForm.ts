@@ -609,7 +609,9 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      setTakeProfitPrice(price.toString());
+      // Round to 5 significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(price.toString());
+      setTakeProfitPrice(roundedPrice);
     }
   }, [
     takeProfitPercentage,
@@ -659,7 +661,11 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== stopLossPrice) {
-            setStopLossPrice(zeroRoePrice.toString());
+            // Round to 5 significant figures to match input validation
+            const roundedPrice = roundToSignificantFigures(
+              zeroRoePrice.toString(),
+            );
+            setStopLossPrice(roundedPrice);
           }
         }
       }
@@ -694,7 +700,9 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      setStopLossPrice(price.toString());
+      // Round to 5 significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(price.toString());
+      setStopLossPrice(roundedPrice);
     }
   }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
 
