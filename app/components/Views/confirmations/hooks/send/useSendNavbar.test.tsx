@@ -41,38 +41,63 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: () => ({}),
+  }),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Box: ({ children, testID, ...props }: any) => (
+    Box: ({ children, testID, ...props }: Record<string, unknown>) => (
       <View testID={testID} {...props}>
         {children}
       </View>
     ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Text: ({ children, testID, ...props }: any) => (
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: Record<string, unknown> & { children: React.ReactNode }) => (
       <Text testID={testID} {...props}>
         {children}
       </Text>
     ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ButtonIcon: ({ onPress, testID, ...props }: any) => (
-      <TouchableOpacity testID={testID} onPress={onPress} {...props} />
+    ButtonIcon: ({
+      onPress,
+      testID,
+      iconName,
+      ...props
+    }: Record<string, unknown>) => (
+      <TouchableOpacity
+        testID={testID || `button-icon-${iconName}`}
+        onPress={onPress}
+        {...props}
+      />
     ),
     BoxAlignItems: {
       Center: 'center',
     },
     ButtonIconSize: {
+      Md: 'md',
       Lg: 'lg',
     },
     IconName: {
-      Close: 'close',
-      ArrowLeft: 'arrow-left',
+      Close: 'Close',
+      ArrowLeft: 'ArrowLeft',
     },
     TextVariant: {
       HeadingMd: 'heading-md',
       HeadingLg: 'heading-lg',
+      BodyMd: 'body-md',
+    },
+    FontWeight: {
+      Bold: 'bold',
     },
   };
 });
@@ -82,8 +107,13 @@ describe('useSendNavbar', () => {
     navigate: mockNavigate,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createMockNavigationState = (routes: any[]) => ({
+  const createMockNavigationState = (
+    routes: {
+      name: string;
+      params?: Record<string, unknown>;
+      state?: unknown;
+    }[],
+  ) => ({
     index: 0,
     routes,
   });
@@ -105,18 +135,33 @@ describe('useSendNavbar', () => {
   });
 
   describe('Amount route', () => {
-    it('provides header configuration with back and close buttons', () => {
+    it('provides header configuration with a header function', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      expect(Amount.headerLeft).toBeDefined();
-      expect(Amount.headerRight).toBeDefined();
-      expect(Amount.headerTitle).toBeDefined();
-      expect(Amount.headerStyle).toEqual({
-        backgroundColor: '#ffffff',
-        shadowColor: 'transparent',
-        elevation: 0,
-      });
+      expect(Amount.header).toBeDefined();
+      expect(typeof Amount.header).toBe('function');
+    });
+
+    it('renders back and close buttons in header', () => {
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Amount } = result.current;
+
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+
+      expect(getByTestId('button-icon-ArrowLeft')).toBeTruthy();
+      expect(getByTestId('button-icon-Close')).toBeTruthy();
+    });
+
+    it('renders title in header', () => {
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Amount } = result.current;
+
+      const Header = Amount.header;
+      const { getByText } = render(<Header />);
+
+      expect(getByText('send.title')).toBeTruthy();
     });
 
     it('navigates to wallet view when back button is pressed with no previous routes', () => {
@@ -127,9 +172,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderLeft = Amount.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -147,9 +192,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderLeft = Amount.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -166,9 +211,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderLeft = Amount.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -194,9 +239,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderLeft = Amount.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -205,7 +250,7 @@ describe('useSendNavbar', () => {
       });
     });
 
-    it('navigates to Asset screen when no previous route in nested Send stack', () => {
+    it('navigates to Asset screen when at first route in nested Send stack', () => {
       (useNavigationState as jest.Mock).mockReturnValue(
         createMockNavigationState([
           {
@@ -224,9 +269,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderLeft = Amount.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -239,78 +284,67 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
 
-      const HeaderRight = Amount.headerRight;
-      const { getByTestId } = render(<HeaderRight />);
-      const closeButton = getByTestId('send-navbar-close-button');
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const closeButton = getByTestId('button-icon-Close');
 
       fireEvent.press(closeButton);
 
       expect(mockHandleCancelPress).toHaveBeenCalled();
-    });
-
-    it('renders send title in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const HeaderTitle = Amount.headerTitle;
-      const { getByText } = render(<HeaderTitle />);
-
-      expect(getByText('send.title')).toBeTruthy();
     });
   });
 
   describe('Asset route', () => {
-    it('provides custom header configuration', () => {
+    it('provides header configuration with a header function', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Asset } = result.current;
 
-      expect(Asset.headerLeft).toBeDefined();
-      expect(Asset.headerRight).toBeDefined();
-      expect(Asset.headerTitle).toBeDefined();
-      expect(Asset.headerStyle).toEqual({
-        backgroundColor: '#ffffff',
-        shadowColor: 'transparent',
-        elevation: 0,
-      });
+      expect(Asset.header).toBeDefined();
+      expect(typeof Asset.header).toBe('function');
     });
 
-    it('renders title in headerLeft instead of back button', () => {
+    it('renders back button that calls handleCancelPress', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Asset } = result.current;
 
-      const HeaderLeft = Asset.headerLeft;
-      const { getByText } = render(<HeaderLeft />);
+      const Header = Asset.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
-      expect(getByText('send.title')).toBeTruthy();
-    });
-
-    it('calls handleCancelPress when close button is pressed', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Asset } = result.current;
-
-      const HeaderRight = Asset.headerRight;
-      const { getByTestId } = render(<HeaderRight />);
-      const closeButton = getByTestId('send-navbar-close-button');
-
-      fireEvent.press(closeButton);
+      fireEvent.press(backButton);
 
       expect(mockHandleCancelPress).toHaveBeenCalled();
+    });
+
+    it('renders title in header', () => {
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Asset } = result.current;
+
+      const Header = Asset.header;
+      const { getByText } = render(<Header />);
+
+      expect(getByText('send.title')).toBeTruthy();
     });
   });
 
   describe('Recipient route', () => {
-    it('provides header configuration with back and close buttons', () => {
+    it('provides header configuration with a header function', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
 
-      expect(Recipient.headerLeft).toBeDefined();
-      expect(Recipient.headerRight).toBeDefined();
-      expect(Recipient.headerTitle).toBeDefined();
-      expect(Recipient.headerStyle).toEqual({
-        backgroundColor: '#ffffff',
-        shadowColor: 'transparent',
-        elevation: 0,
-      });
+      expect(Recipient.header).toBeDefined();
+      expect(typeof Recipient.header).toBe('function');
+    });
+
+    it('renders back and close buttons in header', () => {
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Recipient } = result.current;
+
+      const Header = Recipient.header;
+      const { getByTestId } = render(<Header />);
+
+      expect(getByTestId('button-icon-ArrowLeft')).toBeTruthy();
+      expect(getByTestId('button-icon-Close')).toBeTruthy();
     });
 
     it('uses same back navigation logic as Amount route', () => {
@@ -324,9 +358,9 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
 
-      const HeaderLeft = Recipient.headerLeft;
-      const { getByTestId } = render(<HeaderLeft />);
-      const backButton = getByTestId('send-navbar-back-button');
+      const Header = Recipient.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('button-icon-ArrowLeft');
 
       fireEvent.press(backButton);
 
@@ -339,39 +373,23 @@ describe('useSendNavbar', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
 
-      const HeaderRight = Recipient.headerRight;
-      const { getByTestId } = render(<HeaderRight />);
-      const closeButton = getByTestId('send-navbar-close-button');
+      const Header = Recipient.header;
+      const { getByTestId } = render(<Header />);
+      const closeButton = getByTestId('button-icon-Close');
 
       fireEvent.press(closeButton);
 
       expect(mockHandleCancelPress).toHaveBeenCalled();
     });
 
-    it('renders send title in header', () => {
+    it('renders title in header', () => {
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
 
-      const HeaderTitle = Recipient.headerTitle;
-      const { getByText } = render(<HeaderTitle />);
+      const Header = Recipient.header;
+      const { getByText } = render(<Header />);
 
       expect(getByText('send.title')).toBeTruthy();
-    });
-  });
-
-  describe('header style', () => {
-    it('uses theme background color for all routes', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-
-      const expectedStyle = {
-        backgroundColor: '#ffffff',
-        shadowColor: 'transparent',
-        elevation: 0,
-      };
-
-      expect(result.current.Amount.headerStyle).toEqual(expectedStyle);
-      expect(result.current.Asset.headerStyle).toEqual(expectedStyle);
-      expect(result.current.Recipient.headerStyle).toEqual(expectedStyle);
     });
   });
 });
