@@ -158,5 +158,44 @@ describe('useRampsGeolocation', () => {
         forceRefresh: false,
       });
     });
+
+    it('handles error when fetchGeolocation rejects', async () => {
+      const store = createMockStore();
+      const mockUpdateGeolocation = Engine.context.RampsController
+        .updateGeolocation as jest.Mock;
+      mockUpdateGeolocation.mockReset();
+      mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await expect(result.current.fetchGeolocation()).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
+  describe('useEffect error handling', () => {
+    it('handles error gracefully when updateGeolocation rejects in useEffect', async () => {
+      const store = createMockStore();
+      const mockUpdateGeolocation = Engine.context.RampsController
+        .updateGeolocation as jest.Mock;
+      mockUpdateGeolocation.mockReset();
+      mockUpdateGeolocation.mockRejectedValue(new Error('Fetch failed'));
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(result.current).toMatchObject({
+        geolocation: null,
+        isLoading: false,
+        error: null,
+      });
+      expect(typeof result.current.fetchGeolocation).toBe('function');
+    });
   });
 });

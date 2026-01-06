@@ -26,8 +26,11 @@ export const rampsControllerInit: ControllerInitFunction<
   });
 
   // Fetch geolocation at app startup (non-blocking)
-  controller.updateGeolocation().catch(() => {
-    // Geolocation fetch failed - error state will be available via selectors
+  // Defer to next tick to avoid affecting initial state snapshot
+  Promise.resolve().then(() => {
+    controller.updateGeolocation().catch(() => {
+      // Geolocation fetch failed - error state will be available via selectors
+    });
   });
 
   return {

@@ -30,7 +30,7 @@ export interface UseRampsGeolocationResult {
   /**
    * Manually fetch the geolocation.
    */
-  fetchGeolocation: (options?: { forceRefresh?: boolean }) => Promise<string>;
+  fetchGeolocation: (options?: ExecuteRequestOptions) => Promise<string>;
 }
 
 /**
