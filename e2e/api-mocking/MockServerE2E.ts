@@ -224,6 +224,37 @@ export default class MockServerE2E implements Resource {
       await this._testSpecificMock(this._server);
     }
 
+    // Create proper mocked endpoints for default POST mocks to ensure requests are recorded
+    // This is needed for analytics events to be captured by test helpers
+    const defaultPostMocks = this._events.POST || [];
+    for (const mock of defaultPostMocks) {
+      if (mock.urlEndpoint) {
+        await this._server
+          .forPost('/proxy')
+          .matching((request) => {
+            const urlEndpoint = new URL(request.url).searchParams.get('url');
+            if (!urlEndpoint) return false;
+            if (mock.urlEndpoint instanceof RegExp) {
+              return mock.urlEndpoint.test(urlEndpoint);
+            }
+            const eventUrlStr = String(mock.urlEndpoint);
+            return (
+              urlEndpoint === eventUrlStr || urlEndpoint.startsWith(eventUrlStr)
+            );
+          })
+          .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
+          .thenCallback(async (request) => {
+            logger.debug(
+              `Mocking POST request to: ${new URL(request.url).searchParams.get('url')}`,
+            );
+            return {
+              statusCode: mock.responseCode || 200,
+              body: JSON.stringify(mock.response),
+            };
+          });
+      }
+    }
+
     await this._server
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
