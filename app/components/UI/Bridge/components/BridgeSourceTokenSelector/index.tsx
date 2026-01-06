@@ -35,11 +35,14 @@ import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNe
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { useAutoUpdateDestToken } from '../../hooks/useAutoUpdateDestToken';
+import { useRWAToken } from '../../hooks/useRWAToken';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const { isStockToken, isTokenTradingOpen } = useRWAToken();
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -94,6 +97,16 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
 
   const handleTokenPress = useCallback(
     async (token: BridgeToken) => {
+      // Check if token is a stock token and market is closed
+      if (isStockToken(token)) {
+        const isTradingOpen = await isTokenTradingOpen(token);
+        if (!isTradingOpen) {
+          // Show market closed bottom sheet
+          navigation.navigate(Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL);
+          return;
+        }
+      }
+
       // Navigate back to the previous screen immediately so we unmount the component
       // And don't refetch the top tokens
       // The chain switching will still happen in the background
@@ -119,14 +132,14 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
       ///: END:ONLY_INCLUDE_IF
     },
     [
+      isStockToken,
       navigation,
       dispatch,
-      evmNetworkConfigurations,
-      onSetRpcTarget,
       autoUpdateDestToken,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      evmNetworkConfigurations,
+      isTokenTradingOpen,
+      onSetRpcTarget,
       onNonEvmNetworkChange,
-      ///: END:ONLY_INCLUDE_IF
     ],
   );
 

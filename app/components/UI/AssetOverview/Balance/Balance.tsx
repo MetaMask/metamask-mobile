@@ -50,6 +50,13 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -106,6 +113,7 @@ const Balance = ({
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -251,17 +259,34 @@ const Balance = ({
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
-          {secondaryBalance && (
-            <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              style={styles.tokenAmount}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
-            >
-              {secondaryBalance}
-            </SensitiveText>
-          )}
+          <View style={styles.balanceRow}>
+            {secondaryBalance && (
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.tokenAmount}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
+              >
+                {secondaryBalance}
+              </SensitiveText>
+            )}
+            {isStockToken(asset as BridgeToken) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

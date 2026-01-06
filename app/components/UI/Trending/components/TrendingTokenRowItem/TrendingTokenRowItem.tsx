@@ -42,6 +42,13 @@ import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { strings } from '../../../../../../locales/i18n';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -177,6 +184,7 @@ const TrendingTokenRowItem = ({
   );
   const [isNetworkModalVisible, setIsNetworkModalVisible] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+  const { isStockToken } = useRWAToken();
 
   // Memoize derived values
   const caipChainId = useMemo(
@@ -304,6 +312,18 @@ const TrendingTokenRowItem = ({
               token.aggregatedUsdVolume ?? 0,
             )}
           </Text>
+          {isStockToken(token) && (
+            <View style={styles.stockBadge}>
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Xs}
+                color={IconColor.Alternative}
+              />
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+                {strings('token.stock')}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

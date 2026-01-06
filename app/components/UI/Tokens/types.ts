@@ -24,4 +24,16 @@ export interface TokenI {
   ticker?: string;
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
+  rwaData?: {
+    instrumentType?: 'stock';
+    ticker: string;
+    market: {
+      nextOpen: Date;
+      nextClose: Date;
+    };
+    nextPause: {
+      start: Date | null;
+      end: Date | null;
+    };
+  };
 }

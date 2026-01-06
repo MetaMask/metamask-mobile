@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TextComponent, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -13,6 +13,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -24,6 +29,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -42,6 +48,8 @@ import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -68,6 +76,18 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
+    },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      gap: 4,
     },
   });
 
@@ -101,6 +121,8 @@ export const TokenListItem = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    const { isStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
 
@@ -260,6 +282,21 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isStockToken(asset) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <TextComponent
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </TextComponent>
+              </View>
+            )}
             {renderEarnCta()}
           </View>
         </View>

@@ -19,6 +19,18 @@ export interface Token {
   occurrences: number;
   symbol: string;
   type: string;
+  rwaData?: {
+    instrumentType?: 'stock';
+    ticker: string;
+    market: {
+      nextOpen: Date;
+      nextClose: Date;
+    };
+    nextPause: {
+      start: Date | null;
+      end: Date | null;
+    };
+  };
 }
 
 export type TokenWithFiatValue = Token & {

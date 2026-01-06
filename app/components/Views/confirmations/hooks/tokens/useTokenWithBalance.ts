@@ -14,6 +14,7 @@ import { selectTickerByChainId } from '../../../../../selectors/networkControlle
 import { getNativeTokenAddress } from '../../utils/asset';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { TokenI } from '../../../../UI/Tokens/types';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -102,6 +103,8 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       decimals,
       symbol,
       tokenFiatAmount,
+      aggregators: token?.aggregators ?? [],
+      rwaData: token as TokenI['rwaData'],
     };
   }, [
     chainId,

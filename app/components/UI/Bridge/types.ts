@@ -1,4 +1,5 @@
 import { Asset } from '@metamask/assets-controllers';
+import { Quote, TxData } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
@@ -17,6 +18,27 @@ export interface BridgeToken {
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
   accountType?: Asset['accountType'];
+  aggregators: string[];
+  rwaData?: {
+    instrumentType?: 'stock';
+    ticker: string;
+    market: {
+      nextOpen: Date;
+      nextClose: Date;
+    };
+    nextPause: {
+      start: Date | null;
+      end: Date | null;
+    };
+  };
+}
+
+// TODO: use type from @metamask/bridge-controller once "approval" is made optional
+export interface QuoteResponse {
+  quote: Quote;
+  approval?: TxData | null;
+  trade: TxData;
+  estimatedProcessingTimeInSeconds: number;
 }
 
 export enum BridgeViewMode {
