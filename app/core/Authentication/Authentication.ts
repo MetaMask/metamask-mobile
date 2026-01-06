@@ -8,7 +8,6 @@ import {
   SEED_PHRASE_HINTS,
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -79,15 +78,11 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import {
-  checkPasswordRequirement,
-  handlePasswordSubmissionError,
-} from './utils';
+import { handlePasswordSubmissionError } from './utils';
+import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import AppConstants from '../AppConstants';
-import { setLockTime } from '../../actions/settings';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
 
@@ -365,7 +360,7 @@ class AuthenticationService {
       ReduxService.store.getState().security?.allowLoginWithRememberMe;
     if (existingUser && allowLoginWithRememberMe) {
       const credentials = await SecureKeychain.getGenericPassword();
-      if (credentials && credentials.password) {
+      if (credentials?.password) {
         return {
           currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
           availableBiometryType,
@@ -490,6 +485,7 @@ class AuthenticationService {
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
+      this.dispatchPasswordSet();
     } catch (error) {
       throw new AuthenticationError(
         (error as Error).message,
@@ -559,16 +555,13 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
       biometryChoice &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
+      passcodePreviouslyDisabled === TRUE
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -701,7 +694,6 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       await this.dispatchLogin();
       this.authData = authData;
-      this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
       // discovery...).
@@ -910,12 +902,15 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async ({
+    allowRememberMe = undefined as boolean | undefined,
     reset = true,
     locked = false,
     navigateToLogin = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
-    // Wipes biometric/pin-code/remember me if reset is true.
+    if (allowRememberMe === false) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
     if (reset) await this.resetPassword();
 
     // Lock the KeyringController.
@@ -1601,47 +1596,34 @@ class AuthenticationService {
    * Throws AuthenticationError if password is not found in keychain and not provided.
    * Callers should handle navigation to password entry screen when this error is thrown.
    *
-   * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
-   * @param password - optional password to use. If not provided, gets from keychain.
+   * @param options - Options for updating auth preference
+   * @param options.authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
+   * @param options.password - optional password to use. If not provided, gets from keychain.
    * @returns {Promise<void>}
    * @throws {AuthenticationError} when password is not found and not provided
    */
-  updateAuthPreference = async (
-    authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
-    password?: string,
-  ): Promise<void> => {
+  updateAuthPreference = async (options: {
+    authType: AUTHENTICATION_TYPE;
+    password?: string;
+  }): Promise<void> => {
+    const { authType, password } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-      if (!passwordToUse.password) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
-      // TUDO: Check if this is really needed for IOS
+
+      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
       await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
-
-      ReduxService.store.dispatch(passwordSet());
-
-      const lockTime = ReduxService.store.getState().settings.lockTime;
-      if (lockTime === -1) {
-        ReduxService.store.dispatch(
-          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-        );
-      }
     } catch (e) {
       const errorWithMessage = e as { message: string };
 
-      // Check if the error is because biometrics are not enabled
+      // Check if the error is because password is not set with biometrics
       // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
       if (
         errorWithMessage.message.includes(
-          ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED,
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
         )
       ) {
         throw new AuthenticationError(
@@ -1687,20 +1669,28 @@ class AuthenticationService {
 
     // if no password is provided, try to use the stored biometric/remember-me password
     if (!passwordToVerify) {
-      const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-      if (biometryChoice) {
+      try {
         const credentials = await this.getPassword();
         if (credentials) {
           passwordToVerify = credentials.password;
         }
+      } catch (e) {
+        const error = e as Error;
+        // TODO: May want to triage errors here and throw different errors based on the error type
+        // For example, getPassword throws with `User canceled the operation` when biometrics is canceled or fails
+        // Disallowing biometrics on system level will not throw an error and just return empty credentials
+        throw new Error(
+          `${ReauthenticateErrorType.BIOMETRIC_ERROR}: ${error.message}`,
+        );
       }
 
       // If there is no biometric choice configured or no stored credentials,
       // throw a specific error instead of attempting to verify an empty password.
       if (!passwordToVerify) {
-        const biometricNotEnabledErrorMessage = 'Biometric is not enabled';
+        const passwordNotSetWithBiometricsErrorMessage =
+          'No password stored with biometrics in keychain.';
         throw new Error(
-          `${ReauthenticateErrorType.BIOMETRIC_NOT_ENABLED}: ${biometricNotEnabledErrorMessage}`,
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: ${passwordNotSetWithBiometricsErrorMessage}`,
         );
       }
     }

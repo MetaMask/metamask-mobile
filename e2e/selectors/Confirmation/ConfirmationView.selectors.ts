@@ -31,17 +31,21 @@ export const ConfirmationRowComponentIDs = {
   ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
   APPROVE_ROW: 'approve-row',
+  BRIDGE_TIME: 'bridge-time',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
+  GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
   MESSAGE: 'message',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
+  PAID_BY_METAMASK: 'paid-by-metamask',
+  PAY_WITH: 'pay-with',
   SIMULATION_DETAILS: 'simulation-details',
   SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
-  PAID_BY_METAMASK: 'paid-by-metamask',
-  GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
+  TOTAL: 'total',
+  TRANSACTION_FEE: 'transaction-fee',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
@@ -87,3 +91,11 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_SYMBOL: 'gas-fee-token-list-item-symbol',
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
 } as const;
+
+export const TransactionPayComponentIDs = {
+  CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
+  KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
+  PAY_WITH_BALANCE: 'pay-with-balance',
+  PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_SYMBOL: 'pay-with-symbol',
+};

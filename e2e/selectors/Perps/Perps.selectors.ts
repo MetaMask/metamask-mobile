@@ -215,6 +215,7 @@ export const PerpsHomeViewSelectorsIDs = {
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
   BACK_BUTTON: 'back-button',
+  BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',
   SCROLL_CONTENT: 'scroll-content',
@@ -492,6 +493,8 @@ export const PerpsGTMModalSelectorsIDs = {
 export const PerpsOrderViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-order-view-bottom-sheet-tooltip',
   NOTIFICATION_TOOLTIP: 'perps-order-view-notification-tooltip',
+  TURN_ON_NOTIFICATION_BUTTON:
+    'perps-order-view-notification-tooltip-turn-on-button',
   LEVERAGE_INFO_ICON: 'perps-order-view-leverage-info-icon',
   LIMIT_PRICE_INFO_ICON: 'perps-order-view-limit-price-info-icon',
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
@@ -510,7 +513,7 @@ export const PerpsOrderViewSelectorsIDs = {
 // ========================================
 
 export const PerpsOpenOrderCardSelectorsIDs = {
-  CARD: 'perps-open-order-card',
+  CARD: 'compact-order-mock_order_1',
   CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
   EDIT_BUTTON: 'perps-open-order-card-edit-button',
 };
@@ -610,7 +613,7 @@ export const getPerpsHeroCardViewSelector = {
 
 export const PerpsGeneralSelectorsIDs = {
   // TPSL bottom sheet primary action button ("Set" / "Updating")
-  BOTTOM_SHEET_FOOTER_BUTTON: 'bottomsheetfooter-button',
+  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-bottomsheet',
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',

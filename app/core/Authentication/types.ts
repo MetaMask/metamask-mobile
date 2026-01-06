@@ -24,5 +24,6 @@ export enum PasswordSubmissionErrorType {
 }
 
 export enum ReauthenticateErrorType {
-  BIOMETRIC_NOT_ENABLED = 'BIOMETRIC_NOT_ENABLED',
+  PASSWORD_NOT_SET_WITH_BIOMETRICS = 'PASSWORD_NOT_SET_WITH_BIOMETRICS',
+  BIOMETRIC_ERROR = 'BIOMETRIC_ERROR',
 }
