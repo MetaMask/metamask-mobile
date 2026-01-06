@@ -224,35 +224,33 @@ export default class MockServerE2E implements Resource {
       await this._testSpecificMock(this._server);
     }
 
-    // Create proper mocked endpoints for default POST mocks to ensure requests are recorded
-    // This is needed for analytics events to be captured by test helpers
-    const defaultPostMocks = this._events.POST || [];
-    for (const mock of defaultPostMocks) {
-      if (mock.urlEndpoint) {
-        await this._server
-          .forPost('/proxy')
-          .matching((request) => {
-            const urlEndpoint = new URL(request.url).searchParams.get('url');
-            if (!urlEndpoint) return false;
-            if (mock.urlEndpoint instanceof RegExp) {
-              return mock.urlEndpoint.test(urlEndpoint);
-            }
-            const eventUrlStr = String(mock.urlEndpoint);
-            return (
-              urlEndpoint === eventUrlStr || urlEndpoint.startsWith(eventUrlStr)
-            );
-          })
-          .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
-          .thenCallback(async (request) => {
-            logger.debug(
-              `Mocking POST request to: ${new URL(request.url).searchParams.get('url')}`,
-            );
-            return {
-              statusCode: mock.responseCode || 200,
-              body: JSON.stringify(mock.response),
-            };
-          });
-      }
+    // Create explicit mocked endpoint for metametrics to ensure analytics events are recorded
+    // This handles all AnalyticsPlatformAdapter methods: track, identify, and view
+    // All three methods send to E2E_METAMETRICS_TRACK_URL, so one endpoint covers all
+    // We only create an explicit endpoint for metametrics to avoid interfering with other requests
+    const metametricsMock = this._events.POST?.find(
+      (mock) =>
+        mock.urlEndpoint &&
+        String(mock.urlEndpoint) === 'https://metametrics.test/track',
+    );
+    if (metametricsMock) {
+      await this._server
+        .forPost('/proxy')
+        .matching((request) => {
+          const urlEndpoint = new URL(request.url).searchParams.get('url');
+          // Use exact match to avoid interfering with other requests
+          return urlEndpoint === 'https://metametrics.test/track';
+        })
+        .asPriority(500) // Lower priority than test-specific mocks (999) but higher than catch-all (0)
+        .thenCallback(async () => {
+          logger.debug(
+            'Mocking POST request to: https://metametrics.test/track',
+          );
+          return {
+            statusCode: metametricsMock.responseCode || 200,
+            body: JSON.stringify(metametricsMock.response),
+          };
+        });
     }
 
     await this._server
