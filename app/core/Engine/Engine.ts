@@ -1324,7 +1324,6 @@ export default {
       SignatureController,
       SmartTransactionsController,
       SnapInterfaceController,
-      SnapsRegistry,
       SwapsController,
       TokenBalancesController,
       TokenListController,
@@ -1341,6 +1340,7 @@ export default {
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1389,7 +1389,6 @@ export default {
       SignatureController,
       SmartTransactionsController,
       SnapInterfaceController,
-      SnapsRegistry,
       SwapsController,
       TokenBalancesController,
       TokenListController,
@@ -1406,6 +1405,7 @@ export default {
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
