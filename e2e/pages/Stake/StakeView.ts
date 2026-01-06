@@ -41,7 +41,7 @@ class StakeView {
 
   async tapConfirm(): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Continue Button in Stake View',
+      elemDescription: 'Confirm Button in Stake View',
     });
   }
 }
