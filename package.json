@@ -131,7 +131,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/analytics-controller": "npm:@metamask-previews/analytics-controller@0.0.0-preview-1dd40c75",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
