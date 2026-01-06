@@ -13,8 +13,10 @@ import Animated, {
 // External dependencies.
 import {
   Box,
+  BoxAlignItems,
   Text,
   TextVariant,
+  TextColor,
   FontWeight,
   IconName,
   ButtonIconProps,
@@ -67,6 +69,10 @@ const HeaderWithTitleLeftScrollable: React.FC<
   HeaderWithTitleLeftScrollableProps
 > = ({
   title,
+  titleProps,
+  subtitle,
+  subtitleProps,
+  children,
   onBack,
   backButtonProps,
   titleLeft,
@@ -181,6 +187,37 @@ const HeaderWithTitleLeftScrollable: React.FC<
     return <TitleLeft title={title} {...titleLeftProps} />;
   };
 
+  // Render compact title content
+  // If children is provided, use it; otherwise render default title + subtitle
+  const renderCompactContent = () => {
+    if (children) {
+      return children;
+    }
+    return (
+      <Box alignItems={BoxAlignItems.Center}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          {...titleProps}
+        >
+          {title}
+        </Text>
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            {...subtitleProps}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+          >
+            {subtitle}
+          </Text>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <Animated.View
       style={[
@@ -201,13 +238,7 @@ const HeaderWithTitleLeftScrollable: React.FC<
         >
           {/* Compact title - fades in when collapsed */}
           <Animated.View style={compactTitleAnimatedStyle}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
+            {renderCompactContent()}
           </Animated.View>
         </HeaderBase>
 
