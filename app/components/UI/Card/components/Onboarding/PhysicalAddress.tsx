@@ -229,7 +229,7 @@ const PhysicalAddress = () => {
   const dispatch = useDispatch();
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
@@ -270,6 +270,19 @@ const PhysicalAddress = () => {
       }
     }
   }, [dispatch, regions, user]);
+
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === user?.countryOfResidence),
+    [initialSelectedCountry, regions, user?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
+    }
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const eSignConsentDisclosureUSUrl = useMemo(
     () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
@@ -467,7 +480,7 @@ const PhysicalAddress = () => {
         // Reset the navigation stack to the verifying registration screen
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
         });
         return;
       }

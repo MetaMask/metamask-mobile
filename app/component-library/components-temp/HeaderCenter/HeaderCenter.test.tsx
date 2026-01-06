@@ -185,6 +185,42 @@ describe('HeaderCenter', () => {
 
       expect(queryByTestId(START_ACCESSORY_TEST_ID)).not.toBeOnTheScreen();
     });
+
+    it('renders startButtonIconProps when provided', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <HeaderCenter
+          title="Title"
+          startButtonIconProps={{
+            iconName: IconName.Menu,
+            onPress,
+            testID: 'custom-start-button',
+          }}
+        />,
+      );
+
+      expect(getByTestId('custom-start-button')).toBeOnTheScreen();
+    });
+
+    it('startButtonIconProps takes priority over onBack', () => {
+      const onBack = jest.fn();
+      const onPress = jest.fn();
+      const { getByTestId, queryByTestId } = render(
+        <HeaderCenter
+          title="Title"
+          onBack={onBack}
+          backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
+          startButtonIconProps={{
+            iconName: IconName.Menu,
+            onPress,
+            testID: 'custom-start-button',
+          }}
+        />,
+      );
+
+      expect(getByTestId('custom-start-button')).toBeOnTheScreen();
+      expect(queryByTestId(BACK_BUTTON_TEST_ID)).not.toBeOnTheScreen();
+    });
   });
 
   describe('close button', () => {

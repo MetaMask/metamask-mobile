@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -14,11 +15,17 @@ import { CardScreens } from '../../util/metrics';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
+import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
 const KYCFailed = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  useEffect(() => {
+    dispatch(resetOnboardingState());
+  }, [dispatch]);
 
   useEffect(() => {
     trackEvent(

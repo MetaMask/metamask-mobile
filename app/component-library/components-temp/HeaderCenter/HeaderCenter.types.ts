@@ -10,8 +10,7 @@ import { HeaderBaseProps } from '../../components/HeaderBase';
 /**
  * HeaderCenter component props.
  */
-export interface HeaderCenterProps
-  extends Omit<HeaderBaseProps, 'startButtonIconProps'> {
+export interface HeaderCenterProps extends HeaderBaseProps {
   /**
    * Title text to display in the header.
    * Used as children if children prop is not provided.

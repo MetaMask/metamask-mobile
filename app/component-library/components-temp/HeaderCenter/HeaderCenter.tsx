@@ -48,12 +48,16 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
   onClose,
   closeButtonProps,
   endButtonIconProps,
+  startButtonIconProps,
   twClassName,
   testID,
   ...headerBaseProps
 }) => {
   // Build the startButtonIconProps with back button if needed
   const resolvedStartButtonIconProps = useMemo(() => {
+    if (startButtonIconProps) {
+      return startButtonIconProps;
+    }
     if (onBack || backButtonProps) {
       return {
         iconName: IconName.ArrowLeft,
@@ -62,7 +66,7 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
       } as ButtonIconProps;
     }
     return undefined;
-  }, [onBack, backButtonProps]);
+  }, [onBack, backButtonProps, startButtonIconProps]);
 
   // Build the endButtonIconProps array with close button if needed
   const resolvedEndButtonIconProps = useMemo(() => {
