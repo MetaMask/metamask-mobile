@@ -9,21 +9,46 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
+const mockStore = (() => {
+  const store: { updateGeolocation?: jest.Mock } = {};
+  return store;
+})();
 
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
     '@metamask/ramps-controller',
   );
 
+  if (!mockStore.updateGeolocation) {
+    mockStore.updateGeolocation = jest.fn().mockResolvedValue('US');
+  }
+
+  const MockRampsController = jest.fn().mockImplementation(() => ({
+      updateGeolocation: mockStore.updateGeolocation,
+    }));
+
+  Object.setPrototypeOf(
+    MockRampsController.prototype,
+    actualRampsController.RampsController.prototype,
+  );
+  Object.setPrototypeOf(
+    MockRampsController,
+    actualRampsController.RampsController,
+  );
+
   return {
     getDefaultRampsControllerState:
       actualRampsController.getDefaultRampsControllerState,
-    RampsController: jest.fn().mockImplementation(() => ({
-      updateGeolocation: mockUpdateGeolocation,
-    })),
+    RampsController: MockRampsController,
   };
 });
+
+const mockUpdateGeolocation = (() => {
+  if (!mockStore.updateGeolocation) {
+    mockStore.updateGeolocation = jest.fn().mockResolvedValue('US');
+  }
+  return mockStore.updateGeolocation;
+})();
 
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);

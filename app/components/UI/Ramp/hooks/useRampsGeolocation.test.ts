@@ -10,7 +10,6 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
-      abortRequest: jest.fn().mockReturnValue(true),
     },
   },
 }));
