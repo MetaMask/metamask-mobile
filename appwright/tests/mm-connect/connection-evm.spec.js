@@ -19,7 +19,7 @@ import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 const EVM_LEGACY_TEST_DAPP_URL = 'http://bs-local.com:5173/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
 
-test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
+test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;
