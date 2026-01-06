@@ -1,5 +1,27 @@
 const { RUNTIME_VERSION, PROJECT_ID, UPDATE_URL } = require('./ota.config.js');
 
+// Use METAMASK_ENVIRONMENT to select OTA certs:
+// - "production" and "rc" use their own certificates
+// - all other environments (exp, dev, test, e2e, beta, etc.) fall back to "exp"
+const OTA_ENV_MAP = {
+  production: 'production',
+  rc: 'rc',
+};
+
+const OTA_ENV = OTA_ENV_MAP[process.env.METAMASK_ENVIRONMENT] ?? 'exp';
+
+const CODE_SIGNING_CERTS = {
+  production: './certs/production.certificate.pem',
+  exp: './certs/exp.certificate.pem',
+  rc: './certs/rc.certificate.pem',
+};
+
+const CODE_SIGNING_KEYIDS = {
+  production: 'production',
+  exp: 'exp',
+  rc: 'rc',
+};
+
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
@@ -75,16 +97,12 @@ module.exports = {
     owner: 'metamask',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
-      codeSigningCertificate: './certs/certificate.pem',
+      codeSigningCertificate: CODE_SIGNING_CERTS[OTA_ENV],
       codeSigningMetadata: {
-        keyid: 'main',
+        keyid: CODE_SIGNING_KEYIDS[OTA_ENV],
         alg: 'rsa-v1_5-sha256',
       },
       url: UPDATE_URL,
-      // Channel is set by requestHeaders, will be overridden with build script
-      requestHeaders: {
-        'expo-channel-name': 'preview',
-      },
     },
     extra: {
       eas: {
