@@ -2296,6 +2296,61 @@ describe('polymarket utils', () => {
       );
     });
 
+    it('returns empty array when search results omit markets', async () => {
+      const eventWithoutMarkets = {
+        ...mockEvent,
+        markets: undefined,
+      } as unknown as PolymarketApiEvent;
+
+      const mockResponse = {
+        events: [eventWithoutMarkets],
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        providerId: 'polymarket',
+        q: 'nhl',
+        limit: 10,
+        offset: 0,
+      };
+
+      const result = await getParsedMarketsFromPolymarketApi(params);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty tags when search results omit tags', async () => {
+      const eventWithoutTags = {
+        ...mockEvent,
+        tags: undefined,
+      } as unknown as PolymarketApiEvent;
+
+      const mockResponse = {
+        events: [eventWithoutTags],
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        providerId: 'polymarket',
+        q: 'nhl',
+        limit: 10,
+        offset: 0,
+      };
+
+      const result = await getParsedMarketsFromPolymarketApi(params);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].tags).toEqual([]);
+    });
+
     it('handle different categories', async () => {
       const mockResponse = {
         data: [mockEvent],
