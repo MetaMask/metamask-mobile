@@ -405,7 +405,9 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        setTakeProfitPrice(price.toString());
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        setTakeProfitPrice(roundedPrice);
         setSelectedTpPercentage(roeValue);
       } else if (!finalValue) {
         setTakeProfitPrice('');
@@ -511,7 +513,9 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        setStopLossPrice(price.toString());
+        // Round to 5 significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(price.toString());
+        setStopLossPrice(roundedPrice);
         setSelectedSlPercentage(roeValue); // Store absolute value for button comparison
       } else if (!finalValue) {
         setStopLossPrice('');
