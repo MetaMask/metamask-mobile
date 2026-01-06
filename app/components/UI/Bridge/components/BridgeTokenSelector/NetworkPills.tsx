@@ -13,18 +13,21 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { ScrollView } from 'react-native-gesture-handler';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
+const PILL_WIDTH = 90; // Average pill width including gap
+
 export const getNetworkName = (
   chainId: Hex | CaipChainId,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) => {
-  // Convert CAIP chain ID to hex format for network configurations lookup
+  // Convert CAIP-2 chain ID (e.g., 'eip155:1') to hex format (e.g., '0x1') for network config lookup.
+  // If it's already a hex chainId or non-EVM CAIP format, use it as-is.
   const convertedChainId: Hex | CaipChainId = chainId.startsWith('eip155:')
     ? (`0x${parseInt(chainId.split(':')[1]).toString(16)}` as Hex)
     : chainId;
 
   return (
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[convertedChainId] ??
-    networkConfigurations?.[convertedChainId as Hex]?.name ??
+    networkConfigurations?.[convertedChainId]?.name ??
     PopularList.find((network) => network.chainId === convertedChainId)
       ?.nickname ??
     'Unknown Network'
@@ -76,10 +79,9 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     // Only scroll if the selected network is beyond the first 2 visible networks
     // The first few networks are already visible, no need to scroll
     if (selectedIndex > 1) {
-      const pillWidth = 90; // Average pill width including gap
       // Scroll to position the selected network more towards the center
       scrollViewRef.current?.scrollTo({
-        x: selectedIndex * pillWidth - pillWidth,
+        x: selectedIndex * PILL_WIDTH - PILL_WIDTH,
         animated: false,
       });
     }

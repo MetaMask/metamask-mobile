@@ -21,7 +21,6 @@ import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
@@ -62,6 +61,8 @@ export interface BridgeTokenSelectorRouteParams {
 }
 
 const MIN_SEARCH_LENGTH = 3;
+const ESTIMATED_ITEM_HEIGHT = 72;
+const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger load
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
@@ -85,9 +86,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const bridgeFeatureFlags = useSelector((state: RootState) =>
-    selectBridgeFeatureFlags(state),
-  );
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   // Set navigation options for header
   useEffect(() => {
@@ -96,13 +95,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
-    route.params?.type,
+    route.params.type,
   );
 
   // Initialize selectedChainId with the chain id of the selected token
-  const [selectedChainId, setSelectedChainId] = useState<
-    CaipChainId | undefined
-  >(
+  const [selectedChainId, setSelectedChainId] = useState(
     selectedToken?.chainId && route.params?.type === 'dest'
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
@@ -167,23 +164,24 @@ export const BridgeTokenSelector: React.FC = () => {
   // Create includeAssets array from tokens with balance to be sent to API
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    const assets: IncludeAsset[] = filteredTokensWithBalance.reduce<
-      IncludeAsset[]
-    >((acc, token) => {
-      const assetId = formatAddressToAssetId(token.address, token.chainId);
-      if (assetId) {
-        const normalizedAssetId = isNonEvmChainId(token.chainId)
-          ? assetId
-          : (assetId?.toLowerCase() as CaipAssetType);
-        acc.push({
-          assetId: normalizedAssetId,
-          name: token.name ?? '',
-          symbol: token.symbol,
-          decimals: token.decimals,
-        });
-      }
-      return acc;
-    }, []);
+    const assets = filteredTokensWithBalance.reduce<IncludeAsset[]>(
+      (acc, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        if (assetId) {
+          const normalizedAssetId = isNonEvmChainId(token.chainId)
+            ? assetId
+            : (assetId?.toLowerCase() as CaipAssetType);
+          acc.push({
+            assetId: normalizedAssetId,
+            name: token.name ?? '',
+            symbol: token.symbol,
+            decimals: token.decimals,
+          });
+        }
+        return acc;
+      },
+      [],
+    );
     return JSON.stringify(assets);
   }, [filteredTokensWithBalance]);
 
@@ -273,8 +271,6 @@ export const BridgeTokenSelector: React.FC = () => {
       searchCursor &&
       flatListHeight > 0
     ) {
-      // Estimate item height (approximate height of TokenSelectorItem)
-      const ESTIMATED_ITEM_HEIGHT = 72;
       const estimatedContentHeight =
         searchResults.length * ESTIMATED_ITEM_HEIGHT;
 
@@ -419,10 +415,9 @@ export const BridgeTokenSelector: React.FC = () => {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { layoutMeasurement, contentOffset, contentSize } =
         event.nativeEvent;
-      const paddingToBottom = 300; // Distance from bottom to trigger load
       const isCloseToBottom =
         layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom;
+        contentSize.height - LOAD_MORE_DISTANCE_THRESHOLD;
 
       if (isCloseToBottom) {
         handleLoadMore();

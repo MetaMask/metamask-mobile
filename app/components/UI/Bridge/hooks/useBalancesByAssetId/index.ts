@@ -46,8 +46,8 @@ export const useBalancesByAssetId = ({
         // Normalize assetId because API returns assetId in lowercase for EVM chains
         const normalizedAssetId = isNonEvmChainId(token.chainId)
           ? assetId
-          : assetId?.toLowerCase();
-        balancesMap[normalizedAssetId ?? ''] = {
+          : assetId.toLowerCase();
+        balancesMap[normalizedAssetId] = {
           balance: token.balance,
           balanceFiat: token.balanceFiat,
           tokenFiatAmount: token.tokenFiatAmount,
