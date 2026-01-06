@@ -109,7 +109,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    await AppwrightGestures.tap(this.nextButton);
+    await AppwrightGestures.tap(await this.nextButton);
   }
 
   async isVisible() {

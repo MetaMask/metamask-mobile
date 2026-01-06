@@ -68,11 +68,11 @@ class PredictConfirmationScreen {
   }
 
   async tapConfirm() {
-    await AppwrightGestures.tap(this.confirmButton);
+    await AppwrightGestures.tap(await this.confirmButton);
   }
 
   async tapCancel() {
-    await AppwrightGestures.tap(this.cancelButton);
+    await AppwrightGestures.tap(await this.cancelButton);
   }
 }
 
