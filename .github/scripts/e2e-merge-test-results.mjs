@@ -11,6 +11,9 @@
  * - Attempt 3+: Would lose information about tests that passed in attempt 1
  *
  * By merging, we ensure all historical pass/fail information is preserved.
+ * 
+ * Note: jest-junit is configured with classNameTemplate: '{filepath}'
+ * which puts the file path in each testcase's classname attribute.
  */
 
 import fs from 'node:fs';
@@ -51,7 +54,7 @@ async function getTestFilesFromXml(xmlPath) {
   try {
     const content = fs.readFileSync(xmlPath, 'utf-8');
     const result = await parseXml(content);
-    const files = [];
+    const files = new Set();
 
     // Handle both single testsuite and testsuites wrapper
     let testsuites = [];
@@ -66,18 +69,30 @@ async function getTestFilesFromXml(xmlPath) {
     }
 
     for (const suite of testsuites) {
-      if (suite.$ && suite.$.file) {
-        files.push(normalizeTestPath(suite.$.file));
-      } else if (suite.$) {
-        // Try classname or name for Detox reports
-        const classname = suite.$.classname || suite.$.name || '';
+      // Get testcases from the suite
+      let testcases = [];
+      if (suite.testcase) {
+        testcases = Array.isArray(suite.testcase)
+          ? suite.testcase
+          : [suite.testcase];
+      }
+
+      for (const testcase of testcases) {
+        if (!testcase.$ || !testcase.$.classname) {
+          continue;
+        }
+
+        // jest-junit puts the file path in classname when using {filepath} template
+        const classname = testcase.$.classname;
+        
+        // Only process if it looks like a spec file path
         if (classname.includes('.spec.')) {
-          files.push(normalizeTestPath(classname));
+          files.add(normalizeTestPath(classname));
         }
       }
     }
 
-    return files;
+    return [...files];
   } catch (error) {
     console.warn(`Failed to parse ${xmlPath}:`, error?.message || error);
     return [];
@@ -155,7 +170,7 @@ export async function mergeTestResults(previousResultsDir, currentResultsDir) {
  * CLI entry point
  */
 if (process.argv[1].endsWith('e2e-merge-test-results.mjs')) {
-  const previousDir = process.argv[2] || './previous-test-results/e2e/reports';
+  const previousDir = process.argv[2] || './previous-test-results';
   const currentDir = process.argv[3] || './e2e/reports';
 
   mergeTestResults(previousDir, currentDir)
@@ -165,4 +180,3 @@ if (process.argv[1].endsWith('e2e-merge-test-results.mjs')) {
       process.exit(1);
     });
 }
-

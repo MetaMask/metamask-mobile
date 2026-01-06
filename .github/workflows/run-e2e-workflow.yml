@@ -188,6 +188,15 @@ jobs:
           name: test-e2e-${{ inputs.test-suite-name }}-junit-results
           path: ./previous-test-results/
 
+      - name: Debug - List downloaded test results (on re-run)
+        if: ${{ github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
+        run: |
+          echo "📂 Contents of ./previous-test-results/:"
+          find ./previous-test-results -type f -name "*.xml" | head -20
+          echo ""
+          echo "📄 First XML file preview (first 50 lines):"
+          find ./previous-test-results -type f -name "*.xml" | head -1 | xargs head -50 || echo "No XML files found"
+
       - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |

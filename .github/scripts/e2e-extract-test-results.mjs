@@ -5,8 +5,11 @@
  * On re-run, we only run failed tests - passed tests are skipped and
  * tests that were never executed stay in the queue.
  *
- * A test file is only considered "passed" if ALL of its test suites pass.
- * This handles files with multiple test suites where some pass and some fail.
+ * A test file is only considered "passed" if ALL of its test cases pass.
+ * This handles files with multiple test cases where some pass and some fail.
+ * 
+ * Note: jest-junit is configured with classNameTemplate: '{filepath}'
+ * which puts the file path in each testcase's classname attribute.
  */
 
 import fs from 'node:fs';
@@ -41,6 +44,15 @@ async function parseXml(content) {
 
 /**
  * Extracts test results from JUnit XML files in the results directory.
+ * 
+ * jest-junit outputs XML with structure:
+ * <testsuites>
+ *   <testsuite name="TestSuite" tests="N" failures="N" ...>
+ *     <testcase name="test name" classname="e2e/specs/path/to/file.spec.ts" time="N">
+ *       <failure>...</failure>  <!-- only if failed -->
+ *     </testcase>
+ *   </testsuite>
+ * </testsuites>
  *
  * @param {string} resultsDir - Directory containing XML test result files
  * @returns {Promise<{passed: string[], failed: string[], executed: string[]}>}
@@ -61,12 +73,21 @@ export async function extractTestResults(resultsDir) {
 
   if (files.length === 0) {
     console.log(`No XML files found in: ${resultsDir}`);
+    // List all files in directory to help debug
+    try {
+      const allFiles = fs.readdirSync(resultsDir);
+      console.log(`  Directory contents: ${allFiles.join(', ') || '(empty)'}`);
+    } catch (e) {
+      console.log(`  Could not list directory: ${e.message}`);
+    }
     return emptyResult;
   }
 
+  console.log(`Found ${files.length} XML file(s) to parse: ${files.join(', ')}`);
+
   // Track all executed test files and which ones have failures
-  const executedTests = new Set();
-  const failedTests = new Set();
+  // Key: normalized file path, Value: { executed: true, failed: boolean }
+  const testFileResults = new Map();
 
   for (const file of files) {
     try {
@@ -85,34 +106,54 @@ export async function extractTestResults(resultsDir) {
           : [result.testsuite];
       }
 
+      console.log(`  Parsing ${file}: found ${testsuites.length} testsuite(s)`);
+
       for (const suite of testsuites) {
-        if (!suite.$ || !suite.$.file) {
-          // Try to extract file path from the suite name for Detox reports
-          // Detox uses classname or name which often contains the spec file path
-          const classname = suite.$?.classname || suite.$?.name || '';
-          if (classname.includes('.spec.')) {
-            const testPath = normalizeTestPath(classname);
-            executedTests.add(testPath);
-
-            const failures = parseInt(suite.$?.failures || '0', 10);
-            const errors = parseInt(suite.$?.errors || '0', 10);
-
-            if (failures > 0 || errors > 0) {
-              failedTests.add(testPath);
-            }
-          }
-          continue;
+        // Get testcases from the suite
+        let testcases = [];
+        if (suite.testcase) {
+          testcases = Array.isArray(suite.testcase)
+            ? suite.testcase
+            : [suite.testcase];
         }
 
-        const testPath = normalizeTestPath(suite.$.file);
-        executedTests.add(testPath);
+        console.log(`    Suite "${suite.$?.name || 'unnamed'}": ${testcases.length} testcase(s)`);
+        
+        // Debug: show first testcase structure
+        if (testcases.length > 0 && testcases[0].$) {
+          console.log(`    First testcase classname: "${testcases[0].$.classname || 'N/A'}"`);
+        }
 
-        const failures = parseInt(suite.$.failures || '0', 10);
-        const errors = parseInt(suite.$.errors || '0', 10);
+        for (const testcase of testcases) {
+          if (!testcase.$ || !testcase.$.classname) {
+            continue;
+          }
 
-        // If ANY suite in the file has failures/errors, mark the file as failed
-        if (failures > 0 || errors > 0) {
-          failedTests.add(testPath);
+          // jest-junit puts the file path in classname when using {filepath} template
+          const classname = testcase.$.classname;
+          
+          // Only process if it looks like a spec file path
+          if (!classname.includes('.spec.')) {
+            console.log(`    Skipping classname (no .spec.): "${classname}"`);
+            continue;
+          }
+
+          const testPath = normalizeTestPath(classname);
+          
+          // Check if this testcase has failures or errors
+          const hasFailure = !!testcase.failure;
+          const hasError = !!testcase.error;
+          const testFailed = hasFailure || hasError;
+
+          // Get or create entry for this file
+          if (!testFileResults.has(testPath)) {
+            testFileResults.set(testPath, { executed: true, failed: false });
+          }
+
+          // If any test in the file fails, mark the whole file as failed
+          if (testFailed) {
+            testFileResults.get(testPath).failed = true;
+          }
         }
       }
     } catch (error) {
@@ -120,19 +161,32 @@ export async function extractTestResults(resultsDir) {
     }
   }
 
-  // Passed tests = executed tests that have NO failures in ANY suite
-  const passedTests = [...executedTests].filter(
-    (testPath) => !failedTests.has(testPath),
-  );
+  // Build result arrays
+  const executedTests = [];
+  const passedTests = [];
+  const failedTests = [];
 
-  console.log(`Found ${executedTests.size} executed test files`);
-  console.log(`Found ${failedTests.size} failed test files`);
+  for (const [testPath, result] of testFileResults) {
+    executedTests.push(testPath);
+    if (result.failed) {
+      failedTests.push(testPath);
+    } else {
+      passedTests.push(testPath);
+    }
+  }
+
+  console.log(`Found ${executedTests.length} executed test files`);
+  console.log(`Found ${failedTests.length} failed test files`);
   console.log(`Found ${passedTests.length} fully passed test files`);
+
+  if (failedTests.length > 0) {
+    console.log(`Failed tests: ${failedTests.join(', ')}`);
+  }
 
   return {
     passed: passedTests,
-    failed: [...failedTests],
-    executed: [...executedTests],
+    failed: failedTests,
+    executed: executedTests,
   };
 }
 
@@ -140,7 +194,7 @@ export async function extractTestResults(resultsDir) {
  * CLI entry point for testing the script directly
  */
 if (process.argv[1].endsWith('e2e-extract-test-results.mjs')) {
-  const resultsDir = process.argv[2] || './previous-test-results/e2e/reports';
+  const resultsDir = process.argv[2] || './previous-test-results';
 
   extractTestResults(resultsDir)
     .then((results) => {
@@ -153,4 +207,3 @@ if (process.argv[1].endsWith('e2e-extract-test-results.mjs')) {
       process.exit(1);
     });
 }
-
