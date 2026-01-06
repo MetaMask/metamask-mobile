@@ -12,6 +12,7 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
+import AddChainModal from '../../../wdio/screen-objects/Modals/AddChainModal.js';
 import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
@@ -28,6 +29,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   DappConnectionModal.device = device;
   SignModal.device = device;
   SwitchChainModal.device = device;
+  AddChainModal.device = device;
   AccountListComponent.device = device;
 
   await device.webDriverClient.updateSettings({
@@ -92,6 +94,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
     // await login(device, { dismissModals: false });
+    await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapConfirmButton();
   });
 
@@ -109,8 +112,59 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       await WagmiTestDapp.assertPersonalSignResponseValue(
         '0xf6b3f2e43a0c7f1dbfb107b6d687979c8ae21ab7c065fa610bf52f8c579b21292e224e7af93cf16dd2f309de7072b46f11a21e08d76c6c5a3d10ce885e997d4b1b',
       );
-      // await MultiChainEvmTestDapp.tapSendTransactionButton();
+      await WagmiTestDapp.tapSwitchChainButton('11155111'); // Sepolia
+      await WagmiTestDapp.assertConnectedChainValue('11155111');
+      await WagmiTestDapp.tapPersonalSignButton();
     },
-    WAGMI_TEST_DAPP_NAME,
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { dismissModals: false });
+    await SignModal.assertNetworkText('Sepolia');
+    await SignModal.tapCancelButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.tapSwitchChainButton('42220'); // Celo
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { dismissModals: false });
+    await AddChainModal.assertText('42220');
+    await AddChainModal.assertText('Celo');
+    await AddChainModal.tapConfirmButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.assertConnectedChainValue('42220');
+    },
+    WAGMI_TEST_DAPP_URL,
   );
 });

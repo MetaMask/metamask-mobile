@@ -85,6 +85,16 @@ class WagmiTestDapp {
         }
     }
 
+    getSwitchChainButton(chainId) {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, `//*[@id="switch-chain-${chainId}"]`);
+        }
+    }
+
     async tapDisconnectButton() {
         if (!this._device) {
             return;
@@ -109,6 +119,15 @@ class WagmiTestDapp {
         }
 
         const element = await this.personalSignButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapSwitchChainButton(chainId) {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.getSwitchChainButton(chainId);
         await AppwrightGestures.tap(element)
     }
 
