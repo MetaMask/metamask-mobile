@@ -10,6 +10,7 @@ const TEST_IDS = {
   CONTAINER: 'header-with-title-left-container',
   TITLE_SECTION: 'header-with-title-left-title-section',
   BACK_BUTTON: 'header-with-title-left-back-button',
+  CLOSE_BUTTON: 'header-with-title-left-close-button',
   TITLE_LEFT: 'title-left',
   HEADER_BASE_END_ACCESSORY: 'header-base-end-accessory',
 };
@@ -166,6 +167,88 @@ describe('HeaderWithTitleLeft', () => {
       );
 
       expect(queryByLabelText('Arrow Left')).toBeNull();
+    });
+  });
+
+  describe('close button', () => {
+    it('renders close button when onClose provided', () => {
+      const { getByTestId } = render(
+        <HeaderWithTitleLeft
+          onClose={jest.fn()}
+          closeButtonProps={{ testID: TEST_IDS.CLOSE_BUTTON }}
+          titleLeftProps={{ title: 'Test' }}
+        />,
+      );
+
+      expect(getByTestId(TEST_IDS.CLOSE_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('renders close button when closeButtonProps provided', () => {
+      const { getByTestId } = render(
+        <HeaderWithTitleLeft
+          closeButtonProps={{
+            onPress: jest.fn(),
+            testID: TEST_IDS.CLOSE_BUTTON,
+          }}
+          titleLeftProps={{ title: 'Test' }}
+        />,
+      );
+
+      expect(getByTestId(TEST_IDS.CLOSE_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('calls onClose when close button pressed', () => {
+      const onClose = jest.fn();
+      const { getByTestId } = render(
+        <HeaderWithTitleLeft
+          onClose={onClose}
+          closeButtonProps={{ testID: TEST_IDS.CLOSE_BUTTON }}
+          titleLeftProps={{ title: 'Test' }}
+        />,
+      );
+
+      fireEvent.press(getByTestId(TEST_IDS.CLOSE_BUTTON));
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls closeButtonProps.onPress when close button pressed', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <HeaderWithTitleLeft
+          closeButtonProps={{ onPress, testID: TEST_IDS.CLOSE_BUTTON }}
+          titleLeftProps={{ title: 'Test' }}
+        />,
+      );
+
+      fireEvent.press(getByTestId(TEST_IDS.CLOSE_BUTTON));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('closeButtonProps.onPress takes priority over onClose', () => {
+      const onClose = jest.fn();
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <HeaderWithTitleLeft
+          onClose={onClose}
+          closeButtonProps={{ onPress, testID: TEST_IDS.CLOSE_BUTTON }}
+          titleLeftProps={{ title: 'Test' }}
+        />,
+      );
+
+      fireEvent.press(getByTestId(TEST_IDS.CLOSE_BUTTON));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not render close button when neither onClose nor closeButtonProps provided', () => {
+      const { queryByLabelText } = render(
+        <HeaderWithTitleLeft titleLeftProps={{ title: 'Test' }} />,
+      );
+
+      expect(queryByLabelText('Close')).toBeNull();
     });
   });
 
