@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePerpsLiveFills } from './stream';
 import type { OrderFill } from '../controllers/types';
 import Engine from '../../../../core/Engine';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UsePerpsMarketFillsParams {
   /**
@@ -39,7 +40,7 @@ interface UsePerpsMarketFillsReturn {
  *
  * Combines two data sources:
  * 1. WebSocket (via usePerpsLiveFills) - Real-time updates, limited to 100 fills total
- * 2. REST API (via getOrderFills) - Complete history, up to 2000 fills
+ * 2. REST API (via getOrderFills) - Historical fills from last 3 months (up to 2000 fills)
  *
  * WebSocket data displays immediately for instant feedback.
  * REST data loads in background and merges silently for complete history.
@@ -61,7 +62,7 @@ export const usePerpsMarketFills = ({
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch historical fills via REST API
+  // Fetch historical fills via REST API (limited to last 3 months for performance)
   const fetchRestFills = useCallback(async () => {
     try {
       const controller = Engine.context.PerpsController;
@@ -70,7 +71,13 @@ export const usePerpsMarketFills = ({
         return;
       }
 
-      const fills = await provider.getOrderFills({ aggregateByTime: false });
+      // Use time-filtered API to limit data fetched for active traders
+      const startTime = Date.now() - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
+
+      const fills = await provider.getOrderFills({
+        aggregateByTime: false,
+        startTime,
+      });
       setRestFills(fills);
     } catch (error) {
       // Log error but don't fail - WebSocket fills still work

@@ -3,6 +3,7 @@ import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import type { OrderFill } from '../controllers/types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('./stream', () => ({
@@ -317,8 +318,11 @@ describe('usePerpsMarketFills', () => {
   });
 
   describe('REST API fetching', () => {
-    it('fetches REST fills on mount', async () => {
+    it('fetches REST fills on mount with 3-month lookback', async () => {
       // Arrange
+      const mockNow = 1700000000000;
+      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
         isInitialLoading: false,
@@ -332,8 +336,39 @@ describe('usePerpsMarketFills', () => {
       await waitFor(() => {
         expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
           aggregateByTime: false,
+          startTime: mockNow - PERPS_CONSTANTS.FILLS_LOOKBACK_MS,
         });
       });
+
+      jest.restoreAllMocks();
+    });
+
+    it('uses FILLS_LOOKBACK_MS constant for 3-month window', async () => {
+      // Arrange
+      const mockNow = 1700000000000;
+      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      mockProvider.getOrderFills.mockResolvedValue([]);
+
+      // Act
+      renderHook(() => usePerpsMarketFills({ symbol: 'BTC' }));
+
+      // Assert - verify lookback is approximately 3 months (90 days)
+      await waitFor(() => {
+        const callArgs = mockProvider.getOrderFills.mock.calls[0][0];
+        const expectedStartTime = mockNow - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
+        expect(callArgs.startTime).toBe(expectedStartTime);
+        // Verify the constant is approximately 90 days in milliseconds
+        expect(PERPS_CONSTANTS.FILLS_LOOKBACK_MS).toBe(
+          90 * 24 * 60 * 60 * 1000,
+        );
+      });
+
+      jest.restoreAllMocks();
     });
 
     it('handles REST API errors gracefully', async () => {
