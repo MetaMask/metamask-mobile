@@ -80,6 +80,7 @@ jest.mock('../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn(() => ({
       trackEvent: jest.fn(),
+      updateDataRecordingFlag: jest.fn(),
     })),
     trackEvent: jest.fn(),
   },

@@ -58,6 +58,7 @@ jest.mock('../../../../util/Logger', () => ({
 const mockTrackEvent = jest.fn();
 const mockMetaMetricsInstance = {
   trackEvent: mockTrackEvent,
+  updateDataRecordingFlag: jest.fn(),
 };
 
 // Mock MetaMetrics
