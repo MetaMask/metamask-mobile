@@ -30,7 +30,7 @@ import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftScrollableProps } from './HeaderWithTitleLeftScrollable.types';
 
 const DEFAULT_EXPANDED_HEIGHT = 140;
-const DEFAULT_COLLAPSED_HEIGHT = 48;
+const DEFAULT_COLLAPSED_HEIGHT = 56;
 
 /**
  * HeaderWithTitleLeftScrollable is a collapsing header component that transitions
