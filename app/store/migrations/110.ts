@@ -53,7 +53,7 @@ export const MEGAETH_TESTNET_V2_CONFIG: NetworkConfiguration = {
       failoverUrls: [],
       networkClientId: 'megaeth-testnet-v2',
       type: 'custom',
-      url: 'https://timothy.megaeth.com/rpc',
+      url: 'https://carrot.megaeth.com/rpc',
     },
   ],
 };

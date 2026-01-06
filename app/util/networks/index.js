@@ -712,7 +712,7 @@ export const WHITELIST_SYMBOL = {
 export const WHITELIST_NETWORK_RPC_URL = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
   [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'https://mainnet.megaeth.com/rpc',
-  [NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2]: 'https://timothy.megaeth.com/rpc',
+  [NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2]: 'https://carrot.megaeth.com/rpc',
 };
 
 /**

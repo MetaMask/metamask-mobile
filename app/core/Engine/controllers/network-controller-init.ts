@@ -38,6 +38,12 @@ export function getInitialNetworkControllerState(persistedState: {
       ADDITIONAL_DEFAULT_NETWORKS,
     );
 
+    // MegaETH Testnet v2 change back the RPC URL from timothy to carrot again
+    // TODO: Remove this once the MegaETH Testnet v2 is updated and released from the controller utils
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['megaeth-testnet-v2']
+    ].rpcEndpoints[0].url = 'https://carrot.megaeth.com/rpc';
+
     // Add failovers for default Infura RPC endpoints
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId.mainnet
