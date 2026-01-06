@@ -5,7 +5,10 @@ import {
   selectGeolocation,
   selectGeolocationRequest,
 } from '../../../../selectors/rampsController';
-import { ExecuteRequestOptions } from '@metamask/ramps-controller';
+import {
+  ExecuteRequestOptions,
+  createCacheKey,
+} from '@metamask/ramps-controller';
 
 /**
  * Result returned by the useRampsGeolocation hook.
@@ -56,7 +59,14 @@ export function useRampsGeolocation(): UseRampsGeolocationResult {
   );
 
   useEffect(() => {
-    fetchGeolocation();
+    fetchGeolocation().catch(() => {
+      // Error is stored in state
+    });
+
+    return () => {
+      const cacheKey = createCacheKey('updateGeolocation', []);
+      Engine.context.RampsController.abortRequest(cacheKey);
+    };
   }, [fetchGeolocation]);
 
   return {

@@ -10,6 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       updateGeolocation: jest.fn().mockResolvedValue('US'),
+      abortRequest: jest.fn().mockReturnValue(true),
     },
   },
 }));
@@ -157,6 +158,22 @@ describe('useRampsGeolocation', () => {
       ).toHaveBeenCalledWith({
         forceRefresh: false,
       });
+    });
+  });
+
+  describe('cleanup on unmount', () => {
+    it('aborts in-flight request when component unmounts', () => {
+      const store = createMockStore();
+
+      const { unmount } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      unmount();
+
+      expect(Engine.context.RampsController.abortRequest).toHaveBeenCalledWith(
+        'updateGeolocation:[]',
+      );
     });
   });
 });
