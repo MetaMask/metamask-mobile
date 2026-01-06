@@ -64,6 +64,27 @@ class WagmiTestDapp {
         }
     }
 
+    get personalSignButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            // //p[@id="connected-status"]
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="sign-message-button"]');
+        }
+    }
+
+    get personalSignResponse() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="sign-message-response"]');
+        }
+    }
+
     async tapDisconnectButton() {
         if (!this._device) {
             return;
@@ -79,6 +100,15 @@ class WagmiTestDapp {
         }
 
         const element = await this.connectButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapPersonalSignButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.personalSignButton;
         await AppwrightGestures.tap(element)
     }
 
@@ -114,6 +144,16 @@ class WagmiTestDapp {
         const connectedAccountsHeader = await this.connectedAccountsHeader;
         const text = await connectedAccountsHeader.getText();
         expect(text).toContain(`account: ${value}`);
+    }
+
+    async assertPersonalSignResponseValue(value) {
+        if (!this._device) {
+            return false;
+        }
+
+        const personalSignResponse = await this.personalSignResponse;
+        const text = await personalSignResponse.getText();
+        expect(text).toContain(value);
     }
 }
 

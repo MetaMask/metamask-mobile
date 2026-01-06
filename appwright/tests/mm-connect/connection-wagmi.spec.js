@@ -82,8 +82,35 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       await WagmiTestDapp.assertConnectedAccountsValue(
         '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
       );
-      // await WagmiTestDapp.tapPersonalSignButton();
+      await WagmiTestDapp.tapPersonalSignButton();
     },
     WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { dismissModals: false });
+    await SignModal.tapConfirmButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      // This requires the SRP account to be used
+      await WagmiTestDapp.assertPersonalSignResponseValue(
+        '0xf6b3f2e43a0c7f1dbfb107b6d687979c8ae21ab7c065fa610bf52f8c579b21292e224e7af93cf16dd2f309de7072b46f11a21e08d76c6c5a3d10ce885e997d4b1b',
+      );
+      // await MultiChainEvmTestDapp.tapSendTransactionButton();
+    },
+    WAGMI_TEST_DAPP_NAME,
   );
 });
