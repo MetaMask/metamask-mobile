@@ -1,4 +1,10 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+  useMemo,
+} from 'react';
 import { useSelector } from 'react-redux';
 import {
   Alert,
@@ -72,16 +78,20 @@ const ImportPrivateKey = () => {
     // eslint-disable-next-line
   }, []);
 
-  useLayoutEffect(() => {
-    navigation.setOptions(
+  const navbarOptions = useMemo(
+    () =>
       getBackAndCloseNavbar(navigation, colors, {
         testIDs: {
           back: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
         },
         showClose: false,
       }),
-    );
-  }, [navigation, colors]);
+    [navigation, colors],
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions(navbarOptions);
+  }, [navigation, navbarOptions]);
 
   const learnMore = () =>
     navigation.navigate('Webview', {
