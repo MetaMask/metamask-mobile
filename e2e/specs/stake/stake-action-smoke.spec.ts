@@ -6,6 +6,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
@@ -33,6 +34,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
               : undefined;
 
           return new FixtureBuilder()
+            .withPolygon()
             .withNetworkController({
               providerConfig: {
                 chainId,
@@ -77,6 +79,15 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
 
         // Go back to Home tab
         await TabBarComponent.tapHome();
+
+        // Open network picker and select Localhost
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.changeNetworkTo('Localhost');
+
+        // Verify staked asset in wallet
+        await Assertions.expectTextDisplayed('Staked Ethereum');
+        await Assertions.expectTextDisplayed('1 ETH');
+        await Assertions.expectTextDisplayed('$4,291.85');
       },
     );
   });
