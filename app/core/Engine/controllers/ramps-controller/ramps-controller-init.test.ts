@@ -92,8 +92,10 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  it('calls updateGeolocation at startup', () => {
+  it('calls updateGeolocation at startup', async () => {
     rampsControllerInit(initRequestMock);
+
+    await new Promise(process.nextTick);
 
     expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
   });
@@ -102,5 +104,7 @@ describe('ramps controller init', () => {
     mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
+
+    await new Promise(process.nextTick);
   });
 });
