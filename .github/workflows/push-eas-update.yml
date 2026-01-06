@@ -66,7 +66,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
           echo "Writing detailed fingerprint file to fingerprint-pr.json"
-          yarn dlx @expo/fingerprint ./ > fingerprint-pr.json
+          yarn dlx -q @expo/fingerprint ./ > fingerprint-pr.json
 
       - name: Install dependencies (base branch)
         working-directory: main
@@ -83,7 +83,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: $FINGERPRINT"
           echo "Writing detailed fingerprint file to ../fingerprint-base.json"
-          yarn dlx @expo/fingerprint ./ > ../fingerprint-base.json
+          yarn dlx -q @expo/fingerprint ./ > ../fingerprint-base.json
 
       - name: Compare fingerprints
         id: compare
@@ -107,7 +107,7 @@ jobs:
             echo "equal=false" >> "$GITHUB_OUTPUT"
             if [ -f fingerprint-base.json ] && [ -f fingerprint-pr.json ]; then
               echo "Fingerprint differences:"
-              yarn dlx @expo/fingerprint ./ fingerprint-base.json fingerprint-pr.json || true
+              yarn dlx -q @expo/fingerprint ./ fingerprint-base.json fingerprint-pr.json || true
             else
               echo "Detailed fingerprint files not found; skipping diff."
             fi
