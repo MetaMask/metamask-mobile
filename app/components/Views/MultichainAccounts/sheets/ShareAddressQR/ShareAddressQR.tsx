@@ -61,7 +61,7 @@ export const ShareAddressQR = () => {
   const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
 
-  const handleOnBack = useCallback(() => {
+  const handleOnClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -71,7 +71,7 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onBack={handleOnBack}>
+      <BottomSheetHeader onClose={handleOnClose}>
         {`${accountGroupName} / ${networkName}`}
       </BottomSheetHeader>
       <Box
