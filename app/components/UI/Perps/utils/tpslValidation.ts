@@ -120,7 +120,7 @@ export const roundToSignificantFigures = (
   const [integerPart, decimalPart = ''] = normalized.split('.');
 
   // Count integer significant digits (without leading zeros)
-  const trimmedInteger = integerPart.replace(/^-?0+/, '') || '';
+  const trimmedInteger = integerPart.replace(/^-?0*/, '') || '';
   const integerSigFigs = trimmedInteger.length;
 
   // If no decimal, return as is (integers are fine)

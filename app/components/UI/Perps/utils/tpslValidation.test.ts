@@ -416,13 +416,11 @@ describe('TPSL Validation Utilities', () => {
     });
 
     describe('negative numbers', () => {
-      // Note: Negative numbers have minor counting difference due to minus sign handling
-      // In practice, prices are always positive, so this is acceptable behavior
-      it('rounds negative decimal (counts minus sign in integer part)', () => {
+      it('rounds negative decimal to 5 significant figures', () => {
         const result = roundToSignificantFigures('-123.456');
 
-        // Minus sign causes integer to count as 4 chars, leaving 1 decimal
-        expect(result).toBe('-123.5');
+        // 3 integer digits + 2 decimal = 5 sig figs (minus sign is stripped for counting)
+        expect(result).toBe('-123.46');
       });
 
       it('returns normalized negative integer', () => {
