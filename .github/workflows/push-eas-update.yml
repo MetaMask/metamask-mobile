@@ -75,8 +75,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to fingerprint-pr.json"
-          echo $FINGERPRINT > fingerprint-pr.json
 
       - name: Install dependencies (base branch)
         working-directory: main
@@ -92,8 +90,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to ../fingerprint-base.json"
-          echo $FINGERPRINT > ../fingerprint-base.json
 
       - name: Compare fingerprints
         id: compare
@@ -106,22 +102,16 @@ jobs:
             exit 1
           fi
 
-          echo "Target PR fingerprint: $BRANCH_FP"
-          echo "Base branch fingerprint: $MAIN_FP"
-
           if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
             echo "✅ Fingerprints match. No native changes detected."
             echo "equal=true" >> "$GITHUB_OUTPUT"
           else
             echo "⚠️ Fingerprints differ. Native changes detected."
             echo "equal=false" >> "$GITHUB_OUTPUT"
-            if [ -f fingerprint-base.json ] && [ -f fingerprint-pr.json ]; then
-              echo "Fingerprint differences:"
-              diff -u fingerprint-base.json fingerprint-pr.json || true
-            else
-              echo "Detailed fingerprint files not found; skipping diff."
-            fi
           fi
+
+          echo "Target PR fingerprint: $BRANCH_FP"
+          echo "Base branch fingerprint: $MAIN_FP"
 
       - name: Record fingerprint summary
         env:
