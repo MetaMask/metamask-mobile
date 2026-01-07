@@ -255,9 +255,6 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      // TODO: determine why the legacy evm test dapp needs this but the wagmi test dapp does not
-      await MultiChainEvmTestDapp.tapConnectButton(); // Not sure why this is needed right now
-
       await MultiChainEvmTestDapp.isDappConnected();
       await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
       await MultiChainEvmTestDapp.assertConnectedAccountsValue(
