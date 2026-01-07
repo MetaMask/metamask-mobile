@@ -571,7 +571,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "flex-end",
-                                "paddingBottom": 16,
+                                "paddingBottom": 36,
                                 "paddingHorizontal": 16,
                               }
                             }

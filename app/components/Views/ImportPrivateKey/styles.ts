@@ -1,11 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
-import { EdgeInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
+import { Colors } from '../../../util/theme/models';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any, insets: EdgeInsets) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
@@ -38,7 +36,10 @@ const createStyles = (colors: any, insets: EdgeInsets) =>
       flex: 1,
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
-      paddingBottom: insets.bottom || 16,
+      paddingBottom: Platform.select({
+        ios: 36,
+        android: 24,
+      }),
       backgroundColor: colors.background.default,
     },
     top: {
