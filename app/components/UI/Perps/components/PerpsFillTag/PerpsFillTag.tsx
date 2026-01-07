@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
-import { noop } from 'lodash';
 import Text, {
   TextColor,
   TextVariant,
@@ -93,10 +92,23 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
       return null;
     }
 
-    let onTagPress = noop;
+    const tagContent = (
+      <TagBase
+        shape={TagShape.Pill}
+        severity={tagConfig.severity}
+        includesBorder={tagConfig.includesBorder}
+      >
+        <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+          {tagConfig.label}
+        </Text>
+      </TagBase>
+    );
 
+    // Only wrap in TouchableOpacity for ADL fill type which has an action.
+    // For other fill types, render the tag directly to allow touch events
+    // to bubble up to parent row's navigation handler.
     if (fill.fillType === FillType.AutoDeleveraging) {
-      onTagPress = () => {
+      const onTagPress = () => {
         Linking.openURL(PERPS_SUPPORT_ARTICLES_URLS.ADL_URL).catch((error) => {
           console.error('Error opening ADL support article:', error);
         });
@@ -112,21 +124,13 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
           [PerpsEventProperties.ORDER_TIMESTAMP]: transaction.timestamp,
         });
       };
+
+      return (
+        <TouchableOpacity onPress={onTagPress}>{tagContent}</TouchableOpacity>
+      );
     }
 
-    return (
-      <TouchableOpacity onPress={onTagPress}>
-        <TagBase
-          shape={TagShape.Pill}
-          severity={tagConfig.severity}
-          includesBorder={tagConfig.includesBorder}
-        >
-          <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
-            {tagConfig.label}
-          </Text>
-        </TagBase>
-      </TouchableOpacity>
-    );
+    return tagContent;
   }, [transaction, selectedAccount?.address, track, screenName]);
 
   return tagElement;
