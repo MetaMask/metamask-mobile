@@ -115,10 +115,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          #ref: ${{ github.ref }}
-          #remove before merge.
-          #test auto-build on specific release branch
-          ref: ${{ env.GH_REF_NAME }}
+          ref: ${{ github.ref }}
       - name: Trigger RC Build
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
