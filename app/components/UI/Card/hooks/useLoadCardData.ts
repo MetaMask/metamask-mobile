@@ -212,8 +212,12 @@ const useLoadCardData = () => {
   const refetchAllData = useMemo(
     () => async () => {
       if (isAuthenticated) {
+        // First, refetch delegation settings (required for external wallet details)
+        // fetchExternalWalletDetails reads delegation settings from a ref, so it must
+        // run after delegation settings is available to avoid returning null.
+        await fetchDelegationSettings();
+
         await Promise.all([
-          fetchDelegationSettings(),
           fetchExternalWalletDetails(),
           fetchCardDetails(),
           fetchPriorityToken(),
