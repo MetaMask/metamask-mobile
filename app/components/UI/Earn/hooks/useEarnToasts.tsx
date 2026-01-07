@@ -96,7 +96,6 @@ const formatEstimatedTime = (seconds?: number): string => {
 
 const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
   hasNoTimeout: false,
-  customBottomOffset: 32,
 };
 
 const toastStyles = StyleSheet.create({
