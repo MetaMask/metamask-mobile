@@ -594,7 +594,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
           </TouchableOpacity>
         )}
-        <ScreenshotDeterrent enabled isSRP={false} hasNavigation />
+        <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>
     </ErrorBoundary>
   );
