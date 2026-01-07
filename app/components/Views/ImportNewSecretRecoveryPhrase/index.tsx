@@ -314,6 +314,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
           <View style={styles.buttonWrapper}>
             <ButtonPrimary
+              style={styles.button}
               onPress={onSubmit}
               isDisabled={
                 isSRPContinueButtonDisabled || Boolean(error) || loading
