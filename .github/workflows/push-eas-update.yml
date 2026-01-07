@@ -76,7 +76,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
           echo "Writing detailed fingerprint file to fingerprint-pr.json"
-          node scripts/generate-fingerprint-json.js > fingerprint-pr.json
+          echo $FINGERPRINT > fingerprint-pr.json
 
       - name: Install dependencies (base branch)
         working-directory: main
@@ -93,7 +93,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: $FINGERPRINT"
           echo "Writing detailed fingerprint file to ../fingerprint-base.json"
-          node ../scripts/generate-fingerprint-json.js > ../fingerprint-base.json
+          echo $FINGERPRINT > ../fingerprint-base.json
 
       - name: Compare fingerprints
         id: compare
