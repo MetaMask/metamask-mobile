@@ -20,6 +20,7 @@ import {
   resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
+  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
@@ -33,14 +34,16 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { TouchableOpacity } from 'react-native';
+import { useCardSDK } from '../../sdk';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: registrationSettings } = useRegistrationSettings();
+  const { user } = useCardSDK();
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -57,6 +60,19 @@ const SetPhoneNumber = () => {
       }));
   }, [registrationSettings]);
 
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === user?.countryOfResidence),
+    [initialSelectedCountry, regions, user?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
+    }
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
@@ -64,6 +80,14 @@ const SetPhoneNumber = () => {
   const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
     selectedCountry?.emoji || '',
   );
+
+  // Sync local state when selectedCountry changes (e.g., after regions load)
+  useEffect(() => {
+    if (selectedCountry) {
+      setSelectedCountryAreaCode(selectedCountry.areaCode || '');
+      setSelectedCountryEmoji(selectedCountry.emoji || '');
+    }
+  }, [selectedCountry]);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {

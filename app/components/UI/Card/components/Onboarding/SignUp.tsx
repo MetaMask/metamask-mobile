@@ -246,6 +246,7 @@ const SignUp = () => {
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
           autoCapitalize={'none'}
+          autoComplete="email"
           onChangeText={handleEmailChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}

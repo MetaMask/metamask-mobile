@@ -2099,9 +2099,11 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
   const apr =
-    aprOverride ??
-    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
+    parsedOverride > 0
+      ? aprOverride
+      : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2186,39 +2188,6 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
-    ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the Address List screen
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @param {string} title - Title in string format
- * @param {string} testID - Test ID for the back button
- * @returns {Object} - Corresponding navbar options
- */
-export function getAddressListNavbarOptions(navigation, title, testID) {
-  const innerStyles = StyleSheet.create({
-    headerLeft: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-    ),
-    headerLeft: () => (
-      <View style={innerStyles.headerLeft}>
-        <ButtonIcon
-          testID={testID}
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={() => navigation.goBack()}
-        />
-      </View>
     ),
   };
 }

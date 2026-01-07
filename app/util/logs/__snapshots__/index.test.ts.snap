@@ -482,7 +482,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -506,7 +505,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
@@ -578,6 +576,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -1258,7 +1258,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1282,7 +1281,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
@@ -1354,6 +1352,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {

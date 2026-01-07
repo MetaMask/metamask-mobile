@@ -1023,6 +1023,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {strings('predict.market_details.disclaimer')}
+      </Text>
     </Box>
   );
 
