@@ -72,7 +72,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const [errorWordIndexes, setErrorWordIndexes] = useState<
       Record<number, boolean>
     >({});
-    const [currentInputWord, setCurrentInputWord] = useState<string>('');
 
     const focusedInputIndexRef = useRef<number | null>(null);
 
@@ -178,13 +177,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }));
             }
 
-            setCurrentInputWord(!text.includes(' ') ? text : '');
+            onCurrentWordChange?.(!text.includes(' ') ? text : '');
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
         }
       },
-      [seedPhrase, onSeedPhraseChange],
+      [seedPhrase, onSeedPhraseChange, onCurrentWordChange],
     );
 
     const handleSeedPhraseChangeAtIndexRef = useRef(
@@ -239,10 +238,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
         const currentWord = seedPhrase[index] || '';
         if (!currentWord.includes(' ')) {
-          setCurrentInputWord(currentWord);
+          onCurrentWordChange?.(currentWord);
         }
       },
-      [seedPhrase],
+      [seedPhrase, onCurrentWordChange],
     );
 
     const handleOnBlur = useCallback(
@@ -256,9 +255,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             [index]: !checkValid,
           }));
         }
-        setCurrentInputWord('');
+        onCurrentWordChange?.('');
       },
-      [seedPhrase],
+      [seedPhrase, onCurrentWordChange],
     );
 
     const handleKeyPress = useCallback(
@@ -314,35 +313,39 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
-      setCurrentInputWord('');
+      onCurrentWordChange?.('');
       focusedInputIndexRef.current = null;
-    }, [onSeedPhraseChange]);
+    }, [onSeedPhraseChange, onCurrentWordChange]);
 
-    /* istanbul ignore next -- @preserve Focus events */
-    const handleSuggestionSelect = useCallback((word: string) => {
-      const targetIndex = focusedInputIndexRef.current;
-      if (targetIndex === null) {
-        return;
-      }
+    const handleSuggestionSelect = useCallback(
+      (word: string) => {
+        const targetIndex = focusedInputIndexRef.current;
+        if (targetIndex === null) {
+          return;
+        }
 
-      setErrorWordIndexes((prev) => ({
-        ...prev,
-        [targetIndex]: false,
-      }));
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [targetIndex]: false,
+        }));
 
-      const currentWordPosition = targetIndex + 1;
-      const isLastWordOfValidSrp = SRP_LENGTHS.includes(currentWordPosition);
+        const currentWordPosition = targetIndex + 1;
+        const isLastWordOfValidSrp = SRP_LENGTHS.includes(currentWordPosition);
 
-      const updatedText = isLastWordOfValidSrp ? word : `${word}${SPACE_CHAR}`;
+        const updatedText = isLastWordOfValidSrp
+          ? word
+          : `${word}${SPACE_CHAR}`;
 
-      handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
-      setCurrentInputWord('');
+        handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
+        onCurrentWordChange?.('');
 
-      if (isLastWordOfValidSrp) {
-        const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
-        inputRef?.focus();
-      }
-    }, []);
+        if (isLastWordOfValidSrp) {
+          const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
+          inputRef?.focus();
+        }
+      },
+      [onCurrentWordChange],
+    );
 
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
@@ -355,10 +358,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         refElement?.focus();
       });
     }, [nextSeedPhraseInputFocusedIndex]);
-
-    useEffect(() => {
-      onCurrentWordChange?.(currentInputWord);
-    }, [currentInputWord, onCurrentWordChange]);
 
     React.useImperativeHandle(ref, () => ({
       handleSeedPhraseChange,

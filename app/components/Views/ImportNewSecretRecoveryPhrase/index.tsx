@@ -68,8 +68,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const scrollViewRef = useRef<any>(null);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -281,7 +279,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
-        ref={scrollViewRef}
         contentContainerStyle={styles.wrapper}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"

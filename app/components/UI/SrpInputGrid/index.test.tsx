@@ -324,7 +324,6 @@ describe('SrpInputGrid', () => {
       const ref = React.createRef<{
         handleSeedPhraseChange: (text: string) => void;
         handleSuggestionSelect: (word: string) => void;
-        setSuggestionSelecting: (value: boolean) => void;
       }>();
 
       const { getByTestId } = renderWithProvider(
@@ -338,24 +337,10 @@ describe('SrpInputGrid', () => {
       expect(typeof ref.current?.handleSuggestionSelect).toBe('function');
     });
 
-    it('exposes setSuggestionSelecting via ref', () => {
-      const ref = React.createRef<{
-        handleSeedPhraseChange: (text: string) => void;
-        handleSuggestionSelect: (word: string) => void;
-        setSuggestionSelecting: (value: boolean) => void;
-      }>();
-
-      renderWithProvider(<SrpInputGrid {...defaultProps} ref={ref} />);
-
-      expect(ref.current?.setSuggestionSelecting).toBeDefined();
-      expect(typeof ref.current?.setSuggestionSelecting).toBe('function');
-    });
-
     it('calls onSeedPhraseChange when handleSuggestionSelect is called via ref', () => {
       const ref = React.createRef<{
         handleSeedPhraseChange: (text: string) => void;
         handleSuggestionSelect: (word: string) => void;
-        setSuggestionSelecting: (value: boolean) => void;
       }>();
 
       const { getByTestId } = renderWithProvider(
