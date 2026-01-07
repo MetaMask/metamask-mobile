@@ -11,7 +11,7 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
-  useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -30,7 +30,7 @@ export function useTransactionPayMetrics() {
   const automaticPayToken = useRef<BridgeToken>();
   const hasRequestedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
+  const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const totals = useTransactionPayTotals();
   const tokens = useTransactionPayAvailableTokens();
 
@@ -75,7 +75,7 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_payment_token_list_size = availableTokens.length;
 
     properties.mm_pay_quote_requested = hasRequestedQuoteRef.current;
-    properties.mm_pay_quote_loaded = !isQuotesLoading && hasQuotes;
+    properties.mm_pay_quote_loaded = hasQuotes;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
   }

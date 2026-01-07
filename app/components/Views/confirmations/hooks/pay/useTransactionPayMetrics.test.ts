@@ -21,7 +21,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
-  useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -89,8 +89,8 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayAvailableTokens,
   );
 
-  const useIsTransactionPayLoadingMock = jest.mocked(
-    useIsTransactionPayLoading,
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
   );
 
   const useAccountTokensMock = jest.mocked(useAccountTokens);
@@ -114,7 +114,7 @@ describe('useTransactionPayMetrics', () => {
     } as never);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
-    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
     useAccountTokensMock.mockReturnValue([]);
 
     useTransactionPayAvailableTokensMock.mockReturnValue([
@@ -348,7 +348,7 @@ describe('useTransactionPayMetrics', () => {
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
 
       runHook();
 
@@ -367,34 +367,11 @@ describe('useTransactionPayMetrics', () => {
   });
 
   describe('mm_pay_quote_loaded', () => {
-    it('is false when loading', async () => {
+    it('is true when has quotes', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_quote_loaded: false,
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('is true when not loading and has quotes', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-      useIsTransactionPayLoadingMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
 
       runHook();
@@ -412,12 +389,34 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is false when not loading but no quotes', async () => {
+    it('is true when has quotes even while loading new quotes', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
-      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_loaded: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is false when no quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
       useTransactionPayQuotesMock.mockReturnValue([]);
 
       runHook();

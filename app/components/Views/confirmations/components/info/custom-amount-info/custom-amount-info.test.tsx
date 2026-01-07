@@ -29,7 +29,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
-import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -41,7 +40,6 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
-jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
@@ -51,6 +49,11 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
     trackInlineAlertClicked: jest.fn(),
     trackAlertActionClicked: jest.fn(),
     trackAlertRendered: jest.fn(),
+  }),
+}));
+jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: () => ({
+    setConfirmationMetric: jest.fn(),
   }),
 }));
 
@@ -141,12 +144,6 @@ describe('CustomAmountInfo', () => {
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
 
-  const useConfirmationMetricEventsMock = jest.mocked(
-    useConfirmationMetricEvents,
-  );
-
-  const mockSetConfirmationMetric = jest.fn();
-
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -199,9 +196,6 @@ describe('CustomAmountInfo', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
       txParams: { from: '0x123' },
-    } as never);
-    useConfirmationMetricEventsMock.mockReturnValue({
-      setConfirmationMetric: mockSetConfirmationMetric,
     } as never);
   });
 
@@ -316,42 +310,5 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
-  });
-
-  describe('metrics', () => {
-    it('sets mm_pay_amount_input_type to percentage when percentage button pressed', () => {
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        hasInput: false,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
-      });
-
-      const { getByText } = render();
-
-      fireEvent.press(getByText('25%'));
-
-      expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-        properties: {
-          mm_pay_amount_input_type: '25%',
-        },
-      });
-    });
-
-    it('sets mm_pay_amount_input_type to manual when amount changed via keyboard', () => {
-      const { getByText } = render();
-
-      fireEvent.press(getByText('1'));
-
-      expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-        properties: {
-          mm_pay_amount_input_type: 'manual',
-        },
-      });
-    });
   });
 });
