@@ -60,6 +60,8 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
   elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
     echo "Build failed with status: $BUILD_STATUS"
     exit 1
+  elif [ "$BUILD_STATUS" = "initializing" ]; then
+    echo "Build has started..."
   else
     echo "Unknown build status: $BUILD_STATUS"
   fi
