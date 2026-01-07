@@ -68,8 +68,9 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       # Note: CocoaPods specs caching is handled by the setup-e2e-env action
+      # TODO: Revert to @v1 after testing - currently testing caching improvements
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@ci/speed-up-e2e-setup
         with:
           platform: ios
           setup-simulator: false
