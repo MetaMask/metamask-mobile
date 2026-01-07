@@ -29,7 +29,10 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl # Bumped from lg to xl to prevent Daemon disappearance issue (Daemon OOM issue in CI)
+    # NOTE (INFRA-3174): For PR-only evidence gathering, temporarily switch `-xl` → `-lg`
+    # to reproduce the “Gradle daemon disappeared” failure and collect the
+    # `android-e2e-build-diagnostics-*` artifact, then revert before merge.
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # PR-only evidence runs should use lg; revert to xl before merge
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
@@ -96,41 +99,30 @@ jobs:
             exit 1
           fi
 
-      - name: Check and restore cached APKs if Fingerprint is found
-        id: apk-cache-restore
-        uses: cirruslabs/cache@v4
-        with:
-          path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Cache Gradle dependencies"
-          # - "Cache build artifacts"
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Cache Gradle dependencies
-        uses: cirruslabs/cache@v4
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-        env:
-          GRADLE_CACHE_VERSION: 1
-        with:
-          path: |
-            ~/_work/.gradle/caches
-            ~/_work/.gradle/wrapper
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache build artifacts"
-          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
       - name: Build Android E2E APKs
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
-          echo "🏗 Building Android E2E APKs..."
+          echo "🏗 Building Android E2E APKs (forced clean build, no CI cache)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use E2E gradle properties for GitHub Actions builds (gradle.properties.github)
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:${{ inputs.build_type }}:e2e
+
+          # Force a full build each run:
+          # - clean: delete build outputs
+          # - --no-build-cache: disable Gradle build cache
+          # - --rerun-tasks: re-run tasks even if Gradle thinks they are up-to-date
+          cd android
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            ./gradlew clean app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest \
+              -DtestBuildType=release -PreactNativeArchitectures=x86_64 \
+              --stacktrace --info --no-build-cache --rerun-tasks
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            ./gradlew clean app:assembleProdRelease app:assembleProdReleaseAndroidTest \
+              -DtestBuildType=release -PreactNativeArchitectures=x86_64 \
+              --stacktrace --info --no-build-cache --rerun-tasks
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
         shell: bash
         env:
           PLATFORM: android
@@ -174,66 +166,87 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
-      - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
+      - name: Collect build failure diagnostics
+        if: ${{ failure() }}
+        shell: bash
         run: |
-          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
-          # Use the optimized repack script which uses @expo/repack-app
-          yarn build:repack:android
-          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
-        env:
-          PLATFORM: android
-          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          IS_TEST: true
-          E2E: 'true'
-          IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: 'true'
-          CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          BRIDGE_USE_DEV_APIS: 'true'
-          RAMP_INTERNAL_BUILD: 'true'
-          SEEDLESS_ONBOARDING_ENABLED: 'true'
-          MM_NOTIFICATIONS_UI_ENABLED: 'true'
-          MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
-          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
-          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          set -euo pipefail
 
-      # Cache build artifacts with the pre-build fingerprint
-      - name: Cache build artifacts
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-        uses: cirruslabs/cache@v4
+          DIAG_DIR="${RUNNER_TEMP}/android-e2e-build-diagnostics"
+          mkdir -p "${DIAG_DIR}"
+
+          {
+            echo "=== Timestamp ==="
+            date -u
+            echo
+
+            echo "=== System ==="
+            uname -a || true
+            echo
+
+            echo "=== Env ==="
+            echo "GRADLE_USER_HOME=${GRADLE_USER_HOME:-}"
+            echo
+
+            echo "=== Java ==="
+            java -version || true
+            echo
+
+            echo "=== Gradle wrapper ==="
+            (cd android && ./gradlew --version) || true
+            echo
+
+            echo "=== Limits (ulimit) ==="
+            ulimit -a || true
+            echo
+
+            echo "=== Disk ==="
+            df -h || true
+            echo
+
+            echo "=== Memory (free -h) ==="
+            free -h || true
+            echo
+
+            echo "=== /proc/meminfo (head) ==="
+            (cat /proc/meminfo | head -40) || true
+            echo
+
+            echo "=== cgroup v2 memory limit (best-effort) ==="
+            (cat /sys/fs/cgroup/memory.max 2>/dev/null || true)
+            (cat /sys/fs/cgroup/memory.current 2>/dev/null || true)
+            echo
+
+            echo "=== Effective android/gradle.properties ==="
+            (sed -n '1,200p' android/gradle.properties) || true
+            echo
+          } > "${DIAG_DIR}/system.txt"
+
+          # Gradle daemon logs (location depends on runner env; try common roots)
+          mkdir -p "${DIAG_DIR}/gradle-daemon"
+          for ROOT in "${GRADLE_USER_HOME:-}" "/home/admin/_work/.gradle" "$HOME/_work/.gradle" "$HOME/.gradle"; do
+            if [ -n "${ROOT}" ] && [ -d "${ROOT}" ]; then
+              find "${ROOT}" -path "*/daemon/*" -type f \( -name "daemon-*.log" -o -name "daemon.out.log" \) -print \
+                -exec cp --parents {} "${DIAG_DIR}/gradle-daemon/" \; 2>/dev/null || true
+            fi
+          done
+
+          # JVM crash logs
+          find . -maxdepth 5 -type f -name "hs_err_pid*.log" -print -exec cp {} "${DIAG_DIR}/" \; 2>/dev/null || true
+
+          # Kernel OOM evidence (may be restricted)
+          (dmesg -T | tail -200) > "${DIAG_DIR}/dmesg-tail.txt" 2>&1 || true
+
+          echo "Diagnostics collected into ${DIAG_DIR}"
+
+      - name: Upload build failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
         with:
-          path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache Gradle dependencies"
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          name: android-e2e-build-diagnostics-${{ inputs.build_type }}-${{ inputs.metamask_environment }}
+          path: ${{ runner.temp }}/android-e2e-build-diagnostics
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload Android APK
         id: upload-apk

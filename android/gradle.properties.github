@@ -12,7 +12,7 @@ org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=6
+org.gradle.workers.max=4
 org.gradle.vfs.watch=false
 
 # CI-specific optimizations - enabled for GitHub Actions
