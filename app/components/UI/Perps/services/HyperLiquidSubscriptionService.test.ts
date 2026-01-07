@@ -16,7 +16,7 @@ import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
 
 // Mock HyperLiquid SDK types
-type MockSubscription = {
+interface MockSubscription {
   unsubscribe: jest.Mock;
 }
 
