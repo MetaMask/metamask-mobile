@@ -93,7 +93,7 @@ platform :ios do
   desc "Upload existing IPA to TestFlight for MetaMask main app"
   lane :upload_to_testflight_only do |options|
     ipa_path = options[:ipa_path]
-    groups = options[:groups] || ['MetaMask Preview']
+    groups = ['MetaMask Fastlane Test']
     notify_external_testers = options[:notify_external_testers] || false
     skip_waiting_for_build_processing = options[:skip_waiting_for_build_processing] || false
     

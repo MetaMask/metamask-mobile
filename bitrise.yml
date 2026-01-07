@@ -3355,24 +3355,18 @@ workflows:
                   exit 1
                 fi
                 
-                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" ]; then
-                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT secret is not set"
-                  echo "Please set up App Store Connect API Key secrets in Bitrise"
-                  exit 1
-                fi
-                
                 # Write the .p8 key file
-                echo "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" > ios/AuthKey.p8
-                chmod 600 ios/AuthKey.p8
+                echo "$(pwd)/ios/AuthKey.p8"
+                # chmod 600 ios/AuthKey.p8
                 
                 # Export environment variables for Fastlane
                 export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
                 export APP_STORE_CONNECT_API_KEY_KEY_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
+                # export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
                 
                 envman add --key APP_STORE_CONNECT_API_KEY_ISSUER_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
                 envman add --key APP_STORE_CONNECT_API_KEY_KEY_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
-                envman add --key APP_STORE_CONNECT_API_KEY_KEY_FILEPATH --value "$(pwd)/ios/AuthKey.p8"
+                # envman add --key APP_STORE_CONNECT_API_KEY_KEY_FILEPATH --value "$(pwd)/ios/AuthKey.p8"
                 
                 echo "✅ App Store Connect API Key configured"
       - script@1:
