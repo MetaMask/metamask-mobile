@@ -437,7 +437,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1245,7 +1245,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1837,7 +1837,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -2537,7 +2537,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {

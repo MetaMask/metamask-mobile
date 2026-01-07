@@ -1309,6 +1309,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1343,6 +1344,7 @@ export default {
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1373,6 +1375,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1407,6 +1410,7 @@ export default {
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
