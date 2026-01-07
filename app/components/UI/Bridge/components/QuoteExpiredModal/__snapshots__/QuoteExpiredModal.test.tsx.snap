@@ -137,6 +137,8 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
               },
               false,
               undefined,
@@ -163,24 +165,36 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
               ]
             }
           >
-            <Text
-              accessibilityRole="text"
+            <View
               style={
                 [
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 16,
-                    "fontWeight": 400,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "alignItems": "center",
+                    "display": "flex",
                   },
                   undefined,
                 ]
               }
             >
-              New quotes are available
-            </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                New quotes are available
+              </Text>
+            </View>
           </View>
           <View>
             <View
