@@ -18,7 +18,7 @@ on:
 #remove before merge.
 #test auto-build on specific release branch
 env:
-  GH_REF_NAME: "release/7.61.6"
+  GH_REF_NAME: 'release/7.61.6'
 
 jobs:
   validate-and-check-label:
@@ -27,6 +27,7 @@ jobs:
     outputs:
       semver: ${{ steps.extract-version.outputs.semver }}
       has-label: ${{ steps.check-label.outputs.has-label }}
+      branch-name: ${{ steps.extract-version.outputs.branch-name }}
     permissions:
       pull-requests: read
     steps:
@@ -43,6 +44,7 @@ jobs:
           BRANCH_NAME="${{ env.GH_REF_NAME }}"
           #BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
+          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
           # Validate branch matches release/x.y.z format (semantic versioning)
           if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -92,10 +94,10 @@ jobs:
     needs: validate-and-check-label
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
-          #remove before merge.
-          #test auto-build on specific release branch
+      #remove before merge.
+      #test auto-build on specific release branch
       # base-branch: ${{ github.ref_name }}
-      base-branch: ${{ env.GH_REF_NAME }}
+      base-branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
     permissions:
