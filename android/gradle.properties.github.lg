@@ -1,0 +1,77 @@
+# GitHub Actions-specific Gradle settings for LG runner (48GB RAM)
+# CONSERVATIVE memory settings to prevent OOM kills on memory-constrained runners
+# Based on OOM killer evidence from INFRA-3174 / PR #24286
+#
+# Reference: Gradle 8.10.2 documentation
+# - https://docs.gradle.org/current/userguide/gradle_daemon.html#continuous_integration
+# - https://docs.gradle.org/current/userguide/build_environment.html
+# - https://docs.gradle.org/current/userguide/performance.html
+
+# =============================================================================
+# MEMORY BUDGET CALCULATION for 48GB Runner:
+# - Gradle JVM heap: 8GB (reduced from 16GB)
+# - Kotlin daemon: ~2-3GB
+# - Node.js workers: 4GB (reduced from 8GB in workflow)
+# - Gradle workers (4 max): ~4GB
+# - Native memory overhead: ~2GB
+# - OS + system: ~4GB
+# - Safety margin: ~23GB buffer for spikes
+# Total estimated: ~25GB, leaving ~23GB buffer
+# =============================================================================
+
+# JVM configuration - CONSERVATIVE for LG runner (48GB)
+# Using 8GB heap (half of XL runner settings) to prevent OOM
+# Reference: https://docs.gradle.org/current/userguide/performance.html#increase_heap_size
+# -XX:+HeapDumpOnOutOfMemoryError: capture heap dump if JVM runs out of heap
+# -XX:+ExitOnOutOfMemoryError: fail-fast on JVM heap exhaustion
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+
+# Daemon - ENABLED as recommended by Gradle for CI
+# Reference: https://docs.gradle.org/current/userguide/gradle_daemon.html#continuous_integration
+# "We recommend using the Daemon for developer machines and Continuous Integration (CI) servers."
+org.gradle.daemon=true
+
+# Parallelism - REDUCED to limit concurrent memory usage
+# Reference: https://docs.gradle.org/current/userguide/build_environment.html
+org.gradle.parallel=true
+org.gradle.configureondemand=true
+org.gradle.caching=true
+# Reduce workers from 6 to 4 to limit concurrent memory usage
+# Default is number of CPU processors, but we constrain it for memory safety
+org.gradle.workers.max=4
+org.gradle.vfs.watch=false
+
+# CI-specific optimizations
+kotlin.incremental=true
+kotlin.incremental.android=true
+kotlin.caching.enabled=true
+
+# Kotlin compiler - CONSERVATIVE memory settings
+# Limit Kotlin daemon heap to prevent memory contention
+kotlin.daemon.jvmargs=-Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+
+# File system optimizations
+org.gradle.vfs.verbose=false
+org.gradle.welcome=NEVER
+
+# AndroidX package structure
+android.useAndroidX=true
+android.enableJetifier=true
+
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# Architecture configuration - x86_64 only for E2E (emulator)
+reactNativeArchitectures=x86_64
+
+# New Architecture support
+newArchEnabled=true
+
+# Hermes JS engine
+hermesEnabled=true
+
+# Disable resource validation for faster builds
+android.disableResourceValidation=true
+
+# Legacy packaging
+expo.useLegacyPackaging=false
