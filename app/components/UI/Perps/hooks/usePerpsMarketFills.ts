@@ -114,11 +114,14 @@ export const usePerpsMarketFills = ({
     }
   }, []);
 
-  // Fetch historical fills on mount (background, non-blocking)
+  // Fetch historical fills on mount and when account changes (background, non-blocking)
   // This ensures we have complete fill history, not just WebSocket snapshot
+  // Clear stale fills and refetch when account changes to prevent data leakage
   useEffect(() => {
+    // Clear stale REST fills from previous account before fetching new ones
+    setRestFills([]);
     fetchRestFills();
-  }, [fetchRestFills]);
+  }, [fetchRestFills, selectedAddress]);
 
   // Refresh function for manual refetch
   const refresh = useCallback(async () => {
