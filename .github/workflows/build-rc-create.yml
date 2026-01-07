@@ -15,9 +15,9 @@ on:
         required: true
 jobs:
   bump-version:
-    uses: ./.github/workflows/bump-build-version.yml
+    uses: ./.github/workflows/update-latest-build-version.yml
     with:
-      ref: release/${{ inputs.semver }}
+      base-branch: release/${{ inputs.semver }}
     permissions:
       id-token: write
       contents: write

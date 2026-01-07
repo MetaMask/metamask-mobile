@@ -81,11 +81,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   bump-version:
-    uses: ./.github/workflows/bump-build-version.yml
+    uses: ./.github/workflows/update-latest-build-version.yml
     needs: validate-and-check-label
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
-      ref: ${{ github.ref_name }}
+      base-branch: ${{ github.ref_name }}
     permissions:
       id-token: write
       contents: write
