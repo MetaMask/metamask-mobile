@@ -416,7 +416,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1086,7 +1086,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
