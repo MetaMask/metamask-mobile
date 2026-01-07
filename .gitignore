@@ -163,8 +163,8 @@ github-tools/
 
 
 # Claude AI development files
-CLAUDE.md
-/CLAUDE.md
+CLAUDE.local.md
+/CLAUDE.local.md
 temp/
 /temp/
 
