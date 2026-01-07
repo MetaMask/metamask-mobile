@@ -231,7 +231,7 @@ class WalletMainScreen {
   }
 
   async checkActiveAccount(name) {
-    const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
+    const element = await AppwrightSelectors.getElementByText(this.device, name);
     await appwrightExpect(element).toBeVisible();
   }
 

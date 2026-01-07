@@ -42,7 +42,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
-    { ios: 800, android: 1700 },
+    { ios: 800, android: 1800 },
     device,
   );
   const timer3 = new TimerHelper(

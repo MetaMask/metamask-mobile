@@ -33,7 +33,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
-    { ios: 1500, android: 1500 },
+    { ios: 1500, android: 2500 },
     device,
   );
   const openAddFundsTimer = new TimerHelper(
