@@ -6,6 +6,7 @@ import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
 import {
   buildTronEarnTokenIfEligible,
+  getLocalizedErrorMessage,
   getStakedTrxTotalFromResources,
   handleTronStakingNavigationResult,
   hasStakedTrxPositions,
@@ -22,6 +23,19 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+}));
+
+const mockUpdateBalance = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    MultichainBalancesController: {
+      updateBalance: (accountId: string) => mockUpdateBalance(accountId),
+    },
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 describe('tron utils', () => {
@@ -163,6 +177,43 @@ describe('tron utils', () => {
     });
   });
 
+  describe('getLocalizedErrorMessage', () => {
+    it('returns empty string when errors is undefined', () => {
+      const result = getLocalizedErrorMessage(undefined);
+
+      expect(result).toBe('');
+    });
+
+    it('returns empty string when errors array is empty', () => {
+      const result = getLocalizedErrorMessage([]);
+
+      expect(result).toBe('');
+    });
+
+    it('returns localized message for InsufficientBalance error', () => {
+      const result = getLocalizedErrorMessage(['InsufficientBalance']);
+
+      expect(result).toBe('stake.tron.errors.insufficient_balance');
+    });
+
+    it('returns raw error message for unknown error codes', () => {
+      const result = getLocalizedErrorMessage(['UnknownError']);
+
+      expect(result).toBe('UnknownError');
+    });
+
+    it('returns mixed messages when errors contain both known and unknown codes', () => {
+      const result = getLocalizedErrorMessage([
+        'InsufficientBalance',
+        'SomeOtherError',
+      ]);
+
+      expect(result).toBe(
+        'stake.tron.errors.insufficient_balance\nSomeOtherError',
+      );
+    });
+  });
+
   describe('handleTronStakingNavigationResult', () => {
     const createNavigation = (): NavigationProp<ParamListBase> =>
       ({
@@ -172,6 +223,7 @@ describe('tron utils', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockUpdateBalance.mockClear();
     });
 
     it('navigates to success sheet for stake when result is valid and has no errors', () => {
@@ -196,6 +248,32 @@ describe('tron utils', () => {
           },
         },
       );
+    });
+
+    it('refreshes multichain balance when accountId is provided on success', () => {
+      const navigation = createNavigation();
+      const result = {
+        valid: true,
+        errors: undefined,
+      };
+      const accountId = 'test-tron-account-id';
+
+      handleTronStakingNavigationResult(navigation, result, 'stake', accountId);
+
+      expect(mockUpdateBalance).toHaveBeenCalledWith(accountId);
+      expect(navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not refresh balance when accountId is not provided', () => {
+      const navigation = createNavigation();
+      const result = {
+        valid: true,
+        errors: undefined,
+      };
+
+      handleTronStakingNavigationResult(navigation, result, 'stake');
+
+      expect(mockUpdateBalance).not.toHaveBeenCalled();
     });
 
     it('navigates to error sheet for stake when result has errors', () => {
@@ -262,6 +340,28 @@ describe('tron utils', () => {
           params: {
             title: 'stake.tron.unstake_failed',
             description: 'Unstake error',
+            type: 'error',
+          },
+        },
+      );
+    });
+
+    it('displays localized error message for InsufficientBalance error', () => {
+      const navigation = createNavigation();
+      const result = {
+        valid: false,
+        errors: ['InsufficientBalance'],
+      };
+
+      handleTronStakingNavigationResult(navigation, result, 'unstake');
+
+      expect(navigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: 'stake.tron.unstake_failed',
+            description: 'stake.tron.errors.insufficient_balance',
             type: 'error',
           },
         },

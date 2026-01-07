@@ -10,6 +10,7 @@ import {
   selectSelectedDestChainId,
   selectSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -78,7 +79,9 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
 
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
+      // Mark as manually set to prevent auto-updating dest when source chain changes
       dispatch(setDestToken(token));
+      dispatch(setIsDestTokenManuallySet(true));
       navigation.goBack();
     },
     [dispatch, navigation],

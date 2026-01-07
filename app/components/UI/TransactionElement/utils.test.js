@@ -104,7 +104,7 @@ describe('Transaction Element Utils', () => {
 
       expect(result).toEqual([
         {
-          actionKey: 'Set Approval For All',
+          actionKey: 'Set approval for all',
           fiatValue: undefined,
           renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
           renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
@@ -142,7 +142,7 @@ describe('Transaction Element Utils', () => {
 
       expect(result).toEqual([
         {
-          actionKey: 'Increase Allowance',
+          actionKey: 'Increase allowance',
           fiatValue: undefined,
           renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
           renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
@@ -179,17 +179,17 @@ describe('Transaction Element Utils', () => {
 
       expect(result).toEqual([
         {
-          actionKey: 'Contract Deployment',
+          actionKey: 'Contract deployment',
           fiatValue: undefined,
           contractDeployment: true,
           renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
-          renderTo: 'New Contract',
+          renderTo: 'New contract',
           transactionType: 'transaction_site_interaction',
           value: '0.00002 ETH',
         },
         {
           ...TRANSACTION_DETAILS_MOCK,
-          renderTo: 'New Contract',
+          renderTo: 'New contract',
         },
       ]);
     });

@@ -58,17 +58,19 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
+    { ios: 600, android: 600 },
+    device,
   );
 
   await WalletMainScreen.tapNetworkNavBar();
   await NetworksScreen.selectNetwork('Ethereum');
 
   await WalletMainScreen.tapOnToken('USDC');
-  assetViewScreen.start();
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  await TokenOverviewScreen.isTodaysChangeVisible();
-  await TokenOverviewScreen.isSendButtonVisible();
-  assetViewScreen.stop();
+  await assetViewScreen.measure(async () => {
+    await TokenOverviewScreen.isTokenOverviewVisible();
+    await TokenOverviewScreen.isTodaysChangeVisible();
+    await TokenOverviewScreen.isSendButtonVisible();
+  });
 
   performanceTracker.addTimer(assetViewScreen);
 

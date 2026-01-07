@@ -9,6 +9,7 @@ import {
   AccountSelectorElement,
   DropdownElement,
   RadioGroupElement,
+  DateTimePickerElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -20,6 +21,7 @@ import { assetSelector as assetSelectorFn } from './asset-selector';
 import { accountSelector as accountSelectorFn } from './account-selector';
 import { dropdown as dropdownFn } from './dropdown';
 import { radioGroup as radioGroupFn } from './radioGroup';
+import { dateTimePicker as dateTimePickerFn } from './date-time-picker';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -236,6 +238,24 @@ export const field: UIComponentFactory<FieldElement> = ({
           id: radioGroup.props.name,
           label: e.props.label,
           name: radioGroup.props.name,
+          form,
+          error: e.props.error,
+          disabled: child.props.disabled,
+        },
+      };
+    }
+
+    case 'DateTimePicker': {
+      const dateTimePicker = child as DateTimePickerElement;
+      const dateTimePickerMapped = dateTimePickerFn({
+        element: dateTimePicker,
+      } as UIComponentParams<DateTimePickerElement>);
+      return {
+        ...dateTimePickerMapped,
+        element: 'SnapUIDateTimePicker',
+        props: {
+          ...dateTimePickerMapped.props,
+          label: e.props.label,
           form,
           error: e.props.error,
           disabled: child.props.disabled,

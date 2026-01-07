@@ -46,8 +46,6 @@ describe('TokenDetectionControllerInit', () => {
     const controllerMock = jest.mocked(TokenDetectionController);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      platform: 'mobile',
-      useAccountsAPI: true,
       disabled: false,
       getBalancesInSingleCall: expect.any(Function),
       useTokenDetection: expect.any(Function),

@@ -92,6 +92,9 @@ export interface TrackingData {
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close (calculated by hooks)
   realizedPnl?: number; // Realized P&L from close (calculated by hooks)
+
+  // Entry source for analytics (e.g., 'trending' for Trending page discovery)
+  source?: string;
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -99,6 +102,10 @@ export interface TPSLTrackingData {
   direction: 'long' | 'short'; // Position direction
   source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
   positionSize: number; // Unsigned position size for metrics
+  takeProfitPercentage?: number; // Take profit percentage from entry
+  stopLossPercentage?: number; // Stop loss percentage from entry
+  isEditingExistingPosition?: boolean; // true = editing existing position, false = creating for new order
+  entryPrice?: number; // Entry price for percentage calculations
 }
 
 // MetaMask Perps API order parameters for PerpsController
@@ -770,6 +777,7 @@ export interface Order {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
 }
 
 export interface Funding {

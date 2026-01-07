@@ -26,6 +26,7 @@ export const ActivitiesViewSelectorsText = {
   STAKE_DEPOSIT: enContent.transactions.tx_review_staking_deposit,
   UNSTAKE: enContent.transactions.tx_review_staking_unstake,
   STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
+  PREDICT_DEPOSIT: enContent.transactions.tx_review_predict_deposit,
 };
 
 export const sentMessageTokenIDs = {

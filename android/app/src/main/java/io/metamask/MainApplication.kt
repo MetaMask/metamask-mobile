@@ -27,7 +27,6 @@ import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
-import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 
@@ -43,9 +42,8 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 // Add all our custom packages
                 packages.add(PreventScreenshotPackage())
                 packages.add(RCTMinimizerPackage())
-                packages.add(NativeSDKPackage())
                 packages.add(RNTarPackage())
-                packages.add(NotificationPackage()) 
+                packages.add(NotificationPackage())
                 return packages
             }
 

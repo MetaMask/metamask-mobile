@@ -453,7 +453,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 32,
                                       "justifyContent": "center",
                                       "letterSpacing": 0,
@@ -462,14 +462,14 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Import Account
+                                  Import account
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -484,7 +484,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -496,7 +496,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
@@ -525,7 +525,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -554,7 +554,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       "borderRadius": 6,
                                       "borderWidth": 0.5,
                                       "color": "#b7bbc8",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "height": 120,
                                       "marginVertical": 16,
@@ -604,7 +604,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -656,7 +656,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

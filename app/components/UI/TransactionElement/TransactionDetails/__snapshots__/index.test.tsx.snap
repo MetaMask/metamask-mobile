@@ -353,7 +353,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -383,7 +383,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -399,14 +399,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -462,7 +462,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -492,7 +492,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -510,7 +510,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -548,7 +548,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -578,7 +578,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -641,7 +641,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -678,7 +678,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -708,7 +708,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -771,7 +771,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -818,7 +818,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -850,7 +850,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -908,7 +908,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -950,7 +950,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -1021,7 +1021,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -1091,14 +1091,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -1135,14 +1135,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -1199,7 +1199,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -1253,7 +1253,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1630,7 +1630,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -1660,7 +1660,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -1676,14 +1676,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -1739,7 +1739,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -1769,7 +1769,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -1787,7 +1787,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1825,7 +1825,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -1855,7 +1855,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -1918,7 +1918,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -1955,7 +1955,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -1985,7 +1985,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -2048,7 +2048,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -2095,7 +2095,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -2127,7 +2127,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -2185,7 +2185,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -2227,7 +2227,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -2298,7 +2298,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -2368,14 +2368,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -2412,14 +2412,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -2476,7 +2476,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -2530,7 +2530,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2907,7 +2907,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -2937,7 +2937,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -2953,14 +2953,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -3016,7 +3016,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -3046,7 +3046,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -3064,7 +3064,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -3102,7 +3102,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -3132,7 +3132,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -3195,7 +3195,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -3232,7 +3232,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -3262,7 +3262,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -3325,7 +3325,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -3372,7 +3372,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
                                 },
@@ -3404,7 +3404,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
                                   },
@@ -3462,7 +3462,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -3504,7 +3504,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -3575,7 +3575,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -3645,14 +3645,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -3689,14 +3689,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -3753,7 +3753,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -3807,7 +3807,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,

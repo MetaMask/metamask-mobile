@@ -36,6 +36,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../constants/ota', () => {
+  const actual = jest.requireActual('../../../../constants/ota');
+
+  return {
+    ...actual,
+    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
+    getFullVersion: (appVersion: string) => appVersion,
+  };
+});
+
 const MOCK_STATE = {
   engine: {
     backgroundState: {
@@ -117,9 +127,9 @@ describe('AppInformation', () => {
       expect(getByText(/Privacy Policy/)).toBeTruthy();
       expect(getByText(/Terms of use/)).toBeTruthy();
       expect(getByText(/Attributions/)).toBeTruthy();
-      expect(getByText(/Visit our Support Center/)).toBeTruthy();
+      expect(getByText(/Visit our support center/)).toBeTruthy();
       expect(getByText(/Visit our Website/)).toBeTruthy();
-      expect(getByText(/Contact Us/)).toBeTruthy();
+      expect(getByText(/Contact us/)).toBeTruthy();
     });
 
     it('renders the links section title', () => {
@@ -446,11 +456,9 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      expect(queryByText(/Expo Project ID:/)).toBeNull();
       expect(queryByText(/Update ID:/)).toBeNull();
       expect(queryByText(/OTA Update Channel:/)).toBeNull();
       expect(queryByText(/OTA Update runtime version:/)).toBeNull();
-      expect(queryByText(/OTA Update URL:/)).toBeNull();
       expect(queryByText(/Check Automatically:/)).toBeNull();
       expect(queryByText(/OTA Update status:/)).toBeNull();
     });
@@ -475,7 +483,6 @@ describe('AppInformation', () => {
         expect(getByText(/Update ID: mock-update-id/)).toBeTruthy();
         expect(getByText(/OTA Update Channel: test-channel/)).toBeTruthy();
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
-        expect(getByText(/OTA Update URL: https:\/\/example.com/)).toBeTruthy();
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });

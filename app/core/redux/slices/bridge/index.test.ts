@@ -9,6 +9,8 @@ import reducer, {
   setBridgeViewMode,
   selectBridgeViewMode,
   setDestToken,
+  setIsDestTokenManuallySet,
+  selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
   selectGasIncludedQuoteParams,
 } from '.';
@@ -44,7 +46,7 @@ describe('bridge slice', () => {
   };
 
   describe('initial state', () => {
-    it('should have the correct initial state', () => {
+    it('has correct initial state', () => {
       expect(initialState).toEqual({
         bridgeViewMode: undefined,
         sourceAmount: undefined,
@@ -60,6 +62,7 @@ describe('bridge slice', () => {
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isMaxSourceAmount: false,
+        isDestTokenManuallySet: false,
       });
     });
   });
@@ -170,12 +173,70 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
-    it('should set the destination token and update selectedDestChainId', () => {
+    it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
 
       expect(state.destToken).toBe(mockDestToken);
       expect(state.selectedDestChainId).toBe(mockDestToken.chainId);
+    });
+
+    it('does not modify isDestTokenManuallySet flag', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setDestToken(mockDestToken);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setIsDestTokenManuallySet', () => {
+    it('sets the flag to true', () => {
+      const action = setIsDestTokenManuallySet(true);
+      const state = reducer(initialState, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('sets the flag to false', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setIsDestTokenManuallySet(false);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(false);
+    });
+  });
+
+  describe('selectIsDestTokenManuallySet', () => {
+    it('returns false from initial state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is set', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isDestTokenManuallySet: true,
+        },
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(true);
     });
   });
 

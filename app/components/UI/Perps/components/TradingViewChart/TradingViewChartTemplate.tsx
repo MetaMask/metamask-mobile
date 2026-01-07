@@ -217,41 +217,41 @@ export const createTradingViewChartTemplate = (
                                 timeZone: userTimezone
                             });
                         case 'DayOfMonth':
-                            // Always show day + month for DayOfMonth tick type (e.g., 1D candles)
-                            // Format: "17 Nov" (day before month)
-                            const day = date.toLocaleString('en-US', { 
+                            // Always show month/day for DayOfMonth tick type (e.g., 1D candles)
+                            // Format: "11/6" (MM/DD numeric format)
+                            const dayOfMonthMonth = date.toLocaleString('en-US', {
+                                month: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const dayOfMonthDay = date.toLocaleString('en-US', {
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
-                            const month = date.toLocaleString('en-US', { 
-                                month: 'short',
-                                timeZone: userTimezone
-                            });
-                            return day + ' ' + month;
+                            return dayOfMonthMonth + '/' + dayOfMonthDay;
                         case 'Hour':
                         case 'Minute':
                             // Show date + time if not today, otherwise just time
                             if (!window.isToday(date, userTimezone)) {
-                                // Format: "17 Nov 00:15"
-                                const day = date.toLocaleString('en-US', { 
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const hourMinuteMonth = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const hourMinuteDay = date.toLocaleString('en-US', {
                                     day: 'numeric',
                                     timeZone: userTimezone
                                 });
-                                const month = date.toLocaleString('en-US', { 
-                                    month: 'short',
-                                    timeZone: userTimezone
-                                });
-                                const timeStr = date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                const timeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
                                 });
-                                return day + ' ' + month + ' ' + timeStr;
+                                return hourMinuteMonth + '/' + hourMinuteDay + ' ' + timeStr;
                             } else {
                                 // Show time only for today
-                                return date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
@@ -281,26 +281,26 @@ export const createTradingViewChartTemplate = (
                         if (timeSpanHours <= 24) {
                             // Less than 24 hours: show date + time if not today, otherwise just time
                             if (!window.isToday(date, userTimezone)) {
-                                // Format: "17 Nov 00:15"
-                                const day = date.toLocaleString('en-US', { 
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const fb24Month = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fb24Day = date.toLocaleString('en-US', {
                                     day: 'numeric',
                                     timeZone: userTimezone
                                 });
-                                const month = date.toLocaleString('en-US', { 
-                                    month: 'short',
-                                    timeZone: userTimezone
-                                });
-                                const timeStr = date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                const fb24TimeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
                                 });
-                                return day + ' ' + month + ' ' + timeStr;
+                                return fb24Month + '/' + fb24Day + ' ' + fb24TimeStr;
                             } else {
                                 // Show time only for today
-                                return date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
@@ -309,65 +309,65 @@ export const createTradingViewChartTemplate = (
                         } else if (timeSpanHours <= 24 * 7) {
                            // Less than a week: show date + time if not today, otherwise just time
                             if (!window.isToday(date, userTimezone)) {
-                                // Format: "17 Nov 00:15"
-                                const day = date.toLocaleString('en-US', { 
+                                // Format: "11/17 00:15" (MM/DD + time)
+                                const fbWeekMonth = date.toLocaleString('en-US', {
+                                    month: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const fbWeekDay = date.toLocaleString('en-US', {
                                     day: 'numeric',
                                     timeZone: userTimezone
                                 });
-                                const month = date.toLocaleString('en-US', { 
-                                    month: 'short',
-                                    timeZone: userTimezone
-                                });
-                                const timeStr = date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                const fbWeekTimeStr = date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
                                 });
-                                return day + ' ' + month + ' ' + timeStr;
+                                return fbWeekMonth + '/' + fbWeekDay + ' ' + fbWeekTimeStr;
                             } else {
                                 // Show time only for today
-                                return date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
+                                return date.toLocaleString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                     timeZone: userTimezone
                                 });
                             }
                         } else {
-                             // Longer ranges: always show day + month (e.g., "17 Nov")
+                            // Longer ranges: always show month/day (e.g., "11/6")
                             // This is especially important for 1D candles
-                            const day = date.toLocaleString('en-US', { 
+                            const fbLongMonth = date.toLocaleString('en-US', {
+                                month: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const fbLongDay = date.toLocaleString('en-US', {
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
-                            const month = date.toLocaleString('en-US', { 
-                                month: 'short',
-                                timeZone: userTimezone
-                            });
-                            return day + ' ' + month;
+                            return fbLongMonth + '/' + fbLongDay;
                         }
                     }
                 }
                 
                 // Final fallback: show date and time
-                // Format: "17 Nov 00:15"
-                const day = date.toLocaleString('en-US', { 
+                // Format: "11/17 00:15" (MM/DD + time)
+                const finalMonth = date.toLocaleString('en-US', {
+                    month: 'numeric',
+                    timeZone: userTimezone
+                });
+                const finalDay = date.toLocaleString('en-US', {
                     day: 'numeric',
                     timeZone: userTimezone
                 });
-                const month = date.toLocaleString('en-US', { 
-                    month: 'short',
-                    timeZone: userTimezone
-                });
-                const timeStr = date.toLocaleString('en-US', { 
-                    hour: '2-digit', 
+                const finalTimeStr = date.toLocaleString('en-US', {
+                    hour: '2-digit',
                     minute: '2-digit',
                     hour12: false,
                     timeZone: userTimezone
                 });
 
-                return day + ' ' + month + ' ' + timeStr;
+                return finalMonth + '/' + finalDay + ' ' + finalTimeStr;
             }
         };
         
@@ -554,7 +554,9 @@ export const createTradingViewChartTemplate = (
 
                             // Format with final decimal precision using cached formatter
                             const formatter = window.getCachedFormatter(finalDecimals);
-                            return formatter.format(formattedValue);
+                            const formatted = formatter.format(formattedValue);
+                            // Strip trailing zeros to match header formatting
+                            return formatted.replace(/(\\.[0-9]*?)0+$/, '$1').replace(/\\.$/, '');
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels

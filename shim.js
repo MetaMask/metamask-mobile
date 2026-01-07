@@ -1,6 +1,10 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
+import {
+  getRandomValues,
+  randomUUID,
+  subtle as quickCryptoSubtle,
+} from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
@@ -96,6 +100,12 @@ global.crypto = {
   ...crypto,
   randomUUID,
   getRandomValues,
+  subtle: {
+    ...global.crypto.subtle,
+    ...crypto.subtle,
+    // Shimming just digest as it has been fully implemented.
+    digest: quickCryptoSubtle.digest,
+  },
 };
 
 process.browser = false;

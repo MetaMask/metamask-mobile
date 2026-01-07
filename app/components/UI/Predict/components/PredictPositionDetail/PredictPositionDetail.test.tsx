@@ -282,7 +282,13 @@ describe('PredictPositionDetail', () => {
   });
 
   it('renders initial value line and avgPrice cents', () => {
-    renderComponent({ initialValue: 50, outcome: 'No', avgPrice: 0.7 });
+    renderComponent({
+      initialValue: 50,
+      outcome: 'No',
+      avgPrice: 0.7,
+      outcomeId: 'outcome-2',
+      outcomeTokenId: '1',
+    });
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(

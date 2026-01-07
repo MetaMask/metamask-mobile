@@ -1,31 +1,19 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  TextInputProps,
-  Platform,
-} from 'react-native';
+import { Platform, TextInputProps } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Label from '../../../../../component-library/components/Form/Label';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import {
-  CodeField,
-  Cursor,
-  useBlurOnFulfill,
-  useClearByFocusCell,
-} from 'react-native-confirmation-code-field';
-import { useStyles } from '../../../../../component-library/hooks';
-import { Theme } from '../../../../../util/theme/models';
 import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
   resetOnboardingState,
@@ -39,45 +27,16 @@ import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
-const CELL_COUNT = 6;
+const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
   android: 'sms-otp',
   default: 'one-time-code',
 });
 
-// Styles for the OTP CodeField
-export const createOTPStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
-    codeFieldRoot: {
-      marginTop: 8,
-      gap: 8,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    cellRoot: {
-      width: 48,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.default,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
-      borderRadius: 8,
-    },
-    focusCell: {
-      borderColor: theme.colors.primary.default,
-      borderWidth: 2,
-    },
-  });
-};
-
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { setUser } = useCardSDK();
-  const { styles } = useStyles(createOTPStyles, {});
   const [resendCooldown, setResendCooldown] = useState(60);
   const [confirmCode, setConfirmCode] = useState('');
   const resendInProgressRef = useRef(false);
@@ -111,7 +70,7 @@ const ConfirmPhoneNumber = () => {
   const handleContinue = useCallback(async () => {
     if (
       !confirmCode ||
-      confirmCode.length !== CELL_COUNT ||
+      confirmCode.length !== CODE_LENGTH ||
       !onboardingId ||
       !phoneNumber ||
       !phoneCountryCode ||
@@ -175,7 +134,9 @@ const ConfirmPhoneNumber = () => {
   const handleValueChange = useCallback(
     (text: string) => {
       resetVerifyPhoneVerification();
-      setConfirmCode(text);
+      // Filter to only allow numeric input and limit to CODE_LENGTH digits
+      const cleanedText = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
+      setConfirmCode(cleanedText);
       setLatestValueSubmitted(null);
     },
     [resetVerifyPhoneVerification],
@@ -248,21 +209,10 @@ const ConfirmPhoneNumber = () => {
     }
   }, [resendCooldown]);
 
-  const inputRef =
-    useBlurOnFulfill({
-      value: confirmCode,
-      cellCount: CELL_COUNT,
-    }) || null;
-
-  // Focus management
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [inputRef]);
-
   // Auto-submit when all digits are entered
   useEffect(() => {
     if (
-      confirmCode.length === CELL_COUNT &&
+      confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
@@ -270,16 +220,11 @@ const ConfirmPhoneNumber = () => {
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
 
-  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
-    value: confirmCode,
-    setValue: handleValueChange,
-  });
-
   const isDisabled =
     verifyLoading ||
     verifyIsError ||
     !confirmCode ||
-    confirmCode.length !== CELL_COUNT ||
+    confirmCode.length !== CODE_LENGTH ||
     !onboardingId ||
     !phoneNumber ||
     !phoneCountryCode;
@@ -287,36 +232,22 @@ const ConfirmPhoneNumber = () => {
   const renderFormFields = () => (
     <>
       <Box>
-        <Label>
-          {strings(
-            'card.card_onboarding.confirm_phone_number.confirm_code_label',
-          )}
-        </Label>
-        <CodeField
-          ref={inputRef as React.RefObject<TextInput>}
-          {...props}
-          value={confirmCode}
+        <TextField
+          autoCapitalize={'none'}
           onChangeText={handleValueChange}
-          cellCount={CELL_COUNT}
-          rootStyle={styles.codeFieldRoot}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={confirmCode}
           keyboardType="number-pad"
           textContentType="oneTimeCode"
           autoComplete={autoComplete}
-          renderCell={({ index, symbol, isFocused }) => (
-            <View
-              onLayout={getCellOnLayoutHandler(index)}
-              key={index}
-              style={[styles.cellRoot, isFocused && styles.focusCell]}
-            >
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="text-text-default font-bold text-center"
-              >
-                {symbol || (isFocused ? <Cursor /> : null)}
-              </Text>
-            </View>
+          maxLength={CODE_LENGTH}
+          accessibilityLabel={strings(
+            'card.card_onboarding.confirm_phone_number.confirm_code_label',
           )}
+          isError={verifyIsError}
           testID="confirm-phone-number-code-field"
+          autoFocus
         />
         {verifyIsError && (
           <Text
@@ -330,34 +261,39 @@ const ConfirmPhoneNumber = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box twClassName="mt-4 items-center">
+      <Box twClassName="mt-2">
         <Text
-          variant={TextVariant.BodyMd}
-          twClassName={`${
-            resendCooldown > 0
-              ? 'text-text-alternative'
-              : 'text-primary-default cursor-pointer'
-          }`}
-          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
-          disabled={
-            resendCooldown > 0 ||
-            !phoneNumber ||
-            !phoneCountryCode ||
-            !contactVerificationId ||
-            phoneVerificationIsLoading
-          }
+          variant={TextVariant.BodySm}
+          twClassName="text-text-alternative"
           testID="confirm-phone-number-resend-verification"
         >
-          {resendCooldown > 0
-            ? strings(
-                'card.card_onboarding.confirm_phone_number.resend_cooldown',
-                {
-                  seconds: resendCooldown,
-                },
-              )
-            : strings(
-                'card.card_onboarding.confirm_phone_number.resend_verification',
-              )}
+          {resendCooldown > 0 ? (
+            strings('card.card_onboarding.confirm_email.resend_cooldown', {
+              seconds: resendCooldown,
+            })
+          ) : (
+            <>
+              {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative underline"
+                onPress={
+                  resendCooldown > 0 ? undefined : handleResendVerification
+                }
+                disabled={
+                  resendCooldown > 0 ||
+                  !phoneNumber ||
+                  !phoneCountryCode ||
+                  !contactVerificationId ||
+                  phoneVerificationIsLoading
+                }
+              >
+                {strings(
+                  'card.card_onboarding.confirm_email.resend_verification',
+                )}
+              </Text>
+            </>
+          )}
         </Text>
         {phoneVerificationIsError && (
           <Text
@@ -380,6 +316,7 @@ const ConfirmPhoneNumber = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-phone-number-continue-button"
     />
   );

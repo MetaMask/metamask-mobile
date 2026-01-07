@@ -37,6 +37,14 @@ Chrome's tracing UI expects a JSON trace. Convert the `.cpuprofile` first:
 yarn react-native-release-profiler --local /path/to/profile.cpuprofile
 ```
 
+To have sourcemaps on the tracing, to be easier to identify the processes that are happening, convirt the `.cpuprofile` with this argument:
+
+```bash
+yarn react-native-release-profiler --local /path/to/profile.cpuprofile --sourcemap-path /path/to/sourcemaps
+```
+
+You can find the sourcemaps at the artifcacts generated when running `release_rc_builds_to_store_pipeline` in bitrise, under the name `Android_Sourcemaps_prodRelease.zip`, download and unzip it.
+
 Then open Chrome and load the generated JSON:
 
 - Navigate to `chrome://tracing` → Load → select the JSON file.

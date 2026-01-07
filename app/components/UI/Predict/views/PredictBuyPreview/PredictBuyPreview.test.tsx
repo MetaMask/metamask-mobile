@@ -140,6 +140,11 @@ jest.mock('../../utils/format', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return num.toLocaleString('en-US');
   }),
+  formatPercentage: jest.fn((value, options) =>
+    value !== undefined
+      ? `${value.toFixed(options?.truncate ?? false)}%`
+      : '0%',
+  ),
 }));
 
 const mockMarket: PredictMarket = {
@@ -383,7 +388,7 @@ describe('PredictBuyPreview', () => {
             image: 'https://example.com/outcome2.png',
             status: 'open' as const,
             volume: 500000,
-            groupItemTitle: 'Market Cap',
+            groupItemTitle: 'Market cap',
             tokens: [
               {
                 id: 'outcome-token-791',

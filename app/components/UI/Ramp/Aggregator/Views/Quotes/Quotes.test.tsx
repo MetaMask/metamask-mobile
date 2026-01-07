@@ -997,7 +997,7 @@ describe('Quotes', () => {
     };
     render(Quotes);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
     act(() => {

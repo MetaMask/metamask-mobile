@@ -28,7 +28,7 @@ function getInitRequestMock(): jest.Mocked<
   requestMock.getController.mockImplementation((name: string) => {
     if (name === 'NftController') {
       return {
-        addNft: jest.fn(),
+        addNfts: jest.fn(),
         state: {},
       };
     }
@@ -52,7 +52,7 @@ describe('NftDetectionControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       disabled: false,
-      addNft: expect.any(Function),
+      addNfts: expect.any(Function),
       getNftState: expect.any(Function),
     });
   });

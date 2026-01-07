@@ -20,7 +20,11 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
-import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
+import {
+  BALANCE_TEST_ID,
+  SECONDARY_BALANCE_BUTTON_TEST_ID,
+  SECONDARY_BALANCE_TEST_ID,
+} from './index.constants';
 
 interface AssetElementProps {
   children?: React.ReactNode;
@@ -35,6 +39,7 @@ interface AssetElementProps {
   privacyMode?: boolean;
   hideSecondaryBalanceInPrivacyMode?: boolean;
   disabled?: boolean;
+  onSecondaryBalancePress?: (asset: TokenI) => void;
 }
 
 const createStyles = (colors: Colors) =>
@@ -74,6 +79,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   privacyMode = false,
   hideSecondaryBalanceInPrivacyMode = true,
   disabled = false,
+  onSecondaryBalancePress,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -84,6 +90,13 @@ const AssetElement: React.FC<AssetElementProps> = ({
 
   const handleOnLongPress = () => {
     onLongPress?.(asset);
+  };
+
+  const isSecondaryDisabled = disabled || !onSecondaryBalancePress;
+
+  const handleOnSecondaryBalancePress = () => {
+    if (isSecondaryDisabled) return;
+    onSecondaryBalancePress?.(asset);
   };
 
   // TODO: Use the SensitiveText component when it's available
@@ -119,25 +132,32 @@ const AssetElement: React.FC<AssetElementProps> = ({
           </SensitiveText>
         )}
         {secondaryBalance ? (
-          <SensitiveText
-            variant={TextVariant.BodySMMedium}
-            style={
-              secondaryBalanceColor
-                ? styles.secondaryBalanceCustomColor
-                : styles.secondaryBalance
-            }
-            color={secondaryBalanceColor}
-            isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
-            length={SensitiveTextLength.Short}
-            testID={SECONDARY_BALANCE_TEST_ID}
+          <TouchableOpacity
+            onPress={handleOnSecondaryBalancePress}
+            disabled={isSecondaryDisabled}
+            testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
           >
-            {secondaryBalance === TOKEN_BALANCE_LOADING ||
-            secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <SkeletonText thin style={styles.skeleton} />
-            ) : (
-              secondaryBalance
-            )}
-          </SensitiveText>
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              style={
+                secondaryBalanceColor
+                  ? styles.secondaryBalanceCustomColor
+                  : styles.secondaryBalance
+              }
+              color={secondaryBalanceColor}
+              isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
+              length={SensitiveTextLength.Short}
+              testID={SECONDARY_BALANCE_TEST_ID}
+              // Remove onPress from here since it's on Pressable now
+            >
+              {secondaryBalance === TOKEN_BALANCE_LOADING ||
+              secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <SkeletonText thin style={styles.skeleton} />
+              ) : (
+                secondaryBalance
+              )}
+            </SensitiveText>
+          </TouchableOpacity>
         ) : null}
       </View>
     </TouchableOpacity>

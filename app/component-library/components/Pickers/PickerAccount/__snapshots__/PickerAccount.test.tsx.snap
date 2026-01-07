@@ -32,7 +32,7 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -84,7 +84,7 @@ exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -135,7 +135,7 @@ exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

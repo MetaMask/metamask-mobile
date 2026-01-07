@@ -75,7 +75,8 @@ describe('GasFeeTokenListItem', () => {
       mockGasFeeTokenResponse: MOCK_TOKEN,
     });
     expect(
-      getByTestId('gas-fee-token-list-item-amount-fiat').props.children,
+      getByTestId(`gas-fee-token-list-item-amount-fiat-${MOCK_TOKEN.symbol}`)
+        .props.children,
     ).toContain('$1,000.00');
   });
 
@@ -85,7 +86,8 @@ describe('GasFeeTokenListItem', () => {
       mockGasFeeTokenResponse: MOCK_TOKEN,
     });
     expect(
-      getByTestId('gas-fee-token-list-item-balance').props.children,
+      getByTestId(`gas-fee-token-list-item-balance-${MOCK_TOKEN.symbol}`).props
+        .children,
     ).toContain('Bal: 2,345.00 USD');
   });
 
@@ -95,7 +97,8 @@ describe('GasFeeTokenListItem', () => {
       mockGasFeeTokenResponse: MOCK_TOKEN,
     });
     expect(
-      getByTestId('gas-fee-token-list-item-amount-token').props.children,
+      getByTestId(`gas-fee-token-list-item-amount-token-${MOCK_TOKEN.symbol}`)
+        .props.children,
     ).toBe('1 TEST');
   });
 
@@ -107,7 +110,8 @@ describe('GasFeeTokenListItem', () => {
     });
     expect(getByText('Test Warning')).toBeTruthy();
     expect(
-      getByTestId('gas-fee-token-list-item-symbol').props.children,
+      getByTestId(`gas-fee-token-list-item-symbol-${MOCK_TOKEN.symbol}`).props
+        .children,
     ).toContain('TEST');
   });
 
@@ -118,7 +122,9 @@ describe('GasFeeTokenListItem', () => {
         mockGasFeeTokenResponse: NATIVE_TOKEN,
       });
       expect(
-        getByTestId('gas-fee-token-list-item-amount-fiat').props.children,
+        getByTestId(
+          `gas-fee-token-list-item-amount-fiat-${NATIVE_TOKEN.symbol}`,
+        ).props.children,
       ).toContain('$0.04');
     });
 
@@ -128,7 +134,8 @@ describe('GasFeeTokenListItem', () => {
         mockGasFeeTokenResponse: NATIVE_TOKEN,
       });
       expect(
-        getByTestId('gas-fee-token-list-item-balance').props.children,
+        getByTestId(`gas-fee-token-list-item-balance-${NATIVE_TOKEN.symbol}`)
+          .props.children,
       ).toContain('Bal: 537,761.36 USD');
     });
 
@@ -138,7 +145,9 @@ describe('GasFeeTokenListItem', () => {
         mockGasFeeTokenResponse: NATIVE_TOKEN,
       });
       expect(
-        getByTestId('gas-fee-token-list-item-amount-token').props.children,
+        getByTestId(
+          `gas-fee-token-list-item-amount-token-${NATIVE_TOKEN.symbol}`,
+        ).props.children,
       ).toBe('0.000066 ETH');
     });
   });

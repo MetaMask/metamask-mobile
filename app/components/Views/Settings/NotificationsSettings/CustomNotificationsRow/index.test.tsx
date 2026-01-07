@@ -8,7 +8,6 @@ describe('CustomNotificationsRow', () => {
     const { toJSON } = render(
       <CustomNotificationsRow
         title={'Title'}
-        description={'Description'}
         icon={IconName.Sparkle}
         isEnabled={false}
         toggleCustomNotificationsEnabled={() => jest.fn()}

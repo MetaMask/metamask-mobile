@@ -27,6 +27,10 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import {
+  ConfirmationRowComponentIDs,
+  TransactionPayComponentIDs,
+} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -56,7 +60,11 @@ export function PayWithRow() {
   }
 
   return (
-    <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
+    <TouchableOpacity
+      onPress={handleClick}
+      disabled={!canEdit}
+      testID={ConfirmationRowComponentIDs.PAY_WITH}
+    >
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
@@ -65,10 +73,18 @@ export function PayWithRow() {
         style={styles.container}
       >
         <TokenIcon address={payToken.address} chainId={payToken.chainId} />
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+        >
           {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
         </Text>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Alternative}
+          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+        >
           {balanceUsdFormatted}
         </Text>
         {canEdit && from && (

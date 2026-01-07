@@ -15,6 +15,7 @@ import { merge } from 'lodash';
 import MetaMetrics from '../../core/Analytics/MetaMetrics';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -74,6 +75,29 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('logs :: generateStateLogs', () => {
+  beforeEach(() => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+        {
+          accounts: ['0x2'],
+          type: KeyringTypes.simple,
+          metadata: { id: 'keyring2', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      vault: undefined,
+    };
+    Engine.context.SeedlessOnboardingController.state = {
+      socialBackupsMetadata: [],
+      isSeedlessOnboardingUserAuthenticated: false,
+    } as typeof Engine.context.SeedlessOnboardingController.state;
+  });
+
   it('generates a valid json export', async () => {
     const mockStateInput = {
       appVersion: '1',
@@ -93,17 +117,26 @@ describe('logs :: generateStateLogs', () => {
     expect(JSON.parse(logs)).toMatchSnapshot();
   });
 
-  it('generates the expected state logs without the explicitly deleted controller states', async () => {
+  it('excludes deleted controller states from logs', () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
           ...backgroundState,
+          NftController: { nfts: [] },
+          TokensController: { tokens: [] },
+          TokenDetectionController: { detectedTokens: [] },
+          NftDetectionController: { detectedNfts: [] },
+          PhishingController: { whitelist: [] },
+          AssetsContractController: { assets: [] },
+          DeFiPositionsController: { positions: [] },
+          PredictController: { predictions: [] },
           KeyringController: {
             vault: 'vault mock',
           },
         },
       },
     };
+
     const logs = generateStateLogs(mockStateInput);
 
     expect(logs.includes('NftController')).toBe(false);
@@ -112,6 +145,8 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('TokenDetectionController')).toBe(false);
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
+    expect(logs.includes('DeFiPositionsController')).toBe(false);
+    expect(logs.includes('PredictController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 
@@ -126,12 +161,201 @@ describe('logs :: generateStateLogs', () => {
         },
       },
     };
+
     const logs = generateStateLogs(mockStateInput);
     const parsedLogs = JSON.parse(logs);
 
     expect(parsedLogs.engine.backgroundState.KeyringController.isUnlocked).toBe(
       true,
     );
+  });
+
+  it('sets vaultExists to true when vault has a value', () => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      vault: 'some-vault-data',
+    };
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(true);
+  });
+
+  it('sets vaultExists to false when vault is null', () => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      // @ts-expect-error - testing null vault handling
+      vault: null,
+    };
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
+  });
+
+  it('sets vaultExists to false when vault is undefined', () => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      vault: undefined,
+    };
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
+  });
+
+  it('sets vaultExists to false when vault is empty string', () => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      vault: '',
+    };
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
+  });
+
+  it('sets vaultExists to false when KeyringController state is undefined', () => {
+    // @ts-expect-error - testing undefined state handling
+    Engine.context.KeyringController.state = undefined;
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
+  });
+
+  it('includes loggedIn parameter in generated logs', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput, false);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(parsedLogs.loggedIn).toBe(false);
+  });
+
+  it('defaults loggedIn to true when not provided', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(parsedLogs.loggedIn).toBe(true);
   });
 
   it('generates extra logs if values added to the state object parameter', () => {
@@ -163,7 +387,14 @@ describe('logs :: generateStateLogs', () => {
   });
 
   describe('Sanitized SeedlessOnboardingController State', () => {
-    it('Able to generate logs when SeedlessOnboardingController state is empty', () => {
+    beforeEach(() => {
+      Engine.context.SeedlessOnboardingController.state = {
+        socialBackupsMetadata: [],
+        isSeedlessOnboardingUserAuthenticated: false,
+      } as typeof Engine.context.SeedlessOnboardingController.state;
+    });
+
+    it('generates logs when SeedlessOnboardingController state is empty', () => {
       const mockStateInput = {
         appVersion: '1',
         buildNumber: '123',
@@ -203,7 +434,7 @@ describe('logs :: generateStateLogs', () => {
       expect(revokeToken).toBe(false);
     });
 
-    it('Able to generate logs with Sanitized SeedlessOnboardingController sensitive data', () => {
+    it('generates logs with sanitized SeedlessOnboardingController sensitive data', () => {
       Engine.context.SeedlessOnboardingController.state = {
         userId: 'userId',
         isSeedlessOnboardingUserAuthenticated: true,
@@ -281,6 +512,222 @@ describe('logs :: generateStateLogs', () => {
 
       expect(JSON.parse(logs)).toMatchSnapshot();
     });
+
+    it('includes authConnection fields in sanitized state', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        authConnection:
+          'google' as typeof Engine.context.SeedlessOnboardingController.state.authConnection,
+        authConnectionId: 'connection-id-123',
+        authPubKey: 'pub-key-123',
+        userId: 'user-123',
+        socialBackupsMetadata: [],
+        isSeedlessOnboardingUserAuthenticated: false,
+      } as typeof Engine.context.SeedlessOnboardingController.state;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .authConnection,
+      ).toBe('google');
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .authConnectionId,
+      ).toBe('connection-id-123');
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .authPubKey,
+      ).toBe('pub-key-123');
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController.userId,
+      ).toBe('user-123');
+    });
+
+    it('handles SeedlessOnboardingController state being null', () => {
+      // @ts-expect-error - testing null state handling
+      Engine.context.SeedlessOnboardingController.state = null;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController.vault,
+      ).toBe(false);
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .socialBackupsMetadata,
+      ).toEqual([]);
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .nodeAuthTokens,
+      ).toEqual([]);
+    });
+
+    it('handles SeedlessOnboardingController state being undefined', () => {
+      // @ts-expect-error - testing undefined state handling
+      Engine.context.SeedlessOnboardingController.state = undefined;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController.vault,
+      ).toBe(false);
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .socialBackupsMetadata,
+      ).toEqual([]);
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .nodeAuthTokens,
+      ).toEqual([]);
+    });
+
+    it('filters out sensitive data from socialBackupsMetadata', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        socialBackupsMetadata: [
+          {
+            type: SecretType.Mnemonic,
+            keyringId: 'keyring1',
+            hash: 'sensitive-hash',
+          },
+          {
+            type: SecretType.PrivateKey,
+            keyringId: 'keyring2',
+            hash: 'another-hash',
+          },
+        ],
+        isSeedlessOnboardingUserAuthenticated: false,
+      } as typeof Engine.context.SeedlessOnboardingController.state;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .socialBackupsMetadata,
+      ).toEqual([
+        { type: SecretType.Mnemonic, keyringId: 'keyring1' },
+        { type: SecretType.PrivateKey, keyringId: 'keyring2' },
+      ]);
+    });
+
+    it('filters out sensitive data from nodeAuthTokens', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        nodeAuthTokens: [
+          {
+            nodeIndex: 1,
+            nodePubKey: 'pub-key-1',
+            authToken: 'sensitive-token-1',
+          },
+          {
+            nodeIndex: 2,
+            nodePubKey: 'pub-key-2',
+            authToken: 'sensitive-token-2',
+          },
+        ],
+        socialBackupsMetadata: [],
+        isSeedlessOnboardingUserAuthenticated: false,
+      } as typeof Engine.context.SeedlessOnboardingController.state;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .nodeAuthTokens,
+      ).toEqual([
+        { nodeIndex: 1, nodePubKey: 'pub-key-1' },
+        { nodeIndex: 2, nodePubKey: 'pub-key-2' },
+      ]);
+    });
+
+    it('handles empty arrays in socialBackupsMetadata and nodeAuthTokens', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        socialBackupsMetadata: [],
+        nodeAuthTokens: [],
+        isSeedlessOnboardingUserAuthenticated: false,
+      } as typeof Engine.context.SeedlessOnboardingController.state;
+
+      const mockStateInput = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+
+      const logs = generateStateLogs(mockStateInput);
+      const parsedLogs = JSON.parse(logs);
+
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .socialBackupsMetadata,
+      ).toEqual([]);
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController
+          .nodeAuthTokens,
+      ).toEqual([]);
+    });
   });
 });
 
@@ -289,7 +736,7 @@ describe('logs :: downloadStateLogs', () => {
     jest.clearAllMocks();
   });
 
-  it('should generate and share logs successfully on iOS', async () => {
+  it('generates and shares logs on iOS', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -320,7 +767,7 @@ describe('logs :: downloadStateLogs', () => {
     });
   });
 
-  it('should generate and share logs successfully on Android', async () => {
+  it('generates and shares logs on Android', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -347,7 +794,7 @@ describe('logs :: downloadStateLogs', () => {
     });
   });
 
-  it('should handle errors during log generation', async () => {
+  it('logs error when state is null during log generation', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -364,7 +811,7 @@ describe('logs :: downloadStateLogs', () => {
     );
   });
 
-  it('should handle errors during file writing on iOS', async () => {
+  it('logs error when file writing fails on iOS', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -392,7 +839,7 @@ describe('logs :: downloadStateLogs', () => {
     );
   });
 
-  it('should handle errors during sharing', async () => {
+  it('logs error when sharing fails', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -418,7 +865,7 @@ describe('logs :: downloadStateLogs', () => {
     );
   });
 
-  it('should handle loggedIn as false', async () => {
+  it('includes loggedIn as false in generated logs', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
@@ -444,7 +891,7 @@ describe('logs :: downloadStateLogs', () => {
     });
   });
 
-  it('does not include metametrics id if not opt-in', async () => {
+  it('excludes metametrics id when not opted in', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');

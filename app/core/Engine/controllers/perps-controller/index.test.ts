@@ -80,31 +80,6 @@ describe('perps controller init', () => {
     const initialPerpsControllerState: PerpsControllerState = {
       activeProvider: 'hyperliquid',
       isTestnet: true,
-      connectionStatus: 'connected',
-      positions: [
-        {
-          coin: 'ETH',
-          size: '2.5',
-          entryPrice: '3200.00',
-          positionValue: '8000.00',
-          unrealizedPnl: '320.00',
-          marginUsed: '1600.00',
-          leverage: {
-            type: 'cross',
-            value: 5,
-          },
-          liquidationPrice: '2400.00',
-          maxLeverage: 100,
-          returnOnEquity: '20.0',
-          cumulativeFunding: {
-            allTime: '-12.50',
-            sinceOpen: '-8.20',
-            sinceChange: '-3.10',
-          },
-          takeProfitCount: 0,
-          stopLossCount: 0,
-        },
-      ],
       accountState: null,
       perpsBalances: {},
       depositInProgress: false,

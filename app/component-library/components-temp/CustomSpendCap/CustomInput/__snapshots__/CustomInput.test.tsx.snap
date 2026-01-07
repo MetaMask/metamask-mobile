@@ -35,7 +35,7 @@ exports[`CustomInput should render correctly 1`] = `
           {
             "color": "#121314",
             "flexGrow": 1,
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,

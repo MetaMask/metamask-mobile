@@ -24,6 +24,8 @@ import { POLYMARKET_API_MOCKS } from './polymarket-apis';
 import { INFURA_MOCKS } from '../infura-mocks';
 import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks';
 import { DEFAULT_REWARDS_MOCKS } from './rewards';
+import { ACL_EXECUTION_MOCKS } from './acl-execution';
+import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -46,6 +48,9 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
     ...(POLYMARKET_API_MOCKS.GET || []),
     ...(INFURA_MOCKS.GET || []),
+    ...(DEFAULT_REWARDS_MOCKS.GET || []),
+    ...(ACL_EXECUTION_MOCKS.GET || []),
+    ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',

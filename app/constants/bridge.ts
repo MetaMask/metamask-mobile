@@ -7,12 +7,6 @@ import {
 } from '@metamask/bridge-controller';
 
 /**
- * Swaps testnet chain ID (1337 in decimal)
- * Used for testing swaps functionality on local/test networks
- */
-export const SWAPS_TESTNET_CHAIN_ID: Hex = '0x539';
-
-/**
  * Native token address (zero address)
  * Used to represent native tokens (ETH, BNB, MATIC, etc.) across all EVM chains
  */

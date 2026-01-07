@@ -3,14 +3,14 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -37,8 +37,8 @@ const PredictMarketOutcomeResolved: React.FC<
       : strings('predict.outcome_draw');
 
   const textColor = tokenOneIsWinner
-    ? TextColor.Default
-    : TextColor.Alternative;
+    ? TextColor.TextDefault
+    : TextColor.TextAlternative;
 
   return (
     <Box twClassName={noContainer ? 'pt-2' : ' bg-muted rounded-xl p-4 mb-4'}>
@@ -50,16 +50,18 @@ const PredictMarketOutcomeResolved: React.FC<
       >
         <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-1">
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            twClassName="font-medium"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {outcome.groupItemTitle}
+            {outcome.groupItemTitle ?? outcome.title}
           </Text>
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="font-medium"
           >
             ${formatVolume(outcome.volume)}{' '}
             {strings('predict.volume_abbreviated')}
@@ -70,14 +72,18 @@ const PredictMarketOutcomeResolved: React.FC<
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
         >
-          <Text variant={TextVariant.BodyMDMedium} color={textColor}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={textColor}
+            twClassName="font-medium"
+          >
             {winnerTitle}
           </Text>
           {tokenOneIsWinner && (
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Md}
-              color={TextColor.Success}
+              color={IconColor.Success}
             />
           )}
         </Box>

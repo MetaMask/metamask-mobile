@@ -487,12 +487,18 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
+          ramp_type: 'BUY',
+          region: undefined,
+          ramp_routing: undefined,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
         });
         expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
       });
@@ -536,6 +542,12 @@ describe('FundActionMenu', () => {
           text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
+          ramp_type: 'BUY',
+          region: undefined,
+          ramp_routing: undefined,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
         });
       });
     });

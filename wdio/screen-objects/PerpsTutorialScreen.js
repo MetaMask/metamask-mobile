@@ -31,16 +31,16 @@ class PerpsTutorialScreen {
   }
 
   async tapContinue() {
-    await AppwrightGestures.tap(this.continueButton);
+    await AppwrightGestures.tap(await this.continueButton);
   }
 
   // Legacy alias for backward compatibility
   async tapAddFunds() {
-    await AppwrightGestures.tap(this.addFundsButton); 
+    await AppwrightGestures.tap(await this.addFundsButton); 
   }
 
   async tapSkip() {
-    await AppwrightGestures.tap(this.skipButton);
+    await AppwrightGestures.tap(await this.skipButton);
   }
 
   async expectFirstScreenVisible() {
@@ -50,7 +50,7 @@ class PerpsTutorialScreen {
 
   async flowTapContinueTutorial(times = 1) {
     for (let i = 0; i < times; i++) {
-      await AppwrightGestures.tap(this.continueButton);
+      await AppwrightGestures.tap(await this.continueButton);
     }
   }
 }

@@ -345,18 +345,8 @@ class SendFlow extends PureComponent {
 
   goToBuy = () => {
     this.props.goToBuy();
-
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          button_location: 'Send Flow warning',
-          button_copy: 'Buy Native Token',
-          chain_id_destination: this.props.globalChainId,
-          region: this.props.rampGeodetectedRegion,
-        })
-        .build(),
-    );
+    // TODO: Add RAMPS_BUTTON_CLICKED analytics tracking when this component is refactored to a functional component
+    // This will allow access to the useRampsButtonClickData hook for the expanded analytics payload
   };
 
   renderBuyEth = () => {

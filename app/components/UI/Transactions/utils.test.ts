@@ -192,5 +192,17 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('3');
     });
+
+    it("preserves transactions when hash is placeholder '0x0'", () => {
+      const PLACEHOLDER_HASH = '0x0';
+      const transactions = [
+        createTransaction('1', 'musdConversion', PLACEHOLDER_HASH, '100'),
+        createTransaction('2', 'musdConversion', PLACEHOLDER_HASH, '100'),
+      ];
+
+      const result = filterDuplicateOutgoingTransactions(transactions);
+
+      expect(result).toEqual(transactions);
+    });
   });
 });

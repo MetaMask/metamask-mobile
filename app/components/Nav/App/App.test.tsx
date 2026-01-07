@@ -31,7 +31,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -57,9 +56,14 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  init: jest.fn(),
-  parse: jest.fn(),
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  SharedDeeplinkManager: {
+    getInstance: jest.fn(() => ({
+      parse: jest.fn(),
+    })),
+  },
+  default: jest.fn(),
 }));
 
 const mockIsWC2Enabled = true;
@@ -77,16 +81,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
     getMetaMetricsId: jest.fn(),
   }),
 }));
-
-jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn().mockReturnValue({
-    isCheckingUpdates: false,
-  }),
-}));
-
-const mockUseOTAUpdates = useOTAUpdates as jest.MockedFunction<
-  typeof useOTAUpdates
->;
 
 jest.mock(
   '../../UI/FoxLoader',
@@ -116,6 +110,10 @@ jest.mock('../../../core/NavigationService', () => ({
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
+}));
+
+jest.mock('../../hooks/useOTAUpdates', () => ({
+  useOTAUpdates: jest.fn(),
 }));
 
 // Mock the navigation hook
@@ -264,9 +262,6 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: false,
-    });
     mockNavigate.mockClear();
   });
 
@@ -277,20 +272,6 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
-  });
-
-  it('renders FoxLoader when OTA update check runs', () => {
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: true,
-    });
-
-    const { getByTestId } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-    );
-
-    expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
@@ -830,7 +811,7 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share Address')).toBeTruthy();
+        expect(getByText('Share address')).toBeTruthy();
       });
     });
   });

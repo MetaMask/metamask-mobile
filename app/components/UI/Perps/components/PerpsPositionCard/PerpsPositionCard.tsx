@@ -20,7 +20,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { Position, Order } from '../../controllers/types';
+import type { Order, Position } from '../../controllers/types';
 import {
   formatPerpsFiat,
   formatPnl,
@@ -238,7 +238,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             >
               {showSizeInUSD && currentPrice
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
             </Text>
@@ -351,14 +351,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               }
 
               return (
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {parts.join(', ')}
                 </Text>
               );
             }
 
             return (
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('perps.auto_close.description')}
               </Text>
             );

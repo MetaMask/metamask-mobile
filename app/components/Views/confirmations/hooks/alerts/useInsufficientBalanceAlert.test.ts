@@ -174,6 +174,44 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('return alert when balance is insufficient and has GasFeeTokens but not selected gas fee token', () => {
+    useIsGaslessSupportedMock.mockReturnValueOnce({
+      isSmartTransaction: true,
+      isSupported: true,
+      pending: false,
+    });
+    mockSelectUseTransactionSimulations.mockReturnValueOnce(true);
+    const txWithGasFeeTokens = {
+      ...mockTransaction,
+      gasFeeTokens: [
+        {
+          tokenAddress: '0xabc' as Hex,
+          symbol: 'GFT',
+          decimals: 18,
+        },
+      ],
+    } as unknown as TransactionMeta;
+    mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeTokens);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([
+      {
+        action: {
+          label: `Buy ${mockNativeCurrency}`,
+          callback: expect.any(Function),
+        },
+        isBlocking: true,
+        field: RowAlertKey.EstimatedFee,
+        key: AlertKeys.InsufficientBalance,
+        message: `Insufficient ${mockNativeCurrency} balance`,
+        title: 'Insufficient Balance',
+        severity: Severity.Danger,
+        skipConfirmation: true,
+      },
+    ]);
+  });
+
   it('return alert when balance is insufficient (with maxFeePerGas)', () => {
     // Transaction needs: value (5) + (maxFeePerGas (3) * gas (2)) = 11 wei
     // Balance is only 8 wei, so should show alert

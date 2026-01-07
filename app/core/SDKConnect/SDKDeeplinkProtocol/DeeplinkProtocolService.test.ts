@@ -9,7 +9,7 @@ import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
 import AppConstants from '../../AppConstants';
-import { DappClient } from '../AndroidSDK/dapp-sdk-types';
+import { DappClient } from '../dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
@@ -140,6 +140,86 @@ describe('DeeplinkProtocolService', () => {
       const setupBridgeSpy = jest.spyOn(service as any, 'setupBridge');
       service.setupBridge(clientInfo);
       expect(setupBridgeSpy).toHaveReturned();
+    });
+
+    it('should throw error when originatorInfo.url is "metamask"', () => {
+      const clientInfo: DappClient = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'metamask',
+          title: 'Test',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'test',
+      };
+
+      expect(() => service.setupBridge(clientInfo)).toThrow(
+        'Connections from metamask origin are not allowed',
+      );
+      expect(service.bridgeByClientId[clientInfo.clientId]).toBeUndefined();
+    });
+
+    it('should throw error when originatorInfo.title is "metamask"', () => {
+      const clientInfo: DappClient = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'https://example.com',
+          title: 'metamask',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'test',
+      };
+
+      expect(() => service.setupBridge(clientInfo)).toThrow(
+        'Connections from metamask origin are not allowed',
+      );
+      expect(service.bridgeByClientId[clientInfo.clientId]).toBeUndefined();
+    });
+
+    it('should allow connection when originatorInfo contains "metamask" as substring', () => {
+      const clientInfo: DappClient = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'https://my-metamask-dapp.com',
+          title: 'My MetaMask App',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'test',
+      };
+
+      expect(() => service.setupBridge(clientInfo)).not.toThrow();
+      expect(service.bridgeByClientId[clientInfo.clientId]).toBeInstanceOf(
+        BackgroundBridge,
+      );
+    });
+
+    it('should allow connection when originatorInfo has valid url and title', () => {
+      const clientInfo: DappClient = {
+        clientId: 'client1',
+        originatorInfo: {
+          url: 'https://example.com',
+          title: 'Example Dapp',
+          platform: 'test',
+          dappId: 'dappId',
+        },
+        connected: false,
+        validUntil: Date.now(),
+        scheme: 'test',
+      };
+
+      expect(() => service.setupBridge(clientInfo)).not.toThrow();
+      expect(service.bridgeByClientId[clientInfo.clientId]).toBeInstanceOf(
+        BackgroundBridge,
+      );
     });
   });
   describe('sendMessage', () => {

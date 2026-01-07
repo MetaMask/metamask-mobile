@@ -28,7 +28,7 @@ describe('SampleFeature', () => {
     expect(
       getByText('A sample feature as a template for developers.'),
     ).toBeDefined();
-    expect(getByText('Navigate to Sample Feature')).toBeDefined();
+    expect(getByText('Navigate to sample feature')).toBeDefined();
   });
 
   it('navigates to SampleFeature', () => {

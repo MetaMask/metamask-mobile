@@ -1,24 +1,26 @@
+import { TrxScope } from '@metamask/keyring-api';
+import type { CaipAssetType } from '@metamask/snaps-sdk';
+import { Hex } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { TrxScope } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
+import { TronResourceType } from '../../../../core/Multichain/constants';
+import Logger from '../../../../util/Logger';
+import { isTronChainId } from '../../../../core/Multichain/utils';
+import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import type { CaipAssetType } from '@metamask/snaps-sdk';
+import { TokenI } from '../../Tokens/types';
+import { EarnTokenDetails } from '../types/lending.types';
 import {
-  validateTronUnstakeAmount,
+  buildTronEarnTokenIfEligible,
+  getStakedTrxTotalFromResources,
+} from '../utils/tron';
+import {
+  computeStakeFee,
   confirmTronUnstake,
   TronUnstakeResult,
+  validateTronUnstakeAmount,
 } from '../utils/tron-staking-snap';
-import { TronResourceType } from '../../../../core/Multichain/constants';
-import { isTronChainId } from '../../../../core/Multichain/utils';
-import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { TokenI } from '../../Tokens/types';
-import {
-  getStakedTrxTotalFromResources,
-  buildTronEarnTokenIfEligible,
-} from '../utils/tron';
-import { EarnTokenDetails } from '../types/lending.types';
 
 /** Resource type for Tron unstaking - matches ResourceToggle component type */
 export type ResourceType = 'energy' | 'bandwidth';
@@ -44,10 +46,14 @@ interface UseTronUnstakeReturn {
   validating: boolean;
   /** Validation errors if any */
   errors?: string[];
+  /** Preview data including fee estimate */
+  preview?: Record<string, unknown>;
   /** Validate unstake amount */
-  validate: (amount: string) => Promise<TronUnstakeResult | null>;
+  validateUnstakeAmount: (amount: string) => Promise<TronUnstakeResult | null>;
   /** Confirm unstake with current resource type */
   confirmUnstake: (amount: string) => Promise<TronUnstakeResult | null>;
+  /** The Tron account ID for balance refresh */
+  tronAccountId?: string;
 }
 
 /**
@@ -81,6 +87,13 @@ const useTronUnstake = ({
     [isTronEnabled, tronResources],
   );
 
+  // Determine the staked balance to use for withdrawal
+  const stakedBalanceOverride = useMemo(() => {
+    if (stakedTrxTotal > 0) return stakedTrxTotal;
+    if (token.isStaked) return token.balance;
+    return undefined;
+  }, [stakedTrxTotal, token.isStaked, token.balance]);
+
   // Build enriched Tron token with staked balance for withdrawal flow (acts as receipt token)
   const tronWithdrawalToken = useMemo(() => {
     if (!isTronEnabled) return undefined;
@@ -88,24 +101,26 @@ const useTronUnstake = ({
     return buildTronEarnTokenIfEligible(token, {
       isTrxStakingEnabled: true,
       isTronEligible: true,
-      stakedBalanceOverride:
-        stakedTrxTotal > 0
-          ? stakedTrxTotal
-          : token.isStaked
-            ? token.balance
-            : undefined,
+      stakedBalanceOverride,
     });
-  }, [isTronEnabled, token, stakedTrxTotal]) as EarnTokenDetails | undefined;
+  }, [isTronEnabled, token, stakedBalanceOverride]) as
+    | EarnTokenDetails
+    | undefined;
 
   // Resource type state (energy or bandwidth)
   const [resourceType, setResourceType] = useState<ResourceType>('energy');
 
   const [validating, setValidating] = useState(false);
   const [errors, setErrors] = useState<string[] | undefined>(undefined);
+  const [preview, setPreview] = useState<Record<string, unknown> | undefined>(
+    undefined,
+  );
 
   const chainId = String(token.chainId);
 
-  const validate = useCallback<UseTronUnstakeReturn['validate']>(
+  const validateUnstakeAmount = useCallback<
+    UseTronUnstakeReturn['validateUnstakeAmount']
+  >(
     async (amount: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
@@ -121,7 +136,33 @@ const useTronUnstake = ({
         options: { purpose: resourceType.toUpperCase() as TronResourceType },
       });
 
-      setErrors(validation?.errors);
+      const { errors: validationErrors, ...rest } = validation ?? {};
+      let nextPreview: Record<string, unknown> | undefined =
+        rest && Object.keys(rest).length > 0 ? rest : undefined;
+
+      try {
+        const feeResult = await computeStakeFee(selectedTronAccount, {
+          fromAccountId: selectedTronAccount.id,
+          value: amount,
+          options: {
+            purpose: resourceType.toUpperCase() as
+              | TronResourceType.ENERGY
+              | TronResourceType.BANDWIDTH,
+          },
+        });
+        if (feeResult.length > 0) {
+          const fee = feeResult[0];
+          nextPreview = { ...(nextPreview ?? {}), fee };
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Tron Unstake] Failed to compute stake fee',
+        );
+      }
+
+      if (nextPreview) setPreview(nextPreview);
+      setErrors(validationErrors);
       setValidating(false);
 
       return validation;
@@ -160,8 +201,10 @@ const useTronUnstake = ({
     tronWithdrawalToken,
     validating,
     errors,
-    validate,
+    preview,
+    validateUnstakeAmount,
     confirmUnstake,
+    tronAccountId: selectedTronAccount?.id,
   };
 };
 

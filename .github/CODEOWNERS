@@ -50,8 +50,12 @@ certs/certificate.pem                                       @MetaMask/mobile-adm
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Ramps Team
-app/components/UI/Ramp/              @MetaMask/ramp
-app/reducers/fiatOrders/             @MetaMask/ramp
+app/components/UI/Ramp/                                @MetaMask/ramp
+app/reducers/fiatOrders/                               @MetaMask/ramp
+app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
+app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
+app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
+app/selectors/rampsController                          @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card

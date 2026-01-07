@@ -14,6 +14,7 @@ import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+  POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
 } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import {
@@ -184,6 +185,13 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
         return {
           statusCode: 200,
           json: POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+        };
+      }
+      if (eventId === '58319') {
+        // Return Celtics vs Nets event details from mock response file
+        return {
+          statusCode: 200,
+          json: POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
         };
       }
 
@@ -739,6 +747,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
             // This indicates full allowance is granted
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
+            // ownerOf(uint256) selector - return owner of the token
+            result = '0x';
           } else {
             // Other USDC contract calls - return current global balance as fallback
             result = currentUSDCBalance;
@@ -803,6 +814,12 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         // This is critical for TransactionController to mark transactions as confirmed
         // TransactionController polls for receipts to determine transaction status
         result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
+      } else if (body?.method === 'eth_getBlockByNumber') {
+        // Return block details to enable EIP-1559 transactions
+        result = {
+          baseFeePerGas: '0x123',
+          number: currentBlockNumber,
+        };
       }
       // Note: We don't mock eth_gasPrice for Polygon - the app should use the gas API
       // (already mocked in DEFAULT_GAS_API_MOCKS) which provides EIP-1559 fields.

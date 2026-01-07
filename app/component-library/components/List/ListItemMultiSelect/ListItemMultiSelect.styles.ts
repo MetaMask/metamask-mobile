@@ -38,7 +38,7 @@ const styleSheet = (params: {
     underlay: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.muted,
     },
     checkbox: {
       marginRight: 8 - Number(gap),

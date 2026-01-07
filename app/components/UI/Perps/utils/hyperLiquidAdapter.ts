@@ -207,6 +207,10 @@ export function adaptOrderFromSDK(
     order.stopLossPrice = stopLossPrice;
     order.stopLossOrderId = stopLossOrderId;
   }
+  // Store trigger condition price for trigger orders (used for TP/SL display)
+  if (rawOrder.triggerPx) {
+    order.triggerPrice = rawOrder.triggerPx;
+  }
 
   return order;
 }

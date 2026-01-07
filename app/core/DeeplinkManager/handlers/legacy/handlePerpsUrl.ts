@@ -3,7 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { PerpsMarketData } from '../../../../components/UI/Perps/controllers/types';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
-import { store } from '../../../../store';
+import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
 
 interface HandlePerpsUrlParams {
@@ -148,7 +148,9 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     DevLogger.log('[handlePerpsUrl] Parsed navigation parameters:', navParams);
 
     // Check if user is first-time perps user - always goes to tutorial first
-    const isFirstTime = selectIsFirstTimePerpsUser(store.getState());
+    const isFirstTime = selectIsFirstTimePerpsUser(
+      ReduxService.store.getState(),
+    );
     DevLogger.log('[handlePerpsUrl] isFirstTimeUser:', isFirstTime);
 
     if (isFirstTime) {

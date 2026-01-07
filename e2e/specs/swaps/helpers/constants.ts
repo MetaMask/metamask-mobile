@@ -711,3 +711,92 @@ export const GET_TOP_ASSETS_BASE_RESPONSE = [
   { address: '0x0000000000000000000000000000000000000000', symbol: 'ETH' },
   { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC' },
 ];
+
+export const GASLESS_SWAP_QUOTES_ETH_MUSD = [
+  {
+    quote: {
+      requestId:
+        '0xf75136205d474cdedb32d1c6f6811fe289b95678aa74679b9abb69252ed0b266',
+      bridgeId: 'openocean',
+      srcChainId: 1,
+      destChainId: 1,
+      aggregator: 'openocean',
+      aggregatorType: 'AGG',
+      srcAsset: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ethereum',
+        coingeckoId: 'ethereum',
+        aggregators: [],
+        occurrences: 100,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        metadata: {},
+      },
+      srcTokenAmount: '991250000000000000',
+      destAsset: {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'MUSD',
+        decimals: 6,
+        name: 'MetaMask USD',
+        coingeckoId: 'metamask-usd',
+        aggregators: ['metamask', 'liFi', 'socket', 'rubic', 'rango'],
+        occurrences: 5,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+        metadata: { storage: {} },
+      },
+      destTokenAmount: '3839447765',
+      minDestTokenAmount: '3762658809',
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      gasIncluded: true,
+      gasIncluded7702: false,
+      feeData: {
+        metabridge: {
+          amount: '8750000000000000',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ethereum',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+        },
+      },
+      bridges: ['openocean'],
+      protocols: ['openocean'],
+      steps: [],
+      slippage: 2,
+      priceData: {
+        totalFromAmountUsd: '3865.21',
+        totalToAmountUsd: '3832.3211880033778',
+        priceImpact: '0.008508932760864812',
+        totalFeeAmountUsd: '33.8205875',
+      },
+    },
+    trade: {
+      chainId: 1,
+      to: '0x881D40237659C251811CEC9c364ef91dC08D300C',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0xde0b6b3a7640000',
+      data: '0x5f575529000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f70656e4f6365616e46656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000aca92e438df0b2401ff60da7e4337b687a2435da0000000000000000000000000000000000000000000000000dc1a09f859b200000000000000000000000000000000000000000000000000000000000e0123b42',
+      gasLimit: 448721,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+  },
+];

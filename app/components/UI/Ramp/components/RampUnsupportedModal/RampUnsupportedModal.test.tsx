@@ -64,7 +64,7 @@ describe('RampUnsupportedModal', () => {
 
   it('closes the modal when the got it button is pressed', () => {
     const { getByText } = render(RampUnsupportedModal);
-    const gotItButton = getByText('Got It');
+    const gotItButton = getByText('Got it');
 
     fireEvent.press(gotItButton);
 

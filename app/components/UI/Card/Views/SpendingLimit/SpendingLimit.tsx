@@ -186,9 +186,11 @@ const SpendingLimit = ({
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
 
-        // Clear the returned token from params to avoid re-applying it
+        // Clear both the returned token and the original selectedToken from params
+        // to prevent the useEffect from overriding our selection
         navigation.setParams({
           returnedSelectedToken: undefined,
+          selectedToken: undefined,
         } as Record<string, unknown>);
       }
     }, [route?.params, navigation]),
@@ -388,6 +390,9 @@ const SpendingLimit = ({
         .build(),
     );
 
+    const { selectedToken: _excludedSelectedToken, ...restParams } =
+      route?.params ?? {};
+
     navigation.navigate(
       ...createAssetSelectionModalNavigationDetails({
         tokensWithAllowances: allTokens ?? [],
@@ -395,7 +400,7 @@ const SpendingLimit = ({
         cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
-        callerParams: route?.params as Record<string, unknown>,
+        callerParams: restParams as Record<string, unknown>,
       }),
     );
   }, [
@@ -413,7 +418,7 @@ const SpendingLimit = ({
       return (
         <View style={styles.selectedTokenContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
-            Select token
+            {strings('card.card_spending_limit.select_token')}
           </Text>
           <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
         </View>

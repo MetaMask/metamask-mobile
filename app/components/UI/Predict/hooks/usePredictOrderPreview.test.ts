@@ -3,6 +3,7 @@ import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview, PreviewOrderParams } from '../providers/types';
 import { Side } from '../types';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 
 jest.mock('./usePredictTrading');
 
@@ -26,6 +27,7 @@ describe('usePredictOrderPreview', () => {
       providerFee: 1,
       totalFee: 2,
       totalFeePercentage: 4,
+      collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
     },
   };
 

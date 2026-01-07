@@ -15,6 +15,174 @@ import { formatOrderLabel } from './orderUtils';
 import { strings } from '../../../../../locales/i18n';
 import { getPerpsDisplaySymbol } from './marketUtils';
 
+/**
+ * Determines the close direction category for aggregation purposes.
+ * Returns a normalized direction string for grouping fills that should be aggregated together.
+ *
+ * @param direction - The fill direction string (e.g., "Close Long", "Close Short", "Sell")
+ * @returns A normalized close direction for grouping, or null if not a close fill
+ */
+function getCloseDirectionForAggregation(
+  direction: string | undefined,
+): string | null {
+  if (!direction) return null;
+
+  const [part1, part2] = direction.split(' ');
+
+  // Handle standard close directions
+  if (part1 === 'Close') {
+    return `Close ${part2}`; // "Close Long" or "Close Short"
+  }
+
+  // Handle spot-perps and prelaunch markets that use "Sell" for closing
+  if (direction === 'Sell') {
+    return 'Sell';
+  }
+
+  // Handle auto-deleveraging as a closeable position
+  if (direction === 'Auto-Deleveraging') {
+    return 'Auto-Deleveraging';
+  }
+
+  // Not a close fill - don't aggregate
+  return null;
+}
+
+/**
+ * Aggregates fills that occur at the same timestamp for the same asset when closing positions.
+ * This handles cases where a stop loss or take profit order is split into multiple fills
+ * by HyperLiquid, ensuring users see the aggregate PnL instead of partial amounts.
+ *
+ * Aggregation criteria:
+ * - Same asset symbol
+ * - Same timestamp (truncated to the same second)
+ * - Same close direction (Close Long, Close Short, Sell, or Auto-Deleveraging)
+ *
+ * For aggregated fills:
+ * - Sizes are summed
+ * - PnLs are summed
+ * - Fees are summed
+ * - Price is calculated as VWAP (Volume Weighted Average Price)
+ * - First fill's orderId and metadata are preserved
+ * - detailedOrderType (Stop Loss, Take Profit) is preserved from any grouped fill
+ * - liquidation info is preserved from any grouped fill
+ *
+ * @param fills - Array of OrderFill objects to aggregate
+ * @returns Array of OrderFill objects with close fills aggregated by timestamp
+ */
+export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
+  // Map to group fills by aggregation key
+  const aggregationMap = new Map<string, OrderFill[]>();
+  // Array to preserve non-aggregatable fills in order
+  const nonAggregatableFills: OrderFill[] = [];
+
+  // Group fills by asset + timestamp (truncated to second) + close direction
+  for (const fill of fills) {
+    const closeDirection = getCloseDirectionForAggregation(fill.direction);
+
+    if (closeDirection === null) {
+      // Not a close fill - don't aggregate, preserve as-is
+      nonAggregatableFills.push(fill);
+      continue;
+    }
+
+    // Create aggregation key: asset + timestamp (truncated to second) + close direction
+    const timestampSecond = Math.floor(fill.timestamp / 1000);
+    const aggregationKey = `${fill.symbol}-${timestampSecond}-${closeDirection}`;
+
+    const existingGroup = aggregationMap.get(aggregationKey);
+    if (existingGroup) {
+      existingGroup.push(fill);
+    } else {
+      aggregationMap.set(aggregationKey, [fill]);
+    }
+  }
+
+  // Build aggregated fills
+  const aggregatedFills: OrderFill[] = [];
+
+  for (const groupedFills of aggregationMap.values()) {
+    if (groupedFills.length === 1) {
+      // Only one fill in the group - no aggregation needed
+      aggregatedFills.push(groupedFills[0]);
+      continue;
+    }
+
+    // Aggregate multiple fills
+    const firstFill = groupedFills[0];
+
+    // Sum sizes, PnLs, and fees
+    let totalSize = BigNumber(0);
+    let totalPnl = BigNumber(0);
+    let totalFee = BigNumber(0);
+    let totalNotional = BigNumber(0); // For VWAP calculation: sum of (size * price)
+
+    // Preserve detailedOrderType and liquidation from any fill in the group
+    let aggregatedDetailedOrderType: string | undefined;
+    let aggregatedLiquidation: OrderFill['liquidation'];
+    let aggregatedStartPosition: string | undefined;
+
+    for (const fill of groupedFills) {
+      const size = BigNumber(fill.size);
+      const price = BigNumber(fill.price);
+      const pnl = BigNumber(fill.pnl || '0');
+      const fee = BigNumber(fill.fee || '0');
+
+      totalSize = totalSize.plus(size);
+      totalPnl = totalPnl.plus(pnl);
+      totalFee = totalFee.plus(fee);
+      totalNotional = totalNotional.plus(size.times(price));
+
+      // Preserve detailedOrderType from any fill that has it
+      if (fill.detailedOrderType && !aggregatedDetailedOrderType) {
+        aggregatedDetailedOrderType = fill.detailedOrderType;
+      }
+
+      // Preserve liquidation info from any fill that has it
+      if (fill.liquidation && !aggregatedLiquidation) {
+        aggregatedLiquidation = fill.liquidation;
+      }
+
+      // Use the startPosition from the first fill (represents position before any fills)
+      if (fill.startPosition && !aggregatedStartPosition) {
+        aggregatedStartPosition = fill.startPosition;
+      }
+    }
+
+    // Calculate VWAP: totalNotional / totalSize
+    const vwapPrice = totalSize.isZero()
+      ? BigNumber(firstFill.price)
+      : totalNotional.dividedBy(totalSize);
+
+    // Create aggregated fill
+    const aggregatedFill: OrderFill = {
+      orderId: firstFill.orderId, // Use first fill's orderId
+      symbol: firstFill.symbol,
+      side: firstFill.side,
+      size: totalSize.toString(),
+      price: vwapPrice.toString(),
+      pnl: totalPnl.toString(),
+      direction: firstFill.direction,
+      fee: totalFee.toString(),
+      feeToken: firstFill.feeToken,
+      timestamp: firstFill.timestamp, // Use first fill's timestamp
+      startPosition: aggregatedStartPosition,
+      success: firstFill.success,
+      liquidation: aggregatedLiquidation,
+      orderType: firstFill.orderType,
+      detailedOrderType: aggregatedDetailedOrderType,
+    };
+
+    aggregatedFills.push(aggregatedFill);
+  }
+
+  // Combine aggregated and non-aggregatable fills, then sort by timestamp descending
+  const allFills = [...aggregatedFills, ...nonAggregatableFills];
+  allFills.sort((a, b) => b.timestamp - a.timestamp);
+
+  return allFills;
+}
+
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;
@@ -38,14 +206,21 @@ export interface DepositRequest {
 }
 
 /**
- * Transform abstract OrderFill objects to PerpsTransaction format
+ * Transform abstract OrderFill objects to PerpsTransaction format.
+ * Close fills that occur at the same timestamp for the same asset are automatically
+ * aggregated to show combined PnL (handles split stop loss/take profit orders).
+ *
  * @param fills - Array of abstract OrderFill objects
  * @returns Array of PerpsTransaction objects
  */
 export function transformFillsToTransactions(
   fills: OrderFill[],
 ): PerpsTransaction[] {
-  return fills.reduce((acc: PerpsTransaction[], fill) => {
+  // Aggregate close fills that occur at the same timestamp for the same asset
+  // This handles split stop loss/take profit orders that execute as multiple fills
+  const aggregatedFills = aggregateFillsByTimestamp(fills);
+
+  return aggregatedFills.reduce((acc: PerpsTransaction[], fill) => {
     const {
       direction,
       orderId,

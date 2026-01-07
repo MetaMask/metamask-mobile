@@ -1,5 +1,5 @@
 // Third parties dependencies
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -12,8 +12,12 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -26,6 +30,7 @@ import { createAddressListNavigationDetails } from '../../Views/MultichainAccoun
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
 import {
@@ -38,24 +43,16 @@ import {
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
+  const { colors } = useTheme();
 
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { toastRef } = useContext(ToastContext);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
-
-  const handleShowAlert = useCallback(
-    (config: {
-      isVisible: boolean;
-      autodismiss: number;
-      content: string;
-      data: { msg: string };
-    }) => dispatch(showAlert(config)),
-    [dispatch],
-  );
 
   const handleProtectWalletModalVisible = useCallback(
     () => dispatch(protectWalletModalVisible()),
@@ -70,11 +67,15 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     await ClipboardManager.setString(
       getFormattedAddressFromInternalAccount(account),
     );
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('account_details.account_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
     });
     setTimeout(() => handleProtectWalletModalVisible(), 2000);
 
@@ -83,9 +84,11 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     );
   }, [
     account,
+    colors.accent03.dark,
+    colors.accent03.normal,
     createEventBuilder,
     handleProtectWalletModalVisible,
-    handleShowAlert,
+    toastRef,
     trackEvent,
   ]);
 

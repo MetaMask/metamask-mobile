@@ -124,6 +124,13 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
+// Mock usePerpsLivePrices hook (which uses usePerpsStream internally)
+const mockUsePerpsLivePrices = jest.fn();
+jest.mock('../../hooks', () => ({
+  usePerpsLivePrices: (options: { symbols: string[] }) =>
+    mockUsePerpsLivePrices(options),
+}));
+
 // usePerpsScreenTracking removed - migrated to usePerpsMeasurement
 
 // Mock BottomSheet components from component library
@@ -311,6 +318,10 @@ describe('PerpsLeverageBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
+    // Default mock for usePerpsLivePrices - returns price of 3000
+    mockUsePerpsLivePrices.mockReturnValue({
+      'BTC-USD': { price: '3000' },
+    });
   });
 
   describe('Component Rendering', () => {
@@ -365,14 +376,13 @@ describe('PerpsLeverageBottomSheet', () => {
     });
 
     it('handles zero prices gracefully', () => {
-      // Arrange
-      const propsWithZeroPrices = {
-        ...defaultProps,
-        currentPrice: 0,
-      };
+      // Arrange - Mock usePerpsLivePrices to return zero price
+      mockUsePerpsLivePrices.mockReturnValue({
+        'BTC-USD': { price: '0' },
+      });
 
       // Act
-      render(<PerpsLeverageBottomSheet {...propsWithZeroPrices} />);
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
       // Assert - Should not crash and show 0.0%
       expect(screen.getByText(/0\.0%/)).toBeOnTheScreen();
@@ -528,14 +538,11 @@ describe('PerpsLeverageBottomSheet', () => {
 
   describe('Price Information Display', () => {
     it('displays unavailable message when currentPrice is missing', () => {
-      // Arrange
-      const propsWithoutPrice = {
-        ...defaultProps,
-        currentPrice: 0,
-      };
+      // Arrange - Mock usePerpsLivePrices to return no price
+      mockUsePerpsLivePrices.mockReturnValue({});
 
       // Act
-      render(<PerpsLeverageBottomSheet {...propsWithoutPrice} />);
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
       // Assert
       expect(

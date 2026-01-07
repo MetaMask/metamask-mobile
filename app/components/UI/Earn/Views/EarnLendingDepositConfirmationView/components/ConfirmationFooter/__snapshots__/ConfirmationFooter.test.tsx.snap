@@ -129,7 +129,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -145,7 +145,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
@@ -158,7 +158,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -197,7 +197,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -213,7 +213,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
@@ -226,7 +226,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -282,7 +282,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -323,7 +323,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -356,7 +356,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -371,7 +371,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -396,7 +396,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -413,7 +413,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -422,14 +422,14 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         }
         testID="earn-lending-confirmation-footer-risk-disclosure-button"
       >
-        Risk Disclosure
+        Risk disclosure
       </Text>
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,

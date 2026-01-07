@@ -72,7 +72,7 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
-      paddingBottom: 24,
+      // paddingBottom is calculated dynamically in component with safe area insets
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,

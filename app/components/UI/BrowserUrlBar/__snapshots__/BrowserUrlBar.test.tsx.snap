@@ -48,7 +48,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
             {
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "height": 44,
               "margin": 0,
@@ -85,7 +85,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -172,7 +172,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -248,7 +248,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
             {
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "height": 44,
               "margin": 0,
@@ -288,7 +288,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 24,

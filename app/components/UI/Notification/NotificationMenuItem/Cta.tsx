@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import AppConstants from '../../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
 import { Linking } from 'react-native';
 
 type NotificationCtaProps = Pick<NotificationMenuItem, 'cta'> & {

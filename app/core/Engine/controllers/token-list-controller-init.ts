@@ -17,12 +17,13 @@ export const tokenListControllerInit: ControllerInitFunction<
   TokenListController,
   TokenListControllerMessenger,
   TokenListControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController }) => {
+> = ({ controllerMessenger, initMessenger, getController, persistedState }) => {
   const networkController = getController('NetworkController');
 
   const controller = new TokenListController({
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
+    state: persistedState.TokenListController,
     onNetworkStateChange: (listener) =>
       initMessenger.subscribe(
         'NetworkController:stateChange',

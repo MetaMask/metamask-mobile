@@ -1,4 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
 import { orderBy } from 'lodash';
@@ -9,6 +12,9 @@ import {
   TransactionPayQuote,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
+import { RootState } from '../../../../../reducers';
+import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
+import { Hex } from '@metamask/utils';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
@@ -46,6 +52,8 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   }
 
   if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
+    addFallbackProperties(properties, transactionMeta, getState());
+
     return {
       properties,
       sensitiveProperties,
@@ -120,3 +128,40 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     sensitiveProperties,
   };
 };
+
+function addFallbackProperties(
+  properties: JsonMap,
+  transaction: TransactionMeta,
+  state: RootState,
+) {
+  const { metamaskPay } = transaction;
+
+  if (
+    !metamaskPay?.chainId ||
+    !metamaskPay?.tokenAddress ||
+    properties.mm_pay
+  ) {
+    return;
+  }
+
+  const { chainId, tokenAddress } = metamaskPay;
+
+  properties.mm_pay = true;
+  properties.mm_pay_chain_selected = chainId;
+
+  properties.mm_pay_token_selected = getTokenSymbol(
+    state,
+    chainId,
+    tokenAddress,
+  );
+}
+
+function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
+  const token = selectSingleTokenByAddressAndChainId(
+    state,
+    tokenAddress,
+    chainId,
+  );
+
+  return token?.symbol;
+}

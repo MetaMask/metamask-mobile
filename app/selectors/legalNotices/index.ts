@@ -39,7 +39,7 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
   state.legalNotices.isPna25Acknowledged;
 
 /**
- * Determines if the PNA25 toast should be shown based on:
+ * Determines if the PNA25 notice should be shown based on:
  * - User has completed onboarding (completedOnboarding === true)
  * - LaunchDarkly feature flag (extension-ux-pna25) is enabled (boolean)
  * - User is an existing user (pna25Acknowledged !== true)
@@ -48,9 +48,9 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
  * Existing users will have pna25Acknowledged = false (PNA25 didn't exist when they onboarded)
  *
  * @param state - Redux state
- * @returns Boolean indicating whether or not to show the PNA25 toast
+ * @returns Boolean indicating whether or not to show the PNA25 notice
  */
-export const selectShouldShowPna25Toast = (state: RootState): boolean => {
+export const selectShouldShowPna25Notice = (state: RootState): boolean => {
   const completedOnboarding = selectCompletedOnboarding(state);
   const isPna25Acknowledged = selectIsPna25Acknowledged(state);
   const isPna25Enabled = selectIsPna25FlagEnabled(state);

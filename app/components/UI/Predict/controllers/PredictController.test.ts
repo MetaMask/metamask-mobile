@@ -79,6 +79,19 @@ jest.mock('../../../../core/Engine', () => ({
         },
       }),
     },
+    RemoteFeatureFlagController: {
+      state: {
+        remoteFeatureFlags: {
+          predictFeeCollection: {
+            enabled: true,
+            collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+            metamaskFee: 0.02,
+            providerFee: 0.02,
+            waiveList: [],
+          },
+        },
+      },
+    },
   },
 }));
 
@@ -3269,19 +3282,26 @@ describe('PredictController', () => {
         });
 
         expect(result).toEqual(mockOrderPreview);
-        expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith({
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.BUY,
-          size: 100,
-          signer: expect.objectContaining({
-            address: '0x1234567890123456789012345678901234567890',
-            signTypedMessage: expect.any(Function),
-            signPersonalMessage: expect.any(Function),
+        expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+              signTypedMessage: expect.any(Function),
+              signPersonalMessage: expect.any(Function),
+            }),
+            feeCollection: expect.objectContaining({
+              enabled: true,
+              collector: expect.any(String),
+              metamaskFee: expect.any(Number),
+              providerFee: expect.any(Number),
+            }),
           }),
-        });
+        );
       });
     });
 

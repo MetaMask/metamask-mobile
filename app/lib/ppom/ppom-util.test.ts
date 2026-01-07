@@ -27,6 +27,7 @@ import Logger from '../../util/Logger';
 
 const CHAIN_ID_REQUEST_MOCK = '0x1' as Hex;
 const CHAIN_ID_TRANSACTION_MOCK = '0x2' as Hex;
+const CHAIN_ID_NETWORK_CLIENT_MOCK = '0x3' as Hex;
 const CHAIN_ID_GLOBAL_MOCK = '0x3' as Hex;
 const NETWORK_CLIENT_ID_REQUEST_MOCK = 'testNetwork1';
 const NETWORK_CLIENT_ID_TRANSACTION_MOCK = 'testNetwork2';
@@ -191,7 +192,7 @@ describe('PPOM Utils', () => {
           chainId: {
             [NETWORK_CLIENT_ID_GLOBAL_MOCK]: CHAIN_ID_GLOBAL_MOCK,
             [NETWORK_CLIENT_ID_REQUEST_MOCK]: CHAIN_ID_REQUEST_MOCK,
-            [NETWORK_CLIENT_ID_TRANSACTION_MOCK]: CHAIN_ID_TRANSACTION_MOCK,
+            [NETWORK_CLIENT_ID_TRANSACTION_MOCK]: CHAIN_ID_NETWORK_CLIENT_MOCK,
           }[networkClientId] as Hex,
           ticker: 'ETH',
           type: NetworkClientType.Custom,
@@ -402,6 +403,7 @@ describe('PPOM Utils', () => {
       await PPOMUtil.validateRequest(mockRequest, {
         transactionMeta: {
           id: TRANSACTION_ID_MOCK,
+          chainId: CHAIN_ID_TRANSACTION_MOCK,
           networkClientId: NETWORK_CLIENT_ID_TRANSACTION_MOCK,
         } as TransactionMeta,
       });
@@ -413,15 +415,17 @@ describe('PPOM Utils', () => {
       );
     });
 
-    it('uses chain ID from request if provided', async () => {
-      await PPOMUtil.validateRequest({
-        ...mockRequest,
-        method: METHOD_SIGN_TYPED_DATA_V3,
+    it('uses chain ID from request network client ID', async () => {
+      await PPOMUtil.validateRequest(mockRequest, {
+        transactionMeta: {
+          id: TRANSACTION_ID_MOCK,
+          networkClientId: NETWORK_CLIENT_ID_TRANSACTION_MOCK,
+        } as TransactionMeta,
       });
 
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        CHAIN_ID_REQUEST_MOCK,
+        CHAIN_ID_NETWORK_CLIENT_MOCK,
         expect.any(Object),
       );
     });
@@ -457,7 +461,7 @@ describe('PPOM Utils', () => {
 
       expect(spy).toHaveBeenCalledTimes(2);
       expect(spy).toHaveBeenCalledWith(TRANSACTION_ID_MOCK, {
-        chainId: CHAIN_ID_TRANSACTION_MOCK,
+        chainId: CHAIN_ID_NETWORK_CLIENT_MOCK,
         req: mockRequest,
         result_type: ResultType.Failed,
         reason: Reason.failed,

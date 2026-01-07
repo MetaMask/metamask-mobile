@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { Colors } from '../../../../../util/theme/models';
 
 const createStyles = () =>
@@ -8,13 +7,13 @@ const createStyles = () =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginVertical: 12,
+      paddingVertical: 16,
     },
     popularNetworkImage: {
-      width: 20,
-      height: 20,
-      marginRight: isNetworkUiRedesignEnabled() ? 20 : 10,
+      marginRight: 20,
       borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     popularWrapper: {
       flexDirection: 'row',
@@ -32,15 +31,17 @@ export const createCustomNetworkStyles = (params: { colors: Colors }) =>
       color: params.colors.text.alternative,
       marginVertical: 16,
     },
-    iconContainer: {
-      marginRight: 12,
-    },
     nameAndTagContainer: {
       flexDirection: 'column',
     },
     tagLabelBelowName: {
       marginTop: 4,
       alignSelf: 'flex-start',
+    },
+    // reset margin and padding for the icon
+    icon: {
+      margin: 0,
+      padding: 0,
     },
   });
 

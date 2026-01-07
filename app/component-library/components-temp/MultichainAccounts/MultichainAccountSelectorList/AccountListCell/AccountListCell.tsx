@@ -17,7 +17,6 @@ const AccountListCell = memo(
     chainId,
     hideMenu = false,
   }: AccountListCellProps) => {
-    const showSelectedIndicator = isSelected && !showCheckbox;
     const { styles } = useStyles(createStyles, {
       isSelected,
     });
@@ -28,7 +27,6 @@ const AccountListCell = memo(
 
     return (
       <View style={styles.accountItem}>
-        {showSelectedIndicator && <View style={styles.selectedIndicator} />}
         <View style={styles.accountCellWrapper}>
           <AccountCell
             startAccessory={

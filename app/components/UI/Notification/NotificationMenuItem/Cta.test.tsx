@@ -3,8 +3,24 @@ import { userEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import NotificationCta from './Cta';
-import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { Linking } from 'react-native';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
+
+jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => {
+  const mockParse = jest.fn().mockResolvedValue(true);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
+      parse: mockParse,
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 describe('NotificationCta', () => {
   const ctaContent = 'Test Link';
@@ -19,9 +35,6 @@ describe('NotificationCta', () => {
   });
 
   it('handles universal CTAs', async () => {
-    const mockParseDeeplink = jest
-      .spyOn(SharedDeeplinkManager, 'parse')
-      .mockImplementation(jest.fn());
     const { root, getByText } = renderWithProvider(
       <NotificationCta
         onClick={jest.fn()}
@@ -31,7 +44,7 @@ describe('NotificationCta', () => {
 
     expect(root).toBeOnTheScreen();
     await userEvent.press(getByText(ctaContent));
-    expect(mockParseDeeplink).toHaveBeenCalled();
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
   });
 
   it('handles external CTAs', async () => {

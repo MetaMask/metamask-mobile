@@ -29,6 +29,11 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+    );
+  }
   get backButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
@@ -118,6 +123,15 @@ class PredictDetailsPage {
   async tapOpenPosition(): Promise<void> {
     await Gestures.waitAndTap(this.placeBetButton, {
       elemDescription: 'Place bet button',
+    });
+  }
+
+  async tapClaimWinningsButton(): Promise<void> {
+    // Claim button is animated - use delay instead of checkStability
+    // checkStability would timeout if animation is continuous
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Tap claim winnings button on market details page',
+      delay: 3000,
     });
   }
 }

@@ -367,4 +367,70 @@ describe('Metamask Pay Metrics', () => {
       sensitiveProperties: {},
     });
   });
+
+  it('generates fallback properties from transaction metadata', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x3',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {
+              '0x3': {
+                '0x123': [
+                  {
+                    address: '0x123',
+                    symbol: 'USDC',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x3',
+        mm_pay_token_selected: 'USDC',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('does not include token symbol in fallback properties if token is not found', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x3',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {},
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x3',
+        mm_pay_token_selected: undefined,
+      }),
+      sensitiveProperties: {},
+    });
+  });
 });

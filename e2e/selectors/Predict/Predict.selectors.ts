@@ -71,6 +71,7 @@ export const PredictMarketDetailsSelectorsIDs = {
   POSITIONS_TAB_CONTENT: 'positions-tab-content',
   OUTCOMES_TAB_CONTENT: 'outcomes-tab-content',
   MARKET_DETAILS_CASH_OUT_BUTTON: 'predict-market-details-cash-out-button',
+  CLAIM_WINNINGS_BUTTON: 'predict-market-details-claim-winnings-button',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {

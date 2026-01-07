@@ -73,7 +73,9 @@ export const useTrendingRequest = (options: {
         maxVolume24hUsd,
         minMarketCap,
         maxMarketCap,
-      });
+        // TODO: Remove type assertion once @metamask/assets-controllers types are updated
+        excludeLabels: ['stable_coin', 'blue_chip'],
+      } as Parameters<typeof getTrendingTokens>[0]);
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults(resultsToStore);

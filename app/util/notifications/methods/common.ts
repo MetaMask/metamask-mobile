@@ -1,9 +1,9 @@
 import dayjs, { Dayjs } from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
+import { IconName } from '@metamask/design-system-react-native';
 import BigNumber from 'bignumber.js';
 import {
   OnChainRawNotification,
@@ -18,7 +18,6 @@ import {
   SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
 } from '@metamask/notification-services-controller/notification-services/ui';
 import Engine from '../../../core/Engine';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
@@ -262,7 +261,7 @@ export const getNetworkFees = async (notification: OnChainRawNotification) => {
   }
 };
 
-export const getNotificationBadge = (trigger_type: string) => {
+export const getNotificationBadge = (trigger_type: string): IconName => {
   switch (trigger_type) {
     case TRIGGER_TYPES.ERC20_SENT:
     case TRIGGER_TYPES.ERC721_SENT:

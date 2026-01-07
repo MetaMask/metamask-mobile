@@ -31,11 +31,11 @@ describe('MarketDetailsList', () => {
     );
 
     expect(getByText('Market details')).toBeDefined();
-    expect(getByText('Market Cap')).toBeDefined();
+    expect(getByText('Market cap')).toBeDefined();
     expect(getByText('5.24B')).toBeDefined();
-    expect(getByText('Total Volume (24h)')).toBeDefined();
+    expect(getByText('Total volume (24h)')).toBeDefined();
     expect(getByText('153.14M')).toBeDefined();
-    expect(getByText('Volume / Market Cap')).toBeDefined();
+    expect(getByText('Volume / market cap')).toBeDefined();
     expect(getByText('3.22%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.24B')).toBeDefined();

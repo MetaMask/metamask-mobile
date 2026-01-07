@@ -9,6 +9,11 @@ jest.mock('../../utils/format', () => ({
       ? `$${value.toFixed(options?.maximumDecimals ?? 2)}`
       : '$0.00',
   ),
+  formatPercentage: jest.fn((value, options) =>
+    value !== undefined
+      ? `${value.toFixed(options?.truncate ?? false)}%`
+      : '0%',
+  ),
 }));
 
 // Mock i18n strings

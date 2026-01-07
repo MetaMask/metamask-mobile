@@ -110,6 +110,10 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from trending view
    */
   fromTrending?: boolean;
+  /**
+   * Whether browser was opened from Perps view
+   */
+  fromPerps?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

@@ -55,16 +55,14 @@ const PredictSellPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
 
-  const {
-    icon,
-    title,
-    outcome: outcomeSideText,
-    initialValue,
-    size,
-  } = position;
+  const { icon, title, initialValue, size } = position;
 
   const outcomeGroupTitle = outcome?.groupItemTitle ?? '';
   const outcomeTitle = title;
+  const outcomeToken = outcome?.tokens.find(
+    (t) => t.id === position.outcomeTokenId,
+  );
+  const outcomeSideText = outcomeToken?.title ?? position.outcome;
 
   // Prepare analytics properties for sell/cash-out action
   const analyticsProperties = useMemo(

@@ -5,7 +5,9 @@ import {
 } from '@metamask/assets-controllers';
 import AppConstants from '../../AppConstants';
 import { swapsSupportedChainIds } from '../constants';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { fetchTokens } from '@metamask/bridge-controller';
+import { Hex } from '@metamask/utils';
+import { handleFetch } from '@metamask/controller-utils';
 
 /**
  * Initialize the token search discovery data controller.
@@ -22,7 +24,7 @@ export const tokenSearchDiscoveryDataControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     tokenPricesService: codefiTokenApiV2,
     fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-    fetchTokens: swapsUtils.fetchTokens,
+    fetchTokens: (chainId: Hex) => fetchTokens(chainId, handleFetch),
     swapsSupportedChainIds,
   });
 

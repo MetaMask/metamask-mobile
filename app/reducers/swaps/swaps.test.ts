@@ -4,7 +4,6 @@ import Device from '../../util/device';
 import { NetworkClientType } from '@metamask/network-controller';
 // eslint-disable-next-line import/no-namespace
 import * as tokensControllerSelectors from '../../selectors/tokensController';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
 
 // Type definitions for the swaps reducer
@@ -42,15 +41,11 @@ interface SwapsState {
 }
 
 jest.mock('../../selectors/tokensController');
-jest.mock('../../components/UI/Swaps/utils', () => ({
-  allowedTestnetChainIds: ['0xaa36a7'], // Sepolia testnet
-}));
 jest.mock('@metamask/swaps-controller/dist/constants', () => ({
   CHAIN_ID_TO_NAME_MAP: {
     '0x1': 'ethereum',
     '0x38': 'bsc',
     '0x89': 'polygon',
-    '0xaa36a7': 'sepolia',
   },
 }));
 
@@ -111,16 +106,6 @@ const DEFAULT_FEATURE_FLAGS = {
 } as unknown as FeatureFlags;
 
 describe('swaps reducer', () => {
-  const withGlobalDev = (devValue: boolean, testFn: () => void) => {
-    const originalDev = (global as { __DEV__?: boolean }).__DEV__;
-    (global as { __DEV__?: boolean }).__DEV__ = devValue;
-    try {
-      testFn();
-    } finally {
-      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
-    }
-  };
-
   it('should return initial state', () => {
     const state = reducer(undefined, emptyAction);
     expect(state).toEqual(initialState);
@@ -299,30 +284,6 @@ describe('swaps reducer', () => {
       ).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
     });
 
-    it('should handle testnet chain IDs in dev mode', () => {
-      withGlobalDev(true, () => {
-        const initalState = reducer(undefined, emptyAction);
-        const action: SetLivenessAction = {
-          type: SWAPS_SET_LIVENESS,
-          payload: {
-            featureFlags: DEFAULT_FEATURE_FLAGS,
-            chainId: '0xaa36a7', // Sepolia testnet
-          },
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const liveState = reducer(initalState as any, action) as SwapsState;
-
-        // Should use mainnet feature flags for testnet
-        expect(liveState['0x1'].featureFlags).toEqual(
-          DEFAULT_FEATURE_FLAGS.ethereum,
-        );
-        // Should also set the testnet chain with mainnet flags
-        expect(
-          (liveState['0xaa36a7'] as { featureFlags?: unknown }).featureFlags,
-        ).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
-      });
-    });
-
     it('should preserve existing state when updating feature flags', () => {
       const existingState = {
         ...initialState,
@@ -404,25 +365,16 @@ describe('swaps reducer', () => {
   });
 
   describe('getFeatureFlagChainId', () => {
-    it('should return mainnet chain ID for testnets in dev mode', () => {
-      withGlobalDev(true, () => {
-        const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
-        expect(result).toBe(NETWORKS_CHAIN_ID.MAINNET);
-      });
+    it('returns the same chain ID without modification', () => {
+      const result = getFeatureFlagChainId('0x1');
+
+      expect(result).toBe('0x1');
     });
 
-    it('should return original chain ID for non-testnets', () => {
-      withGlobalDev(true, () => {
-        const result = getFeatureFlagChainId('0x38'); // BSC
-        expect(result).toBe('0x38');
-      });
-    });
+    it('returns the same chain ID for any input', () => {
+      const result = getFeatureFlagChainId('0x38');
 
-    it('should return original chain ID when not in dev mode', () => {
-      withGlobalDev(false, () => {
-        const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
-        expect(result).toBe('0xaa36a7');
-      });
+      expect(result).toBe('0x38');
     });
   });
 

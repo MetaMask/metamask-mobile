@@ -6,7 +6,6 @@ import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
@@ -48,12 +47,18 @@ const EarnMusdConversionEducationView = () => {
     useParams<EarnMusdConversionEducationViewRouteParams>();
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const { brandColors, colors } = useTheme();
 
   useFocusEffect(
     useCallback(() => {
-      navigation.setOptions(getCloseOnlyNavbar(navigation, colors));
-    }, [navigation, colors]),
+      navigation.setOptions(
+        getCloseOnlyNavbar({
+          navigation,
+          themeColors: colors,
+          backgroundColor: brandColors.indigo100,
+        }),
+      );
+    }, [navigation, colors, brandColors.indigo100]),
   );
 
   const handleContinue = useCallback(async () => {
@@ -66,6 +71,7 @@ const EarnMusdConversionEducationView = () => {
         await initiateConversion({
           outputChainId,
           preferredPaymentToken,
+          skipEducationCheck: true,
         });
         return;
       }
@@ -83,23 +89,25 @@ const EarnMusdConversionEducationView = () => {
   }, [dispatch, initiateConversion, outputChainId, preferredPaymentToken]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'top']}>
-      <Image source={musdEducationBackground} style={styles.backgroundImage} />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={musdEducationBackground}
+          style={styles.backgroundImage}
+        />
+      </View>
 
       <View style={styles.content}>
         <Text
           variant={TextVariant.HeadingLG}
-          color={TextColor.Default}
           style={styles.heading}
+          numberOfLines={1}
+          adjustsFontSizeToFit
         >
           {strings('earn.musd_conversion.education.heading')}
         </Text>
 
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.bodyText}
-        >
+        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
           {strings('earn.musd_conversion.education.description')}
         </Text>
       </View>

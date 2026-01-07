@@ -58,7 +58,7 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -130,7 +130,7 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -202,7 +202,7 @@ exports[`TruncatedError Long error text renders "See more" button for long error
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
@@ -221,7 +221,7 @@ exports[`TruncatedError Long error text renders "See more" button for long error
           {
             "backgroundColor": "transparent",
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -234,7 +234,7 @@ exports[`TruncatedError Long error text renders "See more" button for long error
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,

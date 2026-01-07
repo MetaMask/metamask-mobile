@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
 // Mock dependencies
@@ -55,14 +55,11 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
       ),
     TextVariant: {
-      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
   };
 });
-
-// Mock the FOX logo image
-jest.mock('../../../../../images/branding/fox.png', () => 'fox-logo');
 
 describe('OnboardingStep Component', () => {
   const defaultProps = {
@@ -216,22 +213,13 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Critical Visual Elements', () => {
-    it('displays the FOX logo image', () => {
-      const { UNSAFE_getByType } = render(<OnboardingStep {...defaultProps} />);
-
-      const images = UNSAFE_getByType(Image);
-      expect(images).toBeDefined();
-      expect(images.props.source).toBe('fox-logo');
-      expect(images.props.resizeMode).toBe('contain');
-    });
-
     it('displays the title with correct variant and styling', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const titleElement = getByText('Test Title');
       expect(titleElement).toBeDefined();
-      expect(titleElement.props['data-variant']).toBe('HeadingMd');
-      expect(titleElement.props['data-tw-class']).toContain('text-center');
+      expect(titleElement.props['data-variant']).toBe('HeadingLg');
+      expect(titleElement.props['data-tw-class']).toContain('text-default');
     });
 
     it('displays the description with correct variant and styling', () => {
@@ -241,7 +229,7 @@ describe('OnboardingStep Component', () => {
       expect(descriptionElement).toBeDefined();
       expect(descriptionElement.props['data-variant']).toBe('BodyMd');
       expect(descriptionElement.props['data-tw-class']).toContain(
-        'text-center',
+        'text-text-alternative',
       );
     });
 
@@ -458,7 +446,7 @@ describe('OnboardingStep Component', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const titleElement = getByText('Test Title');
-      expect(titleElement.props['data-variant']).toBe('HeadingMd');
+      expect(titleElement.props['data-variant']).toBe('HeadingLg');
 
       const descriptionElement = getByText('Test Description');
       expect(descriptionElement.props['data-variant']).toBe('BodyMd');

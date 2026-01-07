@@ -3,6 +3,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
 import {
+  calcTokenFiatValue,
   getDisplayCurrencyValue,
   fetchTokenExchangeRates,
 } from './exchange-rates';
@@ -14,6 +15,269 @@ jest.mock('@metamask/controller-utils');
 jest.mock('@metamask/assets-controllers');
 
 describe('exchange-rates', () => {
+  describe('calcTokenFiatValue', () => {
+    const mockChainId = '0x1' as Hex;
+    const mockTokenAddress =
+      '0x0000000000000000000000000000000000000001' as Hex;
+    const mockSolanaChainId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+    const mockSolanaTokenAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as const;
+
+    const mockEvmToken = {
+      address: mockTokenAddress,
+      chainId: mockChainId,
+      symbol: 'TOKEN1',
+      decimals: 18,
+      name: 'Token One',
+      balance: '1',
+    };
+
+    const mockSolanaToken = {
+      address: mockSolanaTokenAddress,
+      chainId: mockSolanaChainId,
+      symbol: 'SOL',
+      decimals: 9,
+      name: 'Solana',
+      balance: '1',
+    };
+
+    const mockNetworkConfigurations = {
+      [mockChainId]: {
+        nativeCurrency: 'ETH',
+      },
+    };
+
+    const mockEvmMultiChainMarketData = {
+      [mockChainId]: {
+        [mockTokenAddress]: {
+          price: 10,
+        },
+      },
+    };
+
+    const mockEvmMultiChainCurrencyRates = {
+      ETH: {
+        conversionRate: 2000,
+      },
+    };
+
+    const mockNonEvmMultichainAssetRates = {
+      [mockSolanaTokenAddress]: {
+        conversionTime: 1745436145391,
+        currency: 'swift:0/iso4217:USD',
+        expirationTime: 1745439745391,
+        marketData: {
+          fungible: true,
+          allTimeHigh: '293.31',
+          allTimeLow: '0.500801',
+          circulatingSupply: '517313513.4593564',
+          marketCap: '78479310083',
+          pricePercentChange: {},
+          totalVolume: '6225869757',
+        },
+        rate: '151.7',
+      },
+    } as ReturnType<typeof selectMultichainAssetsRates>;
+
+    it('returns 0 when token is undefined', () => {
+      const result = calcTokenFiatValue({
+        token: undefined,
+        amount: '1',
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBe(0);
+    });
+
+    it('returns 0 when amount is undefined', () => {
+      const result = calcTokenFiatValue({
+        token: mockEvmToken,
+        amount: undefined,
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBe(0);
+    });
+
+    describe('Non-EVM tokens (Solana)', () => {
+      it('calculates fiat value using nonEvmMultichainAssetRates rate', () => {
+        const result = calcTokenFiatValue({
+          token: mockSolanaToken,
+          amount: '2',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 2 * 151.7 = 303.4
+        expect(result).toBe(303.39999);
+      });
+
+      it('falls back to currencyExchangeRate when rate is unavailable', () => {
+        const tokenWithExchangeRate = {
+          ...mockSolanaToken,
+          currencyExchangeRate: 150,
+        };
+
+        const result = calcTokenFiatValue({
+          token: tokenWithExchangeRate,
+          amount: '2',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: {},
+        });
+
+        // 2 * 150 = 300
+        expect(result).toBe(300);
+      });
+
+      it('returns 0 when no rate and no currencyExchangeRate available', () => {
+        const result = calcTokenFiatValue({
+          token: mockSolanaToken,
+          amount: '2',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: {},
+        });
+
+        expect(result).toBe(0);
+      });
+    });
+
+    describe('EVM tokens', () => {
+      it('calculates fiat value using market data and conversion rate', () => {
+        const result = calcTokenFiatValue({
+          token: mockEvmToken,
+          amount: '1',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 1 * 2000 (conversionRate) * 10 (price) = 20000
+        expect(result).toBe(20000);
+      });
+
+      it('calculates fiat value for fractional amounts', () => {
+        const result = calcTokenFiatValue({
+          token: mockEvmToken,
+          amount: '0.5',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 0.5 * 2000 * 10 = 10000
+        expect(result).toBe(10000);
+      });
+
+      it('falls back to currencyExchangeRate when market data is undefined', () => {
+        const tokenWithExchangeRate = {
+          ...mockEvmToken,
+          currencyExchangeRate: 15000,
+        };
+
+        const result = calcTokenFiatValue({
+          token: tokenWithExchangeRate,
+          amount: '2',
+          evmMultiChainMarketData: undefined,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 2 * 15000 = 30000
+        expect(result).toBe(30000);
+      });
+
+      it('falls back to currencyExchangeRate when conversion rate is null', () => {
+        const tokenWithExchangeRate = {
+          ...mockEvmToken,
+          currencyExchangeRate: 15000,
+        };
+
+        const result = calcTokenFiatValue({
+          token: tokenWithExchangeRate,
+          amount: '1',
+          evmMultiChainMarketData: mockEvmMultiChainMarketData,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: {
+            ETH: { conversionRate: null },
+          },
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 1 * 15000 = 15000
+        expect(result).toBe(15000);
+      });
+
+      it('falls back to currencyExchangeRate when token price is undefined', () => {
+        const tokenWithExchangeRate = {
+          ...mockEvmToken,
+          currencyExchangeRate: 15000,
+        };
+
+        const result = calcTokenFiatValue({
+          token: tokenWithExchangeRate,
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              [mockTokenAddress]: { price: undefined },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 1 * 15000 = 15000
+        expect(result).toBe(15000);
+      });
+
+      it('returns 0 when no market data and no currencyExchangeRate available', () => {
+        const result = calcTokenFiatValue({
+          token: mockEvmToken,
+          amount: '1',
+          evmMultiChainMarketData: undefined,
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        expect(result).toBe(0);
+      });
+
+      it('returns 0 when token price is zero', () => {
+        const result = calcTokenFiatValue({
+          token: mockEvmToken,
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              [mockTokenAddress]: { price: 0 },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        expect(result).toBe(0);
+      });
+    });
+  });
+
   describe('getDisplayCurrencyValue', () => {
     const mockChainId = '0x1' as Hex;
     const mockTokenAddress =

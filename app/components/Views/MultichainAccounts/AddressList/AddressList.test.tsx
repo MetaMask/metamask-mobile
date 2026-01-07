@@ -151,14 +151,10 @@ describe('AddressList', () => {
     const { getAllByText, getByText } = renderWithAddressList();
 
     // The title is set in navigation options, not rendered in the component
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        headerShown: true,
-        headerTitleAlign: 'center',
-        headerTitle: expect.any(Function),
-        headerLeft: expect.any(Function),
-      }),
-    );
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      header: expect.any(Function),
+      headerShown: true,
+    });
 
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeDefined();
@@ -173,10 +169,8 @@ describe('AddressList', () => {
     renderWithAddressList();
 
     expect(mockSetOptions).toHaveBeenCalledWith({
+      header: expect.any(Function),
       headerShown: true,
-      headerTitleAlign: 'center',
-      headerTitle: expect.any(Function),
-      headerLeft: expect.any(Function),
     });
   });
 

@@ -1,5 +1,5 @@
 diff --git a/dist/config.js b/dist/config.js
-index a51913b3f9380fd5740b1d52cd1d3472e29233c3..6479c9b92ed17319f654e9323f689792e52fce06 100644
+index a51913b..6479c9b 100644
 --- a/dist/config.js
 +++ b/dist/config.js
 @@ -24,8 +24,8 @@ const defaultConfig = {
@@ -14,7 +14,7 @@ index a51913b3f9380fd5740b1d52cd1d3472e29233c3..6479c9b92ed17319f654e9323f689792
      use: {
          // TODO: Use this for actions
 diff --git a/dist/device/index.js b/dist/device/index.js
-index fda54b682837d06eb579596087826c862c35f33e..b61aceca45b8b3293dee14552c26f002b38a4e36 100644
+index fda54b6..b61acec 100644
 --- a/dist/device/index.js
 +++ b/dist/device/index.js
 @@ -237,7 +237,7 @@ let Device = (() => {
@@ -27,7 +27,7 @@ index fda54b682837d06eb579596087826c862c35f33e..b61aceca45b8b3293dee14552c26f002
          }
          /**
 diff --git a/dist/locator/index.js b/dist/locator/index.js
-index 03f00574615d647d1887440ee7ae10798934c250..40089ce61ad598625afeb42d1149da8ce007dc26 100644
+index 03f0057..40089ce 100644
 --- a/dist/locator/index.js
 +++ b/dist/locator/index.js
 @@ -244,51 +244,33 @@ let Locator = (() => {
@@ -102,7 +102,7 @@ index 03f00574615d647d1887440ee7ae10798934c250..40089ce61ad598625afeb42d1149da8c
          }
      };
 diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
-index 638c5df686413ffe050ef7e7329b9e9446e98002..34e211940e22cc195002e6d88a98d7b8488d88d0 100644
+index 638c5df..f5b8ff4 100644
 --- a/dist/providers/browserstack/index.js
 +++ b/dist/providers/browserstack/index.js
 @@ -104,6 +104,7 @@ class BrowserStackDeviceProvider {
@@ -150,21 +150,29 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..34e211940e22cc195002e6d88a98d7b8
                          : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
-@@ -261,6 +271,17 @@ class BrowserStackDeviceProvider {
+@@ -261,6 +271,25 @@ class BrowserStackDeviceProvider {
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
                  "appium:settings[snapshotMaxDepth]": 62,
 +                "appium:settings[autoGrantPermissions]": true,
-+                "appium:settings[waitForIdleTimeout]": 2000,
++                "appium:settings[waitForIdleTimeout]": 0,
 +                "appium:settings[actionAcknowledgmentTimeout]": 3000,
 +                "appium:settings[ignoreUnimportantViews]": true,
 +                "appium:settings[waitForSelectorTimeout]": 1000,
 +                "appium:bstackPageSource": {
 +                    "enable": true,
-+                    "samplesX": 15,
-+                    "samplesY": 15,
-+                    "maxDepth": 75
-+                }
++                    "samplesX": 3,
++                    "samplesY": 3,
++                    "maxDepth": 15
++                },
++                'appium:waitForQuiescence': false,        // Don't wait for app idle
++                'appium:animationCoolOffTimeout': 0,      // Skip animation wait
++                'appium:reduceMotion': true,              // Reduce iOS animations
++                'appium:snapshotMaxDepth': 50,            // Limit element tree depth
++                'appium:customSnapshotTimeout': 15,       // Snapshot timeout in seconds"
++                'appium:waitForIdleTimeout': 0,           // Don't wait for idle
++                'appium:disableWindowAnimation': true,    // Disable animations
++                'appium:skipDeviceInitialization': true,  // Skip init (faster startup)
              },
          };
      }

@@ -7,6 +7,7 @@ import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selec
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
+import AmountScreen from './AmountScreen';
 
 class BridgeScreen {
 
@@ -45,7 +46,7 @@ class BridgeScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+        return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
         return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
       }
@@ -64,28 +65,8 @@ class BridgeScreen {
   }
 
   async enterSourceTokenAmount(amount) {
-    // Split amount into digits
-    const digits = splitAmountIntoDigits(amount);
-    console.log('Amount digits:', digits);
-    for (const digit of digits) {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-          await AppwrightGestures.tap(numberKey);
-        }
-        else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
-          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-          await AppwrightGestures.tap(numberKey);
-        }
-      }
-      else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-        await AppwrightGestures.tap(numberKey);
-      }
-    }
+    AmountScreen.device = this._device;
+    await AmountScreen.enterAmount(amount);
   }
 
   async selectNetworkAndTokenTo(network, token) {
@@ -111,14 +92,14 @@ class BridgeScreen {
 
   async tapGetQuotes(network){
     if (network == 'Ethereum'){
-    const quotesButton = this.getETHQuotesButton;
+    const quotesButton = await this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(quotesButton);
     }
   }
 
   async enterDestinationTokenAmount(amount) {
-    const element = this.destTokenInput;
+    const element = await this.destTokenInput;
     await AppwrightGestures.typeText(element, amount);
   }
 

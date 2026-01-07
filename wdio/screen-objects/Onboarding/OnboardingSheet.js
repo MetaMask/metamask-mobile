@@ -52,7 +52,7 @@ class OnboardingSheet {
     if (!this.device) {
       await Gestures.waitAndTap(this.importSeedButton);
     } else {
-      await AppwrightGestures.tap(this.importSeedButton); 
+      await AppwrightGestures.tap(await this.importSeedButton); 
     }
   }
 

@@ -219,10 +219,10 @@ describe('TokenDetails', () => {
     expect(getByText('Token list')).toBeDefined();
     expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
     expect(getByText('Market details')).toBeDefined();
-    expect(getByText('Market Cap')).toBeDefined();
-    expect(getByText('Total Volume (24h)')).toBeDefined();
+    expect(getByText('Market cap')).toBeDefined();
+    expect(getByText('Total volume (24h)')).toBeDefined();
     expect(getByText('$147.65M')).toBeDefined();
-    expect(getByText('Volume / Market Cap')).toBeDefined();
+    expect(getByText('Volume / market cap')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.21B')).toBeDefined();

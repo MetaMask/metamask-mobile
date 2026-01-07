@@ -176,19 +176,26 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     }
   };
 
-  if (!isStablecoinLendingEnabled) return null;
+  const renderMusdConversionCta = () => (
+    <View style={styles.musdConversionCta}>
+      <MusdConversionAssetOverviewCta asset={asset} />
+    </View>
+  );
+
+  const isConvertibleStablecoin =
+    isMusdConversionFlowEnabled && isConversionToken(asset);
+
+  if (!isStablecoinLendingEnabled) {
+    if (isConvertibleStablecoin) {
+      return renderMusdConversionCta();
+    }
+    return null;
+  }
 
   const renderCta = () => {
     // Favour the mUSD Conversion CTA over the lending empty state CTA
-    const shouldRenderMusdConversionAssetOverviewCta =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
-
-    if (shouldRenderMusdConversionAssetOverviewCta) {
-      return (
-        <View style={styles.musdConversionCta}>
-          <MusdConversionAssetOverviewCta asset={asset} />
-        </View>
-      );
+    if (isConvertibleStablecoin) {
+      return renderMusdConversionCta();
     }
 
     const shouldRenderLendingEmptyStateCta =

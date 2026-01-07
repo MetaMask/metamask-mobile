@@ -2,7 +2,10 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
-import useIsInsufficientBalance from './index';
+import useIsInsufficientBalance, {
+  formatEffectiveGasFee,
+  transformEffectiveToAtomic,
+} from './index';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -50,7 +53,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: CHAIN_IDS.MAINNET as `0x${string}`,
     };
 
-    it('should return false when user has sufficient USDC balance for swap (gasless)', () => {
+    it('returns false when user has sufficient USDC balance for swap (gasless)', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -72,7 +75,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when user has insufficient USDC balance', () => {
+    it('returns true when user has insufficient USDC balance', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -94,7 +97,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should return false for cross-chain USDC transaction with sufficient token balance (gas checked separately)', () => {
+    it('returns false for cross-chain USDC transaction with sufficient token balance (gas checked separately)', () => {
       // For ERC-20 tokens, gas is checked in useHasSufficientGas, not here
       const store = createMockStore({
         recommendedQuote: {
@@ -133,7 +136,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: CHAIN_IDS.MAINNET as `0x${string}`,
     };
 
-    it('should return false when user has sufficient ETH for gasless swap', () => {
+    it('returns false when user has sufficient ETH for gasless swap', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -155,7 +158,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return false when user has sufficient ETH including gas for cross-chain', () => {
+    it('returns false when user has sufficient ETH including gas for cross-chain', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -183,7 +186,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when ETH amount + gas exceeds balance for cross-chain', () => {
+    it('returns true when ETH amount + gas exceeds balance for cross-chain', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -211,7 +214,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should return true when user tries to send more ETH than balance (even without gas)', () => {
+    it('returns true when user tries to send more ETH than balance (even without gas)', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -238,7 +241,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should handle scientific notation in gas amounts', () => {
+    it('handles scientific notation in gas amounts', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -267,7 +270,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when scientific notation gas causes insufficient balance', () => {
+    it('returns true when scientific notation gas causes insufficient balance', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -304,7 +307,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: CHAIN_IDS.POLYGON as `0x${string}`,
     };
 
-    it('should return false when user has sufficient MATIC including gas', () => {
+    it('returns false when user has sufficient MATIC including gas', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -332,7 +335,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when MATIC amount + gas exceeds balance', () => {
+    it('returns true when MATIC amount + gas exceeds balance', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -369,7 +372,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: SolScope.Mainnet,
     };
 
-    it('should return false when user has sufficient SOL above rent exemption', () => {
+    it('returns false when user has sufficient SOL above rent exemption', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -392,7 +395,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when SOL balance would drop below rent exemption', () => {
+    it('returns true when SOL balance would drop below rent exemption', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -424,7 +427,7 @@ describe('useIsInsufficientBalance', () => {
       chainId: CHAIN_IDS.MAINNET as `0x${string}`,
     };
 
-    it('should return false when amount is undefined', () => {
+    it('returns false when amount is undefined', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -446,7 +449,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return false when amount is just a decimal point', () => {
+    it('returns false when amount is just a decimal point', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -468,7 +471,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return false when token is undefined', () => {
+    it('returns false when token is undefined', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -490,7 +493,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return false when balance is undefined', () => {
+    it('returns false when balance is undefined', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -512,7 +515,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should still check balance when no quote is available', () => {
+    it('still checks balance when no quote is available', () => {
       const store = createMockStore(null);
 
       const { result } = renderHook(
@@ -530,7 +533,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should handle zero balance correctly', () => {
+    it('handles zero balance correctly', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -550,6 +553,58 @@ describe('useIsInsufficientBalance', () => {
       );
 
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('transformEffectiveToAtomic', () => {
+    it('transforms effective gas fee to atomic gas fee', () => {
+      const effectiveGasFee = '0.000000000000000001';
+      const decimals = 18;
+      const atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        decimals,
+      );
+      expect(atomicGasFee.toString()).toBe('1');
+    });
+
+    it('transforms effective gas fee to atomic gas fee with decimals', () => {
+      const effectiveGasFee = '0.000001426955931521';
+      const decimals = 6;
+      const atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        decimals,
+      );
+      expect(atomicGasFee.toString()).toBe('1');
+    });
+  });
+
+  describe('formatEffectiveGasFee', () => {
+    it('formats effective gas fee to string', () => {
+      const effectiveGasFee = '0.000000000000000001';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe(effectiveGasFee);
+    });
+
+    it('formats effective gas fee to string for integer part > 0', () => {
+      const effectiveGasFee = '23.000000000000000001';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe(effectiveGasFee);
+    });
+
+    it('formats effective gas fee to string when token decimals is less than effective gas fee decimals', () => {
+      const effectiveGasFee = '0.000005426955931521';
+      const decimals = 6;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe('0.000005');
+    });
+
+    it('formats effective gas fee to string when token decimals is more than effective gas fee decimals', () => {
+      const effectiveGasFee = '0.000005';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe('0.000005');
     });
   });
 });

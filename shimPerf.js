@@ -14,7 +14,7 @@ secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 const nobleHashesHmac = require('@noble/hashes/hmac');
 const nobleHashesSha2 = require('@noble/hashes/sha2');
 const originalHmac = nobleHashesHmac.hmac;
-nobleHashesHmac.hmac = (hash, key, message) => {
+const patchedHmac = (hash, key, message) => {
   if (hash === nobleHashesSha2.sha512) {
     try {
       return hmacSha512(key, message);
@@ -27,6 +27,10 @@ nobleHashesHmac.hmac = (hash, key, message) => {
   }
   return originalHmac(hash, key, message);
 };
+
+// add missing hmac.create polyfill with original implementation
+Object.assign(patchedHmac, originalHmac);
+nobleHashesHmac.hmac = patchedHmac;
 
 // Monkey patch keccak256 from @noble/hashes
 const nobleHashesSha3 = require('@noble/hashes/sha3');

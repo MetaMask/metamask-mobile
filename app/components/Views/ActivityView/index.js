@@ -48,7 +48,8 @@ import { useTheme } from '../../../util/theme';
 import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -141,17 +142,13 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const perpsEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const predictEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
@@ -228,7 +225,6 @@ const ActivityView = () => {
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
-  const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -259,6 +255,16 @@ const ActivityView = () => {
     selectMultichainAccountsState2Enabled,
   );
   const showUnifiedActivityList = isMultichainAccountsState2Enabled;
+
+  const renderTransactionsView = () => {
+    if (showUnifiedActivityList) {
+      return <UnifiedTransactionsView chainId={currentChainId} />;
+    }
+    if (selectedAddress && isNonEvmAddress(selectedAddress)) {
+      return <MultichainTransactionsView chainId={currentChainId} />;
+    }
+    return <TransactionsView />;
+  };
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
@@ -340,13 +346,7 @@ const ActivityView = () => {
                 disabled={isDisabled && !isMultichainAccountsState2Enabled}
               />
             </View>
-            {showUnifiedActivityList ? (
-              <UnifiedTransactionsView chainId={currentChainId} />
-            ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
-              <MultichainTransactionsView chainId={currentChainId} />
-            ) : (
-              <TransactionsView />
-            )}
+            {renderTransactionsView()}
           </View>
           <View
             key="orders"

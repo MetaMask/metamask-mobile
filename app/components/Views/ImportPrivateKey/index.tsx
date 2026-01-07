@@ -12,7 +12,6 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
@@ -107,12 +106,10 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      // check if seedless pwd is outdated skip cache before importing Private Key
-      const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      const isImported =
+        await Authentication.importAccountFromPrivateKey(privateKeyToProcess);
       // no need to handle error here, password outdated state will trigger modal that force user to log out
-      if (!isSeedlessPwdOutdated) {
-        await importAccountFromPrivateKey(privateKeyToProcess);
+      if (isImported) {
         navigation.navigate('ImportPrivateKeyView', {
           screen: 'ImportPrivateKeySuccess',
         });

@@ -157,7 +157,7 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "marginVertical": 8,
               "textAlign": "center",
@@ -170,7 +170,7 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "justifyContent": "center",
               "marginVertical": 8,
@@ -222,7 +222,7 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 14,
                       "textAlign": "center",
                     },
@@ -402,7 +402,7 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "marginVertical": 8,
               "textAlign": "center",
@@ -415,7 +415,7 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "justifyContent": "center",
               "marginVertical": 8,
@@ -467,7 +467,7 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 14,
                       "textAlign": "center",
                     },

@@ -39,7 +39,7 @@ exports[`SheetActionView should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -77,7 +77,7 @@ exports[`SheetActionView should render correctly 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

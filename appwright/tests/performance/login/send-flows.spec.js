@@ -35,45 +35,42 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   NetworksScreen.device = device;
   TokenOverviewScreen.device = device;
   await login(device);
-  await dissmissPredictionsModal(device);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
+    { ios: 1700, android: 1900 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
+    { ios: 800, android: 1800 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
+    { ios: 500, android: 1000 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
+    { ios: 6500, android: 5000 },
+    device,
   );
   await WalletActionModal.tapSendButton();
-  timer1.start();
-  await SendScreen.assetsListIsDisplayed();
-  timer1.stop();
+  await timer1.measure(() => SendScreen.assetsListIsDisplayed());
+
   await SendScreen.typeTokenName('Link\n');
   await SendScreen.clickOnFirstTokenBadge();
-  timer2.start();
+  await timer2.measure(() => AmountScreen.isVisible());
 
-  await AmountScreen.isVisible();
-  timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
   await AmountScreen.tapOnNextButton();
-  timer3.start();
-  await SendScreen.isSelectAddressScreenDisplayed();
-  timer3.stop();
+  await timer3.measure(() => SendScreen.isSelectAddressScreenDisplayed());
+
   await SendScreen.typeAddressInSendAddressField(ethAddress);
   await SendScreen.clickOnReviewButton();
-  timer4.start();
-  await ConfirmationScreen.isVisible();
-  timer4.stop();
+  await timer4.measure(() => ConfirmationScreen.isVisible());
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-
+  performanceTracker.addTimers(timer1, timer2, timer3, timer4);
   await performanceTracker.attachToTest(testInfo);
 });
 
@@ -95,42 +92,40 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await login(device);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
+    { ios: 2000, android: 1800 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
+    { ios: 1200, android: 1700 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
+    { ios: 500, android: 1000 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
+    { ios: 6000, android: 6000 },
+    device,
   );
   await WalletActionModal.tapSendButton();
-  timer1.start();
-  await SendScreen.assetsListIsDisplayed();
-  timer1.stop();
+  await timer1.measure(() => SendScreen.assetsListIsDisplayed());
+
   await SendScreen.typeTokenName('Solana\n');
   await SendScreen.clickOnFirstTokenBadge();
-  timer2.start();
+  await timer2.measure(() => AmountScreen.isVisible());
 
-  await AmountScreen.isVisible();
-  timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.SOLANA);
 
   await AmountScreen.tapOnNextButton();
-  timer3.start();
-  await SendScreen.isSelectAddressScreenDisplayed();
-  timer3.stop();
+  await timer3.measure(() => SendScreen.isSelectAddressScreenDisplayed());
+
   await SendScreen.typeAddressInSendAddressField(solanaAddress);
   await SendScreen.clickOnReviewButton();
-  timer4.start();
-  await ConfirmationScreen.isVisible('Solana', 180000);
-  timer4.stop();
+  await timer4.measure(() => ConfirmationScreen.isVisible('Solana', 180000));
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-
+  performanceTracker.addTimers(timer1, timer2, timer3, timer4);
   await performanceTracker.attachToTest(testInfo);
 });

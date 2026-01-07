@@ -453,7 +453,7 @@ exports[`AccountSelector should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 18,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -648,7 +648,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Medium",
+                                                        "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "fontWeight": "500",
                                                         "letterSpacing": 0,
@@ -675,7 +675,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                       style={
                                                         {
                                                           "color": "#686e7d",
-                                                          "fontFamily": "Geist Regular",
+                                                          "fontFamily": "Geist-Regular",
                                                           "fontSize": 16,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -693,7 +693,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                         <View
                                           style={
                                             {
-                                              "paddingRight": 20,
+                                              "paddingRight": 8,
                                             }
                                           }
                                         >
@@ -845,7 +845,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "Geist Medium",
+                                                        "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "fontWeight": "500",
                                                         "letterSpacing": 0,
@@ -872,7 +872,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                       style={
                                                         {
                                                           "color": "#686e7d",
-                                                          "fontFamily": "Geist Regular",
+                                                          "fontFamily": "Geist-Regular",
                                                           "fontSize": 16,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -890,7 +890,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                         <View
                                           style={
                                             {
-                                              "paddingRight": 20,
+                                              "paddingRight": 8,
                                             }
                                           }
                                         >
@@ -996,7 +996,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

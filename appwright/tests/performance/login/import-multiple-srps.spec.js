@@ -19,7 +19,7 @@ import {
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   device,
   performanceTracker,
-}, testInfo) => {
+}) => {
   LoginScreen.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -32,5 +32,5 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
 
   const timers = await importSRPFlow(device, process.env.TEST_SRP_2, false);
   timers.forEach((timer) => performanceTracker.addTimer(timer));
-  await performanceTracker.attachToTest(testInfo);
+  // Quality gates validation is performed by the reporter when generating reports
 });

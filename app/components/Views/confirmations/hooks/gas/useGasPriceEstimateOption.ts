@@ -12,7 +12,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { useFeeCalculations } from './useFeeCalculations';
 import { type GasOption } from '../../types/gas';
-import { EMPTY_VALUE_STRING, GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING } from '../../constants/gas';
 
 const HEX_ZERO = '0x0';
 
@@ -109,7 +109,6 @@ export const useGasPriceEstimateOption = ({
 
     return [
       {
-        emoji: GasOptionIcon.GAS_PRICE,
         estimatedTime: undefined,
         isSelected: isGasPriceEstimateSelected,
         key: 'gasPrice',

@@ -6,7 +6,7 @@ exports[`SensitiveText should render correctly 1`] = `
   style={
     {
       "color": "#121314",
-      "fontFamily": "Geist Regular",
+      "fontFamily": "Geist-Regular",
       "fontSize": 16,
       "letterSpacing": 0,
       "lineHeight": 24,

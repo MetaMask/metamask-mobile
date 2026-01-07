@@ -89,6 +89,11 @@ export interface UseAccountsParams {
    * @default false
    */
   isLoading?: boolean;
+  /**
+   * Optional boolean that indicates if ENS names should be fetched for accounts.
+   * @default true
+   */
+  fetchENS?: boolean;
 }
 
 /**

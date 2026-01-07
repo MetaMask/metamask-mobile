@@ -32,7 +32,7 @@ class RewardsGTMModal {
   }
   
   async tapNotNowButton() {
-    await AppwrightGestures.tap(this.notNowButton);
+    await AppwrightGestures.tap(await this.notNowButton);
   }
 }
 

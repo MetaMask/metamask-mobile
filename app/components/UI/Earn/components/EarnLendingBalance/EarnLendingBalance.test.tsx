@@ -313,12 +313,30 @@ describe('EarnLendingBalance', () => {
     ).toBeDefined();
   });
 
-  it('does not render if stablecoin lending feature flag disabled', () => {
+  it('does not render when lending is disabled and token is not mUSD convertible', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(false);
+
+    (
+      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+        typeof selectIsMusdConversionFlowEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      useMusdConversionTokens as jest.MockedFunction<
+        typeof useMusdConversionTokens
+      >
+    ).mockReturnValue({
+      isConversionToken: jest.fn().mockReturnValue(false),
+      tokenFilter: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+      tokens: [],
+    });
 
     const { toJSON } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
@@ -474,6 +492,7 @@ describe('EarnLendingBalance', () => {
       isConversionToken: jest.fn().mockReturnValue(true),
       tokenFilter: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -502,6 +521,7 @@ describe('EarnLendingBalance', () => {
       isConversionToken: jest.fn().mockReturnValue(false),
       tokenFilter: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -513,6 +533,41 @@ describe('EarnLendingBalance', () => {
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeNull();
+  });
+
+  it('displays mUSD conversion CTA when lending flag is disabled but mUSD conversion flag is enabled', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+        typeof selectIsMusdConversionFlowEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    (
+      useMusdConversionTokens as jest.MockedFunction<
+        typeof useMusdConversionTokens
+      >
+    ).mockReturnValue({
+      isConversionToken: jest.fn().mockReturnValue(true),
+      tokenFilter: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+      tokens: [],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
   });
 
   it('favors mUSD conversion CTA over lending empty state CTA when both conditions are met', () => {
@@ -537,6 +592,7 @@ describe('EarnLendingBalance', () => {
       isConversionToken: jest.fn().mockReturnValue(true),
       tokenFilter: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 

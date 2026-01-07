@@ -23,6 +23,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
+import Device from '../../../../../../../util/device';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -61,6 +62,7 @@ function WebviewModal() {
       ref={sheetRef}
       shouldNavigateBack
       isFullscreen
+      isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader

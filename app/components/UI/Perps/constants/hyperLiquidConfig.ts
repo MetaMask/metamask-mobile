@@ -324,6 +324,30 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
 } as const;
 
 /**
+ * Testnet-specific HIP-3 DEX configuration
+ *
+ * On testnet, there are many HIP-3 DEXs (test deployments from various builders).
+ * Subscribing to all of them causes connection/subscription overload and instability.
+ * This configuration limits which DEXs are discovered and subscribed to on testnet.
+ *
+ * On mainnet, full DEX discovery continues unchanged.
+ */
+export const TESTNET_HIP3_CONFIG = {
+  /**
+   * Allowed DEX names for testnet
+   * Empty array = main DEX only (no HIP-3 DEXs)
+   * Add specific DEX names to test with particular HIP-3 DEXs: ['testdex1', 'testdex2']
+   */
+  ENABLED_DEXS: ['xyz'] as string[],
+
+  /**
+   * Set to true to enable full HIP-3 discovery on testnet (not recommended)
+   * When false, only DEXs in ENABLED_DEXS are used
+   */
+  AUTO_DISCOVER_ALL: false,
+} as const;
+
+/**
  * HIP-3 margin management configuration
  * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
  *

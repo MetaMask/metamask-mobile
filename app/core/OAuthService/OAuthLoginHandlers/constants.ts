@@ -1,4 +1,4 @@
-import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
@@ -58,8 +58,8 @@ export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
-// export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
-// use app deeplink for now, wait for applink to be updated
+// Use universal link for OAuth redirect
+export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 

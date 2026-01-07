@@ -32,6 +32,10 @@ export const createStyles = (_theme: Theme) =>
       zIndex: 0, // Ensure footer stays behind modal overlays
       elevation: 0, // Android equivalent
     },
+    footerButtonSecondary: {
+      flex: 1,
+      borderWidth: 0,
+    },
     labelWithTooltip: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -7,6 +7,8 @@ import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { SHEET_HEADER_BACK_BUTTON_ID } from '../../../../../component-library/components/Sheet/SheetHeader/SheetHeader.constants';
+import ReduxService from '../../../../../core/redux/ReduxService';
+import { ReduxStore } from '../../../../../core/redux/types';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -74,6 +76,22 @@ const render = () => {
 describe('RevealPrivateKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      dispatch: jest.fn(),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: true },
+        settings: { lockTime: 1000 },
+      }),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders correctly with account information', () => {

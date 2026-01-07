@@ -60,7 +60,7 @@ describe('BlockExplorersModal', () => {
       },
       { state: mockState },
     );
-    expect(getByText('View on Block Explorer')).toBeTruthy();
+    expect(getByText('View on block explorer')).toBeTruthy();
   });
 
   it('should display both source and destination chain block explorer buttons', () => {

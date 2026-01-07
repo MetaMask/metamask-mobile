@@ -77,7 +77,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 12,
                     "fontWeight": "bold",
                     "letterSpacing": 0.25,
@@ -109,7 +109,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 12,
                     "fontWeight": "bold",
                     "letterSpacing": 0.25,
@@ -197,7 +197,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -231,7 +231,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,

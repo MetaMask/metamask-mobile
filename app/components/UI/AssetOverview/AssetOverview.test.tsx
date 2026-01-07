@@ -273,6 +273,12 @@ jest.mock('../../../components/hooks/useAddNetwork', () => ({
   })),
 }));
 
+const mockUseRampsUnifiedV1Enabled = jest.fn();
+jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV1Enabled(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -327,6 +333,9 @@ describe('AssetOverview', () => {
       address: MOCK_ADDRESS_2,
     });
     selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    // Default mock for unified V1 flag - disabled
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -447,6 +456,78 @@ describe('AssetOverview', () => {
     expect(mockAddProperties).toHaveBeenCalledTimes(2);
     expect(mockBuild).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type BUY when unified V1 is disabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'BUY',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type UNIFIED_BUY when unified V1 is enabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'UNIFIED_BUY',
+      }),
+    );
   });
 
   it('should handle send button press', async () => {

@@ -6,6 +6,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingHorizontal": 16,
     }
   }
 >
@@ -69,7 +70,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
@@ -143,7 +144,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
             }
           }
         >
@@ -164,7 +165,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "paddingHorizontal": 16,
               "paddingVertical": 12,
             }
@@ -176,7 +177,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
           style={
             {
               "color": "#ca3542",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "marginTop": 0,
               "paddingBottom": 8,
             }
@@ -186,50 +187,54 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
       </View>
     </View>
   </RCTScrollView>
-  <TouchableOpacity
-    accessibilityRole="button"
-    accessible={true}
-    activeOpacity={1}
-    disabled={true}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+  <View
     style={
       {
-        "alignItems": "center",
-        "alignSelf": "center",
-        "backgroundColor": "#121314",
-        "borderRadius": 12,
-        "color": "#4459ff",
-        "flexDirection": "row",
-        "fontFamily": "Geist Regular",
-        "fontSize": 18,
-        "height": 48,
-        "justifyContent": "center",
-        "marginBottom": 16,
-        "opacity": 0.5,
-        "overflow": "hidden",
-        "paddingHorizontal": 16,
-        "position": "relative",
-        "width": "100%",
+        "margin": 16,
+        "paddingBottom": 0,
+        "paddingVertical": 16,
       }
     }
-    testID="token-import-next-button"
   >
-    <Text
-      accessibilityRole="text"
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
-          "color": "#ffffff",
-          "fontFamily": "Geist Medium",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "opacity": 0.5,
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
         }
       }
+      testID="token-import-next-button"
     >
-      Next
-    </Text>
-  </TouchableOpacity>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Next
+      </Text>
+    </TouchableOpacity>
+  </View>
 </View>
 `;

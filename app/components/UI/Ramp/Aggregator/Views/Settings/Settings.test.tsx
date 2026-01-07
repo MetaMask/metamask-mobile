@@ -149,7 +149,7 @@ describe('Settings', () => {
     it('calls setSelectedRegion with null when pressing reset region', () => {
       render(Settings);
       const resetRegionButton = screen.getByRole('button', {
-        name: 'Reset Region',
+        name: 'Reset region',
       });
       fireEvent.press(resetRegionButton);
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
@@ -173,7 +173,7 @@ describe('Settings', () => {
       render(Settings);
       expect(screen.toJSON()).toMatchSnapshot();
       const addActivationKeyButton = screen.getByRole('button', {
-        name: 'Add Activation Key',
+        name: 'Add activation key',
       });
       const [removeActivationKeyButton] = screen.getAllByRole('button', {
         name: 'Delete Activation Key',
@@ -197,7 +197,7 @@ describe('Settings', () => {
     it('navigates to add activation key when pressing add new key', () => {
       render(Settings);
       const addActivationKeyButton = screen.getByRole('button', {
-        name: 'Add Activation Key',
+        name: 'Add activation key',
       });
       fireEvent.press(addActivationKeyButton);
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -219,7 +219,7 @@ describe('Settings', () => {
       });
       render(Settings);
       const addActivationKeyButton = screen.getByRole('button', {
-        name: 'Add Activation Key',
+        name: 'Add activation key',
       });
       fireEvent.press(addActivationKeyButton);
       expect(mockAddActivationKey).toHaveBeenCalledWith(testKey, testLabel);

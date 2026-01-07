@@ -62,4 +62,23 @@ export default class AppwrightSelectors {
     const platform = testDevice.getPlatform();
     return platform === Platform.ANDROID;
   }
+
+  static async waitForElementToDisappear(
+    element: AppwrightLocator,
+    elementName: string,
+    timeout = 30000,
+  ) {
+    const startTime = Date.now();
+    const pollInterval = 200;
+    while (
+      await element.isVisible({ timeout: pollInterval }).catch(() => false)
+    ) {
+      if (Date.now() - startTime > timeout) {
+        throw new Error(
+          `${elementName} still visible after ${timeout / 1000} seconds`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+  }
 }

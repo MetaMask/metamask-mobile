@@ -211,7 +211,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
                             "textTransform": "uppercase",
@@ -252,7 +252,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -267,7 +267,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -404,7 +404,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -418,7 +418,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -449,7 +449,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -489,7 +489,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -575,7 +575,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -607,7 +607,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -620,7 +620,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -701,7 +701,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -770,7 +770,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -802,7 +802,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -814,7 +814,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -902,7 +902,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -980,7 +980,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1040,7 +1040,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1277,7 +1277,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
                             "textTransform": "uppercase",
@@ -1318,7 +1318,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1333,7 +1333,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1470,7 +1470,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1484,7 +1484,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1515,7 +1515,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1555,7 +1555,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1641,7 +1641,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -1673,7 +1673,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1686,7 +1686,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -1767,7 +1767,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1836,7 +1836,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -1868,7 +1868,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1880,7 +1880,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -1968,7 +1968,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2046,7 +2046,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2106,7 +2106,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2343,7 +2343,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
                             "textTransform": "uppercase",
@@ -2384,7 +2384,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2399,7 +2399,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2536,7 +2536,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2550,7 +2550,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2581,7 +2581,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2621,7 +2621,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -2707,7 +2707,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -2739,7 +2739,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2752,7 +2752,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -2833,7 +2833,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2902,7 +2902,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -2934,7 +2934,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2946,7 +2946,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -3034,7 +3034,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3112,7 +3112,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3172,7 +3172,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3409,7 +3409,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 24,
                             "textAlign": "center",
                             "textTransform": "uppercase",
@@ -3450,7 +3450,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3465,7 +3465,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3602,7 +3602,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3616,7 +3616,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3647,7 +3647,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3687,7 +3687,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -3773,7 +3773,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -3805,7 +3805,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -3818,7 +3818,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -3899,7 +3899,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3968,7 +3968,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -4000,7 +4000,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -4012,7 +4012,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
@@ -4100,7 +4100,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -4178,7 +4178,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -4238,7 +4238,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
