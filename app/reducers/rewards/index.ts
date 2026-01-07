@@ -11,9 +11,27 @@ import {
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
+// Saga action types - defined here to avoid circular dependency with saga file
+export const BULK_LINK_START = 'rewards/bulkLink/START';
+export const BULK_LINK_CANCEL = 'rewards/bulkLink/CANCEL';
+
 export interface AccountOptInBannerInfoStatus {
   accountGroupId: AccountGroupId;
   hide: boolean;
+}
+
+/**
+ * State for tracking bulk link progress across all accounts
+ */
+export interface BulkLinkState {
+  /** Whether the bulk link process is currently running */
+  isRunning: boolean;
+  /** Total number of accounts to link */
+  totalAccounts: number;
+  /** Number of accounts linked so far */
+  linkedAccounts: number;
+  /** Number of accounts that failed to link */
+  failedAccounts: number;
 }
 
 export interface RewardsState {
@@ -76,6 +94,9 @@ export interface RewardsState {
   unlockedRewards: RewardDto[] | null;
   unlockedRewardLoading: boolean;
   unlockedRewardError: boolean;
+
+  // Bulk link state (for linking all account groups across all wallets)
+  bulkLink: BulkLinkState;
 }
 
 export const initialState: RewardsState = {
@@ -126,6 +147,14 @@ export const initialState: RewardsState = {
   unlockedRewards: null,
   unlockedRewardLoading: false,
   unlockedRewardError: false,
+
+  // Bulk link initial state
+  bulkLink: {
+    isRunning: false,
+    totalAccounts: 0,
+    linkedAccounts: 0,
+    failedAccounts: 0,
+  },
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -375,42 +404,83 @@ const rewardsSlice = createSlice({
     ) => {
       state.pointsEvents = action.payload;
     },
+
+    // Bulk link reducers
+    bulkLinkStarted: (
+      state,
+      action: PayloadAction<{
+        totalAccounts: number;
+      }>,
+    ) => {
+      state.bulkLink = {
+        isRunning: true,
+        totalAccounts: action.payload.totalAccounts,
+        linkedAccounts: 0,
+        failedAccounts: 0,
+      };
+    },
+    bulkLinkAccountResult: (
+      state,
+      action: PayloadAction<{
+        success: boolean;
+      }>,
+    ) => {
+      if (action.payload.success) {
+        state.bulkLink.linkedAccounts += 1;
+      } else {
+        state.bulkLink.failedAccounts += 1;
+      }
+    },
+    bulkLinkCompleted: (state) => {
+      state.bulkLink.isRunning = false;
+    },
+    bulkLinkCancelled: (state) => {
+      state.bulkLink.isRunning = false;
+    },
+    bulkLinkReset: (state) => {
+      state.bulkLink = initialState.bulkLink;
+    },
   },
   extraReducers: (builder) => {
-    builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
-      if (action.payload?.rewards) {
-        return {
-          // Reset non-persistent state (state is persisted via controller)
-          ...initialState,
+    builder
+      // Handle BULK_LINK_CANCEL directly so state is reset even if no saga is running
+      .addCase(BULK_LINK_CANCEL, (state) => {
+        state.bulkLink.isRunning = false;
+      })
+      .addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
+        if (action.payload?.rewards) {
+          return {
+            // Reset non-persistent state (state is persisted via controller)
+            ...initialState,
 
-          // UI state we want to restore from previous visit
-          seasonId: action.payload.rewards.seasonId,
-          seasonName: action.payload.rewards.seasonName,
-          seasonStartDate: action.payload.rewards.seasonStartDate,
-          seasonEndDate: action.payload.rewards.seasonEndDate,
-          seasonTiers: action.payload.rewards.seasonTiers,
-          seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-          seasonShouldInstallNewVersion:
-            action.payload.rewards.seasonShouldInstallNewVersion,
-          referralCode: action.payload.rewards.referralCode,
-          refereeCount: action.payload.rewards.refereeCount,
-          currentTier: action.payload.rewards.currentTier,
-          nextTier: action.payload.rewards.nextTier,
-          nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
-          balanceTotal: action.payload.rewards.balanceTotal,
-          balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
-          balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
-          activeBoosts: action.payload.rewards.activeBoosts,
-          pointsEvents: action.payload.rewards.pointsEvents,
-          unlockedRewards: action.payload.rewards.unlockedRewards,
-          hideUnlinkedAccountsBanner:
-            action.payload.rewards.hideUnlinkedAccountsBanner,
-          hideCurrentAccountNotOptedInBanner:
-            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
-        };
-      }
-      return state;
-    });
+            // UI state we want to restore from previous visit
+            seasonId: action.payload.rewards.seasonId,
+            seasonName: action.payload.rewards.seasonName,
+            seasonStartDate: action.payload.rewards.seasonStartDate,
+            seasonEndDate: action.payload.rewards.seasonEndDate,
+            seasonTiers: action.payload.rewards.seasonTiers,
+            seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+            seasonShouldInstallNewVersion:
+              action.payload.rewards.seasonShouldInstallNewVersion,
+            referralCode: action.payload.rewards.referralCode,
+            refereeCount: action.payload.rewards.refereeCount,
+            currentTier: action.payload.rewards.currentTier,
+            nextTier: action.payload.rewards.nextTier,
+            nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
+            balanceTotal: action.payload.rewards.balanceTotal,
+            balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
+            balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+            activeBoosts: action.payload.rewards.activeBoosts,
+            pointsEvents: action.payload.rewards.pointsEvents,
+            unlockedRewards: action.payload.rewards.unlockedRewards,
+            hideUnlinkedAccountsBanner:
+              action.payload.rewards.hideUnlinkedAccountsBanner,
+            hideCurrentAccountNotOptedInBanner:
+              action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+          };
+        }
+        return state;
+      });
   },
 });
 
@@ -439,6 +509,12 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Bulk link actions
+  bulkLinkStarted,
+  bulkLinkAccountResult,
+  bulkLinkCompleted,
+  bulkLinkCancelled,
+  bulkLinkReset,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

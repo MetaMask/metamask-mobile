@@ -115,3 +115,28 @@ export const selectPointsEvents = (state: RootState) =>
 
 export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
   state.rewards.seasonShouldInstallNewVersion;
+
+// Bulk link selectors
+export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
+
+export const selectBulkLinkIsRunning = (state: RootState) =>
+  state.rewards.bulkLink.isRunning;
+
+export const selectBulkLinkTotalAccounts = (state: RootState) =>
+  state.rewards.bulkLink.totalAccounts;
+
+export const selectBulkLinkLinkedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.linkedAccounts;
+
+export const selectBulkLinkFailedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.failedAccounts;
+
+/**
+ * Returns account-level progress as a percentage (0-1)
+ */
+export const selectBulkLinkAccountProgress = (state: RootState) => {
+  const { linkedAccounts, failedAccounts, totalAccounts } =
+    state.rewards.bulkLink;
+  if (totalAccounts === 0) return 0;
+  return (linkedAccounts + failedAccounts) / totalAccounts;
+};
