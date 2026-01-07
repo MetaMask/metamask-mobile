@@ -37,7 +37,7 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  const sessionReq = obj.sessionRequest as SessionRequest;
+  const sessionReq = obj.sessionRequest;
   if (
     !sessionReq.id ||
     typeof sessionReq.id !== 'string' ||
@@ -57,7 +57,7 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
-  const metadata = obj.metadata as Metadata;
+  const metadata = obj.metadata;
   if (
     !metadata.dapp ||
     typeof metadata.dapp !== 'object' ||
