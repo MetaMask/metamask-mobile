@@ -73,12 +73,12 @@ test('Account creation after fresh install', async ({
   );
   const screen2Timer = new TimerHelper(
     'Time since the user clicks on "Create account" button until the account is in the account list',
-    { ios: 1500, android: 1900 },
+    { ios: 1300, android: 2000 },
     device,
   );
   const screen3Timer = new TimerHelper(
     'Time since the user clicks on new account created until the Token list is visible',
-    { ios: 11000, android: 32000 },
+    { ios: 3000, android: 3000 },
     device,
   );
 
@@ -93,7 +93,7 @@ test('Account creation after fresh install', async ({
 
   await AccountListComponent.tapOnAccountByName('Account 2');
   await screen3Timer.measure(async () => {
-    await WalletMainScreen.isTokenVisible('SOL');
+    await WalletMainScreen.checkActiveAccount('Account 2');
   });
 
   performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);

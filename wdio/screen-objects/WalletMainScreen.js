@@ -152,6 +152,8 @@ class WalletMainScreen {
     }
   }
 
+  
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -227,6 +229,13 @@ class WalletMainScreen {
       await AppwrightGestures.tap(await this.accountIcon); 
     }
   }
+
+  async checkActiveAccount(name) {
+    const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
+    await appwrightExpect(element).toBeVisible();
+  }
+
+
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
