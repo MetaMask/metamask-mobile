@@ -3410,7 +3410,6 @@ workflows:
                 echo "IPA_PATH set to: $IPA_PATH"
       - script@1:
           title: Upload to TestFlight via Fastlane
-          working-directory: ios
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -3420,7 +3419,7 @@ workflows:
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
                 
-                bundle exec fastlane upload_to_testflight_only \
+                BUNDLE_GEMFILE=ios/Gemfile bundle exec fastlane upload_to_testflight_only \
                   ipa_path:"$IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
                   notify_external_testers:true \
