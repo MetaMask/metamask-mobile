@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetElement should render correctly 1`] = `
+exports[`AssetElement renders correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   onLongPress={[Function]}
