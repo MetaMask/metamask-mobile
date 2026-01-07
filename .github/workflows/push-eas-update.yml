@@ -230,7 +230,22 @@ jobs:
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
-          yarn run build:expo-update:main:exp
+          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
+          case "${TARGET_CHANNEL}" in
+            exp)
+              yarn run build:expo-update:main:exp
+              ;;
+            rc)
+              yarn run build:expo-update:main:rc
+              ;;
+            production)
+              yarn run build:expo-update:main:prod
+              ;;
+            *)
+              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Update summary
         if: success()
