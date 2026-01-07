@@ -91,6 +91,7 @@ jobs:
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
 
     steps:
       - name: Checkout
@@ -106,6 +107,7 @@ jobs:
           "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
           echo "✅ System images installed"
 
+      # Note: CocoaPods specs caching is handled by the setup-e2e-env action
       - name: Set up E2E environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
