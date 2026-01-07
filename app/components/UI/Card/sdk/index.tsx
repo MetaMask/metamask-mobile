@@ -35,6 +35,7 @@ export interface ICardSDK {
   setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
   fetchUserData: () => Promise<void>;
+  isReturningSession: boolean;
 }
 
 interface ProviderProps<T> {
@@ -106,14 +107,21 @@ export const CardSDKProvider = ({
     }
   }, [sdk, onboardingId, dispatch]);
 
-  // Fetch user data on mount if onboardingId exists
+  // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
+  const [hasInitialOnboardingId] = useState(() => !!onboardingId);
+
+  // Fetch user data ONLY on initial mount if onboardingId already exists.
+  // This prevents fetching when onboardingId is newly set during email verification,
+  // which could cause race conditions and navigation issues.
   useEffect(() => {
-    if (!sdk || !onboardingId) {
+    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
       return;
     }
 
     fetchUserData();
-  }, [sdk, onboardingId, fetchUserData]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -136,8 +144,17 @@ export const CardSDKProvider = ({
       setUser,
       logoutFromProvider,
       fetchUserData,
+      isReturningSession: hasInitialOnboardingId,
     }),
-    [sdk, isLoading, user, setUser, logoutFromProvider, fetchUserData],
+    [
+      sdk,
+      isLoading,
+      user,
+      setUser,
+      logoutFromProvider,
+      fetchUserData,
+      hasInitialOnboardingId,
+    ],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;

@@ -42,8 +42,8 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
     },
     image: {
-      width: 300,
-      height: 250,
+      width: 190,
+      height: 220,
     },
     bottomContainer: {
       width: '100%',

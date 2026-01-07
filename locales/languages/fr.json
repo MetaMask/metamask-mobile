@@ -7204,7 +7204,7 @@
       "description": "La connexion a échoué. Veuillez réessayer."
     },
     "show_rejection": {
-      "title": "Approval Rejected",
+      "title": "Approval rejected",
       "description": "User rejected the request."
     },
     "show_return_to_app": {
@@ -7227,7 +7227,7 @@
     "title": "Explore",
     "view_all": "View all",
     "tokens": "Jetons",
-    "trending_tokens": "Trending Tokens",
+    "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "Tous les réseaux",
     "24h": "24h",
@@ -7249,7 +7249,7 @@
     "predictions": "Prédictions",
     "no_results": "No results found",
     "sites": "Sites",
-    "popular_sites": "Popular Sites",
+    "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",

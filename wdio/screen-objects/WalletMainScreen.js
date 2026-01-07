@@ -254,7 +254,8 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const container = await this.WalletScreenContainer;
+    await appwrightExpect(container).toBeVisible();
   }
 
   async clickOnMainScreen() { // to close account actions bottom sheet

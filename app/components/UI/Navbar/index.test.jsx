@@ -205,7 +205,7 @@ describe('getAddressListNavbarOptions', () => {
   });
 
   it('handles different titles', () => {
-    const titles = ['Receiving address', 'Account Details', ''];
+    const titles = ['Receiving address', 'Account details', ''];
 
     titles.forEach((title) => {
       expect(() => {

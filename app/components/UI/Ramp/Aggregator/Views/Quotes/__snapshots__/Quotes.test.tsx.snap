@@ -1162,7 +1162,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -3445,7 +3445,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -5332,7 +5332,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -8408,7 +8408,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       }
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>

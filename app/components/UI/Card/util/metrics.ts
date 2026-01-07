@@ -7,6 +7,7 @@ enum CardScreens {
   SET_PHONE_NUMBER = 'SET_PHONE_NUMBER',
   CONFIRM_PHONE_NUMBER = 'CONFIRM_PHONE_NUMBER',
   VERIFY_IDENTITY = 'VERIFY_IDENTITY',
+  VERIFYING_VERIFF_KYC = 'VERIFYING_VERIFF_KYC',
   VALIDATING_KYC = 'VALIDATING_KYC',
   KYC_PENDING = 'KYC_PENDING',
   KYC_FAILED = 'KYC_FAILED',
@@ -55,4 +56,9 @@ enum CardActions {
   NAVIGATE_TO_CARD_PAGE = 'NAVIGATE_TO_CARD_PAGE',
 }
 
-export { CardScreens, CardActions };
+enum CardDeeplinkActions {
+  CARD_ONBOARDING = 'CARD_ONBOARDING',
+  CARD_HOME = 'CARD_HOME',
+}
+
+export { CardScreens, CardActions, CardDeeplinkActions };

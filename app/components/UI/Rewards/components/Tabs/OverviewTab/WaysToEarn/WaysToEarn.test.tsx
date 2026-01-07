@@ -11,6 +11,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
+import { selectMusdHoldingEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
@@ -80,20 +81,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock useFeatureFlag hook
-jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn((key: string) => {
-    if (key === 'rewardsEnableMusdHolding') {
-      return mockIsMusdHoldingEnabled;
-    }
-    return false;
+// Mock selectMusdHoldingEnabledFlag selector
+jest.mock(
+  '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled',
+  () => ({
+    selectMusdHoldingEnabledFlag: jest.fn(),
   }),
-  FeatureFlagNames: {
-    rewardsEnabled: 'rewardsEnabled',
-    otaUpdatesEnabled: 'otaUpdatesEnabled',
-    rewardsEnableMusdHolding: 'rewardsEnableMusdHolding',
-  },
-}));
+);
 
 // Mock useMetrics hook
 jest.mock('../../../../../../hooks/useMetrics', () => ({
@@ -177,7 +171,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.ways_to_earn.card.sheet.points': '1 point per $1 spent',
       'rewards.ways_to_earn.card.sheet.description':
         'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
-      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage Card',
+      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage card',
       // Deposit MUSD strings
       'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
       'rewards.ways_to_earn.deposit_musd.description':
@@ -209,7 +203,7 @@ jest.mock('./SwapSupportedNetworksSection', () => ({
     return ReactActual.createElement(
       Text,
       { testID: 'swap-supported-networks' },
-      'Supported Networks',
+      'Supported networks',
     );
   },
 }));
@@ -282,6 +276,9 @@ describe('WaysToEarn', () => {
       }
       if (selector === selectRewardsMusdDepositEnabledFlag) {
         return mockIsMusdDepositEnabled;
+      }
+      if (selector === selectMusdHoldingEnabledFlag) {
+        return mockIsMusdHoldingEnabled;
       }
       return undefined;
     });
@@ -1277,7 +1274,7 @@ describe('WaysToEarn', () => {
         {
           type: WayToEarnType.CARD,
           buttonText: 'MetaMask Card',
-          expectedCTALabel: 'Manage Card',
+          expectedCTALabel: 'Manage card',
           enableFlag: () => {
             mockIsCardSpendEnabled = true;
           },
