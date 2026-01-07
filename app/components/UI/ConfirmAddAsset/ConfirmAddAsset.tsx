@@ -165,6 +165,7 @@ const ConfirmAddAsset = () => {
               },
             ]}
             buttonsAlignment={ButtonsAlignment.Horizontal}
+            style={styles.footer}
           />
         </Box>
       </View>
@@ -243,7 +244,7 @@ const ConfirmAddAsset = () => {
             },
           ]}
           buttonsAlignment={ButtonsAlignment.Horizontal}
-          style={styles.button}
+          style={styles.footer}
         />
       </View>
       {renderImportModal()}

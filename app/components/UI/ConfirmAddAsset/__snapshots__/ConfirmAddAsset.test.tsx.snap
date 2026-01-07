@@ -284,12 +284,17 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
   >
     <View
       style={
-        {
-          "flexDirection": "row",
-          "paddingHorizontal": 16,
-          "paddingVertical": 4,
-          "top": 16,
-        }
+        [
+          {
+            "flexDirection": "row",
+            "paddingBottom": 16,
+            "paddingHorizontal": 0,
+            "paddingTop": 24,
+          },
+          {
+            "paddingHorizontal": 0,
+          },
+        ]
       }
       testID="bottomsheetfooter"
     >

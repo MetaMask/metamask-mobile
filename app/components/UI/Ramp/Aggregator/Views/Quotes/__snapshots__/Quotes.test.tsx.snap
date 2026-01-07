@@ -1569,11 +1569,15 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           </View>
                           <View
                             style={
-                              {
-                                "flexDirection": "column",
-                                "paddingHorizontal": 8,
-                                "paddingVertical": 4,
-                              }
+                              [
+                                {
+                                  "flexDirection": "column",
+                                  "paddingBottom": 16,
+                                  "paddingHorizontal": 16,
+                                  "paddingTop": 24,
+                                },
+                                undefined,
+                              ]
                             }
                             testID="bottomsheetfooter"
                           >
@@ -5889,11 +5893,15 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           </View>
                           <View
                             style={
-                              {
-                                "flexDirection": "column",
-                                "paddingHorizontal": 8,
-                                "paddingVertical": 4,
-                              }
+                              [
+                                {
+                                  "flexDirection": "column",
+                                  "paddingBottom": 16,
+                                  "paddingHorizontal": 16,
+                                  "paddingTop": 24,
+                                },
+                                undefined,
+                              ]
                             }
                             testID="bottomsheetfooter"
                           >

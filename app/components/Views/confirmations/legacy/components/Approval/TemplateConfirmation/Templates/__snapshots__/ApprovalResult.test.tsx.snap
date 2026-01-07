@@ -154,11 +154,15 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   >
     <View
       style={
-        {
-          "flexDirection": "row",
-          "paddingHorizontal": 8,
-          "paddingVertical": 4,
-        }
+        [
+          {
+            "flexDirection": "row",
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+          },
+          undefined,
+        ]
       }
       testID="bottomsheetfooter"
     >
@@ -359,11 +363,15 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   >
     <View
       style={
-        {
-          "flexDirection": "row",
-          "paddingHorizontal": 8,
-          "paddingVertical": 4,
-        }
+        [
+          {
+            "flexDirection": "row",
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+          },
+          undefined,
+        ]
       }
       testID="bottomsheetfooter"
     >

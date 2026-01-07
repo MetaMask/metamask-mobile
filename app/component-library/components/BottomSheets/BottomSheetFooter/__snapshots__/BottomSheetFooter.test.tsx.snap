@@ -3,11 +3,15 @@
 exports[`BottomSheetFooter should render snapshot correctly 1`] = `
 <View
   style={
-    {
-      "flexDirection": "row",
-      "paddingHorizontal": 8,
-      "paddingVertical": 4,
-    }
+    [
+      {
+        "flexDirection": "row",
+        "paddingBottom": 16,
+        "paddingHorizontal": 16,
+        "paddingTop": 24,
+      },
+      undefined,
+    ]
   }
   testID="bottomsheetfooter"
 >

@@ -243,12 +243,17 @@ exports[`GasImpactModal render matches snapshot 1`] = `
           </Text>
           <View
             style={
-              {
-                "flexDirection": "row",
-                "paddingBottom": 16,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
+              [
+                {
+                  "flexDirection": "row",
+                  "paddingBottom": 16,
+                  "paddingHorizontal": 16,
+                  "paddingTop": 24,
+                },
+                {
+                  "paddingBottom": 16,
+                },
+              ]
             }
             testID="bottomsheetfooter"
           >

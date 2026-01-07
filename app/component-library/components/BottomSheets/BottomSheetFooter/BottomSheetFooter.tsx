@@ -26,7 +26,7 @@ const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
   const { styles } = useStyles(styleSheet, { style, buttonsAlignment });
 
   return (
-    <View style={styles.base} testID={TESTID_BOTTOMSHEETFOOTER}>
+    <View style={[styles.base, style]} testID={TESTID_BOTTOMSHEETFOOTER}>
       {buttonPropsArray.map((buttonProp, index) => (
         <Button
           key={index}

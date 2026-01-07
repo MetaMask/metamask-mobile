@@ -34,8 +34,9 @@ const styleSheet = (params: {
       {
         flexDirection:
           buttonsAlignment === ButtonsAlignment.Horizontal ? 'row' : 'column',
-        paddingVertical: 4,
-        paddingHorizontal: 8,
+        paddingTop: 24,
+        paddingBottom: 16,
+        paddingHorizontal: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,

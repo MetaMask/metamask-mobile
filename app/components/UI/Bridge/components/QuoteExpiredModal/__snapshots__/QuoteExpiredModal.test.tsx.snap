@@ -250,11 +250,19 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
         </View>
         <View
           style={
-            {
-              "flexDirection": "row",
-              "paddingHorizontal": 16,
-              "paddingVertical": 20,
-            }
+            [
+              {
+                "flexDirection": "row",
+                "paddingBottom": 16,
+                "paddingHorizontal": 16,
+                "paddingTop": 24,
+                "paddingVertical": 20,
+              },
+              {
+                "paddingHorizontal": 16,
+                "paddingVertical": 20,
+              },
+            ]
           }
           testID="bottomsheetfooter"
         >

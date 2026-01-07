@@ -203,11 +203,19 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
         </View>
         <View
           style={
-            {
-              "flexDirection": "row",
-              "paddingHorizontal": 16,
-              "paddingVertical": 24,
-            }
+            [
+              {
+                "flexDirection": "row",
+                "paddingBottom": 16,
+                "paddingHorizontal": 16,
+                "paddingTop": 24,
+                "paddingVertical": 24,
+              },
+              {
+                "paddingHorizontal": 16,
+                "paddingVertical": 24,
+              },
+            ]
           }
           testID="bottomsheetfooter"
         >

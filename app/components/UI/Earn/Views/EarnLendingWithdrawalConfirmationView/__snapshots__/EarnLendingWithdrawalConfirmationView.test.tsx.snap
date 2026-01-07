@@ -886,12 +886,21 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "backgroundColor": "#ffffff",
-          "flexDirection": "row",
-          "paddingHorizontal": 16,
-          "paddingVertical": 12,
-        }
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+            "paddingVertical": 12,
+          },
+          {
+            "backgroundColor": "#ffffff",
+            "paddingHorizontal": 16,
+            "paddingVertical": 12,
+          },
+        ]
       }
       testID="bottomsheetfooter"
     >

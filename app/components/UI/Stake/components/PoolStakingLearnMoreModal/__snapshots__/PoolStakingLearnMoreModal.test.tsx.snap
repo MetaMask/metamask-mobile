@@ -611,11 +611,19 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
         </RCTScrollView>
         <View
           style={
-            {
-              "flexDirection": "row",
-              "paddingHorizontal": 16,
-              "paddingVertical": 16,
-            }
+            [
+              {
+                "flexDirection": "row",
+                "paddingBottom": 16,
+                "paddingHorizontal": 16,
+                "paddingTop": 24,
+                "paddingVertical": 16,
+              },
+              {
+                "paddingHorizontal": 16,
+                "paddingVertical": 16,
+              },
+            ]
           }
           testID="bottomsheetfooter"
         >

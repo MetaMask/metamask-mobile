@@ -938,13 +938,20 @@ exports[`AccountSelector should render correctly 1`] = `
                           </View>
                           <View
                             style={
-                              {
-                                "flexDirection": "row",
-                                "marginHorizontal": 16,
-                                "marginVertical": 16,
-                                "paddingHorizontal": 8,
-                                "paddingVertical": 4,
-                              }
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 16,
+                                  "paddingBottom": 16,
+                                  "paddingHorizontal": 16,
+                                  "paddingTop": 24,
+                                },
+                                {
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 16,
+                                },
+                              ]
                             }
                             testID="bottomsheetfooter"
                           >

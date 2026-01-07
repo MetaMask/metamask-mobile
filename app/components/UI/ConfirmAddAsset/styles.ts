@@ -83,9 +83,8 @@ const createStyles = (colors: Colors) =>
       position: 'absolute',
       right: 0,
     },
-    button: {
-      paddingHorizontal: 16,
-      top: 16,
+    footer: {
+      paddingHorizontal: 0,
     },
   });
 
