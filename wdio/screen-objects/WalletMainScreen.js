@@ -355,10 +355,8 @@ class WalletMainScreen {
     let balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
     let previousBalance = '';
     let sameResultStartTime = null;
-    let iterationCount = 0;
 
     while (true) {
-      iterationCount++;
       const elapsedTime = Date.now() - startTime;
 
       if (elapsedTime > maxWaitTime) {
