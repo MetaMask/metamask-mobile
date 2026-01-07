@@ -334,7 +334,7 @@ export function usePerpsTPSLForm(
 
       if (
         hasExceededSignificantFigures(sanitized) &&
-        sanitized.length > takeProfitPrice.length
+        sanitized.length >= takeProfitPrice.length
       )
         return;
 
@@ -441,7 +441,7 @@ export function usePerpsTPSLForm(
 
       if (
         hasExceededSignificantFigures(sanitized) &&
-        sanitized.length > stopLossPrice.length
+        sanitized.length >= stopLossPrice.length
       )
         return;
 
