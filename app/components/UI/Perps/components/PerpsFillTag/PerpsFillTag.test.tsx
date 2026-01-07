@@ -6,9 +6,11 @@ import { FillType, PerpsTransaction } from '../../types/transactionHistory';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 
 // Mock the hooks and dependencies
-const mockUseSelector = jest.fn(() => () => ({ address: '0xTestAddress' }));
+const mockUseSelector = jest.fn<() => { address: string } | null, [unknown]>(
+  () => () => ({ address: '0xTestAddress' }),
+);
 jest.mock('react-redux', () => ({
-  useSelector: (...args: unknown[]) => mockUseSelector(...args),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 const mockTrack = jest.fn();
@@ -174,7 +176,9 @@ describe('PerpsFillTag', () => {
   });
 
   it('does not render Liquidation pill when selectedAccount is null', () => {
-    mockUseSelector.mockImplementation(() => () => null);
+    mockUseSelector.mockImplementation(
+      () => () => null as unknown as { address: string },
+    );
 
     const transaction = createMockTransaction(FillType.Liquidation, {
       fill: {
@@ -204,7 +208,9 @@ describe('PerpsFillTag', () => {
 
   it('does not render Liquidation pill when both liquidatedUser and selectedAccount address are undefined', () => {
     // This tests the edge case where undefined === undefined would incorrectly return true
-    mockUseSelector.mockImplementation(() => () => ({ address: undefined }));
+    mockUseSelector.mockImplementation(
+      () => () => ({ address: undefined }) as unknown as { address: string },
+    );
 
     const transaction = createMockTransaction(FillType.Liquidation, {
       fill: {
