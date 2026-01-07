@@ -79,7 +79,10 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
-import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
+import {
+  MATIC_CONTRACTS,
+  POLYGON_MAINNET_CHAIN_ID,
+} from '../providers/polymarket/constants';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 import { PredictFeeCollection } from '../types/flags';
 
@@ -1767,6 +1770,12 @@ export class PredictController extends BaseController<
         state.pendingDeposits[params.providerId][signer.address] = 'pending';
       });
 
+      const polygonChainId = numberToHex(POLYGON_MAINNET_CHAIN_ID);
+      const gasFeeToken =
+        chainId.toLowerCase() === polygonChainId.toLowerCase()
+          ? (MATIC_CONTRACTS.collateral as Hex)
+          : undefined;
+
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
@@ -1776,6 +1785,7 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
+        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {
