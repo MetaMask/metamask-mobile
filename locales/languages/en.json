@@ -5598,6 +5598,7 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "earn_percentage": "Earn {{percentage}}%",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -5693,7 +5694,6 @@
         "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
         "continue_button": "Get started"
       },
-      "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "earn_rewards_when": "Earn rewards when",

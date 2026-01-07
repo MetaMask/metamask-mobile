@@ -8,17 +8,6 @@ jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../../../../../util/Logger');
 
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'earn.musd_conversion.buy_musd': 'Buy mUSD',
-      'earn.musd_conversion.get_musd': 'Get mUSD',
-      'earn.musd_conversion.earn_points_daily': 'Earn points daily',
-    };
-    return map[key] ?? key;
-  },
-}));
-
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import MusdConversionAssetListCta from '.';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
@@ -137,7 +126,7 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('MetaMask USD')).toBeOnTheScreen();
     });
 
-    it('displays earn points daily text', () => {
+    it('displays earn percentage text', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -156,7 +145,7 @@ describe('MusdConversionAssetListCta', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Earn points daily')).toBeOnTheScreen();
+      expect(getByText('Earn 2%')).toBeOnTheScreen();
     });
   });
 
