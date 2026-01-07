@@ -51,7 +51,7 @@ jobs:
           BUILD_NUMBER: ${{ needs.generate-build-version.outputs.build-version }}
           HEAD_REF: ${{ inputs.base-branch }}
         run: |
-          ./scripts/set-build-version.sh $BUILD_NUMBER
+          ./scripts/set-build-version.sh "$BUILD_NUMBER"
           git diff
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
@@ -60,5 +60,5 @@ jobs:
           git add ios/MetaMask.xcodeproj/project.pbxproj
           git add android/app/build.gradle
           git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
-          git push origin HEAD:$HEAD_REF --force-with-lease
-          echo "commit-hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          git push origin HEAD:"$HEAD_REF" --force-with-lease
+          echo "commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
