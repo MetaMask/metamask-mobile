@@ -33,7 +33,6 @@ import Logger from '../../../util/Logger';
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
   handleSuggestionSelect: (word: string) => void;
-  setSuggestionSelecting: (value: boolean) => void;
 }
 
 /**
@@ -76,8 +75,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const [currentInputWord, setCurrentInputWord] = useState<string>('');
 
     const focusedInputIndexRef = useRef<number | null>(null);
-    const isSuggestionSelectingRef = useRef<boolean>(false);
-    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const seedPhraseInputRefs = useRef<Map<
       number,
@@ -198,15 +195,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
 
-    useEffect(
-      () => () => {
-        if (blurTimeoutRef.current) {
-          clearTimeout(blurTimeoutRef.current);
-        }
-      },
-      [],
-    );
-
     // Helper to validate words
     const validateWords = useCallback((words: string[]) => {
       const errorsMap: Record<number, boolean> = {};
@@ -259,27 +247,16 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     const handleOnBlur = useCallback(
       (index: number) => {
-        if (blurTimeoutRef.current) {
-          clearTimeout(blurTimeoutRef.current);
+        const currentWord = seedPhrase[index];
+        const trimmedWord = currentWord ? currentWord.trim() : '';
+        if (trimmedWord) {
+          const checkValid = checkValidSeedWord(trimmedWord);
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [index]: !checkValid,
+          }));
         }
-
-        blurTimeoutRef.current = setTimeout(() => {
-          if (isSuggestionSelectingRef.current) {
-            return;
-          }
-
-          const currentWord = seedPhrase[index];
-          const trimmedWord = currentWord ? currentWord.trim() : '';
-          if (trimmedWord) {
-            const checkValid = checkValidSeedWord(trimmedWord);
-            setErrorWordIndexes((prev) => ({
-              ...prev,
-              [index]: !checkValid,
-            }));
-          }
-
-          setCurrentInputWord('');
-        }, 150);
+        setCurrentInputWord('');
       },
       [seedPhrase],
     );
@@ -345,7 +322,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const handleSuggestionSelect = useCallback((word: string) => {
       const targetIndex = focusedInputIndexRef.current;
       if (targetIndex === null) {
-        isSuggestionSelectingRef.current = false;
         return;
       }
 
@@ -365,7 +341,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       if (isLastWordOfValidSrp) {
         const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
         inputRef?.focus();
-        isSuggestionSelectingRef.current = false;
       }
     }, []);
 
@@ -378,7 +353,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         );
 
         refElement?.focus();
-        isSuggestionSelectingRef.current = false;
       });
     }, [nextSeedPhraseInputFocusedIndex]);
 
@@ -389,9 +363,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     React.useImperativeHandle(ref, () => ({
       handleSeedPhraseChange,
       handleSuggestionSelect,
-      setSuggestionSelecting: (value: boolean) => {
-        isSuggestionSelectingRef.current = value;
-      },
     }));
 
     return (

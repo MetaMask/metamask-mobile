@@ -357,9 +357,6 @@ const ImportNewSecretRecoveryPhrase = () => {
             onSuggestionSelect={(word) => {
               srpInputGridRef.current?.handleSuggestionSelect(word);
             }}
-            onPressIn={() => {
-              srpInputGridRef.current?.setSuggestionSelecting(true);
-            }}
           />
         </KeyboardStickyView>
       )}
