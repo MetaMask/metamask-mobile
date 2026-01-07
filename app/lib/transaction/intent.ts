@@ -1,4 +1,3 @@
-import { QuoteMetadata } from '@metamask/bridge-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import {
   MessageParamsTypedData,
@@ -6,7 +5,7 @@ import {
 } from '@metamask/signature-controller';
 import type { Hex, Json } from '@metamask/utils';
 import { bufferToHex, keccak256 } from 'ethereumjs-util';
-import { CowSwapQuoteResponse } from '../../components/UI/Bridge/types';
+import { BridgeQuoteResponse } from '../../components/UI/Bridge/types';
 import Engine from '../../core/Engine';
 import { getSignatureControllerMessenger } from '../../core/Engine/messengers/signature-controller-messenger';
 
@@ -35,14 +34,16 @@ const TYPES_COW_ORDER: Record<string, unknown> = {
   ] as { name: string; type: string }[],
 } as const;
 
-export interface CowOrderInput {
-  sellToken: Hex;
-  buyToken: Hex;
+export interface IntentOrderInput {
+  // TODO: align bridge controller types so we don't have to allow string here
+  sellToken: Hex | string;
+  buyToken: Hex | string;
   receiver: Hex;
   sellAmount: string; // uint256 as string
   buyAmount: string; // uint256 as string
   validTo: number; // uint32
   appData: string; // can be JSON string or 0x bytes32
+  appDataHash: Hex; // hash of appData for EIP-712 signing
   feeAmount: string; // uint256 as string
   kind: string; // 'sell' | 'buy'
   partiallyFillable: boolean;
@@ -59,7 +60,7 @@ export async function signIntent({
 }: {
   chainId: number;
   from: Hex;
-  order: CowOrderInput;
+  order: IntentOrderInput;
   verifyingContract: Hex;
   messenger: SignatureControllerMessenger;
 }): Promise<Hex> {
@@ -101,7 +102,7 @@ function isBytes32Hex(value: string): boolean {
 }
 
 export async function handleIntentTransaction(
-  quoteResponse: CowSwapQuoteResponse & QuoteMetadata,
+  quoteResponse: BridgeQuoteResponse,
   selectedAccountAddress: string | undefined,
 ) {
   const signatureControllerMessenger = getSignatureControllerMessenger(
@@ -111,8 +112,8 @@ export async function handleIntentTransaction(
   );
 
   const intent = quoteResponse.quote.intent;
-  if (intent && intent.protocol === 'cowswap') {
-    const accountAddress = selectedAccountAddress;
+  if (intent) {
+    const accountAddress = selectedAccountAddress as Hex;
     if (!accountAddress) {
       throw new Error('Missing selected account for intent signing');
     }
@@ -122,40 +123,23 @@ export async function handleIntentTransaction(
       intent.settlementContract ?? '0x9008D19f58AAbd9eD0D60971565AA8510560ab41';
 
     const order = intent.order;
-    if (
-      !order?.sellToken ||
-      !order?.buyToken ||
-      !order?.validTo ||
-      !order?.appData ||
-      !order?.feeAmount ||
-      !order?.kind
-    ) {
-      throw new Error('Intent order is missing required fields');
-    }
-    if (!order.sellAmount && !order.buyAmount) {
-      throw new Error('Intent order requires sellAmount or buyAmount');
-    }
-
-    const message = {
+    const message: IntentOrderInput = {
+      ...order,
       appDataHash: normalizeAppData(order.appData),
-      sellToken: order.sellToken,
-      buyToken: order.buyToken,
-      receiver: order.receiver ?? accountAddress,
+      // TODO: align bridge controller types so we don't have to cast or add default value here
+      receiver: (order.receiver as Hex) ?? accountAddress,
       sellAmount: order.sellAmount ?? '0',
       buyAmount: order.buyAmount ?? '0',
       validTo: Number(order.validTo),
-      appData: order.appData,
       feeAmount: '0',
-      kind: order.kind,
-      partiallyFillable: Boolean(order.partiallyFillable),
       sellTokenBalance: 'erc20',
       buyTokenBalance: 'erc20',
     };
 
     const signature = await signIntent({
       chainId: chainId as number,
-      from: accountAddress as Hex,
-      order: message as unknown as CowOrderInput,
+      from: accountAddress,
+      order: message,
       verifyingContract: verifyingContract as Hex,
       messenger: signatureControllerMessenger,
     });
@@ -178,7 +162,7 @@ export async function handleIntentTransaction(
         typeof Engine.context.BridgeStatusController.submitIntent
       >[0]['quoteResponse'],
       signature,
-      accountAddress: accountAddress as Hex,
+      accountAddress,
     });
     return txResult;
   }
