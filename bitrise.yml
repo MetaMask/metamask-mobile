@@ -180,6 +180,10 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
+  #Uploads iOS main RC build to TestFlight
+  ios_main_to_testflight_pipeline:
+    stages:
+      - upload_ios_main_to_testflight_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -287,6 +291,9 @@ stages:
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
+  upload_ios_main_to_testflight_stage:
+    workflows:
+      - upload_ios_main_to_testflight: {}
   # TODO: Remove this workflow since it's not used anymore
   build_e2e_ios_stage:
     workflows:
@@ -3040,6 +3047,7 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+      - upload_ios_main_to_testflight
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
@@ -3321,6 +3329,115 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
+  upload_ios_main_to_testflight:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Setup App Store Connect API Key
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                # Validate all required secrets are set
+                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" ]; then
+                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID secret is not set"
+                  echo "Please set up App Store Connect API Key secrets in Bitrise"
+                  exit 1
+                fi
+                
+                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" ]; then
+                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID secret is not set"
+                  echo "Please set up App Store Connect API Key secrets in Bitrise"
+                  exit 1
+                fi
+                
+                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" ]; then
+                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT secret is not set"
+                  echo "Please set up App Store Connect API Key secrets in Bitrise"
+                  exit 1
+                fi
+                
+                # Write the .p8 key file
+                echo "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" > ios/AuthKey.p8
+                chmod 600 ios/AuthKey.p8
+                
+                # Export environment variables for Fastlane
+                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
+                
+                envman add --key APP_STORE_CONNECT_API_KEY_ISSUER_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+                envman add --key APP_STORE_CONNECT_API_KEY_KEY_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
+                envman add --key APP_STORE_CONNECT_API_KEY_KEY_FILEPATH --value "$(pwd)/ios/AuthKey.p8"
+                
+                echo "✅ App Store Connect API Key configured"
+      - script@1:
+          title: Find IPA file
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                # Check if BITRISE_APP_STORE_IPA_PATH is set (from previous build)
+                if [ -n "$BITRISE_APP_STORE_IPA_PATH" ] && [ -f "$BITRISE_APP_STORE_IPA_PATH" ]; then
+                  IPA_PATH="$BITRISE_APP_STORE_IPA_PATH"
+                  echo "✅ Found IPA at: $IPA_PATH"
+                else
+                  # Fallback: search for IPA in build output directory
+                  IPA_DIR="ios/build/output"
+                  if [ -d "$IPA_DIR" ]; then
+                    # Find the most recent IPA file
+                    IPA_PATH=$(find "$IPA_DIR" -name "*.ipa" -type f | head -1)
+                    if [ -z "$IPA_PATH" ]; then
+                      echo "❌ Error: No IPA file found in $IPA_DIR"
+                      echo "Available files:"
+                      ls -la "$IPA_DIR" || true
+                      exit 1
+                    fi
+                    echo "✅ Found IPA at: $IPA_PATH"
+                  else
+                    echo "❌ Error: IPA directory not found: $IPA_DIR"
+                    echo "BITRISE_APP_STORE_IPA_PATH: $BITRISE_APP_STORE_IPA_PATH"
+                    exit 1
+                  fi
+                fi
+                
+                envman add --key IPA_PATH --value "$IPA_PATH"
+                echo "IPA_PATH set to: $IPA_PATH"
+      - script@1:
+          title: Upload to TestFlight via Fastlane
+          working-directory: ios
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                echo "🚀 Uploading to TestFlight..."
+                echo "IPA: $IPA_PATH"
+                echo "Group: MetaMask Preview"
+                
+                bundle exec fastlane upload_to_testflight_only \
+                  ipa_path:"$IPA_PATH" \
+                  groups:"['MetaMask Preview']" \
+                  notify_external_testers:true \
+                  skip_waiting_for_build_processing:false \
+                  changelog:"Build uploaded from Bitrise - Branch: $BITRISE_GIT_BRANCH - Commit: ${BITRISE_GIT_COMMIT:0:7}"
+      - script@1:
+          title: Cleanup API Key
+          if: always()
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                rm -f ios/AuthKey.p8
+                echo "🧹 Cleaned up API key file"
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.3.x
+        machine_type_id: g2.mac.4large
   set_main_target_workflow:
     steps:
       - share-pipeline-variable@1:

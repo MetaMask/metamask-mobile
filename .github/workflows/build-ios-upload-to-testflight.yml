@@ -1,0 +1,192 @@
+name: Build iOS Main and Upload to TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      changelog:
+        description: 'Release notes for this build'
+        required: false
+        type: string
+        default: 'New build uploaded via GitHub Actions'
+      notify_testers:
+        description: 'Notify external testers via email'
+        required: false
+        type: boolean
+        default: true
+      skip_waiting:
+        description: 'Skip waiting for build processing (upload and exit)'
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths:
+      - 'ios/**'
+      - 'app/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/build-ios-upload-to-testflight.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-upload-testflight:
+    name: Build iOS Main and Upload to TestFlight
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    timeout-minutes: 90
+
+    env:
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+      PLATFORM: ios
+      METAMASK_ENVIRONMENT: main
+      METAMASK_BUILD_TYPE: main
+      GITHUB_CI: 'true'
+      CI: 'true'
+      NODE_OPTIONS: '--max-old-space-size=8192'
+      RCT_NO_LAUNCH_PACKAGER: 1
+      XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
+      IGNORE_BOXLOGS_DEVELOPMENT: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Xcode derived data
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        env:
+          XCODE_CACHE_VERSION: 1
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: ${{ runner.os }}-xcode-testflight-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
+      - name: Installing iOS Environment Setup
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      - name: Print iOS tool versions
+        run: |
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 CocoaPods Version:"
+          pod --version || echo "CocoaPods not found"
+          echo "🛠️ Xcode Path:"
+          xcode-select -p || echo "Xcode not found"
+          echo "🚀 Fastlane Version:"
+          bundle exec fastlane --version || echo "Fastlane not found"
+        shell: bash
+
+      - name: Setup Ruby and install dependencies
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb
+        with:
+          ruby-version: '3.1.6'
+          bundler-cache: true
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+
+      - name: Clean iOS plist files
+        run: find ios -name "*.plist" -exec xattr -c {} \;
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn install --immutable
+            yarn setup:github-ci --build-ios --no-build-android
+
+      - name: Setup App Store Connect API Key
+        run: |
+          # Validate all required secrets are set
+          if [ -z "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" ]; then
+            echo "⚠️ Error: APP_STORE_CONNECT_API_KEY_ISSUER_ID secret is not set"
+            echo "Please set up App Store Connect API Key secrets in repository settings"
+            exit 1
+          fi
+
+          if [ -z "$APP_STORE_CONNECT_API_KEY_KEY_ID" ]; then
+            echo "⚠️ Error: APP_STORE_CONNECT_API_KEY_KEY_ID secret is not set"
+            echo "Please set up App Store Connect API Key secrets in repository settings"
+            exit 1
+          fi
+
+          if [ -z "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT" ]; then
+            echo "⚠️ Error: APP_STORE_CONNECT_API_KEY_KEY_CONTENT secret is not set"
+            echo "Please set up App Store Connect API Key secrets in repository settings"
+            exit 1
+          fi
+
+          echo "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT" > ios/AuthKey.p8
+          chmod 600 ios/AuthKey.p8
+          export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
+          echo "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH=$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" >> $GITHUB_ENV
+          echo "✅ App Store Connect API Key configured"
+
+      - name: Build and Upload to TestFlight
+        working-directory: ios
+        run: |
+          echo "🏗 Building iOS Main app and uploading to TestFlight..."
+          echo "📦 Target group: MetaMask Preview"
+
+          # Handle boolean inputs (workflow_dispatch booleans come as strings)
+          NOTIFY_TESTERS="${{ inputs.notify_testers }}"
+          SKIP_WAITING="${{ inputs.skip_waiting }}"
+
+          # Default to true for notify_testers if not set
+          if [ -z "$NOTIFY_TESTERS" ] || [ "$NOTIFY_TESTERS" == "true" ]; then
+            NOTIFY_TESTERS="true"
+          else
+            NOTIFY_TESTERS="false"
+          fi
+
+          # Default to false for skip_waiting if not set
+          if [ -z "$SKIP_WAITING" ] || [ "$SKIP_WAITING" == "true" ]; then
+            SKIP_WAITING="true"
+          else
+            SKIP_WAITING="false"
+          fi
+
+          echo "📧 Notify testers: $NOTIFY_TESTERS"
+          echo "⏱️ Skip waiting: $SKIP_WAITING"
+
+          CHANGELOG="${{ inputs.changelog }}"
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="New build uploaded via GitHub Actions"
+          fi
+
+          bundle exec fastlane testflight_main \
+            groups:"['MetaMask Preview']" \
+            notify_external_testers:$NOTIFY_TESTERS \
+            skip_waiting_for_build_processing:$SKIP_WAITING \
+            changelog:"$CHANGELOG"
+        shell: bash
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-artifacts
+          path: |
+            ios/build/output/*.ipa
+            ios/build/output/*.dSYM.zip
+          retention-days: 7
+          if-no-files-found: ignore
