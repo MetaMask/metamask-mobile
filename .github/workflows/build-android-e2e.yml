@@ -145,6 +145,9 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=4096'
+          # Limit Metro bundler workers to prevent OOM on 48GB runner
+          # Default calculation gives ~12 workers; we reduce to 4 for memory safety
+          METRO_MAX_WORKERS: '4'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
