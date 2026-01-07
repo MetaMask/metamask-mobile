@@ -25,6 +25,11 @@ jobs:
     permissions:
       pull-requests: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
       - name: Extract semver from branch name
         id: extract-version
         run: |
