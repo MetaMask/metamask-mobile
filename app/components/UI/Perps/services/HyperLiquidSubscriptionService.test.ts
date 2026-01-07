@@ -16,7 +16,7 @@ import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
 
 // Mock HyperLiquid SDK types
-interface MockSubscription {
+type MockSubscription = {
   unsubscribe: jest.Mock;
 }
 
@@ -2172,6 +2172,17 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should include TP/SL orders in the orders list', async () => {
       const mockCallback = jest.fn();
 
+      // Create service with enabledDexs to skip DEX discovery wait
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true, // hip3Enabled
+        [], // enabledDexs - empty but we'll call updateFeatureFlags
+      );
+
+      // Simulate DEX discovery by calling updateFeatureFlags
+      await hip3Service.updateFeatureFlags(true, [''], [], []);
+
       mockSubscriptionClient.clearinghouseState.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
@@ -2249,7 +2260,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToOrders({
+      const unsubscribe = hip3Service.subscribeToOrders({
         callback: mockCallback,
       });
 
@@ -3742,6 +3753,9 @@ describe('HyperLiquidSubscriptionService', () => {
       const positionCallback = jest.fn();
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
 
+      // Simulate DEX discovery to skip the wait
+      await service.updateFeatureFlags(true, [''], [], []);
+
       mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
@@ -3943,6 +3957,9 @@ describe('HyperLiquidSubscriptionService', () => {
       const allTypesMarketDataCallback = jest.fn();
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
+
+      // Simulate DEX discovery to skip the wait
+      await service.updateFeatureFlags(true, [''], [], []);
 
       mockSubscriptionClient.allMids.mockImplementation((cb: any) => {
         setTimeout(() => {

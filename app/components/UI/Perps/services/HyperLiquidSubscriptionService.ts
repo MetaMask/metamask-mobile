@@ -61,6 +61,15 @@ export class HyperLiquidSubscriptionService {
   private blocklistMarkets: string[]; // Market filtering (blocklist)
   private discoveredDexNames: string[] = []; // DEX order for mapping webData3 perpDexStates indices
 
+  // DEX discovery synchronization - allows subscriptions to wait for HIP-3 DEX discovery
+  private dexDiscoveryPromise: Promise<void> | null = null;
+  private dexDiscoveryResolver: (() => void) | null = null;
+
+  // Track DEXs for synchronized position notifications
+  // Ensures all DEXs send initial data before notifying subscribers
+  private expectedDexs: Set<string> = new Set();
+  private initializedDexs: Set<string> = new Set();
+
   // Subscriber collections
   private readonly priceSubscribers = new Map<
     string,
@@ -245,6 +254,99 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Populate DEX meta cache with pre-fetched meta data
+   * Called by Provider after buildAssetMapping to share cached meta,
+   * avoiding redundant metaAndAssetCtxs/meta API calls during subscription setup
+   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
+   * @param meta - Meta response containing universe data
+   */
+  public setDexMetaCache(
+    dex: string,
+    meta: {
+      universe: {
+        name: string;
+        szDecimals: number;
+        maxLeverage: number;
+      }[];
+    },
+  ): void {
+    this.dexMetaCache.set(dex, meta);
+    DevLogger.log('[SubscriptionService] DEX meta cache populated', {
+      dex: dex || 'main',
+      universeSize: meta.universe.length,
+    });
+  }
+
+  /**
+   * Cache asset contexts for a specific DEX from API response
+   * This allows buildAssetMapping() to populate cache for getMarketDataWithPrices() to use
+   * @param dex - DEX name ('' for main perps)
+   * @param assetCtxs - Asset contexts from metaAndAssetCtxs response
+   */
+  public setDexAssetCtxsCache(
+    dex: string,
+    assetCtxs: WsAssetCtxsEvent['ctxs'],
+  ): void {
+    this.dexAssetCtxsCache.set(dex, assetCtxs);
+    DevLogger.log('[SubscriptionService] DEX assetCtxs cache populated', {
+      dex: dex || 'main',
+      ctxsCount: assetCtxs.length,
+    });
+  }
+
+  /**
+   * Get cached assetCtxs for a DEX
+   * Returns the cached asset contexts from WebSocket subscription if available
+   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
+   * @returns Array of asset contexts or undefined if not cached
+   */
+  public getDexAssetCtxsCache(
+    dex: string,
+  ): WsAssetCtxsEvent['ctxs'] | undefined {
+    return this.dexAssetCtxsCache.get(dex);
+  }
+
+  /**
+   * Wait for DEX discovery to complete (with timeout)
+   * Used when HIP-3 is enabled but enabledDexs hasn't been populated yet.
+   * This allows subscriptions to wait for DEX discovery before creating per-DEX subscriptions.
+   */
+  private async waitForDexDiscovery(timeoutMs: number = 5000): Promise<void> {
+    // Already have DEXs, no need to wait
+    if (this.enabledDexs.length > 0) {
+      return;
+    }
+
+    // Create promise if not exists
+    if (!this.dexDiscoveryPromise) {
+      this.dexDiscoveryPromise = new Promise<void>((resolve) => {
+        this.dexDiscoveryResolver = resolve;
+      });
+    }
+
+    // Wait with timeout
+    let timeoutId: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('DEX discovery timeout')),
+        timeoutMs,
+      );
+    });
+
+    try {
+      await Promise.race([this.dexDiscoveryPromise, timeoutPromise]);
+    } catch {
+      DevLogger.log(
+        'DEX discovery wait timed out, proceeding with main DEX only',
+      );
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
+  /**
    * Update feature flags for HIP-3 support
    * Called when provider configuration changes at runtime
    * Note: Market filtering is NOT applied in subscription service - only in Provider
@@ -265,6 +367,13 @@ export class HyperLiquidSubscriptionService {
     this.allowlistMarkets = allowlistMarkets;
     this.blocklistMarkets = blocklistMarkets;
     this.discoveredDexNames = enabledDexs; // Store DEX order for webData3 index mapping
+
+    // Resolve any pending DEX discovery wait now that DEXs are available
+    if (this.dexDiscoveryResolver && enabledDexs.length > 0) {
+      this.dexDiscoveryResolver();
+      this.dexDiscoveryPromise = null;
+      this.dexDiscoveryResolver = null;
+    }
 
     DevLogger.log('Feature flags updated:', {
       previousHip3Enabled,
@@ -309,8 +418,47 @@ export class HyperLiquidSubscriptionService {
         );
       }
 
-      // Note: webData3 automatically includes all DEX data, so no separate
-      // subscription setup needed for positions/orders/account data
+      // Establish clearinghouseState/openOrders subscriptions for new DEXs
+      // (needed for positions, orders, and account data when using individual subscriptions)
+      const hasUserDataSubscribers =
+        this.positionSubscriberCount > 0 ||
+        this.orderSubscriberCount > 0 ||
+        this.accountSubscriberCount > 0;
+
+      if (hasUserDataSubscribers && this.hip3Enabled) {
+        try {
+          const userAddress =
+            await this.walletService.getUserAddressWithDefault();
+
+          await Promise.all(
+            newDexs.map(async (dex) => {
+              try {
+                await this.ensureClearinghouseStateSubscription(
+                  userAddress,
+                  dex,
+                );
+                await this.ensureOpenOrdersSubscription(userAddress, dex);
+                DevLogger.log(
+                  `Established user data subscriptions for new DEX: ${dex}`,
+                );
+              } catch (error) {
+                Logger.error(
+                  ensureError(error),
+                  this.getErrorContext(
+                    'updateFeatureFlags.ensureUserDataSubscription',
+                    { dex },
+                  ),
+                );
+              }
+            }),
+          );
+        } catch (error) {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('updateFeatureFlags.getUserAddress'),
+          );
+        }
+      }
     }
   }
 
@@ -854,6 +1002,18 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
+    // Wait for DEX discovery if HIP-3 is enabled but DEXs haven't been discovered yet
+    // This ensures HIP-3 subscriptions are created together with main DEX
+    if (this.hip3Enabled && this.enabledDexs.length === 0) {
+      DevLogger.log(
+        'Waiting for DEX discovery before creating subscriptions...',
+      );
+      await this.waitForDexDiscovery();
+      DevLogger.log('DEX discovery complete, proceeding with subscriptions', {
+        enabledDexs: this.enabledDexs,
+      });
+    }
+
     return new Promise<void>((resolve, reject) => {
       // Choose channel based on HIP-3 master switch
       if (!this.hip3Enabled) {
@@ -978,6 +1138,11 @@ export class HyperLiquidSubscriptionService {
           '', // Main DEX
           ...this.enabledDexs.filter((d) => this.isDexEnabled(d)),
         ];
+
+        // Track expected DEXs for synchronized notifications
+        // Clear previous tracking and set new expected DEXs
+        this.expectedDexs = new Set(dexsToSubscribe);
+        this.initializedDexs = new Set();
 
         // Set up individual subscriptions for each DEX
         const subscriptionPromises: Promise<void>[] = [];
@@ -1165,6 +1330,9 @@ export class HyperLiquidSubscriptionService {
             this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
             this.dexAccountCache.set(cacheKey, accountState);
 
+            // Mark this DEX as initialized (has sent first data)
+            this.initializedDexs.add(cacheKey);
+
             // Trigger aggregation and notify subscribers
             this.aggregateAndNotifySubscribers();
           }
@@ -1176,6 +1344,9 @@ export class HyperLiquidSubscriptionService {
         `clearinghouseState subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureClearinghouseStateSubscription', {
@@ -1239,6 +1410,9 @@ export class HyperLiquidSubscriptionService {
               this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
             }
 
+            // Mark this DEX as initialized (has sent first data)
+            this.initializedDexs.add(cacheKey);
+
             // Trigger aggregation and notify subscribers
             this.aggregateAndNotifySubscribers();
           }
@@ -1250,6 +1424,9 @@ export class HyperLiquidSubscriptionService {
         `openOrders subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureOpenOrdersSubscription', {
@@ -1265,12 +1442,34 @@ export class HyperLiquidSubscriptionService {
    * Used by both webData3 callback and fallback subscription callbacks
    */
   private aggregateAndNotifySubscribers(): void {
-    // Aggregate data from all DEX caches
-    const aggregatedPositions = Array.from(
-      this.dexPositionsCache.values(),
-    ).flat();
+    // Wait for all expected DEXs to send initial data before notifying
+    // This ensures positions from all DEXs appear simultaneously
+    if (this.expectedDexs.size > 0) {
+      const allDexsInitialized = Array.from(this.expectedDexs).every((dex) =>
+        this.initializedDexs.has(dex),
+      );
+      if (!allDexsInitialized) {
+        DevLogger.log('Waiting for all DEXs to send initial data', {
+          expected: Array.from(this.expectedDexs),
+          initialized: Array.from(this.initializedDexs),
+        });
+        return; // Don't notify yet - waiting for more DEXs
+      }
+    }
 
-    const aggregatedOrders = Array.from(this.dexOrdersCache.values()).flat();
+    // Aggregate data from all DEX caches
+    // Order: Main DEX (crypto perps) first, then HIP-3 DEXs
+    const mainDexPositions = this.dexPositionsCache.get('') || [];
+    const hip3DexPositions = Array.from(this.dexPositionsCache.entries())
+      .filter(([key]) => key !== '')
+      .flatMap(([, positions]) => positions);
+    const aggregatedPositions = [...mainDexPositions, ...hip3DexPositions];
+
+    const mainDexOrders = this.dexOrdersCache.get('') || [];
+    const hip3DexOrders = Array.from(this.dexOrdersCache.entries())
+      .filter(([key]) => key !== '')
+      .flatMap(([, orders]) => orders);
+    const aggregatedOrders = [...mainDexOrders, ...hip3DexOrders];
 
     const aggregatedAccount = this.aggregateAccountStates();
 
@@ -1388,6 +1587,10 @@ export class HyperLiquidSubscriptionService {
       this.dexPositionsCache.clear();
       this.dexOrdersCache.clear();
       this.dexAccountCache.clear();
+
+      // Clear DEX tracking for synchronized notifications
+      this.expectedDexs.clear();
+      this.initializedDexs.clear();
 
       // Clear aggregated caches
       this.cachedPositions = null;
