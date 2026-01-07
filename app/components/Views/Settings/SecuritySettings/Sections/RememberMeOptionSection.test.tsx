@@ -155,9 +155,9 @@ describe('RememberMeOptionSection', () => {
     fireEvent(toggle, 'onValueChange', true);
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.REMEMBER_ME,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+      });
     });
   });
 
@@ -203,9 +203,9 @@ describe('RememberMeOptionSection', () => {
 
     // The component should handle the error and revert the flag
     // We verify updateAuthPreference was called and failed
-    expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-      AUTHENTICATION_TYPE.REMEMBER_ME,
-    );
+    expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+      authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+    });
   });
 
   it('displays correct toggle value based on Redux state', () => {
@@ -290,10 +290,10 @@ describe('RememberMeOptionSection', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.REMEMBER_ME,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -339,10 +339,10 @@ describe('RememberMeOptionSection', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.REMEMBER_ME,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -456,9 +456,9 @@ describe('RememberMeOptionSection', () => {
     // Wait for updateAuthPreference to be called
     await waitFor(
       () => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSWORD,
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+        });
       },
       { timeout: 3000 },
     );
@@ -504,9 +504,9 @@ describe('RememberMeOptionSection', () => {
     });
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
     });
 
     await waitFor(() => {
@@ -611,10 +611,10 @@ describe('RememberMeOptionSection', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSWORD,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+          password: 'test-password',
+        });
       });
 
       await waitFor(() => {
@@ -682,10 +682,10 @@ describe('RememberMeOptionSection', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: 'test-password',
+        });
       });
     }
   });
