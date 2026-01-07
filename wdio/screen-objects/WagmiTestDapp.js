@@ -142,7 +142,11 @@ class WagmiTestDapp {
 
         const connectedStatusHeader = await this.connectedStatusHeader;
         const text = await connectedStatusHeader.getText();
-        expect(text).toContain(`status: ${value}`);
+        let expectedText = `status:`;
+        if (value) {
+            expectedText += ` ${value}`;
+        }
+        expect(text).toContain(expectedText);
     }
 
     async assertConnectedChainValue(value) {
@@ -152,7 +156,11 @@ class WagmiTestDapp {
 
         const connectedChainHeader = await this.connectedChainHeader;
         const text = await connectedChainHeader.getText();
-        expect(text).toContain(`chainId: ${value}`);
+        let expectedText = `chainId:`;
+        if (value) {
+            expectedText += ` ${value}`;
+        }
+        expect(text).toContain(expectedText);
     }
 
     async assertConnectedAccountsValue(value) {
@@ -162,7 +170,11 @@ class WagmiTestDapp {
 
         const connectedAccountsHeader = await this.connectedAccountsHeader;
         const text = await connectedAccountsHeader.getText();
-        expect(text).toContain(`account: ${value}`);
+        let expectedText = `account:`;
+        if (value) {
+            expectedText += ` ${value}`;
+        }
+        expect(text).toContain(expectedText);
     }
 
     async assertPersonalSignResponseValue(value) {

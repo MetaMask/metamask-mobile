@@ -227,4 +227,49 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     await SignModal.assertNetworkText('Celo');
     await SignModal.tapCancelButton();
   });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.tapDisconnectButton();
+      await WagmiTestDapp.assertDappConnectedStatus('disconnected');
+      await WagmiTestDapp.assertConnectedChainValue('');
+      await WagmiTestDapp.assertConnectedAccountsValue('');
+      await WagmiTestDapp.tapConnectButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.isDappConnected();
+      await WagmiTestDapp.assertConnectedChainValue('42220');
+      await WagmiTestDapp.assertConnectedAccountsValue(
+        '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
+      );
+      await WagmiTestDapp.tapSwitchChainButton('1');
+      await WagmiTestDapp.tapDisconnectButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
 });
