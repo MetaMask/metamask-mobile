@@ -1282,7 +1282,7 @@ describe('Engine', () => {
     });
 
     it('returns state from all controllers with state', () => {
-      Engine.init({});
+      Engine.init(TEST_ANALYTICS_ID, {});
       const controllersWithState = Object.entries(Engine.context)
         .filter(
           ([_, controller]) =>
