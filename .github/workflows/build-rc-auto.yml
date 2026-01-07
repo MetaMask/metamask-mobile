@@ -11,6 +11,9 @@ on:
   push:
     branches:
       - 'release/*'
+      # testing branch.
+      # remove before merge
+      - 'rc-builds-gh-workflow'
 
 jobs:
   validate-and-check-label:
@@ -28,16 +31,19 @@ jobs:
           BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
 
+          # bypass branch validation
+          # remove before merge
+          echo "semver=7.99.999" >> "$GITHUB_OUTPUT"
           # Validate branch matches release/x.y.z format (semantic versioning)
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VERSION="${BRANCH_NAME#release/}"
-            echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
-            echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
-          else
-            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
-            echo "semver=" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
+         # if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+         #   VERSION="${BRANCH_NAME#release/}"
+         #   echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
+         #   echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
+         # else
+         #   echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
+         #   echo "semver=" >> "$GITHUB_OUTPUT"
+         #   exit 1
+         # fi
 
       - name: Find PR and check for auto-rc-builds label
         id: check-label
