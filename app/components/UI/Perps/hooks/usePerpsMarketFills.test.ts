@@ -6,6 +6,10 @@ import type { OrderFill } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => () => ({ address: '0xMockAddress' })),
+}));
+
 jest.mock('./stream', () => ({
   usePerpsLiveFills: jest.fn(),
 }));
@@ -16,6 +20,11 @@ jest.mock('../../../../core/Engine', () => ({
       getActiveProvider: jest.fn(),
     },
   },
+}));
+
+const mockLoggerError = jest.fn();
+jest.mock('../../../../util/Logger', () => ({
+  error: (...args: unknown[]) => mockLoggerError(...args),
 }));
 
 const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
@@ -374,9 +383,7 @@ describe('usePerpsMarketFills', () => {
 
     it('handles REST API errors gracefully', async () => {
       // Arrange
-      const consoleError = jest
-        .spyOn(console, 'error')
-        .mockImplementation(jest.fn());
+      mockLoggerError.mockClear();
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [mockBtcFill1],
         isInitialLoading: false,
@@ -388,16 +395,19 @@ describe('usePerpsMarketFills', () => {
         usePerpsMarketFills({ symbol: 'BTC' }),
       );
 
-      // Assert - should still show WebSocket fills
+      // Assert - should still show WebSocket fills and log error to Sentry
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
-          '[usePerpsMarketFills] Failed to fetch REST fills:',
+        expect(mockLoggerError).toHaveBeenCalledWith(
           expect.any(Error),
+          expect.objectContaining({
+            extra: expect.objectContaining({
+              hook: 'usePerpsMarketFills',
+              method: 'fetchRestFills',
+            }),
+          }),
         );
       });
       expect(result.current.fills).toHaveLength(1);
-
-      consoleError.mockRestore();
     });
 
     it('handles missing provider gracefully', async () => {
