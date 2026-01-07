@@ -9,11 +9,11 @@ export const createStyles = (colors: Colors) =>
   StyleSheet.create({
     suggestionContainer: {
       paddingVertical: 1,
+      paddingHorizontal: 48,
       backgroundColor: colors.background.default,
     },
     suggestionListContent: {
       alignItems: 'center' as const,
-      paddingLeft: 20,
     },
     suggestionButton: {
       paddingHorizontal: 16,
