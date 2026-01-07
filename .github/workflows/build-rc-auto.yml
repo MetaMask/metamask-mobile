@@ -15,6 +15,11 @@ on:
       # remove before merge
       - 'rc-builds-gh-workflow'
 
+#remove before merge.
+#test auto-build on specific release branch
+env:
+  GH_REF_NAME: "release/7.61.6"
+
 jobs:
   validate-and-check-label:
     name: Validate branch and check PR label
@@ -33,27 +38,30 @@ jobs:
       - name: Extract semver from branch name
         id: extract-version
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          #remove before merge.
+          #test auto-build on specific release branch
+          BRANCH_NAME="${{ env.GH_REF_NAME }}"
+          #BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
 
-          # bypass branch validation
-          # remove before merge
-          echo "semver=7.99.999" >> "$GITHUB_OUTPUT"
           # Validate branch matches release/x.y.z format (semantic versioning)
-        # if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        #   VERSION="${BRANCH_NAME#release/}"
-        #   echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
-        #   echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
-        # else
-        #   echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
-        #   echo "semver=" >> "$GITHUB_OUTPUT"
-        #   exit 1
-        # fi
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${BRANCH_NAME#release/}"
+            echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
+            echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
+            echo "semver=" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
 
       - name: Find PR and check for auto-rc-builds label
         id: check-label
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          #remove before merge.
+          #test auto-build on specific release branch
+          BRANCH_NAME="${{ env.GH_REF_NAME }}"
+          #BRANCH_NAME="${{ github.ref_name }}"
           echo "Looking for PR with head branch: $BRANCH_NAME"
 
           # Find PRs where the head branch matches our release branch
@@ -84,7 +92,10 @@ jobs:
     needs: validate-and-check-label
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
-      base-branch: ${{ github.ref_name }}
+          #remove before merge.
+          #test auto-build on specific release branch
+      # base-branch: ${{ github.ref_name }}
+      base-branch: ${{ env.GH_REF_NAME }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
     permissions:
@@ -102,11 +113,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.ref }}
+          #ref: ${{ github.ref }}
+          #remove before merge.
+          #test auto-build on specific release branch
+          ref: ${{ env.GH_REF_NAME }}
       - name: Trigger RC Build
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          GH_REF_NAME: ${{ github.ref_name }}
+          # GH_REF_NAME: ${{ github.ref_name }}
+          #remove before merge.
+          #test auto-build on specific release branch
+          GH_REF_NAME: ${{ env.GH_REF_NAME }}
           COMMIT_HASH: ${{ needs.bump-version.outputs.commit-hash }}
           BUILD_NUMBER: ${{ needs.bump-version.outputs.build-version }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
