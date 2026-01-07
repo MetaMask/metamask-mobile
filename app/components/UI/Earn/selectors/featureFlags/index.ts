@@ -68,12 +68,57 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
+// TODO: Rename here and in LaunchDarkly
 export const selectIsMusdCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
     const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionAssetOverviewEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
 
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;

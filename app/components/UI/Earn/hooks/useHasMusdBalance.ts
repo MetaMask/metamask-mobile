@@ -41,6 +41,7 @@ export const useHasMusdBalance = () => {
   }, [balancesPerChainId]);
 
   return {
+    // Has mUSD balance on any chain
     hasMusdBalance,
     balancesByChain,
   };
