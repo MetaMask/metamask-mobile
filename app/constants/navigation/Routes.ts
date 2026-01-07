@@ -114,6 +114,7 @@ const Routes = {
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
+    OTA_UPDATES_MODAL: 'OTAUpdatesModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -391,7 +392,7 @@ const Routes = {
       SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
       CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
       VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
-      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',

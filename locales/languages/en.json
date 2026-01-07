@@ -1979,7 +1979,8 @@
       "outcome_at_price": "{{outcome}} at {{price}}¢",
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
-      "resolved_early": "Resolved early"
+      "resolved_early": "Resolved early",
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -6578,6 +6579,11 @@
         "timeout_button": "Restart verification",
         "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
       },
+      "verifying_veriff_kyc": {
+        "title": "Verifying your identity",
+        "description": "Please wait while we verify your identity.",
+        "helper_text": "This usually takes a few seconds. Please don't close the app."
+      },
       "verifying_registration": {
         "title": "Verifying your identity",
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
@@ -6788,7 +6794,7 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Log in",
-      "signup_button": "I don't have an account",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "unknown_error": "Unknown error, please try again later",
@@ -7295,5 +7301,12 @@
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
     }
+  },
+  "ota_update_modal": {
+    "title": "Update available",
+    "description_ios": "A new version of the app is available. Reload to apply the update now.",
+    "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
+    "primary_action_reload": "Reload",
+    "primary_action_acknowledge": "Got it"
   }
 }

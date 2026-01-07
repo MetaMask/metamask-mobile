@@ -202,9 +202,9 @@ describe('LoginOptionsSettings', () => {
     fireEvent(toggle, 'onValueChange', true);
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
     });
   });
 
@@ -234,9 +234,9 @@ describe('LoginOptionsSettings', () => {
     fireEvent(toggle, 'onValueChange', false);
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.PASSWORD,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+      });
     });
   });
 
@@ -304,10 +304,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -510,10 +510,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -607,10 +607,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSCODE,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSCODE,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -659,10 +659,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSCODE,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSCODE,
+          password: 'test-password',
+        });
       });
     }
   });

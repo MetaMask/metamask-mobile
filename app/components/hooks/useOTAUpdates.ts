@@ -1,32 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  checkForUpdateAsync,
-  fetchUpdateAsync,
-  reloadAsync,
-} from 'expo-updates';
+import { checkForUpdateAsync, fetchUpdateAsync } from 'expo-updates';
+import { InteractionManager } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Logger from '../../util/Logger';
+import { createOTAUpdatesModalNavDetails } from '../UI/OTAUpdatesModal/OTAUpdatesModal';
 import { selectOtaUpdatesEnabledFlag } from '../../selectors/featureFlagController/otaUpdates';
-
 /**
- * Hook to manage OTA updates based on feature flag
- * Checks for updates once when app initially opens if feature flag is enabled
- * Automatically reloads the app if an update is available
- * Returns isCheckingUpdates to gate rendering until check is complete
+ * Hook to manage OTA updates based on a feature flag.
+ *
+ * Behavior:
+ * - Runs once when the app initially opens.
+ * - If the `otaUpdatesEnabled` flag is on and the app is not in development, checks for an OTA update via `checkForUpdateAsync`.
+ * - When a new OTA update is downloaded (`fetchUpdateAsync().isNew === true`), navigates to the `OTAUpdatesModal` bottom sheet after interactions complete.
+ * - If no update is available or the fetched update is not new, logs and continues with the current version without blocking startup.
+ *
+ * This hook does not reload the app itself; the `OTAUpdatesModal` is responsible for
+ * calling `reloadAsync` when the user confirms.
  */
 export const useOTAUpdates = () => {
   const otaUpdatesEnabled = useSelector(selectOtaUpdatesEnabledFlag);
-  const [isCheckingUpdates, setIsCheckingUpdates] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const checkForUpdates = async () => {
-      if (!otaUpdatesEnabled) {
-        setIsCheckingUpdates(false);
-        return;
-      }
-
-      if (__DEV__) {
-        setIsCheckingUpdates(false);
+      if (!otaUpdatesEnabled || __DEV__) {
         return;
       }
 
@@ -37,28 +35,23 @@ export const useOTAUpdates = () => {
           const fetchResult = await fetchUpdateAsync();
 
           if (fetchResult.isNew) {
-            await reloadAsync();
+            InteractionManager.runAfterInteractions(() => {
+              navigation.navigate(...createOTAUpdatesModalNavDetails());
+            });
           } else {
             Logger.log('OTA Updates: Update fetched but not new');
-            setIsCheckingUpdates(false);
           }
         } else {
           Logger.log('OTA Updates: No updates available');
-          setIsCheckingUpdates(false);
         }
       } catch (error) {
         Logger.error(
           error as Error,
           'OTA Updates: Error checking for updates, continuing with current version',
         );
-        setIsCheckingUpdates(false);
       }
     };
 
     checkForUpdates();
-  }, [otaUpdatesEnabled]);
-
-  return {
-    isCheckingUpdates,
-  };
+  }, [navigation, otaUpdatesEnabled]);
 };
