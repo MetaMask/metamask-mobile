@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
@@ -37,6 +38,8 @@ import InfoSection from '../../../UI/info-row/info-section';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
+import type { RootState } from '../../../../../../../reducers';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -255,14 +258,23 @@ const GasFeesDetailsRow = ({
     });
   };
 
+  const networkConfiguration = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, transactionMetadata?.chainId),
+  );
+  const { nativeCurrency } = networkConfiguration ?? {};
+
   const showGasFeeTokenInfo =
     gasFeeToken?.metaMaskFee && gasFeeToken?.metaMaskFee !== '0x0';
 
-  const confirmGasFeeTokenTooltip = showGasFeeTokenInfo
-    ? strings('transactions.confirm_gas_fee_token_tooltip', {
-        metamaskFeeFiat,
+  const confirmGasFeeTokenTooltip = isGasFeeSponsored
+    ? strings('bridge.network_fee_info_content_sponsored', {
+        nativeToken: nativeCurrency,
       })
-    : strings('transactions.network_fee_tooltip');
+    : showGasFeeTokenInfo
+      ? strings('transactions.confirm_gas_fee_token_tooltip', {
+          metamaskFeeFiat,
+        })
+      : strings('transactions.network_fee_tooltip');
 
   const Container = noSection ? View : InfoSection;
 
