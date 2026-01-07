@@ -436,7 +436,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -520,6 +520,11 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                             </View>
                           </View>
                           <RCTScrollView
+                            collapsable={false}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             style={
                               {
                                 "maxHeight": 1067.2,
@@ -1577,7 +1582,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1661,6 +1666,11 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                             </View>
                           </View>
                           <RCTScrollView
+                            collapsable={false}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             style={
                               {
                                 "maxHeight": 1067.2,
@@ -2718,7 +2728,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -2802,6 +2812,11 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                             </View>
                           </View>
                           <RCTScrollView
+                            collapsable={false}
+                            handlerTag={-1}
+                            handlerType="NativeViewGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             style={
                               {
                                 "maxHeight": 1067.2,

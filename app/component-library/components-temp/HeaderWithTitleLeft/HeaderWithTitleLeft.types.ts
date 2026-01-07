@@ -24,6 +24,16 @@ export interface HeaderWithTitleLeftProps
    */
   backButtonProps?: Omit<ButtonIconProps, 'iconName'>;
   /**
+   * Callback when the close button is pressed.
+   * If provided, a close button will be added to endButtonIconProps.
+   */
+  onClose?: () => void;
+  /**
+   * Additional props to pass to the close ButtonIcon.
+   * If provided, a close button will be added to endButtonIconProps with these props spread.
+   */
+  closeButtonProps?: Omit<ButtonIconProps, 'iconName'>;
+  /**
    * Custom node to render in the title section.
    * If provided, takes priority over titleLeftProps.
    */
