@@ -30,7 +30,6 @@ export type EarnToastOptions = Omit<
 export interface MusdConversionInProgressParams {
   tokenSymbol: string;
   tokenIcon?: string;
-  estimatedTimeSeconds?: number;
 }
 
 export interface EarnToastOptionsConfig {
@@ -73,25 +72,6 @@ const getEarnToastLabels = ({
   }
 
   return labels;
-};
-
-const formatEstimatedTime = (seconds?: number): string => {
-  if (!seconds || seconds <= 0) {
-    return strings('earn.musd_conversion.toasts.eta', { time: '< 1 minute' });
-  }
-
-  if (seconds < 60) {
-    const secondText = seconds === 1 ? 'second' : 'seconds';
-    return strings('earn.musd_conversion.toasts.eta', {
-      time: `${seconds} ${secondText}`,
-    });
-  }
-
-  const minutes = Math.ceil(seconds / 60);
-  const minuteText = minutes === 1 ? 'minute' : 'minutes';
-  return strings('earn.musd_conversion.toasts.eta', {
-    time: `${minutes} ${minuteText}`,
-  });
 };
 
 const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
@@ -178,7 +158,6 @@ const useEarnToasts = (): {
         inProgress: ({
           tokenSymbol,
           tokenIcon,
-          estimatedTimeSeconds,
         }: MusdConversionInProgressParams) => ({
           ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
           variant: ToastVariants.Icon,
@@ -198,9 +177,6 @@ const useEarnToasts = (): {
               token: tokenSymbol,
             }),
           }),
-          descriptionOptions: {
-            description: formatEstimatedTime(estimatedTimeSeconds),
-          },
           closeButtonOptions,
         }),
         success: {

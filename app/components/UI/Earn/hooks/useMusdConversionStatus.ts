@@ -8,12 +8,9 @@ import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
-import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import useEarnToasts from './useEarnToasts';
-
-const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -33,13 +30,10 @@ const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
-  const transactionPayData = useSelector(selectTransactionPayTransactionData);
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);
-  const transactionPayDataRef = useRef(transactionPayData);
   tokensCacheRef.current = tokensChainsCache;
-  transactionPayDataRef.current = transactionPayData;
 
   useEffect(() => {
     const getTokenData = (
@@ -93,16 +87,10 @@ export const useMusdConversionStatus = () => {
               getAssetImageUrl(payTokenAddress.toLowerCase(), payChainId as Hex)
             : undefined;
 
-          // Get estimated duration from transaction pay data
-          const estimatedTimeSeconds =
-            transactionPayDataRef.current?.[transactionId]?.totals
-              ?.estimatedDuration ?? DEFAULT_ESTIMATED_TIME_SECONDS;
-
           showToast(
             EarnToastOptions.mUsdConversion.inProgress({
               tokenSymbol: tokenSymbol || 'Token',
               tokenIcon,
-              estimatedTimeSeconds,
             }),
           );
           shownToastsRef.current.add(toastKey);
