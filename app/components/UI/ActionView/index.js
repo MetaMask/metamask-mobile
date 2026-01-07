@@ -25,7 +25,8 @@ const getStyles = (colors) =>
   StyleSheet.create({
     actionContainer: {
       flexDirection: 'row',
-      paddingVertical: 16,
+      paddingTop: 24,
+      paddingBottom: 16,
       paddingHorizontal: 16,
       gap: 16,
       width: '100%',
@@ -98,38 +99,38 @@ export default function ActionView({
         >
           {children}
         </TouchableWithoutFeedback>
-
-        <View style={[styles.actionContainer, buttonContainerStyle]}>
-          {showCancelButton && (
-            <Button
-              onPress={onCancelPress}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              label={cancelText}
-              testID={cancelTestID}
-              style={styles.button}
-              isDisabled={confirmed}
-            />
-          )}
-          {showConfirmButton && (
-            <Button
-              onPress={onConfirmPress}
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              label={confirmText}
-              testID={confirmTestID}
-              style={[
-                styles.button,
-                confirmButtonState === ConfirmButtonState.Warning &&
-                  styles.confirmButtonWarning,
-              ]}
-              isDisabled={confirmed || confirmDisabled || loading}
-              loading={confirmed || loading}
-              isDanger={confirmButtonState === ConfirmButtonState.Error}
-            />
-          )}
-        </View>
       </KeyboardAwareScrollView>
+
+      <View style={[styles.actionContainer, buttonContainerStyle]}>
+        {showCancelButton && (
+          <Button
+            onPress={onCancelPress}
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            label={cancelText}
+            testID={cancelTestID}
+            style={styles.button}
+            isDisabled={confirmed}
+          />
+        )}
+        {showConfirmButton && (
+          <Button
+            onPress={onConfirmPress}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            label={confirmText}
+            testID={confirmTestID}
+            style={[
+              styles.button,
+              confirmButtonState === ConfirmButtonState.Warning &&
+                styles.confirmButtonWarning,
+            ]}
+            isDisabled={confirmed || confirmDisabled || loading}
+            loading={confirmed || loading}
+            isDanger={confirmButtonState === ConfirmButtonState.Error}
+          />
+        )}
+      </View>
     </View>
   );
 }

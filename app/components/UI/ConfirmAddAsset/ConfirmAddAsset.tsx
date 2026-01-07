@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { View, SafeAreaView } from 'react-native';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useParams } from '../../../util/navigation/navUtils';
 import createStyles from './styles';
@@ -136,7 +137,7 @@ const ConfirmAddAsset = () => {
       backdropColor={colors.overlay.default}
       backdropOpacity={1}
     >
-      <View
+      <SafeAreaView
         style={styles.box}
         testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
@@ -147,11 +148,11 @@ const ConfirmAddAsset = () => {
         />
 
         <Box style={styles.boxContent}>
-          <Text style={styles.title}>
+          <Text color={TextColor.Alternative}>
             {strings('wallet.search_information_not_saved')}
           </Text>
         </Box>
-        <Box style={styles.boxContent}>
+        <Box style={styles.modalFooterContainer}>
           <BottomSheetFooter
             buttonPropsArray={[
               {
@@ -170,7 +171,7 @@ const ConfirmAddAsset = () => {
             buttonsAlignment={ButtonsAlignment.Horizontal}
           />
         </Box>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 
@@ -246,7 +247,6 @@ const ConfirmAddAsset = () => {
             },
           ]}
           buttonsAlignment={ButtonsAlignment.Horizontal}
-          style={styles.button}
         />
       </View>
       {renderImportModal()}
