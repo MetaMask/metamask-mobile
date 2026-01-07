@@ -8,6 +8,13 @@ on:
         required: false
         type: string
         default: ''
+  workflow_dispatch: 
+    inputs:
+      single_test:
+        description: 'Single test to run'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -27,6 +34,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      single_test: ${{ inputs.single_test }}
     secrets: inherit
 
   perps-android-smoke:

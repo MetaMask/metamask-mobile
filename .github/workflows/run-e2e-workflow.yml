@@ -48,6 +48,16 @@ on:
         required: false
         type: string
         default: ''
+      single_test:
+        description: 'Single test to run - e2e/specs/your-test.spec.ts'
+        required: false
+        type: string
+        default: ''
+      artifact_run_id:
+        description: 'Workflow run ID of an existing build to reuse (skips build step if provided)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   test-e2e-mobile:
@@ -91,6 +101,7 @@ jobs:
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      SINGLE_TEST: ${{ inputs.single_test }}
 
     steps:
       - name: Checkout
@@ -154,6 +165,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
@@ -177,6 +190,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
@@ -184,6 +199,8 @@ jobs:
           echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
           echo "Using TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}"
+          echo "Using ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id || github.run_id }}"
+          echo "Single test: ${{ inputs.single_test }}"
 
           # Always use the splitting script (handles both split and non-split cases)
           node .github/scripts/e2e-split-tags-shards.mjs
