@@ -113,7 +113,7 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should render order transaction details correctly', () => {
+  it('renders order transaction details correctly', () => {
     const { getByText, getByTestId } = render(<PerpsOrderTransactionView />);
 
     expect(
@@ -131,7 +131,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('100%')).toBeTruthy();
   });
 
-  it('should render fee breakdown correctly', () => {
+  it('renders fee breakdown correctly', () => {
     const { getByText } = render(<PerpsOrderTransactionView />);
 
     expect(getByText('MetaMask fee')).toBeTruthy();
@@ -142,7 +142,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$10.50')).toBeTruthy();
   });
 
-  it('should show zero fees when order is not filled', () => {
+  it('shows zero fees when order is not filled', () => {
     const unfilledTransaction = {
       ...mockTransaction,
       order: {
@@ -162,7 +162,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(zeroFees).toHaveLength(3); // All three fees should be $0
   });
 
-  it('should show "< $0.01" for fees less than 0.01', () => {
+  it('shows "< $0.01" for fees less than 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.005,
       protocolFee: 0.003,
@@ -180,7 +180,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(smallFeeLabels).toHaveLength(3);
   });
 
-  it('should format fees normally when they are exactly 0.01', () => {
+  it('formats fees normally when they are exactly 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.03,
       protocolFee: 0.01,
@@ -203,7 +203,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.03')).toBeTruthy(); // Total fee
   });
 
-  it('should format fees normally when they are greater than 0.01', () => {
+  it('formats fees normally when they are greater than 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.015,
       protocolFee: 0.012,
@@ -223,7 +223,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.02')).toBeTruthy(); // Total fee formatted (rounded)
   });
 
-  it('should handle mixed small and large fees correctly', () => {
+  it('handles mixed small and large fees correctly', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.025,
       protocolFee: 0.02,
@@ -244,7 +244,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.03')).toBeTruthy(); // Total fee (rounded)
   });
 
-  it('should handle edge case: fee just below 0.01 threshold', () => {
+  it('handles edge case: fee just below 0.01 threshold', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.029,
       protocolFee: 0.0099,
@@ -263,7 +263,7 @@ describe('PerpsOrderTransactionView', () => {
     // Total fee is >= 0.01, should be formatted
   });
 
-  it('should handle edge case: fee just above 0.01 threshold', () => {
+  it('handles edge case: fee just above 0.01 threshold', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.0201,
       protocolFee: 0.0101,
@@ -286,7 +286,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.02')).toBeTruthy(); // Total fee (rounded)
   });
 
-  it('should show "< $0.01" for all fees when all are below threshold', () => {
+  it('shows "< $0.01" for all fees when all are below threshold', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.008,
       protocolFee: 0.005,
@@ -304,7 +304,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(smallFeeLabels).toHaveLength(3);
   });
 
-  it('should navigate to block explorer in browser tab when button is pressed', () => {
+  it('navigates to block explorer in browser tab when button is pressed', () => {
     const mockNavigate = jest.fn();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -326,7 +326,7 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should use testnet URL when network is testnet', () => {
+  it('uses testnet URL when network is testnet', () => {
     const mockNavigate = jest.fn();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -350,7 +350,7 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should not navigate to block explorer when no selected account', () => {
+  it('does not navigate to block explorer when no selected account', () => {
     const mockNavigate = jest.fn();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -373,7 +373,7 @@ describe('PerpsOrderTransactionView', () => {
     );
   });
 
-  it('should render error message when transaction is not found', () => {
+  it('renders error message when transaction is not found', () => {
     mockUseRoute.mockReturnValue({
       params: { transaction: null },
     });
@@ -383,14 +383,14 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('Transaction not found')).toBeTruthy();
   });
 
-  it('should format date correctly', () => {
+  it('formats date correctly', () => {
     const { getByText } = render(<PerpsOrderTransactionView />);
 
     expect(getByText('Date')).toBeTruthy();
     // The actual date format would depend on the formatTransactionDate utility
   });
 
-  it('should handle different order types', () => {
+  it('handles different order types', () => {
     const marketOrderTransaction = {
       ...mockTransaction,
       order: {
@@ -412,7 +412,7 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should handle missing order data gracefully', () => {
+  it('handles missing order data gracefully', () => {
     const transactionWithoutOrder = {
       ...mockTransaction,
       order: undefined,
@@ -430,7 +430,34 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should call usePerpsOrderFees with correct parameters', () => {
+  it('displays exact price for low-priced assets like PUMP instead of "< $0.01"', () => {
+    // Arrange: Create a transaction with a very low limit price (typical for meme coins)
+    const lowPriceTransaction = {
+      ...mockTransaction,
+      asset: 'PUMP',
+      title: 'Long PUMP limit',
+      order: {
+        ...mockTransaction.order,
+        limitPrice: 0.00234, // Price below $0.01
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: lowPriceTransaction },
+    });
+
+    // Act
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
+
+    // Assert: Should show the actual formatted price, not "< $0.01"
+    expect(getByText('Limit price')).toBeTruthy();
+    // The price should be formatted with PRICE_RANGES_UNIVERSAL showing actual value
+    expect(queryByText('< $0.01')).toBeNull();
+    // Should display the actual price with appropriate decimals (e.g., "$0.00234")
+    expect(getByText('$0.00234')).toBeTruthy();
+  });
+
+  it('calls usePerpsOrderFees with correct parameters', () => {
     render(<PerpsOrderTransactionView />);
 
     expect(mockUsePerpsOrderFees).toHaveBeenCalledWith({
@@ -439,7 +466,7 @@ describe('PerpsOrderTransactionView', () => {
     });
   });
 
-  it('should set correct navigation options', () => {
+  it('sets correct navigation options', () => {
     const mockSetOptions = jest.fn();
     mockUseNavigation.mockReturnValue({
       setOptions: mockSetOptions,

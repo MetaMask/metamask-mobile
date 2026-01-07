@@ -30,6 +30,7 @@ import {
   formatPerpsFiat,
   formatPositiveFiat,
   formatTransactionDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 
@@ -94,7 +95,9 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
     {
       label: strings('perps.transactions.order.limit_price'),
-      value: formatPositiveFiat(transaction.order?.limitPrice ?? 0),
+      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      }),
     },
     {
       label: strings('perps.transactions.order.filled'),
