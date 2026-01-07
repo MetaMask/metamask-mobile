@@ -36,7 +36,6 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
-import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 
 import {
@@ -418,7 +417,6 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <SwapsLiveness />
         <CardVerification />
         <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(

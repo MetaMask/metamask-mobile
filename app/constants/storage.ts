@@ -10,6 +10,8 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
+export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;
+
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
@@ -73,10 +75,10 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
+export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
+
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
-
-export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;

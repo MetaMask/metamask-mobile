@@ -21,7 +21,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         },
         false,
         {
-          "padding": 16,
+          "paddingHorizontal": 16,
         },
       ]
     }

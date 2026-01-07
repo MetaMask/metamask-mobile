@@ -116,9 +116,6 @@ jobs:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-            ios-app-
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App

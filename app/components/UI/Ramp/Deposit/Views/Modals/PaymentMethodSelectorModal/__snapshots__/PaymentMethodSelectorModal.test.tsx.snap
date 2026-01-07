@@ -440,7 +440,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 },
                                 false,
                                 {
-                                  "padding": 16,
+                                  "paddingHorizontal": 16,
                                 },
                               ]
                             }

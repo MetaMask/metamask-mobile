@@ -600,6 +600,62 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockStore.save).not.toHaveBeenCalled();
     });
+
+    it('blocks connection requests with `metamask` as origin', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const blockedRequest = {
+        ...mockConnectionRequest,
+        metadata: {
+          ...mockConnectionRequest.metadata,
+          dapp: {
+            ...mockConnectionRequest.metadata.dapp,
+            url: 'metamask',
+          },
+        },
+      };
+
+      const blockedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(blockedRequest),
+      )}`;
+
+      await registry.handleConnectDeeplink(blockedDeeplink);
+
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('blocks connection requests with `metamask` as dapp name', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const blockedRequest = {
+        ...mockConnectionRequest,
+        metadata: {
+          ...mockConnectionRequest.metadata,
+          dapp: {
+            ...mockConnectionRequest.metadata.dapp,
+            name: 'metamask',
+          },
+        },
+      };
+
+      const blockedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(blockedRequest),
+      )}`;
+
+      await registry.handleConnectDeeplink(blockedDeeplink);
+    });
   });
 
   describe('disconnect', () => {

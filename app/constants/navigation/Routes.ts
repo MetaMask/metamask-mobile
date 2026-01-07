@@ -114,6 +114,7 @@ const Routes = {
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
+    OTA_UPDATES_MODAL: 'OTAUpdatesModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -186,7 +187,6 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
-    TOKEN_FILTER: 'TokenFilter',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
@@ -380,6 +380,7 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
+    CARD_MAIN_ROUTES: 'CardMainRoutes',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
@@ -394,7 +395,7 @@ const Routes = {
       SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
       CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
       VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
-      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
@@ -406,6 +407,8 @@ const Routes = {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
       ASSET_SELECTION: 'CardAssetSelectionModal',
+      REGION_SELECTION: 'CardRegionSelectionModal',
+      CONFIRM_MODAL: 'CardConfirmModal',
     },
   },
   SEND: {

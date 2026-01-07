@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -983,7 +983,9 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await Authentication.importAccountFromPrivateKey(
+                  data.private_key,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -2125,9 +2127,11 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
   const apr =
-    aprOverride ??
-    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
+    parsedOverride > 0
+      ? aprOverride
+      : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2256,14 +2260,15 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(
+export function getCloseOnlyNavbar({
   navigation,
   themeColors,
+  backgroundColor = themeColors.background.default,
   onClose = undefined,
-) {
+}) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },

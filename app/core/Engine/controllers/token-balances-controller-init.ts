@@ -1,4 +1,4 @@
-import { ControllerInitFunction, EngineState } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenBalancesController,
   type TokenBalancesControllerMessenger,
@@ -6,6 +6,7 @@ import {
 import { TokenBalancesControllerInitMessenger } from '../messengers/token-balances-controller-messenger';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 
 /**
  * Initialize the token balances controller.
@@ -30,10 +31,9 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     queryMultipleAccounts: preferencesState.isMultiAccountBalancesEnabled,
     accountsApiChainIds: () =>
-      selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: persistedState as EngineState },
-      }) as `0x${string}`[],
+      selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
+    isOnboarded: () => selectCompletedOnboarding(getState()),
   });
 
   return {

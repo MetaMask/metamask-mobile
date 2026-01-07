@@ -4,9 +4,11 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
 
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsToasts');
+jest.mock('../providers/PerpsStreamManager');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -40,12 +42,19 @@ jest.mock('expo-haptics', () => ({
 describe('usePerpsTPSLUpdate', () => {
   const mockUpdatePositionTPSL = jest.fn();
   const mockShowToast = jest.fn();
+  const mockUpdatePositionTPSLOptimistic = jest.fn();
   const mockToastContext = {
     toastRef: {
       current: {
         showToast: mockShowToast,
         closeToast: jest.fn(),
       },
+    },
+  };
+
+  const mockStream = {
+    positions: {
+      updatePositionTPSLOptimistic: mockUpdatePositionTPSLOptimistic,
     },
   };
 
@@ -126,6 +135,8 @@ describe('usePerpsTPSLUpdate', () => {
       showToast: mockShowToast,
       PerpsToastOptions: mockPerpsToastOptions,
     });
+
+    (usePerpsStream as jest.Mock).mockReturnValue(mockStream);
   });
 
   const renderHookWithToast = (options = {}) => {
@@ -267,7 +278,7 @@ describe('usePerpsTPSLUpdate', () => {
     );
   });
 
-  it('should use toast configurations with correct haptics types', () => {
+  it('uses toast configurations with correct haptics types', () => {
     // Verify success toast has correct haptics type
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLSuccess
@@ -280,5 +291,146 @@ describe('usePerpsTPSLUpdate', () => {
         'test error',
       );
     expect(errorToast.hapticsType).toBe('error');
+  });
+
+  describe('optimistic updates', () => {
+    it('applies optimistic update to position cache on successful API response', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+      const takeProfitPrice = '3300';
+      const stopLossPrice = '2700';
+
+      mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(
+          position,
+          takeProfitPrice,
+          stopLossPrice,
+        );
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).toHaveBeenCalledWith(
+        'ETH',
+        takeProfitPrice,
+        stopLossPrice,
+      );
+    });
+
+    it('applies optimistic update with undefined take profit price', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+      const stopLossPrice = '2700';
+
+      mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(
+          position,
+          undefined,
+          stopLossPrice,
+        );
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).toHaveBeenCalledWith(
+        'ETH',
+        undefined,
+        stopLossPrice,
+      );
+    });
+
+    it('applies optimistic update with undefined stop loss price', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+      const takeProfitPrice = '3300';
+
+      mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(
+          position,
+          takeProfitPrice,
+          undefined,
+        );
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).toHaveBeenCalledWith(
+        'ETH',
+        takeProfitPrice,
+        undefined,
+      );
+    });
+
+    it('applies optimistic update with both TP/SL undefined (removing both)', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition({
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+      });
+
+      mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, undefined, undefined);
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).toHaveBeenCalledWith(
+        'ETH',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('does not apply optimistic update on API failure response', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: 'Network error',
+      });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    });
+
+    it('does not apply optimistic update on exception', async () => {
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+      const error = new Error('Network error');
+
+      mockUpdatePositionTPSL.mockRejectedValue(error);
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    });
+
+    it('applies optimistic update before showing success toast', async () => {
+      const callOrder: string[] = [];
+
+      mockUpdatePositionTPSLOptimistic.mockImplementation(() => {
+        callOrder.push('optimistic');
+      });
+      mockShowToast.mockImplementation(() => {
+        callOrder.push('toast');
+      });
+
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      expect(callOrder).toEqual(['optimistic', 'toast']);
+    });
   });
 });
