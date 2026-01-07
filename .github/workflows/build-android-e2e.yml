@@ -29,11 +29,13 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl # Bumped from lg to xl to prevent Daemon disappearance issue (Daemon OOM issue in CI)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
+      # Evidence runs: disable cache reuse by making cache keys unique per workflow run.
+      # This enforces a cold build without refactoring the workflow.
+      CACHE_GENERATION: ${{ github.run_id }}
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -121,7 +123,7 @@ jobs:
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
           # - "Check and restore cached APKs if Fingerprint is found"
           # - "Cache build artifacts"
-          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ env.CACHE_GENERATION }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
@@ -252,3 +254,43 @@ jobs:
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+
+      - name: Collect failure diagnostics (Gradle daemon logs, hs_err, dmesg)
+        if: ${{ failure() }}
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          OUT_DIR="$GITHUB_WORKSPACE/android-e2e-build-diagnostics"
+          mkdir -p "$OUT_DIR"
+
+          echo "Collecting Gradle daemon logs..."
+          # Best-effort locations for daemon logs
+          for base in "${GRADLE_USER_HOME:-}" "$HOME/.gradle" "/home/admin/_work/.gradle" "$HOME/_work/.gradle"; do
+            if [[ -n "$base" && -d "$base/daemon" ]]; then
+              mkdir -p "$OUT_DIR/gradle-daemon"
+              cp -R "$base/daemon" "$OUT_DIR/gradle-daemon/$(basename "$base")" || true
+            fi
+          done
+
+          echo "Collecting JVM crash logs (hs_err_pid*.log)..."
+          mkdir -p "$OUT_DIR/hs_err"
+          find "$GITHUB_WORKSPACE" -maxdepth 6 -type f -name 'hs_err_pid*.log' -print -exec cp -v {} "$OUT_DIR/hs_err/" \; || true
+          find "$HOME" -maxdepth 6 -type f -name 'hs_err_pid*.log' -print -exec cp -v {} "$OUT_DIR/hs_err/" \; || true
+
+          echo "Collecting best-effort kernel evidence (dmesg tail)..."
+          {
+            sudo dmesg -T | tail -n 300
+          } > "$OUT_DIR/dmesg-tail.txt" 2>&1 || {
+            dmesg | tail -n 300 > "$OUT_DIR/dmesg-tail.txt" 2>&1 || true
+          }
+
+          echo "Diagnostics written to: $OUT_DIR"
+
+      - name: Upload failure diagnostics artifact
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-e2e-build-diagnostics-${{ inputs.build_type }}-${{ inputs.metamask_environment }}
+          path: android-e2e-build-diagnostics/**
+          retention-days: 7
+          if-no-files-found: warn
