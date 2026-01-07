@@ -53,6 +53,7 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -115,6 +116,31 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
+    const { setConfirmationMetric } = useConfirmationMetricEvents();
+    const handleOnPercentagePress = useCallback(
+      (percentage: number) => {
+        setConfirmationMetric({
+          properties: {
+            mm_pay_amount_input_type: `${percentage}%`,
+          },
+        });
+        updatePendingAmountPercentage(percentage);
+      },
+      [setConfirmationMetric, updatePendingAmountPercentage],
+    );
+
+    const handleAmountChange = useCallback(
+      (amount: string) => {
+        setConfirmationMetric({
+          properties: {
+            mm_pay_amount_input_type: 'manual',
+          },
+        });
+        updatePendingAmount(amount);
+      },
+      [setConfirmationMetric, updatePendingAmount],
+    );
+
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
     }, []);
@@ -157,9 +183,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <DepositKeyboard
               alertMessage={alertTitle}
               value={amountFiat}
-              onChange={updatePendingAmount}
+              onChange={handleAmountChange}
               onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
+              onPercentagePress={handleOnPercentagePress}
               hasInput={hasInput}
               hasMax={hasMax}
             />
