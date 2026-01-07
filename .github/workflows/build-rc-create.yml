@@ -18,7 +18,8 @@ jobs:
     uses: ./.github/workflows/update-latest-build-version.yml
     with:
       base-branch: release/${{ inputs.semver }}
-      token: ${{ secrets.PR_TOKEN }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
     permissions:
       id-token: write
       contents: write

@@ -86,7 +86,8 @@ jobs:
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
       base-branch: ${{ github.ref_name }}
-      token: ${{ secrets.PR_TOKEN }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
     permissions:
       id-token: write
       contents: write
