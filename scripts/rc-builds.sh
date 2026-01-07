@@ -9,6 +9,7 @@ set -euo pipefail
 : "${BITRISE_BUILD_TRIGGER_TOKEN:?BITRISE_BUILD_TRIGGER_TOKEN environment variable must be set}"
 : "${BITRISE_API_TOKEN:?BITRISE_API_TOKEN environment variable must be set}"
 : "${COMMIT_HASH:?COMMIT_HASH environment variable must be set}"
+: "${GH_REF_NAME:?GH_REF_NAME environment variable must be set}"
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
 
 BUILD_RESPONSE=$(curl -s -X POST \
