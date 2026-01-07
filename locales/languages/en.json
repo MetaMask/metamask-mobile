@@ -6208,15 +6208,7 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
-    "verified_token": "Verified token",
-    "price": "Price",
-    "percent_change": "Percent change",
-    "volume": "Volume",
-    "market_cap_fdv": "Market cap (FDV)",
-    "listed_on": "Listed on",
-    "centralized_exchanges": "Centralized exchanges",
-    "contract_address": "Contract address"
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
