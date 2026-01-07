@@ -3356,8 +3356,7 @@ workflows:
                 fi
                 
                 # Write the .p8 key file
-                echo "📋 Found .p8 files:"
-                find . -name "*.p8" -type f 2>/dev/null || echo "  No .p8 files found"
+                echo "$(pwd)/ios/AuthKey.p8"
                 # chmod 600 ios/AuthKey.p8
                 
                 # Export environment variables for Fastlane
