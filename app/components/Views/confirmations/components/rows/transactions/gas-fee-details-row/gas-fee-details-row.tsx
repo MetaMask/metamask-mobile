@@ -40,6 +40,7 @@ import styleSheet from './gas-fee-details-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import type { RootState } from '../../../../../../../reducers';
+import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -263,12 +264,19 @@ const GasFeesDetailsRow = ({
   );
   const { nativeCurrency } = networkConfiguration ?? {};
 
+  const { networkNativeCurrency } = useNetworkInfo(
+    transactionMetadata?.chainId,
+  );
+
+  // Fallback chain: networkConfiguration.nativeCurrency -> networkNativeCurrency -> empty string
+  const nativeTokenSymbol = nativeCurrency ?? networkNativeCurrency ?? '';
+
   const showGasFeeTokenInfo =
     gasFeeToken?.metaMaskFee && gasFeeToken?.metaMaskFee !== '0x0';
 
   const confirmGasFeeTokenTooltip = isGasFeeSponsored
     ? strings('bridge.network_fee_info_content_sponsored', {
-        nativeToken: nativeCurrency,
+        nativeToken: nativeTokenSymbol,
       })
     : showGasFeeTokenInfo
       ? strings('transactions.confirm_gas_fee_token_tooltip', {
