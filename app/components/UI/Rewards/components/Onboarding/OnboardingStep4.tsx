@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -15,6 +15,7 @@ import {
   IconColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Checkbox from '../../../../../component-library/components/Checkbox';
 import step4Img from '../../../../../images/rewards/rewards-onboarding-step4.png';
 import TextField, {
   TextFieldSize,
@@ -34,6 +35,7 @@ const OnboardingStep4: React.FC = () => {
   const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
   const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
+  const [bulkLink, setBulkLink] = useState(false);
 
   const {
     referralCode,
@@ -49,9 +51,13 @@ const OnboardingStep4: React.FC = () => {
 
   const isPrefilledReferral = Boolean(onboardingReferralCode);
 
+  const handleBulkLinkToggle = useCallback(() => {
+    setBulkLink((prev) => !prev);
+  }, []);
+
   const handleNext = useCallback(() => {
-    optin({ referralCode, isPrefilled: isPrefilledReferral });
-  }, [optin, referralCode, isPrefilledReferral]);
+    optin({ referralCode, isPrefilled: isPrefilledReferral, bulkLink });
+  }, [optin, referralCode, isPrefilledReferral, bulkLink]);
 
   const renderIcon = () => {
     if (isValidatingReferralCode) {
@@ -82,88 +88,108 @@ const OnboardingStep4: React.FC = () => {
   };
 
   const renderStepInfo = () => (
-    <Box alignItems={BoxAlignItems.Center} twClassName="min-h-[70%]">
-      {/* Opt in error message */}
+    <>
+      <Box alignItems={BoxAlignItems.Center} twClassName="min-h-[70%]">
+        {/* Opt in error message */}
 
-      {optinError && (
-        <RewardsErrorBanner
-          title={strings('rewards.optin_error.title')}
-          description={strings('rewards.optin_error.description')}
-        />
-      )}
+        {optinError && (
+          <RewardsErrorBanner
+            title={strings('rewards.optin_error.title')}
+            description={strings('rewards.optin_error.description')}
+          />
+        )}
 
-      {/* Placeholder Image */}
-      <Box twClassName="my-4">
-        <Image
-          source={step4Img}
-          testID="step-4-image"
-          style={tw.style('w-32 h-32')}
-        />
-      </Box>
+        {/* Placeholder Image */}
+        <Box twClassName="my-4">
+          <Image
+            source={step4Img}
+            testID="step-4-image"
+            style={tw.style('w-32 h-32')}
+          />
+        </Box>
 
-      {/* Referral Code Input Section */}
-      <Box twClassName="w-full gap-4">
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="text-center mb-[20%]"
-        >
-          {referralCodeIsValid
-            ? strings('rewards.onboarding.step4_title_referral_bonus')
-            : strings('rewards.onboarding.step4_title')}
-        </Text>
-
-        <Box twClassName="gap-4">
+        {/* Referral Code Input Section */}
+        <Box twClassName="w-full gap-4">
           <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            twClassName="text-center"
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center mb-[20%]"
           >
-            {strings('rewards.onboarding.step4_referral_bonus_description')}
+            {referralCodeIsValid
+              ? strings('rewards.onboarding.step4_title_referral_bonus')
+              : strings('rewards.onboarding.step4_title')}
           </Text>
 
-          <Box twClassName="relative">
-            <TextField
-              placeholder={strings(
-                'rewards.onboarding.step4_referral_input_placeholder',
-              )}
-              value={referralCode}
-              autoCapitalize="characters"
-              onChangeText={handleReferralCodeChange}
-              isDisabled={optinLoading}
-              size={TextFieldSize.Lg}
-              style={tw.style(
-                'bg-background-pressed',
-                referralCode.length >= 6 &&
-                  !referralCodeIsValid &&
-                  !isValidatingReferralCode &&
-                  !isUnknownErrorReferralCode
-                  ? 'border-error-default'
-                  : 'border-muted',
-              )}
-              endAccessory={renderIcon()}
-              isError={!referralCodeIsValid}
-            />
-            {referralCode.length >= 6 &&
-              !referralCodeIsValid &&
-              !isValidatingReferralCode &&
-              !isUnknownErrorReferralCode && (
-                <Text twClassName="text-error-default">
-                  {strings('rewards.onboarding.step4_referral_input_error')}
-                </Text>
-              )}
-          </Box>
+          <Box twClassName="gap-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-center"
+            >
+              {strings('rewards.onboarding.step4_referral_bonus_description')}
+            </Text>
 
-          {isUnknownErrorReferralCode && (
-            <RewardsErrorBanner
-              title={strings('rewards.referral_validation_unknown_error.title')}
-              description={strings(
-                'rewards.referral_validation_unknown_error.description',
-              )}
-            />
-          )}
+            <Box twClassName="relative">
+              <TextField
+                placeholder={strings(
+                  'rewards.onboarding.step4_referral_input_placeholder',
+                )}
+                value={referralCode}
+                autoCapitalize="characters"
+                onChangeText={handleReferralCodeChange}
+                isDisabled={optinLoading}
+                size={TextFieldSize.Lg}
+                style={tw.style(
+                  'bg-background-pressed',
+                  referralCode.length >= 6 &&
+                    !referralCodeIsValid &&
+                    !isValidatingReferralCode &&
+                    !isUnknownErrorReferralCode
+                    ? 'border-error-default'
+                    : 'border-muted',
+                )}
+                endAccessory={renderIcon()}
+                isError={!referralCodeIsValid}
+              />
+              {referralCode.length >= 6 &&
+                !referralCodeIsValid &&
+                !isValidatingReferralCode &&
+                !isUnknownErrorReferralCode && (
+                  <Text twClassName="text-error-default">
+                    {strings('rewards.onboarding.step4_referral_input_error')}
+                  </Text>
+                )}
+            </Box>
+
+            {isUnknownErrorReferralCode && (
+              <RewardsErrorBanner
+                title={strings(
+                  'rewards.referral_validation_unknown_error.title',
+                )}
+                description={strings(
+                  'rewards.referral_validation_unknown_error.description',
+                )}
+              />
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
+      {/* Opt-in all accounts checkbox */}
+      <Box twClassName="h-auto flex-col justify-end items-center">
+        <Checkbox
+          isChecked={bulkLink}
+          onPress={handleBulkLinkToggle}
+          isDisabled={optinLoading}
+          label={
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('rewards.onboarding.step4_bulk_link_checkbox')}
+            </Text>
+          }
+        />
+      </Box>
+    </>
   );
 
   const renderLegalDisclaimer = () => (
