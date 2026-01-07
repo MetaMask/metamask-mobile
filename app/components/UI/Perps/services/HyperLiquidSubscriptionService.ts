@@ -325,8 +325,12 @@ export class HyperLiquidSubscriptionService {
     }
 
     // Wait with timeout
+    let timeoutId: NodeJS.Timeout | undefined;
     const timeoutPromise = new Promise<void>((_, reject) => {
-      setTimeout(() => reject(new Error('DEX discovery timeout')), timeoutMs);
+      timeoutId = setTimeout(
+        () => reject(new Error('DEX discovery timeout')),
+        timeoutMs,
+      );
     });
 
     try {
@@ -335,6 +339,10 @@ export class HyperLiquidSubscriptionService {
       DevLogger.log(
         'DEX discovery wait timed out, proceeding with main DEX only',
       );
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   }
 
@@ -1301,6 +1309,9 @@ export class HyperLiquidSubscriptionService {
         `clearinghouseState subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureClearinghouseStateSubscription', {
@@ -1375,6 +1386,9 @@ export class HyperLiquidSubscriptionService {
         `openOrders subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureOpenOrdersSubscription', {
