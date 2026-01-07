@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -6,7 +7,11 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
-import { rampsServiceInit, getRampsEnvironment } from './ramps-service-init';
+import {
+  rampsServiceInit,
+  getRampsEnvironment,
+  getRampsContext,
+} from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/ramps-controller', () => {
@@ -79,6 +84,42 @@ describe('getRampsEnvironment', () => {
   });
 });
 
+describe('getRampsContext', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+  });
+
+  it('returns mobile-ios for iOS platform', () => {
+    Platform.OS = 'ios';
+    expect(getRampsContext()).toBe('mobile-ios');
+  });
+
+  it('returns mobile-android for Android platform', () => {
+    Platform.OS = 'android';
+    expect(getRampsContext()).toBe('mobile-android');
+  });
+});
+
+describe('getRampsContext', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+  });
+
+  it('returns mobile-ios for iOS platform', () => {
+    Platform.OS = 'ios';
+    expect(getRampsContext()).toBe('mobile-ios');
+  });
+
+  it('returns mobile-android for Android platform', () => {
+    Platform.OS = 'android';
+    expect(getRampsContext()).toBe('mobile-android');
+  });
+});
+
 describe('rampsServiceInit', () => {
   const rampsServiceClassMock = jest.mocked(RampsService);
   let initRequestMock: jest.Mocked<
@@ -105,6 +146,7 @@ describe('rampsServiceInit', () => {
     expect(rampsServiceClassMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       environment: expect.any(String),
+      context: expect.any(String),
       fetch,
     });
   });

@@ -744,7 +744,7 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "geolocation": null,
+    "userRegion": null,
     "requests": {}
   }
 }

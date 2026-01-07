@@ -9,7 +9,7 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
+const mockInit = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
@@ -19,7 +19,7 @@ jest.mock('@metamask/ramps-controller', () => {
   const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
-    instance.updateGeolocation = mockUpdateGeolocation;
+    instance.init = mockInit;
     return instance;
   });
 
@@ -47,7 +47,7 @@ describe('ramps controller init', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUpdateGeolocation.mockResolvedValue('US');
+    mockInit.mockResolvedValue(undefined);
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -75,7 +75,7 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      geolocation: 'US-CA',
+      userRegion: 'US-CA',
       requests: {},
     };
 
@@ -92,16 +92,16 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  it('calls updateGeolocation at startup', async () => {
+  it('calls init at startup', async () => {
     rampsControllerInit(initRequestMock);
 
     await new Promise(process.nextTick);
 
-    expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    expect(mockInit).toHaveBeenCalledTimes(1);
   });
 
-  it('handles updateGeolocation failure gracefully', async () => {
-    mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+  it('handles init failure gracefully', async () => {
+    mockInit.mockRejectedValue(new Error('Network error'));
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 

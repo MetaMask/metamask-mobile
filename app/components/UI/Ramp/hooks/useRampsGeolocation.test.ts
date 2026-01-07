@@ -2,14 +2,19 @@ import { renderHook } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import { useRampsGeolocation } from './useRampsGeolocation';
+import { useRampsUserRegion } from './useRampsGeolocation';
 import { RequestStatus } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
+      updateUserRegion: jest.fn().mockResolvedValue('US'),
+      setUserRegion: jest.fn().mockResolvedValue({
+        aggregator: true,
+        deposit: true,
+        global: true,
+      }),
     },
   },
 }));
@@ -20,7 +25,7 @@ const createMockStore = (rampsControllerState = {}) =>
       engine: () => ({
         backgroundState: {
           RampsController: {
-            geolocation: null,
+            userRegion: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -34,37 +39,38 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
     return React.createElement(Provider, { store } as never, children);
   };
 
-describe('useRampsGeolocation', () => {
+describe('useRampsUserRegion', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('return value structure', () => {
-    it('returns geolocation, isLoading, error, and fetchGeolocation', () => {
+    it('returns userRegion, isLoading, error, fetchUserRegion, and setUserRegion', () => {
       const store = createMockStore();
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
       expect(result.current).toMatchObject({
-        geolocation: null,
+        userRegion: null,
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.fetchGeolocation).toBe('function');
+      expect(typeof result.current.fetchUserRegion).toBe('function');
+      expect(typeof result.current.setUserRegion).toBe('function');
     });
   });
 
-  describe('geolocation state', () => {
-    it('returns geolocation from state', () => {
-      const store = createMockStore({ geolocation: 'US-CA' });
+  describe('userRegion state', () => {
+    it('returns userRegion from state', () => {
+      const store = createMockStore({ userRegion: 'US-CA' });
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
-      expect(result.current.geolocation).toBe('US-CA');
+      expect(result.current.userRegion).toBe('US-CA');
     });
   });
 
@@ -72,7 +78,7 @@ describe('useRampsGeolocation', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -82,7 +88,7 @@ describe('useRampsGeolocation', () => {
         },
       });
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
@@ -94,7 +100,7 @@ describe('useRampsGeolocation', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -104,7 +110,7 @@ describe('useRampsGeolocation', () => {
         },
       });
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
@@ -112,90 +118,122 @@ describe('useRampsGeolocation', () => {
     });
   });
 
-  describe('fetchGeolocation', () => {
-    it('calls updateGeolocation without options when called with no arguments', async () => {
+  describe('fetchUserRegion', () => {
+    it('calls updateUserRegion without options when called with no arguments', async () => {
       const store = createMockStore();
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
-      await result.current.fetchGeolocation();
+      await result.current.fetchUserRegion();
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith(undefined);
     });
 
-    it('calls updateGeolocation with forceRefresh true when specified', async () => {
+    it('calls updateUserRegion with forceRefresh true when specified', async () => {
       const store = createMockStore();
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
-      await result.current.fetchGeolocation({ forceRefresh: true });
+      await result.current.fetchUserRegion({ forceRefresh: true });
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
         forceRefresh: true,
       });
     });
 
-    it('calls updateGeolocation with forceRefresh false when specified', async () => {
+    it('calls updateUserRegion with forceRefresh false when specified', async () => {
       const store = createMockStore();
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
-      await result.current.fetchGeolocation({ forceRefresh: false });
+      await result.current.fetchUserRegion({ forceRefresh: false });
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
         forceRefresh: false,
       });
     });
 
-    it('handles error when fetchGeolocation rejects', async () => {
+    it('handles error when fetchUserRegion rejects', async () => {
       const store = createMockStore();
-      const mockUpdateGeolocation = Engine.context.RampsController
-        .updateGeolocation as jest.Mock;
-      mockUpdateGeolocation.mockReset();
-      mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockReset();
+      mockUpdateUserRegion.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
-      await expect(result.current.fetchGeolocation()).rejects.toThrow(
+      await expect(result.current.fetchUserRegion()).rejects.toThrow(
         'Network error',
       );
     });
   });
 
-  describe('useEffect error handling', () => {
-    it('handles error gracefully when updateGeolocation rejects in useEffect', async () => {
+  describe('setUserRegion', () => {
+    it('calls setUserRegion on controller', async () => {
       const store = createMockStore();
-      const mockUpdateGeolocation = Engine.context.RampsController
-        .updateGeolocation as jest.Mock;
-      mockUpdateGeolocation.mockReset();
-      mockUpdateGeolocation.mockRejectedValue(new Error('Fetch failed'));
 
-      const { result } = renderHook(() => useRampsGeolocation(), {
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await result.current.setUserRegion('US-CA');
+
+      expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
+        'US-CA',
+        undefined,
+      );
+    });
+
+    it('calls setUserRegion with options when specified', async () => {
+      const store = createMockStore();
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await result.current.setUserRegion('US-CA', { forceRefresh: true });
+
+      expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
+        'US-CA',
+        { forceRefresh: true },
+      );
+    });
+  });
+
+  describe('useEffect error handling', () => {
+    it('handles error gracefully when fetchUserRegion rejects in useEffect', async () => {
+      const store = createMockStore();
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockReset();
+      mockUpdateUserRegion.mockRejectedValue(new Error('Fetch failed'));
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(result.current).toMatchObject({
-        geolocation: null,
+        userRegion: null,
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.fetchGeolocation).toBe('function');
+      expect(typeof result.current.fetchUserRegion).toBe('function');
     });
   });
 });
