@@ -1375,6 +1375,9 @@ export class HyperLiquidSubscriptionService {
               this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
             }
 
+            // Mark this DEX as initialized (has sent first data)
+            this.initializedDexs.add(cacheKey);
+
             // Trigger aggregation and notify subscribers
             this.aggregateAndNotifySubscribers();
           }
