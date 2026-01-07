@@ -103,6 +103,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -593,6 +594,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
           </TouchableOpacity>
         )}
+        <ScreenshotDeterrent enabled isSRP={false} hasNavigation />
       </SafeAreaView>
     </ErrorBoundary>
   );
