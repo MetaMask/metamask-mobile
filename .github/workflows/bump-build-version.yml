@@ -12,7 +12,7 @@ on:
         description: 'Generated build version number'
         value: ${{ jobs.generate-build-version.outputs.build-version }}
       commit-hash:
-        description: "Commit hash with build version bumped"
+        description: 'Commit hash with build version bumped'
         value: ${{ jobs.bump-version.outputs.commit-hash }}
 
 jobs:
@@ -24,6 +24,8 @@ jobs:
   bump-version:
     runs-on: ubuntu-latest
     needs: generate-build-version
+    permissions:
+      contents: write
     outputs:
       commit-hash: ${{ steps.bump-build-version.outputs.commit-hash }}
     steps:
@@ -31,7 +33,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.ref }}
-          token: ${{ secrets.PR_TOKEN }}
       - name: Bump build version
         id: bump-build-version
         shell: bash
@@ -50,4 +51,3 @@ jobs:
           git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
           git push origin HEAD:$GH_REF_NAME --force-with-lease
           echo "commit-hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
