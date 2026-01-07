@@ -13,7 +13,6 @@ on:
       - 'release/*'
       # testing branch.
       # remove before merge
-      #
       - 'rc-builds-gh-workflow'
 
 jobs:
