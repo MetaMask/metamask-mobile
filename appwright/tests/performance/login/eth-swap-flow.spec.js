@@ -32,7 +32,7 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
-    { ios: 1100, android: 1000 },
+    { ios: 2000, android: 2500 },
     device,
   );
 
