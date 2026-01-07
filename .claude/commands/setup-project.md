@@ -56,7 +56,7 @@ yarn --version
 # Check Xcode installation
 xcodebuild -version
 
-# Check Ruby version (should be 3.1.6)
+# Check Ruby version
 ruby --version
 
 # Check if bundler is installed
@@ -70,8 +70,8 @@ xcrun simctl list devices available
 
 - **Xcode**: Install from Mac App Store, then open and accept license
 - **Xcode CLI Tools**: `xcode-select --install`
-- **Ruby 3.1.6**: Install rbenv (`brew install rbenv`), then `rbenv install 3.1.6`
-- **Bundler**: `gem install bundler -v 2.5.8`
+- **Ruby**: Install rbenv (`brew install rbenv`), then `rbenv install {version}` (check version on `ios/Gemfile`)
+- **Bundler**: `gem install bundler -v {version}` (check version on `ios/Gemfile.lock`)
 - **applesimutils**: `brew tap wix/brew && brew install applesimutils`
 
 ---
