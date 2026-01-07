@@ -94,7 +94,6 @@ export const useMusdCtaVisibility = () => {
     }
 
     // If exactly one chain is selected
-
     const chainId = selectedChains[0];
     const isBuyableChain = MUSD_BUYABLE_CHAIN_IDS.includes(chainId);
 
