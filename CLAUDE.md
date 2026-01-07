@@ -249,6 +249,20 @@ Use environment variable `METAMASK_BUILD_TYPE` to switch.
 - Never log sensitive information
 - Follow OWASP security guidelines
 
+## Development workflow
+
+If the user ask to implment a ticket directly from Jira
+
+- You will get the details directly from the link
+- Start a simulator
+  - Ask which simulator they will like to open (Android or iOS)
+  - You have scripts on the `package.json` to run both
+    - First run `yarn setup`
+    - Once the above finishes `yarn watch:clean`
+    - Then on another terminal `yarn start:{ios|android}`
+- Start implementing the ticket as it was a prompt from the user.
+- If you need feedback you can make screenshots.
+
 ## Documentation References
 
 - Architecture: `/docs/readme/architecture.md`
