@@ -104,6 +104,7 @@ import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -188,6 +189,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -362,7 +364,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'BUY',
+          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
           region: rampGeodetectedRegion,
           ramp_routing: rampsButtonClickData.ramp_routing,
           is_authenticated: rampsButtonClickData.is_authenticated,
