@@ -23,26 +23,28 @@ Wait for the user's response before proceeding with the relevant setup steps.
 
 Run these checks for all setup types:
 
+Check `package.json` engines for the correct versions
+
 ```bash
 # Check if Homebrew is installed
 brew --version
 
-# Check Node.js version (should be 20.18.0 or compatible)
+# Check Node.js version
 node --version
 
 # Check if watchman is installed
 watchman --version
 
-# Check Yarn version (should be 4.10.3)
+# Check Yarn version
 yarn --version
 ```
 
 **If missing, guide the user:**
 
 - **Homebrew**: `Visit https://brew.sh and follow installation instructions`
-- **Node.js**: `Install nvm or nodenv, then: nvm install 20.18.0` or `nodenv install 20.18.0`
+- **Node.js**: `Install nvm or nodenv, then: nvm install {version}` or `nodenv install {version}`
 - **Watchman**: `brew install watchman`
-- **Yarn**: The project bundles Yarn 4.10.3, but ensure corepack is enabled: `corepack enable`
+- **Yarn**: The project bundles Yarn, but ensure corepack is enabled: `corepack enable`
 
 ---
 
