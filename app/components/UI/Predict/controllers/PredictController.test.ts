@@ -3793,7 +3793,19 @@ describe('PredictController', () => {
         expect(result).toBeDefined();
         expect(result?.updateTransaction).toBeDefined();
 
-        const testTransaction = {
+        const testTransaction: {
+          txParams: {
+            from: string;
+            to: string;
+            data: string;
+            gas?: string;
+            gasLimit?: string;
+          };
+          assetsFiatValues?: {
+            receiving?: string;
+            sending?: string;
+          };
+        } = {
           txParams: {
             from: '0xFrom',
             to: '0xOldTarget',
@@ -3805,6 +3817,9 @@ describe('PredictController', () => {
 
         expect(testTransaction.txParams.data).toBe('0xmodifieddata');
         expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+        expect(testTransaction.assetsFiatValues).toEqual({
+          receiving: '100',
+        });
       });
     });
 
