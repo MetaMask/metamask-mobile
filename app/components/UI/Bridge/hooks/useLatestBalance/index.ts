@@ -71,6 +71,13 @@ export const useLatestBalance = (token: {
   );
   const previousToken = usePrevious(token);
 
+  // Reset balance when token changes to prevent stale data from previous token
+  useEffect(() => {
+    if (previousToken?.address !== token.address) {
+      setBalance(undefined);
+    }
+  }, [previousToken?.address, token.address]);
+
   // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
   const nonEvmTokens = useNonEvmTokensWithBalance();
@@ -137,7 +144,8 @@ export const useLatestBalance = (token: {
           nonEvmToken.chainId === chainId,
       )?.balance;
 
-      if (displayBalance && token.decimals) {
+      // Use explicit undefined check instead of truthiness to handle "0" balance correctly
+      if (displayBalance !== undefined && token.decimals) {
         setBalance({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
