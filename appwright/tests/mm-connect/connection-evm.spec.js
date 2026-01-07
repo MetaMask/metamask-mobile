@@ -79,7 +79,7 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
     // await login(device, { dismissModals: false });
     await DappConnectionModal.tapEditAccountsButton();
     await DappConnectionModal.tapAccountButton('Account 3');
-    await DappConnectionModal.tapUpdateButton();
+    await DappConnectionModal.tapUpdateAccountsButton();
     await DappConnectionModal.tapConnectButton();
   });
 

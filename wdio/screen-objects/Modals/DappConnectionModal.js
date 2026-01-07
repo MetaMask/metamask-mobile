@@ -23,7 +23,7 @@ class DappConnectionModal {
         }
     }
 
-    get updateButton() {
+    get updateAccountsButton() {
         if (!this._device) {
             return null;
         }
@@ -43,6 +43,36 @@ class DappConnectionModal {
         }
     }
 
+    get permissionsTabButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.view.ViewGroup[@content-desc="Permissions"]');
+        }
+    }
+
+    get editNetworksButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '(//android.widget.TextView[@text="Edit"])[2]');
+        }
+    }
+
+    get updateNetworksButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@content-desc="Update"]');
+        }
+    }
+
     // TODO: Might be able to use the AccountListComponent instead of this
     getAccountButton(accountName) {
         if (!this._device) {
@@ -51,6 +81,16 @@ class DappConnectionModal {
 
         if (AppwrightSelectors.isAndroid(this._device)) {
             return AppwrightSelectors.getElementByXpath(this._device, `//android.widget.TextView[@resource-id="multichain-account-cell-address" and @text="${accountName}"]`);
+        }
+    }
+
+    getNetworkButton(networkName) {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, `//android.widget.TextView[@resource-id="cellbase-avatar-title" and @text="${networkName}"]`);
         }
     }
 
@@ -91,16 +131,52 @@ class DappConnectionModal {
         // await AppwrightGestures.tapByCoordinates(this._device, { x: 195, y: 1520 }, { delay: 1500 });
     }
 
-    async tapUpdateButton() {
+    async tapUpdateAccountsButton() {
         if (!this._device) {
             return;
         }
 
-        const element = await this.updateButton;
+        const element = await this.updateAccountsButton;
         await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
         // await AppwrightGestures.tapByCoordinates(this._device, { x: 550, y: 2160 }, { delay: 1500 });
+    }
+
+    async tapPermissionsTabButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.permissionsTabButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapEditNetworksButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.editNetworksButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapNetworkButton(networkName) {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.getNetworkButton(networkName);
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapUpdateNetworksButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.updateNetworksButton;
+        await AppwrightGestures.tap(element)
     }
 }
 

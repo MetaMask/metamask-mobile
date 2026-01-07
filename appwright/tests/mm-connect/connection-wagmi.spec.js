@@ -66,6 +66,11 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     // await DappConnectionModal.tapEditAccountsButton();
     // await DappConnectionModal.tapAccountButton('Account 3');
     // await DappConnectionModal.tapUpdateButton();
+
+    await DappConnectionModal.tapPermissionsTabButton();
+    await DappConnectionModal.tapEditNetworksButton();
+    await DappConnectionModal.tapNetworkButton('OP');
+    await DappConnectionModal.tapUpdateNetworksButton();
     await DappConnectionModal.tapConnectButton();
   });
 
@@ -125,6 +130,51 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     // Accept in MetaMask app
     // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Sepolia');
+    await SignModal.tapCancelButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.tapSwitchChainButton('10'); // OP Mainnet
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SwitchChainModal.assertNetworkText('OP');
+    await SwitchChainModal.tapConnectButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.assertConnectedChainValue('10');
+      await WagmiTestDapp.tapPersonalSignButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.assertNetworkText('OP');
     await SignModal.tapCancelButton();
   });
 
