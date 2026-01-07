@@ -20,6 +20,7 @@ import {
 } from '@metamask/account-tree-controller';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
@@ -55,6 +56,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             mockServer,
             remoteFeatureMultichainAccountsAccountDetailsV2(true),
           );
+          await PERPS_ARBITRUM_MOCKS(mockServer);
         },
       },
       async ({ userStorageMockttpController }) => {
@@ -168,6 +170,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             mockServer,
             remoteFeatureMultichainAccountsAccountDetailsV2(true),
           );
+          await PERPS_ARBITRUM_MOCKS(mockServer);
         },
       },
       async () => {

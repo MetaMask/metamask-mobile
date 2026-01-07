@@ -8,6 +8,7 @@ import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { Mockttp } from 'mockttp';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { goToImportSrp, inputSrp } from '../multisrp/utils';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 
@@ -20,6 +21,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
     mockServer,
     remoteFeatureMultichainAccountsAccountDetailsV2(true),
   );
+  await PERPS_ARBITRUM_MOCKS(mockServer);
 };
 
 describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
