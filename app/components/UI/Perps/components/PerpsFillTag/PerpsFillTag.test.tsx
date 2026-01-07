@@ -77,13 +77,13 @@ describe('PerpsFillTag', () => {
   it('renders Take Profit pill', () => {
     const transaction = createMockTransaction(FillType.TakeProfit);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
-    expect(getByText('Take profit')).toBeTruthy();
+    expect(getByText('Take profit')).toBeOnTheScreen();
   });
 
   it('renders Stop Loss pill', () => {
     const transaction = createMockTransaction(FillType.StopLoss);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
-    expect(getByText('Stop loss')).toBeTruthy();
+    expect(getByText('Stop loss')).toBeOnTheScreen();
   });
 
   it('renders ADL pill and opens URL on press', () => {
@@ -91,7 +91,7 @@ describe('PerpsFillTag', () => {
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
     const adlTag = getByText('Auto-Deleveraging');
-    expect(adlTag).toBeTruthy();
+    expect(adlTag).toBeOnTheScreen();
 
     // Find and press the TouchableOpacity wrapping the tag
     fireEvent.press(adlTag);
@@ -126,7 +126,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
-    expect(getByText('Liquidated')).toBeTruthy();
+    expect(getByText('Liquidated')).toBeOnTheScreen();
   });
 
   it('does not render Liquidation pill when user is not the liquidated user', () => {
