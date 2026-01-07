@@ -1,0 +1,53 @@
+name: Bump build version
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref/branch to push to (e.g., release/1.2.3)'
+        required: true
+        type: string
+    outputs:
+      build-version:
+        description: 'Generated build version number'
+        value: ${{ jobs.generate-build-version.outputs.build-version }}
+      commit-hash:
+        description: "Commit hash with build version bumped"
+        value: ${{ jobs.bump-version.outputs.commit-hash }}
+
+jobs:
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
+    permissions:
+      id-token: write
+
+  bump-version:
+    runs-on: ubuntu-latest
+    needs: generate-build-version
+    outputs:
+      commit-hash: ${{ steps.bump-build-version.outputs.commit-hash }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.PR_TOKEN }}
+      - name: Bump build version
+        id: bump-build-version
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ needs.generate-build-version.outputs.build-version }}
+          GH_REF_NAME: ${{ inputs.ref }}
+        run: |
+          ./scripts/set-build-version.sh $BUILD_NUMBER
+          git diff
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git add bitrise.yml
+          git add package.json
+          git add ios/MetaMask.xcodeproj/project.pbxproj
+          git add android/app/build.gradle
+          git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
+          git push origin HEAD:$GH_REF_NAME --force-with-lease
+          echo "commit-hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
