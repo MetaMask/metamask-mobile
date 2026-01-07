@@ -8,7 +8,6 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { RevealPrivateCredential } from '../../../RevealPrivateCredential';
-import { PRIVATE_KEY } from '../../../RevealPrivateCredential/RevealPrivateCredential';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styleSheet from './RevealPrivateKey.styles';
@@ -41,14 +40,12 @@ export const RevealPrivateKey = () => {
         title={strings('multichain_accounts.reveal_private_key.title')}
       />
       <RevealPrivateCredential
-        credentialName={PRIVATE_KEY}
         navigation={navigation}
         cancel={handleOnBack}
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
           params: {
-            credentialName: PRIVATE_KEY,
             shouldUpdateNav: false,
             selectedAccount: account,
           },

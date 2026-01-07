@@ -133,8 +133,6 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('RevealPrivateCredential', () => {
-  const SRP_CREDENTIAL = 'seed_phrase';
-  const PRIV_KEY_CREDENTIAL = 'private_key';
   let mockAccount: InternalAccount;
 
   beforeEach(() => {
@@ -159,13 +157,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: '',
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -177,64 +172,13 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        // @ts-expect-error - The error is ignored for testing purposes
-        credentialName={undefined}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders reveal private key correctly', () => {
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {
-            credentialName: PRIV_KEY_CREDENTIAL,
-          },
-        }}
-        navigation={null}
-        cancel={() => null}
-        credentialName={PRIV_KEY_CREDENTIAL}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders AccountInfo and BannerAlert for private key reveal', () => {
-    const { getByText } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {
-            credentialName: PRIV_KEY_CREDENTIAL,
-            selectedAccount: mockAccount,
-          },
-        }}
-        navigation={null}
-        cancel={() => null}
-        credentialName={PRIV_KEY_CREDENTIAL}
-      />,
-    );
-
-    // Should render AccountInfo for private key
-    expect(getByText(mockAccount.metadata.name)).toBeTruthy();
-
-    // Should render BannerAlert for private key security warning
-    expect(getByText('Never disclose this key.')).toBeTruthy();
-    expect(
-      getByText(
-        'Anyone with your private key can steal any assets held in your account.',
-      ),
-    ).toBeTruthy();
   });
 
   it('renders SRP explanation for seed phrase reveal', () => {
@@ -243,13 +187,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
@@ -263,13 +204,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
     const passwordInput = getByPlaceholderText('Password');
@@ -289,13 +227,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
     const passwordInput = getByPlaceholderText('Password');
@@ -306,57 +241,6 @@ describe('RevealPrivateCredential', () => {
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
       ).toBeTruthy();
     });
-  });
-
-  it('renders with a custom selectedAddress', async () => {
-    const customMockAccount: InternalAccount = {
-      type: EthAccountType.Eoa,
-      id: 'unique-account-id-1',
-      address: '0x1234567890123456789012345678901234567890',
-      options: {
-        someOption: 'optionValue',
-        anotherOption: 42,
-      },
-      scopes: [EthScope.Eoa],
-      methods: [
-        EthMethod.PersonalSign,
-        EthMethod.SignTransaction,
-        EthMethod.SignTypedDataV1,
-        EthMethod.SignTypedDataV3,
-        EthMethod.SignTypedDataV4,
-      ],
-      metadata: {
-        name: 'Test Account',
-        importTime: Date.now(),
-        keyring: {
-          type: KeyringTypes.hd,
-        },
-        nameLastUpdatedAt: Date.now(),
-        snap: {
-          id: 'npm:@metamask/test-snap',
-          name: 'Test Snap',
-          enabled: true,
-        },
-        lastSelected: Date.now(),
-      },
-    };
-
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {
-            credentialName: PRIV_KEY_CREDENTIAL,
-            selectedAccount: customMockAccount,
-          },
-        }}
-        navigation={null}
-        cancel={() => null}
-        credentialName={PRIV_KEY_CREDENTIAL}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders TabView when unlocked', async () => {
@@ -371,13 +255,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
@@ -403,13 +284,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
@@ -423,13 +301,10 @@ describe('RevealPrivateCredential', () => {
         route={{
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
+          params: {},
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
@@ -452,13 +327,11 @@ describe('RevealPrivateCredential', () => {
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
           params: {
-            credentialName: SRP_CREDENTIAL,
             shouldUpdateNav: true,
           },
         }}
         navigation={mockNavigation}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
@@ -476,13 +349,11 @@ describe('RevealPrivateCredential', () => {
           key: 'RevealPrivateCredential',
           name: 'RevealPrivateCredential',
           params: {
-            credentialName: SRP_CREDENTIAL,
             keyringId: testKeyringId,
           },
         }}
         navigation={null}
         cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
       />,
     );
 
