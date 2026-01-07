@@ -414,7 +414,7 @@ export const TokenInputArea = forwardRef<
                 >
                   <Text
                     color={
-                      isInsufficientBalance
+                      isInsufficientBalance && isSourceToken
                         ? TextColor.Error
                         : TextColor.Alternative
                     }
