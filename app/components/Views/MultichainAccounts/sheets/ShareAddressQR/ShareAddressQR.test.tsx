@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
 import ShareAddressQR from '.';
 import {
   createMockSnapInternalAccount,
@@ -302,19 +301,11 @@ describe('ShareAddressQR', () => {
 
   it('navigates back when back button is pressed', () => {
     // Arrange
-    const rendered = render();
-    const { root } = rendered;
-    const touchableOpacities = root.findAllByType(TouchableOpacity);
-    const backButton = touchableOpacities.find(
-      (touchable) =>
-        touchable.props.accessible === true && touchable.props.onPress,
-    );
+    const { getByTestId } = render();
+    const backButton = getByTestId('share-address-qr-go-back');
 
     // Act
-    expect(backButton).toBeTruthy();
-    if (backButton) {
-      fireEvent.press(backButton);
-    }
+    fireEvent.press(backButton);
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
