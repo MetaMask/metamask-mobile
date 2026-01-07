@@ -257,6 +257,94 @@ describe('HeaderWithTitleLeftScrollable', () => {
       expect(queryByText('Props Title')).toBeNull();
     });
   });
+
+  describe('subtitle', () => {
+    it('renders subtitle in compact header when provided', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Test Subtitle')).toBeOnTheScreen();
+    });
+
+    it('does not render subtitle when not provided', () => {
+      const { queryByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(queryByText('Test Subtitle')).toBeNull();
+    });
+
+    it('renders subtitle with testID when provided via subtitleProps', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              subtitleProps={{ testID: 'subtitle-test-id' }}
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('subtitle-test-id')).toBeOnTheScreen();
+    });
+  });
+
+  describe('children', () => {
+    it('renders custom children in compact header section', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              scrollY={scrollYValue}
+            >
+              <Text>Custom Compact Content</Text>
+            </HeaderWithTitleLeftScrollable>
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Compact Content')).toBeOnTheScreen();
+    });
+
+    it('does not render subtitle when children provided', () => {
+      const { getByText, queryByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              scrollY={scrollYValue}
+            >
+              <Text>Custom Content</Text>
+            </HeaderWithTitleLeftScrollable>
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Content')).toBeOnTheScreen();
+      expect(queryByText('Test Subtitle')).toBeNull();
+    });
+  });
 });
 
 describe('useHeaderWithTitleLeftScrollable', () => {
