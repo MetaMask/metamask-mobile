@@ -333,11 +333,13 @@ class WalletMainScreen {
     // iOS: Element lookups are extremely slow (15-30s each via Appwright).
     // Skip stability loop and just wait for a valid balance once.
     if (isIOS) {
+      let previousBalance = '';
       while (Date.now() - startTime < maxWaitTime) {
         try {
           const balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
           const rawBalance = await balanceElement.getText();
           const balance = (rawBalance || '').trim();
+          previousBalance = balance;
           
           if (balance && balance !== '' && balance !== '$0.00') {
             return balance;
@@ -346,7 +348,7 @@ class WalletMainScreen {
         }
         await AppwrightGestures.wait(1000);
       }
-      return '';
+      return previousBalance;
     }
 
     // Android: Fast element lookups, use stability polling

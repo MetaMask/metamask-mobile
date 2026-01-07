@@ -48,10 +48,12 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   const timer3 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
     { ios: 500, android: 1000 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
     { ios: 6500, android: 5000 },
+    device,
   );
   await WalletActionModal.tapSendButton();
   await timer1.measure(() => SendScreen.assetsListIsDisplayed());
