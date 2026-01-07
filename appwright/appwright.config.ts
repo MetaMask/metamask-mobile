@@ -75,7 +75,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
-      testMatch: '**/tests/performance/onboarding/**/import-wallet.spec.js',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -83,7 +83,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
-        buildPath: 'bs://2625c8ffa722f49042b0c8ba28c37ad5f1e7d022',
+        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
         expectTimeout: 30 * 1000,
       },
     },
