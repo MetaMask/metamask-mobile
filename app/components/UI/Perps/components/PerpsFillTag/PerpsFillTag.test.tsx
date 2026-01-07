@@ -91,19 +91,31 @@ describe('PerpsFillTag', () => {
     expect(getByText('Stop loss')).toBeOnTheScreen();
   });
 
-  it('renders ADL pill and opens URL on press', () => {
+  it('renders ADL pill for AutoDeleveraging fill type', () => {
+    const transaction = createMockTransaction(FillType.AutoDeleveraging);
+
+    const { getByText } = render(<PerpsFillTag transaction={transaction} />);
+
+    expect(getByText('Auto-Deleveraging')).toBeOnTheScreen();
+  });
+
+  it('opens ADL support article URL when ADL tag is pressed', () => {
     const transaction = createMockTransaction(FillType.AutoDeleveraging);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
-    const adlTag = getByText('Auto-Deleveraging');
-    expect(adlTag).toBeOnTheScreen();
-
-    // Find and press the TouchableOpacity wrapping the tag
-    fireEvent.press(adlTag);
+    fireEvent.press(getByText('Auto-Deleveraging'));
 
     expect(Linking.openURL).toHaveBeenCalledWith(
       PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
     );
+  });
+
+  it('tracks UI interaction event when ADL tag is pressed', () => {
+    const transaction = createMockTransaction(FillType.AutoDeleveraging);
+    const { getByText } = render(<PerpsFillTag transaction={transaction} />);
+
+    fireEvent.press(getByText('Auto-Deleveraging'));
+
     expect(mockTrack).toHaveBeenCalled();
   });
 
