@@ -60,6 +60,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
   });
@@ -79,6 +80,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
   });
@@ -102,6 +104,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '100.123',
         atomicBalance: BigNumber.from('100123000000'),
+        assetId: solanaNativeTokenAddress,
       });
     });
   });
@@ -125,6 +128,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '20000.456',
         atomicBalance: BigNumber.from('20000456000'),
+        assetId: solanaToken2Address,
       });
     });
   });
@@ -166,6 +170,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
   });
@@ -193,6 +198,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
   });
@@ -237,6 +243,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
   });
@@ -258,6 +265,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
   });
@@ -279,6 +287,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
   });
@@ -299,6 +308,7 @@ describe('useLatestBalance', () => {
     expect(result.current).toEqual({
       displayBalance: '5.5',
       atomicBalance: BigNumber.from('5500000'),
+      assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
     });
 
     // After fetching it should update to the fetched balance
@@ -306,6 +316,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
   });
@@ -327,6 +338,7 @@ describe('useLatestBalance', () => {
     expect(result.current).toEqual({
       displayBalance: '10.0',
       atomicBalance: BigNumber.from('10000000000000000000'),
+      assetId: undefined,
     });
   });
 
@@ -351,6 +363,7 @@ describe('useLatestBalance', () => {
     expect(result.current).toEqual({
       displayBalance: '100.0',
       atomicBalance: BigNumber.from('100000000000'),
+      assetId: undefined,
     });
   });
 
@@ -372,6 +385,8 @@ describe('useLatestBalance', () => {
     expect(result.current).toEqual({
       displayBalance: '50.0',
       atomicBalance: BigNumber.from('50000000000000000000'),
+      assetId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:0x1234567890123456789012345678901234567890',
     });
   });
 
@@ -401,6 +416,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '100.0',
         atomicBalance: BigNumber.from('100000000000000000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
 
@@ -427,6 +443,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '50.0',
         atomicBalance: BigNumber.from('50000000000000000000'),
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
       });
     });
 
@@ -447,6 +464,7 @@ describe('useLatestBalance', () => {
         expect(result.current).toEqual({
           displayBalance: '1.0',
           atomicBalance: BigNumber.from('1000000'),
+          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
         });
       });
     });
@@ -474,6 +492,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '25.0',
         atomicBalance: BigNumber.from('25000000000000000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
 
@@ -523,6 +542,7 @@ describe('useLatestBalance', () => {
       expect(resultAfterSwitch.current).toEqual({
         displayBalance: '10.0',
         atomicBalance: BigNumber.from('10000000000000000000'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
   });
@@ -622,6 +642,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '0',
         atomicBalance: BigNumber.from('0'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
 
@@ -658,6 +679,7 @@ describe('useLatestBalance', () => {
       expect(result.current).toEqual({
         displayBalance: '0.000000000000000001',
         atomicBalance: BigNumber.from('1'),
+        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
       });
     });
   });

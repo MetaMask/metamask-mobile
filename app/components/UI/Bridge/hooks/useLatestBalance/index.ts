@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
+import {
+  type Hex,
+  type CaipChainId,
+  type CaipAssetType,
+  isCaipChainId,
+} from '@metamask/utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
@@ -13,6 +18,8 @@ import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toAssetId } from '../useAssetMetadata/utils';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -48,6 +55,7 @@ export const fetchEvmAtomicBalance = async (
 interface Balance {
   displayBalance: string;
   atomicBalance: BigNumber;
+  assetId: CaipAssetType;
 }
 
 /**
@@ -84,6 +92,17 @@ export const useLatestBalance = (token: {
 
   const chainId = token.chainId;
 
+  // Construct CAIP-19 assetId from address and chainId for consistent token matching
+  const assetId = useMemo(() => {
+    if (!token.address || !chainId) {
+      return undefined;
+    }
+    const caipChainId = isCaipChainId(chainId)
+      ? chainId
+      : toEvmCaipChainId(chainId);
+    return toAssetId(token.address, caipChainId);
+  }, [token.address, chainId]);
+
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
@@ -112,10 +131,11 @@ export const useLatestBalance = (token: {
           token.address,
           chainId,
         );
-        if (atomicBalance && token.decimals) {
+        if (atomicBalance && token.decimals && assetId) {
           setBalance({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
+            assetId,
           });
         }
       } finally {
@@ -126,7 +146,7 @@ export const useLatestBalance = (token: {
         });
       }
     }
-  }, [token.address, token.decimals, chainId, selectedAddress]);
+  }, [token.address, token.decimals, chainId, selectedAddress, assetId]);
 
   // No need to fetch the balance for non-EVM tokens, use the balance provided by the
   // multichain balances controller
@@ -136,7 +156,8 @@ export const useLatestBalance = (token: {
       token.decimals &&
       chainId &&
       isNonEvmChainId(chainId) &&
-      selectedAddress
+      selectedAddress &&
+      assetId
     ) {
       const displayBalance = nonEvmTokens.find(
         (nonEvmToken) =>
@@ -149,10 +170,18 @@ export const useLatestBalance = (token: {
         setBalance({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
+          assetId,
         });
       }
     }
-  }, [token.address, token.decimals, chainId, selectedAddress, nonEvmTokens]);
+  }, [
+    token.address,
+    token.decimals,
+    chainId,
+    selectedAddress,
+    nonEvmTokens,
+    assetId,
+  ]);
 
   useEffect(() => {
     // In case chainId is undefined, exit early to avoid
@@ -183,11 +212,11 @@ export const useLatestBalance = (token: {
       }
     }
 
-    return { displayBalance, atomicBalance };
+    return { displayBalance, atomicBalance, assetId };
     // Include token.address in the dependency array to ensure
     // that the cached balance is updated when the token address changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token.balance, token.decimals, token.address]);
+  }, [token.balance, token.decimals, token.address, assetId]);
 
   if (!token.address || !token.decimals) {
     return undefined;
