@@ -28,6 +28,7 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
+  useFocusEffect,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
@@ -119,6 +120,7 @@ const CardHome = () => {
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const hasTrackedCardHomeView = useRef(false);
   const hasLoadedCardHomeView = useRef(false);
+  const hasCompletedInitialFetchRef = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownKYCAlertRef = useRef(false);
@@ -151,6 +153,7 @@ const CardHome = () => {
     isBaanxLoginEnabled,
     fetchPriorityToken,
     fetchAllData,
+    refetchAllData,
     pollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned,
     allTokens,
@@ -652,9 +655,40 @@ const CardHome = () => {
     }
     if (!hasLoadedCardHomeView.current && isAuthenticated) {
       hasLoadedCardHomeView.current = true;
-      fetchAllData();
+      fetchAllData().then(() => {
+        hasCompletedInitialFetchRef.current = true;
+      });
     }
   }, [fetchAllData, isAuthenticated, isSDKLoading]);
+
+  // Refetch data when screen comes back into focus and cache was cleared
+  // This handles the case when user updates priority token or delegation in another screen
+  useFocusEffect(
+    useCallback(() => {
+      // Skip if initial fetch hasn't completed yet
+      // This prevents duplicate calls on first mount
+      if (!hasCompletedInitialFetchRef.current) {
+        return;
+      }
+
+      // Skip if not authenticated or SDK not ready
+      if (isSDKLoading || !isAuthenticated) {
+        return;
+      }
+
+      // Check if cache was cleared and needs refresh
+      // When cache is cleared, externalWalletDetailsData becomes null
+      if (!externalWalletDetailsData && !isLoading) {
+        refetchAllData();
+      }
+    }, [
+      isSDKLoading,
+      isAuthenticated,
+      externalWalletDetailsData,
+      isLoading,
+      refetchAllData,
+    ]),
+  );
 
   // Show KYC status alert if needed
   useEffect(() => {
