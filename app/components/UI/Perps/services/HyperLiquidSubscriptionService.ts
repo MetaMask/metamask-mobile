@@ -362,8 +362,47 @@ export class HyperLiquidSubscriptionService {
         );
       }
 
-      // Note: webData3 automatically includes all DEX data, so no separate
-      // subscription setup needed for positions/orders/account data
+      // Establish clearinghouseState/openOrders subscriptions for new DEXs
+      // (needed for positions, orders, and account data when using individual subscriptions)
+      const hasUserDataSubscribers =
+        this.positionSubscriberCount > 0 ||
+        this.orderSubscriberCount > 0 ||
+        this.accountSubscriberCount > 0;
+
+      if (hasUserDataSubscribers && this.hip3Enabled) {
+        try {
+          const userAddress =
+            await this.walletService.getUserAddressWithDefault();
+
+          await Promise.all(
+            newDexs.map(async (dex) => {
+              try {
+                await this.ensureClearinghouseStateSubscription(
+                  userAddress,
+                  dex,
+                );
+                await this.ensureOpenOrdersSubscription(userAddress, dex);
+                DevLogger.log(
+                  `Established user data subscriptions for new DEX: ${dex}`,
+                );
+              } catch (error) {
+                Logger.error(
+                  ensureError(error),
+                  this.getErrorContext(
+                    'updateFeatureFlags.ensureUserDataSubscription',
+                    { dex },
+                  ),
+                );
+              }
+            }),
+          );
+        } catch (error) {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('updateFeatureFlags.getUserAddress'),
+          );
+        }
+      }
     }
   }
 
