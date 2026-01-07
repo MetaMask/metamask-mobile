@@ -20,6 +20,10 @@ on:
         description: 'The base branch, tag, or SHA for git operations and the pull request.'
         required: true
         type: string
+      token:
+        description: 'GitHub token for checkout and push operations.'
+        required: true
+        type: string
     outputs:
       build-version:
         description: 'Generated build version number'
@@ -43,7 +47,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}
-          token: ${{ secrets.PR_TOKEN }}
+          token: ${{ inputs.token || secrets.PR_TOKEN }}
       - name: Bump build version
         id: bump-build-version
         shell: bash
