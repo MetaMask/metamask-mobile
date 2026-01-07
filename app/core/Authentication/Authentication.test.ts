@@ -283,6 +283,12 @@ jest.mock('../../util/trace', () => ({
 }));
 
 describe('Authentication', () => {
+  let mockDispatch: jest.Mock;
+
+  beforeEach(() => {
+    mockDispatch = jest.fn();
+  });
+
   afterEach(() => {
     StorageWrapper.clearAll();
     jest.restoreAllMocks();
@@ -680,11 +686,9 @@ describe('Authentication', () => {
   describe('storePassword (protected method tested via updateAuthPreference)', () => {
     const mockPassword = 'test-password-123';
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
       jest.clearAllMocks();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -4497,6 +4501,101 @@ describe('Authentication', () => {
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
       expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
+    });
+  });
+
+  describe('unlockWallet', () => {
+    beforeEach(() => {
+      const Engine = jest.requireMock('../Engine');
+      // Restore the KeyringController mock that may have been replaced by other test suites.
+      Engine.context.KeyringController = {
+        submitPassword: jest.fn(),
+      };
+    });
+
+    it('navigates to the onboarding flow when user does not exist', async () => {
+      // Mock existing user state.
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: false },
+        }),
+      } as unknown as ReduxStore);
+
+      // Call unlockWallet.
+      await Authentication.unlockWallet();
+
+      // Verify that it navigates to the onboarding flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    });
+
+    it('navigates to the home flow when a password is provided', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const inputPassword = 'test-password';
+
+      // Mock existing user state.
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({ password: inputPassword });
+
+      // Verify that the password is used for unlocking the KeyringController.
+      expect(
+        Engine.context.KeyringController.submitPassword,
+      ).toHaveBeenCalledWith(inputPassword);
+
+      // Verify that both login and password set actions are dispatched.
+      expect(mockDispatch).toHaveBeenCalledWith(logIn());
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+
+      // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('navigates to the home flow when biometric credentials are provided', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const biometricStoredPassword = 'test-password';
+
+      // Mock existing user state.
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      // Mock SecureKeychain to return the biometric stored password.
+      jest.spyOn(SecureKeychain, 'getGenericPassword').mockResolvedValue({
+        password: biometricStoredPassword,
+        username: 'test-username',
+        service: 'test-service',
+        storage: Keychain.STORAGE_TYPE.AES_GCM,
+      });
+
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet();
+
+      // Verify that the biometric stored password is used for unlocking the KeyringController.
+      expect(
+        Engine.context.KeyringController.submitPassword,
+      ).toHaveBeenCalledWith(biometricStoredPassword);
+
+      // Verify that both login and password set actions are dispatched.
+      expect(mockDispatch).toHaveBeenCalledWith(logIn());
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+
+      // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     });
   });
 });
