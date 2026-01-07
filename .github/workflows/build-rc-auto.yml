@@ -40,15 +40,15 @@ jobs:
           # remove before merge
           echo "semver=7.99.999" >> "$GITHUB_OUTPUT"
           # Validate branch matches release/x.y.z format (semantic versioning)
-         # if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-         #   VERSION="${BRANCH_NAME#release/}"
-         #   echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
-         #   echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
-         # else
-         #   echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
-         #   echo "semver=" >> "$GITHUB_OUTPUT"
-         #   exit 1
-         # fi
+        # if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        #   VERSION="${BRANCH_NAME#release/}"
+        #   echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
+        #   echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
+        # else
+        #   echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
+        #   echo "semver=" >> "$GITHUB_OUTPUT"
+        #   exit 1
+        # fi
 
       - name: Find PR and check for auto-rc-builds label
         id: check-label
@@ -114,6 +114,11 @@ jobs:
       - bump-version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
       - name: Trigger RC Build
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}

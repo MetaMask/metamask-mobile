@@ -43,6 +43,11 @@ jobs:
       - generate-build-version
       - bump-version
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: release/${{ inputs.semver }}
       - name: Trigger RC Build
         env:
           SEMVER: ${{ inputs.semver }}
