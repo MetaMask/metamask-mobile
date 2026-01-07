@@ -9,6 +9,7 @@ import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { endTrace } from '../../../../../../util/trace';
 import Logger from '../../../../../../util/Logger';
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import {
   MOCK_REGIONS,
   MOCK_US_REGION,
@@ -372,5 +373,288 @@ describe('BasicInfo Component', () => {
     });
     render(BasicInfo);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('when phone already registered error occurs', () => {
+    const mockLogoutFromProvider = jest.fn();
+
+    beforeEach(() => {
+      mockLogoutFromProvider.mockResolvedValue(undefined);
+      mockPostKycForm.mockResolvedValue(undefined);
+      mockSubmitSsnDetails.mockResolvedValue(undefined);
+      mockUseDepositSDK.mockReturnValue({
+        selectedRegion: mockSelectedRegion,
+        logoutFromProvider: mockLogoutFromProvider,
+      });
+    });
+
+    afterEach(() => {
+      mockLogoutFromProvider.mockClear();
+    });
+
+    it('displays logout button when error has errorCode 2020', async () => {
+      // Mock Transak API error structure: { response: { data: { error: { errorCode: 2020, message: "..." } } } }
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        },
+      );
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('continue-button'));
+      });
+
+      // Wait for error message to appear
+      await screen.findByText(
+        'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
+      );
+
+      // Verify logout button with correct label is displayed
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+      expect(logoutButton).toBeOnTheScreen();
+      expect(screen.getByText('Log in with email')).toBeOnTheScreen();
+    });
+
+    it('displays formatted error message for errorCode 2020', async () => {
+      // Mock Transak API error structure with email in message
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        },
+      );
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('continue-button'));
+      });
+
+      // Verify formatted error message is displayed with localized string
+      await screen.findByText(
+        'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
+      );
+
+      // Verify logout button with correct label is displayed
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+      expect(logoutButton).toBeOnTheScreen();
+      expect(screen.getByText('Log in with email')).toBeOnTheScreen();
+    });
+
+    it('does not display logout button for generic errors', async () => {
+      const genericError = new Error('Network error');
+      mockPostKycForm.mockRejectedValueOnce(genericError);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('continue-button'));
+      });
+
+      // Wait for generic error to appear
+      await screen.findByText('Network error');
+
+      // Verify logout button is NOT displayed for generic errors
+      expect(screen.queryByTestId('basic-info-logout-button')).toBeNull();
+    });
+
+    it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with test@gmail.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        },
+      );
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('continue-button'));
+      });
+
+      // Wait for error and logout button to appear
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.DEPOSIT.ENTER_EMAIL,
+        undefined,
+      );
+    });
+
+    it('handles logout error gracefully', async () => {
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      const logoutError = new Error('Logout failed');
+      mockLogoutFromProvider.mockRejectedValueOnce(logoutError);
+
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with d***@example.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        },
+      );
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('continue-button'));
+      });
+
+      // Wait for error and logout button to appear
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        logoutError,
+        'Error logging out from BasicInfo error banner',
+      );
+
+      // Error message stays visible
+      await screen.findByText(
+        'This phone number is already in use by d***@example.com. Log in using this email to continue.',
+      );
+
+      mockLoggerError.mockRestore();
+    });
   });
 });

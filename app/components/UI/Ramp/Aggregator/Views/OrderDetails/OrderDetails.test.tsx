@@ -28,8 +28,16 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
+const mockGoToAggregator = jest.fn();
+const mockGoToSell = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({
+    goToAggregator: mockGoToAggregator,
+    goToSell: mockGoToSell,
+  })),
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -68,6 +76,7 @@ const mockOrder: DeepPartial<FiatOrder> = {
       decimals: 18,
       name: 'Ethereum',
       symbol: 'ETH',
+      network: { shortName: 'ETH' },
     },
     provider: {
       name: 'Test Provider',
@@ -249,6 +258,8 @@ describe('OrderDetails', () => {
         {
           "chain_id_destination": "1",
           "currency_destination": "ETH",
+          "currency_destination_network": "ETH",
+          "currency_destination_symbol": "ETH",
           "currency_source": "USD",
           "order_type": "BUY",
           "payment_method_id": "test-payment-method-id",
@@ -272,6 +283,8 @@ describe('OrderDetails', () => {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
+          "currency_source_network": "ETH",
+          "currency_source_symbol": "ETH",
           "order_type": "SELL",
           "payment_method_id": "test-payment-method-id",
           "provider_offramp": "Test Provider",
@@ -297,7 +310,7 @@ describe('OrderDetails', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY);
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('navigates to sell flow when the user attempts to make another purchase', async () => {
@@ -317,7 +330,7 @@ describe('OrderDetails', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SELL);
+    expect(mockGoToSell).toHaveBeenCalledWith();
   });
 
   it('renders a created order', async () => {
@@ -487,7 +500,7 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder as FiatOrder]);
 
-    fireEvent.press(screen.getByText('Contact Support'));
+    fireEvent.press(screen.getByText('Contact support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_EXTERNAL_LINK_CLICKED',
       {

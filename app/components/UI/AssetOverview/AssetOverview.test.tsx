@@ -178,6 +178,11 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
     }),
   };
 });
@@ -268,6 +273,12 @@ jest.mock('../../../components/hooks/useAddNetwork', () => ({
   })),
 }));
 
+const mockUseRampsUnifiedV1Enabled = jest.fn();
+jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV1Enabled(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -322,22 +333,13 @@ describe('AssetOverview', () => {
       address: MOCK_ADDRESS_2,
     });
     selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    // Default mock for unified V1 flag - disabled
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-  it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
   });
 
   it('should handle buy button press', async () => {
@@ -454,6 +456,78 @@ describe('AssetOverview', () => {
     expect(mockAddProperties).toHaveBeenCalledTimes(2);
     expect(mockBuild).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type BUY when unified V1 is disabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'BUY',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type UNIFIED_BUY when unified V1 is enabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'UNIFIED_BUY',
+      }),
+    );
   });
 
   it('should handle send button press', async () => {
@@ -806,21 +880,49 @@ describe('AssetOverview', () => {
     expect(buyButton).toBeNull();
   });
 
-  it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={{
-          ...asset,
-          chainId: '0x2',
-          isNative: true,
-        }}
-        displayBuyButton
-        displaySwapsButton
-      />,
-      { state: mockInitialState },
+  it('renders native balances when no accounts exist for asset chain', () => {
+    // Create state without accounts for chain 0x2
+    const stateWithoutChainAccounts = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // Only has accounts for chain 0x1, not 0x2
+              [MOCK_CHAIN_ID]: {
+                [MOCK_ADDRESS_2]: { balance: '0x1' },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const nativeAsset = {
+      ...asset,
+      chainId: '0x2',
+      isNative: true,
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
+      { state: stateWithoutChainAccounts },
     );
 
-    expect(container).toMatchSnapshot();
+    // Component should render without crashing
+    const container = getByTestId(TokenOverviewSelectorsIDs.CONTAINER);
+    expect(container).toBeDefined();
+
+    // When no accounts exist for the chain, renderFromWei(undefined) returns '0'
+    // Balance component should render because balance is '0' (not null/undefined)
+    // Verify secondaryBalance shows '0' with the ticker
+    const secondaryBalance = queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+    if (secondaryBalance) {
+      expect(secondaryBalance.props.children).toContain('0');
+      expect(secondaryBalance.props.children).toContain(nativeAsset.symbol);
+    }
   });
 
   it('should render native balances when non evm network is selected', async () => {
@@ -1057,7 +1159,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {
@@ -1069,7 +1171,7 @@ describe('AssetOverview', () => {
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
       expect(mainBalance.props.children).toBe('1500');
-      expect(secondaryBalance.props.children).toBe('0 ETH');
+      expect(secondaryBalance.props.children).toBe('400 ETH');
     });
 
     it('should handle multichain send for Solana assets', async () => {

@@ -1,4 +1,4 @@
-import OptinMetrics from './';
+import OptinMetrics from './index.tsx';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
@@ -928,6 +928,75 @@ describe('OptinMetrics', () => {
         MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
       );
       expect(component).toBeTruthy();
+    });
+  });
+
+  describe('Feature flag conditional rendering', () => {
+    it('displays updated description when isPna25FlagEnabled is true', () => {
+      const stateWithFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              cacheTimestamp: 0,
+              remoteFeatureFlags: {
+                extensionUxPna25: true,
+              },
+            },
+          },
+        },
+      };
+
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: stateWithFlag },
+      );
+
+      const updatedDescription = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_description_updated'),
+        { exact: false },
+      );
+
+      expect(updatedDescription).toBeTruthy();
+    });
+
+    it('displays original description when isPna25FlagEnabled is false', () => {
+      const stateWithoutFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              cacheTimestamp: 0,
+              remoteFeatureFlags: {
+                extensionUxPna25: false,
+              },
+            },
+          },
+        },
+      };
+
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: stateWithoutFlag },
+      );
+
+      const originalDescription = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_description'),
+        { exact: false },
+      );
+
+      expect(originalDescription).toBeTruthy();
+    });
+
+    it('displays original description when isPna25FlagEnabled is undefined', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const originalDescription = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_description'),
+        { exact: false },
+      );
+
+      expect(originalDescription).toBeTruthy();
     });
   });
 });

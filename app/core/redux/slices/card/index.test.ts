@@ -27,6 +27,7 @@ import cardReducer, {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
+  setConsentSetId,
   resetOnboardingState,
   setCacheData,
   clearCacheData,
@@ -34,11 +35,14 @@ import cardReducer, {
   selectOnboardingId,
   selectSelectedCountry,
   selectContactVerificationId,
+  selectConsentSetId,
+  resetAuthenticatedData,
 } from '.';
 import {
   CardTokenAllowance,
   AllowanceState,
 } from '../../../../components/UI/Card/types';
+import { Region } from '../../../../components/UI/Card/components/Onboarding/RegionSelectorModal';
 
 // Mock the multichain selectors
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -104,8 +108,7 @@ const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
 
 const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   address: '0xToken1',
-  chainId: '1',
-  isStaked: false,
+  caipChainId: 'eip155:1' as const,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
@@ -114,6 +117,22 @@ const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
 };
 
 const testAddress = '0x1234567890123456789012345678901234567890';
+
+// Mock Region objects for testing
+const MOCK_REGION_US: Region = {
+  key: 'US',
+  name: 'United States',
+  emoji: '🇺🇸',
+};
+const MOCK_REGION_GB: Region = {
+  key: 'GB',
+  name: 'United Kingdom',
+  emoji: '🇬🇧',
+};
+const MOCK_REGION_CA: Region = { key: 'CA', name: 'Canada', emoji: '🇨🇦' };
+const MOCK_REGION_DE: Region = { key: 'DE', name: 'Germany', emoji: '🇩🇪' };
+const MOCK_REGION_FR: Region = { key: 'FR', name: 'France', emoji: '🇫🇷' };
+const MOCK_REGION_JP: Region = { key: 'JP', name: 'Japan', emoji: '🇯🇵' };
 
 const CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: CARDHOLDER_ACCOUNTS_MOCK,
@@ -135,6 +154,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
+    consentSetId: null,
   },
   cache: {
     data: {},
@@ -158,6 +178,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
+    consentSetId: null,
   },
   cache: {
     data: {},
@@ -360,7 +381,7 @@ describe('Card Selectors', () => {
       });
 
       it('should return the selected country when set', () => {
-        const selectedCountry = 'US';
+        const selectedCountry = MOCK_REGION_US;
         const stateWithCountry: CardSliceState = {
           ...initialState,
           onboarding: {
@@ -375,20 +396,27 @@ describe('Card Selectors', () => {
       });
 
       it('should handle different country codes', () => {
-        const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'JP'];
+        const regions: Region[] = [
+          MOCK_REGION_US,
+          MOCK_REGION_GB,
+          MOCK_REGION_CA,
+          MOCK_REGION_DE,
+          MOCK_REGION_FR,
+          MOCK_REGION_JP,
+        ];
 
-        countryCodes.forEach((countryCode) => {
+        regions.forEach((region) => {
           const stateWithCountry: CardSliceState = {
             ...initialState,
             onboarding: {
               ...initialState.onboarding,
-              selectedCountry: countryCode,
+              selectedCountry: region,
             },
           };
           const mockRootState = {
             card: stateWithCountry,
           } as unknown as RootState;
-          expect(selectSelectedCountry(mockRootState)).toBe(countryCode);
+          expect(selectSelectedCountry(mockRootState)).toBe(region);
         });
       });
     });
@@ -414,6 +442,28 @@ describe('Card Selectors', () => {
         expect(selectContactVerificationId(mockRootState)).toBe(
           contactVerificationId,
         );
+      });
+    });
+
+    describe('selectConsentSetId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectConsentSetId(mockRootState)).toBe(null);
+      });
+
+      it('should return the consent set ID when set', () => {
+        const consentSetId = 'consent-789';
+        const stateWithConsentSetId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            consentSetId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithConsentSetId,
+        } as unknown as RootState;
+        expect(selectConsentSetId(mockRootState)).toBe(consentSetId);
       });
     });
   });
@@ -527,6 +577,7 @@ describe('Card Reducer', () => {
           onboardingId: null,
           selectedCountry: null,
           contactVerificationId: null,
+          consentSetId: null,
         },
         cache: {
           data: {},
@@ -573,6 +624,7 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update onboardingId when previously set', () => {
@@ -603,12 +655,13 @@ describe('Card Reducer', () => {
 
       describe('setSelectedCountry', () => {
         it('should set selectedCountry', () => {
-          const country = 'US';
+          const country = MOCK_REGION_US;
           const state = cardReducer(initialState, setSelectedCountry(country));
           expect(state.onboarding.selectedCountry).toBe(country);
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update selectedCountry when previously set', () => {
@@ -616,10 +669,10 @@ describe('Card Reducer', () => {
             ...initialState,
             onboarding: {
               ...initialState.onboarding,
-              selectedCountry: 'GB',
+              selectedCountry: MOCK_REGION_GB,
             },
           };
-          const newCountry = 'CA';
+          const newCountry = MOCK_REGION_CA;
           const state = cardReducer(current, setSelectedCountry(newCountry));
           expect(state.onboarding.selectedCountry).toBe(newCountry);
         });
@@ -629,7 +682,7 @@ describe('Card Reducer', () => {
             ...initialState,
             onboarding: {
               ...initialState.onboarding,
-              selectedCountry: 'US',
+              selectedCountry: MOCK_REGION_US,
             },
           };
           const state = cardReducer(current, setSelectedCountry(null));
@@ -648,6 +701,7 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update contactVerificationId when previously set', () => {
@@ -681,14 +735,55 @@ describe('Card Reducer', () => {
         });
       });
 
+      describe('setConsentSetId', () => {
+        it('should set consentSetId', () => {
+          const consentSetId = 'consent-123';
+          const state = cardReducer(
+            initialState,
+            setConsentSetId(consentSetId),
+          );
+          expect(state.onboarding.consentSetId).toBe(consentSetId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+
+        it('should update consentSetId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              consentSetId: 'old-consent',
+            },
+          };
+          const newConsentSetId = 'new-consent-456';
+          const state = cardReducer(current, setConsentSetId(newConsentSetId));
+          expect(state.onboarding.consentSetId).toBe(newConsentSetId);
+        });
+
+        it('should set consentSetId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              consentSetId: 'existing-consent',
+            },
+          };
+          const state = cardReducer(current, setConsentSetId(null));
+          expect(state.onboarding.consentSetId).toBe(null);
+        });
+      });
+
       describe('resetOnboardingState', () => {
         it('should reset all onboarding state to initial values', () => {
           const current: CardSliceState = {
             ...initialState,
             onboarding: {
               onboardingId: 'test-id',
-              selectedCountry: 'US',
+              selectedCountry: MOCK_REGION_US,
               contactVerificationId: 'verification-123',
+              consentSetId: 'consent-456',
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -696,6 +791,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
+            consentSetId: null,
           });
           // ensure other parts of state untouched
           expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
@@ -708,6 +804,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
+            consentSetId: null,
           });
         });
       });
@@ -945,6 +1042,116 @@ describe('Card Reducer', () => {
           expect(state.cache.data).toEqual({});
           expect(state.cache.timestamps).toEqual({});
         });
+      });
+    });
+
+    describe('resetAuthenticatedData', () => {
+      it('resets all authenticated-related state to initial values', () => {
+        const currentState: CardSliceState = {
+          ...initialState,
+          authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+          authenticatedPriorityTokenLastFetched: new Date(
+            '2025-08-21T10:00:00Z',
+          ),
+          userCardLocation: 'us',
+          isAuthenticated: true,
+        };
+
+        const state = cardReducer(currentState, resetAuthenticatedData());
+
+        expect(state.authenticatedPriorityToken).toBeNull();
+        expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+        expect(state.userCardLocation).toBe('international');
+        expect(state.isAuthenticated).toBe(false);
+      });
+
+      it('does not affect other state properties', () => {
+        const currentState: CardSliceState = {
+          ...initialState,
+          cardholderAccounts: ['0x123'],
+          geoLocation: 'US',
+          isLoaded: true,
+          hasViewedCardButton: true,
+          alwaysShowCardButton: true,
+          authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+          authenticatedPriorityTokenLastFetched: new Date(
+            '2025-08-21T10:00:00Z',
+          ),
+          userCardLocation: 'us',
+          isAuthenticated: true,
+          priorityTokensByAddress: {
+            [testAddress.toLowerCase()]: MOCK_PRIORITY_TOKEN,
+          },
+          lastFetchedByAddress: {
+            [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
+          },
+          onboarding: {
+            onboardingId: 'test-id',
+            selectedCountry: MOCK_REGION_US,
+            contactVerificationId: 'verification-123',
+            consentSetId: 'consent-456',
+          },
+        };
+
+        const state = cardReducer(currentState, resetAuthenticatedData());
+
+        // Authenticated data is reset
+        expect(state.authenticatedPriorityToken).toBeNull();
+        expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+        expect(state.userCardLocation).toBe('international');
+        expect(state.isAuthenticated).toBe(false);
+
+        // Other state properties remain unchanged
+        expect(state.cardholderAccounts).toEqual(['0x123']);
+        expect(state.geoLocation).toBe('US');
+        expect(state.isLoaded).toBe(true);
+        expect(state.hasViewedCardButton).toBe(true);
+        expect(state.alwaysShowCardButton).toBe(true);
+        expect(
+          state.priorityTokensByAddress[testAddress.toLowerCase()],
+        ).toEqual(MOCK_PRIORITY_TOKEN);
+        expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
+          new Date('2025-08-21T10:00:00Z'),
+        );
+        expect(state.onboarding).toEqual({
+          onboardingId: 'test-id',
+          selectedCountry: MOCK_REGION_US,
+          contactVerificationId: 'verification-123',
+          consentSetId: 'consent-456',
+        });
+      });
+
+      it('works when authenticated data is already at initial values', () => {
+        const state = cardReducer(initialState, resetAuthenticatedData());
+
+        expect(state.authenticatedPriorityToken).toBeNull();
+        expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+        expect(state.userCardLocation).toBe('international');
+        expect(state.isAuthenticated).toBe(false);
+      });
+
+      it('resets userCardLocation to international from us', () => {
+        const currentState: CardSliceState = {
+          ...initialState,
+          userCardLocation: 'us',
+        };
+
+        const state = cardReducer(currentState, resetAuthenticatedData());
+
+        expect(state.userCardLocation).toBe('international');
+      });
+
+      it('resets string date format for authenticatedPriorityTokenLastFetched', () => {
+        const currentState: CardSliceState = {
+          ...initialState,
+          authenticatedPriorityTokenLastFetched: '2025-08-21T10:00:00Z',
+          isAuthenticated: true,
+        };
+
+        const state = cardReducer(currentState, resetAuthenticatedData());
+
+        expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+        expect(state.isAuthenticated).toBe(false);
       });
     });
   });

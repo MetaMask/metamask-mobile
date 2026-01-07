@@ -26,7 +26,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -94,7 +94,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -117,7 +117,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -131,7 +131,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -155,7 +155,6 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -191,7 +190,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -232,7 +231,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -300,7 +299,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -323,7 +322,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -337,7 +336,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -361,7 +360,6 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -397,7 +395,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

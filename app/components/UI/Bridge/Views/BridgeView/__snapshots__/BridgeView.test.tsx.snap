@@ -347,12 +347,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                             }
                           >
                             <View
-                              gap={8}
                               style={
                                 [
-                                  {
-                                    "gap": 8,
-                                  },
+                                  {},
                                   {
                                     "paddingHorizontal": 24,
                                     "paddingVertical": 12,
@@ -417,8 +414,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -475,9 +473,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           testID="badge-wrapper-badge"
                                         >
                                           <View>
-                                            <View
-                                              useNativeDriver={true}
-                                            >
+                                            <View>
                                               <View
                                                 fadeIn={true}
                                                 source={
@@ -503,35 +499,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -575,7 +542,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -618,10 +585,11 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 24,
+                                              "fontWeight": 500,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 32,
                                             }
                                           }
                                         >
@@ -652,20 +620,36 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         ]
                                       }
                                     />
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
+                                      flexDirection="column"
+                                      gap={4}
                                       style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                            "gap": 4,
+                                          },
+                                          {
+                                            "opacity": 1,
+                                          },
+                                        ]
                                       }
                                     >
-                                      2 ETH
-                                    </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        2 ETH
+                                      </Text>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -675,8 +659,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     {},
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b7bbc866",
-                                      "height": 1,
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "justifyContent": "center",
                                       "position": "relative",
                                     },
                                   ]
@@ -684,18 +669,21 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                               >
                                 <View
                                   style={
+                                    {
+                                      "backgroundColor": "#b7bbc866",
+                                      "height": 1,
+                                      "position": "absolute",
+                                      "width": "100%",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
                                     [
                                       {},
                                       {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 22,
-                                        "display": "flex",
-                                        "height": 44,
-                                        "justifyContent": "center",
-                                        "position": "absolute",
-                                        "top": -22,
-                                        "width": 44,
+                                        "backgroundColor": "#ffffff",
+                                        "position": "relative",
                                       },
                                     ]
                                   }
@@ -704,17 +692,15 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     accessible={true}
                                     activeOpacity={1}
                                     disabled={true}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderRadius": 10000,
+                                        "height": 44,
                                         "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
+                                        "opacity": 0.5,
+                                        "width": 44,
                                       }
                                     }
                                     testID="arrow-button"
@@ -739,9 +725,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 style={
                                   [
                                     {},
-                                    {
-                                      "marginTop": 16,
-                                    },
+                                    {},
                                   ]
                                 }
                               >
@@ -800,8 +784,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -840,7 +825,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         style={
                                           {
                                             "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -873,6 +858,34 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         ]
                                       }
                                     />
+                                    <View
+                                      flexDirection="column"
+                                      gap={4}
+                                      style={
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                            "gap": 4,
+                                          },
+                                          {
+                                            "opacity": 0,
+                                          },
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      />
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -899,7 +912,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -916,6 +928,175 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       ]
                                     }
                                   >
+                                    <View
+                                      style={
+                                        {
+                                          "display": "flex",
+                                          "flexDirection": "row",
+                                          "gap": 12,
+                                          "justifyContent": "space-between",
+                                          "paddingBottom": 16,
+                                          "paddingHorizontal": 24,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          25%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          50%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          75%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          90%
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                     <View
                                       style={
                                         [
@@ -965,7 +1146,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -979,7 +1160,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1017,7 +1198,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1031,7 +1212,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1069,7 +1250,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1083,7 +1264,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1135,7 +1316,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1149,7 +1330,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1187,7 +1368,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1201,7 +1382,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1239,7 +1420,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1253,7 +1434,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1305,7 +1486,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1319,7 +1500,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1357,7 +1538,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1371,7 +1552,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1409,7 +1590,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1423,7 +1604,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1475,7 +1656,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1491,7 +1672,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1529,7 +1710,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1543,7 +1724,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1582,7 +1763,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 {
                                                   "alignItems": "center",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -1624,7 +1805,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1635,7 +1815,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2008,12 +2188,9 @@ exports[`BridgeView renders 1`] = `
                             }
                           >
                             <View
-                              gap={8}
                               style={
                                 [
-                                  {
-                                    "gap": 8,
-                                  },
+                                  {},
                                   {
                                     "paddingHorizontal": 24,
                                     "paddingVertical": 12,
@@ -2078,8 +2255,9 @@ exports[`BridgeView renders 1`] = `
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -2136,9 +2314,7 @@ exports[`BridgeView renders 1`] = `
                                           testID="badge-wrapper-badge"
                                         >
                                           <View>
-                                            <View
-                                              useNativeDriver={true}
-                                            >
+                                            <View>
                                               <View
                                                 fadeIn={true}
                                                 source={
@@ -2164,35 +2340,6 @@ exports[`BridgeView renders 1`] = `
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -2236,7 +2383,7 @@ exports[`BridgeView renders 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2279,10 +2426,11 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 24,
+                                              "fontWeight": 500,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 32,
                                             }
                                           }
                                         >
@@ -2313,20 +2461,36 @@ exports[`BridgeView renders 1`] = `
                                         ]
                                       }
                                     />
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
+                                      flexDirection="column"
+                                      gap={4}
                                       style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                            "gap": 4,
+                                          },
+                                          {
+                                            "opacity": 1,
+                                          },
+                                        ]
                                       }
                                     >
-                                      2 ETH
-                                    </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        2 ETH
+                                      </Text>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -2336,8 +2500,9 @@ exports[`BridgeView renders 1`] = `
                                     {},
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b7bbc866",
-                                      "height": 1,
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "justifyContent": "center",
                                       "position": "relative",
                                     },
                                   ]
@@ -2345,18 +2510,21 @@ exports[`BridgeView renders 1`] = `
                               >
                                 <View
                                   style={
+                                    {
+                                      "backgroundColor": "#b7bbc866",
+                                      "height": 1,
+                                      "position": "absolute",
+                                      "width": "100%",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
                                     [
                                       {},
                                       {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 22,
-                                        "display": "flex",
-                                        "height": 44,
-                                        "justifyContent": "center",
-                                        "position": "absolute",
-                                        "top": -22,
-                                        "width": 44,
+                                        "backgroundColor": "#ffffff",
+                                        "position": "relative",
                                       },
                                     ]
                                   }
@@ -2365,17 +2533,15 @@ exports[`BridgeView renders 1`] = `
                                     accessible={true}
                                     activeOpacity={1}
                                     disabled={true}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderRadius": 10000,
+                                        "height": 44,
                                         "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
+                                        "opacity": 0.5,
+                                        "width": 44,
                                       }
                                     }
                                     testID="arrow-button"
@@ -2400,9 +2566,7 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   [
                                     {},
-                                    {
-                                      "marginTop": 16,
-                                    },
+                                    {},
                                   ]
                                 }
                               >
@@ -2461,8 +2625,9 @@ exports[`BridgeView renders 1`] = `
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -2501,7 +2666,7 @@ exports[`BridgeView renders 1`] = `
                                         style={
                                           {
                                             "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2534,6 +2699,34 @@ exports[`BridgeView renders 1`] = `
                                         ]
                                       }
                                     />
+                                    <View
+                                      flexDirection="column"
+                                      gap={4}
+                                      style={
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                            "gap": 4,
+                                          },
+                                          {
+                                            "opacity": 0,
+                                          },
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      />
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -2560,7 +2753,6 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -2577,6 +2769,175 @@ exports[`BridgeView renders 1`] = `
                                       ]
                                     }
                                   >
+                                    <View
+                                      style={
+                                        {
+                                          "display": "flex",
+                                          "flexDirection": "row",
+                                          "gap": 12,
+                                          "justifyContent": "space-between",
+                                          "paddingBottom": 16,
+                                          "paddingHorizontal": 24,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          25%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          50%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          75%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          90%
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                     <View
                                       style={
                                         [
@@ -2626,7 +2987,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2640,7 +3001,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2678,7 +3039,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2692,7 +3053,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2730,7 +3091,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2744,7 +3105,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2796,7 +3157,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2810,7 +3171,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2848,7 +3209,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2862,7 +3223,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2900,7 +3261,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2914,7 +3275,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -2966,7 +3327,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -2980,7 +3341,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3018,7 +3379,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -3032,7 +3393,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3070,7 +3431,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -3084,7 +3445,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3136,7 +3497,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -3152,7 +3513,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3190,7 +3551,7 @@ exports[`BridgeView renders 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -3204,7 +3565,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3243,7 +3604,7 @@ exports[`BridgeView renders 1`] = `
                                                 {
                                                   "alignItems": "center",
                                                   "borderRadius": 12,
-                                                  "height": 40,
+                                                  "height": 48,
                                                   "justifyContent": "center",
                                                   "paddingHorizontal": 16,
                                                 },
@@ -3285,7 +3646,6 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -3296,7 +3656,7 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

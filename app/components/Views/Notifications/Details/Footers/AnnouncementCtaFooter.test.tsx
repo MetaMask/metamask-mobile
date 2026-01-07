@@ -2,18 +2,32 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
-import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
+import { createMockFeatureAnnouncementRaw } from '@metamask/notification-services-controller/notification-services/mocks';
+import { processNotification } from '@metamask/notification-services-controller/notification-services';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
 
-jest.mock('../../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  parse: jest.fn(),
-}));
+jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => {
+  const mockParse = jest.fn().mockResolvedValue(true);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
+      parse: mockParse,
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -43,6 +57,7 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -57,6 +72,7 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -76,6 +92,7 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -99,6 +116,7 @@ describe('AnnouncementCtaFooter', () => {
           mobileLinkUrl: 'metamask://swap',
           mobileLinkText: 'Try Swap',
         },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -113,6 +131,7 @@ describe('AnnouncementCtaFooter', () => {
           mobileLinkUrl: 'metamask://swap',
           mobileLinkText: 'Try Swap',
         },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);

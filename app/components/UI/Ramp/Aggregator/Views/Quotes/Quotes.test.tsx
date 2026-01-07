@@ -92,7 +92,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedRegion: { id: 'mock-region-id' } as Region,
   selectedAsset: {
     id: 'mock-asset-id',
-    network: { chainId: '1' },
+    network: { chainId: '1', shortName: 'ETH' },
   } as CryptoCurrency,
   selectedFiatCurrencyId: 'mock-fiat-currency-id',
 };
@@ -118,7 +118,7 @@ const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
   asset: {
     symbol: 'ETH',
-    network: { chainId: '1' },
+    network: { chainId: '1', shortName: 'ETH' },
   },
   fiatCurrency: {
     symbol: 'USD',
@@ -232,9 +232,9 @@ describe('Quotes', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(Quotes);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
       results_count:
@@ -251,8 +251,8 @@ describe('Quotes', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
       results_count:
@@ -326,6 +326,8 @@ describe('Quotes', () => {
           "amount": 50,
           "chain_id_destination": "1",
           "currency_destination": "ETH",
+          "currency_destination_network": "ETH",
+          "currency_destination_symbol": "ETH",
           "currency_source": "USD",
           "payment_method_id": "/payment-methods/test-payment-method",
           "previously_used_count": 0,
@@ -521,6 +523,8 @@ describe('Quotes', () => {
           {
             "chain_id_destination": "1",
             "currency_destination": undefined,
+            "currency_destination_network": "ETH",
+            "currency_destination_symbol": undefined,
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_onramp": "Paypal (Staging)",
@@ -545,6 +549,8 @@ describe('Quotes', () => {
             "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": undefined,
+            "currency_source_network": "ETH",
+            "currency_source_symbol": undefined,
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_offramp": "Paypal (Staging)",
             "region": "mock-region-id",
@@ -598,12 +604,12 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
 
-      expect(createWidgetMock).toBeCalledWith(
+      expect(createWidgetMock).toHaveBeenCalledWith(
         mockUseRampSDKValues.callbackBaseUrl,
       );
 
       expect(mockNavigate).toBeCalledTimes(1);
-      expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CHECKOUT, {
         provider: mockCustomAction.buy.provider,
         customOrderId: 'test-order-id',
         url: 'https://test-url.on-ramp.metamask',
@@ -624,7 +630,7 @@ describe('Quotes', () => {
 
       await simulateCustomActionCtaPress();
 
-      expect(mockRenderInAppBrowser).toBeCalledWith(
+      expect(mockRenderInAppBrowser).toHaveBeenCalledWith(
         mockedBuyAction,
         mockCustomAction.buy.provider,
         50,
@@ -640,7 +646,7 @@ describe('Quotes', () => {
       ProviderBuyFeatureBrowserEnum.AppBrowser,
     );
     expect(mockNavigate).toBeCalledTimes(1);
-    expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CHECKOUT, {
       provider: mockedRecommendedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
@@ -653,6 +659,8 @@ describe('Quotes', () => {
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
+          "currency_destination_network": "ETH",
+          "currency_destination_symbol": "ETH",
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
@@ -686,6 +694,8 @@ describe('Quotes', () => {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
+          "currency_source_network": "ETH",
+          "currency_source_symbol": "ETH",
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
@@ -710,7 +720,7 @@ describe('Quotes', () => {
         ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
       );
 
-    expect(mockRenderInAppBrowser).toBeCalledWith(
+    expect(mockRenderInAppBrowser).toHaveBeenCalledWith(
       mockedBuyAction,
       mockedRecommendedQuote.provider,
       mockedRecommendedQuote.amountIn,
@@ -725,6 +735,8 @@ describe('Quotes', () => {
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
+          "currency_destination_network": "ETH",
+          "currency_destination_symbol": "ETH",
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
@@ -758,6 +770,8 @@ describe('Quotes', () => {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
+          "currency_source_network": "ETH",
+          "currency_source_symbol": "ETH",
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
@@ -876,6 +890,8 @@ describe('Quotes', () => {
             "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_destination": "1",
             "currency_destination": "ETH",
+            "currency_destination_network": "ETH",
+            "currency_destination_symbol": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_onramp_best_price": "Banxa (Staging)",
@@ -931,6 +947,8 @@ describe('Quotes', () => {
             "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": "ETH",
+            "currency_source_network": "ETH",
+            "currency_source_symbol": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",
@@ -979,7 +997,7 @@ describe('Quotes', () => {
     };
     render(Quotes);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
     act(() => {

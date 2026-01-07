@@ -330,14 +330,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             },
                             {
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc866",
-                              "borderRadius": 8,
-                              "borderWidth": 1,
                               "gap": 12,
-                              "marginBottom": 12,
                               "overflow": "hidden",
+                              "paddingBottom": 16,
                               "paddingHorizontal": 16,
-                              "paddingVertical": 12,
+                              "paddingTop": 12,
                             },
                           ]
                         }
@@ -399,8 +396,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -426,14 +423,14 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      (30s)
+                                      0:30
                                     </Text>
                                   </View>
                                 </View>
@@ -506,8 +503,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   numberOfLines={1}
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -564,8 +561,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -573,10 +570,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Network Fee
+                                  Network fee
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityLabel="Network Fee tooltip"
+                                  accessibilityLabel="Network fee tooltip"
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
@@ -641,8 +638,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -700,8 +697,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -789,8 +786,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -800,7 +797,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     0.5%
                                   </Text>
                                   <SvgMock
-                                    color="#b7bbc8"
+                                    color="#686e7d"
                                     fill="currentColor"
                                     height={16}
                                     name="Edit"
@@ -861,8 +858,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -870,10 +867,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Price Impact
+                                  Price impact
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityLabel="Price Impact tooltip"
+                                  accessibilityLabel="Price impact tooltip"
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
@@ -938,8 +935,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -984,8 +981,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "color": "#686e7d",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1028,9 +1025,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#686e7d",
                                     "flexShrink": 1,
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1040,7 +1037,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 Select recipient
                               </Text>
                               <SvgMock
-                                color="#b7bbc8"
+                                color="#686e7d"
                                 fill="currentColor"
                                 height={16}
                                 name="Edit"

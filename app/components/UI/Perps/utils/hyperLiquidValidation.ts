@@ -461,11 +461,14 @@ export function getMaxOrderValue(
 
 /**
  * Validate order parameters
+ * Basic validation - checks required fields are present
+ * Amount validation (size/USD) is handled by validateOrder
  */
 export function validateOrderParams(params: {
   coin?: string;
   size?: string;
   price?: string;
+  orderType?: 'market' | 'limit';
 }): { isValid: boolean; error?: string } {
   if (!params.coin) {
     return {
@@ -474,10 +477,13 @@ export function validateOrderParams(params: {
     };
   }
 
-  if (!params.size || parseFloat(params.size) <= 0) {
+  // Note: Size validation removed - validateOrder handles amount validation using USD as source of truth
+
+  // Require price for limit orders
+  if (params.orderType === 'limit' && !params.price) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.sizePositive'),
+      error: strings('perps.errors.orderValidation.limitPriceRequired'),
     };
   }
 

@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { NftDetectionController } from '@metamask/assets-controllers';
-import { NftDetectionControllerMessenger } from '../messengers/nft-detection-controller-messenger';
+import {
+  NftDetectionController,
+  type NftDetectionControllerMessenger,
+} from '@metamask/assets-controllers';
 
 /**
  * Initialize the NFT detection controller.
@@ -18,7 +20,7 @@ export const nftDetectionControllerInit: ControllerInitFunction<
   const controller = new NftDetectionController({
     messenger: controllerMessenger,
     disabled: false,
-    addNft: nftController.addNft.bind(nftController),
+    addNfts: nftController.addNfts.bind(nftController),
     getNftState: () => nftController.state,
   });
 

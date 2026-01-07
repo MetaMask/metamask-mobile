@@ -14,7 +14,8 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
-import FontLoadingGate from './FontLoadingGate';
+import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
+import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -50,6 +51,8 @@ const Root = ({ foxCode }: RootProps) => {
     SecureKeychain.init(foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
+    // Lock screen orientation to portrait on app start
+    ScreenOrientationService.lockToPortrait();
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();
@@ -73,20 +76,20 @@ const Root = ({ foxCode }: RootProps) => {
             <SnapsExecutionWebView />
             ///: END:ONLY_INCLUDE_IF
           }
-          <ThemeProvider>
-            <NavigationProvider>
-              <ControllersGate>
-                <ToastContextWrapper>
-                  <ErrorBoundary view="Root">
-                    <FontLoadingGate>
+          <FeatureFlagOverrideProvider>
+            <ThemeProvider>
+              <NavigationProvider>
+                <ControllersGate>
+                  <ToastContextWrapper>
+                    <ErrorBoundary view="Root">
                       <ReducedMotionConfig mode={ReduceMotion.Never} />
                       <App />
-                    </FontLoadingGate>
-                  </ErrorBoundary>
-                </ToastContextWrapper>
-              </ControllersGate>
-            </NavigationProvider>
-          </ThemeProvider>
+                    </ErrorBoundary>
+                  </ToastContextWrapper>
+                </ControllersGate>
+              </NavigationProvider>
+            </ThemeProvider>
+          </FeatureFlagOverrideProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

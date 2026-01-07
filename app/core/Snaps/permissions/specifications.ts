@@ -3,10 +3,8 @@ import {
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
 import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPermissions';
-import {
-  ControllerGetStateAction,
-  RestrictedMessenger,
-} from '@metamask/base-controller';
+import { ControllerGetStateAction } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import {
   ClearSnapState,
   CreateInterface,
@@ -36,6 +34,7 @@ import {
 } from '@metamask/approval-controller';
 import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
+import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
 import {
@@ -75,12 +74,10 @@ interface SnapPermissionSpecificationsHooks {
 }
 
 export const getSnapPermissionSpecifications = (
-  messenger: RestrictedMessenger<
-    never,
+  messenger: Messenger<
+    'SnapPermissionSpecificationsMessenger',
     SnapPermissionSpecificationsActions,
-    SnapPermissionSpecificationsEvents,
-    SnapPermissionSpecificationsActions['type'],
-    SnapPermissionSpecificationsEvents['type']
+    SnapPermissionSpecificationsEvents
   >,
   { addNewKeyring }: SnapPermissionSpecificationsHooks,
 ) => {
@@ -253,7 +250,11 @@ export const getSnapPermissionSpecifications = (
       messenger.call('ApprovalController:addRequest', opts, true),
     hasPermission: (origin: string, target: string) =>
       messenger.call('PermissionController:hasPermission', origin, target),
-    getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+    getClientCryptography: () => ({
+      pbkdf2Sha512: pbkdf2,
+      hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
+        hmacSha512(key, data),
+    }),
     getPreferences: () => {
       const {
         securityAlertsEnabled,

@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { KeyringController } from '@metamask/keyring-controller';
-import { KeyringControllerMessenger } from '../messengers/keyring-controller-messenger';
+import {
+  KeyringController,
+  KeyringControllerMessenger,
+} from '@metamask/keyring-controller';
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import {
   LedgerKeyring,
@@ -8,6 +10,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { hmacSha512 } from '@metamask/native-utils';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../../Encryptor';
 
 const encryptor = new Encryptor({
@@ -54,7 +57,10 @@ export const keyringControllerInit: ControllerInitFunction<
 
   const hdKeyringBuilder = () =>
     new HdKeyring({
-      cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+      cryptographicFunctions: {
+        pbkdf2Sha512: pbkdf2,
+        hmacSha512: async (key, data) => hmacSha512(key, data),
+      },
     });
 
   hdKeyringBuilder.type = HdKeyring.type;
@@ -76,7 +82,6 @@ export const keyringControllerInit: ControllerInitFunction<
     // @ts-expect-error: TODO: Update the type of QRHardwareKeyring to
     // `Keyring<Json>`.
     keyringBuilders: additionalKeyrings,
-    cacheEncryptionKey: true,
   });
 
   return {

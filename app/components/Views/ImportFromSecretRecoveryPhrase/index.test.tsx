@@ -26,6 +26,9 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
+import ReduxService from '../../../core/redux/ReduxService';
+import { RootState } from '../../../reducers';
+import { ReduxStore } from '../../../core/redux/types';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
@@ -86,17 +89,46 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
-// Enable fake timers
-jest.useFakeTimers();
-
 describe('ImportFromSecretRecoveryPhrase', () => {
+  const createMockReduxStore = (
+    stateOverrides?: Partial<RootState>,
+  ): ReduxStore => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+        passwordSet: true,
+        seedphraseBackedUp: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RootState;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
   afterEach(() => {
-    jest.clearAllTimers();
+    jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
-    jest.clearAllTimers();
     jest.clearAllMocks();
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   jest
@@ -122,22 +154,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('has current step as 1 on initial render when currentStep is 0', () => {
+    it('renders SRP input screen on initial render', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // The component shows steps as "Step 1 of 2" when currentStep is 0
-      expect(
-        getByText(
-          strings('import_from_seed.steps', {
-            currentStep: 1,
-            totalSteps: 2,
-          }),
-        ),
-      ).toBeOnTheScreen();
+      // The component shows the SRP input screen initially
+      expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
     });
 
     it('renders Import wallet title and description', () => {
@@ -296,13 +321,25 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
-      fireEvent.changeText(input, 'say');
+      await act(async () => {
+        fireEvent.changeText(input, 'say');
+      });
+
+      // Wait for the first grid input to be created
+      await waitFor(() => {
+        const firstGridInput = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        );
+        expect(firstGridInput).toBeOnTheScreen();
+      });
+
+      // Get the first grid input
+      const firstGridInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
 
       await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 0,
-        });
+        fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
       await waitFor(() => {
@@ -380,17 +417,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      // Wait for step 2 to appear and verify
+      // Wait for password screen to appear and verify
       await waitFor(
         () => {
-          expect(
-            getByText(
-              strings('import_from_seed.steps', {
-                currentStep: 2,
-                totalSteps: 2,
-              }),
-            ),
-          ).toBeOnTheScreen();
           expect(
             getByText(strings('import_from_seed.metamask_password')),
           ).toBeOnTheScreen();
@@ -592,18 +621,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(inputFields[0].props.value).toBe('say');
       });
 
-      // Press continue and verify step 2
+      // Press continue and verify password screen
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(
-          getByText(
-            strings('import_from_seed.steps', {
-              currentStep: 2,
-              totalSteps: 2,
-            }),
-          ),
-        ).toBeOnTheScreen();
         expect(
           getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
@@ -1363,30 +1384,18 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     it('navigates to Import Wallet UI when back button is pressed', async () => {
       const { getByTestId, getByText } = await renderCreatePasswordUI();
 
-      // Verify we're on step 2
+      // Verify we're on password screen
       expect(
-        getByText(
-          strings('import_from_seed.steps', {
-            currentStep: 2,
-            totalSteps: 2,
-          }),
-        ),
+        getByText(strings('import_from_seed.metamask_password')),
       ).toBeOnTheScreen();
 
       // Press back button
       const backButton = getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID);
       fireEvent.press(backButton);
 
-      // Verify we're back on step 1
+      // Verify we're back on SRP input screen
       await waitFor(() => {
-        expect(
-          getByText(
-            strings('import_from_seed.steps', {
-              currentStep: 1,
-              totalSteps: 2,
-            }),
-          ),
-        ).toBeOnTheScreen();
+        expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
       });
     });
 

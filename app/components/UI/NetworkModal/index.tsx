@@ -6,10 +6,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import {
-  isPrivateConnection,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isPrivateConnection } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -35,7 +32,10 @@ import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
-import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
+import {
+  rpcIdentifierUtility,
+  SafeChain,
+} from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
@@ -53,13 +53,6 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
-export interface SafeChain {
-  chainId: string;
-  name: string;
-  nativeCurrency: { symbol: string };
-  rpc: string[];
-}
-
 export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
   formattedRpcUrl?: string | null;
   rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>;
@@ -75,6 +68,7 @@ interface NetworkProps {
   onAccept?: () => void;
   autoSwitchNetwork?: boolean;
   allowNetworkSwitch?: boolean;
+  skipEnableNetwork?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -96,6 +90,7 @@ const NetworkModals = (props: NetworkProps) => {
     onAccept,
     autoSwitchNetwork,
     allowNetworkSwitch = true,
+    skipEnableNetwork = false,
   } = props;
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
@@ -140,9 +135,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const onUpdateNetworkFilter = useCallback(() => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      selectNetwork(chainId as `0x${string}`);
-    }
+    selectNetwork(chainId as `0x${string}`);
   }, [chainId, selectNetwork]);
 
   const cancelButtonProps: ButtonProps = {
@@ -237,7 +230,7 @@ const NetworkModals = (props: NetworkProps) => {
           ?.networkClientId;
     }
 
-    if (networkClientId) {
+    if (networkClientId && !skipEnableNetwork) {
       onUpdateNetworkFilter();
     }
 
@@ -338,13 +331,14 @@ const NetworkModals = (props: NetworkProps) => {
   const addNetwork = async () => {
     const isValidUrl = validateRpcUrl(rpcUrl);
     if (showPopularNetworkModal) {
-      // track popular network
+      // track popular network - first RPC endpoint added (index 0)
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(chainId),
             source: 'Popular network list',
             symbol: ticker,
+            rpc_url_index: 0,
           })
           .build(),
       );
@@ -353,13 +347,14 @@ const NetworkModals = (props: NetworkProps) => {
         rpcUrl,
         safeChains,
       );
-      // track custom network, this shouldn't be in popular networks modal
+      // track custom network - first RPC endpoint added (index 0)
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(safeChain.chainId),
             source: { anonymous: true, value: 'Custom Network Added' },
             symbol: safeChain.nativeCurrency.symbol,
+            rpc_url_index: 0,
           })
           .addSensitiveProperties({ rpcUrl: safeRPCUrl })
           .build(),
@@ -384,6 +379,8 @@ const NetworkModals = (props: NetworkProps) => {
       backdropOpacity={0.7}
       animationInTiming={600}
       animationOutTiming={600}
+      onBackdropPress={onClose}
+      onSwipeComplete={onClose}
       propagateSwipe
     >
       <View style={styles.modalContainer}>

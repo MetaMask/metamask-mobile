@@ -12,7 +12,7 @@ const styleSheet = () =>
     positionContainer: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      padding: 8,
+      paddingVertical: 8,
       gap: 16,
       width: '100%',
     },
@@ -20,23 +20,24 @@ const styleSheet = () =>
       flexDirection: 'column',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
-      width: '100%',
-      flex: 5,
-      gap: 4,
+      flex: 1,
+    },
+    positionImageContainer: {
+      paddingTop: 4,
     },
     positionImage: {
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: 100,
-      alignSelf: 'center',
+      alignSelf: 'flex-start',
     },
     positionPnl: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
       alignItems: 'flex-end',
-      gap: 4,
-      width: '100%',
-      flex: 2,
+    },
+    skeletonSpacing: {
+      marginBottom: 4,
     },
     marketEntry: {
       flexDirection: 'column',

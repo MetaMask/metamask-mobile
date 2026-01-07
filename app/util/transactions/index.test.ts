@@ -1,9 +1,9 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+/* eslint-disable import/no-namespace */
 import BN from 'bnjs4';
 
-/* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
-import { ERC721, ERC1155 } from '@metamask/controller-utils';
+import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
+import * as bridgeControllerModule from '@metamask/bridge-controller';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -22,6 +22,12 @@ import {
   TOKEN_METHOD_TRANSFER,
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
+  TOKEN_METHOD_MINT,
+  TRANSFER_FROM_ACTION_KEY,
+  SAFE_MINT_SIGNATURE,
+  MINT_SIGNATURE,
+  MINT_TO_SIGNATURE,
+  SAFE_MINT_WITH_DATA,
   calculateEIP1559Times,
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
@@ -57,6 +63,7 @@ import {
   getEther,
   validateTransactionActionBalance,
   isSmartContractAddress,
+  isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -514,6 +521,41 @@ describe('Transactions utils :: getMethodData', () => {
     );
   });
 
+  it('returns mint for safeMint signature', async () => {
+    const safeMintData = `${SAFE_MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(safeMintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mint signature', async () => {
+    const mintData = `${MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(mintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mintTo signature', async () => {
+    const mintToData = `${MINT_TO_SIGNATURE}000000000000000000000000abcdef1234567890abcdef1234567890abcdef12`;
+
+    const result = await getMethodData(mintToData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for safeMintWithData signature', async () => {
+    const safeMintWithDataData = `${SAFE_MINT_WITH_DATA}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(
+      safeMintWithDataData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
   it('calls handleMethodData with the correct data', async () => {
     (handleMethodData as jest.Mock).mockResolvedValue({
       parsedRegistryMethod: { name: TOKEN_METHOD_TRANSFER },
@@ -536,10 +578,37 @@ describe('Transactions utils :: getMethodData', () => {
   });
 });
 
+describe('Transactions utils :: isTransactionIncomplete', () => {
+  it.each([
+    'submitted',
+    'approved',
+    'unapproved',
+    'pending',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns true for %s status', (status) => {
+    const result = isTransactionIncomplete(status);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['confirmed', 'confirmed'],
+    ['undefined', undefined],
+    ['empty string', ''],
+    ['unknown', 'unknown_status'],
+  ])('returns false for %s status', (_description, status) => {
+    const result = isTransactionIncomplete(status);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('Transactions utils :: getActionKey', () => {
   beforeEach(() => {
     jest
-      .spyOn(swapsUtils, 'getSwapsContractAddress')
+      .spyOn(bridgeControllerModule, 'getSwapsContractAddress')
       .mockImplementation(() => 'SWAPS_CONTRACT_ADDRESS');
   });
 
@@ -699,6 +768,261 @@ describe('Transactions utils :: getActionKey', () => {
       MOCK_CHAIN_ID,
     );
     expect(result).toBe(strings('transactions.contract_deploy'));
+  });
+
+  it.each([
+    'pending',
+    'submitted',
+    'approved',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns "Send Ether" for %s transactions', async (status) => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status,
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.send_ether'));
+  });
+
+  it.each([
+    'pending',
+    'submitted',
+    'approved',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns "Send UNI" for %s transactions with ticker', async (status) => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status,
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      UNI_TICKER,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(
+      strings('transactions.send_unit', { unit: UNI_TICKER }),
+    );
+  });
+
+  it('returns "Sent Ether" for confirmed transactions', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status: 'confirmed',
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_ether'));
+  });
+
+  it('returns "Sent UNI" for confirmed transactions with ticker', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status: 'confirmed',
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      UNI_TICKER,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(
+      strings('transactions.sent_unit', { unit: UNI_TICKER }),
+    );
+  });
+
+  it('returns "Sent Ether" when status is undefined (defaults to completed)', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      // status intentionally not provided
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_ether'));
+  });
+
+  it('returns "Sent Collectible" for tokenMethodTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
+
+  it('returns "Sent Collectible" for tokenMethodSafeTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodSafeTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
+
+  it('decodes recipient from ERC20 transferFrom transaction data', async () => {
+    spyOnQueryMethod(undefined);
+    const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+    const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+    const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+    // transferFrom(from, to, amount) calldata
+    const transferFromData =
+      '0x23b872dd' + // transferFrom signature
+      '000000000000000000000000' +
+      sender.slice(2).toLowerCase() + // from
+      '000000000000000000000000' +
+      recipient.slice(2).toLowerCase() + // to (recipient - NOT txParams.to which is the contract)
+      '0000000000000000000000000000000000000000000000000de0b6b3a7640000'; // amount
+
+    const tx = {
+      txParams: {
+        from: sender,
+        to: tokenContract, // This is the token contract, not the recipient
+        data: transferFromData,
+      },
+    };
+
+    // User is the recipient - should show received
+    const result = await getActionKey(tx, recipient, undefined, MOCK_CHAIN_ID);
+
+    expect(result).toBe(strings('transactions.received_tokens'));
+  });
+
+  it('returns sent for ERC20 transferFrom when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+    const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+    const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+    const transferFromData =
+      '0x23b872dd' +
+      '000000000000000000000000' +
+      sender.slice(2).toLowerCase() +
+      '000000000000000000000000' +
+      recipient.slice(2).toLowerCase() +
+      '0000000000000000000000000000000000000000000000000de0b6b3a7640000';
+
+    const tx = {
+      txParams: {
+        from: sender,
+        to: tokenContract,
+        data: transferFromData,
+      },
+    };
+
+    // User is the sender - should show sent
+    const result = await getActionKey(tx, sender, undefined, MOCK_CHAIN_ID);
+
+    expect(result).toBe(strings('transactions.sent_tokens'));
   });
 });
 
@@ -1078,6 +1402,29 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
     );
     expect(result).toBe(false);
   });
+  it('returns false if the transaction is a token transfer from swap origin', () => {
+    const tokenTransferFromSwapOrigin = {
+      chainId: '0x1',
+      origin: ORIGIN_METAMASK,
+      transaction: {
+        from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+        data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000de0b6b3a7640000',
+        gas: '0xc350',
+        nonce: '0x10',
+        to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        value: '0x0',
+      },
+    };
+
+    const result = getIsSwapApproveOrSwapTransaction(
+      tokenTransferFromSwapOrigin.transaction.data,
+      tokenTransferFromSwapOrigin.origin,
+      tokenTransferFromSwapOrigin.transaction.to,
+      tokenTransferFromSwapOrigin.chainId,
+    );
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('Transactions utils :: getIsSwapApproveTransaction', () => {
@@ -1276,6 +1623,71 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 
     expect(actionKey).toBe(type);
   });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodSafeTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for legacy transferfrom type', async () => {
+    const transaction = {
+      type: 'transferfrom',
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns mint for NFT mint method signatures', async () => {
+    const mintSignatures = [
+      SAFE_MINT_SIGNATURE,
+      MINT_SIGNATURE,
+      MINT_TO_SIGNATURE,
+      SAFE_MINT_WITH_DATA,
+    ];
+
+    for (const signature of mintSignatures) {
+      const transaction = {
+        txParams: {
+          to: '0x123',
+          from: '0x456',
+          data: `${signature}0000000000000000000000000000000000000000000000000000000000000001`,
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(TOKEN_METHOD_MINT);
+    }
+  });
 });
 
 describe('Transactions utils :: getFourByteSignature', () => {
@@ -1341,21 +1753,26 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
-  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
-    const expectedReviewActionKey = 'Unknown Method';
+
+  it('returns "Confirm" review action key for ETH send transaction', async () => {
+    const expectedReviewActionKey = 'Confirm';
+
     const result = await getTransactionReviewActionKey(
       { transaction },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 
-  it('returns correct review action key', async () => {
-    const expectedReviewActionKey = 'Increase Allowance';
+  it('returns "Increase Allowance" review action key for increase allowance transaction', async () => {
+    const expectedReviewActionKey = 'Increase allowance';
+
     const result = await getTransactionReviewActionKey(
       { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 });

@@ -1,83 +1,64 @@
-import type { Messenger } from '@metamask/base-controller';
-import type { KeyringControllerAccountRemovedEvent } from '@metamask/keyring-controller';
-import type {
-  AccountsControllerGetSelectedAccountAction,
-  AccountsControllerListAccountsAction,
-} from '@metamask/accounts-controller';
-import type {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetStateAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
-import type {
-  PreferencesControllerGetStateAction,
-  PreferencesControllerStateChangeEvent,
-} from '@metamask/preferences-controller';
-import type {
-  AccountTrackerControllerGetStateAction,
-  AccountTrackerUpdateNativeBalancesAction,
-  AccountTrackerUpdateStakedBalancesAction,
-  TokensControllerGetStateAction,
-  TokensControllerStateChangeEvent,
-  TokenDetectionControllerAddDetectedTokensViaWsAction,
-} from '@metamask/assets-controllers';
-import type { AccountActivityServiceEvents } from '@metamask/core-backend';
-
-type AllowedActions =
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetStateAction
-  | TokensControllerGetStateAction
-  | PreferencesControllerGetStateAction
-  | AccountsControllerGetSelectedAccountAction
-  | AccountsControllerListAccountsAction
-  | AccountTrackerControllerGetStateAction
-  | AccountTrackerUpdateNativeBalancesAction
-  | AccountTrackerUpdateStakedBalancesAction
-  | TokenDetectionControllerAddDetectedTokensViaWsAction;
-type AllowedEvents =
-  | TokensControllerStateChangeEvent
-  | PreferencesControllerStateChangeEvent
-  | NetworkControllerStateChangeEvent
-  | KeyringControllerAccountRemovedEvent
-  | AccountActivityServiceEvents;
-
-export type TokenBalancesControllerMessenger = ReturnType<
-  typeof getTokenBalancesControllerMessenger
->;
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+import type { TokenBalancesControllerMessenger } from '@metamask/assets-controllers';
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
+ * Get the messenger for the token balances controller. This is scoped to the
  * token balances controller is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The TokenBalancesControllerMessenger.
  */
 export function getTokenBalancesControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'TokenBalancesController',
-    allowedActions: [
-      'NetworkController:getNetworkClientById',
+  rootMessenger: RootMessenger,
+): TokenBalancesControllerMessenger {
+  const messenger = new Messenger<
+    'TokenBalancesController',
+    MessengerActions<TokenBalancesControllerMessenger>,
+    MessengerEvents<TokenBalancesControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'TokenBalancesController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'NetworkController:getState',
-      'TokensController:getState',
+      'NetworkController:getNetworkClientById',
       'PreferencesController:getState',
+      'TokensController:getState',
+      'TokenDetectionController:addDetectedTokensViaPolling',
+      'TokenDetectionController:addDetectedTokensViaWs',
+      'TokenDetectionController:detectTokens',
       'AccountsController:getSelectedAccount',
       'AccountsController:listAccounts',
       'AccountTrackerController:getState',
       'AccountTrackerController:updateNativeBalances',
       'AccountTrackerController:updateStakedBalances',
-      'TokenDetectionController:addDetectedTokensViaWs',
+      'KeyringController:getState',
+      'AuthenticationController:getBearerToken',
     ],
-    allowedEvents: [
-      'TokensController:stateChange',
-      'PreferencesController:stateChange',
+    events: [
       'NetworkController:stateChange',
+      'PreferencesController:stateChange',
+      'TokensController:stateChange',
       'KeyringController:accountRemoved',
+      'KeyringController:lock',
+      'KeyringController:unlock',
       'AccountActivityService:balanceUpdated',
       'AccountActivityService:statusChanged',
+      'AccountsController:selectedEvmAccountChange',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:incomingTransactionsReceived',
     ],
+    messenger,
   });
+  return messenger;
 }
 
 type AllowedInitializationActions = PreferencesControllerGetStateAction;
@@ -89,21 +70,29 @@ export type TokenBalancesControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get a messenger restricted to the initialization actions that the
- * token balances controller is allowed to handle.
+ * Get the messenger for the token balances controller initialization. This is scoped to the
+ * actions and events that the token balances controller is allowed to handle during
+ * initialization.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The TokenBalancesControllerInitMessenger.
  */
 export function getTokenBalancesControllerInitMessenger(
-  messenger: Messenger<
-    AllowedInitializationActions,
-    AllowedInitializationEvents
-  >,
+  rootMessenger: RootMessenger,
 ) {
-  return messenger.getRestricted({
-    name: 'TokenBalancesControllerInit',
-    allowedActions: ['PreferencesController:getState'],
-    allowedEvents: [],
+  const messenger = new Messenger<
+    'TokenBalancesControllerInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
+    namespace: 'TokenBalancesControllerInit',
+    parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: ['PreferencesController:getState'],
+    events: [],
+    messenger,
+  });
+  return messenger;
 }

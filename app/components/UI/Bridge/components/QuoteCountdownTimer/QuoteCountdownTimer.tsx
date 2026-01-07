@@ -64,12 +64,12 @@ const QuoteCountdownTimer: React.FC = () => {
   // Use fixed-width formatting to prevent UI jumping
   // Pad single digits with a space to maintain consistent width
   const formattedSeconds =
-    secondsRemaining < 10 ? ` ${secondsRemaining}` : `${secondsRemaining}`;
+    secondsRemaining < 10 ? `0${secondsRemaining}` : `${secondsRemaining}`;
 
   return (
     <Box style={styles.container}>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {`(${formattedSeconds}s)`}
+        {`0:${formattedSeconds}`}
       </Text>
     </Box>
   );

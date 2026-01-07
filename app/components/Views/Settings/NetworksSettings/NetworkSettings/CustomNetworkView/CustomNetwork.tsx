@@ -8,7 +8,10 @@ import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { PopularList } from '../../../../../../util/networks/customNetworks';
+import {
+  getFilteredPopularNetworks,
+  PopularList,
+} from '../../../../../../util/networks/customNetworks';
 import createStyles, { createCustomNetworkStyles } from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
@@ -24,11 +27,14 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -49,8 +55,22 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
   const { safeChains } = useSafeChains();
-  const supportedNetworkList = (customNetworksList ?? PopularList).map(
+  const blacklistedChainIds = useSelector(
+    selectAdditionalNetworksBlacklistFeatureFlag,
+  );
+
+  // Apply blacklist filter to the network list
+  const baseNetworkList = customNetworksList ?? PopularList;
+  const filteredNetworkList = getFilteredPopularNetworks(
+    blacklistedChainIds,
+    baseNetworkList,
+  );
+
+  const supportedNetworkList = filteredNetworkList.map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
         (
@@ -94,7 +114,7 @@ const CustomNetwork = ({
       {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
         >
           {listHeader}
         </Text>
@@ -119,7 +139,7 @@ const CustomNetwork = ({
             <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
-                size={AvatarSize.Sm}
+                size={AvatarSize.Md}
                 imageSource={
                   networkConfiguration.rpcPrefs.imageSource ||
                   (networkConfiguration.rpcPrefs.imageUrl
@@ -130,9 +150,22 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold={!isNetworkUiRedesignEnabled()}>
-              {networkConfiguration.nickname}
-            </CustomText>
+            <View style={customNetworkStyles.nameAndTagContainer}>
+              <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                {networkConfiguration.nickname}
+              </CustomText>
+              {isGasFeesSponsoredNetworkEnabled(
+                networkConfiguration.chainId,
+              ) ? (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={customNetworkStyles.tagLabelBelowName}
+                >
+                  {strings('networks.no_network_fee')}
+                </Text>
+              ) : null}
+            </View>
           </View>
 
           <View style={networkSettingsStyles.popularWrapper}>
@@ -162,11 +195,11 @@ const CustomNetwork = ({
             )}
           </View>
           {compactMode && (
-            <View style={customNetworkStyles.iconContainer}>
+            <View>
               <Icon
+                style={customNetworkStyles.icon}
                 name={IconName.Add}
                 size={IconSize.Lg}
-                color={colors.icon.alternative}
               />
             </View>
           )}

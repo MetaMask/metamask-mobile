@@ -1,26 +1,24 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Logger from '../../../../../util/Logger';
 import getRedirectPathsAndParams from '../../utils/getRedirectPathAndParams';
 import { createDepositNavigationDetails } from '../routes/utils';
-import parseDepositParams from './utils/parseDepositParams';
+import parseRampIntent from '../../utils/parseRampIntent';
+import NavigationService from '../../../../../core/NavigationService';
 
 interface DepositUrlOptions {
   depositPath: string;
-  navigation: NavigationProp<ParamListBase>;
 }
 
-export default function handleDepositUrl({
-  depositPath,
-  navigation,
-}: DepositUrlOptions) {
+export default function handleDepositUrl({ depositPath }: DepositUrlOptions) {
   try {
     const [, pathParams] = getRedirectPathsAndParams(depositPath);
 
-    let depositParams;
+    let depositIntent;
     if (pathParams) {
-      depositParams = parseDepositParams(pathParams);
+      depositIntent = parseRampIntent(pathParams);
     }
-    navigation.navigate(...createDepositNavigationDetails(depositParams));
+    NavigationService.navigation.navigate(
+      ...createDepositNavigationDetails(depositIntent),
+    );
   } catch (error) {
     Logger.error(
       error as Error,

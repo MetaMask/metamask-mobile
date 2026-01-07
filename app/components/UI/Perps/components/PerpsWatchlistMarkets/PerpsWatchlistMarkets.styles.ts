@@ -1,9 +1,34 @@
+import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
-import { createMarketListStyles } from '../../styles/sharedStyles';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  return createMarketListStyles(theme);
+  return StyleSheet.create({
+    section: {
+      marginBottom: 30,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      marginBottom: 8,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    contentContainer: {
+      marginHorizontal: 16,
+      borderRadius: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+      backgroundColor: theme.colors.background.section,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+    },
+  });
 };
 
 export default styleSheet;

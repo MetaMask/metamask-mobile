@@ -34,10 +34,6 @@ import { getMultichainAssetsControllerMessenger } from './multichain-assets-cont
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import {
-  getRatesControllerInitMessenger,
-  getRatesControllerMessenger,
-} from './rates-controller-messenger';
-import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
 } from './snap-keyring-builder-messenger';
@@ -114,18 +110,23 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import {
-  getPPOMControllerInitMessenger,
-  getPPOMControllerMessenger,
-} from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
+import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
+import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
+import {
+  getTransactionPayControllerInitMessenger,
+  getTransactionPayControllerMessenger,
+} from './transaction-pay-controller-messenger';
+import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -179,6 +180,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getTransactionControllerMessenger,
     getInitMessenger: getTransactionControllerInitMessenger,
   },
+  TransactionPayController: {
+    getMessenger: getTransactionPayControllerMessenger,
+    getInitMessenger: getTransactionPayControllerInitMessenger,
+  },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
     getInitMessenger: noop,
@@ -217,6 +222,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
+    getInitMessenger: noop,
+  },
+  StorageService: {
+    getMessenger: getStorageServiceMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
@@ -290,10 +299,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
-  RatesController: {
-    getMessenger: getRatesControllerMessenger,
-    getInitMessenger: getRatesControllerInitMessenger,
-  },
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
     getInitMessenger: getSnapKeyringBuilderInitMessenger,
@@ -353,10 +358,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getPhishingControllerMessenger,
     getInitMessenger: noop,
   },
-  PPOMController: {
-    getMessenger: getPPOMControllerMessenger,
-    getInitMessenger: getPPOMControllerInitMessenger,
-  },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,
     getInitMessenger: noop,
@@ -367,6 +368,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsDataService: {
     getMessenger: getRewardsDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RampsController: {
+    getMessenger: getRampsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RampsService: {
+    getMessenger: getRampsServiceMessenger,
     getInitMessenger: noop,
   },
   TokenBalancesController: {
@@ -403,6 +412,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsController: {
+    getMessenger: getProfileMetricsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileMetricsService: {
+    getMessenger: getProfileMetricsServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;

@@ -12,7 +12,10 @@ import Icon, {
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
+import AlertRow from '../../../UI/info-row/alert-row';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './from-to-row.styles';
 
 const FromToRow = () => {
@@ -47,23 +50,58 @@ const FromToRow = () => {
 
         <View style={styles.iconContainer}>
           <Icon
-            size={IconSize.Xs}
+            size={IconSize.Sm}
             name={IconName.ArrowRight}
             color={IconColor.Alternative}
           />
         </View>
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          <Name
-            type={NameType.EthereumAddress}
-            value={toAddress}
-            variation={chainId}
-            maxCharLength={MAX_CHAR_LENGTH}
-          />
+          {/* Intentional empty label to trigger the alert row without a label */}
+          <AlertRow alertField={RowAlertKey.BurnAddress}>
+            <Name
+              type={NameType.EthereumAddress}
+              value={toAddress as string}
+              variation={chainId}
+              maxCharLength={MAX_CHAR_LENGTH}
+            />
+          </AlertRow>
         </View>
       </View>
     </InfoSection>
   );
 };
+
+export function FromToRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <InfoSection>
+      <View style={styles.container}>
+        <View style={[styles.nameContainer, styles.leftNameContainer]}>
+          <Skeleton
+            width={110}
+            height={36}
+            style={styles.skeletonBorderRadiusLarge}
+          />
+        </View>
+        <View style={styles.iconContainer}>
+          <Skeleton
+            width={16}
+            height={16}
+            style={styles.skeletonBorderRadiusSmall}
+          />
+        </View>
+        <View style={[styles.nameContainer, styles.rightNameContainer]}>
+          <Skeleton
+            width={110}
+            height={36}
+            style={styles.skeletonBorderRadiusLarge}
+          />
+        </View>
+      </View>
+    </InfoSection>
+  );
+}
 
 export default FromToRow;

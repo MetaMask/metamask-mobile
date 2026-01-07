@@ -125,7 +125,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -150,172 +150,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Manage default settings
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</RNCSafeAreaView>
-`;
-
-exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE adds networks to the network controller 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
-    }
-  }
-  style={
-    {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
-    }
-  }
->
-  <View
-    style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
-    }
-    testID="onboarding-success-screen"
-  >
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
-        }
-        testID="onboarding-success-end-animation"
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
-          }
-        >
-          <View
-            alignment="center"
-            autoplay={true}
-            fit="contain"
-            source="onboarding_loader.riv"
-            style={
-              {
-                "alignSelf": "center",
-                "height": 667,
-                "width": 750,
-              }
-            }
-            testID="mock-rive-animation"
-          />
-        </View>
-      </View>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
-        }
-      >
-        Your wallet is ready!
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="onboarding-success-done-button"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Done
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "paddingVertical": 8,
-          }
-        }
-        testID="onboarding-success-manage-default-settings-button"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -455,7 +290,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -480,7 +315,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -620,7 +455,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -645,7 +480,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -785,7 +620,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -810,7 +645,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -950,7 +785,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -975,7 +810,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1115,7 +950,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1140,7 +975,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1280,7 +1115,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1305,7 +1140,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

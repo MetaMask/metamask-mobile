@@ -19,13 +19,26 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 // Mock the design system components
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     Box: View,
-    Text: ({ children, ...props }: { children?: React.ReactNode }) => (
+  };
+});
+
+// Mock component-library Text component
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children, ...props }: { children?: React.ReactNode }) => (
       <Text {...props}>{children}</Text>
     ),
-    TextVariant: {},
+    TextColor: {
+      Default: 'Default',
+    },
+    TextVariant: {
+      BodySM: 'BodySM',
+    },
   };
 });
 

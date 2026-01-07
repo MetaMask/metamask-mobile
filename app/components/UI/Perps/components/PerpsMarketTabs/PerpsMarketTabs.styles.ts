@@ -16,6 +16,10 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     fullWidthTabWrapper: {
       flex: 1,
     },
+    // Navigation panel styles
+    navigationPanel: {
+      paddingTop: 16,
+    },
     // ... existing styles ...
     tabContainer: {
       paddingTop: 18,

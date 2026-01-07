@@ -2,6 +2,7 @@ import {
   InvalidTimestampError,
   AuthorizationFailedError,
   AccountAlreadyRegisteredError,
+  SeasonNotFoundError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -1071,6 +1072,46 @@ describe('RewardsDataService', () => {
       ).rejects.toBeInstanceOf(AuthorizationFailedError);
     });
 
+    it('throws SeasonNotFoundError when season is not found', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'Season not found',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      let caughtError: unknown;
+      try {
+        await service.getSeasonStatus(mockSeasonId, mockSubscriptionId);
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeInstanceOf(SeasonNotFoundError);
+      const seasonNotFoundError = caughtError as SeasonNotFoundError;
+      expect(seasonNotFoundError.name).toBe('SeasonNotFoundError');
+      expect(seasonNotFoundError.message).toBe(
+        'Season not found. Please try again with a different season.',
+      );
+    });
+
+    it('detects season not found when message contains the phrase', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'The requested Season not found in the system',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
+      ).rejects.toBeInstanceOf(SeasonNotFoundError);
+    });
+
     it('throws error when fetch fails', async () => {
       const fetchError = new Error('Network error');
       mockFetch.mockRejectedValue(fetchError);
@@ -1105,6 +1146,7 @@ describe('RewardsDataService', () => {
 
   describe('getDiscoverSeasons', () => {
     const mockDiscoverSeasonsResponse: DiscoverSeasonsDto = {
+      previous: null,
       current: {
         id: '7444682d-9050-43b8-9038-28a6a62d6264',
         startDate: new Date('2025-09-01T04:00:00.000Z'),
@@ -1117,6 +1159,7 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
+          previous: null,
           current: {
             id: mockDiscoverSeasonsResponse.current?.id,
             startDate: '2025-09-01T04:00:00.000Z',
@@ -1147,6 +1190,33 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('converts date strings to Date objects for previous season', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: {
+            id: '6333571c-8049-32a7-8027-17a5a51c5153',
+            startDate: '2025-06-01T04:00:00.000Z',
+            endDate: '2025-08-31T04:00:00.000Z',
+          },
+          current: null,
+          next: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getDiscoverSeasons();
+
+      expect(result.previous?.startDate).toBeInstanceOf(Date);
+      expect(result.previous?.startDate.getTime()).toBe(
+        new Date('2025-06-01T04:00:00.000Z').getTime(),
+      );
+      expect(result.previous?.endDate).toBeInstanceOf(Date);
+      expect(result.previous?.endDate.getTime()).toBe(
+        new Date('2025-08-31T04:00:00.000Z').getTime(),
+      );
+    });
+
     it('converts date strings to Date objects for current season', async () => {
       const result = await service.getDiscoverSeasons();
 
@@ -1160,10 +1230,15 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('handles response with both current and next seasons', async () => {
+    it('handles response with previous, current and next seasons', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
+          previous: {
+            id: '6333571c-8049-32a7-8027-17a5a51c5153',
+            startDate: '2025-06-01T04:00:00.000Z',
+            endDate: '2025-08-31T04:00:00.000Z',
+          },
           current: {
             id: '7444682d-9050-43b8-9038-28a6a62d6264',
             startDate: '2025-09-01T04:00:00.000Z',
@@ -1180,6 +1255,10 @@ describe('RewardsDataService', () => {
 
       const result = await service.getDiscoverSeasons();
 
+      expect(result.previous).not.toBeNull();
+      expect(result.previous?.id).toBe('6333571c-8049-32a7-8027-17a5a51c5153');
+      expect(result.previous?.startDate).toBeInstanceOf(Date);
+      expect(result.previous?.endDate).toBeInstanceOf(Date);
       expect(result.current).not.toBeNull();
       expect(result.next).not.toBeNull();
       expect(result.next?.id).toBe('8555793e-0161-54c9-0149-39b7b73e7375');
@@ -1187,10 +1266,11 @@ describe('RewardsDataService', () => {
       expect(result.next?.endDate).toBeInstanceOf(Date);
     });
 
-    it('handles response with null current and next seasons', async () => {
+    it('handles response with null previous, current and next seasons', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
+          previous: null,
           current: null,
           next: null,
         }),
@@ -1199,6 +1279,7 @@ describe('RewardsDataService', () => {
 
       const result = await service.getDiscoverSeasons();
 
+      expect(result.previous).toBeNull();
       expect(result.current).toBeNull();
       expect(result.next).toBeNull();
     });
@@ -1257,6 +1338,7 @@ describe('RewardsDataService', () => {
           rewards: [],
         },
       ],
+      activityTypes: [],
     };
 
     beforeEach(() => {

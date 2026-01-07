@@ -26,17 +26,19 @@ import styleSheet from './transaction-details-status.styles';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { ARBITRUM_USDC } from '../../../constants/perps';
 
 export function TransactionDetailsStatus({
   gap,
   isBridgeReceive,
+  testId,
   text,
   transactionMeta,
 }: {
   gap?: number;
   isBridgeReceive?: boolean;
+  testId?: string;
   text?: string;
   transactionMeta: TransactionMeta;
 }) {
@@ -75,7 +77,11 @@ export function TransactionDetailsStatus({
         alignItems={AlignItems.center}
       >
         <StatusIcon status={status} transactionMeta={transactionMeta} />
-        <Text color={textColour} variant={TextVariant.BodyMDMedium}>
+        <Text
+          color={textColour}
+          variant={TextVariant.BodyMDMedium}
+          testID={testId}
+        >
           {statusText}
         </Text>
       </Box>
@@ -221,7 +227,7 @@ function useHasSuccessfulPerpsBridge() {
         return (
           bridgeItem?.status.status === StatusTypes.COMPLETE &&
           bridgeItem?.quote?.destAsset?.address?.toLowerCase() ===
-            ARBITRUM_USDC_ADDRESS.toLowerCase()
+            ARBITRUM_USDC.address.toLowerCase()
         );
       })) ??
     false

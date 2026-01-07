@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useDepositUser } from './useDepositUser';
-import { createMockSDKReturn } from '../testUtils/constants';
+import { createMockSDKReturn, MOCK_US_REGION } from '../testUtils/constants';
 import { DepositSdkMethodQuery } from '../hooks/useDepositSdkMethod';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
@@ -16,6 +16,9 @@ const mockUseDepositSDK = jest.fn();
 jest.mock('../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('useDepositUser', () => {
   const mockFetchUserDetails = jest.fn();
@@ -39,26 +42,14 @@ describe('useDepositUser', () => {
     error?: string | null;
     isFetching?: boolean;
   }) => {
-    mockUseDepositSdkMethod.mockImplementation((config) => {
-      if (config.throws) {
-        return [
-          {
-            data: overrides?.data ?? null,
-            error: overrides?.error ?? null,
-            isFetching: overrides?.isFetching ?? false,
-          },
-          mockFetchUserDetails,
-        ];
-      }
-      return [
-        {
-          data: overrides?.data ?? null,
-          error: overrides?.error ?? null,
-          isFetching: overrides?.isFetching ?? false,
-        },
-        mockFetchUserDetails,
-      ];
-    });
+    mockUseDepositSdkMethod.mockImplementation(() => [
+      {
+        data: overrides?.data ?? null,
+        error: overrides?.error ?? null,
+        isFetching: overrides?.isFetching ?? false,
+      },
+      mockFetchUserDetails,
+    ]);
   };
 
   beforeEach(() => {
@@ -70,6 +61,7 @@ describe('useDepositUser', () => {
       createMockSDKReturn({
         isAuthenticated: false,
         logoutFromProvider: mockLogoutFromProvider,
+        selectedRegion: MOCK_US_REGION,
       }),
     );
 
@@ -81,12 +73,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: mockUserDetails, error: null, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod({ data: mockUserDetails });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -99,12 +89,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: false,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: mockUserDetails, error: null, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod({ data: mockUserDetails });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -128,18 +116,17 @@ describe('useDepositUser', () => {
       expect(typeof result.current.fetchUserDetails).toBe('function');
     });
   });
-
   describe('authentication-based fetching', () => {
     it('fetches user details when authenticated and no user details exist', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
-          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
       setupMockSdkMethod();
 
-      renderHook(() => useDepositUser());
+      renderHook(() => useDepositUser({ fetchOnMount: true }));
 
       expect(mockFetchUserDetails).toHaveBeenCalled();
     });
@@ -148,9 +135,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: false,
-          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
+      setupMockSdkMethod({ data: mockUserDetails });
 
       renderHook(() => useDepositUser());
 
@@ -205,7 +193,7 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
-          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
       setupMockSdkMethod({ isFetching: true });
@@ -219,10 +207,11 @@ describe('useDepositUser', () => {
 
     it('returns error state when API fails', () => {
       const mockError = 'Failed to fetch user details';
+
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
-          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
       setupMockSdkMethod({ error: mockError });
@@ -243,7 +232,9 @@ describe('useDepositUser', () => {
       );
       setupMockSdkMethod();
 
-      const { rerender } = renderHook(() => useDepositUser());
+      const { rerender } = renderHook(() =>
+        useDepositUser({ fetchOnMount: true }),
+      );
       rerender({});
       rerender({});
 
@@ -251,27 +242,138 @@ describe('useDepositUser', () => {
     });
   });
 
-  describe('fetchUserDetails', () => {
-    it('returns user details when successful', async () => {
+  describe('config options', () => {
+    it('fetches user details on mount when fetchOnMount is enabled', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
-          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      setupMockSdkMethod();
+
+      renderHook(() => useDepositUser({ fetchOnMount: true }));
+
+      expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch on mount when fetchOnMount is disabled', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      setupMockSdkMethod();
+
+      renderHook(() => useDepositUser({ fetchOnMount: false }));
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount when not authenticated', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: false,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      setupMockSdkMethod();
+
+      renderHook(() => useDepositUser({ fetchOnMount: true }));
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks RAMPS_USER_DETAILS_FETCHED when shouldTrackFetch is enabled', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() =>
+        useDepositUser({
+          shouldTrackFetch: true,
+          screenLocation: 'TestScreen',
         }),
       );
 
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: 'US',
+          location: 'TestScreen',
+        },
+      );
+    });
+
+    it('does not track analytics when shouldTrackFetch is disabled', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
       setupMockSdkMethod();
 
-      const { result } = renderHook(() => useDepositUser());
+      const { result } = renderHook(() =>
+        useDepositUser({
+          shouldTrackFetch: false,
+        }),
+      );
 
-      const userDetails = await result.current.fetchUserDetails();
+      await result.current.fetchUserDetails();
 
-      expect(userDetails).toEqual(mockUserDetails);
-      expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('logs out but does not throw on 401 error', async () => {
+    it('uses selectedRegion isoCode when userDetails has no country', async () => {
+      const userDetailsWithoutAddress = {
+        firstName: 'John',
+        lastName: 'Doe',
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(userDetailsWithoutAddress);
+      setupMockSdkMethod({ data: userDetailsWithoutAddress });
+
+      const { result } = renderHook(() =>
+        useDepositUser({
+          shouldTrackFetch: true,
+          screenLocation: 'TestScreen',
+        }),
+      );
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: 'US',
+          location: 'TestScreen',
+        },
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('logs out when receiving 401 error', async () => {
       const error401 = Object.assign(new Error('Unauthorized'), {
         status: 401,
       }) as AxiosError;
@@ -280,9 +382,9 @@ describe('useDepositUser', () => {
         createMockSDKReturn({
           isAuthenticated: true,
           logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
-
       mockFetchUserDetails.mockRejectedValue(error401);
       setupMockSdkMethod();
 
@@ -302,9 +404,9 @@ describe('useDepositUser', () => {
         createMockSDKReturn({
           isAuthenticated: true,
           logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: MOCK_US_REGION,
         }),
       );
-
       mockFetchUserDetails.mockRejectedValue(networkError);
       setupMockSdkMethod({ data: mockUserDetails });
 

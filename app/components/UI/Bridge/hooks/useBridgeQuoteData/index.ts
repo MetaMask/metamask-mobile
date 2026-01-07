@@ -11,20 +11,19 @@ import {
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
   isNumberValue,
 } from '../../../../../util/number';
-import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
 
-import { selectTicker } from '../../../../../selectors/networkController';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -51,8 +50,6 @@ export const useBridgeQuoteData = ({
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const locale = I18n.locale;
   const fiatFormatter = useFiatFormatter();
-  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
-  const ticker = useSelector(selectTicker);
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -91,8 +88,28 @@ export const useBridgeQuoteData = ({
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 
+  // Validate that the quote's destination asset matches the selected destination token
+  // This prevents showing stale quote data (with wrong decimals) when user changes destination token
+  const isQuoteDestTokenMatch = (() => {
+    if (!activeQuote || !destToken) return false;
+
+    const { destAsset } = activeQuote.quote;
+
+    // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
+    // or zero address for native tokens, while destToken.address uses CAIP format
+    // (e.g., "solana:.../token:EPj...").
+    // Use destAsset.assetId (CAIP format) for comparison.
+    // For EVM chains, use the original address comparison.
+    const quoteDestAddress = isNonEvmChainId(destToken.chainId)
+      ? (destAsset.assetId ?? destAsset.address)
+      : destAsset.address;
+
+    const selectedDestAddress = destToken.address;
+    return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+  })();
+
   const destTokenAmount =
-    activeQuote && destToken
+    activeQuote && destToken && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
@@ -123,20 +140,12 @@ export const useBridgeQuoteData = ({
       return '-';
     }
 
-    const networkFeeFormatter = getIntlNumberFormatter(locale, {
-      maximumFractionDigits: 6,
-    });
-    const formattedAmount = `${networkFeeFormatter.format(
-      Number(amount),
-    )} ${ticker}`;
     const formattedValueInCurrency = fiatFormatter(
       new BigNumber(valueInCurrency),
     );
 
-    return primaryCurrency === 'ETH'
-      ? formattedAmount
-      : formattedValueInCurrency;
-  }, [activeQuote, locale, ticker, fiatFormatter, primaryCurrency]);
+    return formattedValueInCurrency;
+  }, [activeQuote, fiatFormatter]);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
@@ -194,25 +203,40 @@ export const useBridgeQuoteData = ({
   );
 
   // Check if price impact warning should be shown
+  const isGasless =
+    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((activeQuote?.quote.gasIncluded &&
+      ((isGasless &&
         Number(activeQuote?.quote.priceData?.priceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!activeQuote?.quote.gasIncluded &&
+        (!isGasless &&
           Number(activeQuote?.quote.priceData?.priceImpact) >=
             bridgeFeatureFlags.priceImpactThreshold.normal)),
+  );
+
+  const abortController = useRef<AbortController | null>(new AbortController());
+  useEffect(
+    () => () => {
+      abortController.current?.abort();
+      abortController.current = null;
+    },
+    [],
   );
 
   const validateQuote = useCallback(async () => {
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
+    // Cancel any ongoing request
+    abortController.current?.abort();
+    abortController.current = new AbortController();
 
     if (activeQuote && (isSolanaSwap || isSolanaToNonSolana)) {
       try {
         const validationResult = await validateBridgeTx({
           quoteResponse: activeQuote,
+          signal: abortController.current?.signal,
         });
 
         // Check if this is still the current validation after async operation

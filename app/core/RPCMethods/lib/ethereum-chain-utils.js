@@ -1,23 +1,21 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
-import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
+import { isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
-  setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
 import { isSnapId } from '@metamask/snaps-utils';
-import Logger from '../../../util/Logger';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -234,8 +232,7 @@ export async function switchToNetwork({
     hasApprovalRequestsForOrigin,
     rejectApprovalRequestsForOrigin,
   } = hooks;
-  const { MultichainNetworkController, SelectedNetworkController } =
-    Engine.context;
+  const { SelectedNetworkController } = Engine.context;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -277,19 +274,19 @@ export async function switchToNetwork({
     rejectApprovalRequestsForOrigin?.();
   }
 
-  if (isPerDappSelectedNetworkEnabled()) {
-    SelectedNetworkController.setNetworkClientIdForDomain(
-      origin,
-      networkClientId,
-    );
-  } else {
-    await MultichainNetworkController.setActiveNetwork(networkClientId);
-  }
+  SelectedNetworkController.setNetworkClientIdForDomain(
+    origin,
+    networkClientId,
+  );
 
+  const fromChainId = hooks.fromNetworkConfiguration?.chainId;
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
     symbol: nativeCurrency || 'ETH',
+    from_network: fromChainId,
+    to_network: chainId,
+    custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
     ...analytics,
   };
 

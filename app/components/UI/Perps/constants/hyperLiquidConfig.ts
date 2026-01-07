@@ -95,7 +95,6 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   marginPercent: 10, // 10% fixed margin default
   takeProfitPercent: 0.3, // 30% take profit
   stopLossPercent: 0.1, // 10% stop loss
-  slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 10, // $10 minimum order size
     testnet: 10, // $10 minimum order size
@@ -109,6 +108,52 @@ export const FEE_RATES: FeeRatesConfig = {
   taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
+
+/**
+ * HIP-3 dynamic fee calculation configuration
+ *
+ * HIP-3 (builder-deployed) perpetual markets have variable fees based on:
+ * 1. deployerFeeScale - Per-DEX fee multiplier (fetched from perpDexs API)
+ * 2. growthMode - Per-asset 90% fee reduction (fetched from meta API)
+ *
+ * Fee Formula (from HyperLiquid docs):
+ * - scaleIfHip3 = deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2
+ * - growthModeScale = growthMode ? 0.1 : 1
+ * - finalRate = baseRate * scaleIfHip3 * growthModeScale
+ *
+ * Example: For xyz:TSLA with deployerFeeScale=1.0 and growthMode="enabled":
+ * - scaleIfHip3 = 1.0 * 2 = 2.0
+ * - growthModeScale = 0.1 (90% reduction)
+ * - Final multiplier = 2.0 * 0.1 = 0.2 (effectively 80% off standard 2x HIP-3 fees)
+ *
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+ * @see parseAssetName() in HyperLiquidProvider for HIP-3 asset detection
+ */
+export const HIP3_FEE_CONFIG = {
+  /**
+   * Growth Mode multiplier - 90% fee reduction for assets in growth phase
+   * This is a protocol constant from HyperLiquid's fee formula
+   */
+  GROWTH_MODE_SCALE: 0.1,
+
+  /**
+   * Default deployerFeeScale when API is unavailable
+   * Most HIP-3 DEXs use 1.0, which results in 2x base fees
+   */
+  DEFAULT_DEPLOYER_FEE_SCALE: 1.0,
+
+  /**
+   * Cache TTL for perpDexs data (5 minutes)
+   * Fee scales rarely change, so longer cache is acceptable
+   */
+  PERP_DEXS_CACHE_TTL_MS: 5 * 60 * 1000,
+
+  /**
+   * @deprecated Use dynamic calculation via calculateHip3FeeMultiplier()
+   * Kept for backwards compatibility during migration
+   */
+  FEE_MULTIPLIER: 2,
+} as const;
 
 const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 
@@ -246,24 +291,60 @@ export const HIP3_ASSET_ID_CONFIG = {
 export const BASIS_POINTS_DIVISOR = 10000;
 
 /**
- * HIP-3 DEX market type classifications
- * Maps DEX identifiers to their asset category for badge display
+ * HIP-3 asset market type classifications (PRODUCTION DEFAULT)
+ *
+ * This is the production default configuration, can be overridden via feature flag
+ * (remoteFeatureFlags.perpsAssetMarketTypes) for dynamic control.
+ *
+ * Maps asset symbols (e.g., "xyz:TSLA") to their market type for badge display.
  *
  * Market type determines the badge shown in the UI:
- * - 'equity': STOCK badge (for stock markets like xyz)
- * - 'forex': FOREX badge (for forex markets)
- * - 'commodity': COMMODITY badge (for commodity markets)
- * - 'crypto': CRYPTO badge (for crypto-only DEXs)
- * - undefined: Falls back to 'experimental' badge for HIP-3 DEXs
+ * - 'equity': STOCK badge (stocks like TSLA, NVDA)
+ * - 'commodity': COMMODITY badge (commodities like GOLD)
+ * - 'forex': FOREX badge (forex pairs)
+ * - undefined: No badge for crypto or unmapped assets
  *
- * DEXs not listed here will show the 'experimental' badge by default.
- * Main DEX (no prefix) shows no badge.
+ * Format: 'dex:SYMBOL' → MarketType
+ * This allows flexible per-asset classification.
+ * Assets not listed here will have no market type (undefined).
  */
-export const HIP3_DEX_MARKET_TYPES = {
-  xyz: 'equity' as const, // xyz DEX offers stock trading
-  // Future DEX classifications:
-  // abc: 'forex' as const,
-  // commodity_dex: 'commodity' as const,
+export const HIP3_ASSET_MARKET_TYPES: Record<
+  string,
+  'equity' | 'commodity' | 'forex' | 'crypto'
+> = {
+  // xyz DEX - Equities
+  'xyz:TSLA': 'equity',
+  'xyz:NVDA': 'equity',
+  'xyz:XYZ100': 'equity',
+
+  // xyz DEX - Commodities
+  'xyz:GOLD': 'commodity',
+
+  // Future asset mappings as xyz adds more markets
+} as const;
+
+/**
+ * Testnet-specific HIP-3 DEX configuration
+ *
+ * On testnet, there are many HIP-3 DEXs (test deployments from various builders).
+ * Subscribing to all of them causes connection/subscription overload and instability.
+ * This configuration limits which DEXs are discovered and subscribed to on testnet.
+ *
+ * On mainnet, full DEX discovery continues unchanged.
+ */
+export const TESTNET_HIP3_CONFIG = {
+  /**
+   * Allowed DEX names for testnet
+   * Empty array = main DEX only (no HIP-3 DEXs)
+   * Add specific DEX names to test with particular HIP-3 DEXs: ['testdex1', 'testdex2']
+   */
+  ENABLED_DEXS: ['xyz'] as string[],
+
+  /**
+   * Set to true to enable full HIP-3 discovery on testnet (not recommended)
+   * When false, only DEXs in ENABLED_DEXS are used
+   */
+  AUTO_DISCOVER_ALL: false,
 } as const;
 
 /**
@@ -292,6 +373,24 @@ export const HIP3_MARGIN_CONFIG = {
    * Prevents unnecessary transfers for tiny amounts
    */
   REBALANCE_MIN_THRESHOLD: 0.1,
+} as const;
+
+/**
+ * Configuration for USDH collateral handling on HIP-3 DEXs
+ * Per HyperLiquid docs: USDH DEXs pull collateral from spot balance automatically
+ *
+ * USDH is HyperLiquid's native stablecoin pegged 1:1 to USDC
+ */
+export const USDH_CONFIG = {
+  /** Token name for USDH collateral */
+  TOKEN_NAME: 'USDH',
+
+  /**
+   * Maximum slippage for USDC→USDH spot swap in basis points
+   * USDH is pegged 1:1 to USDC so slippage should be minimal
+   * 10 bps (0.1%) provides small buffer for spread
+   */
+  SWAP_SLIPPAGE_BPS: 10,
 } as const;
 
 // Progress bar constants

@@ -29,6 +29,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -129,8 +130,9 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "lineHeight": 20,
@@ -186,6 +188,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -286,8 +289,9 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
+                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
                         "lineHeight": 20,

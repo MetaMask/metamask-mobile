@@ -9,7 +9,7 @@ class PerpsTutorialScreen {
 
   }
 
-  get addFundsButton() {
+  get continueButton() {
     return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
   }
 
@@ -21,20 +21,26 @@ class PerpsTutorialScreen {
     return AppwrightSelectors.getElementByCatchAll(this._device, 'What are perps?');
   }
 
-  get continueButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
+  // Legacy alias for backward compatibility
+  get addFundsButton() {
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Add funds');
   }
 
   get skipButtonTutorial() {
-    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-skip-button');
+    return this.skipButton;
   }
 
+  async tapContinue() {
+    await AppwrightGestures.tap(await this.continueButton);
+  }
+
+  // Legacy alias for backward compatibility
   async tapAddFunds() {
-    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.addFundsButton); 
   }
 
   async tapSkip() {
-    await AppwrightGestures.tap(this.skipButtonTutorial); // Use static tap method with retry logic
+    await AppwrightGestures.tap(await this.skipButton);
   }
 
   async expectFirstScreenVisible() {
@@ -43,9 +49,8 @@ class PerpsTutorialScreen {
   }
 
   async flowTapContinueTutorial(times = 1) {
-    const btn = await this.addFundsButton;
     for (let i = 0; i < times; i++) {
-      await AppwrightGestures.tap(btn); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.continueButton);
     }
   }
 }

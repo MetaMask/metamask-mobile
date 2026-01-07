@@ -1,12 +1,15 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
+import { selectPredictClaimablePositionsByAddress } from '../selectors/predictController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictPositionsOptions {
   /**
@@ -29,7 +32,8 @@ interface UsePredictPositionsOptions {
   marketId?: string;
 
   /**
-   * The parameters to load positions for
+   * Only load claimable positions. When this is set to true, marketId is ignored when fetching positions.
+   * However, the positions returned will be filtered to only include the specific market positions.
    */
   claimable?: boolean;
   /**
@@ -67,14 +71,28 @@ export function usePredictPositions(
   const { getPositions } = usePredictTrading();
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
+  // `positions` state only stores active positions
   const [positions, setPositions] = useState<PredictPosition[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+
+  const claimablePositions = useSelector(
+    selectPredictClaimablePositionsByAddress({
+      address: selectedInternalAccountAddress,
+    }),
   );
+
+  const filteredClaimablePositions = useMemo(() => {
+    if (!marketId) return [...claimablePositions];
+    return claimablePositions.filter(
+      (position) => position.marketId === marketId,
+    );
+  }, [claimablePositions, marketId]);
 
   const loadPositions = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -106,11 +124,15 @@ export function usePredictPositions(
           address: selectedInternalAccountAddress,
           providerId,
           claimable,
-          marketId,
+          // Always load ALL positions when claimable is true
+          marketId: claimable ? undefined : marketId,
         });
         const validPositions = positionsData ?? [];
 
-        setPositions(validPositions);
+        if (!claimable) {
+          // `positions` state only stores active positions
+          setPositions(validPositions);
+        }
 
         DevLogger.log('usePredictPositions: Loaded positions', {
           originalCount: validPositions.length,
@@ -128,15 +150,18 @@ export function usePredictPositions(
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
 
-        // Capture exception with positions loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with positions loading context (no user address)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPositions',
-            action: 'positions_load',
-            operation: 'data_fetching',
           },
-          extra: {
-            positionsContext: {
+          context: {
+            name: 'usePredictPositions',
+            data: {
+              method: 'loadPositions',
+              action: 'positions_load',
+              operation: 'data_fetching',
               providerId,
               claimable,
               marketId,
@@ -148,6 +173,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       getPositions,
@@ -196,7 +222,10 @@ export function usePredictPositions(
   }, [autoRefreshTimeout]);
 
   return {
-    positions,
+    // Get claimable positions from controller state if claimable is true.
+    // This will ensure that we can refresh claimable positions when the user
+    // performs a claim operation.
+    positions: claimable ? filteredClaimablePositions : positions,
     isLoading,
     isRefreshing,
     error,

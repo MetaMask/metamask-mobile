@@ -2,6 +2,7 @@ export type { Region } from '../../../../../reducers/fiatOrders/types';
 export { RampType } from '../../../../../reducers/fiatOrders/types';
 
 export * from './analytics';
+export type { RampIntent } from '../../types';
 
 export enum PROVIDER_LINKS {
   HOMEPAGE = 'Homepage',
@@ -14,10 +15,4 @@ export interface QuickAmount {
   value: number;
   label: string;
   isNative?: boolean;
-}
-
-export interface RampIntent {
-  assetId?: string;
-  amount?: string;
-  currency?: string;
 }

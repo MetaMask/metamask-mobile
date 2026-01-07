@@ -402,6 +402,48 @@ describe('PerpsOpenOrderCard', () => {
       expect(screen.getByText(/0\.1\s+BTC/)).toBeOnTheScreen();
     });
 
+    it('strips hip3 prefix from asset symbol', () => {
+      const hip3Order = {
+        ...mockOrder,
+        symbol: 'hip3:BTC',
+        size: '1.5',
+        originalSize: '1.5',
+      };
+
+      render(<PerpsOpenOrderCard order={hip3Order} />);
+
+      // Should display "BTC" without the hip3 prefix
+      expect(screen.getByText(/1\.5\s+BTC/)).toBeOnTheScreen();
+    });
+
+    it('strips DEX prefix from asset symbol', () => {
+      const dexOrder = {
+        ...mockOrder,
+        symbol: 'xyz:TSLA',
+        size: '100',
+        originalSize: '100',
+      };
+
+      render(<PerpsOpenOrderCard order={dexOrder} />);
+
+      // Should display "TSLA" without the xyz prefix
+      expect(screen.getByText(/100\s+TSLA/)).toBeOnTheScreen();
+    });
+
+    it('keeps regular asset symbols unchanged', () => {
+      const solOrder = {
+        ...mockOrder,
+        symbol: 'SOL',
+        size: '50',
+        originalSize: '50',
+      };
+
+      render(<PerpsOpenOrderCard order={solOrder} />);
+
+      // Should display "SOL" as is
+      expect(screen.getByText(/50\s+SOL/)).toBeOnTheScreen();
+    });
+
     it('handles market orders', () => {
       const marketOrder = {
         ...mockOrder,

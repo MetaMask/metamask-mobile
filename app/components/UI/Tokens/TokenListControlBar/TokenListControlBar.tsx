@@ -29,9 +29,7 @@ export const TokenListControlBar = ({
       size={ButtonIconSizes.Lg}
       onPress={goToAddToken}
       iconName={IconName.Add}
-      isDisabled={!isEvmSelected}
       style={styles.controlIconButton}
-      disabled={!isEvmSelected}
     />
   );
 

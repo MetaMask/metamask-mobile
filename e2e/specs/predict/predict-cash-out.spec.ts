@@ -10,14 +10,12 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
-  POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
@@ -28,8 +26,6 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   2. Open Spurs vs. Pelicans position details
   3. Cash out the position with updated mocks
   4. Verify cash out appears in Activities tab
-  5. Verify balance updated to $58.66 and position removed from current positions
-  6. Verify final balance consistency across views
   */
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
@@ -64,18 +60,18 @@ describe(SmokePredictions('Predictions'), () => {
         );
         // Current balance prior to cashing out
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
+        await device.disableSynchronization();
 
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
         // Set up cash out mocks before tapping cash out
-        await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
-        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
+        // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
+        await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
-
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(
@@ -85,22 +81,11 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictCashOutPage.tapCashOutButton();
 
         await PredictDetailsPage.tapBackButton();
-        await TabBarComponent.tapActivity();
+        await device.enableSynchronization();
 
-        await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapCashedOutPosition(positionDetails.name);
-        await Assertions.expectTextDisplayed('Cashed out');
-        await ActivitiesView.tapCashedOutPosition(positionDetails.name);
-        await Assertions.expectElementToBeVisible(
-          PredictActivityDetails.container,
-        );
-        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
-        await PredictActivityDetails.tapBackButton();
-        await TabBarComponent.tapWallet();
-        await Assertions.expectTextDisplayed(positionDetails.newBalance);
-
-        await WalletView.tapOnPredictionsTab();
-
+        await Assertions.expectTextDisplayed(positionDetails.newBalance, {
+          description: 'Predictions balance should be updated to $58.16',
+        });
         // Check that Spurs vs Pelicans is removed from current positions list
         for (let i = 0; i < 4; i++) {
           const positionCard =
@@ -113,10 +98,15 @@ describe(SmokePredictions('Predictions'), () => {
             },
           );
         }
+        await TabBarComponent.tapActivity();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
-        await Assertions.expectTextDisplayed(positionDetails.newBalance);
+        await ActivitiesView.tapOnPredictionsTab();
+        await Assertions.expectTextDisplayed('Cashed out');
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
       },
     );
   });

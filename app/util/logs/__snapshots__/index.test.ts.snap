@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State Able to generate logs with Sanitized SeedlessOnboardingController sensitive data 1`] = `
+exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State generates logs with sanitized SeedlessOnboardingController sensitive data 1`] = `
 {
   "appVersion": "1",
   "buildNumber": "123",
@@ -128,15 +128,35 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "KeyringController": {
         "isUnlocked": true,
         "keyrings": [
-          "keyring1",
-          "keyring2",
+          {
+            "accounts": [
+              "0x1",
+            ],
+            "metadata": {
+              "id": "keyring1",
+              "name": "",
+            },
+            "type": "HD Key Tree",
+          },
+          {
+            "accounts": [
+              "0x2",
+            ],
+            "metadata": {
+              "id": "keyring2",
+              "name": "",
+            },
+            "type": "Simple Key Pair",
+          },
         ],
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},
       },
       "MultichainAssetsController": {
         "accountsAssets": {},
+        "allIgnoredAssets": {},
         "assetsMetadata": {},
       },
       "MultichainAssetsRatesController": {
@@ -290,6 +310,66 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
               },
             ],
           },
+          "0x38": {
+            "blockExplorerUrls": [],
+            "chainId": "0x38",
+            "defaultRpcEndpointIndex": 0,
+            "name": "BNB Chain",
+            "nativeCurrency": "BNB",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "bsc-mainnet",
+                "type": "infura",
+                "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0x89": {
+            "blockExplorerUrls": [],
+            "chainId": "0x89",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Polygon",
+            "nativeCurrency": "POL",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "polygon-mainnet",
+                "type": "infura",
+                "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xa": {
+            "blockExplorerUrls": [],
+            "chainId": "0xa",
+            "defaultRpcEndpointIndex": 0,
+            "name": "OP",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "optimism-mainnet",
+                "type": "infura",
+                "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xa4b1": {
+            "blockExplorerUrls": [],
+            "chainId": "0xa4b1",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Arbitrum",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "arbitrum-mainnet",
+                "type": "infura",
+                "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
           "0xaa36a7": {
             "blockExplorerUrls": [],
             "chainId": "0xaa36a7",
@@ -358,6 +438,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "0x18c6": false,
             "0x2105": true,
             "0x279f": false,
+            "0x38": true,
+            "0x531": true,
+            "0x89": true,
+            "0xa": true,
+            "0xa4b1": true,
             "0xaa36a7": false,
             "0xe705": false,
             "0xe708": true,
@@ -391,22 +476,22 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -418,10 +503,17 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "pendingOrders": [],
+        "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -475,25 +567,17 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
-      "RatesController": {
-        "cryptocurrencies": [
-          "btc",
-          "sol",
-        ],
-        "fiatCurrency": "usd",
-        "rates": {
-          "btc": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-          "sol": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-        },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
+      },
+      "RampsController": {
+        "geolocation": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -581,6 +665,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -592,6 +677,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -673,6 +759,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "transactionBatches": [],
         "transactions": [],
       },
+      "TransactionPayController": {
+        "transactionData": {},
+      },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
         "isBackupAndSyncEnabled": true,
@@ -682,6 +771,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
     },
   },
+  "loggedIn": true,
   "metaMetricsId": "6D796265-7374-4953-6D65-74616D61736B",
 }
 `;
@@ -814,15 +904,35 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "KeyringController": {
         "isUnlocked": true,
         "keyrings": [
-          "keyring1",
-          "keyring2",
+          {
+            "accounts": [
+              "0x1",
+            ],
+            "metadata": {
+              "id": "keyring1",
+              "name": "",
+            },
+            "type": "HD Key Tree",
+          },
+          {
+            "accounts": [
+              "0x2",
+            ],
+            "metadata": {
+              "id": "keyring2",
+              "name": "",
+            },
+            "type": "Simple Key Pair",
+          },
         ],
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},
       },
       "MultichainAssetsController": {
         "accountsAssets": {},
+        "allIgnoredAssets": {},
         "assetsMetadata": {},
       },
       "MultichainAssetsRatesController": {
@@ -976,6 +1086,66 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
               },
             ],
           },
+          "0x38": {
+            "blockExplorerUrls": [],
+            "chainId": "0x38",
+            "defaultRpcEndpointIndex": 0,
+            "name": "BNB Chain",
+            "nativeCurrency": "BNB",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "bsc-mainnet",
+                "type": "infura",
+                "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0x89": {
+            "blockExplorerUrls": [],
+            "chainId": "0x89",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Polygon",
+            "nativeCurrency": "POL",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "polygon-mainnet",
+                "type": "infura",
+                "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xa": {
+            "blockExplorerUrls": [],
+            "chainId": "0xa",
+            "defaultRpcEndpointIndex": 0,
+            "name": "OP",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "optimism-mainnet",
+                "type": "infura",
+                "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xa4b1": {
+            "blockExplorerUrls": [],
+            "chainId": "0xa4b1",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Arbitrum",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "arbitrum-mainnet",
+                "type": "infura",
+                "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
           "0xaa36a7": {
             "blockExplorerUrls": [],
             "chainId": "0xaa36a7",
@@ -1044,6 +1214,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "0x18c6": false,
             "0x2105": true,
             "0x279f": false,
+            "0x38": true,
+            "0x531": true,
+            "0x89": true,
+            "0xa": true,
+            "0xa4b1": true,
             "0xaa36a7": false,
             "0xe705": false,
             "0xe708": true,
@@ -1077,22 +1252,22 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -1104,10 +1279,17 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "pendingOrders": [],
+        "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1161,25 +1343,17 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
-      "RatesController": {
-        "cryptocurrencies": [
-          "btc",
-          "sol",
-        ],
-        "fiatCurrency": "usd",
-        "rates": {
-          "btc": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-          "sol": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-        },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
+      },
+      "RampsController": {
+        "geolocation": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -1200,6 +1374,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accessToken": false,
         "encryptedKeyringEncryptionKey": false,
         "encryptedSeedlessEncryptionKey": false,
+        "isSeedlessOnboardingUserAuthenticated": false,
         "metadataAccessToken": false,
         "nodeAuthTokens": [],
         "refreshToken": false,
@@ -1249,6 +1424,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -1260,6 +1436,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -1341,6 +1518,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "transactionBatches": [],
         "transactions": [],
       },
+      "TransactionPayController": {
+        "transactionData": {},
+      },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
         "isBackupAndSyncEnabled": true,
@@ -1350,6 +1530,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
     },
   },
+  "loggedIn": true,
   "metaMetricsId": "6D796265-7374-4953-6D65-74616D61736B",
 }
 `;

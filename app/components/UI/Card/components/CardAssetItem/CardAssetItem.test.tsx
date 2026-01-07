@@ -8,9 +8,6 @@ import { TokenI } from '../../../Tokens/types';
 // Mock dependencies
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../../util/networks/customNetworks');
-jest.mock(
-  '../../../Tokens/TokenList/TokenListItem/CustomNetworkNativeImgMapping',
-);
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
 import {
@@ -179,5 +176,27 @@ describe('CardAssetItem Component', () => {
     ));
 
     expect(getByText('ETH')).toBeOnTheScreen();
+  });
+
+  it('uses balanceFormatted when provided', () => {
+    const balanceFormatted = '1.234567 ETH';
+
+    renderWithProvider(() => (
+      <CardAssetItem
+        asset={mockAsset}
+        privacyMode={false}
+        balanceFormatted={balanceFormatted}
+      />
+    ));
+
+    expect(mockAsset.balance).toBe('1000000000000000000');
+  });
+
+  it('falls back to asset balance when balanceFormatted is not provided', () => {
+    renderWithProvider(() => (
+      <CardAssetItem asset={mockAsset} privacyMode={false} />
+    ));
+
+    expect(mockAsset.balance).toBe('1000000000000000000');
   });
 });

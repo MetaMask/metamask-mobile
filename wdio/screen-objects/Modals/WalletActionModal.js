@@ -3,6 +3,7 @@ import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class WalletActionModal {
 
@@ -51,11 +52,28 @@ class WalletActionModal {
     }
   }
 
+  get predictButton() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
+    }
+  }
+
+
+  async isSendButtonVisible() {
+    if (!this._device) {
+      await expect(this.sendButton).toBeDisplayed();
+    } else {
+      const element = await this.sendButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
   async tapSendButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
     } else {
-      await AppwrightGestures.tap(this.sendButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.sendButton); 
     }
   }
 
@@ -67,7 +85,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.swapButton); 
     }
   }
 
@@ -75,7 +93,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
-      await AppwrightGestures.tap(this.bridgeButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.bridgeButton); 
     }
   }
 
@@ -83,8 +101,15 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.perpsButton);
     } else {
-      const element = await this.perpsButton;
-      await AppwrightGestures.tap(element);
+      await AppwrightGestures.tap(await this.perpsButton);
+    }
+  }
+
+  async tapPredictButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.predictButton);
+    } else {
+      await AppwrightGestures.tap(await this.predictButton);
     }
   }
 }

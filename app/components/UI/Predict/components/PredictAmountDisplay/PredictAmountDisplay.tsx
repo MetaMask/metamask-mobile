@@ -11,6 +11,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -19,6 +20,25 @@ interface PredictAmountDisplayProps {
   hasError?: boolean;
 }
 
+const getFontSizeForInputLength = (contentLength: number) => {
+  if (contentLength <= 8) {
+    return 60;
+  }
+  if (contentLength <= 10) {
+    return 48;
+  }
+  if (contentLength <= 12) {
+    return 32;
+  }
+  if (contentLength <= 14) {
+    return 24;
+  }
+  if (contentLength <= 18) {
+    return 18;
+  }
+  return 12;
+};
+
 const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   amount,
   onPress,
@@ -26,6 +46,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   hasError = false,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -52,6 +73,8 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   }, [isActive, fadeAnim]);
 
   const amountValue = amount ? `$${amount}` : '$0';
+  const fontSize = getFontSizeForInputLength(amountValue.length);
+  const lineHeight = fontSize + 10; // Add 10px to font size for line height
 
   const content = (
     <Box
@@ -69,7 +92,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           color={hasError ? TextColor.Error : TextColor.Default}
           variant={TextVariant.BodyMDMedium}
           style={tw.style(
-            'text-[64px] tracking-tight leading-[74px] font-medium',
+            `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-2`,
           )}
         >
           {amountValue}
@@ -78,9 +101,10 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           <Animated.View
             testID="cursor"
             style={[
-              tw.style('w-0.5 h-[54px] ml-1 bg-default'),
+              tw.style(`w-0.5 h-[${lineHeight - 4}px] ml-0.5`),
               {
                 opacity: fadeAnim,
+                backgroundColor: colors.text.default,
               },
             ]}
           />

@@ -12,12 +12,17 @@ import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import {
   setEthAccounts,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
+import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -47,19 +52,34 @@ describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildERC20PermsForAddress(),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildERC20PermsForAddress(),
+            )
+            .build();
+        },
         restartDevice: true,
         smartContracts: [ERC20_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          ERC20_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(ERC20_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen

@@ -41,10 +41,14 @@ const STAKING_PROVIDER_MAP = {
 const isStaked = (n: StakeNotification) => DIRECTION_MAP[n.type] === 'staked';
 
 const descriptionStart = (n: StakeNotification) =>
-  isStaked(n) ? n.data.stake_in.symbol : n.data.stake_out.symbol;
+  isStaked(n)
+    ? n.payload.data.stake_in.symbol
+    : n.payload.data.stake_out.symbol;
 
 const descriptionEnd = (n: StakeNotification) => {
-  const token = isStaked(n) ? n.data.stake_in : n.data.stake_out;
+  const token = isStaked(n)
+    ? n.payload.data.stake_in
+    : n.payload.data.stake_out;
   const amount = getAmount(token.amount, token.decimals, {
     shouldEllipse: true,
   });
@@ -54,14 +58,16 @@ const descriptionEnd = (n: StakeNotification) => {
 };
 
 const imageUrl = (n: StakeNotification) => {
-  const token = isStaked(n) ? n.data.stake_in : n.data.stake_out;
+  const token = isStaked(n)
+    ? n.payload.data.stake_in
+    : n.payload.data.stake_out;
   return token.image;
 };
 
 const modalTitle = (n: StakeNotification) => {
   const title = isStaked(n)
     ? strings('notifications.modal.title_stake', {
-        symbol: n.data.stake_in.symbol,
+        symbol: n.payload.data.stake_in.symbol,
       })
     : strings('notifications.modal.title_unstake_completed');
 
@@ -88,26 +94,26 @@ const state: NotificationState<StakeNotification> = {
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.chain_id,
+      notification.payload.chain_id,
     );
 
     const stakedAssetFields: ModalField[] = [
       {
         type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_staked'),
-        description: notification.data.stake_in.symbol,
-        amount: getTokenAmount(notification.data.stake_in),
-        usdAmount: getTokenUSDAmount(notification.data.stake_in),
-        tokenIconUrl: notification.data.stake_in.image,
+        description: notification.payload.data.stake_in.symbol,
+        amount: getTokenAmount(notification.payload.data.stake_in),
+        usdAmount: getTokenUSDAmount(notification.payload.data.stake_in),
+        tokenIconUrl: notification.payload.data.stake_in.image,
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
       {
         type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_received'),
-        description: notification.data.stake_out.symbol,
-        amount: getTokenAmount(notification.data.stake_out),
-        usdAmount: getTokenUSDAmount(notification.data.stake_out),
-        tokenIconUrl: notification.data.stake_out.image,
+        description: notification.payload.data.stake_out.symbol,
+        amount: getTokenAmount(notification.payload.data.stake_out),
+        usdAmount: getTokenUSDAmount(notification.payload.data.stake_out),
+        tokenIconUrl: notification.payload.data.stake_out.image,
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
     ];
@@ -116,19 +122,19 @@ const state: NotificationState<StakeNotification> = {
       {
         type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_unstaking_requested'),
-        description: notification.data.stake_in.symbol,
-        amount: getTokenAmount(notification.data.stake_in),
-        usdAmount: getTokenUSDAmount(notification.data.stake_in),
-        tokenIconUrl: notification.data.stake_in.image,
+        description: notification.payload.data.stake_in.symbol,
+        amount: getTokenAmount(notification.payload.data.stake_in),
+        usdAmount: getTokenUSDAmount(notification.payload.data.stake_in),
+        tokenIconUrl: notification.payload.data.stake_in.image,
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
       {
         type: ModalFieldType.ASSET,
         label: strings('notifications.modal.label_unstaking_confirmed'),
-        description: notification.data.stake_out.symbol,
-        amount: getTokenAmount(notification.data.stake_out),
-        usdAmount: getTokenUSDAmount(notification.data.stake_out),
-        tokenIconUrl: notification.data.stake_out.image,
+        description: notification.payload.data.stake_out.symbol,
+        amount: getTokenAmount(notification.payload.data.stake_out),
+        usdAmount: getTokenUSDAmount(notification.payload.data.stake_out),
+        tokenIconUrl: notification.payload.data.stake_out.image,
         tokenNetworkUrl: nativeTokenDetails?.image,
       },
     ];
@@ -140,25 +146,25 @@ const state: NotificationState<StakeNotification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
-          address: notification.address,
+          address: notification.payload.address,
         },
         ...(isStaked(notification) ? stakedAssetFields : unstakedAssetFields),
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.tx_hash,
+          txHash: notification.payload.tx_hash,
         },
         {
           type: ModalFieldType.STAKING_PROVIDER,
           stakingProvider: STAKING_PROVIDER_MAP[notification.type],
           tokenIconUrl: isStaked(notification)
-            ? notification.data.stake_out.image
-            : notification.data.stake_in.image,
+            ? notification.payload.data.stake_out.image
+            : notification.payload.data.stake_in.image,
         },
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.chain_id,
-        txHash: notification.tx_hash,
+        chainId: notification.payload.chain_id,
+        txHash: notification.payload.tx_hash,
       },
     };
   },

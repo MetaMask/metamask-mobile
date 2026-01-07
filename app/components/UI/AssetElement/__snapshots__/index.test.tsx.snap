@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetElement should render correctly 1`] = `
+exports[`AssetElement renders correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   onLongPress={[Function]}
@@ -8,7 +8,6 @@ exports[`AssetElement should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "flex": 1,
       "flexDirection": "row",
       "height": 64,
     }

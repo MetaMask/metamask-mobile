@@ -1,4 +1,4 @@
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { ImageSourcePropType } from 'react-native';
 
 export interface NotificationMenuItem {
@@ -29,7 +29,7 @@ export interface NotificationMenuItem {
   /**
    * This is the small badge icon on the notification icon
    */
-  badgeIcon: IconName;
+  badgeIcon?: IconName;
 
   /**
    * Timestamp of the notification.
@@ -38,7 +38,10 @@ export interface NotificationMenuItem {
   createdAt: string;
 
   /**
-   * A boolean that indicates if the notification is read or not
+   * A CTA Link for a notification item
    */
-  isRead?: boolean;
+  cta?: {
+    content: string;
+    link: string;
+  };
 }

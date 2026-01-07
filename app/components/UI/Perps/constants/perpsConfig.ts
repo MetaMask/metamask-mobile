@@ -29,6 +29,8 @@ export const PERPS_CONSTANTS = {
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
   ZERO_AMOUNT_DISPLAY: '$0', // Display for zero dollar amounts (e.g., no volume)
   ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
+
+  RECENT_ACTIVITY_LIMIT: 3,
 } as const;
 
 /**
@@ -69,6 +71,32 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
+
+  // Price deviation threshold (as decimal, 0.1 = 10%)
+  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
+} as const;
+
+/**
+ * Order slippage configuration
+ * Controls default slippage tolerance for different order types
+ * Conservative defaults based on HyperLiquid platform interface
+ * See: docs/perps/hyperliquid/ORDER-MATCHING-ERRORS.md
+ */
+export const ORDER_SLIPPAGE_CONFIG = {
+  // Market order slippage (basis points)
+  // 300 basis points = 3% = 0.03 decimal
+  // Conservative default for measured rollout, prevents most IOC failures
+  DEFAULT_MARKET_SLIPPAGE_BPS: 300,
+
+  // TP/SL order slippage (basis points)
+  // 1000 basis points = 10% = 0.10 decimal
+  // Aligns with HyperLiquid platform default for triggered orders
+  DEFAULT_TPSL_SLIPPAGE_BPS: 1000,
+
+  // Limit order slippage (basis points)
+  // 100 basis points = 1% = 0.01 decimal
+  // Kept conservative as limit orders rest on book (not IOC/immediate execution)
+  DEFAULT_LIMIT_SLIPPAGE_BPS: 100,
 } as const;
 
 /**
@@ -82,7 +110,7 @@ export const PERFORMANCE_CONFIG = {
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 1000,
+  VALIDATION_DEBOUNCE_MS: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
@@ -191,15 +219,15 @@ export const TP_SL_VIEW_CONFIG = {
  */
 export const LIMIT_PRICE_CONFIG = {
   // Preset percentage options for quick selection
-  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+  PRESET_PERCENTAGES: [1, 2], // Available as both positive and negative
 
   // Modal opening delay when switching to limit order (milliseconds)
   // Allows order type modal to close smoothly before opening limit price modal
   MODAL_OPEN_DELAY: 300,
 
-  // Direction-specific preset configurations
-  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
-  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+  // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
+  LONG_PRESETS: [-1, -2], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2], // Sell above market for short orders
 } as const;
 
 /**
@@ -244,6 +272,36 @@ export const CLOSE_POSITION_CONFIG = {
 } as const;
 
 /**
+ * Margin adjustment configuration
+ * Controls behavior for adding/removing margin from positions
+ */
+export const MARGIN_ADJUSTMENT_CONFIG = {
+  // Risk thresholds for margin removal warnings
+  // Threshold values represent ratio of (price distance to liquidation) / (liquidation price)
+  // Values < 1.0 mean price is dangerously close to liquidation
+  LIQUIDATION_RISK_THRESHOLD: 1.2, // 20% buffer before liquidation - triggers danger state
+  LIQUIDATION_WARNING_THRESHOLD: 1.5, // 50% buffer before liquidation - triggers warning state
+
+  // Minimum margin adjustment amount (USD)
+  // Prevents dust adjustments and ensures meaningful position changes
+  MIN_ADJUSTMENT_AMOUNT: 1,
+
+  // Precision for margin calculations
+  // Ensures accurate decimal handling in margin/leverage calculations
+  CALCULATION_PRECISION: 6,
+
+  // Safety buffer for margin removal to account for HyperLiquid's transfer margin requirement
+  // HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
+  // See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+  MARGIN_REMOVAL_SAFETY_BUFFER: 0.1,
+
+  // Fallback max leverage when market data is unavailable
+  // Conservative value to prevent over-removal of margin
+  // Most HyperLiquid assets support at least 50x leverage
+  FALLBACK_MAX_LEVERAGE: 50,
+} as const;
+
+/**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
@@ -273,6 +331,11 @@ export const DECIMAL_PRECISION_CONFIG = {
   // Maximum decimal places for price input (matches Hyperliquid limit)
   // Used in TP/SL forms, limit price inputs, and price validation
   MAX_PRICE_DECIMALS: 6,
+  // Defensive fallback for size decimals when market data fails to load
+  // Real szDecimals should always come from market data API (varies by asset)
+  // Using 6 as safe maximum to prevent crashes (covers most assets)
+  // NOTE: This is NOT semantically correct - just a defensive measure
+  FALLBACK_SIZE_DECIMALS: 6,
 } as const;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
@@ -301,6 +364,10 @@ export const DEVELOPMENT_CONFIG = {
  * Controls carousel limits and display settings for the main Perps home screen
  */
 export const HOME_SCREEN_CONFIG = {
+  // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
+  // Can be controlled via feature flag in the future
+  SHOW_HEADER_ACTION_BUTTONS: true,
+
   // Maximum number of items to show in each carousel
   POSITIONS_CAROUSEL_LIMIT: 10,
   ORDERS_CAROUSEL_LIMIT: 10,
@@ -397,7 +464,7 @@ export type SortButtonPreset =
  */
 export const LEARN_MORE_CONFIG = {
   EXTERNAL_URL: 'https://metamask.io/perps',
-  TITLE_KEY: 'perps.learn_more.title',
+  TITLE_KEY: 'perps.tutorial.card.title',
   DESCRIPTION_KEY: 'perps.learn_more.description',
   CTA_KEY: 'perps.learn_more.cta',
 } as const;
@@ -410,4 +477,45 @@ export const SUPPORT_CONFIG = {
   URL: 'https://support.metamask.io',
   TITLE_KEY: 'perps.support.title',
   DESCRIPTION_KEY: 'perps.support.description',
+} as const;
+
+/**
+ * Support article URLs
+ * Links to specific MetaMask support articles for Perps features
+ */
+export const PERPS_SUPPORT_ARTICLES_URLS = {
+  ADL_URL:
+    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+} as const;
+
+/**
+ * Stop loss prompt banner configuration
+ * Controls when and how the stop loss prompt banner is displayed
+ * Based on TAT-1693 specifications
+ */
+export const STOP_LOSS_PROMPT_CONFIG = {
+  // Distance to liquidation threshold (percentage)
+  // Shows "Add margin" banner when position is within this % of liquidation
+  LIQUIDATION_DISTANCE_THRESHOLD: 3,
+
+  // ROE (Return on Equity) threshold (percentage)
+  // Shows "Set stop loss" banner when ROE drops below this value
+  ROE_THRESHOLD: -10,
+
+  // Minimum loss threshold to show ANY banner (percentage)
+  // No banner shown until ROE drops below this value
+  MIN_LOSS_THRESHOLD: -10,
+
+  // Debounce duration for ROE threshold (milliseconds)
+  // User must have ROE below threshold for this duration before showing banner
+  // Prevents banner from appearing during temporary price fluctuations
+  ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+
+  // Minimum position age before showing any banner (milliseconds)
+  // Prevents banner from appearing immediately after opening a position
+  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
+
+  // Suggested stop loss ROE percentage
+  // When suggesting a stop loss, calculate price at this ROE from entry
+  SUGGESTED_STOP_LOSS_ROE: -50,
 } as const;

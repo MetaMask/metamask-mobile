@@ -236,7 +236,7 @@ describe('collectibles selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   describe('multichainCollectiblesByEnabledNetworksSelector', () => {
     it('should return NFTs only for enabled networks', () => {

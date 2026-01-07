@@ -11,7 +11,7 @@ import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
@@ -739,12 +739,12 @@ const EditGasFee1559 = ({
                 showInfoModal === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : showInfoModal === 'max_priority_fee'
-                  ? strings('edit_gas_fee_eip1559.max_priority_fee')
-                  : showInfoModal === 'max_fee'
-                  ? strings('edit_gas_fee_eip1559.max_fee')
-                  : showInfoModal === 'new_gas_fee'
-                  ? strings('edit_gas_fee_eip1559.new_gas_fee')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.max_priority_fee')
+                    : showInfoModal === 'max_fee'
+                      ? strings('edit_gas_fee_eip1559.max_fee')
+                      : showInfoModal === 'new_gas_fee'
+                        ? strings('edit_gas_fee_eip1559.new_gas_fee')
+                        : null
               }
               toggleModal={() => setShowInfoModal(null)}
               body={

@@ -32,7 +32,6 @@ import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  BIOMETRY_CHOICE,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -80,6 +79,7 @@ import {
   AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -398,17 +398,6 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  unlockWithBiometrics = async () => {
-    // Try to use biometrics to unlock
-    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-    if (biometryChoice) {
-      const credentials = await Authentication.getPassword();
-      if (credentials) {
-        this.tryUnlockWithPassword(credentials.password);
-      }
-    }
-  };
-
   async componentDidMount() {
     this.updateNavBar();
 
@@ -417,9 +406,8 @@ class ResetPassword extends PureComponent {
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
@@ -435,7 +423,7 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      this.unlockWithBiometrics();
+      this.reauthenticate();
     }
 
     this.setState(state);
@@ -543,13 +531,22 @@ class ResetPassword extends PureComponent {
 
       // Set biometrics for new password
       await Authentication.resetPassword();
+
       try {
         // compute and store the new authentication method
         const authData = await Authentication.componentAuthenticationType(
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePassword(password, authData.currentAuthType);
+        await Authentication.storePasswordWithFallback(password, authData);
+        if (
+          Authentication.authData.currentAuthType ===
+          AUTHENTICATION_TYPE.BIOMETRIC
+        ) {
+          await updateAuthTypeStorageFlags(this.state.biometryChoice);
+        } else {
+          await updateAuthTypeStorageFlags(false);
+        }
       } catch (error) {
         Logger.error(error);
       }
@@ -625,7 +622,6 @@ class ResetPassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 
@@ -649,29 +645,43 @@ class ResetPassword extends PureComponent {
     await KeyringController.exportSeedPhrase(password);
   };
 
-  tryUnlockWithPassword = async (password) => {
+  reauthenticate = async (password) => {
     this.setState({ ready: false });
     try {
-      // Just try
-      await this.tryExportSeedPhrase(password);
+      const { password: verifiedPassword } =
+        await Authentication.reauthenticate(password);
       this.setState({
         password: null,
-        originalPassword: password,
+        originalPassword: verifiedPassword,
         ready: true,
         view: RESET_PASSWORD,
       });
     } catch (e) {
+      // Don't show warning if password is not set with biometrics
+      if (
+        e.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        return;
+      }
+
+      // Show warning if password is incorrect
       const msg = strings('reveal_credential.warning_incorrect_password');
       this.setState({
         warningIncorrectPassword: msg,
+      });
+    } finally {
+      // Resolve UI loading state
+      this.setState({
         ready: true,
       });
     }
   };
 
-  tryUnlock = () => {
+  reauthenticateWithPassword = () => {
     const { password } = this.state;
-    this.tryUnlockWithPassword(password);
+    this.reauthenticate(password);
   };
 
   onPasswordChange = (val) => {
@@ -816,7 +826,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
-                onSubmitEditing={this.tryUnlock}
+                onSubmitEditing={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
                 autoComplete="current-password"
@@ -827,7 +837,7 @@ class ResetPassword extends PureComponent {
               <Button
                 {...getCommonButtonProps()}
                 label={strings('manual_backup_step_1.confirm')}
-                onPress={this.tryUnlock}
+                onPress={this.reauthenticateWithPassword}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 isDisabled={!this.state.password}
               />

@@ -31,6 +31,12 @@ jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock PredictTabView
+jest.mock('../../UI/Predict/views/PredictTabView', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -52,6 +58,16 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
+  ),
+}));
+
+// Mock the Predict feature flag selector - will be controlled per test
+let mockPredictEnabled = true;
+let mockPredictGTMModalEnabled = false;
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
+  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
+    () => mockPredictGTMModalEnabled,
   ),
 }));
 
@@ -253,6 +269,14 @@ const mockInitialState = {
   multichain: {
     dismissedBanners: [], // Added missing property
   },
+  onboarding: {
+    completedOnboarding: true,
+  },
+  legalNotices: {
+    isPna25Acknowledged: false,
+    newPrivacyPolicyToastShownDate: null,
+    newPrivacyPolicyToastClickedOrClosed: false,
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -365,11 +389,6 @@ jest.mock('../../../util/address', () => ({
       },
     },
   }),
-}));
-
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
@@ -964,10 +983,7 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
-      '../../../util/networks',
-    );
+  describe('Network Manager Integration', () => {
     const { useNetworkSelection } = jest.requireMock(
       '../../../components/hooks/useNetworkSelection/useNetworkSelection',
     );
@@ -984,23 +1000,20 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState
               .NetworkEnablementController,
             enabledNetworkMap: {
-              eip155: enabledNetworks.reduce((acc, network) => {
-                acc[network] = true;
-                return acc;
-              }, {} as Record<string, boolean>),
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
             },
           },
         },
       },
     });
 
-    const setupMocks = (
-      mockSelectNetwork: jest.Mock,
-      featureFlagEnabled: boolean,
-    ) => {
-      jest
-        .mocked(isRemoveGlobalNetworkSelectorEnabled)
-        .mockReturnValue(featureFlagEnabled);
+    const setupMocks = (mockSelectNetwork: jest.Mock) => {
       jest.mocked(useNetworkSelection).mockReturnValue({
         selectNetwork: mockSelectNetwork,
       });
@@ -1018,40 +1031,27 @@ describe('Wallet', () => {
       jest.clearAllMocks();
     });
 
-    describe('when feature flag is enabled', () => {
-      it('should call selectNetwork when no enabled EVM networks', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, true);
+    it('should call selectNetwork when no enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
 
-        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
-        renderWalletWithState(stateWithNoEnabledNetworks);
+      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+      renderWalletWithState(stateWithNoEnabledNetworks);
 
-        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-      });
-
-      it('should not call selectNetwork when there are enabled EVM networks', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, true);
-
-        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
-          '0x1',
-          '0x5',
-        ]);
-        renderWalletWithState(stateWithEnabledNetworks);
-
-        expect(mockSelectNetwork).not.toHaveBeenCalled();
-      });
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     });
 
-    describe('when feature flag is disabled', () => {
-      it('should not call selectNetwork', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, false);
+    it('should not call selectNetwork when there are enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
 
-        renderWalletWithState(mockInitialState);
+      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+        '0x1',
+        '0x5',
+      ]);
+      renderWalletWithState(stateWithEnabledNetworks);
 
-        expect(mockSelectNetwork).not.toHaveBeenCalled();
-      });
+      expect(mockSelectNetwork).not.toHaveBeenCalled();
     });
   });
 
@@ -1074,11 +1074,17 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
+      mockPerpsGTMModalEnabled = false; // Reset to default
+      mockPredictEnabled = true; // Reset to default
+      mockPredictGTMModalEnabled = false; // Reset to default
     });
 
     it('should register visibility callback when Perps is enabled', () => {
@@ -1225,6 +1231,234 @@ describe('Wallet', () => {
     });
   });
 
+  describe('Predict Tab Visibility', () => {
+    let mockPredictTabView: jest.Mock;
+    let mockNavigation: NavigationProp<ParamListBase>;
+
+    beforeEach(() => {
+      // Get the actual mock that was created at the top
+      mockPredictTabView = jest.requireMock(
+        '../../UI/Predict/views/PredictTabView',
+      ).default;
+      mockPredictTabView.mockClear();
+
+      // Setup navigation mock
+      mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Default to enabled
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockPerpsEnabled = true; // Reset to default
+      mockPerpsGTMModalEnabled = false; // Reset to default
+      mockPredictEnabled = true; // Reset to default
+      mockPredictGTMModalEnabled = false; // Reset to default
+    });
+
+    it('should render PredictTabView when Predict is enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Debug: Check if TabsList was rendered
+      expect(mockTabsListComponent).toHaveBeenCalled();
+
+      // Check that PredictTabView was rendered
+      expect(mockPredictTabView).toHaveBeenCalled();
+
+      // Check the props it was called with
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should calculate correct predictTabIndex when both Perps and Predict are enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Predict should be at index 2 when Perps is enabled (Tokens=0, Perps=1, Predict=2)
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should calculate correct predictTabIndex when Predict is enabled but Perps is disabled', () => {
+      // Set Perps to disabled for this test
+      mockPerpsEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                perpsPerpTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Predict should be at index 1 when Perps is disabled (Tokens=0, Predict=1)
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should not render PredictTabView when Predict is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPredictEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // PredictTabView should not be rendered
+      expect(mockPredictTabView).not.toHaveBeenCalled();
+    });
+
+    it('should not render PredictTabView on tab change when Predict is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPredictEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Simulate tab change
+      const tabsList = mockTabsListComponent.mock.calls[0][0];
+      tabsList.onChangeTab({
+        i: 2,
+        ref: { props: { tabLabel: 'Predict' } },
+      });
+
+      // PredictTabView should not be rendered since Predict is disabled
+      expect(mockPredictTabView).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Perps GTM Modal Navigation', () => {
     let mockNavigation: NavigationProp<ParamListBase>;
 
@@ -1242,12 +1476,16 @@ describe('Wallet', () => {
       // Reset flags to default state
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       // Reset mocks and flags
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
       jest.clearAllMocks();
     });
 

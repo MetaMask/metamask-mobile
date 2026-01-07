@@ -1,115 +1,12 @@
 /**
  * Mock response data for Polymarket activity API endpoints
- * Endpoint: /activity?user
+ * Endpoint: /activity?user&excludeLostRedeems=true
+ * Note: Lost redeems (claim activities with no payout) are excluded by the API
  */
 
 import { PROXY_WALLET_ADDRESS } from './polymarket-constants';
 
 export const POLYMARKET_ACTIVITY_RESPONSE = [
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    timestamp: 1760559935,
-    conditionId:
-      '0x39d45b454dcf932767962ad9cbd858c5a6ec21d4d48318a484775b2e83264467',
-    type: 'TRADE',
-    size: 8.333332,
-    usdcSize: 0.999999,
-    transactionHash:
-      '0x31c80f8e6c9e6dfdaf77ec6cb5022451211b23c258b5ad2f853f12925f9e4540',
-    price: 0.11999989919998387,
-    asset:
-      '19740329944962592380580142050369523795065853055987745520766432334608119837023',
-    side: 'BUY',
-    outcomeIndex: 0,
-    title: 'Will the Buffalo Bills win Super Bowl 2026?',
-    slug: 'will-the-buffalo-bills-win-super-bowl-2026',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/BUF.png',
-    eventSlug: 'super-bowl-champion-2026-731',
-    outcome: 'Yes',
-    name: 'cropMaster',
-    pseudonym: 'Nonstop-Suitcase',
-    bio: '',
-    profileImage: '',
-    profileImageOptimized: '',
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    timestamp: 1760548631,
-    conditionId:
-      '0x1d395b8dea9dd429fbce85f8b8cbd5aa85ec8a2e8980755756be3eec03da5b9a',
-    type: 'TRADE',
-    size: 7.692306,
-    usdcSize: 0.999999,
-    transactionHash:
-      '0xb9a9ebbf1bda55d76c9c7138159aa58ab074890a41d3237b2a853319059be45b',
-    price: 0.12999989859997768,
-    asset:
-      '11584273833068499329017832956188664326032555278943683999231427554688326830185',
-    side: 'BUY',
-    outcomeIndex: 0,
-    title: 'Will the Kansas City Chiefs win Super Bowl 2026?',
-    slug: 'will-the-kansas-city-chiefs-win-super-bowl-2026',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/KC.png',
-    eventSlug: 'super-bowl-champion-2026-731',
-    outcome: 'Yes',
-    name: 'cropMaster',
-    pseudonym: 'Nonstop-Suitcase',
-    bio: '',
-    profileImage: '',
-    profileImageOptimized: '',
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    timestamp: 1760547989,
-    conditionId:
-      '0xc40cbb2d7f5d2c43c624bd5b1d0b18cd3d0682b3937363ec7c1ad1d13bee107e',
-    type: 'TRADE',
-    size: 13.513512,
-    usdcSize: 1.499999,
-    transactionHash:
-      '0xca1022f7d70055b8a82e9a96f53c99d52fb84a822e96f87b848c2ea916d75b6d',
-    price: 0.1109999384319931,
-    asset:
-      '72685162394098505217895638060393901041260225434938300730127268362092284806692',
-    side: 'BUY',
-    outcomeIndex: 0,
-    title: 'Will Andrew Cuomo win the 2025 NYC mayoral election?',
-    slug: 'will-andrew-cuomo-win-the-2025-nyc-mayoral-election',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/will-andrew-cuomo-win-the-2025-nyc-mayoral-election-CFbNR1wG_T2X.jpg',
-    eventSlug: 'new-york-city-mayoral-election',
-    outcome: 'Yes',
-    name: 'cropMaster',
-    pseudonym: 'Nonstop-Suitcase',
-    bio: '',
-    profileImage: '',
-    profileImageOptimized: '',
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    timestamp: 1760547765,
-    conditionId:
-      '0x1d395b8dea9dd429fbce85f8b8cbd5aa85ec8a2e8980755756be3eec03da5b9a',
-    type: 'TRADE',
-    size: 7.692306,
-    usdcSize: 0.999999,
-    transactionHash:
-      '0x0b002df06d4657889b82367dc2c5a05847e9dec4299e628d7a93f5b1ce304f7d',
-    price: 0.12999989859997768,
-    asset:
-      '11584273833068499329017832956188664326032555278943683999231427554688326830185',
-    side: 'BUY',
-    outcomeIndex: 0,
-    title: 'Will the Kansas City Chiefs win Super Bowl 2026?',
-    slug: 'will-the-kansas-city-chiefs-win-super-bowl-2026',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/KC.png',
-    eventSlug: 'super-bowl-champion-2026-731',
-    outcome: 'Yes',
-    name: 'cropMaster',
-    pseudonym: 'Nonstop-Suitcase',
-    bio: '',
-    profileImage: '',
-    profileImageOptimized: '',
-  },
   {
     proxyWallet: PROXY_WALLET_ADDRESS,
     timestamp: 1760387981,
@@ -208,6 +105,110 @@ export const POLYMARKET_ACTIVITY_RESPONSE = [
     icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/nfl.png',
     eventSlug: 'nfl-sea-jax-2025-10-12',
     outcome: 'Jaguars',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1760559935,
+    conditionId:
+      '0x39d45b454dcf932767962ad9cbd858c5a6ec21d4d48318a484775b2e83264467',
+    type: 'TRADE',
+    size: 8.333332,
+    usdcSize: 0.999999,
+    transactionHash:
+      '0x31c80f8e6c9e6dfdaf77ec6cb5022451211b23c258b5ad2f853f12925f9e4540',
+    price: 0.11999989919998387,
+    asset:
+      '19740329944962592380580142050369523795065853055987745520766432334608119837023',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Will the Buffalo Bills win Super Bowl 2026?',
+    slug: 'will-the-buffalo-bills-win-super-bowl-2026',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/BUF.png',
+    eventSlug: 'super-bowl-champion-2026-731',
+    outcome: 'Yes',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1760548631,
+    conditionId:
+      '0x1d395b8dea9dd429fbce85f8b8cbd5aa85ec8a2e8980755756be3eec03da5b9a',
+    type: 'TRADE',
+    size: 7.692306,
+    usdcSize: 0.999999,
+    transactionHash:
+      '0xb9a9ebbf1bda55d76c9c7138159aa58ab074890a41d3237b2a853319059be45b',
+    price: 0.12999989859997768,
+    asset:
+      '11584273833068499329017832956188664326032555278943683999231427554688326830185',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Will the Kansas City Chiefs win Super Bowl 2026?',
+    slug: 'will-the-kansas-city-chiefs-win-super-bowl-2026',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/KC.png',
+    eventSlug: 'super-bowl-champion-2026-731',
+    outcome: 'Yes',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1760547989,
+    conditionId:
+      '0xc40cbb2d7f5d2c43c624bd5b1d0b18cd3d0682b3937363ec7c1ad1d13bee107e',
+    type: 'TRADE',
+    size: 13.513512,
+    usdcSize: 1.499999,
+    transactionHash:
+      '0xca1022f7d70055b8a82e9a96f53c99d52fb84a822e96f87b848c2ea916d75b6d',
+    price: 0.1109999384319931,
+    asset:
+      '72685162394098505217895638060393901041260225434938300730127268362092284806692',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Will Andrew Cuomo win the 2025 NYC mayoral election?',
+    slug: 'will-andrew-cuomo-win-the-2025-nyc-mayoral-election',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/will-andrew-cuomo-win-the-2025-nyc-mayoral-election-CFbNR1wG_T2X.jpg',
+    eventSlug: 'new-york-city-mayoral-election',
+    outcome: 'Yes',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1760547765,
+    conditionId:
+      '0x1d395b8dea9dd429fbce85f8b8cbd5aa85ec8a2e8980755756be3eec03da5b9a',
+    type: 'TRADE',
+    size: 7.692306,
+    usdcSize: 0.999999,
+    transactionHash:
+      '0x0b002df06d4657889b82367dc2c5a05847e9dec4299e628d7a93f5b1ce304f7d',
+    price: 0.12999989859997768,
+    asset:
+      '11584273833068499329017832956188664326032555278943683999231427554688326830185',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Will the Kansas City Chiefs win Super Bowl 2026?',
+    slug: 'will-the-kansas-city-chiefs-win-super-bowl-2026',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/NFL+Team+Logos/KC.png',
+    eventSlug: 'super-bowl-champion-2026-731',
+    outcome: 'Yes',
     name: 'cropMaster',
     pseudonym: 'Nonstop-Suitcase',
     bio: '',
@@ -340,6 +341,87 @@ export const POLYMARKET_ACTIVITY_RESPONSE = [
     outcome: 'Yes',
     name: 'cropMaster',
     pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+];
+
+export const POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1762189059,
+    conditionId:
+      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
+    type: 'REDEEM',
+    size: 15,
+    usdcSize: 15,
+    transactionHash:
+      '0x205120808686f9164ca306404e6221cd0fda524002587a410bebdff3f7d3858c',
+    price: 0,
+    asset: '',
+    side: '',
+    outcomeIndex: 999,
+    title: 'Blue Jays vs. Mariners',
+    slug: 'mlb-tor-sea-2025-10-17',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
+    eventSlug: 'mlb-tor-sea-2025-10-17',
+    outcome: '',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1762189060,
+    conditionId:
+      '0xa13312b2cc64532aed2a446b66e5a2d8d8b440b24d7213d33b6dae6a58c33223',
+    type: 'REDEEM',
+    size: 5,
+    usdcSize: 5,
+    transactionHash:
+      '0x205120808686f9164ca306404e6221cd0fda524002587a410bebdff3f7d3858d',
+    price: 0,
+    asset: '',
+    side: '',
+    outcomeIndex: 999,
+    title: 'Steelers vs. Bengals',
+    slug: 'nfl-pit-cin-2025-10-16',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/nfl.png',
+    eventSlug: 'nfl-pit-cin-2025-10-16',
+    outcome: '',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+];
+export const POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: Math.floor(Date.now() / 1000), // Current timestamp
+    conditionId:
+      '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
+    type: 'TRADE',
+    size: 11.904758, // Shares received
+    usdcSize: 10, // Amount spent
+    transactionHash:
+      '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+    price: 0.84, // Price per share
+    asset:
+      '51851880223290407825872150827934296608070009371891114025629582819868766043137',
+    side: 'BUY',
+    outcomeIndex: 0,
+    title: 'Celtics vs. Nets',
+    slug: 'nba-bos-bkn-2025-11-18',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+    eventSlug: 'nba-bos-bkn-2025-11-18',
+    outcome: 'Celtics',
+    name: 'cropMaster',
+    pseudonym: 'cropMaster',
     bio: '',
     profileImage: '',
     profileImageOptimized: '',

@@ -5,7 +5,6 @@ import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
@@ -76,7 +75,6 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
       classification: reason,
       resultType: result_type,
       reproduce: JSON.stringify(features),
-      blockaidVersion: BlockaidVersionInfo.BlockaidVersion,
     };
 
     (async () => {

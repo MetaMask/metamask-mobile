@@ -105,14 +105,19 @@ PERFORMANCE OPTIMIZATIONS:
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        window.visibleCandleCount = 45; // Default visible candle count
+        window.visibleCandleCount = 30; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
-        
+        window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
+
+        // Cache for Intl.NumberFormat instances to avoid expensive recreation
+        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
+        window.formatterCache = new Map();
+
         // Zoom limits - consistent with chart configuration
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 45 // Default visible candles
+            DEFAULT_CANDLES: 30 // Default visible candles
         };
         
         // Performance optimization variables
@@ -127,6 +132,22 @@ PERFORMANCE OPTIMIZATIONS:
         // Reset prevention variables
         window.hasUserInteracted = false; // Track if user has ever interacted with the chart
         window.lastDataLength = 0; // Track actual data changes vs rerenders
+
+        // Get or create cached Intl.NumberFormat for given decimal precision
+        // Caching prevents expensive formatter recreation on every Y-axis label render
+        window.getCachedFormatter = function(decimals) {
+            const key = String(decimals);
+
+            if (!window.formatterCache.has(key)) {
+                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                }));
+            }
+
+            return window.formatterCache.get(key);
+        };
+
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -184,40 +205,58 @@ PERFORMANCE OPTIMIZATIONS:
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Smart decimal precision based on price value and range
+                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
+                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
+                            // consistency with header and pills at normal zoom levels
+
+                            if (price === 0) return '0';
+                            if (isNaN(price)) return '0';
+
                             const absPrice = Math.abs(price);
-                            
-                            if (absPrice >= 1000) {
-                                // For large values (like ETH), show no decimals
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                }).format(price);
-                            } else if (absPrice >= 100) {
-                                // For medium values, show 1 decimal place
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1
-                                }).format(price);
-                            } else if (absPrice >= 1) {
-                                // For small values, show 2 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }).format(price);
-                            } else if (absPrice >= 0.01) {
-                                // For very small values, show 4 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 4,
-                                    maximumFractionDigits: 4
-                                }).format(price);
-                            } else {
-                                // For extremely small values (like PUMP-USD), show 6 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 6,
-                                    maximumFractionDigits: 6
-                                }).format(price);
+
+                            // Get base formatting configuration from universal ranges
+                            let rangeConfig = null;
+                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                                    rangeConfig = window.PRICE_RANGES[i];
+                                    break;
+                                }
                             }
+                            if (!rangeConfig) {
+                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
+                            }
+
+                            // Calculate base formatting with significant digits
+                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
+                                price,
+                                rangeConfig.sigDig,
+                                rangeConfig.minDec,
+                                rangeConfig.maxDec
+                            );
+
+                            // Determine if we need extra decimals based on visible range
+                            let finalDecimals = baseDecimals;
+
+                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                const span = window.visiblePriceRange.span;
+
+                                // Dynamic decimal adjustment based on zoom level
+                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
+                                if (span < 1) {
+                                    finalDecimals = Math.max(4, baseDecimals);
+                                } else if (span < 10) {
+                                    finalDecimals = Math.max(3, baseDecimals);
+                                } else if (span < 100) {
+                                    finalDecimals = Math.max(2, baseDecimals);
+                                }
+                                // For span >= 100, use baseDecimals (no adjustment needed)
+                            }
+
+                            // Format with final decimal precision using cached formatter
+                            const formatter = window.getCachedFormatter(finalDecimals);
+                            const formatted = formatter.format(formattedValue);
+                            // Strip trailing zeros to match header formatting
+                            return formatted.replace(/(\.[0-9]*?)0+$/, '$1').replace(/\.$/, '');
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
@@ -413,6 +452,68 @@ PERFORMANCE OPTIMIZATIONS:
             return window.candlestickSeries;
         };
         
+        // Function to update visible price range for dynamic formatting
+        window.updateVisiblePriceRange = function() {
+            if (!window.allCandleData || window.allCandleData.length === 0) {
+                return;
+            }
+            
+            try {
+                // Get visible range from time scale
+                const timeScale = window.chart.timeScale();
+                const visibleLogicalRange = timeScale.getVisibleLogicalRange();
+                
+                if (!visibleLogicalRange) {
+                    // Fallback: use all data
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    window.allCandleData.forEach(candle => {
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    });
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                    return;
+                }
+                
+                // Calculate visible data indices
+                const firstVisibleIndex = Math.max(0, Math.ceil(visibleLogicalRange.from));
+                const lastVisibleIndex = Math.min(window.allCandleData.length - 1, Math.floor(visibleLogicalRange.to));
+                
+                if (firstVisibleIndex <= lastVisibleIndex) {
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
+                        const candle = window.allCandleData[i];
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    }
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating visible price range:', error);
+            }
+        };
+        
         // Function to create/update current price line
         window.updateCurrentPriceLine = function(currentPrice) {
             if (!window.candlestickSeries) {
@@ -596,33 +697,42 @@ PERFORMANCE OPTIMIZATIONS:
             if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
                 return;
             }
-            
+
             // Simple zoom without interaction restrictions
             const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
             const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
-            
-            // Get the last N candles to display (most recent data)
-            const startIndex = Math.max(0, window.allCandleData.length - actualCandleCount);
-            const visibleData = window.allCandleData.slice(startIndex);
-            
-            if (window.candlestickSeries && visibleData.length > 0) {
-                const firstTime = visibleData[0].time;
-                const lastTime = visibleData[visibleData.length - 1].time;
-                
-                try {
-                    window.chart.timeScale().setVisibleRange({
-                        from: firstTime,
-                        to: lastTime,
-                    });
-                } catch (error) {
-                    console.error('TradingView: Error setting visible range:', error);
-                    // Fallback to fit content if setVisibleRange fails
-                    window.chart.timeScale().fitContent();
+
+            const dataLength = window.allCandleData.length;
+
+            try {
+                // Use setVisibleLogicalRange for consistent bar width control
+                // Logical range uses bar indices: from = first visible bar, to = last visible bar
+                // We want to show the last N candles, so:
+                // - from = dataLength - actualCandleCount (first visible bar index)
+                // - to = dataLength - 1 + small offset for right padding
+                const fromIndex = Math.max(0, dataLength - actualCandleCount);
+                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+
+                window.chart.timeScale().setVisibleLogicalRange({
+                    from: fromIndex,
+                    to: toIndex,
+                });
+
+                // Scroll to real-time to ensure latest candles are visible at the right edge
+                if (forceReset) {
+                    window.chart.timeScale().scrollToRealTime();
                 }
+            } catch (error) {
+                console.error('TradingView: Error setting visible logical range:', error);
+                // Fallback to fitContent if setVisibleLogicalRange fails
+                window.chart.timeScale().fitContent();
             }
-            
+
             window.visibleCandleCount = actualCandleCount;
+
+            // Update visible price range for dynamic formatting after zoom
+            window.updateVisiblePriceRange();
         };
 
         // Update TPSL price lines
@@ -905,10 +1015,13 @@ PERFORMANCE OPTIMIZATIONS:
                                 const shouldAutoscale = window.isInitialDataLoad;
                                 
                                 if (shouldAutoscale) {
-                                    // Apply zoom to show only 45 candles on initial load
+                                    // Apply zoom to show configured candle count
                                     window.applyZoom(window.visibleCandleCount, true);
                                     console.log('📊 TradingView: Applied initial zoom to', window.visibleCandleCount, 'candles');
                                 }
+                                
+                                // Update visible price range for dynamic formatting
+                                window.updateVisiblePriceRange();
                                 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
@@ -935,7 +1048,7 @@ PERFORMANCE OPTIMIZATIONS:
                         if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
                             window.visibleCandleCount = window.ZOOM_LIMITS.DEFAULT_CANDLES;
                             window.applyZoom(window.ZOOM_LIMITS.DEFAULT_CANDLES, true); // Force reset
-                            console.log('📊 TradingView: Reset to default state - 45 candles');
+                            console.log('📊 TradingView: Reset to default state -', window.ZOOM_LIMITS.DEFAULT_CANDLES, 'candles');
                         }
                         break;
                     case 'ZOOM_TO_LATEST_CANDLE':

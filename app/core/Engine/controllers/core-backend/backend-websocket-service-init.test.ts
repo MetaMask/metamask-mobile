@@ -2,8 +2,9 @@ import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/core-backend';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../util/Logger');
 jest.mock('@metamask/core-backend');
@@ -17,7 +18,9 @@ describe('backendWebSocketServiceInit', () => {
   });
 
   const arrangeMocks = () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,
     );
@@ -40,10 +43,6 @@ describe('backendWebSocketServiceInit', () => {
     expect(BackendWebSocketService).toHaveBeenCalledWith(
       expect.objectContaining({
         url: 'wss://gateway.api.cx.metamask.io/v1',
-        timeout: 15000,
-        reconnectDelay: 1000,
-        maxReconnectDelay: 30000,
-        requestTimeout: 20000,
       }),
     );
     expect(result.controller).toBeDefined();

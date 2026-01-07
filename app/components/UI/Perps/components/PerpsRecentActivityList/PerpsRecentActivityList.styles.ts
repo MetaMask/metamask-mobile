@@ -8,22 +8,36 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       marginBottom: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
       paddingBottom: 16,
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 8,
+      paddingHorizontal: 16,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    listContainer: {
+      gap: 1,
       paddingHorizontal: 16,
     },
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      padding: 12,
+      backgroundColor: colors.background.section,
+    },
+    activityItemFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    activityItemLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     leftSection: {
       flexDirection: 'row',

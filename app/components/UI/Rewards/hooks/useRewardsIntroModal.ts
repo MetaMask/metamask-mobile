@@ -1,10 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectRewardsAnnouncementModalEnabledFlag,
-  selectRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards';
+import { selectRewardsAnnouncementModalEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
@@ -24,17 +21,15 @@ const isE2ETest =
 /**
  * Hook to handle showing the rewards GTM intro modal
  * Shows the modal only when:
- * 1. Rewards feature flag is enabled
- * 2. Rewards announcement feature flag is enabled
- * 3. The modal hasn't been seen before
- * 4. The MultichainAccountsIntroModal has been seen in a PREVIOUS session (not current)
- * 5. User does not have an active subscription
+ * 1. Rewards announcement feature flag is enabled
+ * 2. The modal hasn't been seen before
+ * 3. The MultichainAccountsIntroModal has been seen in a PREVIOUS session (not current)
+ * 4. User does not have an active subscription
  */
 export const useRewardsIntroModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const isRewardsFeatureEnabled = useSelector(selectRewardsEnabledFlag);
   const isRewardsAnnouncementEnabled = useSelector(
     selectRewardsAnnouncementModalEnabledFlag,
   );
@@ -76,7 +71,6 @@ export const useRewardsIntroModal = () => {
     const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
     const shouldShow =
-      isRewardsFeatureEnabled &&
       isRewardsAnnouncementEnabled &&
       // BIP44 intro modal has been seen in a PREVIOUS session (not current)
       // OR it's a fresh install (which doesn't trigger bip44 modal)
@@ -95,7 +89,6 @@ export const useRewardsIntroModal = () => {
       });
     }
   }, [
-    isRewardsFeatureEnabled,
     isMultichainAccountsState2Enabled,
     isRewardsAnnouncementEnabled,
     hasSeenBIP44IntroModal,
@@ -121,7 +114,6 @@ export const useRewardsIntroModal = () => {
   }, [checkAndShowRewardsIntroModal]);
 
   return {
-    isRewardsFeatureEnabled,
     hasSeenRewardsIntroModal,
   };
 };

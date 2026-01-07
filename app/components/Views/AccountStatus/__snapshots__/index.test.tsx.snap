@@ -1,13 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountStatus Snapshots android renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -34,7 +48,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -70,7 +84,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -120,7 +134,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -158,7 +172,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -170,17 +184,31 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
-exports[`AccountStatus Snapshots android renders correctly with type="found and statusbar current height to zero" 1`] = `
-<RCTSafeAreaView>
+exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -207,7 +235,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -243,7 +271,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -293,7 +321,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -331,7 +359,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -343,17 +371,31 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -380,7 +422,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -416,7 +458,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -466,7 +508,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -504,7 +546,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -516,17 +558,31 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -553,7 +609,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -589,7 +645,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -639,7 +695,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -677,7 +733,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -689,17 +745,31 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -726,7 +796,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -762,7 +832,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -812,7 +882,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -850,7 +920,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -862,17 +932,31 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -899,7 +983,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -935,7 +1019,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -985,7 +1069,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1023,7 +1107,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1035,5 +1119,5 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

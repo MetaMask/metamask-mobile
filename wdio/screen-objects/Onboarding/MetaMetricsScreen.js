@@ -39,12 +39,30 @@ class MetaMetricsScreen {
     }
   }
 
+  get continueButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID);
+    }
+  }
+
   async isScreenTitleVisible() {
     if (!this._device) {
       await expect(this.screenTitle).toBeDisplayed();
     } else {
       const element = await this.screenTitle;
       await appwrightExpect(element).toBeVisible({ timeout: 30000 }); // Some devices take longer to transition to this screen
+    }
+  }
+
+  async tapContinueButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.continueButton);
+    } else {
+      const element = await this.continueButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+      await element.tap();
     }
   }
 
@@ -57,7 +75,7 @@ class MetaMetricsScreen {
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.iAgreeButton);
     } else {
-      await AppwrightGestures.tap(this.iAgreeButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.iAgreeButton); 
     }
   }
 

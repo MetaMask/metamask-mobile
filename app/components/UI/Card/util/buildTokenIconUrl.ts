@@ -1,20 +1,20 @@
 import { isSolanaChainId } from '@metamask/bridge-controller';
-import { hexToDecimal } from '../../../../util/conversions';
+import { CaipChainId } from '@metamask/utils';
 
 export const buildTokenIconUrl = (
-  rawChainId?: string,
+  caipChainId?: CaipChainId,
   address?: string,
 ): string => {
-  if (!rawChainId || !address) {
+  if (!caipChainId || !address) {
     return '';
   }
 
-  const isSolana = isSolanaChainId(rawChainId);
+  const isSolana = isSolanaChainId(caipChainId);
   const networkPrefix = isSolana ? 'solana' : 'eip155';
   const tokenTypePrefix = isSolana ? 'token' : 'erc20';
   const chainId = isSolana
-    ? rawChainId.replace('solana:', '')
-    : hexToDecimal(rawChainId);
+    ? caipChainId.replace('solana:', '')
+    : caipChainId.split(':')[1];
   const tokenAddress = isSolana ? address : address.toLowerCase();
 
   return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${networkPrefix}/${chainId}/${tokenTypePrefix}/${tokenAddress}.png`;

@@ -11,6 +11,9 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
@@ -27,7 +30,25 @@ describe(
     it('should display correct send address after edit', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withGanacheNetwork().build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .build();
+          },
           restartDevice: true,
         },
         async () => {

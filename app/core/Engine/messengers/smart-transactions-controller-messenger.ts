@@ -1,50 +1,40 @@
-import { Messenger } from '@metamask/base-controller';
-import type {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetStateAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
-import type {
-  TransactionControllerConfirmExternalTransactionAction,
-  TransactionControllerGetNonceLockAction,
-  TransactionControllerGetTransactionsAction,
-  TransactionControllerUpdateTransactionAction,
-} from '@metamask/transaction-controller';
-
-type AllowedActions =
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetStateAction
-  | TransactionControllerGetNonceLockAction
-  | TransactionControllerConfirmExternalTransactionAction
-  | TransactionControllerGetTransactionsAction
-  | TransactionControllerUpdateTransactionAction;
-
-type AllowedEvents = NetworkControllerStateChangeEvent;
-
-export type SmartTransactionsControllerMessenger = ReturnType<
-  typeof getSmartTransactionsControllerMessenger
->;
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootMessenger } from '../types';
+import { SmartTransactionsControllerMessenger } from '@metamask/smart-transactions-controller';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * smart transactions controller is allowed to handle.
+ * Get the messenger for the smart transactions controller. This is scoped to the
+ * actions and events that the smart transactions controller is allowed to handle
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The SmartTransactionsControllerMessenger.
  */
 export function getSmartTransactionsControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'SmartTransactionsController',
-    allowedActions: [
+  rootMessenger: RootMessenger,
+): SmartTransactionsControllerMessenger {
+  const messenger = new Messenger<
+    'SmartTransactionsController',
+    MessengerActions<SmartTransactionsControllerMessenger>,
+    MessengerEvents<SmartTransactionsControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'SmartTransactionsController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'TransactionController:getNonceLock',
-      'TransactionController:confirmExternalTransaction',
       'TransactionController:getTransactions',
       'TransactionController:updateTransaction',
     ],
-    allowedEvents: ['NetworkController:stateChange'],
+    events: ['NetworkController:stateChange'],
+    messenger,
   });
+  return messenger;
 }

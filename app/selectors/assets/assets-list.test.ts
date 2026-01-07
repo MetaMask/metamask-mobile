@@ -261,6 +261,7 @@ const mockState = ({
                 ],
               },
           },
+          allIgnoredAssets: {},
         },
         MultichainBalancesController: {
           balances: {
@@ -345,13 +346,12 @@ const mockState = ({
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('builds the initial state object', () => {
     const result = selectAssetsBySelectedAccountGroup(mockState());
-
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       '0x1': [
         {
           accountType: 'eip155:eoa',
@@ -617,6 +617,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
                 units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {
@@ -874,6 +875,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                 units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {
@@ -950,6 +952,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                 ],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {

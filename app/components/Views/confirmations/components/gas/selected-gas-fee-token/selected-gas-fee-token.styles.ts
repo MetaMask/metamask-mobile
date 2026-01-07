@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       gap: 4,
-      borderRadius: 16,
+      borderRadius: 4,
       paddingTop: 2,
       paddingBottom: 2,
       paddingLeft: 6,

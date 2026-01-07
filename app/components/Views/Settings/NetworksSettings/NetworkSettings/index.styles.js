@@ -148,11 +148,6 @@ export const createStyles = (colors) =>
       flexGrow: 1,
       flexShrink: 1,
     },
-    heading: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
     label: {
       fontSize: 14,
       paddingVertical: 12,

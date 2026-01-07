@@ -10,11 +10,22 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 
 export function usePredictClaimConfirmationMetrics() {
   const dispatch = useDispatch();
-  const { id: transactionId } = useTransactionMetadataRequest() ?? { id: '' };
-  const winPositions = useSelector(selectPredictWonPositions);
+  const txMeta = useTransactionMetadataRequest();
+  const transactionId = txMeta?.id ?? '';
+  const fromAddress = txMeta?.txParams?.from ?? '0x0';
 
-  const predict_claim_value_usd = useSelector(selectPredictWinFiat);
-  const predict_pnl = useSelector(selectPredictWinPnl);
+  const winPositions = useSelector(
+    selectPredictWonPositions({
+      address: fromAddress,
+    }),
+  );
+
+  const predict_claim_value_usd = useSelector(
+    selectPredictWinFiat({ address: fromAddress }),
+  );
+  const predict_pnl = useSelector(
+    selectPredictWinPnl({ address: fromAddress }),
+  );
 
   const predict_market_title = useMemo(
     () => winPositions.map((p) => p.title),

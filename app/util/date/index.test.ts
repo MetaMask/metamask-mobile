@@ -41,18 +41,16 @@ describe('Date util :: msBetweenDates', () => {
     const DateReal = global.Date;
 
     const mockDate = new Date();
-    const spy = jest
-      .spyOn(global, 'Date')
-      .mockImplementation(function (
-        ...args: ConstructorParameters<typeof DateReal>
-      ) {
-        if (args.length) {
-          return new DateReal(...args);
-        }
-        return mockDate;
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+    const spy = jest.spyOn(global, 'Date').mockImplementation(function (
+      ...args: ConstructorParameters<typeof DateReal>
+    ) {
+      if (args.length) {
+        return new DateReal(...args);
+      }
+      return mockDate;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
 
     const todayOneHourEarlier = new Date().getTime() - 1000;
     const dateOneHourEarlier = new Date(todayOneHourEarlier);

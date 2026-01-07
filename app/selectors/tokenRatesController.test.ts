@@ -19,7 +19,7 @@ const createMockState = () =>
         },
       },
     },
-  } as RootState);
+  }) as RootState;
 
 const createMockMarketTokenDetails = () => {
   const mockChainMarketDetails = {

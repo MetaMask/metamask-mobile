@@ -1,10 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import {
-  getDecimalChainId,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
   InfuraNetworkType,
@@ -69,7 +66,6 @@ export function useSwitchNetworks({
   domainIsConnectedDapp = false,
   origin = '',
   selectedChainId,
-  selectedNetworkName,
   dismissModal,
   closeRpcModal,
   parentSpan,
@@ -112,17 +108,13 @@ export function useSwitchNetworks({
 
       const { MultichainNetworkController, SelectedNetworkController } =
         Engine.context;
-      const {
-        name: nickname,
-        chainId,
-        rpcEndpoints,
-        defaultRpcEndpointIndex,
-      } = networkConfiguration;
+      const { chainId, rpcEndpoints, defaultRpcEndpointIndex } =
+        networkConfiguration;
 
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+      if (domainIsConnectedDapp) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
@@ -136,7 +128,7 @@ export function useSwitchNetworks({
         ).update((state: { activeDappNetwork: string | null }) => {
           state.activeDappNetwork = networkConfigurationId;
         });
-        isPerDappSelectedNetworkEnabled() && dismissModal?.();
+        dismissModal?.();
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -149,17 +141,17 @@ export function useSwitchNetworks({
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-      }
-      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
+      }
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
           .addProperties({
             chain_id: getDecimalChainId(chainId),
-            from_network: selectedNetworkName,
-            to_network: nickname,
+            from_network: selectedChainId,
+            to_network: chainId,
+            custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
           })
           .build(),
       );
@@ -167,7 +159,7 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      selectedNetworkName,
+      selectedChainId,
       trackEvent,
       createEventBuilder,
       parentSpan,
@@ -193,7 +185,7 @@ export function useSwitchNetworks({
         SelectedNetworkController,
       } = Engine.context;
 
-      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+      if (domainIsConnectedDapp) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
         (
           SelectedNetworkController as typeof SelectedNetworkController & {
@@ -204,7 +196,7 @@ export function useSwitchNetworks({
         ).update((state: { activeDappNetwork: string | null }) => {
           state.activeDappNetwork = type;
         });
-        isPerDappSelectedNetworkEnabled() && dismissModal?.();
+        dismissModal?.();
       } else {
         const networkConfiguration =
           networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
@@ -224,18 +216,19 @@ export function useSwitchNetworks({
         setTimeout(async () => {
           await updateIncomingTransactions();
         }, 1000);
+        dismissModal?.();
       }
-
-      dismissModal?.();
       endTrace({ name: TraceName.SwitchBuiltInNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
 
+      const toChainId = BUILT_IN_NETWORKS[type].chainId;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
           .addProperties({
-            chain_id: getDecimalChainId(selectedChainId),
-            from_network: selectedNetworkName,
-            to_network: type,
+            chain_id: getDecimalChainId(toChainId),
+            from_network: selectedChainId,
+            to_network: toChainId,
+            custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(toChainId),
           })
           .build(),
       );
@@ -246,7 +239,6 @@ export function useSwitchNetworks({
       networkConfigurations,
       setTokenNetworkFilter,
       selectedChainId,
-      selectedNetworkName,
       trackEvent,
       createEventBuilder,
       parentSpan,

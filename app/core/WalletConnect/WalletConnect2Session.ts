@@ -14,11 +14,11 @@ import {
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
-import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
 } from '../RPCMethods/RPCMethodMiddleware';
@@ -35,7 +35,6 @@ import {
   getChainIdForCaipChainId,
   getHostname,
 } from './wc-utils';
-import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
@@ -185,15 +184,11 @@ class WalletConnect2Session {
   }
 
   public getCurrentChainId() {
-    const providerConfigChainId = selectEvmChainId(store.getState());
-    if (isPerDappSelectedNetworkEnabled()) {
-      const perOriginChainId = selectPerOriginChainId(
-        store.getState(),
-        this.channelId,
-      );
-      return perOriginChainId;
-    }
-    return providerConfigChainId;
+    const perOriginChainId = selectPerOriginChainId(
+      store.getState(),
+      this.channelId,
+    );
+    return perOriginChainId;
   }
 
   /** Check for pending unresolved requests */
@@ -760,9 +755,15 @@ class WalletConnect2Session {
     origin: string,
   ) {
     try {
-      const networkClientId = isPerDappSelectedNetworkEnabled()
-        ? getNetworkClientIdForCaipChainId(caip2ChainId)
-        : getGlobalNetworkClientId();
+      // Prevent external transactions from using internal origins
+      // This is an external connection (WalletConnect), so block any internal origin
+      if (INTERNAL_ORIGINS.includes(origin)) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
+
+      const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,

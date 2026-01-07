@@ -136,8 +136,8 @@ const TransactionHeader = (props) => {
         originIsWalletConnect
           ? origin.split(WALLET_CONNECT_ORIGIN)[1]
           : originIsMMSDKRemoteConn
-          ? origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]
-          : url,
+            ? origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]
+            : url,
       ).protocol === 'https:'
         ? 'lock'
         : 'warning';

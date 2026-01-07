@@ -66,8 +66,15 @@ export const confirmationsRedesignedFeatureFlags = [
               '0x5b394cc656b760fc15e855f9b8b9d0eec6337328361771c696d7f5754f0348e06298d34243e815ff8b5ce869e5f310c37dd100c1827e91b56bb208d1fafcf3a71c',
           },
         ],
+        '0x89': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            signature:
+              '0x302aa2d59940e88f35d2fa140fe6a1e9dc682218a444a7fb2d88f007fbe7792b2b8d615f5ae1e4f184533a02c47d8ac0f6ba3f591679295dff93c65095c0f03d1b',
+          },
+        ],
       },
-      supportedChains: ['0xaa36a7', '0x539', '0x1'],
+      supportedChains: ['0xaa36a7', '0x539', '0x1', '0x89'],
     },
   },
 ];
@@ -104,8 +111,16 @@ export const remoteFeatureEip7702 = [
               '0x5b394cc656b760fc15e855f9b8b9d0eec6337328361771c696d7f5754f0348e06298d34243e815ff8b5ce869e5f310c37dd100c1827e91b56bb208d1fafcf3a71c',
           },
         ],
+        '0x89': [
+          {
+            name: 'Polygon',
+            signature:
+              '0x302aa2d59940e88f35d2fa140fe6a1e9dc682218a444a7fb2d88f007fbe7792b2b8d615f5ae1e4f184533a02c47d8ac0f6ba3f591679295dff93c65095c0f03d1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
       },
-      supportedChains: ['0xaa36a7', '0x539', '0x1'],
+      supportedChains: ['0xaa36a7', '0x539', '0x1', '0x89'],
     },
   },
 ];
@@ -132,6 +147,14 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
 
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   predictEnabled: enabled,
+  predictTradingEnabled: {
+    enabled,
+    minimumVersion: '7.60.0',
+  },
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '7.60.0',
+  },
 });
 
 export const remoteFeatureFlagSendRedesignDisabled = {

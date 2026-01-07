@@ -125,6 +125,44 @@ describe('validateDateOfBirth', () => {
     });
   });
 
+  describe('when handling dates before 1970 (negative timestamps)', () => {
+    it('returns true for person born in 1959 (negative timestamp)', () => {
+      // Given: date of birth on September 16, 1959
+      const dateIn1959 = new Date('1959-09-16T00:00:00.000Z');
+      const timestamp = dateIn1959.getTime(); // This will be negative
+
+      // When: validating date of birth
+      const result = validateDateOfBirth(timestamp);
+
+      // Then: should be valid (person is 65 years old in 2024)
+      expect(result).toBe(true);
+    });
+
+    it('returns true for person born in 1950', () => {
+      // Given: date of birth in 1950
+      const dateIn1950 = new Date('1950-06-15T00:00:00.000Z');
+      const timestamp = dateIn1950.getTime(); // This will be negative
+
+      // When: validating date of birth
+      const result = validateDateOfBirth(timestamp);
+
+      // Then: should be valid (person is 73 years old in 2024)
+      expect(result).toBe(true);
+    });
+
+    it('returns true for person born on January 1, 1900', () => {
+      // Given: very old date of birth
+      const veryOldDate = new Date('1900-01-01T00:00:00.000Z');
+      const timestamp = veryOldDate.getTime(); // This will be very negative
+
+      // When: validating date of birth
+      const result = validateDateOfBirth(timestamp);
+
+      // Then: should be valid (person is 124 years old in 2024)
+      expect(result).toBe(true);
+    });
+  });
+
   describe('when handling invalid inputs', () => {
     it('returns false for null timestamp', () => {
       // When: validating null timestamp
@@ -137,22 +175,6 @@ describe('validateDateOfBirth', () => {
     it('returns false for undefined timestamp', () => {
       // When: validating undefined timestamp
       const result = validateDateOfBirth(undefined as unknown as number);
-
-      // Then: should be invalid
-      expect(result).toBe(false);
-    });
-
-    it('returns false for zero timestamp', () => {
-      // When: validating zero timestamp
-      const result = validateDateOfBirth(0);
-
-      // Then: should be invalid
-      expect(result).toBe(false);
-    });
-
-    it('returns false for negative timestamp', () => {
-      // When: validating negative timestamp
-      const result = validateDateOfBirth(-1000);
 
       // Then: should be invalid
       expect(result).toBe(false);
@@ -287,6 +309,30 @@ describe('formatDateOfBirth', () => {
 
       // Then: should return correct old date
       expect(result).toBe('1900-01-01');
+    });
+
+    it('formats dates before 1970 with negative timestamps correctly', () => {
+      // Given: date before Unix epoch (September 16, 1959)
+      const dateIn1959 = new Date(1959, 8, 16); // Month is 0-indexed, so 8 = September
+      const timestampString = dateIn1959.getTime().toString();
+
+      // When: formatting timestamp
+      const result = formatDateOfBirth(timestampString);
+
+      // Then: should return correct date
+      expect(result).toBe('1959-09-16');
+    });
+
+    it('formats dates from 1950 with negative timestamps correctly', () => {
+      // Given: date from 1950
+      const dateIn1950 = new Date(1950, 5, 15); // Month is 0-indexed, so 5 = June
+      const timestampString = dateIn1950.getTime().toString();
+
+      // When: formatting timestamp
+      const result = formatDateOfBirth(timestampString);
+
+      // Then: should return correct date
+      expect(result).toBe('1950-06-15');
     });
 
     it('formats recent dates correctly', () => {

@@ -1,6 +1,7 @@
 /**
  * Shared formatting utilities for Perps components
  */
+import { BigNumber } from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
   FUNDING_RATE_CONFIG,
@@ -342,6 +343,26 @@ export const formatPerpsFiat = (
 };
 
 /**
+ * Formats a fee value as USD currency with appropriate decimal places
+ * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
+ * @returns Formatted currency string with variable decimals based on configured ranges
+ * @example formatPositiveFiat(1234.56) => "$1,234.56"
+ * @example formatPositiveFiat(0.005) => "< $0.01"
+ * @example formatPositiveFiat(0) => "$0"
+ */
+export const formatPositiveFiat = (fee: number | string): string => {
+  const smallFeeThreshold = 0.01;
+
+  if (BigNumber(fee).isEqualTo(0)) {
+    return '$0';
+  }
+  if (BigNumber(fee).isLessThan(smallFeeThreshold)) {
+    return '< $0.01';
+  }
+  return formatPerpsFiat(fee);
+};
+
+/**
  * Default price range configurations
  * Applied in order - first matching condition wins
  */
@@ -472,7 +493,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return '$0.00';
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
   }
 
   const formatted = getIntlNumberFormatter('en-US', {

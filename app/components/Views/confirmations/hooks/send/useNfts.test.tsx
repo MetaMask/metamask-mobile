@@ -118,7 +118,7 @@ const createMockMultichainAccountGroup = (
       pinned: false,
       hidden: false,
     },
-  } as unknown as AccountGroupObject);
+  }) as unknown as AccountGroupObject;
 
 const createMockInternalAccount = (
   id: string,
@@ -166,7 +166,7 @@ const createMockAllNfts = (
             favorite: false,
             isCurrentlyOwned: true,
             ...nft,
-          } as Nft),
+          }) as Nft,
       );
     });
   });

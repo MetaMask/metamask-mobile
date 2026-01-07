@@ -94,7 +94,7 @@ describe('Contract Deployment', () => {
       state: contractDeploymentTransactionStateMock,
     });
 
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
   });
 });

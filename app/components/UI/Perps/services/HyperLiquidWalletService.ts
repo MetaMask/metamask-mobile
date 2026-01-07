@@ -4,13 +4,12 @@ import {
   type Hex,
   isValidHexAddress,
 } from '@metamask/utils';
-import { store } from '../../../../store';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -28,6 +27,7 @@ export class HyperLiquidWalletService {
    * Required by @nktkas/hyperliquid SDK for signing transactions
    */
   public createWalletAdapter(): {
+    address: Hex;
     signTypedData: (params: {
       domain: {
         name: string;
@@ -43,7 +43,17 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
+    // Get current EVM account using the standardized utility
+    const evmAccount = getEvmAccountFromSelectedAccountGroup();
+
+    if (!evmAccount?.address) {
+      throw new Error(strings('perps.errors.noAccountSelected'));
+    }
+
+    const address = evmAccount.address as Hex;
+
     return {
+      address,
       signTypedData: async (params: {
         domain: {
           name: string;
@@ -57,15 +67,15 @@ export class HyperLiquidWalletService {
         primaryType: string;
         message: Record<string, unknown>;
       }): Promise<Hex> => {
-        const selectedEvmAccount = selectSelectedInternalAccountByScope(
-          store.getState(),
-        )('eip155:1');
+        // Get FRESH account on every sign to handle account switches
+        // This prevents race conditions where wallet adapter was created with old account
+        const currentEvmAccount = getEvmAccountFromSelectedAccountGroup();
 
-        if (!selectedEvmAccount?.address) {
+        if (!currentEvmAccount?.address) {
           throw new Error(strings('perps.errors.noAccountSelected'));
         }
 
-        const address = selectedEvmAccount.address;
+        const currentAddress = currentEvmAccount.address as Hex;
 
         // Construct EIP-712 typed data
         const typedData = {
@@ -76,7 +86,7 @@ export class HyperLiquidWalletService {
         };
 
         DevLogger.log('HyperLiquidWalletService: Signing typed data', {
-          address,
+          address: currentAddress,
           primaryType: params.primaryType,
           domain: params.domain,
         });
@@ -85,7 +95,7 @@ export class HyperLiquidWalletService {
         const signature =
           await Engine.context.KeyringController.signTypedMessage(
             {
-              from: address,
+              from: currentAddress,
               data: typedData,
             },
             SignTypedDataVersion.V4,
@@ -99,19 +109,17 @@ export class HyperLiquidWalletService {
   }
 
   /**
-   * Get current account ID from Redux store
+   * Get current account ID using the standardized account utility
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const selectedEvmAccount = selectSelectedInternalAccountByScope(
-      store.getState(),
-    )('eip155:1');
+    const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
-    if (!selectedEvmAccount?.address) {
+    if (!evmAccount?.address) {
       throw new Error(strings('perps.errors.noAccountSelected'));
     }
 
     const chainId = getChainId(this.isTestnet);
-    const caipAccountId: CaipAccountId = `eip155:${chainId}:${selectedEvmAccount.address}`;
+    const caipAccountId: CaipAccountId = `eip155:${chainId}:${evmAccount.address}`;
 
     return caipAccountId;
   }

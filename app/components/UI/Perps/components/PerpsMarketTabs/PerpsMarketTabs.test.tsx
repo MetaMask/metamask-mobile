@@ -185,7 +185,7 @@ describe('PerpsMarketTabs', () => {
     // Setup default mock data for internal hooks
     mockUsePerpsMarketStats.mockReturnValue(mockMarketStats);
     mockUsePerpsLivePositions.mockReturnValue({ positions: [] });
-    mockUsePerpsLiveOrders.mockReturnValue([]);
+    mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
   });
 
   describe('Rendering', () => {
@@ -227,7 +227,9 @@ describe('PerpsMarketTabs', () => {
 
     it('displays orders tab when unfilled orders exist', () => {
       const onActiveTabChange = jest.fn();
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
 
       const { getAllByText } = render(
         <PerpsMarketTabs
@@ -248,7 +250,9 @@ describe('PerpsMarketTabs', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
 
       const { getAllByText } = render(
         <PerpsMarketTabs
@@ -318,7 +322,9 @@ describe('PerpsMarketTabs', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
 
       const { getAllByText } = render(
         <PerpsMarketTabs
@@ -361,7 +367,9 @@ describe('PerpsMarketTabs', () => {
     });
 
     it('sets initial tab to orders when initialTab is orders', async () => {
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
       const onActiveTabChange = jest.fn();
 
       const { getByTestId } = render(
@@ -449,7 +457,9 @@ describe('PerpsMarketTabs', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
       const onActiveTabChange = jest.fn();
 
       const { getByTestId } = render(
@@ -474,7 +484,9 @@ describe('PerpsMarketTabs', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
       const onActiveTabChange = jest.fn();
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -539,7 +551,7 @@ describe('PerpsMarketTabs', () => {
           },
         ],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([orderWithBothTPSL]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [orderWithBothTPSL] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -576,7 +588,7 @@ describe('PerpsMarketTabs', () => {
           },
         ],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([orderWithTP]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [orderWithTP] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -613,7 +625,7 @@ describe('PerpsMarketTabs', () => {
           },
         ],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([orderWithSL]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [orderWithSL] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -657,11 +669,9 @@ describe('PerpsMarketTabs', () => {
         orderType: 'stop',
       };
 
-      mockUsePerpsLiveOrders.mockReturnValue([
-        stopLossOrder,
-        limitOrder,
-        marketOrder,
-      ]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [stopLossOrder, limitOrder, marketOrder],
+      });
 
       const { getAllByTestId } = render(
         <PerpsMarketTabs
@@ -684,7 +694,9 @@ describe('PerpsMarketTabs', () => {
         orderType: 'limit',
       };
 
-      mockUsePerpsLiveOrders.mockReturnValue([orderWithoutDetailedType]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [orderWithoutDetailedType],
+      });
 
       const { getByTestId } = render(
         <PerpsMarketTabs
@@ -704,7 +716,9 @@ describe('PerpsMarketTabs', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
       });
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
 
       const onActiveTabChange = jest.fn();
       const { rerender, getByTestId } = render(
@@ -735,7 +749,9 @@ describe('PerpsMarketTabs', () => {
     });
 
     it('preserves current tab when new position appears without external tab change', async () => {
-      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ ...mockOrder, symbol: 'BTC' }],
+      });
       mockUsePerpsLivePositions.mockReturnValue({ positions: [] });
 
       const onActiveTabChange = jest.fn();
@@ -822,7 +838,7 @@ describe('PerpsMarketTabs', () => {
       const order1 = { ...mockOrder, symbol: 'BTC', orderId: 'order-1' };
       const order2 = { ...mockOrder, symbol: 'BTC', orderId: 'order-2' };
 
-      mockUsePerpsLiveOrders.mockReturnValue([order1, order2]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [order1, order2] });
       mockCancelOrder.mockResolvedValue({ success: true });
 
       const { getAllByText, getAllByTestId, rerender } = render(
@@ -848,7 +864,7 @@ describe('PerpsMarketTabs', () => {
         expect(mockCancelOrder).toHaveBeenCalled();
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([order2]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [order2] });
 
       rerender(
         <PerpsMarketTabs
@@ -875,7 +891,7 @@ describe('PerpsMarketTabs', () => {
     it('displays in-progress toast then success toast when order cancellation succeeds', async () => {
       mockCancelOrder.mockResolvedValue({ success: true });
       const btcOrder = { ...mockOrder, symbol: 'BTC' };
-      mockUsePerpsLiveOrders.mockReturnValue([btcOrder]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [btcOrder] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -928,7 +944,7 @@ describe('PerpsMarketTabs', () => {
         error: 'Order not found',
       });
       const btcOrder = { ...mockOrder, symbol: 'BTC' };
-      mockUsePerpsLiveOrders.mockReturnValue([btcOrder]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [btcOrder] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -975,7 +991,7 @@ describe('PerpsMarketTabs', () => {
     it('displays in-progress toast then error toast when order cancellation throws exception', async () => {
       mockCancelOrder.mockRejectedValue(new Error('Network error'));
       const btcOrder = { ...mockOrder, symbol: 'BTC' };
-      mockUsePerpsLiveOrders.mockReturnValue([btcOrder]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [btcOrder] });
 
       const { getAllByText, getByTestId } = render(
         <PerpsMarketTabs
@@ -1019,4 +1035,8 @@ describe('PerpsMarketTabs', () => {
       expect(mockOnOrderCancelled).not.toHaveBeenCalled();
     });
   });
+
+  // Note: Navigation tests (tutorial card, activity link) removed as these elements
+  // have been relocated to other components as part of the home screen refactor.
+  // See PR description: "Activity Link Relocation" and "Learn More Component" sections.
 });

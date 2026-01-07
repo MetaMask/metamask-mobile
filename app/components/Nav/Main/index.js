@@ -36,7 +36,7 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
-import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -83,17 +83,10 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
-import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import Routes from '../../../constants/navigation/Routes';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import {
   useNetworksByNamespace,
@@ -101,7 +94,6 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { handleShowNetworkActiveToast } from './utils';
 import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
@@ -133,41 +125,10 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    const checkIsSeedlessPasswordOutdated = async () => {
-      if (isSeedlessPasswordOutdated) {
-        // Check for latest seedless password outdated state
-        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
-          false,
-        );
-        if (!isOutdated) {
-          return;
-        }
-
-        // show seedless password outdated modal and force user to lock app
-        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings('login.seedless_password_outdated_modal_title'),
-            description: strings(
-              'login.seedless_password_outdated_modal_content',
-            ),
-            primaryButtonLabel: strings(
-              'login.seedless_password_outdated_modal_confirm',
-            ),
-            type: 'error',
-            icon: IconName.Danger,
-            isInteractable: false,
-            onPrimaryButtonPress: async () => {
-              await Authentication.lockApp({ locked: true });
-            },
-            closeOnPrimaryButtonPress: true,
-          },
-        });
-      }
-    };
-    checkIsSeedlessPasswordOutdated();
-  }, [isSeedlessPasswordOutdated, props.navigation]);
+    Authentication.checkAndShowSeedlessPasswordOutdatedModal(
+      isSeedlessPasswordOutdated,
+    );
+  }, [isSeedlessPasswordOutdated]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
@@ -294,24 +255,18 @@ const Main = (props) => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      //set here token network filter if portfolio view is enabled
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (Object.keys(tokenNetworkFilter).length === 1) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          PreferencesController.setTokenNetworkFilter({
-            ...tokenNetworkFilter,
-            [chainId]: true,
-          });
-        }
+      const { PreferencesController } = Engine.context;
+      if (Object.keys(tokenNetworkFilter).length === 1) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
       }
-      if (
-        isRemoveGlobalNetworkSelectorEnabled() &&
-        enabledEVMNetworks.length === 0
-      ) {
+      if (enabledEVMNetworks.length === 0) {
         selectNetwork(chainId);
       }
     }
@@ -462,8 +417,8 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <SwapsLiveness />
         <CardVerification />
+        <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

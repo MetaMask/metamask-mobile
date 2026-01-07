@@ -32,7 +32,6 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const isDebit = item.type === PredictActivityType.BUY;
-  const isCredit = !isDebit;
   const signedAmount = `${isDebit ? '-' : '+'}${formatPrice(
     Math.abs(item.amountUsd),
     {
@@ -41,7 +40,6 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
     },
   )}`;
 
-  const amountColor = isCredit ? 'text-success-default' : 'text-error-default';
   const percentColor =
     (item.percentChange ?? 0) >= 0
       ? 'text-success-default'
@@ -64,42 +62,31 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="w-full p-2"
       >
-        <Box twClassName="h-12 w-12 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden">
-          {item.icon ? (
-            <Image
-              source={{ uri: item.icon }}
-              style={tw.style('w-full h-full')}
-              accessibilityLabel="activity icon"
-            />
-          ) : (
-            <Icon name={IconName.Activity} />
-          )}
+        <Box twClassName="pt-1">
+          <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden">
+            {item.icon ? (
+              <Image
+                source={{ uri: item.icon }}
+                style={tw.style('w-full h-full')}
+                accessibilityLabel="activity icon"
+              />
+            ) : (
+              <Icon name={IconName.Activity} />
+            )}
+          </Box>
         </Box>
 
         <Box twClassName="flex-1">
           <Text variant={TextVariant.BodyMd} numberOfLines={1}>
             {activityTitleByType[item.type]}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative"
-            numberOfLines={1}
-          >
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
             {item.marketTitle}
           </Text>
-          {item.type !== PredictActivityType.CLAIM ? (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative"
-              numberOfLines={1}
-            >
-              {item.detail}
-            </Text>
-          ) : null}
         </Box>
 
         <Box twClassName="items-end ml-3">
-          <Text variant={TextVariant.BodyMd} twClassName={amountColor}>
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {signedAmount}
           </Text>
           {item.percentChange !== undefined ? (

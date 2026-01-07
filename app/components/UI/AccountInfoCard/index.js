@@ -1,8 +1,8 @@
 import isUrl from 'is-url';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -20,6 +20,8 @@ import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
+  getInternalAccountByAddress,
+  renderShortAccountName,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
@@ -33,6 +35,7 @@ import ApproveTransactionHeader from '../../Views/confirmations/legacy/component
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectSignatureRequests } from '../../../selectors/signatureController';
+import { selectAccountToGroupMap } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -59,6 +62,7 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'flex-start',
+      marginLeft: 8,
     },
     accountName: {
       maxWidth: Device.isMediumDevice() ? '35%' : '45%',
@@ -138,6 +142,7 @@ class AccountInfoCard extends PureComponent {
     transaction: PropTypes.object,
     origin: PropTypes.string,
     signatureRequests: PropTypes.object,
+    accountToGroupMap: PropTypes.object,
   };
 
   render() {
@@ -153,6 +158,7 @@ class AccountInfoCard extends PureComponent {
       transaction,
       origin,
       signatureRequests,
+      accountToGroupMap,
     } = this.props;
 
     const signatureRequest = Object.values(signatureRequests || {})?.[0];
@@ -164,7 +170,14 @@ class AccountInfoCard extends PureComponent {
       ? hexToBN(accounts[fromAddress].balance)
       : 0;
     const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
-    const accountLabel = renderAccountName(fromAddress, internalAccounts);
+
+    const account = getInternalAccountByAddress(fromAddress);
+    const accountGroup =
+      account && accountToGroupMap ? accountToGroupMap[account.id] : undefined;
+
+    const accountLabel =
+      accountGroup?.metadata?.name ||
+      renderAccountName(fromAddress, internalAccounts);
     const address = renderShortAddress(fromAddress);
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
@@ -179,12 +192,14 @@ class AccountInfoCard extends PureComponent {
     const originatorInfo = currentConnection?.originatorInfo;
 
     const sdkDappMetadata = {
-      url: isOriginUrl ? origin : originatorInfo?.url ?? strings('sdk.unknown'),
+      url: isOriginUrl
+        ? origin
+        : (originatorInfo?.url ?? strings('sdk.unknown')),
       icon: originatorInfo?.icon,
     };
     const actualOriginUrl = isOriginUrl
       ? origin
-      : originatorInfo?.url ?? strings('sdk.unknown');
+      : (originatorInfo?.url ?? strings('sdk.unknown'));
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
@@ -209,9 +224,12 @@ class AccountInfoCard extends PureComponent {
                 styles.accountName,
                 accountLabelTag ? styles.accountNameSmall : undefined,
               ]}
+              tooltip={accountLabel}
             >
-              {accountLabel}
+              {renderShortAccountName(accountLabel)}
             </Text>
+          </View>
+          <View style={styles.accountNameAndAddress}>
             <Text
               numberOfLines={1}
               style={[
@@ -219,21 +237,23 @@ class AccountInfoCard extends PureComponent {
                 accountLabelTag ? styles.accountAddressSmall : undefined,
               ]}
             >
-              ({address})
+              {address}
             </Text>
           </View>
-          <Text
-            numberOfLines={1}
-            style={[
-              styles.balanceText,
-              accountLabelTag ? styles.balanceTextSmall : undefined,
-            ]}
-          >
-            {strings('signature_request.balance_title')}{' '}
-            {dollarBalance !== undefined
-              ? `${dollarBalance} (${balance})`
-              : balance}
-          </Text>
+          <View style={styles.accountNameAndAddress}>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.balanceText,
+                accountLabelTag ? styles.balanceTextSmall : undefined,
+              ]}
+            >
+              {strings('signature_request.balance_title')}{' '}
+              {dollarBalance !== undefined
+                ? `${dollarBalance} (${balance})`
+                : balance}
+            </Text>
+          </View>
         </View>
         {accountLabelTag && (
           <View style={styles.tag}>
@@ -256,6 +276,7 @@ const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
   signatureRequests: selectSignatureRequests(state),
+  accountToGroupMap: selectAccountToGroupMap(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

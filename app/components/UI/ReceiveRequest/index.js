@@ -26,12 +26,11 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
@@ -74,6 +73,10 @@ class ReceiveRequest extends PureComponent {
      /* Triggers global alert
      */
     showAlert: PropTypes.func,
+    /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
     /**
      * Network provider chain id
      */
@@ -137,25 +140,16 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, isNetworkBuySupported } = this.props;
+    const { isNetworkBuySupported, goToBuy } = this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
       );
     } else {
-      navigation.navigate(...createBuyNavigationDetails());
-
-      this.props.metrics.trackEvent(
-        this.props.metrics
-          .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy Native Token',
-            location: 'Receive Modal',
-            chain_id_destination: getDecimalChainId(this.props.chainId),
-          })
-          .build(),
-      );
+      goToBuy();
+      // TODO: Add RAMPS_BUTTON_CLICKED analytics tracking when this component is refactored to a functional component
+      // This will allow access to the useRampsButtonClickData hook for the expanded analytics payload
     }
   };
 
@@ -261,4 +255,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(ReceiveRequest));
+)(withRampNavigation(withMetricsAwareness(ReceiveRequest)));

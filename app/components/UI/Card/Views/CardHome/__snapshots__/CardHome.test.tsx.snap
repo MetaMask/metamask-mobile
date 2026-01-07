@@ -320,6 +320,18 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -328,6 +340,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={
@@ -364,7 +377,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -404,7 +417,432 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 false,
                               ]
                             }
-                          />
+                          >
+                            <View
+                              style={
+                                {
+                                  "aspectRatio": 1.575925925925926,
+                                }
+                              }
+                            >
+                              <RNSVGSvgView
+                                address="0x78...x789"
+                                align="xMidYMid"
+                                bbHeight="100%"
+                                bbWidth="100%"
+                                fill="none"
+                                focusable={false}
+                                hasLowerOpacity={false}
+                                height="100%"
+                                meetOrSlice={0}
+                                minX={0}
+                                minY={0}
+                                status="ACTIVE"
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": "100%",
+                                      "opacity": 1,
+                                      "width": "100%",
+                                    },
+                                  ]
+                                }
+                                type="VIRTUAL"
+                                vbHeight={540}
+                                vbWidth={851}
+                                width="100%"
+                              >
+                                <RNSVGGroup
+                                  fill={null}
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                >
+                                  <RNSVGGroup
+                                    clipPath="clip0_4219_2177"
+                                    fill={
+                                      {
+                                        "payload": 4278190080,
+                                        "type": 0,
+                                      }
+                                    }
+                                  >
+                                    <RNSVGRect
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      height={540}
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                      rx={31.8}
+                                      width={850.7}
+                                      x={0}
+                                      y={0}
+                                    />
+                                    <RNSVGPath
+                                      d="M339.921 308.8h126.578V97.92H339.921V308.8zM466.499 707.521h208.853V-16H466.499v723.521z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M675.352 707.471h139.236v-284.8H675.352v284.8zM814.588 593.6h106.789V422.72H814.588V593.6z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M675.352 422.72h245.529V194.88l-245.529-73.058V422.72zM339.921 97.92L466.499-16V97.92H339.921zM921.377 422.72l-.496-227.84v227.84h.496zM884.206 593.6l-69.618 113.921V593.6h69.618zM339.921 308.8l126.578 113.92V308.8H339.921z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGGroup
+                                      clipPath="clip1_4219_2177"
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                    >
+                                      <RNSVGRect
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        height={122}
+                                        propList={
+                                          [
+                                            "fill",
+                                            "stroke",
+                                            "strokeWidth",
+                                          ]
+                                        }
+                                        rx={61}
+                                        stroke={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        strokeWidth={10}
+                                        width={191}
+                                        x={630}
+                                        y={389}
+                                      />
+                                      <RNSVGPath
+                                        d="M749.915 405.967h-48.986v88.019h48.986v-88.019z"
+                                        fill={
+                                          {
+                                            "payload": 4294926080,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                      <RNSVGPath
+                                        d="M704.039 449.976c0-17.106 7.931-33.435 21.305-44.009-24.259-19.128-59.561-14.93-78.689 9.486-18.972 24.26-14.773 59.405 9.642 78.533a55.837 55.837 0 0069.203 0c-13.53-10.575-21.461-26.903-21.461-44.01z"
+                                        fill={
+                                          {
+                                            "payload": 4293591067,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                      <RNSVGPath
+                                        d="M816.008 449.976c0 30.947-25.038 55.985-55.984 55.985-12.597 0-24.727-4.199-34.524-11.975 24.26-19.128 28.459-54.273 9.331-78.689-2.8-3.421-5.91-6.687-9.331-9.33 24.26-19.128 59.561-14.93 78.533 9.486 7.776 9.797 11.975 21.927 11.975 34.523z"
+                                        fill={
+                                          {
+                                            "payload": 4294417947,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                    </RNSVGGroup>
+                                    <RNSVGPath
+                                      d="M695.304 346.59l-68.066-20.225-51.331 30.62-35.814-.014-51.361-30.606-68.036 20.225L400 276.873l20.696-77.375L400 134.079 420.696 53l106.312 63.382h61.984L695.304 53 716 134.079l-20.696 65.419L716 276.873l-20.696 69.717z"
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M420.711 53l106.312 63.426-4.228 43.529L420.711 53zM488.747 276.903l46.777 35.558-46.777 13.904v-49.462zM531.785 218.117l-8.99-58.133-57.548 39.529-.029-.015v.029l.178 40.688 23.336-22.098h43.053zM695.304 53l-106.312 63.426 4.213 43.529L695.304 53zM627.268 276.903l-46.777 35.558 46.777 13.904v-49.462zM650.782 199.527h.015-.015v-.029l-.014.015-57.548-39.529-8.991 58.133h43.039l23.351 22.098.163-40.688z"
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M488.732 326.365l-68.036 20.225L400 276.903h88.732v49.462zM531.77 218.102l12.997 84.038-18.011-46.726-61.39-15.198 23.351-22.114H531.77zM627.268 326.365l68.036 20.225L716 276.903h-88.732v49.462zM584.229 218.102l-12.996 84.038 18.011-46.726 61.39-15.198-23.366-22.114h-43.039z"
+                                      fill={
+                                        {
+                                          "payload": 4293085191,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M400 276.873l20.696-77.375h44.507l.163 40.702 61.39 15.199 18.011 46.726-9.258 10.291-46.777-35.558H400v.015zM716 276.873l-20.696-77.375h-44.507l-.163 40.702-61.39 15.199-18.011 46.726 9.258 10.291 46.777-35.558H716v.015zM588.992 116.382h-61.984l-4.213 43.528 21.972 142.171h26.466L593.22 159.91l-4.228-43.528z"
+                                      fill={
+                                        {
+                                          "payload": 4294937949,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M420.696 53L400 134.079l20.696 65.419h44.507l57.577-39.543L420.696 53zM518.908 234.981h-20.162l-10.978 10.737 39.003 9.651-7.863-20.403v.015zM695.304 53L716 134.079l-20.696 65.419h-44.507l-57.577-39.543L695.304 53zM597.122 234.981h20.191l10.979 10.752-39.048 9.666 7.878-20.433v.015zM575.892 329.25l4.599-16.804-9.257-10.291h-26.482l-9.258 10.291 4.599 16.804"
+                                      fill={
+                                        {
+                                          "payload": 4284880896,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M575.892 329.25V357h-35.799v-27.75h35.799z"
+                                      fill={
+                                        {
+                                          "payload": 4290823373,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M488.747 326.336l51.376 30.65v-27.75l-4.599-16.805-46.777 13.905zM627.268 326.336l-51.376 30.65v-27.75l4.599-16.805 46.777 13.905z"
+                                      fill={
+                                        {
+                                          "payload": 4293389302,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M131.489 92.454v19.548h-10.158V98.459l-11.577 1.337c-2.542.292-3.661 1.118-3.661 2.64 0 2.23 2.124 3.169 6.676 3.169 2.776 0 5.852-.41 8.568-1.118l-5.259 7.396c-2.124.47-4.194.702-6.378.702-9.213 0-14.472-3.639-14.472-10.095 0-5.696 4.134-8.687 13.527-9.745l12.408-1.433c-.67-3.585-3.392-5.143-8.806-5.143-5.08 0-10.691 1.29-15.71 3.698l1.596-8.746c4.667-1.938 9.986-2.936 15.358-2.936 11.816 0 17.9 4.875 17.9 14.263l-.012.006zM40.104 67.976L29 112.002h11.104l5.51-22.123 9.554 11.38h11.577l9.554-11.38 5.51 22.123h11.104L81.809 67.97 60.954 92.584 40.097 67.97l.006.006zm41.705-44.032L60.954 48.558l-20.85-24.614L29 67.976h11.104l5.51-22.123 9.554 11.38h11.577l9.554-11.38 5.51 22.123h11.104L81.809 23.944zm76.381 68.1l-8.98-1.29c-2.244-.352-3.129-1.06-3.129-2.29 0-1.998 2.184-2.877 6.677-2.877 5.199 0 9.865 1.058 14.771 3.347l-1.238-8.627c-3.961-1.41-8.508-2.11-13.234-2.11-11.044 0-17.075 3.816-17.075 10.683 0 5.345 3.309 8.336 10.338 9.394l9.1 1.35c2.303.35 3.249 1.231 3.249 2.64 0 1.997-2.124 2.937-6.438 2.937-5.671 0-11.816-1.35-16.835-3.758l1.005 8.627c4.314 1.588 9.925 2.527 15.184 2.527 11.343 0 17.248-3.936 17.248-10.922 0-5.577-3.308-8.573-10.631-9.626l-.012-.006zm14.592-20.138v40.096h10.158V71.906h-10.158zm22.028 22.076l14.125-15.209h-12.641L182.94 94.505l14.239 17.491H210l-15.19-18.02v.006zm-23.446-35.519c0 6.457 5.259 10.096 14.472 10.096 2.184 0 4.254-.238 6.377-.702l5.259-7.396c-2.716.702-5.791 1.118-8.567 1.118-4.547 0-6.677-.94-6.677-3.17 0-1.527 1.125-2.348 3.662-2.639l11.576-1.338v13.544h10.159V48.427c0-9.394-6.085-14.263-17.9-14.263-5.379 0-10.691.999-15.358 2.937l-1.597 8.746c5.019-2.408 10.631-3.698 15.71-3.698 5.415 0 8.137 1.558 8.807 5.143l-12.408 1.433c-9.393 1.058-13.527 4.048-13.527 9.744l.012-.006zm-28.412-2.11c0 8.103 4.726 12.212 14.059 12.212 3.722 0 6.797-.589 9.746-1.939l1.298-8.864c-2.835 1.7-5.731 2.58-8.627 2.58-4.373 0-6.323-1.76-6.323-5.696V42.904h15.417v-8.157h-15.417V27.82l-19.318 10.155v4.929h9.153v13.443l.012.006zm-9.985-3.698v1.997h-27.455c1.239 4.067 4.918 5.928 11.451 5.928 5.199 0 10.045-1.058 14.353-3.11l-1.239 8.574c-3.96 1.64-8.98 2.527-14.119 2.527-13.646 0-21.089-5.987-21.089-17.082 0-11.094 7.562-17.319 19.259-17.319 11.696 0 18.845 6.754 18.845 18.49l-.006-.005zm-27.586-4.816h17.362c-.916-3.895-3.925-5.928-8.735-5.928s-7.664 1.98-8.627 5.928z"
+                                      fill={
+                                        {
+                                          "payload": 4284880896,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                  </RNSVGGroup>
+                                  <RNSVGText
+                                    content={null}
+                                    dx={[]}
+                                    dy={[]}
+                                    fill={
+                                      {
+                                        "payload": 4294967295,
+                                        "type": 0,
+                                      }
+                                    }
+                                    font={
+                                      {
+                                        "fontSize": "40px",
+                                        "fontWeight": 800,
+                                      }
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    rotate={[]}
+                                    x={
+                                      [
+                                        40,
+                                      ]
+                                    }
+                                    y={
+                                      [
+                                        500,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGTSpan
+                                      content="0x78...x789"
+                                      dx={[]}
+                                      dy={[]}
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      font={{}}
+                                      rotate={[]}
+                                      x={[]}
+                                      y={[]}
+                                    />
+                                  </RNSVGText>
+                                  <RNSVGDefs>
+                                    <RNSVGClipPath
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      name="clip0_4219_2177"
+                                    >
+                                      <RNSVGRect
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        height={540}
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                        rx={31.8}
+                                        width={850.7}
+                                        x={0}
+                                        y={0}
+                                      />
+                                    </RNSVGClipPath>
+                                    <RNSVGClipPath
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      name="clip1_4219_2177"
+                                    >
+                                      <RNSVGPath
+                                        d="M0 0H201V132H0z"
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        matrix={
+                                          [
+                                            1,
+                                            0,
+                                            0,
+                                            1,
+                                            625,
+                                            384,
+                                          ]
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                    </RNSVGClipPath>
+                                  </RNSVGDefs>
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
                           <View
                             style={
                               [
@@ -474,7 +912,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -515,14 +953,14 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  Change asset
+                                  card.card_home.change_asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -573,28 +1011,28 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Manage spending limit
+                                    card.card_home.manage_card_options.manage_spending_limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
                                     }
                                   >
-                                    Full spending access
+                                    card.card_home.manage_card_options.manage_spending_limit_description_full
                                   </Text>
                                 </View>
                                 <View
@@ -670,7 +1108,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -684,7 +1122,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
@@ -692,6 +1130,103 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     }
                                   >
                                     See detailed transactions, freeze your card, etc.
+                                  </Text>
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 16,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={20}
+                                    name="Export"
+                                    style={
+                                      {
+                                        "height": 20,
+                                        "paddingLeft": 16,
+                                        "width": 20,
+                                      }
+                                    }
+                                    width={20}
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[MockFunction]}
+                            testID="travel-item"
+                          >
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "padding": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "flex-start",
+                                      "flex": 1,
+                                      "flexDirection": "column",
+                                      "justifyContent": "space-between",
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    card.card_home.manage_card_options.travel_title
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    card.card_home.manage_card_options.travel_description
                                   </Text>
                                 </View>
                                 <View
@@ -1064,6 +1599,18 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -1072,6 +1619,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={
@@ -1108,7 +1656,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -1148,7 +1696,432 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 false,
                               ]
                             }
-                          />
+                          >
+                            <View
+                              style={
+                                {
+                                  "aspectRatio": 1.575925925925926,
+                                }
+                              }
+                            >
+                              <RNSVGSvgView
+                                address="0x78...x789"
+                                align="xMidYMid"
+                                bbHeight="100%"
+                                bbWidth="100%"
+                                fill="none"
+                                focusable={false}
+                                hasLowerOpacity={false}
+                                height="100%"
+                                meetOrSlice={0}
+                                minX={0}
+                                minY={0}
+                                status="ACTIVE"
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": "100%",
+                                      "opacity": 1,
+                                      "width": "100%",
+                                    },
+                                  ]
+                                }
+                                type="VIRTUAL"
+                                vbHeight={540}
+                                vbWidth={851}
+                                width="100%"
+                              >
+                                <RNSVGGroup
+                                  fill={null}
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                >
+                                  <RNSVGGroup
+                                    clipPath="clip0_4219_2177"
+                                    fill={
+                                      {
+                                        "payload": 4278190080,
+                                        "type": 0,
+                                      }
+                                    }
+                                  >
+                                    <RNSVGRect
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      height={540}
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                      rx={31.8}
+                                      width={850.7}
+                                      x={0}
+                                      y={0}
+                                    />
+                                    <RNSVGPath
+                                      d="M339.921 308.8h126.578V97.92H339.921V308.8zM466.499 707.521h208.853V-16H466.499v723.521z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M675.352 707.471h139.236v-284.8H675.352v284.8zM814.588 593.6h106.789V422.72H814.588V593.6z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M675.352 422.72h245.529V194.88l-245.529-73.058V422.72zM339.921 97.92L466.499-16V97.92H339.921zM921.377 422.72l-.496-227.84v227.84h.496zM884.206 593.6l-69.618 113.921V593.6h69.618zM339.921 308.8l126.578 113.92V308.8H339.921z"
+                                      fill={
+                                        {
+                                          "payload": 4294944384,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGGroup
+                                      clipPath="clip1_4219_2177"
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                    >
+                                      <RNSVGRect
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        height={122}
+                                        propList={
+                                          [
+                                            "fill",
+                                            "stroke",
+                                            "strokeWidth",
+                                          ]
+                                        }
+                                        rx={61}
+                                        stroke={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        strokeWidth={10}
+                                        width={191}
+                                        x={630}
+                                        y={389}
+                                      />
+                                      <RNSVGPath
+                                        d="M749.915 405.967h-48.986v88.019h48.986v-88.019z"
+                                        fill={
+                                          {
+                                            "payload": 4294926080,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                      <RNSVGPath
+                                        d="M704.039 449.976c0-17.106 7.931-33.435 21.305-44.009-24.259-19.128-59.561-14.93-78.689 9.486-18.972 24.26-14.773 59.405 9.642 78.533a55.837 55.837 0 0069.203 0c-13.53-10.575-21.461-26.903-21.461-44.01z"
+                                        fill={
+                                          {
+                                            "payload": 4293591067,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                      <RNSVGPath
+                                        d="M816.008 449.976c0 30.947-25.038 55.985-55.984 55.985-12.597 0-24.727-4.199-34.524-11.975 24.26-19.128 28.459-54.273 9.331-78.689-2.8-3.421-5.91-6.687-9.331-9.33 24.26-19.128 59.561-14.93 78.533 9.486 7.776 9.797 11.975 21.927 11.975 34.523z"
+                                        fill={
+                                          {
+                                            "payload": 4294417947,
+                                            "type": 0,
+                                          }
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                    </RNSVGGroup>
+                                    <RNSVGPath
+                                      d="M695.304 346.59l-68.066-20.225-51.331 30.62-35.814-.014-51.361-30.606-68.036 20.225L400 276.873l20.696-77.375L400 134.079 420.696 53l106.312 63.382h61.984L695.304 53 716 134.079l-20.696 65.419L716 276.873l-20.696 69.717z"
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M420.711 53l106.312 63.426-4.228 43.529L420.711 53zM488.747 276.903l46.777 35.558-46.777 13.904v-49.462zM531.785 218.117l-8.99-58.133-57.548 39.529-.029-.015v.029l.178 40.688 23.336-22.098h43.053zM695.304 53l-106.312 63.426 4.213 43.529L695.304 53zM627.268 276.903l-46.777 35.558 46.777 13.904v-49.462zM650.782 199.527h.015-.015v-.029l-.014.015-57.548-39.529-8.991 58.133h43.039l23.351 22.098.163-40.688z"
+                                      fill={
+                                        {
+                                          "payload": 4294925334,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M488.732 326.365l-68.036 20.225L400 276.903h88.732v49.462zM531.77 218.102l12.997 84.038-18.011-46.726-61.39-15.198 23.351-22.114H531.77zM627.268 326.365l68.036 20.225L716 276.903h-88.732v49.462zM584.229 218.102l-12.996 84.038 18.011-46.726 61.39-15.198-23.366-22.114h-43.039z"
+                                      fill={
+                                        {
+                                          "payload": 4293085191,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M400 276.873l20.696-77.375h44.507l.163 40.702 61.39 15.199 18.011 46.726-9.258 10.291-46.777-35.558H400v.015zM716 276.873l-20.696-77.375h-44.507l-.163 40.702-61.39 15.199-18.011 46.726 9.258 10.291 46.777-35.558H716v.015zM588.992 116.382h-61.984l-4.213 43.528 21.972 142.171h26.466L593.22 159.91l-4.228-43.528z"
+                                      fill={
+                                        {
+                                          "payload": 4294937949,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M420.696 53L400 134.079l20.696 65.419h44.507l57.577-39.543L420.696 53zM518.908 234.981h-20.162l-10.978 10.737 39.003 9.651-7.863-20.403v.015zM695.304 53L716 134.079l-20.696 65.419h-44.507l-57.577-39.543L695.304 53zM597.122 234.981h20.191l10.979 10.752-39.048 9.666 7.878-20.433v.015zM575.892 329.25l4.599-16.804-9.257-10.291h-26.482l-9.258 10.291 4.599 16.804"
+                                      fill={
+                                        {
+                                          "payload": 4284880896,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M575.892 329.25V357h-35.799v-27.75h35.799z"
+                                      fill={
+                                        {
+                                          "payload": 4290823373,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M488.747 326.336l51.376 30.65v-27.75l-4.599-16.805-46.777 13.905zM627.268 326.336l-51.376 30.65v-27.75l4.599-16.805 46.777 13.905z"
+                                      fill={
+                                        {
+                                          "payload": 4293389302,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                    <RNSVGPath
+                                      d="M131.489 92.454v19.548h-10.158V98.459l-11.577 1.337c-2.542.292-3.661 1.118-3.661 2.64 0 2.23 2.124 3.169 6.676 3.169 2.776 0 5.852-.41 8.568-1.118l-5.259 7.396c-2.124.47-4.194.702-6.378.702-9.213 0-14.472-3.639-14.472-10.095 0-5.696 4.134-8.687 13.527-9.745l12.408-1.433c-.67-3.585-3.392-5.143-8.806-5.143-5.08 0-10.691 1.29-15.71 3.698l1.596-8.746c4.667-1.938 9.986-2.936 15.358-2.936 11.816 0 17.9 4.875 17.9 14.263l-.012.006zM40.104 67.976L29 112.002h11.104l5.51-22.123 9.554 11.38h11.577l9.554-11.38 5.51 22.123h11.104L81.809 67.97 60.954 92.584 40.097 67.97l.006.006zm41.705-44.032L60.954 48.558l-20.85-24.614L29 67.976h11.104l5.51-22.123 9.554 11.38h11.577l9.554-11.38 5.51 22.123h11.104L81.809 23.944zm76.381 68.1l-8.98-1.29c-2.244-.352-3.129-1.06-3.129-2.29 0-1.998 2.184-2.877 6.677-2.877 5.199 0 9.865 1.058 14.771 3.347l-1.238-8.627c-3.961-1.41-8.508-2.11-13.234-2.11-11.044 0-17.075 3.816-17.075 10.683 0 5.345 3.309 8.336 10.338 9.394l9.1 1.35c2.303.35 3.249 1.231 3.249 2.64 0 1.997-2.124 2.937-6.438 2.937-5.671 0-11.816-1.35-16.835-3.758l1.005 8.627c4.314 1.588 9.925 2.527 15.184 2.527 11.343 0 17.248-3.936 17.248-10.922 0-5.577-3.308-8.573-10.631-9.626l-.012-.006zm14.592-20.138v40.096h10.158V71.906h-10.158zm22.028 22.076l14.125-15.209h-12.641L182.94 94.505l14.239 17.491H210l-15.19-18.02v.006zm-23.446-35.519c0 6.457 5.259 10.096 14.472 10.096 2.184 0 4.254-.238 6.377-.702l5.259-7.396c-2.716.702-5.791 1.118-8.567 1.118-4.547 0-6.677-.94-6.677-3.17 0-1.527 1.125-2.348 3.662-2.639l11.576-1.338v13.544h10.159V48.427c0-9.394-6.085-14.263-17.9-14.263-5.379 0-10.691.999-15.358 2.937l-1.597 8.746c5.019-2.408 10.631-3.698 15.71-3.698 5.415 0 8.137 1.558 8.807 5.143l-12.408 1.433c-9.393 1.058-13.527 4.048-13.527 9.744l.012-.006zm-28.412-2.11c0 8.103 4.726 12.212 14.059 12.212 3.722 0 6.797-.589 9.746-1.939l1.298-8.864c-2.835 1.7-5.731 2.58-8.627 2.58-4.373 0-6.323-1.76-6.323-5.696V42.904h15.417v-8.157h-15.417V27.82l-19.318 10.155v4.929h9.153v13.443l.012.006zm-9.985-3.698v1.997h-27.455c1.239 4.067 4.918 5.928 11.451 5.928 5.199 0 10.045-1.058 14.353-3.11l-1.239 8.574c-3.96 1.64-8.98 2.527-14.119 2.527-13.646 0-21.089-5.987-21.089-17.082 0-11.094 7.562-17.319 19.259-17.319 11.696 0 18.845 6.754 18.845 18.49l-.006-.005zm-27.586-4.816h17.362c-.916-3.895-3.925-5.928-8.735-5.928s-7.664 1.98-8.627 5.928z"
+                                      fill={
+                                        {
+                                          "payload": 4284880896,
+                                          "type": 0,
+                                        }
+                                      }
+                                      propList={
+                                        [
+                                          "fill",
+                                        ]
+                                      }
+                                    />
+                                  </RNSVGGroup>
+                                  <RNSVGText
+                                    content={null}
+                                    dx={[]}
+                                    dy={[]}
+                                    fill={
+                                      {
+                                        "payload": 4294967295,
+                                        "type": 0,
+                                      }
+                                    }
+                                    font={
+                                      {
+                                        "fontSize": "40px",
+                                        "fontWeight": 800,
+                                      }
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    rotate={[]}
+                                    x={
+                                      [
+                                        40,
+                                      ]
+                                    }
+                                    y={
+                                      [
+                                        500,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGTSpan
+                                      content="0x78...x789"
+                                      dx={[]}
+                                      dy={[]}
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      font={{}}
+                                      rotate={[]}
+                                      x={[]}
+                                      y={[]}
+                                    />
+                                  </RNSVGText>
+                                  <RNSVGDefs>
+                                    <RNSVGClipPath
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      name="clip0_4219_2177"
+                                    >
+                                      <RNSVGRect
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        height={540}
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                        rx={31.8}
+                                        width={850.7}
+                                        x={0}
+                                        y={0}
+                                      />
+                                    </RNSVGClipPath>
+                                    <RNSVGClipPath
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      name="clip1_4219_2177"
+                                    >
+                                      <RNSVGPath
+                                        d="M0 0H201V132H0z"
+                                        fill={
+                                          {
+                                            "payload": 4294967295,
+                                            "type": 0,
+                                          }
+                                        }
+                                        matrix={
+                                          [
+                                            1,
+                                            0,
+                                            0,
+                                            1,
+                                            625,
+                                            384,
+                                          ]
+                                        }
+                                        propList={
+                                          [
+                                            "fill",
+                                          ]
+                                        }
+                                      />
+                                    </RNSVGClipPath>
+                                  </RNSVGDefs>
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
                           <View
                             style={
                               [
@@ -1218,7 +2191,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1259,14 +2232,14 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  Change asset
+                                  card.card_home.change_asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -1317,28 +2290,28 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Manage spending limit
+                                    card.card_home.manage_card_options.manage_spending_limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
                                     }
                                   >
-                                    Full spending access
+                                    card.card_home.manage_card_options.manage_spending_limit_description_full
                                   </Text>
                                 </View>
                                 <View
@@ -1414,7 +2387,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1428,7 +2401,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
@@ -1436,6 +2409,103 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     }
                                   >
                                     See detailed transactions, freeze your card, etc.
+                                  </Text>
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 16,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={20}
+                                    name="Export"
+                                    style={
+                                      {
+                                        "height": 20,
+                                        "paddingLeft": 16,
+                                        "width": 20,
+                                      }
+                                    }
+                                    width={20}
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[MockFunction]}
+                            testID="travel-item"
+                          >
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "padding": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "flex-start",
+                                      "flex": 1,
+                                      "flexDirection": "column",
+                                      "justifyContent": "space-between",
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    card.card_home.manage_card_options.travel_title
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    card.card_home.manage_card_options.travel_description
                                   </Text>
                                 </View>
                                 <View

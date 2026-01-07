@@ -94,10 +94,13 @@ export const createMockWallet = (
         type: ExtendedKeyringTypes.simple,
       },
     },
-    groups: groups.reduce((acc, group) => {
-      acc[group.id] = group;
-      return acc;
-    }, {} as Record<string, AccountGroupObject>),
+    groups: groups.reduce(
+      (acc, group) => {
+        acc[group.id] = group;
+        return acc;
+      },
+      {} as Record<string, AccountGroupObject>,
+    ),
   };
 
   return wallet as unknown as AccountWalletObject;
@@ -120,10 +123,13 @@ export const createMockEntropyWallet = (
         id: 'test-entropy-id',
       },
     },
-    groups: groups.reduce((acc, group) => {
-      acc[group.id] = group;
-      return acc;
-    }, {} as Record<string, AccountGroupObject>),
+    groups: groups.reduce(
+      (acc, group) => {
+        acc[group.id] = group;
+        return acc;
+      },
+      {} as Record<string, AccountGroupObject>,
+    ),
   };
 
   return wallet as unknown as AccountWalletObject;
@@ -136,15 +142,18 @@ export const createMockState = (
   wallets: AccountWalletObject[],
   internalAccounts: Record<string, InternalAccount>,
 ): RootState => {
-  const walletMap = wallets.reduce((acc, wallet) => {
-    const prefixedKey = `${wallet.type}:${wallet.id}`;
+  const walletMap = wallets.reduce(
+    (acc, wallet) => {
+      const prefixedKey = `${wallet.type}:${wallet.id}`;
 
-    // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
-    acc[prefixedKey] = wallet;
-    acc[wallet.id] = wallet;
+      // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
+      acc[prefixedKey] = wallet;
+      acc[wallet.id] = wallet;
 
-    return acc;
-  }, {} as Record<string, AccountWalletObject>);
+      return acc;
+    },
+    {} as Record<string, AccountWalletObject>,
+  );
 
   const firstWallet = wallets[0];
   const firstGroupId = Object.keys(firstWallet?.groups ?? [])[0];

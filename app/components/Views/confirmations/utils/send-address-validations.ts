@@ -10,12 +10,11 @@ import {
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
 import { memoizedGetTokenStandardAndDetails } from './token';
-import { isBtcMainnetAddress } from '../../../../core/Multichain/utils';
-
-const LOWER_CASED_BURN_ADDRESSES = [
-  '0x0000000000000000000000000000000000000000',
-  '0x000000000000000000000000000000000000dead',
-];
+import {
+  isBtcMainnetAddress,
+  isTronAddress,
+} from '../../../../core/Multichain/utils';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../../../constants/address';
 
 export const validateBitcoinAddress = (
   toAddress: string,
@@ -124,6 +123,20 @@ export const getConfusableCharacterInfo = (toAddress: string) => {
     // Show WARNING for confusable characters
     return {
       warning: confusableCharacterWarningMessage,
+    };
+  }
+  return {};
+};
+
+export const validateTronAddress = (
+  toAddress: string,
+): {
+  error?: string;
+  warning?: string;
+} => {
+  if (!isTronAddress(toAddress)) {
+    return {
+      error: strings('send.invalid_address'),
     };
   }
   return {};

@@ -319,148 +319,636 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                         }
                       }
                     >
-                      <RCTScrollView
-                        collapsable={false}
-                        handlerTag={1}
-                        handlerType="NativeViewGestureHandler"
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
+                      <View
+                        style={
+                          {
+                            "flex": 1,
+                          }
+                        }
                       >
-                        <View>
-                          <View>
+                        <View
+                          style={
+                            {
+                              "margin": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
+                                  "borderWidth": 1,
+                                  "color": "#121314",
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                },
+                              ]
+                            }
+                            testID="add-searched-token-screen"
+                          >
                             <View
                               style={
                                 {
-                                  "paddingBottom": 16,
+                                  "color": "#686e7d",
+                                  "left": 16,
+                                  "position": "absolute",
                                 }
                               }
                             >
-                              <View
+                              <SvgMock
+                                color="#121314"
+                                fill="currentColor"
+                                height={16}
+                                name="Search"
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "color": "#121314",
-                                      "flex": 1,
-                                      "flexDirection": "row",
-                                      "justifyContent": "center",
-                                      "marginTop": 16,
-                                    },
-                                  ]
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
                                 }
-                                testID="add-searched-token-screen"
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "paddingLeft": 20,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Search"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "borderColor": "#2c3dc5",
-                                      "color": "#686e7d",
-                                      "paddingHorizontal": 12,
-                                      "paddingVertical": 12,
-                                      "width": "80%",
-                                    }
-                                  }
-                                >
-                                  <TextInput
-                                    keyboardAppearance="light"
-                                    onBlur={[Function]}
-                                    onChangeText={[Function]}
-                                    onFocus={[Function]}
-                                    placeholder="Search Tokens"
-                                    placeholderTextColor="#b7bbc8"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "flex": 1,
-                                        "fontFamily": "Geist Regular",
-                                      }
-                                    }
-                                    testID="input-search-asset"
-                                    value=""
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "paddingRight": 20,
-                                    }
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 24,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 24,
-                                      }
-                                    }
-                                    testID="clear-search-bar"
-                                  >
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={16}
-                                      name="Close"
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
+                                width={16}
+                              />
                             </View>
                             <View
                               style={
                                 {
-                                  "padding": 0,
+                                  "borderColor": "#2c3dc5",
+                                  "color": "#686e7d",
+                                  "paddingHorizontal": 42,
+                                  "paddingVertical": 12,
+                                  "width": "100%",
                                 }
                               }
-                            />
+                            >
+                              <TextInput
+                                keyboardAppearance="light"
+                                onBlur={[Function]}
+                                onChangeText={[Function]}
+                                onFocus={[Function]}
+                                placeholder="Search tokens"
+                                placeholderTextColor="#b7bbc8"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Regular",
+                                  }
+                                }
+                                testID="input-search-asset"
+                                value=""
+                              />
+                            </View>
                           </View>
                         </View>
-                      </RCTScrollView>
+                        <View
+                          collapsable={false}
+                          onLayout={[Function]}
+                          style={
+                            {
+                              "flex": 1,
+                              "overflow": "hidden",
+                            }
+                          }
+                        >
+                          <RCTScrollView
+                            collapsable={false}
+                            decelerationRate="fast"
+                            keyExtractor={[Function]}
+                            maintainVisibleContentPosition={
+                              {
+                                "minIndexForVisible": 0,
+                              }
+                            }
+                            onScroll={[Function]}
+                            scrollEventThrottle={0.0001}
+                            style={{}}
+                          >
+                            <View>
+                              <View
+                                style={
+                                  {
+                                    "height": 0,
+                                    "left": 0,
+                                    "position": "absolute",
+                                    "top": 1000000,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "height": 0,
+                                    "width": undefined,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "height": 0,
+                                    "marginLeft": undefined,
+                                    "marginTop": 0,
+                                    "opacity": 1,
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  index={0}
+                                  onLayout={[Function]}
+                                  style={
+                                    {
+                                      "flexDirection": "column",
+                                      "height": undefined,
+                                      "left": 0,
+                                      "maxHeight": undefined,
+                                      "maxWidth": undefined,
+                                      "minHeight": undefined,
+                                      "minWidth": undefined,
+                                      "position": "absolute",
+                                      "top": 0,
+                                      "width": 0,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "flex": 1,
+                                        "opacity": 1,
+                                        "padding": 16,
+                                      }
+                                    }
+                                    testID="searched-token-result"
+                                  >
+                                    <View
+                                      accessibilityRole="none"
+                                      accessible={true}
+                                      style={
+                                        {
+                                          "padding": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          pointerEvents="auto"
+                                        >
+                                          <TouchableOpacity
+                                            disabled={false}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "height": 24,
+                                                "marginRight": -8,
+                                                "opacity": 1,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              accessibilityRole="checkbox"
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderColor": "#b7bbc8",
+                                                  "borderRadius": 4,
+                                                  "borderWidth": 2,
+                                                  "height": 20,
+                                                  "justifyContent": "center",
+                                                  "width": 20,
+                                                }
+                                              }
+                                            />
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "display": "flex",
+                                              "flexDirection": "column",
+                                              "paddingHorizontal": 2,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignSelf": "flex-start",
+                                                "position": "relative",
+                                              }
+                                            }
+                                            testID="badge-wrapper-badge"
+                                          >
+                                            <View />
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "bottom": 0,
+                                                  "height": 0,
+                                                  "justifyContent": "center",
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "transform": [
+                                                    {
+                                                      "translateX": 0,
+                                                    },
+                                                    {
+                                                      "translateY": 0,
+                                                    },
+                                                  ],
+                                                }
+                                              }
+                                            >
+                                              <View
+                                                onLayout={[Function]}
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "aspectRatio": 1,
+                                                    "height": "50%",
+                                                    "justifyContent": "center",
+                                                    "maxHeight": 24,
+                                                    "minHeight": 8,
+                                                    "opacity": 0,
+                                                  }
+                                                }
+                                                testID="badgenetwork"
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "alignItems": "center",
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderColor": "#ffffff",
+                                                      "borderRadius": 8,
+                                                      "borderWidth": 2,
+                                                      "height": 32,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "shadowColor": "#0000001a",
+                                                      "shadowOffset": {
+                                                        "height": 2,
+                                                        "width": 0,
+                                                      },
+                                                      "shadowOpacity": 1,
+                                                      "shadowRadius": 4,
+                                                      "transform": [
+                                                        {
+                                                          "scale": 1,
+                                                        },
+                                                      ],
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                >
+                                                  <Image
+                                                    onError={[Function]}
+                                                    resizeMode="contain"
+                                                    source={1}
+                                                    style={
+                                                      {
+                                                        "height": 32,
+                                                        "width": 32,
+                                                      }
+                                                    }
+                                                    testID="network-avatar-image"
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 4,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Test Token
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            TEST
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                                <View
+                                  index={1}
+                                  onLayout={[Function]}
+                                  style={
+                                    {
+                                      "flexDirection": "column",
+                                      "height": undefined,
+                                      "left": 0,
+                                      "maxHeight": undefined,
+                                      "maxWidth": undefined,
+                                      "minHeight": undefined,
+                                      "minWidth": undefined,
+                                      "position": "absolute",
+                                      "top": 0,
+                                      "width": 0,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "flex": 1,
+                                        "opacity": 1,
+                                        "padding": 16,
+                                      }
+                                    }
+                                    testID="searched-token-result"
+                                  >
+                                    <View
+                                      accessibilityRole="none"
+                                      accessible={true}
+                                      style={
+                                        {
+                                          "padding": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          pointerEvents="auto"
+                                        >
+                                          <TouchableOpacity
+                                            disabled={false}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "height": 24,
+                                                "marginRight": -8,
+                                                "opacity": 1,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              accessibilityRole="checkbox"
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderColor": "#b7bbc8",
+                                                  "borderRadius": 4,
+                                                  "borderWidth": 2,
+                                                  "height": 20,
+                                                  "justifyContent": "center",
+                                                  "width": 20,
+                                                }
+                                              }
+                                            />
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "display": "flex",
+                                              "flexDirection": "column",
+                                              "paddingHorizontal": 2,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignSelf": "flex-start",
+                                                "position": "relative",
+                                              }
+                                            }
+                                            testID="badge-wrapper-badge"
+                                          >
+                                            <View />
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "bottom": 0,
+                                                  "height": 0,
+                                                  "justifyContent": "center",
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "transform": [
+                                                    {
+                                                      "translateX": 0,
+                                                    },
+                                                    {
+                                                      "translateY": 0,
+                                                    },
+                                                  ],
+                                                }
+                                              }
+                                            >
+                                              <View
+                                                onLayout={[Function]}
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "aspectRatio": 1,
+                                                    "height": "50%",
+                                                    "justifyContent": "center",
+                                                    "maxHeight": 24,
+                                                    "minHeight": 8,
+                                                    "opacity": 0,
+                                                  }
+                                                }
+                                                testID="badgenetwork"
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "alignItems": "center",
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderColor": "#ffffff",
+                                                      "borderRadius": 8,
+                                                      "borderWidth": 2,
+                                                      "height": 32,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "shadowColor": "#0000001a",
+                                                      "shadowOffset": {
+                                                        "height": 2,
+                                                        "width": 0,
+                                                      },
+                                                      "shadowOpacity": 1,
+                                                      "shadowRadius": 4,
+                                                      "transform": [
+                                                        {
+                                                          "scale": 1,
+                                                        },
+                                                      ],
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                >
+                                                  <Image
+                                                    onError={[Function]}
+                                                    resizeMode="contain"
+                                                    source={1}
+                                                    style={
+                                                      {
+                                                        "height": 32,
+                                                        "width": 32,
+                                                      }
+                                                    }
+                                                    testID="network-avatar-image"
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 4,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            USD Coin
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            USDC
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                          </RCTScrollView>
+                        </View>
+                      </View>
                       <View
                         style={
                           {
+                            "margin": 16,
+                            "paddingBottom": 0,
                             "paddingVertical": 16,
                           }
                         }
@@ -494,7 +982,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,

@@ -40,6 +40,10 @@ import {
   BluetoothInterface,
 } from '../../hooks/Ledger/useBluetoothDevices';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { HARDWARE_WALLET_BUTTON_TYPE } from '../../../core/Analytics/MetaMetrics.events';
+import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
@@ -75,6 +79,38 @@ const LedgerConnect = ({
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
   const deviceOSVersion = Number(getSystemVersion()) || 0;
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const ledgerModelName = useMemo(() => {
+    if (selectedDevice) {
+      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
+      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    }
+    return undefined;
+  }, [selectedDevice]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONNECT_INSTRUCTIONS)
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
+  useEffect(() => {
+    if (selectedDevice) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FOUND)
+          .addProperties({
+            device_type: HardwareDeviceTypes.LEDGER,
+            device_model: ledgerModelName,
+          })
+          .build(),
+      );
+    }
+  }, [selectedDevice, trackEvent, createEventBuilder, ledgerModelName]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -84,6 +120,14 @@ const LedgerConnect = ({
 
   const connectLedger = () => {
     setLoading(true);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION)
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+          device_model: ledgerModelName,
+        })
+        .build(),
+    );
     ledgerLogicToRun(async () => {
       onConnectLedger();
     });
@@ -110,7 +154,20 @@ const LedgerConnect = ({
       primaryButtonConfig: {
         title: strings('ledger.retry'),
         onPress: () => {
+          const retryCount = retryTimes + 1;
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.HARDWARE_WALLET_CONNECTION_RETRY,
+            )
+              .addProperties({
+                device_type: HardwareDeviceTypes.LEDGER,
+                device_model: ledgerModelName,
+                retry_count: retryCount,
+              })
+              .build(),
+          );
           setErrorDetails(undefined);
+          setRetryTimes(retryCount);
           connectLedger();
         },
       },
@@ -125,6 +182,14 @@ const LedgerConnect = ({
   }, [deviceOSVersion]);
 
   const openHowToInstallEthApp = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_MARKETING)
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+          button_type: HARDWARE_WALLET_BUTTON_TYPE.TUTORIAL,
+        })
+        .build(),
+    );
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {

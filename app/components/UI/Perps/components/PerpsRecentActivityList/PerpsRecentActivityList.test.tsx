@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
-import type { OrderFill } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { FillType } from '../../types/transactionHistory';
 
 // Mock dependencies
@@ -99,42 +97,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../utils/transactionTransforms', () => ({
-  transformFillsToTransactions: jest.fn(),
-}));
-
 describe('PerpsRecentActivityList', () => {
   const mockNavigate = jest.fn();
-  const mockTransformFillsToTransactions = jest.mocked(
-    transformFillsToTransactions,
-  );
-
-  const mockFills: OrderFill[] = [
-    {
-      direction: 'Open Long',
-      orderId: 'order-1',
-      symbol: 'BTC',
-      side: 'buy',
-      size: '1.5',
-      price: '52000',
-      fee: '10.5',
-      timestamp: 1698700000000,
-      feeToken: 'USDC',
-      pnl: '0',
-    },
-    {
-      direction: 'Close Long',
-      orderId: 'order-2',
-      symbol: 'ETH',
-      side: 'sell',
-      size: '2.0',
-      price: '3000',
-      fee: '5.0',
-      timestamp: 1698690000000,
-      feeToken: 'USDC',
-      pnl: '150',
-    },
-  ];
 
   const mockTransactions = [
     {
@@ -191,7 +155,6 @@ describe('PerpsRecentActivityList', () => {
     useNavigation.mockReturnValue({
       navigate: mockNavigate,
     });
-    mockTransformFillsToTransactions.mockReturnValue(mockTransactions);
   });
 
   afterEach(() => {
@@ -200,25 +163,28 @@ describe('PerpsRecentActivityList', () => {
 
   describe('Loading State', () => {
     it('renders loading skeleton when isLoading is true', () => {
-      render(<PerpsRecentActivityList fills={[]} isLoading />);
+      render(<PerpsRecentActivityList transactions={[]} isLoading />);
 
       expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
     });
 
     it('renders header with title when loading', () => {
-      render(<PerpsRecentActivityList fills={[]} isLoading />);
+      render(<PerpsRecentActivityList transactions={[]} isLoading />);
 
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
     });
 
-    it('does not render See All button when loading', () => {
-      render(<PerpsRecentActivityList fills={[]} isLoading />);
+    it('does not render arrow icon when loading', () => {
+      render(<PerpsRecentActivityList transactions={[]} isLoading />);
 
-      expect(screen.queryByText('See All')).not.toBeOnTheScreen();
+      // Arrow icon is not shown when loading (no pressable header)
+      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
     });
 
     it('does not render activity list when loading', () => {
-      render(<PerpsRecentActivityList fills={mockFills} isLoading />);
+      render(
+        <PerpsRecentActivityList transactions={mockTransactions} isLoading />,
+      );
 
       expect(
         screen.queryByTestId('perps-token-logo-BTC'),
@@ -230,83 +196,118 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Empty State', () => {
-    it('renders empty message when fills array is empty', () => {
-      render(<PerpsRecentActivityList fills={[]} />);
+    it('renders empty message when transactions array is empty', () => {
+      render(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.getByText('No recent activity')).toBeOnTheScreen();
     });
 
     it('renders header with title when empty', () => {
-      render(<PerpsRecentActivityList fills={[]} />);
+      render(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
     });
 
-    it('does not render See All button when empty', () => {
-      render(<PerpsRecentActivityList fills={[]} />);
+    it('does not render pressable header when empty', () => {
+      render(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.queryByText('See All')).not.toBeOnTheScreen();
-    });
-
-    it('does not call transformFillsToTransactions when empty', () => {
-      render(<PerpsRecentActivityList fills={[]} />);
-
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([]);
+      // When empty, header is not pressable (no arrow icon)
+      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
     });
   });
 
   describe('Component Rendering', () => {
-    it('renders list with fills', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('renders list with transactions', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
       expect(screen.getByText('Closed long')).toBeOnTheScreen();
     });
 
-    it('renders header with title and See All button', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('renders header with title and pressable row', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
-      expect(screen.getByText('See All')).toBeOnTheScreen();
+      // Header row is pressable with arrow icon (no "See All" text)
     });
 
     it('renders transaction subtitles correctly', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('1.5 BTC')).toBeOnTheScreen();
       expect(screen.getByText('2.0 ETH')).toBeOnTheScreen();
     });
 
+    it('strips hip3 prefix from transaction subtitle', () => {
+      const hip3Transactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'hip3:BTC',
+          asset: 'hip3:BTC',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={hip3Transactions} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('strips DEX prefix from transaction subtitle', () => {
+      const dexTransactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'xyz:TSLA',
+          asset: 'xyz:TSLA',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={dexTransactions} />);
+
+      expect(screen.getByText('TSLA')).toBeOnTheScreen();
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const solTransactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'SOL',
+          asset: 'SOL',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={solTransactions} />);
+
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+    });
+
     it('renders token logos for each transaction', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByTestId('perps-token-logo-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('perps-token-logo-ETH')).toBeOnTheScreen();
     });
 
     it('renders fill amounts correctly', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('-$10.50')).toBeOnTheScreen();
       expect(screen.getByText('+$145.00')).toBeOnTheScreen();
     });
 
-    it('calls transformFillsToTransactions with provided fills', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
-
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledTimes(1);
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(mockFills);
-    });
-
     it('uses default icon size when not provided', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('40');
     });
 
     it('uses custom icon size when provided', () => {
-      render(<PerpsRecentActivityList fills={mockFills} iconSize={40} />);
+      render(
+        <PerpsRecentActivityList
+          transactions={mockTransactions}
+          iconSize={40}
+        />,
+      );
 
       const iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('40');
@@ -314,54 +315,55 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Navigation Handling', () => {
-    it('navigates to transactions view when See All is pressed', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('navigates to transactions view when header is pressed', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
-      const seeAllButton = screen.getByText('See All');
-      fireEvent.press(seeAllButton);
+      // Press the header row (title text is within the pressable area)
+      const headerTitle = screen.getByText('Recent Activity');
+      fireEvent.press(headerTitle);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.TRANSACTIONS_VIEW,
-        params: { redirectToPerpsTransactions: true },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ACTIVITY, {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
       });
     });
 
-    it('navigates to market details when transaction item is pressed', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('navigates to position transaction detail when transaction item is pressed', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
       fireEvent.press(transactionItem.parent?.parent || transactionItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'BTC', name: 'BTC' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[0],
         },
-      });
+      );
     });
 
-    it('navigates with correct market data for different transactions', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('navigates with correct transaction data for different transactions', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const ethTransaction = screen.getByText('Closed long');
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'ETH', name: 'ETH' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[1],
         },
-      });
+      );
     });
 
-    it('handles multiple presses on See All button', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+    it('handles multiple presses on header', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
-      const seeAllButton = screen.getByText('See All');
-      fireEvent.press(seeAllButton);
-      fireEvent.press(seeAllButton);
+      const headerTitle = screen.getByText('Recent Activity');
+      fireEvent.press(headerTitle);
+      fireEvent.press(headerTitle);
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
     });
@@ -381,11 +383,10 @@ describe('PerpsRecentActivityList', () => {
           fill: undefined,
         },
       ];
-      mockTransformFillsToTransactions.mockReturnValueOnce(
-        transactionsWithoutFill,
-      );
 
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(
+        <PerpsRecentActivityList transactions={transactionsWithoutFill} />,
+      );
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
       expect(screen.getByText('1.0 SOL')).toBeOnTheScreen();
@@ -404,17 +405,16 @@ describe('PerpsRecentActivityList', () => {
           fill: undefined,
         },
       ];
-      mockTransformFillsToTransactions.mockReturnValueOnce(
-        transactionsWithoutFill,
-      );
 
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(
+        <PerpsRecentActivityList transactions={transactionsWithoutFill} />,
+      );
 
       expect(screen.queryByText(/\$/)).not.toBeOnTheScreen();
     });
 
     it('renders subtitle when provided', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('1.5 BTC')).toBeOnTheScreen();
       expect(screen.getByText('2.0 ETH')).toBeOnTheScreen();
@@ -446,11 +446,10 @@ describe('PerpsRecentActivityList', () => {
           },
         },
       ];
-      mockTransformFillsToTransactions.mockReturnValueOnce(
-        transactionsWithoutSubtitle,
-      );
 
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(
+        <PerpsRecentActivityList transactions={transactionsWithoutSubtitle} />,
+      );
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
       expect(screen.getByText('-$10.00')).toBeOnTheScreen();
@@ -458,32 +457,17 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles single fill', () => {
-      const singleFill = [mockFills[0]];
+    it('handles single transaction', () => {
       const singleTransaction = [mockTransactions[0]];
-      mockTransformFillsToTransactions.mockReturnValueOnce(singleTransaction);
 
-      render(<PerpsRecentActivityList fills={singleFill} />);
+      render(<PerpsRecentActivityList transactions={singleTransaction} />);
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
       expect(screen.queryByText('Closed long')).not.toBeOnTheScreen();
     });
 
-    it('handles very long list of fills', () => {
-      const longFillList: OrderFill[] = Array.from({ length: 50 }, (_, i) => ({
-        direction: 'Open Long',
-        orderId: `order-${i}`,
-        symbol: `TOKEN${i}`,
-        side: 'buy',
-        size: '1.0',
-        price: '100',
-        fee: '1.0',
-        timestamp: 1698700000000 + i,
-        feeToken: 'USDC',
-        pnl: '0',
-      }));
-
-      const longTransactionList = longFillList.map((_fill, i) => ({
+    it('handles very long list of transactions', () => {
+      const longTransactionList = Array.from({ length: 50 }, (_, i) => ({
         id: `order-${i}`,
         type: 'trade' as const,
         category: 'position_open' as const,
@@ -507,29 +491,12 @@ describe('PerpsRecentActivityList', () => {
         },
       }));
 
-      mockTransformFillsToTransactions.mockReturnValueOnce(longTransactionList);
-
-      render(<PerpsRecentActivityList fills={longFillList} />);
+      render(<PerpsRecentActivityList transactions={longTransactionList} />);
 
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
     });
 
-    it('handles fills with empty orderId gracefully', () => {
-      const fillsWithEmptyId: OrderFill[] = [
-        {
-          direction: 'Open Long',
-          orderId: '',
-          symbol: 'BTC',
-          side: 'buy',
-          size: '1.0',
-          price: '52000',
-          fee: '10.0',
-          timestamp: 1698700000000,
-          feeToken: 'USDC',
-          pnl: '0',
-        },
-      ];
-
+    it('handles transactions with empty orderId gracefully', () => {
       const transactionsWithGeneratedId = [
         {
           id: 'fill-1698700000000',
@@ -556,39 +523,22 @@ describe('PerpsRecentActivityList', () => {
         },
       ];
 
-      mockTransformFillsToTransactions.mockReturnValueOnce(
-        transactionsWithGeneratedId,
+      render(
+        <PerpsRecentActivityList transactions={transactionsWithGeneratedId} />,
       );
-
-      render(<PerpsRecentActivityList fills={fillsWithEmptyId} />);
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
     });
 
     it('renders recycling key correctly for token logos', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const logoKeys = screen.getAllByTestId('logo-key');
       expect(logoKeys[0]).toHaveTextContent('BTC-order-1');
       expect(logoKeys[1]).toHaveTextContent('ETH-order-2');
     });
 
-    it('handles fills with special characters in symbols', () => {
-      const specialFills: OrderFill[] = [
-        {
-          direction: 'Open Long',
-          orderId: 'order-special',
-          symbol: 'BTC-USD',
-          side: 'buy',
-          size: '1.0',
-          price: '52000',
-          fee: '10.0',
-          timestamp: 1698700000000,
-          feeToken: 'USDC',
-          pnl: '0',
-        },
-      ];
-
+    it('handles transactions with special characters in symbols', () => {
       const specialTransactions = [
         {
           id: 'order-special',
@@ -615,37 +565,20 @@ describe('PerpsRecentActivityList', () => {
         },
       ];
 
-      mockTransformFillsToTransactions.mockReturnValueOnce(specialTransactions);
-
-      render(<PerpsRecentActivityList fills={specialFills} />);
+      render(<PerpsRecentActivityList transactions={specialTransactions} />);
 
       expect(screen.getByTestId('perps-token-logo-BTC-USD')).toBeOnTheScreen();
     });
   });
 
   describe('Data Updates', () => {
-    it('updates when fills prop changes', () => {
+    it('updates when transactions prop changes', () => {
       const { rerender } = render(
-        <PerpsRecentActivityList fills={mockFills} />,
+        <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
       expect(screen.getByText('Closed long')).toBeOnTheScreen();
-
-      const newFills: OrderFill[] = [
-        {
-          direction: 'Open Short',
-          orderId: 'order-3',
-          symbol: 'SOL',
-          side: 'sell',
-          size: '10.0',
-          price: '150',
-          fee: '2.0',
-          timestamp: 1698710000000,
-          feeToken: 'USDC',
-          pnl: '0',
-        },
-      ];
 
       const newTransactions = [
         {
@@ -673,9 +606,7 @@ describe('PerpsRecentActivityList', () => {
         },
       ];
 
-      mockTransformFillsToTransactions.mockReturnValueOnce(newTransactions);
-
-      rerender(<PerpsRecentActivityList fills={newFills} />);
+      rerender(<PerpsRecentActivityList transactions={newTransactions} />);
 
       expect(screen.queryByText('Opened long')).not.toBeOnTheScreen();
       expect(screen.queryByText('Closed long')).not.toBeOnTheScreen();
@@ -683,11 +614,13 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('transitions from empty state to fills', () => {
-      const { rerender } = render(<PerpsRecentActivityList fills={[]} />);
+      const { rerender } = render(
+        <PerpsRecentActivityList transactions={[]} />,
+      );
 
       expect(screen.getByText('No recent activity')).toBeOnTheScreen();
 
-      rerender(<PerpsRecentActivityList fills={mockFills} />);
+      rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.queryByText('No recent activity')).not.toBeOnTheScreen();
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
@@ -695,14 +628,12 @@ describe('PerpsRecentActivityList', () => {
 
     it('transitions from fills to empty state', () => {
       const { rerender } = render(
-        <PerpsRecentActivityList fills={mockFills} />,
+        <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
 
-      mockTransformFillsToTransactions.mockReturnValueOnce([]);
-
-      rerender(<PerpsRecentActivityList fills={[]} />);
+      rerender(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.queryByText('Opened long')).not.toBeOnTheScreen();
       expect(screen.getByText('No recent activity')).toBeOnTheScreen();
@@ -710,12 +641,17 @@ describe('PerpsRecentActivityList', () => {
 
     it('transitions from loading to fills', () => {
       const { rerender } = render(
-        <PerpsRecentActivityList fills={[]} isLoading />,
+        <PerpsRecentActivityList transactions={[]} isLoading />,
       );
 
       expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
 
-      rerender(<PerpsRecentActivityList fills={mockFills} isLoading={false} />);
+      rerender(
+        <PerpsRecentActivityList
+          transactions={mockTransactions}
+          isLoading={false}
+        />,
+      );
 
       expect(
         screen.queryByTestId('perps-row-skeleton-3'),
@@ -725,13 +661,21 @@ describe('PerpsRecentActivityList', () => {
 
     it('updates icon size correctly', () => {
       const { rerender } = render(
-        <PerpsRecentActivityList fills={mockFills} iconSize={32} />,
+        <PerpsRecentActivityList
+          transactions={mockTransactions}
+          iconSize={32}
+        />,
       );
 
       let iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('32');
 
-      rerender(<PerpsRecentActivityList fills={mockFills} iconSize={48} />);
+      rerender(
+        <PerpsRecentActivityList
+          transactions={mockTransactions}
+          iconSize={48}
+        />,
+      );
 
       iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('48');
@@ -740,25 +684,25 @@ describe('PerpsRecentActivityList', () => {
 
   describe('Component Lifecycle', () => {
     it('does not throw error on unmount', () => {
-      const { unmount } = render(<PerpsRecentActivityList fills={mockFills} />);
+      const { unmount } = render(
+        <PerpsRecentActivityList transactions={mockTransactions} />,
+      );
 
       expect(() => unmount()).not.toThrow();
     });
 
     it('cleans up properly when remounted with different props', () => {
       const { rerender } = render(
-        <PerpsRecentActivityList fills={mockFills} />,
+        <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
 
-      mockTransformFillsToTransactions.mockReturnValueOnce([]);
-
-      rerender(<PerpsRecentActivityList fills={[]} />);
+      rerender(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.getByText('No recent activity')).toBeOnTheScreen();
 
-      rerender(<PerpsRecentActivityList fills={mockFills} />);
+      rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
     });
@@ -766,7 +710,7 @@ describe('PerpsRecentActivityList', () => {
 
   describe('FlatList Configuration', () => {
     it('uses transaction id as key extractor', () => {
-      render(<PerpsRecentActivityList fills={mockFills} />);
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       // Verify transactions are rendered with correct data
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
@@ -774,7 +718,9 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('disables scroll on FlatList', () => {
-      const { root } = render(<PerpsRecentActivityList fills={mockFills} />);
+      const { root } = render(
+        <PerpsRecentActivityList transactions={mockTransactions} />,
+      );
 
       // FlatList is rendered with scrollEnabled={false}
       expect(root).toBeTruthy();

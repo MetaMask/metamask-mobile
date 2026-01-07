@@ -22,7 +22,7 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -32,7 +32,6 @@ import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 
@@ -218,6 +217,37 @@ export function* handleDeeplinkSaga() {
   }
 }
 
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+/**
+ * Handles updating the Snaps registry when the user has booted the app and is onboarded
+ */
+export function* handleSnapsRegistry() {
+  while (true) {
+    const result = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    const state: boolean = yield select(selectCompletedOnboarding);
+    const completedOnboarding =
+      result.type === 'SET_COMPLETED_ONBOARDING'
+        ? result.completedOnboarding
+        : state;
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    try {
+      const { SnapController } = Engine.context;
+      yield call([SnapController, SnapController.updateRegistry]);
+    } catch {
+      // Ignore
+    }
+  }
+}
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Handles initializing app services on start up
  */
@@ -232,7 +262,7 @@ export function* startAppServices() {
   yield call(EngineService.start);
 
   // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
+  SharedDeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
@@ -248,4 +278,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  yield fork(handleSnapsRegistry);
+  ///: END:ONLY_INCLUDE_IF
 }

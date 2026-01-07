@@ -45,8 +45,6 @@ jest.mock('../../../core/Analytics', () => ({
 
 // eslint-disable-next-line import/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 
 const mockEngine = Engine;
 
@@ -62,6 +60,12 @@ jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
 
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
+}));
+
+// Gas fees sponsored feature flag: enable for all networks in tests
+jest.mock('../../../selectors/featureFlagController/gasFeesSponsored', () => ({
+  getGasFeesSponsoredNetworkEnabled: () => (chainId: string) =>
+    chainId === '0x38', // Enable sponsored label
 }));
 
 const mockedNavigate = jest.fn();
@@ -338,9 +342,6 @@ describe('Network Selector', () => {
       rpcUrl: '',
       domainIsConnectedDapp: true,
     };
-    jest
-      .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
-      .mockReturnValue(true);
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
       .mockImplementation(() => testMock);
@@ -655,6 +656,30 @@ describe('Network Selector', () => {
     });
   });
 
+  describe('gas fees sponsored label', () => {
+    it('renders "No network fee" label in redesigned UI list items', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      const { getAllByText, getByText } = renderComponent(initialState);
+
+      expect(getByText('BNB Chain')).toBeTruthy();
+      expect(getAllByText('No network fee').length).toBe(1);
+    });
+
+    it('renders "No network fee" as tertiary text in send flow', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const navModule = jest.requireMock('@react-navigation/native');
+      jest
+        .spyOn(navModule, 'useRoute')
+        .mockReturnValue({ params: { source: 'SEND_FLOW' } });
+
+      const { getAllByText, getByText } = renderComponent(initialState);
+
+      expect(getByText('BNB Chain')).toBeTruthy();
+      expect(getAllByText('No network fee').length).toBe(1);
+    });
+  });
+
   describe('renderRpcUrl', () => {
     it('renders the RPC URL correctly for avalanche', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
@@ -689,9 +714,6 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      jest
-        .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
-        .mockReturnValue(true);
       // Reset the mock before each test
       jest.clearAllMocks();
     });

@@ -22,7 +22,6 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -37,7 +36,6 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
@@ -56,10 +54,9 @@ const Settings = () => {
         strings('app_settings.title'),
         colors,
         navigation,
-        isRewardsEnabled,
       ),
     );
-  }, [navigation, colors, isRewardsEnabled]);
+  }, [navigation, colors]);
 
   useEffect(() => {
     updateNavBar();
@@ -101,10 +98,6 @@ const Settings = () => {
     navigation.navigate('SecuritySettings');
   };
 
-  const onPressNetworks = () => {
-    navigation.navigate('NetworksSettings');
-  };
-
   const onPressOnRamp = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
@@ -134,6 +127,9 @@ const Settings = () => {
 
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
+  };
+  const onPressFeatureFlagOverride = () => {
+    navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
   const goToManagePermissions = () => {
@@ -277,12 +273,6 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.CONTACTS}
           />
         )}
-        <SettingsDrawer
-          title={strings('app_settings.networks_title')}
-          description={strings('app_settings.networks_desc')}
-          onPress={onPressNetworks}
-          testID={SettingsViewSelectorsIDs.NETWORKS}
-        />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
         }
@@ -334,6 +324,15 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
+          />
+        )}
+        {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+          <SettingsDrawer
+            title={strings('app_settings.feature_flag_override.title')}
+            description={strings(
+              'app_settings.feature_flag_override.description',
+            )}
+            onPress={onPressFeatureFlagOverride}
           />
         )}
         <SettingsDrawer

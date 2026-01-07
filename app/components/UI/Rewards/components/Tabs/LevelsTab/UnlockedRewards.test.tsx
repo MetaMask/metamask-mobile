@@ -85,7 +85,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 // Mock RewardItem
-jest.mock('./RewardItem', () => jest.fn(() => null));
+jest.mock('../../RewardItem/RewardItem', () => jest.fn(() => null));
 
 // Mock Skeleton
 jest.mock('../../../../../../component-library/components/Skeleton', () => {

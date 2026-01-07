@@ -5,6 +5,7 @@ import configureStore from 'redux-mock-store';
 
 import NetworkManager from './index';
 import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import Engine from '../../../core/Engine';
 
 // Create mock functions that we can spy on
@@ -147,16 +148,40 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
+const mockEnableNetwork = jest.fn();
+
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
-  useNetworkEnablement: () => ({
+  useNetworkEnablement: jest.fn(() => ({
     disableNetwork: mockDisableNetwork,
+    enableNetwork: mockEnableNetwork,
     enabledNetworksByNamespace: {
       eip155: {
         '0x1': true,
         '0x89': true,
       },
     },
-  }),
+  })),
+}));
+
+jest.mock('../../hooks/useNetworksToUse/useNetworksToUse', () => ({
+  useNetworksToUse: jest.fn(() => ({
+    networksToUse: [
+      {
+        id: 'eip155:1',
+        name: 'Ethereum Mainnet',
+        caipChainId: 'eip155:1',
+        isSelected: true,
+        imageSource: { uri: 'ethereum.png' },
+      },
+      {
+        id: 'eip155:137',
+        name: 'Polygon Mainnet',
+        caipChainId: 'eip155:137',
+        isSelected: false,
+        imageSource: { uri: 'polygon.png' },
+      },
+    ],
+  })),
 }));
 
 jest.mock('../../../util/device', () => ({
@@ -181,13 +206,20 @@ const mockNetworkConfigurations = {
     caipChainId: 'eip155:1',
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
-    rpcEndpoints: [{ url: 'https://mainnet.infura.io' }],
+    rpcEndpoints: [
+      { url: 'https://mainnet.infura.io', networkClientId: 'mainnet-1' },
+      { url: 'https://mainnet.publicnode.com', networkClientId: 'mainnet-2' },
+    ],
+    defaultRpcEndpointIndex: 0,
   },
   'eip155:137': {
     caipChainId: 'eip155:137',
     name: 'Polygon Mainnet',
     nativeCurrency: 'MATIC',
-    rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
+    rpcEndpoints: [
+      { url: 'https://polygon-rpc.com', networkClientId: 'polygon-1' },
+    ],
+    defaultRpcEndpointIndex: 0,
   },
 };
 
@@ -299,6 +331,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
   } = jest.requireActual('react-native');
   return ({
     openModal,
+    openRpcModal,
     tabLabel,
   }: {
     openModal: (args: {
@@ -307,6 +340,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
+    openRpcModal?: (args: { chainId: string; networkName: string }) => void;
     tabLabel: string;
   }) => (
     <RNView testID="network-multi-selector">
@@ -324,6 +358,16 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
       >
         <RNText>Open Modal</RNText>
       </RNTouchableOpacity>
+      {openRpcModal && (
+        <RNTouchableOpacity
+          testID="open-rpc-modal-button"
+          onPress={() =>
+            openRpcModal({ chainId: '0x1', networkName: 'Ethereum Mainnet' })
+          }
+        >
+          <RNText>Open RPC Modal</RNText>
+        </RNTouchableOpacity>
+      )}
     </RNView>
   );
 });
@@ -344,6 +388,7 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
+    openRpcModal?: (args: { chainId: string; networkName: string }) => void;
     tabLabel: string;
   }) => (
     <RNView testID="custom-network-selector">
@@ -448,16 +493,6 @@ jest.mock('../../Views/AccountAction', () => {
 });
 
 jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
-  () => {
-    const { View: RNView } = jest.requireActual('react-native');
-    return ({ children }: { children: React.ReactNode }) => (
-      <RNView testID="bottom-sheet-header">{children}</RNView>
-    );
-  },
-);
-
-jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
     const {
@@ -516,6 +551,16 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
   IconName: {
     Edit: 'edit',
     Trash: 'trash',
+    ArrowLeft: 'arrow-left',
+    Close: 'close',
+  },
+  IconSize: {
+    Sm: 'sm',
+    Md: 'md',
+    Lg: 'lg',
+  },
+  IconColor: {
+    Default: 'default',
   },
 }));
 
@@ -563,6 +608,43 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
   };
   return MockTextWithStatics;
 });
+
+jest.mock(
+  '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal',
+  () => {
+    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+    return ({
+      showMultiRpcSelectModal,
+      networkConfigurations,
+    }: {
+      showMultiRpcSelectModal: {
+        isVisible: boolean;
+        chainId: string;
+        networkName: string;
+      };
+      networkConfigurations: Record<string, unknown>;
+    }) => {
+      if (!showMultiRpcSelectModal.isVisible) return null;
+      return (
+        <RNView testID="rpc-selection-modal">
+          <RNText testID="rpc-modal-network-name">
+            {showMultiRpcSelectModal.networkName}
+          </RNText>
+          <RNText testID="rpc-modal-chain-id">
+            {showMultiRpcSelectModal.chainId}
+          </RNText>
+          <RNText testID="rpc-modal-configs-count">
+            {Object.keys(networkConfigurations).length}
+          </RNText>
+        </RNView>
+      );
+    };
+  },
+);
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: (chainId: string) => chainId.includes('solana'),
+}));
 
 const mockStore = configureStore([]);
 
@@ -759,7 +841,7 @@ describe('NetworkManager Component', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       await waitFor(() => {
-        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+        expect(getByTestId('header')).toBeOnTheScreen();
         expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
       });
     });
@@ -776,7 +858,7 @@ describe('NetworkManager Component', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+        expect(getByTestId('header')).toBeOnTheScreen();
         // The network name appears as part of a larger text string, use partial match
         expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
         expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();
@@ -898,6 +980,249 @@ describe('NetworkManager Component', () => {
           </Provider>,
         );
       }).not.toThrow();
+    });
+  });
+
+  describe('RPC Selection Functionality', () => {
+    it('passes openRpcModal prop to NetworkMultiSelector', () => {
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('open-rpc-modal-button')).toBeOnTheScreen();
+    });
+
+    it('opens RPC selection modal when openRpcModal is called', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-selection-modal')).toBeOnTheScreen();
+      });
+    });
+
+    it('displays network name in RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-network-name')).toHaveTextContent(
+          'Ethereum Mainnet',
+        );
+      });
+    });
+
+    it('displays chain ID in RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-chain-id')).toHaveTextContent('0x1');
+      });
+    });
+
+    it('passes EVM network configurations to RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-configs-count')).toHaveTextContent('2');
+      });
+    });
+  });
+
+  describe('Enabled Networks Processing', () => {
+    const mockUseNetworkEnablement =
+      useNetworkEnablement as jest.MockedFunction<typeof useNetworkEnablement>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should correctly process enabled networks from flat structure', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+            '0xa': false,
+          },
+        },
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+          '0xa': false,
+        },
+      });
+
+      // The component internally processes enabledNetworksByNamespace
+      // We verify it renders without errors and has correct tab state
+      const { getByTestId } = renderComponent();
+
+      // Verify component renders successfully with processed networks
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('should correctly process enabled networks from nested structure', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': false,
+          },
+          bip122: {
+            '0x1': true,
+          },
+        } as never,
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0xa': false,
+        },
+      });
+
+      // The component should handle nested namespace structures
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('should handle empty enabled networks gracefully', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {},
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
+      });
+
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('should filter out disabled networks correctly', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': false,
+            '0xa': false,
+            '0xa4b1': true,
+          },
+        },
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0xa': false,
+          '0xa4b1': true,
+        },
+      });
+
+      // Component should only include enabled (true) networks
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('should enable and disable networks correctly during deletion', async () => {
+      const otherNetwork = {
+        id: 'eip155:137',
+        name: 'Polygon Mainnet',
+        caipChainId: 'eip155:137',
+        isSelected: false,
+        imageSource: { uri: 'polygon.png' },
+      };
+
+      (useNetworksByNamespace as jest.Mock).mockImplementation((args) => {
+        if (args.networkType === 'custom') {
+          return {
+            networks: [otherNetwork],
+            areAllNetworksSelected: false,
+          };
+        }
+        return { selectedCount: 2 };
+      });
+
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+        },
+      });
+
+      const { getByTestId } = renderComponent();
+
+      // Open modal and trigger delete confirmation
+      const openModalButton = getByTestId('open-modal-button');
+      fireEvent.press(openModalButton);
+
+      await waitFor(() => {
+        const deleteButton = getByTestId('account-action-app_settings.delete');
+        fireEvent.press(deleteButton);
+      });
+
+      // Confirm deletion
+      const confirmButton = getByTestId('footer-button-app_settings.delete');
+      fireEvent.press(confirmButton);
+
+      // Should enable the other network and disable the deleted one
+      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
+      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
     });
   });
 });

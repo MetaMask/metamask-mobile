@@ -61,10 +61,7 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import {
-  getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import {
@@ -92,6 +89,8 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -359,10 +358,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         toggleRevokeAllPermissionsModal();
         return;
       }
-      const currentEvmCaipChainId: CaipChainId =
-        isPerDappSelectedNetworkEnabled()
-          ? `eip155:${parseInt(networkInfo.chainId, 16)}`
-          : `eip155:${parseInt(currentEvmChainId, 16)}`;
+      const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(networkInfo.chainId, 16)}`;
 
       const newSelectedEvmChainId = chainIds.find((chainId) => {
         const { namespace } = parseChainId(chainId);
@@ -398,18 +394,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             config as NetworkConfiguration;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          if (isPerDappSelectedNetworkEnabled()) {
-            // For per-dapp network selection, directly set the network for this domain
-            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
-              hostname,
-              networkClientId,
-            );
-          } else {
-            // For global network selection, switch the active network
-            await Engine.context.MultichainNetworkController.setActiveNetwork(
-              networkClientId,
-            );
-          }
+          // For per-dapp network selection, directly set the network for this domain
+          Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+            hostname,
+            networkClientId,
+          );
         }
       }
 
@@ -418,7 +407,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setNetworkSelectorUserIntent(USER_INTENT.Confirm);
     },
     [
-      currentEvmChainId,
       hostname,
       networkConfigurations,
       permittedCaipChainIds,
@@ -575,7 +563,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
-    const handleUserActions = (action: USER_INTENT) => {
+    const handleUserActions = async (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           hideSheet(() => {
@@ -612,10 +600,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.ConnectHW: {
           navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+          const connectedDeviceCount = await getConnectedDevicesCount();
           trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-            ).build(),
+            createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+              .addProperties({
+                device_type: HardwareDeviceTypes.QR,
+                connected_device_count: connectedDeviceCount,
+              })
+              .build(),
           );
 
           break;

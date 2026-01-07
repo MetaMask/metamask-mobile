@@ -4,7 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import {
   SafeAreaView,
@@ -17,6 +17,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import Engine from '../../../../../core/Engine';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
   formatCurrencyValue,
@@ -25,6 +26,7 @@ import {
   formatPrice,
 } from '../../utils/format';
 import { PredictActivityType } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import {
   Box,
   BoxFlexDirection,
@@ -49,6 +51,31 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+
+  // Determine activity type for analytics
+  const activityType = useMemo(() => {
+    if (!activity) return PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST;
+
+    switch (activity.type) {
+      case PredictActivityType.BUY:
+        return PredictEventValues.ACTIVITY_TYPE.PREDICTED;
+      case PredictActivityType.SELL:
+        return PredictEventValues.ACTIVITY_TYPE.CASHED_OUT;
+      case PredictActivityType.CLAIM:
+        return PredictEventValues.ACTIVITY_TYPE.CLAIMED;
+      default:
+        return PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST;
+    }
+  }, [activity]);
+
+  // Track activity detail viewed
+  useEffect(() => {
+    if (!activity) return;
+
+    Engine.context.PredictController.trackActivityViewed({
+      activityType,
+    });
+  }, [activity, activityType]);
 
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
@@ -219,7 +246,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
 
     const netPnlRows: DetailRow[] = [];
     const netPnlNumeric = isSell
-      ? activity.netPnlUsd ?? entryAmount
+      ? (activity.netPnlUsd ?? entryAmount)
       : activity.netPnlUsd;
     const netPnlValue = formatCurrencyValue(netPnlNumeric, { showSign: true });
     if (netPnlValue && isSell) {

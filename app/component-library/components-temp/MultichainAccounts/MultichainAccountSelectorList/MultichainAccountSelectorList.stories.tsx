@@ -21,7 +21,7 @@ const createMockAccountGroup = (
       hidden: false,
     },
     accounts: accounts as [string],
-  } as AccountGroupObject);
+  }) as AccountGroupObject;
 
 const mockAccountGroup1 = createMockAccountGroup(
   'wallet-1/group-1',

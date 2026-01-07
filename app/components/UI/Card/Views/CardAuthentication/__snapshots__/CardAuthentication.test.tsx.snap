@@ -312,238 +312,304 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                       }
                     }
                   >
-                    <View
-                      onLayout={[Function]}
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
-                        [
-                          {
-                            "flex": 1,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flexBasis": "0%",
+                          "flexGrow": 1,
+                          "flexShrink": 1,
+                        }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
+                      <RCTScrollView
+                        alwaysBounceVertical={false}
+                        automaticallyAdjustContentInsets={false}
+                        contentContainerStyle={
                           {
-                            "bottom": "additive",
-                            "left": "off",
-                            "right": "off",
-                            "top": "off",
+                            "flexGrow": 1,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
                           }
                         }
-                        style={
+                        contentInset={
                           {
-                            "flex": 1,
+                            "bottom": 0,
                           }
                         }
+                        enableAutomaticScroll={true}
+                        enableOnAndroid={true}
+                        enableResetScrollToCoords={true}
+                        extraHeight={75}
+                        extraScrollHeight={0}
+                        getScrollResponder={[Function]}
+                        handleOnScroll={[Function]}
+                        keyboardDismissMode="interactive"
+                        keyboardOpeningTime={250}
+                        keyboardSpace={0}
+                        onScroll={[Function]}
+                        resetKeyboardSpace={[Function]}
+                        scrollEventThrottle={1}
+                        scrollForExtraHeightOnAndroid={[Function]}
+                        scrollIntoView={[Function]}
+                        scrollToEnd={[Function]}
+                        scrollToFocusedInput={[Function]}
+                        scrollToPosition={[Function]}
+                        showsVerticalScrollIndicator={false}
+                        update={[Function]}
+                        viewIsInsideTabBar={false}
                       >
-                        <RCTScrollView
-                          alwaysBounceVertical={false}
-                          contentContainerStyle={
-                            {
-                              "flexGrow": 1,
+                        <View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "stretch",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "gap": 16,
+                                  "marginBottom": 24,
+                                },
+                                undefined,
+                              ]
                             }
-                          }
-                          showsVerticalScrollIndicator={false}
-                        >
-                          <View>
+                          >
                             <View
                               style={
                                 [
                                   {
                                     "display": "flex",
+                                    "gap": 16,
+                                    "marginBottom": 8,
+                                    "marginTop": 8,
                                   },
-                                  {
-                                    "flex": 1,
-                                    "paddingHorizontal": 16,
-                                  },
+                                  undefined,
                                 ]
                               }
                             >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "display": "flex",
-                                    },
-                                    {
-                                      "alignItems": "center",
-                                      "marginTop": 28,
-                                    },
-                                  ]
-                                }
-                              >
-                                <Image
-                                  resizeMode="contain"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 80,
-                                    }
-                                  }
-                                  testID="fox-image"
-                                />
-                              </View>
                               <Text
                                 accessibilityRole="text"
                                 style={
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 18,
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 24,
                                       "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 32,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                testID="onboarding-step-title"
+                              >
+                                Log in to your card account
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
-                                    {
-                                      "marginTop": 24,
-                                      "textAlign": "center",
-                                    },
+                                    undefined,
                                   ]
                                 }
-                                testID="welcome-to-card-title-text"
-                              >
-                                Log in to your Card account
-                              </Text>
+                                testID="onboarding-step-description"
+                              />
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                    "gap": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              testID="onboarding-step-form"
+                            >
                               <View
                                 style={
                                   [
                                     {
                                       "display": "flex",
-                                    },
-                                    {
                                       "flexDirection": "row",
+                                      "gap": 8,
                                       "justifyContent": "space-between",
-                                      "marginTop": 24,
                                     },
+                                    undefined,
                                   ]
                                 }
                               >
                                 <TouchableOpacity
                                   onPress={[Function]}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "borderColor": "#E1E4E8",
-                                        "borderRadius": 16,
-                                        "borderWidth": 1,
-                                        "padding": 16,
-                                        "width": "48%",
-                                      },
-                                      {
-                                        "borderColor": "#037DD6",
-                                      },
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#121314",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "display": "flex",
+                                      "flexBasis": "0%",
+                                      "flexDirection": "column",
+                                      "flexGrow": 1,
+                                      "flexShrink": 1,
+                                      "justifyContent": "center",
+                                    }
                                   }
                                 >
-                                  <SvgMock
-                                    color="#4459ff"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Global"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": 400,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "alignItems": "center",
+                                          "display": "flex",
+                                          "flexDirection": "column",
+                                          "justifyContent": "center",
+                                          "paddingBottom": 16,
+                                          "paddingLeft": 16,
+                                          "paddingRight": 16,
+                                          "paddingTop": 16,
+                                          "width": "100%",
                                         },
-                                        [
-                                          {
-                                            "marginTop": 4,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#4459ff",
-                                          },
-                                        ],
+                                        undefined,
                                       ]
                                     }
+                                    testID="international-location-box"
                                   >
-                                    International
-                                  </Text>
+                                    <SvgMock
+                                      color="#121314"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="Global"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      International
+                                    </Text>
+                                  </View>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                   onPress={[Function]}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "borderColor": "#E1E4E8",
-                                        "borderRadius": 16,
-                                        "borderWidth": 1,
-                                        "padding": 16,
-                                        "width": "48%",
-                                      },
-                                      false,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderRadius": 8,
+                                      "display": "flex",
+                                      "flexBasis": "0%",
+                                      "flexDirection": "column",
+                                      "flexGrow": 1,
+                                      "flexShrink": 1,
+                                      "justifyContent": "center",
+                                    }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "fontWeight": 400,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "alignItems": "center",
+                                          "display": "flex",
+                                          "flexBasis": "0%",
+                                          "flexDirection": "column",
+                                          "flexGrow": 1,
+                                          "flexShrink": 1,
+                                          "justifyContent": "center",
+                                          "paddingBottom": 16,
+                                          "paddingLeft": 16,
+                                          "paddingRight": 16,
+                                          "paddingTop": 16,
+                                          "width": "100%",
                                         },
-                                        {
-                                          "fontSize": 20,
-                                          "textAlign": "center",
-                                        },
+                                        undefined,
                                       ]
                                     }
+                                    testID="us-location-box"
                                   >
-                                    🇺🇸
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": 400,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        },
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
                                         [
                                           {
-                                            "marginTop": 4,
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
                                             "textAlign": "center",
                                           },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      🇺🇸
+                                    </Text>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
                                           {
-                                            "color": "#686e7d",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                            "textAlign": "center",
                                           },
-                                        ],
-                                      ]
-                                    }
-                                  >
-                                    US account
-                                  </Text>
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      United States
+                                    </Text>
+                                  </View>
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -552,236 +618,110 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     {
                                       "display": "flex",
                                     },
-                                    {
-                                      "gap": 16,
-                                      "marginTop": 24,
-                                    },
+                                    undefined,
                                   ]
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "display": "flex",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
+                                  testID="label"
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
+                                  Email
+                                </Text>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
-                                    testID="label"
-                                  >
-                                    Email
-                                  </Text>
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="textfield"
+                                >
                                   <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1,
-                                        "flexDirection": "row",
-                                        "height": 48,
-                                        "opacity": 1,
-                                        "paddingHorizontal": 16,
+                                        "flex": 1,
                                       }
                                     }
-                                    testID="textfield"
                                   >
-                                    <View
+                                    <TextInput
+                                      accessibilityLabel="Email"
+                                      autoCapitalize="none"
+                                      autoComplete="email"
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardType="email-address"
+                                      maxLength={255}
+                                      numberOfLines={1}
+                                      onBlur={[Function]}
+                                      onChangeText={[Function]}
+                                      onFocus={[Function]}
+                                      returnKeyType="next"
                                       style={
                                         {
-                                          "flex": 1,
+                                          "backgroundColor": "inherit",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 46,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 20,
+                                          "opacity": 1,
+                                          "paddingVertical": 2,
+                                          "textAlignVertical": "center",
                                         }
                                       }
-                                    >
-                                      <TextInput
-                                        accessibilityLabel="Email"
-                                        autoCapitalize="none"
-                                        autoFocus={false}
-                                        editable={true}
-                                        keyboardType="email-address"
-                                        maxLength={255}
-                                        numberOfLines={1}
-                                        onBlur={[Function]}
-                                        onChangeText={[Function]}
-                                        onFocus={[Function]}
-                                        placeholder="Enter your email address"
-                                        returnKeyType="next"
-                                        style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                            "borderColor": "transparent",
-                                            "borderWidth": 1,
-                                            "color": "#121314",
-                                            "fontFamily": "Geist Regular",
-                                            "fontSize": 16,
-                                            "height": 46,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 20,
-                                            "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
-                                          }
-                                        }
-                                        value=""
-                                      />
-                                    </View>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "display": "flex",
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "marginBottom": 6,
-                                      }
-                                    }
-                                    testID="label"
-                                  >
-                                    Password
-                                  </Text>
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1,
-                                        "flexDirection": "row",
-                                        "height": 48,
-                                        "opacity": 1,
-                                        "paddingHorizontal": 16,
-                                      }
-                                    }
-                                    testID="textfield"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <TextInput
-                                        accessibilityLabel="Password"
-                                        autoCapitalize="none"
-                                        autoFocus={false}
-                                        editable={true}
-                                        maxLength={255}
-                                        numberOfLines={1}
-                                        onBlur={[Function]}
-                                        onChangeText={[Function]}
-                                        onFocus={[Function]}
-                                        onSubmitEditing={[Function]}
-                                        placeholder="Enter your password"
-                                        returnKeyType="done"
-                                        secureTextEntry={true}
-                                        style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                            "borderColor": "transparent",
-                                            "borderWidth": 1,
-                                            "color": "#121314",
-                                            "fontFamily": "Geist Regular",
-                                            "fontSize": 16,
-                                            "height": 46,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 20,
-                                            "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
-                                          }
-                                        }
-                                        value=""
-                                      />
-                                    </View>
+                                      testID="email-field"
+                                      value=""
+                                    />
                                   </View>
                                 </View>
                               </View>
@@ -795,91 +735,221 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={true}
-                                  loading={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "opacity": 0.6,
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
-                                  testID="verify-account-button"
+                                  testID="label"
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                  Password
+                                </Text>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
-                                  >
-                                    Log in
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
                                   accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
+                                      "opacity": 1,
                                       "paddingHorizontal": 16,
                                     }
                                   }
-                                  testID="signup-button"
+                                  testID="textfield"
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "flex": 1,
                                       }
                                     }
                                   >
-                                    card.card_authentication.signup_button
-                                  </Text>
-                                </TouchableOpacity>
+                                    <TextInput
+                                      accessibilityLabel="Password"
+                                      autoCapitalize="none"
+                                      autoComplete="password"
+                                      autoFocus={false}
+                                      editable={true}
+                                      maxLength={255}
+                                      numberOfLines={1}
+                                      onBlur={[Function]}
+                                      onChangeText={[Function]}
+                                      onFocus={[Function]}
+                                      onSubmitEditing={[Function]}
+                                      returnKeyType="done"
+                                      secureTextEntry={true}
+                                      style={
+                                        {
+                                          "backgroundColor": "inherit",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 46,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 20,
+                                          "opacity": 1,
+                                          "paddingVertical": 2,
+                                          "textAlignVertical": "center",
+                                        }
+                                      }
+                                      testID="password-field"
+                                      value=""
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "marginTop": 8,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              testID="onboarding-step-actions"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "display": "flex",
+                                      "flexDirection": "column",
+                                      "gap": 8,
+                                      "justifyContent": "center",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "display": "flex",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={true}
+                                    loading={false}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "#121314",
+                                        "borderRadius": 12,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "opacity": 0.5,
+                                        "overflow": "hidden",
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="verify-account-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#ffffff",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Log in
+                                    </Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                            "paddingBottom": 16,
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "paddingTop": 16,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="signup-button"
+                                    >
+                                      I don't have an account
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
-                        </RCTScrollView>
-                      </RNCSafeAreaView>
-                    </View>
+                        </View>
+                      </RCTScrollView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

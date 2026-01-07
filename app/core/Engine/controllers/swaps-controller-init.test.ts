@@ -1,19 +1,21 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getSwapsControllerMessenger,
-  type SwapsControllerMessenger,
-} from '../messengers/swaps-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getSwapsControllerMessenger } from '../messengers/swaps-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { swapsControllerInit } from './swaps-controller-init';
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController, {
+  SwapsControllerMessenger,
+} from '@metamask/swaps-controller';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/swaps-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SwapsControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

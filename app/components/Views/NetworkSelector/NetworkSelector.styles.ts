@@ -16,8 +16,8 @@ const createStyles = (colors: Colors) =>
       marginBottom: Device.isAndroid()
         ? 16
         : isNetworkUiRedesignEnabled()
-        ? 12
-        : 0,
+          ? 12
+          : 0,
     },
     networkMenu: {
       alignItems: 'center',

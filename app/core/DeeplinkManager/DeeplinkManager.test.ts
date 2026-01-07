@@ -1,53 +1,63 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
-import Routes from '../../constants/navigation/Routes';
-import { RampType } from '../../reducers/fiatOrders/types';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
-import DeeplinkManager from './DeeplinkManager';
-import handleBrowserUrl from './Handlers/handleBrowserUrl';
-import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handleDeeplink } from './Handlers/handleDeeplink';
-import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
-import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
-import handleRampUrl from './Handlers/handleRampUrl';
-import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import switchNetwork from './Handlers/switchNetwork';
-import parseDeeplink from './ParseManager/parseDeeplink';
-import approveTransaction from './TransactionManager/approveTransaction';
-import handleFastOnboarding from './Handlers/handleFastOnboarding';
+import SharedDeeplinkManager, { DeeplinkManager } from './DeeplinkManager';
+import { handleDeeplink } from './handlers/legacy/handleDeeplink';
+import switchNetwork from '../../util/networks/switchNetwork';
+import parseDeeplink from './utils/parseDeeplink';
+import handleApproveUrl from './handlers/legacy/handleApproveUrl';
+import { store } from '../../store';
+import { RootState } from '../../reducers';
+import branch from 'react-native-branch';
 
-jest.mock('./TransactionManager/approveTransaction');
-jest.mock('./Handlers/handleEthereumUrl');
-jest.mock('./Handlers/handleBrowserUrl');
-jest.mock('./Handlers/handleRampUrl');
-jest.mock('./ParseManager/parseDeeplink');
-jest.mock('./Handlers/switchNetwork');
-jest.mock('./Handlers/handleSwapUrl');
-jest.mock('./Handlers/handleCreateAccountUrl');
-jest.mock('./Handlers/handlePerpsUrl');
-jest.mock('./Handlers/handleRewardsUrl');
-jest.mock('./Handlers/handleDeeplink');
-jest.mock('./Handlers/handleFastOnboarding');
+jest.mock('./handlers/legacy/handleApproveUrl');
+jest.mock('./handlers/legacy/handleEthereumUrl');
+jest.mock('./handlers/legacy/handleBrowserUrl');
+jest.mock('./handlers/legacy/handleRampUrl');
+jest.mock('./utils/parseDeeplink');
+jest.mock('../../util/networks/switchNetwork');
+jest.mock('./handlers/legacy/handleSwapUrl');
+jest.mock('./handlers/legacy/handleCreateAccountUrl');
+jest.mock('./handlers/legacy/handlePerpsUrl');
+jest.mock('./handlers/legacy/handleRewardsUrl');
+jest.mock('./handlers/legacy/handleDeeplink');
+jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+
+// Branch and Linking mocks for DeeplinkManager.start tests
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    subscribe: jest.fn(),
+    getLatestReferringParams: jest.fn(),
+  },
+}));
 
 const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
+
+const mockStore = store as jest.Mocked<typeof store>;
 
 describe('DeeplinkManager', () => {
   let deeplinkManager: DeeplinkManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    DeeplinkManager.resetInstance();
     // Ensure navigation is available before DeeplinkManager is constructed
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     NavigationService.navigation = mockNavigation as any;
     deeplinkManager = new DeeplinkManager();
   });
 
-  it('should set, get, and expire a deeplink correctly', () => {
+  it('sets, gets, and expires a deeplink correctly', () => {
     const testUrl = 'https://example.com';
     deeplinkManager.setDeeplink(testUrl);
     expect(deeplinkManager.getPendingDeeplink()).toBe(testUrl);
@@ -56,16 +66,15 @@ describe('DeeplinkManager', () => {
     expect(deeplinkManager.getPendingDeeplink()).toBeNull();
   });
 
-  it('should handle network switch correctly', () => {
+  it('handles network switch correctly', () => {
     const chainId = '1';
-    deeplinkManager._handleNetworkSwitch(chainId);
+    switchNetwork({ switchToChainId: chainId });
     expect(switchNetwork).toHaveBeenCalledWith({
-      deeplinkManager,
       switchToChainId: chainId,
     });
   });
 
-  it('should handle transaction approval correctly', async () => {
+  it('handles transaction approval correctly', async () => {
     const ethUrl = {
       parameters: {},
       target_address: '0x...',
@@ -76,66 +85,15 @@ describe('DeeplinkManager', () => {
 
     const origin = 'testOrigin';
 
-    await deeplinkManager._approveTransaction(ethUrl, origin);
+    await handleApproveUrl({ ethUrl, origin });
 
-    expect(approveTransaction).toHaveBeenCalledWith({
-      deeplinkManager,
+    expect(handleApproveUrl).toHaveBeenCalledWith({
       ethUrl,
       origin,
     });
   });
 
-  it('should handle Ethereum URL correctly', async () => {
-    const url = 'ethereum://example.com';
-    const origin = 'testOrigin';
-
-    await deeplinkManager._handleEthereumUrl(url, origin);
-
-    expect(handleEthereumUrl).toHaveBeenCalledWith({
-      deeplinkManager,
-      url,
-      origin,
-    });
-  });
-
-  it('should handle browser URL correctly', () => {
-    const url = 'http://example.com';
-    const callback = jest.fn();
-
-    deeplinkManager._handleBrowserUrl(url, callback);
-
-    expect(handleBrowserUrl).toHaveBeenCalledWith({
-      deeplinkManager,
-      url,
-      callback,
-    });
-  });
-
-  it('should handle buy crypto action correctly', () => {
-    const rampPath = '/example/path?and=params';
-    deeplinkManager._handleBuyCrypto(rampPath);
-    expect(handleRampUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rampPath,
-        navigation: mockNavigation,
-        rampType: RampType.BUY,
-      }),
-    );
-  });
-
-  it('should handle sell crypto action correctly', () => {
-    const rampPath = '/example/path?and=params';
-    deeplinkManager._handleSellCrypto(rampPath);
-    expect(handleRampUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rampPath,
-        navigation: mockNavigation,
-        rampType: RampType.SELL,
-      }),
-    );
-  });
-
-  it('should parse deeplinks correctly', () => {
+  it('parses deeplinks correctly', () => {
     const url = 'http://example.com';
     const browserCallBack = jest.fn();
     const origin = 'testOrigin';
@@ -154,58 +112,6 @@ describe('DeeplinkManager', () => {
       browserCallBack,
       onHandled,
     });
-  });
-
-  it('should handle open home correctly', () => {
-    deeplinkManager._handleOpenHome();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-  });
-
-  it('should handle swap correctly', () => {
-    const swapPath = '/swap/path';
-    deeplinkManager._handleSwap(swapPath);
-    expect(handleSwapUrl).toHaveBeenCalledWith({
-      swapPath,
-    });
-  });
-
-  it('should handle create account correctly', () => {
-    const createAccountPath = '/create/account/path';
-    deeplinkManager._handleCreateAccount(createAccountPath);
-    expect(handleCreateAccountUrl).toHaveBeenCalledWith({
-      path: createAccountPath,
-      navigation: mockNavigation,
-    });
-  });
-
-  it('should handle perps correctly', () => {
-    const perpsPath = '/perps/markets';
-    deeplinkManager._handlePerps(perpsPath);
-    expect(handlePerpsUrl).toHaveBeenCalledWith({
-      perpsPath,
-    });
-  });
-
-  it('should handle perps asset correctly', () => {
-    // Asset URLs now handled through _handlePerps with screen=asset parameter
-    deeplinkManager._handlePerps('perps?screen=asset&symbol=ETH');
-    expect(handlePerpsUrl).toHaveBeenCalledWith({
-      perpsPath: 'perps?screen=asset&symbol=ETH',
-    });
-  });
-
-  it('should handle rewards correctly', () => {
-    // Rewards URLs now handled through _handleRewards with optional referral code parameter
-    deeplinkManager._handleRewards('?referral=code123');
-    expect(handleRewardsUrl).toHaveBeenCalledWith({
-      rewardsPath: '?referral=code123',
-    });
-  });
-
-  it('should handle onboarding correctly', () => {
-    const onboardingPath = '/onboarding';
-    deeplinkManager._handleFastOnboarding(onboardingPath);
-    expect(handleFastOnboarding).toHaveBeenCalledWith({ onboardingPath });
   });
 });
 
@@ -306,5 +212,107 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('SharedDeeplinkManager', () => {
+  beforeEach(() => {
+    const mockedState = {
+      settings: { deepLinkModalDisabled: false },
+    } as jest.Mocked<RootState>;
+
+    mockStore.getState.mockReturnValue(mockedState);
+    DeeplinkManager.resetInstance();
+    SharedDeeplinkManager.init();
+    jest.clearAllMocks();
+  });
+
+  it('returns DeeplinkManager instance from getInstance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+
+    expect(instance).toBeDefined();
+    expect(instance).toBeInstanceOf(DeeplinkManager);
+  });
+
+  it('calls parse method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyParse = jest.spyOn(instance, 'parse');
+
+    const url = 'http://example.com';
+    const args = {
+      browserCallBack: jest.fn(),
+      origin: 'test-origin',
+      onHandled: jest.fn(),
+    };
+
+    SharedDeeplinkManager.parse(url, args);
+
+    expect(spyParse).toHaveBeenCalledWith(url, args);
+  });
+
+  it('calls setDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spySetDeeplink = jest.spyOn(instance, 'setDeeplink');
+
+    const url = 'http://example.com';
+    SharedDeeplinkManager.setDeeplink(url);
+
+    expect(spySetDeeplink).toHaveBeenCalledWith(url);
+  });
+
+  it('calls getPendingDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyGetPendingDeeplink = jest.spyOn(instance, 'getPendingDeeplink');
+
+    SharedDeeplinkManager.getPendingDeeplink();
+
+    expect(spyGetPendingDeeplink).toHaveBeenCalled();
+  });
+
+  it('calls expireDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyExpireDeeplink = jest.spyOn(instance, 'expireDeeplink');
+
+    SharedDeeplinkManager.expireDeeplink();
+
+    expect(spyExpireDeeplink).toHaveBeenCalled();
+  });
+});
+
+describe('DeeplinkManager.start Branch deeplink handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('processes cold start deeplink when non-branch link is found', async () => {
+    const mockDeeplink = 'https://link.metamask.io/home';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+non_branch_link': mockDeeplink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+  });
+
+  it('subscribes to Branch deeplink events', async () => {
+    DeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalled();
+  });
+
+  it('processes deeplink from subscription callback when uri is provided', async () => {
+    DeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://link.metamask.io/home';
+    callback({ uri: mockUri });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
 });

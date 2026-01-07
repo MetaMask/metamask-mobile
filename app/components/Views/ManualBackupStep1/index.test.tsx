@@ -4,7 +4,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
@@ -401,7 +401,7 @@ describe('ManualBackupStep1', () => {
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep2', {
         words: mockWords,
         steps: [
-          'Create Password',
+          'Create password',
           'Secure wallet',
           'Confirm Secret Recovery Phrase',
         ],
@@ -593,8 +593,9 @@ describe('ManualBackupStep1', () => {
       expect(reminderButton).toBeNull();
     });
 
-    it('navigates to skip modal when remind me later button is pressed', () => {
+    it('directly executes skip when remind me later button is pressed with metrics enabled', async () => {
       mockHasFunds.mockReturnValue(false);
+      mockIsMetricsEnabled.mockReturnValue(true);
 
       const { wrapper } = setupTestWithMocks();
 
@@ -602,19 +603,28 @@ describe('ManualBackupStep1', () => {
         strings('account_backup_step_1.remind_me_later'),
       );
 
-      fireEvent.press(reminderButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SkipAccountSecurityModal',
-        params: {
-          onConfirm: expect.any(Function),
-          onCancel: expect.any(Function),
-        },
+      await act(async () => {
+        fireEvent.press(reminderButton);
       });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 0,
+            routes: expect.arrayContaining([
+              expect.objectContaining({
+                name: 'OnboardingSuccessFlow',
+              }),
+            ]),
+          }),
+        }),
+      );
     });
 
-    it('tracks skip initiated event when remind me later is pressed', () => {
+    it('navigates to OptinMetrics when remind me later is pressed with metrics disabled', async () => {
       mockHasFunds.mockReturnValue(false);
+      mockIsMetricsEnabled.mockReturnValue(false);
 
       const { wrapper } = setupTestWithMocks();
 
@@ -622,10 +632,16 @@ describe('ManualBackupStep1', () => {
         strings('account_backup_step_1.remind_me_later'),
       );
 
-      fireEvent.press(reminderButton);
+      await act(async () => {
+        fireEvent.press(reminderButton);
+      });
 
-      // Verify navigation was called
-      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'OptinMetrics',
+        expect.objectContaining({
+          onContinue: expect.any(Function),
+        }),
+      );
     });
 
     it('navigates to ManualBackupStep2 when continue is pressed after reveal', async () => {
@@ -658,127 +674,6 @@ describe('ManualBackupStep1', () => {
         backupFlow: false,
         settingsBackup: false,
       });
-    });
-  });
-
-  describe('Skip functionality', () => {
-    let mockNavigate: jest.Mock;
-    let mockSetOptions: jest.Mock;
-    let mockDispatch: jest.Mock;
-
-    beforeEach(() => {
-      mockNavigate = jest.fn();
-      mockSetOptions = jest.fn();
-      mockDispatch = jest.fn();
-      jest.clearAllMocks();
-      // Reset to default (metrics enabled)
-      mockIsMetricsEnabled.mockReturnValue(true);
-    });
-
-    const setupTestWithMocks = () => {
-      (useNavigation as jest.Mock).mockReturnValue({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        dispatch: mockDispatch,
-        goBack: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-      });
-
-      const mockRoute = {
-        params: {
-          seedPhrase: mockWords,
-          backupFlow: false,
-          settingsBackup: false,
-        },
-      };
-
-      const wrapper = renderWithProvider(
-        <Provider store={store}>
-          <ManualBackupStep1
-            route={mockRoute}
-            navigation={{
-              navigate: mockNavigate,
-              setOptions: mockSetOptions,
-              dispatch: mockDispatch,
-              goBack: jest.fn(),
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-            }}
-          />
-        </Provider>,
-      );
-
-      return { wrapper };
-    };
-
-    it('dispatches navigation reset when skip is confirmed with metrics enabled', () => {
-      mockHasFunds.mockReturnValue(false);
-      mockIsMetricsEnabled.mockReturnValue(true);
-
-      const { wrapper } = setupTestWithMocks();
-
-      const reminderButton = wrapper.getByText(
-        strings('account_backup_step_1.remind_me_later'),
-      );
-
-      fireEvent.press(reminderButton);
-
-      // Get the onConfirm callback from the modal navigation
-      const navigationCall = mockNavigate.mock.calls[0];
-      const onConfirm = navigationCall[1].params.onConfirm;
-
-      // Execute the skip
-      onConfirm();
-
-      // Verify dispatch was called with reset action
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'RESET',
-          payload: expect.objectContaining({
-            index: 0,
-            routes: expect.arrayContaining([
-              expect.objectContaining({
-                name: 'OnboardingSuccessFlow',
-                params: expect.objectContaining({
-                  screen: 'OnboardingSuccess',
-                  params: expect.objectContaining({
-                    successFlow: 'noBackedUpSRP',
-                  }),
-                }),
-              }),
-            ]),
-          }),
-        }),
-      );
-    });
-
-    it('navigates to OptinMetrics when skip is confirmed with metrics disabled', () => {
-      mockHasFunds.mockReturnValue(false);
-      mockIsMetricsEnabled.mockReturnValue(false);
-
-      const { wrapper } = setupTestWithMocks();
-
-      const reminderButton = wrapper.getByText(
-        strings('account_backup_step_1.remind_me_later'),
-      );
-
-      fireEvent.press(reminderButton);
-
-      // Get the onConfirm callback from the modal navigation
-      const navigationCall = mockNavigate.mock.calls[0];
-      const onConfirm = navigationCall[1].params.onConfirm;
-
-      // Execute the skip
-      onConfirm();
-
-      // Verify navigation to OptinMetrics
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'OptinMetrics',
-        expect.objectContaining({
-          onContinue: expect.any(Function),
-        }),
-      );
     });
   });
 });

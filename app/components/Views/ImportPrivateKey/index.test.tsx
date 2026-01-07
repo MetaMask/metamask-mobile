@@ -2,7 +2,6 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import ImportPrivateKey from './';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
@@ -15,6 +14,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockImportAccountFromPrivateKey = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -27,10 +27,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/importAccountFromPrivateKey', () => ({
-  importAccountFromPrivateKey: jest.fn(),
-}));
-
 jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
     fetchAccountsWithActivity: mockFetchAccountsWithActivity,
@@ -42,6 +38,8 @@ jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: () =>
       mockCheckIsSeedlessPasswordOutdated(),
+    importAccountFromPrivateKey: (privateKey: string) =>
+      mockImportAccountFromPrivateKey(privateKey),
   },
 }));
 
@@ -49,11 +47,6 @@ jest.mock('../../../core', () => ({
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
-
-const mockImportAccountFromPrivateKey =
-  importAccountFromPrivateKey as jest.MockedFunction<
-    typeof importAccountFromPrivateKey
-  >;
 
 // Cast Alert.alert as a mock for better TypeScript support
 const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;
@@ -231,7 +224,7 @@ describe('ImportPrivateKey', () => {
     });
 
     it('successfully imports private key and navigates to success screen', async () => {
-      mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByTestId } = renderScreen(
         ImportPrivateKey,
@@ -300,7 +293,7 @@ describe('ImportPrivateKey', () => {
 
   describe('onScanSuccess function', () => {
     it('imports private key when scanned data contains private_key', async () => {
-      mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByText } = renderScreen(
         ImportPrivateKey,

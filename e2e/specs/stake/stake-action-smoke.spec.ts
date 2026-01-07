@@ -6,17 +6,13 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
-import {
-  loadFixture,
-  startFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
+import { loadFixture } from '../../framework/fixtures/FixtureHelper';
 import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
@@ -66,11 +62,11 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
       .withNetworkController(PopularNetworksList.zkSync)
       .withNetworkController(CustomNetworks.Hoodi)
       .build();
-    await startFixtureServer(fixtureServer);
+    await fixtureServer.start();
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: { fixtureServerPort: `${fixtureServer.getServerPort()}` },
     });
     await TestHelpers.delay(5000);
     await loginToApp();
@@ -246,9 +242,8 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
 
   it('should Stake Claim ETH', async (): Promise<void> => {
     const stakeAPIUrl: string = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
-    const response: AxiosResponse<StakingAPIResponse> = await axios.get(
-      stakeAPIUrl,
-    );
+    const response: AxiosResponse<StakingAPIResponse> =
+      await axios.get(stakeAPIUrl);
 
     if (response.status !== 200) {
       throw new Error('Error calling Staking API');

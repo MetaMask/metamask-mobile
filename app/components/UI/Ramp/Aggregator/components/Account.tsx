@@ -62,10 +62,10 @@ const Account = ({
         areAddressesEqual(account.address, address),
       )
     : selectedAddress
-    ? internalAccounts.find((account) =>
-        areAddressesEqual(account.address, selectedAddress),
-      )
-    : undefined;
+      ? internalAccounts.find((account) =>
+          areAddressesEqual(account.address, selectedAddress),
+        )
+      : undefined;
 
   const accountName = selectedInternalAccount?.metadata?.name || '';
   return (

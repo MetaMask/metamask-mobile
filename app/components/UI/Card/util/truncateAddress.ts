@@ -1,5 +1,15 @@
-export const truncateAddress = (address: string | undefined) => {
-  if (!address) return '0x';
+import { isHexAddress } from '@metamask/utils';
+import { safeToChecksumAddress } from '../../../../util/address';
 
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+export const truncateAddress = (
+  address: string | undefined,
+  chars: number = 4,
+) => {
+  const addressToTruncate = isHexAddress(address)
+    ? safeToChecksumAddress(address)
+    : address;
+
+  if (addressToTruncate) {
+    return `${addressToTruncate.slice(0, chars)}...${addressToTruncate.slice(-chars)}`;
+  }
 };

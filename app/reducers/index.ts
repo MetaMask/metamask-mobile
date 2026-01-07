@@ -53,14 +53,15 @@ import { isTest } from '../util/test/utils';
  *
  * @template reducer A reducer function
  */
-export type StateFromReducer<reducer> = reducer extends Reducer<
-  infer State,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any
->
-  ? State
-  : never;
+export type StateFromReducer<reducer> =
+  reducer extends Reducer<
+    infer State,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  >
+    ? State
+    : never;
 
 // TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
 // to this type. Once that is complete, we can automatically generate this type

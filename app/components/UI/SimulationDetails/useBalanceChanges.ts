@@ -189,7 +189,7 @@ function getTokenBalanceChanges(
 
     const decimals =
       asset.type === AssetType.ERC20
-        ? erc20Decimals[asset.address] ?? ERC20_DEFAULT_DECIMALS
+        ? (erc20Decimals[asset.address] ?? ERC20_DEFAULT_DECIMALS)
         : 0;
     const balance = getAssetAmount(
       {
@@ -270,7 +270,7 @@ export default function useBalanceChanges({
   const erc20UsdRates = useAsyncResultOrThrow(
     async () =>
       fiatCurrency === CURRENCY_USD
-        ? erc20FiatRates.value ?? {}
+        ? (erc20FiatRates.value ?? {})
         : fetchTokenFiatRates(CURRENCY_USD, erc20TokenAddresses, chainId),
     [
       JSON.stringify(erc20TokenAddresses),

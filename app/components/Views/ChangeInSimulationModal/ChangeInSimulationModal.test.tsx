@@ -19,8 +19,7 @@ jest.mock('react-redux', () => ({
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () =>
-    ({ children }: { children: React.ReactElement }) =>
-      <>{children}</>,
+    ({ children }: { children: React.ReactElement }) => <>{children}</>,
 );
 
 const NAVIGATION_PARAMS_MOCK = {

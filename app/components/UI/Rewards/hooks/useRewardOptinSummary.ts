@@ -368,8 +368,8 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
           optedInCount === totalCount
             ? 'fullyOptedIn'
             : optedInCount > 0
-            ? 'partiallyOptedIn'
-            : 'notOptedIn',
+              ? 'partiallyOptedIn'
+              : 'notOptedIn',
         );
 
         // Check if all accounts in the selected group are supported

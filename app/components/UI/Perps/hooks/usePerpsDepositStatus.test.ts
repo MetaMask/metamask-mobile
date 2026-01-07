@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { usePerpsDepositStatus } from './usePerpsDepositStatus';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsTrading } from './usePerpsTrading';
-import usePerpsToasts, { PerpsToastOptionsConfig } from './usePerpsToasts';
+import usePerpsToasts, {
+  PerpsToastOptions,
+  PerpsToastOptionsConfig,
+} from './usePerpsToasts';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import {
@@ -124,7 +127,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Your deposit could not be processed' },
             ],
             hapticsType: NotificationFeedbackType.Error,
-          },
+          } as PerpsToastOptions,
           inProgress: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
@@ -146,7 +149,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Processing your withdrawal...' },
             ],
             hapticsType: NotificationFeedbackType.Success,
-          },
+          } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.CheckBold,
@@ -178,6 +181,8 @@ describe('usePerpsDepositStatus', () => {
       formValidation: {} as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dataFetching: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      contentSharing: {} as any,
     };
 
     mockUsePerpsToasts.mockReturnValue({

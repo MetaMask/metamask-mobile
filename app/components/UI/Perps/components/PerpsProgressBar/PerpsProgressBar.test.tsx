@@ -64,6 +64,7 @@ describe('PerpsProgressBar', () => {
       timestamp: 1640995200000,
       amount: '100',
       asset: 'USDC',
+      accountAddress: '0x1234567890123456789012345678901234567890',
       txHash: '0x123',
       status: 'pending' as const,
       destination: '0x456',
@@ -74,6 +75,7 @@ describe('PerpsProgressBar', () => {
       timestamp: 1640995201000,
       amount: '200',
       asset: 'USDC',
+      accountAddress: '0x1234567890123456789012345678901234567890',
       txHash: '0x789',
       status: 'completed' as const,
       destination: '0xabc',
@@ -84,7 +86,7 @@ describe('PerpsProgressBar', () => {
   const mockPersistentWithdrawalProgress = {
     progress: 0,
     lastUpdated: 0,
-    activeWithdrawalId: undefined,
+    activeWithdrawalId: null,
   };
 
   beforeEach(() => {

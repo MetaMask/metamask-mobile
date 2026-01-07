@@ -30,8 +30,21 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
+import { useDepositOrderNetworkName } from './useDepositOrderNetworkName';
 
-export const useDepositRouting = () => {
+class LimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'LimitExceededError';
+  }
+}
+
+interface UseDepositRoutingConfig {
+  screenLocation: string;
+}
+
+export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
+  const { screenLocation = '' } = config || {};
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -42,7 +55,14 @@ export const useDepositRouting = () => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { fetchUserDetails } = useDepositUser();
+
+  const getDepositOrderNetworkName = useDepositOrderNetworkName();
+
+  const { fetchUserDetails } = useDepositUser({
+    screenLocation,
+    shouldTrackFetch: true,
+    fetchOnMount: false,
+  });
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
@@ -98,6 +118,10 @@ export const useDepositRouting = () => {
         (route) => route.name === 'BuildQuote',
       );
 
+      if (buildQuoteIndex === -1) {
+        return state;
+      }
+
       return {
         payload: {
           count: state.routes.length - buildQuoteIndex - 1,
@@ -112,57 +136,65 @@ export const useDepositRouting = () => {
 
   const checkUserLimits = useCallback(
     async (quote: BuyQuote, kycType: string) => {
-      const userLimits = await getUserLimits(
-        selectedRegion?.currency || '',
-        selectedPaymentMethod?.id || '',
-        kycType,
-      );
-
-      if (!userLimits?.remaining) {
-        throw new Error(strings('deposit.buildQuote.limitError'));
-      }
-
-      const { remaining } = userLimits;
-      const dailyLimit = remaining['1'];
-      const monthlyLimit = remaining['30'];
-      const yearlyLimit = remaining['365'];
-
-      if (
-        dailyLimit === undefined ||
-        monthlyLimit === undefined ||
-        yearlyLimit === undefined
-      ) {
-        throw new Error(strings('deposit.buildQuote.limitError'));
-      }
-
-      const depositAmount = quote.fiatAmount;
-      const currency = selectedRegion?.currency || '';
-
-      if (depositAmount > dailyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'daily',
-            remaining: `${dailyLimit} ${currency}`,
-          }),
+      try {
+        const userLimits = await getUserLimits(
+          selectedRegion?.currency || '',
+          selectedPaymentMethod?.id || '',
+          kycType,
         );
-      }
 
-      if (depositAmount > monthlyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'monthly',
-            remaining: `${monthlyLimit} ${currency}`,
-          }),
-        );
-      }
+        if (!userLimits?.remaining) {
+          return;
+        }
 
-      if (depositAmount > yearlyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'yearly',
-            remaining: `${yearlyLimit} ${currency}`,
-          }),
-        );
+        const { remaining } = userLimits;
+        const dailyLimit = remaining['1'];
+        const monthlyLimit = remaining['30'];
+        const yearlyLimit = remaining['365'];
+
+        if (
+          dailyLimit === undefined ||
+          monthlyLimit === undefined ||
+          yearlyLimit === undefined
+        ) {
+          return;
+        }
+
+        const depositAmount = quote.fiatAmount;
+        const currency = selectedRegion?.currency || '';
+
+        if (depositAmount > dailyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'daily',
+              remaining: `${dailyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > monthlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'monthly',
+              remaining: `${monthlyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > yearlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'yearly',
+              remaining: `${yearlyLimit} ${currency}`,
+            }),
+          );
+        }
+      } catch (error) {
+        if (error instanceof LimitExceededError) {
+          throw error;
+        }
+
+        Logger.error(error as Error, 'Failed to check user limits');
       }
     },
     [getUserLimits, selectedRegion?.currency, selectedPaymentMethod?.id],
@@ -294,8 +326,10 @@ export const useDepositRouting = () => {
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: order.network.chainId,
+                chain_id: order.network?.chainId || '',
                 currency_destination: order.cryptoCurrency.assetId || '',
+                currency_destination_symbol: order.cryptoCurrency.symbol,
+                currency_destination_network: getDepositOrderNetworkName(order),
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -318,6 +352,7 @@ export const useDepositRouting = () => {
       navigateToOrderProcessingCallback,
       selectedRegion?.isoCode,
       trackEvent,
+      getDepositOrderNetworkName,
     ],
   );
 
@@ -513,6 +548,11 @@ export const useDepositRouting = () => {
             }
 
             // If no additional forms are required, route to KYC processing
+            navigateToKycProcessingCallback({ quote });
+            return;
+          }
+
+          case 'SUBMITTED': {
             navigateToKycProcessingCallback({ quote });
             return;
           }

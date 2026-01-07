@@ -1,6 +1,7 @@
 import { appMetadataControllerInit } from './index';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.44.0'),
@@ -10,7 +11,13 @@ describe('AppMetadataController', () => {
   let mockInitRequest: ReturnType<typeof buildControllerInitRequestMock>;
 
   beforeEach(() => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      never,
+      never
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     mockInitRequest = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
