@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (_params: { theme: Theme }) =>
@@ -15,7 +15,7 @@ const createStyles = (_params: { theme: Theme }) =>
     footer: {
       paddingHorizontal: 0,
       paddingTop: 24,
-      paddingBottom: 16,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
   });
 
