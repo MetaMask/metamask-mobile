@@ -1368,17 +1368,5 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       expect(srpInput).toBeTruthy();
     });
-
-    it('passes renderSuggestionsExternally prop to SrpInputGrid', () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        { state: initialState },
-      );
-
-      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-
-      expect(srpInput).toBeTruthy();
-    });
   });
 });

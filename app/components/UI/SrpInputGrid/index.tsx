@@ -29,9 +29,6 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
-import { useSelector } from 'react-redux';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
-import SrpWordSuggestions from '../SrpWordSuggestions';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
@@ -62,17 +59,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       uniqueId = uuidv4(),
       disabled = false,
       onCurrentWordChange,
-      renderSuggestionsExternally = false,
     },
     ref,
   ) => {
     const { colors } = useAppTheme();
     const styles = createStyles(colors);
-
-    //flag to enable/disable SRP word suggestions
-    const isSrpWordSuggestionsEnabled = useSelector(
-      selectImportSrpWordSuggestionEnabledFlag,
-    );
 
     // Internal state
     const [
@@ -352,20 +343,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     /* istanbul ignore next -- @preserve Focus events */
     const handleSuggestionSelect = useCallback((word: string) => {
-      isSuggestionSelectingRef.current = true;
-
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-        blurTimeoutRef.current = null;
-      }
-
       const targetIndex = focusedInputIndexRef.current;
       if (targetIndex === null) {
         isSuggestionSelectingRef.current = false;
         return;
       }
 
-      // Clear any error for this index
       setErrorWordIndexes((prev) => ({
         ...prev,
         [targetIndex]: false,
@@ -373,35 +356,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
       const currentWordPosition = targetIndex + 1;
       const isLastWordOfValidSrp = SRP_LENGTHS.includes(currentWordPosition);
-      const isFirstWord = targetIndex === 0;
 
       const updatedText = isLastWordOfValidSrp ? word : `${word}${SPACE_CHAR}`;
 
+      handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
+      setCurrentInputWord('');
+
       if (isLastWordOfValidSrp) {
-        handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
-        setCurrentInputWord('');
-        requestAnimationFrame(() => {
-          const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
-          if (inputRef) {
-            inputRef.focus();
-          }
-          isSuggestionSelectingRef.current = false;
-        });
-      } else if (isFirstWord) {
-        const currentInputRef = seedPhraseInputRefs.current?.get(targetIndex);
-        if (currentInputRef) {
-          currentInputRef.focus();
-        }
-        handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
-        setCurrentInputWord('');
-      } else {
-        const nextIndex = targetIndex + 1;
-        handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
-        setCurrentInputWord('');
-        const nextInputRef = seedPhraseInputRefs.current?.get(nextIndex);
-        if (nextInputRef) {
-          nextInputRef.focus();
-        }
+        const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
+        inputRef?.focus();
         isSuggestionSelectingRef.current = false;
       }
     }, []);
@@ -569,16 +532,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             ? strings('import_from_seed.clear_all')
             : strings('import_from_seed.paste')}
         </Text>
-
-        {isSrpWordSuggestionsEnabled && !renderSuggestionsExternally && (
-          <SrpWordSuggestions
-            currentInputWord={currentInputWord}
-            onSuggestionSelect={handleSuggestionSelect}
-            onPressIn={() => {
-              isSuggestionSelectingRef.current = true;
-            }}
-          />
-        )}
 
         {/* Error Text */}
         {Boolean(externalError || error) && (

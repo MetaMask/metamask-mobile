@@ -1865,24 +1865,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('passes renderSuggestionsExternally prop to SrpInputGrid', async () => {
-      const { getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        {
-          name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        },
-        {
-          state: initialState,
-        },
-      );
-
-      const srpInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
-      );
-
-      expect(srpInput).toBeTruthy();
-    });
-
     it('renders with KeyboardProvider wrapper', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,

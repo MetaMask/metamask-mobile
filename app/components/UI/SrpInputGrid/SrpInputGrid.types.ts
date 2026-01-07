@@ -48,9 +48,4 @@ export interface SrpInputGridProps {
    * Callback when the current input word changes
    */
   onCurrentWordChange?: (word: string) => void;
-
-  /**
-   * When true, suggestions will NOT be rendered internally.
-   */
-  renderSuggestionsExternally?: boolean;
 }

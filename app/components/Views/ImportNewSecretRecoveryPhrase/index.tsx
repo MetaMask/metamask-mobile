@@ -323,7 +323,6 @@ const ImportNewSecretRecoveryPhrase = () => {
             )}
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
-            renderSuggestionsExternally={isSrpWordSuggestionsEnabled}
           />
 
           <View style={styles.buttonWrapper}>

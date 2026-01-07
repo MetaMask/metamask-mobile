@@ -4,28 +4,10 @@ import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selec
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
 
-// Track the mock return value
-let mockFeatureFlagValue = true;
-
 // Mock Keyboard
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
 }));
-
-// Mock the selector for importSrpWordSuggestion feature flag
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: jest.fn(
-      () => mockFeatureFlagValue,
-    ),
-  }),
-);
-
-// Helper function to set the mock value
-const setMockFeatureFlagValue = (value: boolean) => {
-  mockFeatureFlagValue = value;
-};
 
 // Mock BIP39 wordlist with test words
 jest.mock('@metamask/scure-bip39/dist/wordlists/english', () => ({
@@ -61,8 +43,6 @@ describe('SrpInputGrid', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    // Enable feature flag by default
-    setMockFeatureFlagValue(true);
   });
 
   afterEach(() => {
@@ -95,125 +75,6 @@ describe('SrpInputGrid', () => {
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,
     );
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  describe('BIP39 Word Suggestions', () => {
-    it('filters suggestions by prefix', () => {
-      const { getByTestId, getByText, queryByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'ab');
-
-      expect(getByText('abandon')).toBeOnTheScreen();
-      expect(getByText('ability')).toBeOnTheScreen();
-      expect(getByText('able')).toBeOnTheScreen();
-      expect(getByText('about')).toBeOnTheScreen();
-      expect(getByText('above')).toBeOnTheScreen();
-      expect(queryByText('absent')).not.toBeOnTheScreen();
-    });
-
-    it('filters suggestions with case-insensitive prefix matching', () => {
-      const { getByTestId, getByText, queryByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'WAL');
-
-      expect(getByText('wallet')).toBeOnTheScreen();
-      expect(getByText('walnut')).toBeOnTheScreen();
-      expect(queryByText('abandon')).not.toBeOnTheScreen();
-    });
-
-    it('displays no suggestions for empty input or non-matching text', () => {
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-
-      // Empty input
-      fireEvent.changeText(input, '');
-      expect(queryByText('abandon')).not.toBeOnTheScreen();
-
-      // Non-matching input
-      fireEvent.changeText(input, 'xyz');
-      expect(queryByText('abandon')).not.toBeOnTheScreen();
-      expect(queryByText('wallet')).not.toBeOnTheScreen();
-    });
-
-    it('calls onSeedPhraseChange when suggestion is pressed', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'wal');
-
-      const suggestion = getByText('wallet');
-      fireEvent.press(suggestion);
-
-      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
-    });
-
-    it('displays independent suggestions for each input field', () => {
-      const seedPhrase = ['wallet', '', '', ''];
-      const { getByTestId, getByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
-      );
-
-      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-      fireEvent.changeText(secondInput, 'ab');
-
-      expect(getByText('abandon')).toBeOnTheScreen();
-      expect(getByText('ability')).toBeOnTheScreen();
-    });
-
-    it('hides suggestions when importSrpWordSuggestion feature flag is disabled', () => {
-      setMockFeatureFlagValue(false);
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'ab');
-
-      expect(queryByText('abandon')).not.toBeOnTheScreen();
-      expect(queryByText('ability')).not.toBeOnTheScreen();
-    });
-
-    it('displays suggestions when importSrpWordSuggestion feature flag is enabled', () => {
-      setMockFeatureFlagValue(true);
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'ab');
-
-      expect(getByText('abandon')).toBeOnTheScreen();
-      expect(getByText('ability')).toBeOnTheScreen();
-    });
-
-    it('triggers onPressIn when suggestion is touched', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <SrpInputGrid {...defaultProps} />,
-      );
-
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      fireEvent.changeText(input, 'wal');
-      fireEvent(input, 'focus');
-
-      const suggestion = getByText('wallet');
-      fireEvent(suggestion, 'pressIn');
-      fireEvent.press(suggestion);
-
-      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
-    });
   });
 
   describe('Input Focus and Blur', () => {
@@ -437,16 +298,11 @@ describe('SrpInputGrid', () => {
       expect(mockOnCurrentWordChange).toHaveBeenCalledWith('wal');
     });
 
-    it('hides internal suggestions when renderSuggestionsExternally is true', () => {
-      setMockFeatureFlagValue(true);
+    it('does not render suggestions internally (suggestions rendered by parent)', () => {
       const seedPhrase = ['wallet', ''];
 
       const { getByTestId, queryByText } = renderWithProvider(
-        <SrpInputGrid
-          {...defaultProps}
-          seedPhrase={seedPhrase}
-          renderSuggestionsExternally
-        />,
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
       );
 
       const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
@@ -457,30 +313,9 @@ describe('SrpInputGrid', () => {
         jest.runAllTimers();
       });
 
+      // Suggestions are not rendered internally - parent component handles rendering
       expect(queryByText('abandon')).not.toBeOnTheScreen();
-    });
-
-    it('displays internal suggestions when renderSuggestionsExternally is false', () => {
-      setMockFeatureFlagValue(true);
-      const seedPhrase = ['wallet', ''];
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <SrpInputGrid
-          {...defaultProps}
-          seedPhrase={seedPhrase}
-          renderSuggestionsExternally={false}
-        />,
-      );
-
-      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-
-      act(() => {
-        fireEvent(secondInput, 'focus');
-        fireEvent.changeText(secondInput, 'ab');
-        jest.runAllTimers();
-      });
-
-      expect(getByText('abandon')).toBeOnTheScreen();
+      expect(queryByText('ability')).not.toBeOnTheScreen();
     });
   });
 

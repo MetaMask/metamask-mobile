@@ -618,7 +618,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   placeholderText={strings('import_from_seed.srp_placeholder')}
                   uniqueId={uniqueId}
                   onCurrentWordChange={setCurrentInputWord}
-                  renderSuggestionsExternally={isSrpWordSuggestionsEnabled}
                 />
                 <View style={styles.seedPhraseCtaContainer}>
                   <Button
