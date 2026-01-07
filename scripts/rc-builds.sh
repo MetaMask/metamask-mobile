@@ -8,9 +8,8 @@ set -euo pipefail
 : "${BITRISE_APP_ID:?BITRISE_APP_ID environment variable must be set}"
 : "${BITRISE_BUILD_TRIGGER_TOKEN:?BITRISE_BUILD_TRIGGER_TOKEN environment variable must be set}"
 : "${BITRISE_API_TOKEN:?BITRISE_API_TOKEN environment variable must be set}"
+: "${COMMIT_HASH:?COMMIT_HASH environment variable must be set}"
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
-COMMIT_HASH=$(git rev-parse HEAD)
-
 
 BUILD_RESPONSE=$(curl -s -X POST \
   "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
