@@ -109,6 +109,9 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(true);
         setOptinError(null);
 
+        // Make sure to always opt in the first account group in the wallet first
+        // Then link the side effect account group (currently selected) if it exists
+
         const accountsToOptIn =
           sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
             ? sideEffectAccounts
@@ -116,7 +119,9 @@ export const useOptin = (): UseOptinResult => {
 
         const accountGroupToLinkAfterOptIn =
           sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? selectedAccountGroupId
+            ? sideEffectAccountGroupIdToLink !== selectedAccountGroupId
+              ? selectedAccountGroupId
+              : undefined
             : sideEffectAccountGroupIdToLink;
 
         subscriptionId = await Engine.controllerMessenger.call(
