@@ -727,15 +727,22 @@ class AuthenticationService {
    * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
    * If the user exists and the biometric credentials are not found, it will navigate to the login flow and request the user to enter their password.
    * If the user does not exist, it will place the user in the onboarding flow.
+   *
+   * @param options - Options for unlocking the wallet.
+   * @param options.password - The password to use to unlock the wallet.
+   * @returns - void
    */
   unlockWallet = async (
     {
       password,
-      authPreference,
+      // authPreference,
     }: {
       password?: string;
-      authPreference?: AuthData;
-    } = { password: undefined, authPreference: undefined },
+      // authPreference?: AuthData;
+    } = {
+      password: undefined,
+      // authPreference: undefined
+    },
   ) => {
     const { KeyringController } = Engine.context;
     const existingUser = selectExistingUser(ReduxService.store.getState());
@@ -759,41 +766,43 @@ class AuthenticationService {
         // Password available. Use password to unlock wallet.
         try {
           // TODO: Refactor in a follow up
-          if (authPreference?.oauth2Login) {
-            // if seedless flow - rehydrate
-            await this.rehydrateSeedPhrase(passwordToUse);
-          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
-            // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-            await this.syncPasswordAndUnlockWallet(passwordToUse);
-          } else {
-            //Unlock keyrings.
-            await KeyringController.submitPassword(passwordToUse);
-            if (
-              selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
-            ) {
-              await Engine.context.SeedlessOnboardingController.submitPassword(
-                passwordToUse,
-              );
+          // if (authPreference?.oauth2Login) {
+          //   // if seedless flow - rehydrate
+          //   await this.rehydrateSeedPhrase(passwordToUse);
+          // } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+          //   // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+          //   await this.syncPasswordAndUnlockWallet(passwordToUse);
+          // } else {
+          //   // Unlock keyrings.
+          //   await KeyringController.submitPassword(passwordToUse);
+          //   if (
+          //     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+          //   ) {
+          //     await Engine.context.SeedlessOnboardingController.submitPassword(
+          //       passwordToUse,
+          //     );
 
-              // renew refresh token
-              renewSeedlessControllerRefreshTokens(passwordToUse).catch(
-                (err) => {
-                  Logger.error(err, 'Failed to renew refresh token');
-                },
-              );
-            }
-          }
+          //     // renew refresh token
+          //     renewSeedlessControllerRefreshTokens(passwordToUse).catch(
+          //       (err) => {
+          //         Logger.error(err, 'Failed to renew refresh token');
+          //       },
+          //     );
+          //   }
+          // }
 
           // Store password using authentication preference.
           // if (authPreference) {
           //   await this.updateAuthPreference({password, authPreference});
           // }
 
-          // TODO: Verify with Mario if setting existing user to true is necessary to prevent the vault recovery flow from reappearing after vault recovery
+          // this.authData = authPreference ?? this.authData;
 
-          // TODO: Refactor in a follow up
+          // Unlock keyrings.
+          await KeyringController.submitPassword(passwordToUse);
+
+          // Perform post login operations.
           await this.dispatchLogin();
-          this.authData = authPreference ?? this.authData;
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
 
