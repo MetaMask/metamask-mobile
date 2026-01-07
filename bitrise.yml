@@ -3418,11 +3418,11 @@ workflows:
                 
                 echo "🚀 Uploading to TestFlight..."
                 echo "IPA: $IPA_PATH"
-                echo "Group: MetaMask Preview"
+                echo "Group: MetaMask Fastlane Test"
                 
                 bundle exec fastlane upload_to_testflight_only \
                   ipa_path:"$IPA_PATH" \
-                  groups:"['MetaMask Preview']" \
+                  groups:"['MetaMask Fastlane Test']" \
                   notify_external_testers:true \
                   skip_waiting_for_build_processing:false \
                   changelog:"Build uploaded from Bitrise - Branch: $BITRISE_GIT_BRANCH - Commit: ${BITRISE_GIT_COMMIT:0:7}"
