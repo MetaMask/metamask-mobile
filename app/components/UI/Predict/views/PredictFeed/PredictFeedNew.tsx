@@ -13,7 +13,6 @@ import {
   TextInput,
   Platform,
   InteractionManager,
-  StyleSheet,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +37,8 @@ import Animated, {
   SharedValue,
   interpolate,
   Extrapolation,
+  withTiming,
+  Easing,
 } from 'react-native-reanimated';
 import { FlashList, FlashListProps, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -103,47 +104,35 @@ interface UseFeedScrollManagerParams {
 }
 
 interface UseFeedScrollManagerReturn {
-  /** Header translateY: 0 = visible, -headerHeight = hidden */
   headerTranslateY: SharedValue<number>;
-  /** Measured header height in pixels */
+  isHeaderHidden: SharedValue<number>;
   headerHeight: number;
-  /** Measured tab bar height in pixels */
   tabBarHeight: number;
-  /** Whether layout measurements are ready */
   layoutReady: boolean;
-  /** Current active tab index */
   activeIndex: number;
-  /** Set active tab index */
   setActiveIndex: (index: number) => void;
-  /** Scroll handler to attach to active FlashList */
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
-  /** Track a tab's FlashList ref */
   trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
-  /** Get the current header offset (0 to headerHeight) */
   getCurrentHeaderOffset: () => number;
-  /** Called when scroll ends - syncs inactive tabs if needed */
   onScrollEnd: () => void;
-  /** Update a tab's scroll position in tracking map */
   updateTabScrollPosition: (tabKey: string, position: number) => void;
-  /** Get a tab's tracked scroll position */
   getTabScrollPosition: (tabKey: string) => number;
 }
 
 /**
- * Manages scroll-driven header animation with direction-based show/hide.
- *
- * Key behaviors:
- * - Header follows scroll delta (not absolute position)
- * - Scrolling down hides header, scrolling up reveals it (anywhere in list)
- * - At top of list, header is always fully visible
- * - Each tab maintains its own scroll position
- * - Inactive tabs are synced when switching to prevent visual gaps
+ * Manages time-based header animation with binary show/hide states.
+ * Scroll direction triggers animated transitions - header is always fully visible or hidden.
  */
+const HEADER_ANIMATION_DURATION = 450;
+const SCROLL_THRESHOLD = 250;
+
 const useFeedScrollManager = ({
   tabs,
   headerRef,
   tabBarRef,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
+  // Header state: 0 = visible, 1 = hidden (binary, not continuous)
+  const isHeaderHidden = useSharedValue(0);
   // Header translateY: 0 = visible, -headerHeight = hidden
   const headerTranslateY = useSharedValue(0);
 
@@ -152,11 +141,10 @@ const useFeedScrollManager = ({
   const sharedTabBarHeight = useSharedValue(0);
   const lastScrollY = useSharedValue(0);
 
-  // Flag to skip delta calculation on first scroll after tab switch
+  // Flag to skip direction detection on first scroll after tab switch
   const isTabSwitching = useSharedValue(false);
 
-  // Threshold-based animation: accumulate delta before moving header
-  const SCROLL_THRESHOLD = 100;
+  // Track accumulated scroll delta for threshold detection
   const accumulatedDelta = useSharedValue(0);
   const lastDirection = useSharedValue(0); // 1 = down, -1 = up, 0 = none
 
@@ -259,32 +247,19 @@ const useFeedScrollManager = ({
     [headerTranslateY],
   );
 
-  // Sync inactive tabs when scroll ends
-  const onScrollEnd = useCallback(() => {
-    const activeKey = tabs[activeIndex].key;
-    const currentHeaderOffset = -headerTranslateY.value; // 0 to headerHeight
+  const onScrollEnd = useCallback(() => undefined, []);
 
-    Object.entries(tabKeyToRef.current).forEach(([key, ref]) => {
-      if (key === activeKey || !ref) return;
+  const animationConfig = {
+    duration: HEADER_ANIMATION_DURATION,
+    easing: Easing.out(Easing.cubic),
+  };
 
-      const tabPosition = tabKeyToScrollPosition.current[key] ?? 0;
-
-      // If header is hidden but this tab hasn't scrolled past header threshold,
-      // adjust its position so there's no gap when switching to it
-      if (currentHeaderOffset > 0 && tabPosition < currentHeaderOffset) {
-        ref.scrollToOffset({ offset: currentHeaderOffset, animated: false });
-        tabKeyToScrollPosition.current[key] = currentHeaderOffset;
-      }
-    });
-  }, [tabs, activeIndex, headerTranslateY]);
-
-  // Direction-based scroll handler with threshold
+  // Time-based scroll handler: detect direction, animate to show/hide
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       'worklet';
       const currentY = event.contentOffset.y;
 
-      // After tab switch, just initialize lastScrollY without affecting header
       if (isTabSwitching.value) {
         isTabSwitching.value = false;
         lastScrollY.value = currentY;
@@ -296,77 +271,63 @@ const useFeedScrollManager = ({
       const delta = currentY - lastScrollY.value;
       lastScrollY.value = currentY;
 
-      // Calculate the "at top" threshold
-      // On iOS with contentInset, contentOffset.y is negative when near top
-      // The actual "top" is when contentOffset.y <= -contentInsetTop
+      // At top of list - always show header
       const contentInsetTop =
         sharedHeaderHeight.value + sharedTabBarHeight.value;
-      const atTopThreshold = -contentInsetTop;
+      const atTop = Platform.OS === 'ios' ? currentY < 0 : currentY < contentInsetTop;
 
-      // At/near top of list - always show header fully and reset threshold
-      if (currentY <= atTopThreshold) {
-        headerTranslateY.value = 0;
+      if (atTop && isHeaderHidden.value === 1) {
+        isHeaderHidden.value = 0;
+        headerTranslateY.value = withTiming(0, animationConfig);
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
         return;
       }
 
-      // Determine current direction: 1 = down, -1 = up
       const currentDirection = delta > 0 ? 1 : delta < 0 ? -1 : 0;
+      if (currentDirection === 0) return;
 
-      // If direction changed, reset accumulated delta
-      if (currentDirection !== 0 && currentDirection !== lastDirection.value) {
+      if (currentDirection !== lastDirection.value) {
         lastDirection.value = currentDirection;
         accumulatedDelta.value = 0;
       }
 
-      // Accumulate delta
       accumulatedDelta.value += Math.abs(delta);
 
-      // Only move header after threshold is exceeded
       if (accumulatedDelta.value < SCROLL_THRESHOLD) {
         return;
       }
 
-      // Apply delta to header position
-      // Scroll down (delta > 0) → header moves up (more negative)
-      // Scroll up (delta < 0) → header moves down (less negative)
-      const newValue = headerTranslateY.value - delta;
+      // Scrolling down → hide header
+      if (currentDirection === 1 && isHeaderHidden.value === 0) {
+        isHeaderHidden.value = 1;
+        headerTranslateY.value = withTiming(
+          -sharedHeaderHeight.value,
+          animationConfig,
+        );
+        accumulatedDelta.value = 0;
+      }
 
-      // Clamp: 0 (fully visible) to -headerHeight (fully hidden)
-      headerTranslateY.value = Math.max(
-        -sharedHeaderHeight.value,
-        Math.min(0, newValue),
-      );
+      // Scrolling up → show header
+      if (currentDirection === -1 && isHeaderHidden.value === 1) {
+        isHeaderHidden.value = 0;
+        headerTranslateY.value = withTiming(0, animationConfig);
+        accumulatedDelta.value = 0;
+      }
     },
   });
 
-  // Handle tab change with sync
   const handleSetActiveIndex = useCallback(
     (index: number) => {
-      // Set flag to skip delta calculation on first scroll of new tab
       isTabSwitching.value = true;
-
-      const newTabKey = tabs[index].key;
-      const currentHeaderOffset = -headerTranslateY.value;
-      const newTabScrollPos = tabKeyToScrollPosition.current[newTabKey] ?? 0;
-
-      // If switching to a tab that would show a gap, adjust it first
-      if (currentHeaderOffset > 0 && newTabScrollPos < currentHeaderOffset) {
-        const ref = tabKeyToRef.current[newTabKey];
-        if (ref) {
-          ref.scrollToOffset({ offset: currentHeaderOffset, animated: false });
-          tabKeyToScrollPosition.current[newTabKey] = currentHeaderOffset;
-        }
-      }
-
       setActiveIndex(index);
     },
-    [tabs, headerTranslateY, isTabSwitching],
+    [isTabSwitching],
   );
 
   return {
     headerTranslateY,
+    isHeaderHidden,
     headerHeight,
     tabBarHeight,
     layoutReady,
