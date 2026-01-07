@@ -6,8 +6,9 @@ import { FillType, PerpsTransaction } from '../../types/transactionHistory';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 
 // Mock the hooks and dependencies
+const mockUseSelector = jest.fn(() => () => ({ address: '0xTestAddress' }));
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => () => ({ address: '0xTestAddress' })),
+  useSelector: (...args: unknown[]) => mockUseSelector(...args),
 }));
 
 const mockTrack = jest.fn();
@@ -52,6 +53,10 @@ const createMockTransaction = (
 describe('PerpsFillTag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset to default mock returning valid address
+    mockUseSelector.mockImplementation(() => () => ({
+      address: '0xTestAddress',
+    }));
   });
 
   it('renders null for standard fill type', () => {
@@ -149,6 +154,84 @@ describe('PerpsFillTag', () => {
           markPx: '1800',
           method: 'market',
         },
+      },
+    });
+
+    const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+    expect(toJSON()).toBeNull();
+  });
+
+  it('does not render Liquidation pill when selectedAccount is null', () => {
+    mockUseSelector.mockImplementation(() => () => null);
+
+    const transaction = createMockTransaction(FillType.Liquidation, {
+      fill: {
+        shortTitle: 'Closed long',
+        amount: '-$100',
+        amountNumber: -100,
+        isPositive: false,
+        size: '1.5',
+        entryPrice: '$2000',
+        points: '-100',
+        pnl: '-$100',
+        fee: '$1',
+        action: 'close',
+        feeToken: 'USDC',
+        fillType: FillType.Liquidation,
+        liquidation: {
+          liquidatedUser: '0xTestAddress',
+          markPx: '1800',
+          method: 'market',
+        },
+      },
+    });
+
+    const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+    expect(toJSON()).toBeNull();
+  });
+
+  it('does not render Liquidation pill when both liquidatedUser and selectedAccount address are undefined', () => {
+    // This tests the edge case where undefined === undefined would incorrectly return true
+    mockUseSelector.mockImplementation(() => () => ({ address: undefined }));
+
+    const transaction = createMockTransaction(FillType.Liquidation, {
+      fill: {
+        shortTitle: 'Closed long',
+        amount: '-$100',
+        amountNumber: -100,
+        isPositive: false,
+        size: '1.5',
+        entryPrice: '$2000',
+        points: '-100',
+        pnl: '-$100',
+        fee: '$1',
+        action: 'close',
+        feeToken: 'USDC',
+        fillType: FillType.Liquidation,
+        // No liquidation object - liquidatedUser will be undefined
+      },
+    });
+
+    const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+    expect(toJSON()).toBeNull();
+  });
+
+  it('does not render Liquidation pill when liquidation object is missing', () => {
+    const transaction = createMockTransaction(FillType.Liquidation, {
+      fill: {
+        shortTitle: 'Closed long',
+        amount: '-$100',
+        amountNumber: -100,
+        isPositive: false,
+        size: '1.5',
+        entryPrice: '$2000',
+        points: '-100',
+        pnl: '-$100',
+        fee: '$1',
+        action: 'close',
+        feeToken: 'USDC',
+        fillType: FillType.Liquidation,
+        // No liquidation object provided
       },
     });
 

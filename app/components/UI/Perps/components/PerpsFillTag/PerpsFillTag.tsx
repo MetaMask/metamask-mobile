@@ -64,8 +64,11 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
       },
       [FillType.Liquidation]: {
         // Only show if liquidated user is current user
+        // Ensure both values exist to prevent undefined === undefined being true
         condition:
-          fill.liquidation?.liquidatedUser === selectedAccount?.address,
+          fill.liquidation?.liquidatedUser != null &&
+          selectedAccount?.address != null &&
+          fill.liquidation.liquidatedUser === selectedAccount.address,
         label: strings('perps.transactions.order.liquidated'),
         severity: TagSeverity.Danger,
         textColor: TextColor.Error,
