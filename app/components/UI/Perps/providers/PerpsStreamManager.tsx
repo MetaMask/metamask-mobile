@@ -681,6 +681,60 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  /**
+   * Apply optimistic update for TP/SL prices to a position
+   * This immediately updates the UI before WebSocket confirms the change
+   * @param coin - The coin/asset symbol
+   * @param takeProfitPrice - The new take profit price (undefined to remove)
+   * @param stopLossPrice - The new stop loss price (undefined to remove)
+   */
+  public updatePositionTPSLOptimistic(
+    coin: string,
+    takeProfitPrice: string | undefined,
+    stopLossPrice: string | undefined,
+  ): void {
+    const cachedPositions = this.cache.get('positions');
+    if (!cachedPositions) {
+      DevLogger.log(
+        'PositionStreamChannel: Cannot apply optimistic update - no cached positions',
+      );
+      return;
+    }
+
+    const positionIndex = cachedPositions.findIndex((p) => p.coin === coin);
+    if (positionIndex === -1) {
+      DevLogger.log(
+        `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
+      );
+      return;
+    }
+
+    // Create updated positions array with the optimistic TP/SL values
+    const updatedPositions = cachedPositions.map((position, index) => {
+      if (index === positionIndex) {
+        return {
+          ...position,
+          takeProfitPrice,
+          stopLossPrice,
+          // Update counts based on whether TP/SL is set
+          takeProfitCount: takeProfitPrice ? 1 : 0,
+          stopLossCount: stopLossPrice ? 1 : 0,
+        };
+      }
+      return position;
+    });
+
+    DevLogger.log('PositionStreamChannel: Applying optimistic TP/SL update', {
+      coin,
+      takeProfitPrice,
+      stopLossPrice,
+    });
+
+    // Update cache and notify subscribers immediately
+    this.cache.set('positions', updatedPositions);
+    this.notifySubscribers(updatedPositions);
+  }
 }
 
 // Specific channel for fills
