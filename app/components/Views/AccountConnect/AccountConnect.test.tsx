@@ -17,13 +17,13 @@ import {
   Caip25EndowmentPermissionName,
   Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountConnect.selectors';
-import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { AccountConnectSelectorsIDs } from '../../../../tests/selectors/wallet/AccountConnect.selectors';
+import { AddNewAccountIds } from '../../../../tests/selectors/MultiSRP/AddHdAccount.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([

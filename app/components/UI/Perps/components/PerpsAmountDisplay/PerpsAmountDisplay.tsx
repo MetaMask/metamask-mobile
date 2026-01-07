@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
   TextVariant,

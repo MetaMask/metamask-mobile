@@ -10,9 +10,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-import { CommonSelectorsIDs } from '../../../../../../e2e/selectors/Common.selectors';
+import { QuoteViewSelectorIDs } from '../../../../../../tests/selectors/swaps/QuoteView.selectors';
+import { BuildQuoteSelectors } from '../../../../../../tests/selectors/Ramps/BuildQuote.selectors';
+import { CommonSelectorsIDs } from '../../../../../../tests/selectors/Common.selectors';
 
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {

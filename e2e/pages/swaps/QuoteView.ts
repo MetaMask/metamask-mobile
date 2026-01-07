@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/swaps/QuoteView.selectors';
+} from '../../../tests/selectors/swaps/QuoteView.selectors';
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {

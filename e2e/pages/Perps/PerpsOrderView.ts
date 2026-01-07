@@ -6,7 +6,7 @@ import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../tests/selectors/Perps/Perps.selectors';
 import { element as detoxElement, by as detoxBy } from 'detox';
 
 class PerpsOrderView {

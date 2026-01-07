@@ -1,4 +1,4 @@
-import { NetworkApprovalBottomSheetSelectorsIDs } from '../../selectors/Network/NetworkApprovalBottomSheet.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../tests/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

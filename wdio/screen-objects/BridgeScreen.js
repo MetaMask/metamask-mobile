@@ -2,10 +2,10 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../tests/selectors/Perps/Perps.selectors';
+import { QuoteViewSelectorText } from '../../tests/selectors/swaps/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../tests/selectors/wallet/LoginView.selectors';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 
@@ -32,7 +32,7 @@ class BridgeScreen {
   }
   get destinationTokenArea(){
     return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
-    
+
   }
   get seeAllDropDown(){
     return AppwrightSelectors.getElementByText(this._device, "See all");
@@ -60,7 +60,7 @@ class BridgeScreen {
   async isQuoteDisplayed() {
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
-    
+
 
   }
 

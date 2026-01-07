@@ -11,7 +11,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../tests/selectors/Notifications/NotificationSettingsView.selectors';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
 export const MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID =

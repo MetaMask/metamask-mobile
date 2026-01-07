@@ -1,4 +1,4 @@
-import { ConfirmationRequestTypeIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRequestTypeIDs } from '../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../../framework/Matchers';
 
 class RequestTypes {

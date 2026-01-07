@@ -11,7 +11,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../tests/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';

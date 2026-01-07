@@ -1,5 +1,5 @@
 import { Matchers, Gestures } from '../../framework';
-import { PredictCashOutSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictCashOutSelectorsIDs } from '../../../tests/selectors/Predict/Predict.selectors';
 
 class PredictCashOutPage {
   get container(): DetoxElement {

@@ -10,7 +10,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';

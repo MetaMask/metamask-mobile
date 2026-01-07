@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';

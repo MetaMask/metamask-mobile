@@ -3,7 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsOrderBookView from './PerpsOrderBookView';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 
 // Mock navigation
@@ -182,8 +182,8 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
 jest.mock('../../components/PerpsMarketHeader', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   const selectors = jest.requireActual<
-    typeof import('../../../../../../e2e/selectors/Perps/Perps.selectors')
-  >('../../../../../../e2e/selectors/Perps/Perps.selectors');
+    typeof import('../../../../../../tests/selectors/Perps/Perps.selectors')
+  >('../../../../../../tests/selectors/Perps/Perps.selectors');
   return {
     __esModule: true,
     default: ({

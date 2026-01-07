@@ -11,7 +11,7 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../../tests/selectors/Common.selectors';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -43,16 +43,16 @@ import ButtonIcon, {
 import TabBar from '../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../util/networks';
 import Engine from '../../../core/Engine';
-import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
+import { SDKSelectorsIDs } from '../../../../tests/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
 import {
   selectEvmChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../tests/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import {

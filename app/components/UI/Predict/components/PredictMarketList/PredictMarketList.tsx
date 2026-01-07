@@ -3,7 +3,7 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../../../../../tests/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TabBar from '../../../../Base/TabBar';
 import { useTheme } from '../../../../../util/theme';

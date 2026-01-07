@@ -10,7 +10,7 @@ import { withFixtures } from '../../../../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../../../../resources/networks.e2e';
 import Browser from '../../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../tests/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../../framework/Constants';

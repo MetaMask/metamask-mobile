@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
+import { MultichainDeleteAccountSelectors } from '../../../tests/selectors/MultichainAccounts/DeleteAccount.selectors';
 
 class DeleteAccount {
   get container(): DetoxElement {

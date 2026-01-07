@@ -7,7 +7,7 @@ import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
 } from './PerpsTutorialCarousel';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTutorialSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 
 // Mock .riv file to prevent Jest parsing binary data
 jest.mock(

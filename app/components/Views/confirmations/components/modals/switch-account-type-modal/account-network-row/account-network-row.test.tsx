@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { SmartAccountIds } from '../../../../../../../../tests/selectors/MultichainAccounts/SmartAccount.selectors';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';

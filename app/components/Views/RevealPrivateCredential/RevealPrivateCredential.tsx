@@ -50,7 +50,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { RevealSeedViewSelectorsIDs } from '../../../../tests/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';

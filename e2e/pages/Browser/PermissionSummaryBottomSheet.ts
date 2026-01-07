@@ -1,7 +1,7 @@
 import {
   PermissionSummaryBottomSheetSelectorsIDs,
   PermissionSummaryBottomSheetSelectorsText,
-} from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
+} from '../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

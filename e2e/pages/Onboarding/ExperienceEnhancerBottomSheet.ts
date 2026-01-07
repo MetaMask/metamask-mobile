@@ -1,4 +1,4 @@
-import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../selectors/Onboarding/ExperienceEnhancerModal.selectors';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../tests/selectors/Onboarding/ExperienceEnhancerModal.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

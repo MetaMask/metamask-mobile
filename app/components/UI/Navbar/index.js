@@ -34,19 +34,19 @@ import {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { CommonSelectorsIDs } from '../../../../tests/selectors/Common.selectors';
+import { WalletViewSelectorsIDs } from '../../../../tests/selectors/wallet/WalletView.selectors';
+import { NetworksViewSelectorsIDs } from '../../../../tests/selectors/Settings/NetworksView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../tests/selectors/Receive/SendLinkView.selectors';
+import { SendViewSelectorsIDs } from '../../../../tests/selectors/SendFlow/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import { AddContactViewSelectorsIDs } from '../../../../tests/selectors/Settings/Contacts/AddContactView.selectors';
+import { SettingsViewSelectorsIDs } from '../../../../tests/selectors/Settings/SettingsView.selectors';
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
@@ -54,7 +54,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../../../../tests/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 import {

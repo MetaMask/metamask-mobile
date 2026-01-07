@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PredictCategory, PredictMarket, Recurrence } from '../../types';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { strings } from '../../../../../../locales/i18n';
-import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { getPredictMarketListSelector } from '../../../../../../tests/selectors/Predict/Predict.selectors';
 
 // Mock animations to prevent act() warnings
 jest.mock('react-native/Libraries/Animated/Animated', () => {

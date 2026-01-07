@@ -2,7 +2,7 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import  {
   BrowserViewSelectorsIDs,
-} from '../../../e2e/selectors/Browser/BrowserView.selectors';
+} from '../../../tests/selectors/Browser/BrowserView.selectors';
 import { expect } from 'appwright';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 

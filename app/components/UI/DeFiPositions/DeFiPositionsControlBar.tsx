@@ -6,7 +6,7 @@ import {
   selectChainId,
 } from '../../../selectors/networkController';
 import { isTestNet } from '../../../util/networks';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../tests/selectors/wallet/WalletView.selectors';
 import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 
 const DeFiPositionsControlBar: React.FC = () => {

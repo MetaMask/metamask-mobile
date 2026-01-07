@@ -2,7 +2,7 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import BrowserBottomBar from './';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../tests/selectors/Browser/BrowserView.selectors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';

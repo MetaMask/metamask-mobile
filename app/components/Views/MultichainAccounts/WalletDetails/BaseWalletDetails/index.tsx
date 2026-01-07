@@ -13,7 +13,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
+import { WalletDetailsIds } from '../../../../../../tests/selectors/MultichainAccounts/WalletDetails';
 import {
   AlignItems,
   FlexDirection,

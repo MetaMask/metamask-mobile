@@ -18,7 +18,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,

@@ -19,7 +19,7 @@ import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
 import PredictMarketSkeleton from '../PredictMarketSkeleton';
-import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { getPredictMarketListSelector } from '../../../../../../tests/selectors/Predict/Predict.selectors';
 import { ScrollCoordinator } from '../../types/scrollCoordinator';
 import PredictOffline from '../PredictOffline';
 import { strings } from '../../../../../../locales/i18n';

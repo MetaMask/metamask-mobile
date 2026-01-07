@@ -18,7 +18,7 @@ import {
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
 import Assertions from '../../../framework/Assertions';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../tests/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
 describe(
   RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),

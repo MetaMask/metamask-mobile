@@ -1,6 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { PerpsTutorialSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import { PerpsTutorialSelectorsIDs } from '../../../tests/selectors/Perps/Perps.selectors';
 
 class PerpsOnboarding {
   get continueButton(): DetoxElement {

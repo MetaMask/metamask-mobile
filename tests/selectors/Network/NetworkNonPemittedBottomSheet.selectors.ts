@@ -1,5 +1,5 @@
 import enContent from '../../../locales/languages/en.json';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../e2e/resources/networks.e2e';
 
 export const NetworkNonPemittedBottomSheetSelectorsText = {
   ADD_THIS_NETWORK_TITLE: enContent.permissions.title_add_network_permission,

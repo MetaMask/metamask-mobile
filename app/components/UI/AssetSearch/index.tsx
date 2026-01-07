@@ -9,7 +9,7 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../tests/selectors/wallet/ImportTokenView.selectors';
 import Icon, {
   IconName,
   IconSize,

@@ -5,7 +5,7 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
-} from '../../e2e/selectors/Predict/Predict.selectors';
+} from '../../tests/selectors/Predict/Predict.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictDetailsScreen {

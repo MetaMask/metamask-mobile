@@ -8,7 +8,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../../../../tests/selectors/wallet/WalletView.selectors';
 import { useSelector } from 'react-redux';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { EARN_EXPERIENCES } from '../../../constants/experiences';

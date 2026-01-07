@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { QuoteSelectors } from '../../selectors/Ramps/Quotes.selectors';
+import { QuoteSelectors } from '../../../tests/selectors/Ramps/Quotes.selectors';
 
 class QuotesView {
   get selectAQuoteLabel(): DetoxElement {

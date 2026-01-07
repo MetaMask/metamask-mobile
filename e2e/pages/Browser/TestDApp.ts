@@ -3,8 +3,8 @@ import enContent from '../../../locales/languages/en.json';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
+import { BrowserViewSelectorsIDs } from '../../../tests/selectors/Browser/BrowserView.selectors';
+import { TestDappSelectorsWebIDs } from '../../../tests/selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
 

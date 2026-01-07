@@ -5,7 +5,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../tests/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {

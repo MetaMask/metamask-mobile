@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { GetStartedSelectors } from '../../selectors/Ramps/GetStarted.selectors';
+import { GetStartedSelectors } from '../../../tests/selectors/Ramps/GetStarted.selectors';
 
 class SellGetStartedView {
   get getStartedButton(): DetoxElement {

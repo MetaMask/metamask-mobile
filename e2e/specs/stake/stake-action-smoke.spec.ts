@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../tests/selectors/Transactions/ActivitiesView.selectors';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';

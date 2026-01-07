@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ErrorBoundarySelectorsText } from '../../selectors/ErrorBoundary/ErrorBoundaryView.selectors';
+import { ErrorBoundarySelectorsText } from '../../../tests/selectors/ErrorBoundary/ErrorBoundaryView.selectors';
 
 class ErrorBoundaryView {
   get title(): DetoxElement {

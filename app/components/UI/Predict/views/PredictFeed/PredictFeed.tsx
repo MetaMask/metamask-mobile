@@ -7,7 +7,7 @@ import {
 } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../../../../../tests/selectors/Predict/Predict.selectors';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBalance } from '../../components/PredictBalance';

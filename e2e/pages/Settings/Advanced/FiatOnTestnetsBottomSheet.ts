@@ -1,4 +1,4 @@
-import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
+import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../tests/selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 

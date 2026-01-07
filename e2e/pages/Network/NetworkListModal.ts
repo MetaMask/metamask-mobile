@@ -1,8 +1,8 @@
 import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
-} from '../../selectors/Network/NetworkListModal.selectors';
-import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
+} from '../../../tests/selectors/Network/NetworkListModal.selectors';
+import { NetworksViewSelectorsIDs } from '../../../tests/selectors/Settings/NetworksView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';

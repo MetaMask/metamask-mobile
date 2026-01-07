@@ -31,7 +31,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../../../../../tests/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import type {
   PerpsMarketData,

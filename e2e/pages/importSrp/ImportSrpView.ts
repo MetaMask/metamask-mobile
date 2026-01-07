@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ImportSRPIDs } from '../../selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from '../../../tests/selectors/MultiSRP/SRPImport.selectors';
 
 class ImportSrpView {
   get container(): DetoxElement {

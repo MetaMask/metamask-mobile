@@ -1,4 +1,4 @@
-import { PerpsDepositProcessingViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import { PerpsDepositProcessingViewSelectorsIDs } from '../../../tests/selectors/Perps/Perps.selectors';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';

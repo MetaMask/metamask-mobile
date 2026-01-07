@@ -13,10 +13,10 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { RootState } from '../../../../reducers';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { CommonSelectorsIDs } from '../../../../../tests/selectors/Common.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../tests/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
 const mockOnEdit = jest.fn();
 const mockOnEditNetworks = jest.fn();

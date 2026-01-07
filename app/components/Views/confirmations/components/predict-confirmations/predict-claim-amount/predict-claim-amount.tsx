@@ -15,7 +15,7 @@ import {
   formatPercentage,
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
-import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../tests/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-amount.styles';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';

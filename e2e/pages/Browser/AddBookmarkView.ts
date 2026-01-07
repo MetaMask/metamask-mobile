@@ -1,4 +1,4 @@
-import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../../../tests/selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

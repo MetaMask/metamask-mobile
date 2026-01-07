@@ -1,4 +1,4 @@
-import { AssetWatcherSelectorsIDs } from '../../selectors/Transactions/AssetWatcher.selectors';
+import { AssetWatcherSelectorsIDs } from '../../../tests/selectors/Transactions/AssetWatcher.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ImportAccountFromPrivateKeyIDs } from '../../selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from '../../../tests/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
 
 class ImportAccountView {
   get container(): DetoxElement {

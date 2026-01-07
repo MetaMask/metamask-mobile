@@ -1,4 +1,4 @@
-import { ManualBackUpStepsSelectorsIDs } from '../../selectors/Onboarding/ManualBackUpSteps.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../tests/selectors/Onboarding/ManualBackUpSteps.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

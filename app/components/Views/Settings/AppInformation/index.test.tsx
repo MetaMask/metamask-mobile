@@ -5,7 +5,7 @@ import {
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
-import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
+import { AboutMetaMaskSelectorsIDs } from '../../../../../tests/selectors/Settings/AboutMetaMask.selectors';
 import { RootState } from '../../../../reducers';
 
 // Mock device info

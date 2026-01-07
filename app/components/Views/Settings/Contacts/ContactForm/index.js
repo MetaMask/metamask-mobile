@@ -36,7 +36,7 @@ import {
   selectEvmChainId,
   selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
-import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { AddContactViewSelectorsIDs } from '../../../../../../tests/selectors/Settings/Contacts/AddContactView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet';

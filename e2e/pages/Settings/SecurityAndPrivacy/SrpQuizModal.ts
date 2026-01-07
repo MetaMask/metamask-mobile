@@ -5,7 +5,7 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from '../../../../tests/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

@@ -1,7 +1,7 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import { I_UNDERSTAND_BUTTON_ID } from './testIDs/Screens/WalletSetupScreen.testIds';
-import { ManualBackUpStepsSelectorsIDs } from '../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../tests/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 class ChangePasswordScreens {
   get passwordInput() {

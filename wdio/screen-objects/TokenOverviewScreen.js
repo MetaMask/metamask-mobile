@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { TokenOverviewSelectorsIDs } from '../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../tests/selectors/wallet/TokenOverview.selectors';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { expect as expectAppwright } from 'appwright';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';

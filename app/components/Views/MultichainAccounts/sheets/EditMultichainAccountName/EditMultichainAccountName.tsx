@@ -28,7 +28,7 @@ import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 import { Platform, TextInput } from 'react-native';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../../../../../../tests/selectors/MultichainAccounts/EditAccountName.selectors';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';

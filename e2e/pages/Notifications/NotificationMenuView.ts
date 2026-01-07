@@ -1,7 +1,7 @@
 import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,
-} from '../../selectors/Notifications/NotificationMenuView.selectors';
+} from '../../../tests/selectors/Notifications/NotificationMenuView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

@@ -1,7 +1,7 @@
 import {
   SwapsViewSelectorsIDs,
   SwapViewSelectorsTexts,
-} from '../../selectors/swaps/SwapsView.selectors.js';
+} from '../../../tests/selectors/swaps/SwapsView.selectors.js';
 
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';

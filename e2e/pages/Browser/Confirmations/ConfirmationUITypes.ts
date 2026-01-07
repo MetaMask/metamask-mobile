@@ -1,4 +1,4 @@
-import { ConfirmationUIType } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationUIType } from '../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../../framework/Matchers';
 
 class ConfirmationUITypes {

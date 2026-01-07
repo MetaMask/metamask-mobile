@@ -8,7 +8,7 @@ import {
   SrpQuizGetStartedSelectorsIDs,
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from '../../../../../tests/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';

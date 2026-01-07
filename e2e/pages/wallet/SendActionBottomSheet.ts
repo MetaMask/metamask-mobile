@@ -1,4 +1,4 @@
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import { SendActionViewSelectorsIDs } from '../../../tests/selectors/SendFlow/SendActionView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

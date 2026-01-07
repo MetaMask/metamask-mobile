@@ -2,7 +2,7 @@ import {
   PerpsMarketListViewSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../tests/selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

@@ -2,7 +2,7 @@ import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-o
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+} from '../../../../tests/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

@@ -3,7 +3,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
-import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors'
+import { OnboardingCarouselSelectorIDs } from '../../../tests/selectors/Onboarding/OnboardingCarousel.selectors'
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';

@@ -1,8 +1,8 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../tests/selectors/Onboarding/ChoosePassword.selectors';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import { SkipAccountSecurityModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
+import { SkipAccountSecurityModalSelectorsIDs } from '../../../tests/selectors/Onboarding/SkipAccountSecurityModal.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
 class SkipAccountSecurityModal {

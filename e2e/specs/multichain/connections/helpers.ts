@@ -1,6 +1,6 @@
 import { Matchers } from '../../../framework';
 import { createLogger } from '../../../framework/logger';
-import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../tests/selectors/Browser/BrowserView.selectors';
 
 const logger = createLogger({
   name: 'multichain-connections-helpers.ts',

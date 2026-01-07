@@ -1,7 +1,7 @@
 import {
   OnboardingCarouselSelectorIDs,
   OnboardingCarouselSelectorText,
-} from '../../selectors/Onboarding/OnboardingCarousel.selectors';
+} from '../../../tests/selectors/Onboarding/OnboardingCarousel.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

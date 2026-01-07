@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from '../../../../tests/selectors/MultiSRP/SRPImport.selectors';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,

@@ -1,7 +1,7 @@
 import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
-} from '../../selectors/Transactions/ActivitiesView.selectors';
+} from '../../../tests/selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

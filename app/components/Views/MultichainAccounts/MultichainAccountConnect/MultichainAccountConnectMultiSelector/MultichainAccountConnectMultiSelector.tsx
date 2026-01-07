@@ -21,10 +21,10 @@ import HelpText, {
 // Internal dependencies.
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../tests/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../../tests/selectors/wallet/AccountListBottomSheet.selectors';
 import styleSheet from './MultichainAccountConnectMultiSelector.styles';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
 import { USER_INTENT } from '../../../../../constants/permissions';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';

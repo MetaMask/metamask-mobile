@@ -1,4 +1,4 @@
-import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors.ts';
+import { BrowserViewSelectorsIDs } from '../../../../tests/selectors/Browser/BrowserView.selectors.ts';
 import Matchers from '../../../framework/Matchers.ts';
 
 class UniswapWebsite {

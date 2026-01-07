@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
-import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { ExportCredentialsIds } from '../../../tests/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { RevealSeedViewSelectorsIDs } from '../../../tests/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 class ExportCredentials {
   get srpInfoContainer(): DetoxElement {

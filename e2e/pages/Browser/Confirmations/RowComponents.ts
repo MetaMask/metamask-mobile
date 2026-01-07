@@ -1,7 +1,7 @@
 import {
   ConfirmationRowComponentIDs,
   GasFeeTokenSelectorIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../../framework/Matchers';
 
 class RowComponents {

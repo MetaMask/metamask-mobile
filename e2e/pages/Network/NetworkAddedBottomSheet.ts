@@ -1,7 +1,7 @@
 import {
   NetworkAddedBottomSheetSelectorsIDs,
   NetworkAddedBottomSheetSelectorsText,
-} from '../../selectors/Network/NetworkAddedBottomSheet.selectors';
+} from '../../../tests/selectors/Network/NetworkAddedBottomSheet.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

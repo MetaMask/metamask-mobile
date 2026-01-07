@@ -1,5 +1,5 @@
 
-import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../tests/selectors/Onboarding/ExperienceEnhancerModal.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 

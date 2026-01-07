@@ -6,7 +6,7 @@ import renderWithProvider, {
 import SwapsAmountView from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
+import { QuoteViewSelectorIDs } from '../../../../tests/selectors/swaps/QuoteView.selectors';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

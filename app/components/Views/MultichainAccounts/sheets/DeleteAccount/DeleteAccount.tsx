@@ -34,7 +34,7 @@ import {
 } from '../../../../UI/Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import AccountInfo from '../../AccountDetails/components/AccountInfo';
-import { MultichainDeleteAccountSelectors } from '../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
+import { MultichainDeleteAccountSelectors } from '../../../../../../tests/selectors/MultichainAccounts/DeleteAccount.selectors';
 import { removeAccountsFromPermissions } from '../../../../../core/Permissions';
 import { toHex } from '@metamask/controller-utils';
 

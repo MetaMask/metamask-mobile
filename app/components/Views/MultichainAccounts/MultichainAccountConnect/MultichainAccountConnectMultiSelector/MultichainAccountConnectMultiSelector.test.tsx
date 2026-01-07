@@ -8,9 +8,9 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../../tests/selectors/wallet/AccountListBottomSheet.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../tests/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';
 

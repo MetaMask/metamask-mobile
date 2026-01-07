@@ -30,7 +30,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../tests/selectors/Receive/SendLinkView.selectors';
 
 const isIos = Device.isIos();
 

@@ -33,7 +33,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSwapsQuoteValues } from '../../../../reducers/swaps';
-import { QuotesModalSelectorIDs } from '../../../../../e2e/selectors/swaps/QuotesModal.selectors';
+import { QuotesModalSelectorIDs } from '../../../../../tests/selectors/swaps/QuotesModal.selectors';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({

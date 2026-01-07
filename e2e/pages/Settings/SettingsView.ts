@@ -3,9 +3,9 @@ import Gestures from '../../framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
-} from '../../selectors/Settings/SettingsView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
-import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
+} from '../../../tests/selectors/Settings/SettingsView.selectors';
+import { CommonSelectorsText } from '../../../tests/selectors/Common.selectors';
+import { NetworksViewSelectorsIDs } from '../../../tests/selectors/Settings/NetworksView.selectors';
 
 class SettingsView {
   get title(): DetoxElement {

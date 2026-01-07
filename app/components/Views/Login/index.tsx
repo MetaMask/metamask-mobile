@@ -55,7 +55,7 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../../../tests/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';

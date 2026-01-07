@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SocialLoginIosUser from '.';
 import Device from '../../../util/device';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from '../../../../tests/selectors/Onboarding/Onboarding.selectors';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';

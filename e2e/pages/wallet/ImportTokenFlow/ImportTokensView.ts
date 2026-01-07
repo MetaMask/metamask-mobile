@@ -3,8 +3,8 @@ import Gestures from '../../../framework/Gestures';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../selectors/wallet/ImportTokenView.selectors';
-import { CellComponentSelectorsIDs } from '../../../selectors/wallet/CellComponent.selectors';
+} from '../../../../tests/selectors/wallet/ImportTokenView.selectors';
+import { CellComponentSelectorsIDs } from '../../../../tests/selectors/wallet/CellComponent.selectors';
 import { logger } from '../../../framework';
 
 class ImportTokensView {

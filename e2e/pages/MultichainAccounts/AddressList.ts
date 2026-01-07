@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { AddressListIds } from '../../selectors/MultichainAccounts/AddressList.selectors';
+import { AddressListIds } from '../../../tests/selectors/MultichainAccounts/AddressList.selectors';
 
 class AddressList {
   get backButton(): DetoxElement {

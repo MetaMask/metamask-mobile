@@ -9,7 +9,7 @@ import TextComponent, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
 
 // internal dependencies
 import styleSheet from './MultichainAccountsConnectedList.styles';

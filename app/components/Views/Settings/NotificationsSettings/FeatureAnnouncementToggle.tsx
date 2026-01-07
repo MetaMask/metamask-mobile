@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { useFeatureAnnouncementToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import CustomNotificationsRow from './CustomNotificationsRow';
 import { strings } from '../../../../../locales/i18n';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../tests/selectors/Notifications/NotificationSettingsView.selectors';
 
 export function FeatureAnnouncementToggle() {
   const { data: isEnabled, switchFeatureAnnouncements } =

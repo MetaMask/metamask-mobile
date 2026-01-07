@@ -6,7 +6,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../tests/selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../framework/Assertions';
 import {
   buildPermissions,

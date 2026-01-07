@@ -8,7 +8,7 @@ import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../framework/Constants';
-import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 describe(
   RegressionNetworkAbstractions('Permission System - Default Permissions'),

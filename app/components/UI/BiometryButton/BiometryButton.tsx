@@ -9,7 +9,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../../../tests/selectors/wallet/LoginView.selectors';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */

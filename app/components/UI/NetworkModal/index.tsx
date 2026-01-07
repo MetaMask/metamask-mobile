@@ -21,7 +21,7 @@ import {
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../tests/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,

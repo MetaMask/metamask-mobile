@@ -7,7 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../../../hooks';
 import CellBase from '../../foundation/CellBase';
 import Card from '../../../../Cards/Card';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../../tests/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import styleSheet from './CellDisplay.styles';

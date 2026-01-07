@@ -6,7 +6,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../../tests/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';

@@ -1,4 +1,4 @@
-import { PredictActivityDetailsSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictActivityDetailsSelectorsIDs } from '../../../tests/selectors/Predict/Predict.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

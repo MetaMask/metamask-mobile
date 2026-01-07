@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useRoute } from '@react-navigation/native';
 import PerpsTooltipView from './PerpsTooltipView';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 
 // Mock @react-navigation/native
 const mockUseRoute = useRoute as jest.Mock;

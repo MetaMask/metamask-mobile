@@ -1,7 +1,7 @@
 import {
   ToastSelectorsIDs,
   ToastSelectorsText,
-} from '../../selectors/wallet/ToastModal.selectors';
+} from '../../../tests/selectors/wallet/ToastModal.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

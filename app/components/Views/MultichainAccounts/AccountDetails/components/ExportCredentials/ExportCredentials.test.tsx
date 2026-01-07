@@ -6,7 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
-import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { ExportCredentialsIds } from '../../../../../../../tests/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({

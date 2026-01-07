@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { ShareAddressIds } from '../../selectors/MultichainAccounts/ShareAddress.selectors';
+import { ShareAddressIds } from '../../../tests/selectors/MultichainAccounts/ShareAddress.selectors';
 
 class ShareAddress {
   get container(): DetoxElement {

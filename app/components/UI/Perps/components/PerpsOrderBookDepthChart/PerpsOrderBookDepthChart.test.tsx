@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsOrderBookDepthChart from './PerpsOrderBookDepthChart';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
-import { PerpsOrderBookDepthChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookDepthChartSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({

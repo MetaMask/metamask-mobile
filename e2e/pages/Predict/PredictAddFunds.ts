@@ -1,5 +1,5 @@
 import { Matchers, Gestures } from '../../framework';
-import { PredictAddFundsSelectorText } from '../../selectors/Predict/Predict.selectors';
+import { PredictAddFundsSelectorText } from '../../../tests/selectors/Predict/Predict.selectors';
 
 class PredictAddFunds {
   get addFundsButton(): DetoxElement {

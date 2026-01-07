@@ -52,7 +52,7 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../../../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;

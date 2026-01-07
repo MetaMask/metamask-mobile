@@ -4,7 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/SendFlow/AddAddressModal.selectors';
+import { AddAddressModalSelectorsIDs } from '../../../../tests/selectors/SendFlow/AddAddressModal.selectors';
 
 const initialState = {
   settings: {},

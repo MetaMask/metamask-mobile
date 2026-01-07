@@ -30,7 +30,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 
 export function PayWithRow() {
   const navigation = useNavigation();

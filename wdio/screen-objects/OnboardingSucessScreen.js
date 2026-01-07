@@ -1,4 +1,4 @@
-import { OnboardingSuccessSelectorIDs } from '../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
+import { OnboardingSuccessSelectorIDs } from '../../tests/selectors/Onboarding/OnboardingSuccess.selectors';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';

@@ -2,7 +2,7 @@ import TestHelpers from '../../../helpers';
 import QuoteView from '../../../pages/swaps/QuoteView';
 import Assertions from '../../../framework/Assertions';
 import ActivitiesView from '../../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../../tests/selectors/Transactions/ActivitiesView.selectors';
 
 export async function submitSwapUnifiedUI(
   quantity: string,

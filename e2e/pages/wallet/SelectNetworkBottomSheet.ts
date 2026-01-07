@@ -1,4 +1,4 @@
-import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../tests/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

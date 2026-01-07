@@ -6,8 +6,8 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors.ts';
-import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors.ts';
+import { BrowserViewSelectorsIDs } from '../../../tests/selectors/Browser/BrowserView.selectors.ts';
+import { TestSnapResultSelectorWebIDS } from '../../../tests/selectors/Browser/TestSnaps.selectors.ts';
 
 jest.setTimeout(150_000);
 

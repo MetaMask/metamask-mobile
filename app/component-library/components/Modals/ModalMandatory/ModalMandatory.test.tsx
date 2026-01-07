@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { WebView } from '@metamask/react-native-webview';
 import ModalMandatory from './ModalMandatory';
-import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../../../tests/selectors/Onboarding/TermsOfUseModal.selectors';
 import { BodyWebViewUri } from './ModalMandatory.types';
 import { Text } from 'react-native';
 import styleSheet from './ModalMandatory.styles';

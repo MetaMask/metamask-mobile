@@ -20,7 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
-import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
+import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../../../tests/selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {

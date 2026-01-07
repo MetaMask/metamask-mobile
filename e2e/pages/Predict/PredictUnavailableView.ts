@@ -1,7 +1,7 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { PredictUnavailableSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictUnavailableSelectorsIDs } from '../../../tests/selectors/Predict/Predict.selectors';
 
 class PredictUnavailableView {
   get title(): DetoxElement {

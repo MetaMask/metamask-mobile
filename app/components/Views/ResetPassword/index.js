@@ -50,7 +50,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../../tests/selectors/Onboarding/ChoosePassword.selectors';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';

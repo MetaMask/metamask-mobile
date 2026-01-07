@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../../tests/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   createMockInternalAccount,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../tests/selectors/wallet/WalletView.selectors';
 import { useSelector } from 'react-redux';
 import NetworkImageComponent from '.';
 

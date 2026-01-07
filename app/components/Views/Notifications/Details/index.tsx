@@ -25,7 +25,7 @@ import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
 import { toLocaleDate } from '../../../../util/date';
-import { NotificationDetailsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
+import { NotificationDetailsViewSelectorsIDs } from '../../../../../tests/selectors/Notifications/NotificationDetailsView.selectors';
 import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 
 interface NotificationDetailsContainerProps {

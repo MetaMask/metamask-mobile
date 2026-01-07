@@ -5,7 +5,7 @@ import {
   aesCryptoFormScrollIdentifier,
   accountAddress,
   responseText,
-} from '../../selectors/Settings/AesCrypto.selectors.ts';
+} from '../../../tests/selectors/Settings/AesCrypto.selectors.ts';
 import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
 

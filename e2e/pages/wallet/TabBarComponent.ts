@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { TabBarSelectorIDs } from '../../selectors/wallet/TabBar.selectors';
+import { TabBarSelectorIDs } from '../../../tests/selectors/wallet/TabBar.selectors';
 import { Assertions, Utilities } from '../../framework';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';

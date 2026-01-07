@@ -1,4 +1,4 @@
-import { AddAddressModalSelectorsIDs } from '../../selectors/SendFlow/AddAddressModal.selectors';
+import { AddAddressModalSelectorsIDs } from '../../../tests/selectors/SendFlow/AddAddressModal.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

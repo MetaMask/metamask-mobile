@@ -1,5 +1,5 @@
 import Selectors from '../../helpers/Selectors';
-import { ToastSelectorsIDs } from '../../../e2e/selectors/wallet/ToastModal.selectors';
+import { ToastSelectorsIDs } from '../../../tests/selectors/wallet/ToastModal.selectors';
 
 class NotificationModal {
   get title() {

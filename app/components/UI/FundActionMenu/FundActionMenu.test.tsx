@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../tests/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RampType } from '../../../reducers/fiatOrders/types';
 
 // Internal dependencies.

@@ -10,7 +10,7 @@ import { Linking } from 'react-native';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../tests/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';

@@ -48,14 +48,14 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlagController/walletFramework';
 import { regex } from '../../../../../../app/util/regex';
-import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../../../../../../tests/selectors/Settings/NetworksView.selectors';
 import {
   BlockExplorerUrl,
   isSafeChainId,
   toHex,
 } from '@metamask/controller-utils';
 import { hexToNumber } from '@metamask/utils';
-import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
+import { CustomDefaultNetworkIDs } from '../../../../../../tests/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -87,7 +87,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT } from '../../../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
-import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../tests/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';

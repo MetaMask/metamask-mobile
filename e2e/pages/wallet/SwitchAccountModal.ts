@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
-import { SwitchAccountModalSelectorIDs } from '../../selectors/wallet/SwitchAccountModal.selectors.js';
+import { SwitchAccountModalSelectorIDs } from '../../../tests/selectors/wallet/SwitchAccountModal.selectors.js';
 class SwitchAccountModal {
   get switchAccountButton(): DetoxElement {
     return Matchers.getElementByID(

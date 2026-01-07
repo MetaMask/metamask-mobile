@@ -1,6 +1,6 @@
 import { RESET_PASSWORD_CONFIRM_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
-import { ChoosePasswordSelectorsIDs } from '../../../selectors/Onboarding/ChoosePassword.selectors';
-import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../../tests/selectors/Onboarding/ChoosePassword.selectors';
+import { ChangePasswordViewSelectorsText } from '../../../../tests/selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

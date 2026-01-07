@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from '../../../../tests/selectors/MultiSRP/SRPImport.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
 

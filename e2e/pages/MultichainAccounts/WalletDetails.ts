@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { WalletDetailsIds } from '../../selectors/MultichainAccounts/WalletDetails';
+import { WalletDetailsIds } from '../../../tests/selectors/MultichainAccounts/WalletDetails';
 
 class WalletDetails {
   get container(): DetoxElement {

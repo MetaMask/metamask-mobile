@@ -12,10 +12,10 @@ import MultichainAccountConnect from './MultichainAccountConnect';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { CommonSelectorsIDs } from '../../../../../tests/selectors/Common.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../tests/selectors/wallet/AccountListBottomSheet.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../tests/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import {
   createMockAccountsControllerState,
   createMockUuidFromAddress,

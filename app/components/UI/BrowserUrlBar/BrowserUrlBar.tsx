@@ -24,9 +24,9 @@ import {
   ConnectionType,
 } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../tests/selectors/Browser/BrowserView.selectors';
 import { strings } from '../../../../locales/i18n';
-import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import { BrowserURLBarSelectorsIDs } from '../../../../tests/selectors/Browser/BrowserURLBar.selectors';
 import AccountRightButton from '../AccountRightButton';
 import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';

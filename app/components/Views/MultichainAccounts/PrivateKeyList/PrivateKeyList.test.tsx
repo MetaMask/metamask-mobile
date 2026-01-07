@@ -5,7 +5,7 @@ import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
-import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
+import { PrivateKeyListIds } from '../../../../../tests/selectors/MultichainAccounts/PrivateKeyList.selectors';
 import { strings } from '../../../../../locales/i18n';
 
 import { PrivateKeyList } from './PrivateKeyList';

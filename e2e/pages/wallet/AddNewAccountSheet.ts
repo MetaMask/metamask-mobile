@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { AddNewAccountIds } from '../../selectors/MultiSRP/AddHdAccount.selectors';
+import { AddNewAccountIds } from '../../../tests/selectors/MultiSRP/AddHdAccount.selectors';
 
 class AddNewAccountSheet {
   get confirmButton() {

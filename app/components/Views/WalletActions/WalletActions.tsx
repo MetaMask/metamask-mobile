@@ -17,7 +17,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../tests/selectors/wallet/WalletActionsBottomSheet.selectors';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';

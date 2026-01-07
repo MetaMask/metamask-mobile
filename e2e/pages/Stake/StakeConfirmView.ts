@@ -1,6 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { StakeConfirmViewSelectors } from '../../selectors/Stake/StakeConfirmView.selectors.js';
+import { StakeConfirmViewSelectors } from '../../../tests/selectors/Stake/StakeConfirmView.selectors.js';
 
 class StakeConfirmationView {
   get confirmButton(): DetoxElement {

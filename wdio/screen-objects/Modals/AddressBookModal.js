@@ -5,7 +5,7 @@ import {
   ADDRESS_ALIAS_TITLE_ID,
   ENTER_ALIAS_INPUT_BOX_ID
 } from '../testIDs/Screens/AddressBook.testids';
-import { AddAddressModalSelectorsIDs } from "../../../e2e/selectors/SendFlow/AddAddressModal.selectors";
+import { AddAddressModalSelectorsIDs } from "../../../tests/selectors/SendFlow/AddAddressModal.selectors";
 
 class AddressBookModal {
   get container() {

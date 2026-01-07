@@ -13,7 +13,7 @@ import {
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { AccountCellIds } from '../../../../../tests/selectors/MultichainAccounts/AccountCell.selectors';
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';

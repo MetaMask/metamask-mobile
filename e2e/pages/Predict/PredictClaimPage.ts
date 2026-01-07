@@ -1,5 +1,5 @@
 import { Matchers, Gestures } from '../../framework';
-import { PredictClaimConfirmationSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../tests/selectors/Predict/Predict.selectors';
 
 class PredictClaimPage {
   get container(): DetoxElement {

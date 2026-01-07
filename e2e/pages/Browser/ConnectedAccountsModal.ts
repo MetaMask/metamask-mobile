@@ -1,8 +1,8 @@
 import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
-} from '../../selectors/Browser/ConnectedAccountModal.selectors';
-import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
+} from '../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
+import { WalletViewSelectorsText } from '../../../tests/selectors/wallet/WalletView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';

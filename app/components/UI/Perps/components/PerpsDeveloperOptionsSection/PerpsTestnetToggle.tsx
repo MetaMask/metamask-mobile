@@ -15,7 +15,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../hooks/useStyles';
 import { usePerpsNetworkConfig, usePerpsNetwork } from '../../hooks';
-import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../tests/selectors/Perps/Perps.selectors';
 
 const PerpsTestnetToggleStyles = () =>
   StyleSheet.create({

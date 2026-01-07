@@ -3,7 +3,7 @@ import Selectors from '../helpers/Selectors';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText
-} from '../../e2e/selectors/wallet/ImportTokenView.selectors';
+} from '../../tests/selectors/wallet/ImportTokenView.selectors';
 
 class AddCustomImportToken {
   get customTokenAddressField() {

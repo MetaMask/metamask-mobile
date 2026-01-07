@@ -19,7 +19,7 @@ import Icon, {
 import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
-import { WalletDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
+import { WalletDetailsIds } from '../../../../../../../tests/selectors/MultichainAccounts/WalletDetails';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface AddAccountItemProps {

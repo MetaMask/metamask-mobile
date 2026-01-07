@@ -7,7 +7,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TransactionTypes from '../../../../../../core/TransactionTypes';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
-import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { AmountViewSelectorsIDs } from '../../../../../../../tests/selectors/SendFlow/AmountView.selectors';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';

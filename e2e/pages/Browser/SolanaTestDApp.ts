@@ -1,11 +1,11 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
 import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../tests/selectors/Browser/BrowserView.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
-import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { SolanaTestDappSelectorsWebIDs } from '../../../tests/selectors/Browser/SolanaTestDapp.selectors';
 
 /**
  * Get a test element by data-testid

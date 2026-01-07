@@ -5,7 +5,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 // Internal dependencies.
 import PickerAccount from './PickerAccount';
 import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../../tests/selectors/wallet/WalletView.selectors';
 
 describe('PickerAccount', () => {
   const mockOnPress = jest.fn();

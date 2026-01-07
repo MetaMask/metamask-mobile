@@ -12,7 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { ConfirmationRowComponentIDs } from '../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import Text, {
   TextColor,
   TextVariant,

@@ -7,7 +7,7 @@ import {
   ADD_CONTACT_NAME_INPUT,
   ADD_CONTACTS_CONTAINER_ID,
 } from './testIDs/Screens/AddContact.testIds';
-import { AddContactViewSelectorsIDs } from '../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { AddContactViewSelectorsIDs } from '../../tests/selectors/Settings/Contacts/AddContactView.selectors';
 
 class AddContacts {
   get container() {

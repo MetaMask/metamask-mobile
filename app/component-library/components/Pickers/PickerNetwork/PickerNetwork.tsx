@@ -13,7 +13,7 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../../tests/selectors/wallet/WalletView.selectors';
 import { PICKERNETWORK_ARROW_TESTID } from './PickerNetwork.constants';
 
 const PickerNetwork = ({

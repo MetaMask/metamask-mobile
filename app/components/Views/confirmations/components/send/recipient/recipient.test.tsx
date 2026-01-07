@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import { RedesignedSendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/RedesignedSendView.selectors';
+import { RedesignedSendViewSelectorsIDs } from '../../../../../../../tests/selectors/SendFlow/RedesignedSendView.selectors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import { useSendContext } from '../../../context/send-context/send-context';

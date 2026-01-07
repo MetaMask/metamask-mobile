@@ -1,7 +1,7 @@
 import {
   RevealSeedViewSelectorsIDs,
   RevealSeedViewSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+} from '../../../../tests/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

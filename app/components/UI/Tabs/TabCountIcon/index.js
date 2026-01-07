@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { BrowserViewSelectorsIDs } from '../../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../../tests/selectors/Browser/BrowserView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

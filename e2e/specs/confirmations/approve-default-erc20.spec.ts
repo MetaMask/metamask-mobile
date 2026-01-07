@@ -4,8 +4,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ContractApprovalBottomSheetSelectorsText } from '../../../tests/selectors/Browser/ContractApprovalBottomSheet.selectors';
+import { ActivitiesViewSelectorsText } from '../../../tests/selectors/Transactions/ActivitiesView.selectors';
 
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../framework/Assertions';

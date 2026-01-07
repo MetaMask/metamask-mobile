@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 
-import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../../../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Button, {
   ButtonSize,

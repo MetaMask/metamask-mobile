@@ -1,4 +1,4 @@
-import { MetaMetricsOptInSelectorsIDs } from '../../selectors/Onboarding/MetaMetricsOptIn.selectors';
+import { MetaMetricsOptInSelectorsIDs } from '../../../tests/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

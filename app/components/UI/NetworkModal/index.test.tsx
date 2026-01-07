@@ -6,8 +6,8 @@ import Engine from '../../../core/Engine';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
-import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
-import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../tests/selectors/Network/NetworkApprovalBottomSheet.selectors';
+import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../tests/selectors/Network/NetworkAddedBottomSheet.selectors';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 jest.mock('../../../util/networks', () => ({

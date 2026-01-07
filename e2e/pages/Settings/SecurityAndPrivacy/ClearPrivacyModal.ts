@@ -1,7 +1,7 @@
 import {
   ClearPrivacyModalSelectorsIDs,
   ClearPrivacyModalSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
+} from '../../../../tests/selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

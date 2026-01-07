@@ -1,4 +1,4 @@
-import { TermsOfUseModalSelectorsIDs } from '../../selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../tests/selectors/Onboarding/TermsOfUseModal.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

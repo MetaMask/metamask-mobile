@@ -27,7 +27,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import { TextInput } from 'react-native';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../../../../../../tests/selectors/MultichainAccounts/EditAccountName.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {

@@ -7,7 +7,7 @@ import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
 import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
 import CellMultiSelectWithMenu from '../../../components-temp/CellSelectWithMenu/CellMultiSelectWithMenu';
-import { CellComponentSelectorsIDs } from '../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../tests/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';

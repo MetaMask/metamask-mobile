@@ -1,4 +1,4 @@
-import { ApproveComponentIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

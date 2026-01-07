@@ -31,7 +31,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../tests/selectors/wallet/ImportTokenView.selectors';
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';

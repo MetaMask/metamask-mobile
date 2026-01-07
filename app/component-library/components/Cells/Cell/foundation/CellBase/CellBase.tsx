@@ -19,7 +19,7 @@ import {
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../../tests/selectors/wallet/CellComponent.selectors';
 
 const CellBase = ({
   style,

@@ -28,7 +28,7 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from '../../../../../tests/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
 

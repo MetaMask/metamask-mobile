@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
 import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../tests/selectors/Browser/BrowserView.selectors';
 import {
   TestSnapViewSelectorWebIDS,
   TestSnapInputSelectorWebIDS,
@@ -9,7 +9,7 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
-} from '../../selectors/Browser/TestSnaps.selectors';
+} from '../../../tests/selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
@@ -18,7 +18,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
-import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';

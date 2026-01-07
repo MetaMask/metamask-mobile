@@ -4,7 +4,7 @@ import Utilities from '../../framework/Utilities';
 import {
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../tests/selectors/Perps/Perps.selectors';
 
 class PerpsTabView {
   get balanceButton(): DetoxElement {

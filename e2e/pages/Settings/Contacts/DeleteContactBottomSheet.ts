@@ -1,6 +1,6 @@
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { DeleteContactBottomSheetSelectorsText } from '../../../selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
+import { DeleteContactBottomSheetSelectorsText } from '../../../../tests/selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
 
 class DeleteContactBottomSheet {
   get title(): DetoxElement {

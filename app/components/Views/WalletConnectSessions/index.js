@@ -22,7 +22,7 @@ import PropTypes from 'prop-types';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
+import { ExperimentalSelectorsIDs } from '../../../../tests/selectors/Settings/ExperimentalView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

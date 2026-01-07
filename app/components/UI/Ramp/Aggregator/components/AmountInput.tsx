@@ -11,7 +11,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from '../../../../../../tests/selectors/Ramps/BuildQuote.selectors';
 
 const styles = StyleSheet.create({
   amount: {

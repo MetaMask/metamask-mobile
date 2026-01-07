@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { SpamFilterModalSelectorText } from '../../selectors/Browser/SpamFilterModal.selectors';
+import { SpamFilterModalSelectorText } from '../../../tests/selectors/Browser/SpamFilterModal.selectors';
 
 class SpamFilterModal {
   get title(): DetoxElement {

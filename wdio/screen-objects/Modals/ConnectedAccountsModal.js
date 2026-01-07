@@ -1,6 +1,6 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { ConnectedAccountsSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../tests/selectors/Browser/ConnectedAccountModal.selectors';
 
 class ConnectedAccountsModal {
   get connectedModalContainer() {

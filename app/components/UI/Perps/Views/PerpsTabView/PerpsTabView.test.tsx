@@ -151,7 +151,7 @@ jest.mock('../../components/PerpsTabControlBar', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
+jest.mock('../../../../../../tests/selectors/Perps/Perps.selectors', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
     SCROLL_VIEW: 'perps-tab-scroll-view',
@@ -164,7 +164,7 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
 
 // Import after mock to use the mocked values
 const { PerpsTabViewSelectorsIDs } = jest.requireMock(
-  '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  '../../../../../../tests/selectors/Perps/Perps.selectors',
 );
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({

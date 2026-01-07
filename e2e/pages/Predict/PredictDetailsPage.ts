@@ -4,7 +4,7 @@ import {
   PredictBuyPreviewSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
-} from '../../selectors/Predict/Predict.selectors';
+} from '../../../tests/selectors/Predict/Predict.selectors';
 class PredictDetailsPage {
   get container(): DetoxElement {
     return Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.SCREEN);

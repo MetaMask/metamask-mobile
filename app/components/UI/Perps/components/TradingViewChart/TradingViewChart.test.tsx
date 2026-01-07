@@ -51,7 +51,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
+jest.mock('../../../../../../tests/selectors/Perps/Perps.selectors', () => ({
   TradingViewChartSelectorsIDs: {
     CONTAINER: 'tradingview-chart-container',
   },

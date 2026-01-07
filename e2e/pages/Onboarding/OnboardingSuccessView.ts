@@ -1,4 +1,4 @@
-import { OnboardingSuccessSelectorIDs } from '../../selectors/Onboarding/OnboardingSuccess.selectors';
+import { OnboardingSuccessSelectorIDs } from '../../../tests/selectors/Onboarding/OnboardingSuccess.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

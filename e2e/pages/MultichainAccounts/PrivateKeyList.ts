@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   PrivateKeyListIds,
   PrivateKeyListSelectorsText,
-} from '../../selectors/MultichainAccounts/PrivateKeyList.selectors';
+} from '../../../tests/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 class PrivateKeyList {
   get passwordInput(): DetoxElement {

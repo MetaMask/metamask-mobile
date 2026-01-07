@@ -1,5 +1,5 @@
 import Gestures from '../../helpers/Gestures.js';
-import { AddNewAccountIds } from '../../../e2e/selectors/MultiSRP/AddHdAccount.selectors.js';
+import { AddNewAccountIds } from '../../../tests/selectors/MultiSRP/AddHdAccount.selectors.js';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 
@@ -11,7 +11,7 @@ class AddNewHdAccountComponent {
   set device(device) {
     this._device = device;
   }
-  
+
   get container() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.CONTAINER);

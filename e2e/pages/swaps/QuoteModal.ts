@@ -1,7 +1,7 @@
 import {
   QuotesModalSelectorIDs,
   QuotesModalSelectorsTexts,
-} from '../../selectors/swaps/QuotesModal.selectors.js';
+} from '../../../tests/selectors/swaps/QuotesModal.selectors.js';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

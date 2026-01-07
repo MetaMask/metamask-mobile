@@ -2,11 +2,11 @@
 import TestHelpers from '../../helpers';
 import { getDappPort } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../tests/selectors/Browser/BrowserView.selectors';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
-} from '../../selectors/Browser/MultichainTestDapp.selectors';
+} from '../../../tests/selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
@@ -945,7 +945,7 @@ class MultichainTestDApp {
       (el) => {
         Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')
           .set.call(el, ${JSON.stringify(requestText)});
-        
+
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
     `);

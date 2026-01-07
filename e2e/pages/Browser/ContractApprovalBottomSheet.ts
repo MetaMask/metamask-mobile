@@ -1,7 +1,7 @@
 import {
   ContractApprovalBottomSheetSelectorsIDs,
   ContractApprovalBottomSheetSelectorsText,
-} from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
+} from '../../../tests/selectors/Browser/ContractApprovalBottomSheet.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

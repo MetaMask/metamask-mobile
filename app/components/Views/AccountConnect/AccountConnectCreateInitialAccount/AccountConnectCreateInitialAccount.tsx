@@ -13,7 +13,7 @@ import {
 import { Box } from '../../../UI/Box/Box';
 import styleSheet from './AccountConnectCreateInitialAccount.styles';
 import { useStyles } from '../../../../component-library/hooks';
-import { AccountConnectSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountConnect.selectors';
+import { AccountConnectSelectorsIDs } from '../../../../../tests/selectors/wallet/AccountConnect.selectors';
 
 interface AccountConnectCreateInitialAccountProps {
   onCreateAccount: () => void;

@@ -9,7 +9,7 @@ import AccountRightButton from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../../../tests/selectors/Browser/AccountOverview.selectors';
 
 // Mock navigation and metrics
 const mockNavigate = jest.fn();

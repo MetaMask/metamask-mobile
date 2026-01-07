@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
+import { SelectPaymentMethodSelectors } from '../../../tests/selectors/Ramps/SelectPaymentMethod.selectors';
 
 class SelectPaymentMethodView {
   get continueButton(): DetoxElement {

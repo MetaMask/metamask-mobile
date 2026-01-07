@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../tests/selectors/Confirmation/ConfirmationView.selectors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { approveERC20TransactionStateMock } from '../../../__mocks__/approve-transaction-mock';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';

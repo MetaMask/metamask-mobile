@@ -3,10 +3,10 @@ import Gestures from '../../framework/Gestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
-} from '../../selectors/wallet/TokenOverview.selectors';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors';
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+} from '../../../tests/selectors/wallet/TokenOverview.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../tests/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletViewSelectorsIDs } from '../../../tests/selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../../tests/selectors/Common.selectors';
 
 class TokenOverview {
   get container(): DetoxElement {

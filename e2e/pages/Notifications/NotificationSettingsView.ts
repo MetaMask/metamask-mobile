@@ -1,7 +1,7 @@
 import {
   NotificationSettingsViewSelectorsIDs,
   NotificationSettingsViewSelectorsText,
-} from '../../selectors/Notifications/NotificationSettingsView.selectors';
+} from '../../../tests/selectors/Notifications/NotificationSettingsView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { Assertions, Utilities } from '../../framework';

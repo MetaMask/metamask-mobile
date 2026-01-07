@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EditAccountNameIds } from '../../selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../../../tests/selectors/MultichainAccounts/EditAccountName.selectors';
 
 class EditAccountName {
   get container(): DetoxElement {

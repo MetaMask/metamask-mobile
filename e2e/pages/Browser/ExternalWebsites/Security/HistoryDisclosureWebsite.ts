@@ -1,5 +1,5 @@
 import Matchers from '../../../../framework/Matchers.ts';
-import { BrowserViewSelectorsIDs } from '../../../../selectors/Browser/BrowserView.selectors.ts';
+import { BrowserViewSelectorsIDs } from '../../../../../tests/selectors/Browser/BrowserView.selectors.ts';
 import Assertions from '../../../../framework/Assertions.ts';
 
 class HistoryDisclosureWebsite {

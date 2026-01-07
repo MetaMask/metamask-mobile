@@ -1,4 +1,4 @@
-import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js';
+import { StakeViewSelectors } from '../../../tests/selectors/Stake/StakeView.selectors.js';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

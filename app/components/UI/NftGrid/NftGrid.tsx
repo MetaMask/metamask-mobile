@@ -24,7 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../tests/selectors/wallet/WalletView.selectors';
 import {
   Box,
   Button,

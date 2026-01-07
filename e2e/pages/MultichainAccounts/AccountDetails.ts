@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors';
-import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
+import { AccountDetailsIds } from '../../../tests/selectors/MultichainAccounts/AccountDetails.selectors';
+import { ExportCredentialsIds } from '../../../tests/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 class AccountDetails {
   get container(): DetoxElement {

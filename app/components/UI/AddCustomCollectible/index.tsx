@@ -18,7 +18,7 @@ import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
-import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
+import { NFTImportScreenSelectorsIDs } from '../../../../tests/selectors/wallet/ImportNFTView.selectors';
 import {
   selectChainId,
   selectSelectedNetworkClientId,
@@ -35,7 +35,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../tests/selectors/wallet/ImportTokenView.selectors';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import Avatar, {
   AvatarSize,
