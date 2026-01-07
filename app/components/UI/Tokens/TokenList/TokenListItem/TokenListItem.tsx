@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TextComponent, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -342,12 +342,12 @@ export const TokenListItem = React.memo(
                   size={IconSize.Xs}
                   color={IconColor.Alternative}
                 />
-                <TextComponent
+                <Text
                   variant={TextVariant.BodyXS}
                   color={TextColor.Alternative}
                 >
                   {strings('token.stock')}
-                </TextComponent>
+                </Text>
               </View>
             )}
             {renderEarnCta()}
