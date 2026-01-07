@@ -3419,8 +3419,18 @@ workflows:
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
                 
-                BUNDLE_GEMFILE=ios/Gemfile bundle exec fastlane upload_to_testflight_only \
-                  ipa_path:"$IPA_PATH" \
+                # Convert IPA path to absolute path (in case it's relative)
+                if [[ "$IPA_PATH" != /* ]]; then
+                  ABS_IPA_PATH="$(pwd)/$IPA_PATH"
+                else
+                  ABS_IPA_PATH="$IPA_PATH"
+                fi
+                
+                # Change to ios directory where fastlane folder is located
+                cd ios
+                
+                bundle exec fastlane upload_to_testflight_only \
+                  ipa_path:"$ABS_IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
                   notify_external_testers:true \
                   skip_waiting_for_build_processing:false \
