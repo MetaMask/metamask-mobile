@@ -12,7 +12,6 @@ import {
   RefreshControl,
   TextInput,
   Platform,
-  InteractionManager,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +38,7 @@ import Animated, {
   Extrapolation,
   withTiming,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { FlashList, FlashListProps, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -106,6 +106,7 @@ interface UseFeedScrollManagerParams {
 interface UseFeedScrollManagerReturn {
   headerTranslateY: SharedValue<number>;
   isHeaderHidden: SharedValue<number>;
+  headerHidden: boolean;
   headerHeight: number;
   tabBarHeight: number;
   layoutReady: boolean;
@@ -127,7 +128,6 @@ const HEADER_ANIMATION_DURATION = 450;
 const SCROLL_THRESHOLD = 250;
 
 const useFeedScrollManager = ({
-  tabs,
   headerRef,
   tabBarRef,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
@@ -155,6 +155,9 @@ const useFeedScrollManager = ({
 
   // Tab state
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // React state mirror of isHeaderHidden for reactive UI updates
+  const [headerHidden, setHeaderHidden] = useState(false);
 
   // Track refs and scroll positions for each tab
   const tabKeyToRef = useRef<Record<string, PredictFlashListRef>>({});
@@ -274,13 +277,15 @@ const useFeedScrollManager = ({
       // At top of list - always show header
       const contentInsetTop =
         sharedHeaderHeight.value + sharedTabBarHeight.value;
-      const atTop = Platform.OS === 'ios' ? currentY < 0 : currentY < contentInsetTop;
+      const atTop =
+        Platform.OS === 'ios' ? currentY < 0 : currentY < contentInsetTop;
 
       if (atTop && isHeaderHidden.value === 1) {
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
+        runOnJS(setHeaderHidden)(false);
         return;
       }
 
@@ -306,6 +311,7 @@ const useFeedScrollManager = ({
           animationConfig,
         );
         accumulatedDelta.value = 0;
+        runOnJS(setHeaderHidden)(true);
       }
 
       // Scrolling up → show header
@@ -313,6 +319,7 @@ const useFeedScrollManager = ({
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
         accumulatedDelta.value = 0;
+        runOnJS(setHeaderHidden)(false);
       }
     },
   });
@@ -328,6 +335,7 @@ const useFeedScrollManager = ({
   return {
     headerTranslateY,
     isHeaderHidden,
+    headerHidden,
     headerHeight,
     tabBarHeight,
     layoutReady,
@@ -562,11 +570,9 @@ interface PredictTabContentProps {
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
+  headerHidden: boolean;
   trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
   onScrollEnd: () => void;
-  updateTabScrollPosition: (tabKey: string, position: number) => void;
-  getTabScrollPosition: (tabKey: string) => number;
-  getCurrentHeaderOffset: () => number;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -576,11 +582,9 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   scrollHandler,
   headerHeight,
   tabBarHeight,
+  headerHidden,
   trackRef,
   onScrollEnd,
-  updateTabScrollPosition: _updateTabScrollPosition,
-  getTabScrollPosition,
-  getCurrentHeaderOffset,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -612,96 +616,18 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     return () => trackRef(tabKey, null);
   }, [tabKey, trackRef]);
 
-  // Total inset for content (space for header + tabbar)
+  // With binary header state, offset calculations are simple
   const contentInsetTop = headerHeight + tabBarHeight;
+  const currentHeaderOffset = headerHidden ? headerHeight : 0;
 
-  // Current padding for non-scrollable content (loading/error/empty states)
-  // Accounts for header visibility: full inset when visible, just tabbar when hidden
-  const currentPaddingTop = contentInsetTop - getCurrentHeaderOffset();
+  // Padding for non-scrollable content (loading/error/empty states)
+  const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
 
-  // Track if we've already set initial scroll position for FlashList
-  const hasSetInitialOffset = useRef(false);
-
-  // Calculate initial content offset based on current header state
-  // iOS: contentOffset.y is relative to contentInset
-  // Android: contentOffset.y is the absolute scroll position
-  const getInitialContentOffset = useCallback(() => {
-    // Only provide initial offset once (when FlashList first mounts)
-    if (hasSetInitialOffset.current) return undefined;
-    hasSetInitialOffset.current = true;
-
-    const currentHeaderOffset = getCurrentHeaderOffset();
-
-    // iOS: offset is relative to contentInset
-    // When header visible: -contentInsetTop (content at top)
-    // When header hidden: -(tabBarHeight) (content right under pinned tabbar)
-    const iosOffset = -(contentInsetTop - currentHeaderOffset);
-
-    // Android: offset is absolute scroll position
-    // When header visible: 0 (no scroll)
-    // When header hidden: headerHeight (scroll to hide the gap)
-    const androidOffset = currentHeaderOffset;
-
-    return Platform.select({
-      ios: { x: 0, y: iosOffset },
-      android: { x: 0, y: androidOffset },
-    });
-  }, [contentInsetTop, getCurrentHeaderOffset]);
-
-  // Track if we've done initial scroll adjustment (backup for contentOffset)
-  const hasAdjustedScroll = useRef(false);
-
-  // On Android, backup scroll adjustment via onLayout if contentOffset didn't work
-  const handleListLayout = useCallback(() => {
-    if (
-      Platform.OS === 'android' &&
-      !hasAdjustedScroll.current &&
-      listRef.current
-    ) {
-      hasAdjustedScroll.current = true;
-      const currentHeaderOffset = getCurrentHeaderOffset();
-      if (currentHeaderOffset > 0) {
-        // Use InteractionManager to ensure scroll happens after layout is complete
-        InteractionManager.runAfterInteractions(() => {
-          if (listRef.current) {
-            listRef.current.scrollToOffset({
-              offset: currentHeaderOffset,
-              animated: false,
-            });
-          }
-        });
-      }
-    }
-  }, [getCurrentHeaderOffset]);
-
-  // Android: Adjust scroll when tab becomes active if header state changed while inactive
-  const prevIsActive = useRef(isActive);
-  useEffect(() => {
-    if (
-      Platform.OS === 'android' &&
-      isActive &&
-      !prevIsActive.current &&
-      listRef.current &&
-      marketData &&
-      marketData.length > 0
-    ) {
-      const currentHeaderOffset = getCurrentHeaderOffset();
-      const currentScrollPos = getTabScrollPosition(tabKey);
-      if (currentHeaderOffset > 0 && currentScrollPos < currentHeaderOffset) {
-        listRef.current.scrollToOffset({
-          offset: currentHeaderOffset,
-          animated: false,
-        });
-      }
-    }
-    prevIsActive.current = isActive;
-  }, [
-    isActive,
-    getCurrentHeaderOffset,
-    getTabScrollPosition,
-    marketData,
-    tabKey,
-  ]);
+  // Initial content offset - computed fresh each render, FlashList only uses on mount
+  const initialContentOffset = Platform.select({
+    ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
+    android: { x: 0, y: currentHeaderOffset },
+  });
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -748,10 +674,13 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         'pb-4 px-4',
         Platform.select({
           ios: { flexGrow: 1 },
-          android: { flexGrow: 1, paddingTop: contentInsetTop },
+          android: {
+            flexGrow: 1,
+            paddingTop: headerHidden ? tabBarHeight : contentInsetTop,
+          },
         }),
       ),
-    [tw, contentInsetTop],
+    [tw, headerHidden, tabBarHeight, contentInsetTop],
   );
 
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
@@ -799,10 +728,8 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       onScroll={isActive ? (scrollHandler as never) : undefined}
       onScrollEndDrag={onScrollEnd}
       onMomentumScrollEnd={onScrollEnd}
-      onLayout={handleListLayout}
-      // iOS-specific: use contentInset for proper pull-to-refresh
       contentInset={Platform.select({ ios: { top: contentInsetTop } })}
-      contentOffset={getInitialContentOffset()}
+      contentOffset={initialContentOffset}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -828,11 +755,9 @@ interface PredictFeedTabsProps {
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
+  headerHidden: boolean;
   trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
   onScrollEnd: () => void;
-  updateTabScrollPosition: (tabKey: string, position: number) => void;
-  getTabScrollPosition: (tabKey: string) => number;
-  getCurrentHeaderOffset: () => number;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -841,11 +766,9 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   scrollHandler,
   headerHeight,
   tabBarHeight,
+  headerHidden,
   trackRef,
   onScrollEnd,
-  updateTabScrollPosition,
-  getTabScrollPosition,
-  getCurrentHeaderOffset,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -878,11 +801,9 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
+            headerHidden={headerHidden}
             trackRef={trackRef}
             onScrollEnd={onScrollEnd}
-            updateTabScrollPosition={updateTabScrollPosition}
-            getTabScrollPosition={getTabScrollPosition}
-            getCurrentHeaderOffset={getCurrentHeaderOffset}
           />
         </View>
       ))}
@@ -1041,9 +962,9 @@ const PredictFeed: React.FC = () => {
   // Search state
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  // Scroll manager - handles all scroll/animation logic
   const {
     headerTranslateY,
+    headerHidden,
     headerHeight,
     tabBarHeight,
     layoutReady,
@@ -1051,10 +972,7 @@ const PredictFeed: React.FC = () => {
     setActiveIndex,
     scrollHandler,
     trackRef,
-    getCurrentHeaderOffset,
     onScrollEnd,
-    updateTabScrollPosition,
-    getTabScrollPosition,
   } = useFeedScrollManager({ tabs: TABS, headerRef, tabBarRef });
 
   return (
@@ -1084,7 +1002,6 @@ const PredictFeed: React.FC = () => {
           onTabPress={setActiveIndex}
         />
 
-        {/* Tab Content - Takes remaining space, only render when layout is ready */}
         {layoutReady && (
           <PredictFeedTabs
             activeIndex={activeIndex}
@@ -1092,11 +1009,9 @@ const PredictFeed: React.FC = () => {
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
+            headerHidden={headerHidden}
             trackRef={trackRef}
             onScrollEnd={onScrollEnd}
-            updateTabScrollPosition={updateTabScrollPosition}
-            getTabScrollPosition={getTabScrollPosition}
-            getCurrentHeaderOffset={getCurrentHeaderOffset}
           />
         )}
       </Box>
