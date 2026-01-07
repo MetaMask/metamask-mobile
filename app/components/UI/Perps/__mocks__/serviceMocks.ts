@@ -32,12 +32,10 @@ export const createMockPerpsControllerState = (
 ): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false,
-  connectionStatus: 'connected',
   initializationState: 'initialized' as InitializationState,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositTransactionId: null,
