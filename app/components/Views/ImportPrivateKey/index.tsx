@@ -19,11 +19,6 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
   TextColor,
@@ -33,11 +28,9 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -168,20 +161,14 @@ const ImportPrivateKey = () => {
           style={styles.content}
           testID={ImportAccountFromPrivateKeyIDs.CONTAINER}
         >
-          <ButtonIcon
-            onPress={dismiss}
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            iconColor={IconColor.Default}
-            style={styles.navbarRightButton}
-            testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
+          <HeaderCenter
+            title={strings('import_private_key.title')}
+            onBack={dismiss}
+            backButtonProps={{
+              testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
+            }}
           />
           <View style={styles.top}>
-            <Icon
-              name={IconName.Download}
-              size={IconSize.XXL}
-              color={IconColor.Default}
-            />
             <View style={styles.textContainer}>
               <Text style={styles.title}>
                 {strings('import_private_key.title')}

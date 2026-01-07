@@ -13,7 +13,6 @@ const createStyles = (colors: any) =>
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
