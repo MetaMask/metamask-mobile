@@ -180,10 +180,6 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-  #Uploads iOS main RC build to TestFlight
-  ios_main_to_testflight_pipeline:
-    stages:
-      - upload_ios_main_to_testflight_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -291,9 +287,6 @@ stages:
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
-  upload_ios_main_to_testflight_stage:
-    workflows:
-      - upload_ios_main_to_testflight: {}
   # TODO: Remove this workflow since it's not used anymore
   build_e2e_ios_stage:
     workflows:
@@ -3047,7 +3040,6 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
-      - upload_ios_main_to_testflight
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
@@ -3058,6 +3050,7 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+      - upload_ios_main_to_testflight
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
@@ -3418,6 +3411,26 @@ workflows:
                 echo "🚀 Uploading to TestFlight..."
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
+                echo "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
+                
+                # Get commit message (first line only, max 100 chars)
+                COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -1 | tr -d '\n' | cut -c1-100)
+                export BITRISE_GIT_MESSAGE="$COMMIT_MESSAGE"
+                
+                # Ensure environment variables are available and export them
+                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+                
+                # Convert key filepath to absolute path BEFORE changing directory
+                if [ -n "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" ]; then
+                  if [[ "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" != /* ]]; then
+                    ABS_KEY_FILEPATH="$(pwd)/$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+                  else
+                    ABS_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+                  fi
+                  export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
+                fi
                 
                 # Convert IPA path to absolute path (in case it's relative)
                 if [[ "$IPA_PATH" != /* ]]; then
@@ -3429,12 +3442,17 @@ workflows:
                 # Change to ios directory where fastlane folder is located
                 cd ios
                 
+                # Export again after cd to ensure they're still available
+                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
+                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
+                export BITRISE_GIT_MESSAGE="$COMMIT_MESSAGE"
+                
                 bundle exec fastlane upload_to_testflight_only \
                   ipa_path:"$ABS_IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
                   notify_external_testers:true \
-                  skip_waiting_for_build_processing:false \
-                  changelog:"Build uploaded from Bitrise - Branch: $BITRISE_GIT_BRANCH - Commit: ${BITRISE_GIT_COMMIT:0:7}"
+                  skip_waiting_for_build_processing:false
       - script@1:
           title: Cleanup API Key
           if: always()
