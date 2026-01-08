@@ -402,7 +402,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
@@ -451,7 +451,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -517,7 +517,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
                                           "lineHeight": 40,
@@ -531,7 +531,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#b7bbc8",
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
                                           "lineHeight": 40,
@@ -571,7 +571,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -645,7 +645,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -680,7 +680,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -715,7 +715,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -764,7 +764,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -838,7 +838,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -890,7 +890,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -942,7 +942,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1008,7 +1008,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1060,7 +1060,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1112,7 +1112,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1178,7 +1178,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1230,7 +1230,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1282,7 +1282,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1350,7 +1350,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1402,7 +1402,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1504,7 +1504,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1879,7 +1879,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               "flexGrow": 1,
                             }
                           }
-                          handlerTag={12}
+                          handlerTag={14}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1931,7 +1931,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
@@ -1980,7 +1980,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -2046,7 +2046,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
                                           "lineHeight": 40,
@@ -2060,7 +2060,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#b7bbc8",
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
                                           "lineHeight": 40,
@@ -2100,7 +2100,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2174,7 +2174,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2209,7 +2209,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2244,7 +2244,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2293,7 +2293,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2367,7 +2367,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2419,7 +2419,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2471,7 +2471,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2537,7 +2537,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2589,7 +2589,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2641,7 +2641,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2707,7 +2707,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2759,7 +2759,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2811,7 +2811,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2879,7 +2879,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2931,7 +2931,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3033,7 +3033,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,

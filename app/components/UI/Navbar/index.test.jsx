@@ -5,7 +5,6 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
-  getAddressListNavbarOptions,
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
   getOnboardingNavbarOptions,
@@ -148,92 +147,6 @@ describe('getNetworkNavbarOptions', () => {
     );
 
     expect(getByText('Test Title')).toBeTruthy();
-  });
-});
-
-describe('getAddressListNavbarOptions', () => {
-  const mockNavigation = {
-    goBack: jest.fn(),
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns navbar options with correct structure', () => {
-    const options = getAddressListNavbarOptions(
-      mockNavigation,
-      'Receiving address',
-      'test-back-button',
-    );
-
-    expect(options).toBeDefined();
-    expect(options.headerTitle).toBeInstanceOf(Function);
-    expect(options.headerLeft).toBeInstanceOf(Function);
-  });
-
-  it('renders title correctly', () => {
-    const title = 'Test Title';
-    const options = getAddressListNavbarOptions(
-      mockNavigation,
-      title,
-      'test-back-button',
-    );
-
-    const { getByText } = renderWithProvider(<options.headerTitle />, {
-      state: { engine: { backgroundState } },
-    });
-
-    expect(getByText(title)).toBeTruthy();
-  });
-
-  it('calls navigation.goBack when back button is pressed', () => {
-    const options = getAddressListNavbarOptions(
-      mockNavigation,
-      'Test Title',
-      'test-back-button',
-    );
-
-    const { getByTestId } = renderWithProvider(<options.headerLeft />, {
-      state: { engine: { backgroundState } },
-    });
-
-    const backButton = getByTestId('test-back-button');
-    fireEvent.press(backButton);
-
-    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('handles different titles', () => {
-    const titles = ['Receiving address', 'Account Details', ''];
-
-    titles.forEach((title) => {
-      expect(() => {
-        const options = getAddressListNavbarOptions(
-          mockNavigation,
-          title,
-          'test-back-button',
-        );
-        expect(options).toBeDefined();
-        expect(options.headerTitle).toBeInstanceOf(Function);
-      }).not.toThrow();
-    });
-  });
-
-  it('handles different test IDs', () => {
-    const testIds = ['back-button', 'go-back', 'navigation-back'];
-
-    testIds.forEach((testId) => {
-      expect(() => {
-        const options = getAddressListNavbarOptions(
-          mockNavigation,
-          'Test Title',
-          testId,
-        );
-        expect(options).toBeDefined();
-        expect(options.headerLeft).toBeInstanceOf(Function);
-      }).not.toThrow();
-    });
   });
 });
 
@@ -1459,7 +1372,10 @@ describe('getCloseOnlyNavbar', () => {
 
   describe('Basic Functionality', () => {
     it('returns navigation options object with required properties', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options).toBeDefined();
       expect(typeof options).toBe('object');
@@ -1471,13 +1387,19 @@ describe('getCloseOnlyNavbar', () => {
     });
 
     it('sets headerShown to true', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options.headerShown).toBe(true);
     });
 
     it('returns null from headerTitle function', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       const headerTitle = options.headerTitle();
 
@@ -1485,7 +1407,10 @@ describe('getCloseOnlyNavbar', () => {
     });
 
     it('returns null from headerLeft function', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       const headerLeft = options.headerLeft();
 
@@ -1495,19 +1420,28 @@ describe('getCloseOnlyNavbar', () => {
 
   describe('Header Style', () => {
     it('applies correct background color from theme', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options.headerStyle.backgroundColor).toBe('#FFFFFF');
     });
 
     it('sets transparent shadow color', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options.headerStyle.shadowColor).toBe('transparent');
     });
 
     it('sets elevation to 0', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options.headerStyle.elevation).toBe(0);
     });
@@ -1519,15 +1453,31 @@ describe('getCloseOnlyNavbar', () => {
         },
       };
 
-      const options = getCloseOnlyNavbar(mockNavigation, darkThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: darkThemeColors,
+      });
 
       expect(options.headerStyle.backgroundColor).toBe('#000000');
+    });
+
+    it('applies custom backgroundColor when provided', () => {
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        backgroundColor: '#FF0000',
+      });
+
+      expect(options.headerStyle.backgroundColor).toBe('#FF0000');
     });
   });
 
   describe('Close Button Functionality', () => {
     it('renders close button in headerRight', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       const HeaderRight = options.headerRight;
       const { getByTestId } = renderWithProvider(<HeaderRight />, {
@@ -1538,7 +1488,10 @@ describe('getCloseOnlyNavbar', () => {
     });
 
     it('calls navigation.goBack when close button pressed without onClose callback', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1551,11 +1504,11 @@ describe('getCloseOnlyNavbar', () => {
     it('calls custom onClose callback when provided', () => {
       const mockOnClose = jest.fn();
 
-      const options = getCloseOnlyNavbar(
-        mockNavigation,
-        mockThemeColors,
-        mockOnClose,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: mockOnClose,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1569,11 +1522,11 @@ describe('getCloseOnlyNavbar', () => {
     it('does not call navigation.goBack when custom onClose is provided', () => {
       const mockOnClose = jest.fn();
 
-      const options = getCloseOnlyNavbar(
-        mockNavigation,
-        mockThemeColors,
-        mockOnClose,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: mockOnClose,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1586,18 +1539,21 @@ describe('getCloseOnlyNavbar', () => {
 
   describe('Parameter Handling', () => {
     it('handles missing onClose parameter by using default', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options).toBeDefined();
       expect(options.headerRight).toBeInstanceOf(Function);
     });
 
     it('handles undefined onClose parameter', () => {
-      const options = getCloseOnlyNavbar(
-        mockNavigation,
-        mockThemeColors,
-        undefined,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: undefined,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1608,7 +1564,11 @@ describe('getCloseOnlyNavbar', () => {
     });
 
     it('handles null onClose parameter', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors, null);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: null,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1621,7 +1581,10 @@ describe('getCloseOnlyNavbar', () => {
 
   describe('Return Value Structure', () => {
     it('returns object with expected structure', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(options).toMatchObject({
         headerShown: true,
@@ -1637,9 +1600,13 @@ describe('getCloseOnlyNavbar', () => {
     });
 
     it('maintains consistent structure across different inputs', () => {
-      const options1 = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
-      const options2 = getCloseOnlyNavbar(mockNavigation, {
-        background: { default: '#000000' },
+      const options1 = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
+      const options2 = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: { background: { default: '#000000' } },
       });
 
       expect(Object.keys(options1)).toEqual(Object.keys(options2));
@@ -1651,7 +1618,10 @@ describe('getCloseOnlyNavbar', () => {
 
   describe('Edge Cases', () => {
     it('handles multiple close button presses', () => {
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1668,11 +1638,11 @@ describe('getCloseOnlyNavbar', () => {
         throw new Error('Test error');
       });
 
-      const options = getCloseOnlyNavbar(
-        mockNavigation,
-        mockThemeColors,
-        mockOnCloseWithError,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: mockOnCloseWithError,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1687,11 +1657,11 @@ describe('getCloseOnlyNavbar', () => {
     it('calls only onClose when both onClose and navigation.goBack available', () => {
       const mockOnClose = jest.fn();
 
-      const options = getCloseOnlyNavbar(
-        mockNavigation,
-        mockThemeColors,
-        mockOnClose,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+        onClose: mockOnClose,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();
@@ -1706,7 +1676,10 @@ describe('getCloseOnlyNavbar', () => {
   describe('Integration', () => {
     it('works with React Navigation stack', () => {
       const Stack = createStackNavigator();
-      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options = getCloseOnlyNavbar({
+        navigation: mockNavigation,
+        themeColors: mockThemeColors,
+      });
 
       expect(() => {
         renderWithProvider(
@@ -1730,11 +1703,11 @@ describe('getCloseOnlyNavbar', () => {
         navigate: jest.fn(),
       };
 
-      const options = getCloseOnlyNavbar(
-        customNavigation,
-        mockThemeColors,
-        mockOnClose,
-      );
+      const options = getCloseOnlyNavbar({
+        navigation: customNavigation,
+        themeColors: mockThemeColors,
+        onClose: mockOnClose,
+      });
 
       const HeaderRight = options.headerRight;
       const headerRightComponent = HeaderRight();

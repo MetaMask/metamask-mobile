@@ -76,6 +76,7 @@ import { EVM_SCOPE } from '../../constants/networks';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
@@ -132,7 +133,9 @@ const EarnInputView = () => {
     preview: tronPreview,
     validateStakeAmount: tronValidateStakeAmount,
     confirmStake: tronConfirmStake,
+    tronAccountId,
   } = useTronStake({ token });
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
@@ -197,6 +200,7 @@ const EarnInputView = () => {
       modified[modified.length - 1] = {
         ...modified[modified.length - 1],
         label: strings('onboarding_success.done'),
+        isHighlighted: true,
       };
       return modified;
     }
@@ -622,7 +626,12 @@ const EarnInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
-      handleTronStakingNavigationResult(navigation, result, 'stake');
+      handleTronStakingNavigationResult(
+        navigation,
+        result,
+        'stake',
+        tronAccountId,
+      );
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -646,6 +655,7 @@ const EarnInputView = () => {
     isTronEnabled,
     navigation,
     tronConfirmStake,
+    tronAccountId,
     ///: END:ONLY_INCLUDE_IF
     handlePooledStakingFlow,
     handleLendingFlow,
@@ -710,8 +720,15 @@ const EarnInputView = () => {
 
   // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
   const onRightActionPress = React.useCallback(() => {
-    if (isTronEnabled && isTronNative && isNonZeroAmount && !isPreviewVisible) {
-      setIsPreviewVisible(true);
+    // For TRON: if we have a non-zero amount, show preview; otherwise just set max directly (skip modal)
+    if (isTronEnabled && isTronNative) {
+      if (isNonZeroAmount && !isPreviewVisible) {
+        setIsPreviewVisible(true);
+      } else {
+        // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
+        lastQuickAmountButtonPressed.current = 'MAX';
+        handleMax();
+      }
       return;
     }
     handleMaxPressWithTracking();
@@ -721,6 +738,7 @@ const EarnInputView = () => {
     isNonZeroAmount,
     isPreviewVisible,
     handleMaxPressWithTracking,
+    handleMax,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -870,6 +888,7 @@ const EarnInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         earnToken,
+        tronApyPercent,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -884,6 +903,9 @@ const EarnInputView = () => {
     earnToken?.symbol,
     earnToken?.name,
     earnToken,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    tronApyPercent,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   useEffect(() => {

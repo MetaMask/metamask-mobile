@@ -5,6 +5,7 @@ import useTronUnstake from './useTronUnstake';
 import {
   confirmTronUnstake,
   validateTronUnstakeAmount,
+  computeStakeFee,
   TronUnstakeResult,
 } from '../utils/tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
@@ -37,6 +38,7 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../utils/tron-staking-snap', () => ({
   confirmTronUnstake: jest.fn(),
   validateTronUnstakeAmount: jest.fn(),
+  computeStakeFee: jest.fn(),
 }));
 
 jest.mock('../../../../core/Multichain/utils', () => ({
@@ -59,6 +61,9 @@ describe('useTronUnstake', () => {
     >;
   const mockConfirmTronUnstake = confirmTronUnstake as jest.MockedFunction<
     typeof confirmTronUnstake
+  >;
+  const mockComputeStakeFee = computeStakeFee as jest.MockedFunction<
+    typeof computeStakeFee
   >;
 
   const mockAccount: InternalAccount = {
@@ -164,6 +169,24 @@ describe('useTronUnstake', () => {
       expect(result.current.tronWithdrawalToken).toBeDefined();
       expect(result.current.tronWithdrawalToken?.symbol).toBe('TRX');
     });
+
+    it('returns tronAccountId from selected account', () => {
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBe(mockAccount.id);
+    });
+
+    it('returns undefined tronAccountId when account is not selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBeUndefined();
+    });
   });
 
   describe('validate', () => {
@@ -216,6 +239,86 @@ describe('useTronUnstake', () => {
       expect(validation).toEqual(validationResult);
       expect(result.current.validating).toBe(false);
       expect(result.current.errors).toEqual(['Warning message']);
+    });
+
+    it('includes fee in preview when computeStakeFee returns fee', async () => {
+      const validationResult: TronUnstakeResult = { valid: true };
+      const mockFee = {
+        type: 'fee',
+        asset: {
+          unit: 'TRX',
+          type: 'TRX',
+          amount: '0.5',
+          fungible: true as const,
+        },
+      };
+      mockValidateTronUnstakeAmount.mockResolvedValue(validationResult);
+      mockComputeStakeFee.mockResolvedValue([mockFee]);
+
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      await act(async () => {
+        await result.current.validateUnstakeAmount('10');
+      });
+
+      expect(mockComputeStakeFee).toHaveBeenCalledWith(mockAccount, {
+        fromAccountId: mockAccount.id,
+        value: '10',
+        options: { purpose: 'ENERGY' },
+      });
+      expect(result.current.preview).toEqual(
+        expect.objectContaining({ fee: mockFee }),
+      );
+    });
+
+    it('does not include fee in preview when computeStakeFee returns empty array', async () => {
+      const validationResult: TronUnstakeResult & { extra: string } = {
+        valid: true,
+        extra: 'preview-data',
+      };
+      mockValidateTronUnstakeAmount.mockResolvedValue(validationResult);
+      mockComputeStakeFee.mockResolvedValue([]);
+
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      await act(async () => {
+        await result.current.validateUnstakeAmount('10');
+      });
+
+      expect(result.current.preview).toEqual({
+        valid: true,
+        extra: 'preview-data',
+      });
+      expect(result.current.preview).not.toHaveProperty('fee');
+    });
+
+    it('does not include fee in preview when computeStakeFee throws', async () => {
+      const validationResult: TronUnstakeResult & { extra: string } = {
+        valid: true,
+        extra: 'preview-data',
+      };
+      mockValidateTronUnstakeAmount.mockResolvedValue(validationResult);
+      mockComputeStakeFee.mockRejectedValue(
+        new Error('Fee computation failed'),
+      );
+
+      const { result } = renderHook(() =>
+        useTronUnstake({ token: mockTrxToken }),
+      );
+
+      await act(async () => {
+        await result.current.validateUnstakeAmount('10');
+      });
+
+      expect(result.current.preview).toEqual({
+        valid: true,
+        extra: 'preview-data',
+      });
+      expect(result.current.preview).not.toHaveProperty('fee');
     });
   });
 

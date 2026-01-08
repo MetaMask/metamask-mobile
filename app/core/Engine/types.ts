@@ -114,6 +114,15 @@ import {
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
+  RampsController,
+  RampsControllerState,
+  RampsControllerActions,
+  RampsControllerEvents,
+  RampsService,
+  RampsServiceActions,
+  RampsServiceEvents,
+} from '@metamask/ramps-controller';
+import {
   TransactionController,
   TransactionControllerActions,
   TransactionControllerEvents,
@@ -322,6 +331,11 @@ import type {
   ErrorReportingService,
   ErrorReportingServiceActions,
 } from '@metamask/error-reporting-service';
+import type {
+  StorageService,
+  StorageServiceActions,
+  StorageServiceEvents,
+} from '@metamask/storage-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -389,6 +403,7 @@ type RequiredControllers = Omit<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -400,6 +415,7 @@ type OptionalControllers = Pick<
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'StorageService'
 >;
 
 /**
@@ -493,11 +509,14 @@ type GlobalActions =
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
+  | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
-  | ProfileMetricsServiceActions;
+  | ProfileMetricsServiceActions
+  | RampsControllerActions
+  | RampsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -538,6 +557,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | StorageServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -568,7 +588,9 @@ type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
-  | ProfileMetricsServiceEvents;
+  | ProfileMetricsServiceEvents
+  | RampsControllerEvents
+  | RampsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -629,6 +651,7 @@ export type Controllers = {
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
+  RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
@@ -641,6 +664,7 @@ export type Controllers = {
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
+  StorageService: StorageService;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -680,6 +704,7 @@ export type Controllers = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  RampsService: RampsService;
 };
 
 /**
@@ -705,6 +730,7 @@ export type EngineState = {
   NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
+  RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
@@ -816,6 +842,7 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'ErrorReportingService'
+  | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
@@ -852,6 +879,8 @@ export type ControllersToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RampsController'
+  | 'RampsService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'

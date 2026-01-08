@@ -1,23 +1,27 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { showAlert } from '../../../../../actions/alert';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Icon,
+  IconName as DesignSystemIconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import styleSheet from '../TokenDetails.styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { TokenDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
 import { formatAddress } from '../../../../../util/address';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { useTheme } from '../../../../../util/theme';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
@@ -27,29 +31,28 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   tokenDetails,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
-
-  const handleShowAlert = (config: {
-    isVisible: boolean;
-    autodismiss: number;
-    content: string;
-    data: { msg: string };
-  }) => dispatch(showAlert(config));
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
+  const tw = useTailwind();
 
   const copyAccountToClipboard = async () => {
     await ClipboardManager.setString(tokenDetails.contractAddress);
 
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('account_details.account_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
     });
   };
 
   return (
     <View>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMD} style={tw`py-2`}>
         {strings('token.token_details')}
       </Text>
       <View style={styles.listWrapper}>
@@ -59,18 +62,13 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
             style={[styles.listItem, styles.firstChild]}
           >
             <TouchableOpacity
-              style={styles.copyButton}
+              style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
-              <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
+              <Text variant={TextVariant.BodySM}>
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-                style={styles.icon}
-              />
+              <Icon name={DesignSystemIconName.Copy} size={IconSize.Sm} />
             </TouchableOpacity>
           </TokenDetailsListItem>
         )}

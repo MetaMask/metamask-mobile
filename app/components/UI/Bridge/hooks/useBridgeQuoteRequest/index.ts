@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
-import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import {
+  formatAddressToCaipReference,
+  type GenericQuoteRequest,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -81,9 +84,9 @@ export const useBridgeQuoteRequest = () => {
 
     const params: GenericQuoteRequest = {
       srcChainId: getDecimalChainId(sourceToken.chainId),
-      srcTokenAddress: sourceToken.address,
+      srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
       destChainId: getDecimalChainId(destChainId),
-      destTokenAddress: destToken.address,
+      destTokenAddress: formatAddressToCaipReference(destToken.address),
       srcTokenAmount: normalizedSourceAmount,
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,

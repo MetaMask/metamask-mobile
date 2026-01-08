@@ -54,7 +54,7 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { isInternalDeepLink } from '../../../util/deeplinks';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -149,6 +149,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     homePageUrl,
     activeChainId,
     fromTrending,
+    fromPerps,
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -170,7 +171,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ConnectionType.UNKNOWN,
     );
     const webviewRef = useRef<WebView>(null);
-    const blockListType = useRef<string>(''); // TODO: Consider improving this type
     const webStates = useRef<
       Record<string, { requested: boolean; started: boolean; ended: boolean }>
     >({});
@@ -345,9 +345,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
 
         const testResult = await getPhishingTestResultAsync(urlOrigin);
-        if (testResult?.result && testResult.name) {
-          blockListType.current = testResult.name;
-        }
         return !testResult?.result;
       },
       [whitelist],
@@ -764,23 +761,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       // Check if this is an internal MetaMask deeplink that should be handled within the app
       if (isInternalDeepLink(urlToLoad)) {
         // Handle the deeplink internally instead of passing to OS
-        SharedDeeplinkManager.parse(urlToLoad, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
-          browserCallBack: (url: string) => {
-            // If the deeplink handler wants to navigate to a different URL in the browser
-            if (url && webviewRef.current) {
-              webviewRef.current.injectJavaScript(`
+        SharedDeeplinkManager.getInstance()
+          .parse(urlToLoad, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+            browserCallBack: (url: string) => {
+              // If the deeplink handler wants to navigate to a different URL in the browser
+              if (url && webviewRef.current) {
+                webviewRef.current.injectJavaScript(`
                 window.location.href = '${sanitizeUrlInput(url)}';
                 true;  // Required for iOS
               `);
-            }
-          },
-        }).catch((error) => {
-          Logger.error(
-            error,
-            'BrowserTab: Failed to handle internal deeplink in browser',
-          );
-        });
+              }
+            },
+          })
+          .catch((error) => {
+            Logger.error(
+              error,
+              'BrowserTab: Failed to handle internal deeplink in browser',
+            );
+          });
         return false; // Stop the webview from loading this URL
       }
 
@@ -1315,7 +1314,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const handleBackPress = useCallback(() => {
-      if (fromTrending) {
+      if (fromPerps) {
+        // If opened from Perps, navigate back to PerpsHome
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
       } else {
@@ -1324,7 +1328,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromTrending]);
+    }, [navigation, fromTrending, fromPerps]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1552,7 +1556,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 urlBarRef={urlBarRef}
                 addToWhitelist={triggerAddToWhitelist}
                 activeUrl={resolvedUrlRef.current}
-                blockListType={blockListType}
                 goToUrl={onSubmitEditing}
               />
             )}

@@ -122,7 +122,6 @@ describe('WalletRestored', () => {
     await waitFor(() => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
-        { isVaultRecovery: true },
       );
     });
   });
@@ -223,7 +222,6 @@ describe('WalletRestored', () => {
     await waitFor(() => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
-        { isVaultRecovery: true },
       );
     });
   });
