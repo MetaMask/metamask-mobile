@@ -83,6 +83,30 @@ export enum PredictWithdrawStatus {
   ERROR = 'error',
 }
 
+export type PredictSportTeam = {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string;
+  color: string;
+};
+
+export type PredictSportsLeague = 'nfl';
+
+export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
+
+export type PredictMarketGame = {
+  id: string;
+  startTime: string;
+  status: PredictGameStatus;
+  league: PredictSportsLeague;
+  elapsed: string;
+  period: string;
+  score: string;
+  homeTeam: PredictSportTeam;
+  awayTeam: PredictSportTeam;
+};
+
 export type PredictMarket = {
   id: string;
   providerId: string;
@@ -98,6 +122,7 @@ export type PredictMarket = {
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
+  game?: PredictMarketGame;
 };
 
 export type PredictSeries = {

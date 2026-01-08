@@ -10,6 +10,7 @@ import {
   OnchainTradeParams,
   PredictMarketStatus,
   PredictPositionStatus,
+  PredictSportTeam,
   Side,
   type PredictCategory,
   type PredictMarket,
@@ -20,6 +21,12 @@ import {
   PredictOutcomeToken,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
+import {
+  buildNflGameData,
+  isNflGameEvent,
+  mapApiTeamToPredictTeam,
+  TeamLookup,
+} from '../../utils/gameParser';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -51,6 +58,7 @@ import {
   PolymarketApiEvent,
   PolymarketApiActivity,
   PolymarketApiMarket,
+  PolymarketApiTeam,
   PolymarketPosition,
   TickSize,
   OrderBook,
@@ -602,14 +610,53 @@ export const parsePolymarketMarket = (
   resolutionStatus: market.umaResolutionStatus,
 });
 
+export type NflTeamLookupFn = (
+  abbreviation: string,
+) => PolymarketApiTeam | undefined;
+
+export interface ParsePolymarketEventsOptions {
+  category: PredictCategory;
+  sortMarketsBy?: 'price' | 'ascending' | 'descending';
+  nflTeamLookup?: NflTeamLookupFn;
+}
+
 export const parsePolymarketEvents = (
   events: PolymarketApiEvent[],
-  category: PredictCategory,
+  categoryOrOptions: PredictCategory | ParsePolymarketEventsOptions,
   sortMarketsBy?: 'price' | 'ascending' | 'descending',
 ): PredictMarket[] => {
+  const options: ParsePolymarketEventsOptions =
+    typeof categoryOrOptions === 'string'
+      ? { category: categoryOrOptions, sortMarketsBy }
+      : categoryOrOptions;
+
+  const { category, nflTeamLookup } = options;
+  const sortBy = options.sortMarketsBy ?? sortMarketsBy;
+
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
+      const isNflGame = isNflGameEvent(event);
+
+      let markets = sortMarkets(event, sortBy).filter(
+        (market: PolymarketApiMarket) => market?.active !== false,
+      );
+
+      if (isNflGame) {
+        markets = markets.filter((market) => isMoneylineMarket(market));
+      }
+
+      const teamLookup: TeamLookup | undefined = nflTeamLookup
+        ? (abbr: string) => {
+            const apiTeam = nflTeamLookup(abbr);
+            return apiTeam ? mapApiTeamToPredictTeam(apiTeam) : undefined;
+          }
+        : undefined;
+
+      const game =
+        isNflGame && teamLookup
+          ? (buildNflGameData(event, teamLookup) ?? undefined)
+          : undefined;
 
       return {
         id: event.id,
@@ -625,13 +672,12 @@ export const parsePolymarketEvents = (
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.label),
-        outcomes: sortMarkets(event, sortMarketsBy)
-          .filter((market: PolymarketApiMarket) => market?.active !== false)
-          .map((market: PolymarketApiMarket) =>
-            parsePolymarketMarket(market, event),
-          ),
+        outcomes: markets.map((market: PolymarketApiMarket) =>
+          parsePolymarketMarket(market, event),
+        ),
         liquidity: event.liquidity,
         volume: event.volume,
+        game,
       };
     },
   );
@@ -705,12 +751,22 @@ export const parsePolymarketActivity = (
   return parsedActivities;
 };
 
+export interface GetParsedMarketsOptions extends GetMarketsParams {
+  nflTeamLookup?: NflTeamLookupFn;
+}
+
 export const getParsedMarketsFromPolymarketApi = async (
-  params?: GetMarketsParams,
+  params?: GetParsedMarketsOptions,
 ): Promise<PredictMarket[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
-  const { category = 'trending', q, limit = 20, offset = 0 } = params || {};
+  const {
+    category = 'trending',
+    q,
+    limit = 20,
+    offset = 0,
+    nflTeamLookup,
+  } = params || {};
   DevLogger.log(
     'Getting markets via Polymarket API for category:',
     category,
@@ -752,7 +808,6 @@ export const getParsedMarketsFromPolymarketApi = async (
 
   const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
-  // Use search endpoint if q parameter is provided
   const endpoint = q
     ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
         q,
@@ -771,11 +826,11 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
-  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
-    events,
+  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
-    'price',
-  );
+    sortMarketsBy: 'price',
+    nflTeamLookup,
+  });
 
   if (q) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);

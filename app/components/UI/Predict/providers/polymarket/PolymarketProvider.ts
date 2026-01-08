@@ -72,6 +72,7 @@ import {
   OrderData,
   OrderType,
   PolymarketApiActivity,
+  PolymarketApiTeam,
   PolymarketPosition,
   SignatureType,
   TickSize,
@@ -135,6 +136,8 @@ export class PolymarketProvider implements PredictProvider {
     string,
     Map<string, OptimisticPositionUpdate>
   >();
+  #nflTeamsCache: Map<string, PolymarketApiTeam> | null = null;
+  #nflTeamsFetchPromise: Promise<void> | null = null;
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -165,6 +168,60 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  private async fetchNflTeams(): Promise<void> {
+    if (this.#nflTeamsCache) {
+      return;
+    }
+
+    if (this.#nflTeamsFetchPromise) {
+      return this.#nflTeamsFetchPromise;
+    }
+
+    this.#nflTeamsFetchPromise = (async () => {
+      try {
+        const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+        const response = await fetch(`${GAMMA_API_ENDPOINT}/teams?league=nfl`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch NFL teams');
+        }
+
+        const teams = (await response.json()) as PolymarketApiTeam[];
+        this.#nflTeamsCache = new Map();
+
+        for (const team of teams) {
+          this.#nflTeamsCache.set(team.abbreviation.toLowerCase(), team);
+          if (team.alias) {
+            this.#nflTeamsCache.set(team.alias.toLowerCase(), team);
+          }
+        }
+
+        DevLogger.log(`PolymarketProvider: Cached ${teams.length} NFL teams`);
+      } catch (error) {
+        DevLogger.log('PolymarketProvider: Failed to fetch NFL teams', error);
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          this.getErrorContext('fetchNflTeams'),
+        );
+        this.#nflTeamsCache = new Map();
+      } finally {
+        this.#nflTeamsFetchPromise = null;
+      }
+    })();
+
+    return this.#nflTeamsFetchPromise;
+  }
+
+  public async ensureNflTeamsLoaded(): Promise<void> {
+    await this.fetchNflTeams();
+  }
+
+  public getNflTeamByAbbreviation(
+    abbreviation: string,
+  ): PolymarketApiTeam | undefined {
+    return this.#nflTeamsCache?.get(abbreviation.toLowerCase());
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
@@ -179,10 +236,12 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const [parsedMarket] = parsePolymarketEvents(
-        [event],
-        PolymarketProvider.FALLBACK_CATEGORY,
-      );
+      await this.fetchNflTeams();
+
+      const [parsedMarket] = parsePolymarketEvents([event], {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        nflTeamLookup: this.getNflTeamByAbbreviation.bind(this),
+      });
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
@@ -233,12 +292,23 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getParsedMarketsFromPolymarketApi(params);
+      const shouldLoadTeams =
+        !params?.category ||
+        params.category === 'sports' ||
+        params.category === 'trending';
+
+      if (shouldLoadTeams) {
+        await this.fetchNflTeams();
+      }
+
+      const markets = await getParsedMarketsFromPolymarketApi({
+        ...params,
+        nflTeamLookup: this.getNflTeamByAbbreviation.bind(this),
+      });
       return markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {

@@ -179,6 +179,23 @@ export interface PolymarketApiEvent {
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
+  // Live game fields (present when game is ongoing)
+  score?: string; // Format: "awayScore-homeScore"
+  elapsed?: string; // Game elapsed time
+  period?: string; // Current period (e.g., "Q1", "Q2", "Halftime")
+}
+
+/**
+ * Polymarket Teams API response type
+ * Endpoint: /teams?league=nfl
+ */
+export interface PolymarketApiTeam {
+  id: string;
+  name: string;
+  abbreviation: string; // lowercase (e.g., "car", "la")
+  logo: string; // URL to team logo
+  color: string; // Hex color (e.g., "#0085CA")
+  alias?: string; // Alternative abbreviation
 }
 
 export interface PolymarketApiActivity {
