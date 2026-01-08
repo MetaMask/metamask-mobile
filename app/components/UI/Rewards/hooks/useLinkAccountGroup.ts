@@ -17,10 +17,21 @@ interface LinkStatusReport {
   byAddress: Record<string, boolean>;
 }
 
+interface BulkLinkStatusReport {
+  success: boolean;
+  totalGroups: number;
+  successfulGroups: number;
+  failedGroups: number;
+  byGroupId: Record<string, LinkStatusReport>;
+}
+
 interface UseLinkAccountGroupResult {
   linkAccountGroup: (
     accountGroupId: AccountGroupId,
   ) => Promise<LinkStatusReport>;
+  linkMultipleAccountGroups: (
+    accountGroupIds: AccountGroupId[],
+  ) => Promise<BulkLinkStatusReport>;
   isLoading: boolean;
   isError: boolean;
 }
@@ -202,8 +213,182 @@ export const useLinkAccountGroup = (
     ],
   );
 
+  const linkMultipleAccountGroups = useCallback(
+    async (
+      accountGroupIds: AccountGroupId[],
+    ): Promise<BulkLinkStatusReport> => {
+      setIsLoading(true);
+      setIsError(false);
+
+      const byGroupId: Record<string, LinkStatusReport> = {};
+      let successfulGroups = 0;
+      let failedGroups = 0;
+
+      // Initialize all groups
+      for (const groupId of accountGroupIds) {
+        byGroupId[groupId] = { success: false, byAddress: {} };
+      }
+
+      try {
+        // Collect all supported accounts from all groups
+        const allAccountsWithGroupId: {
+          account: InternalAccount;
+          groupId: AccountGroupId;
+        }[] = [];
+
+        for (const groupId of accountGroupIds) {
+          const supportedGroupAccounts = getAccountsByGroupId(groupId)?.filter(
+            (account) =>
+              Engine.controllerMessenger.call(
+                'RewardsController:isOptInSupported',
+                account,
+              ),
+          );
+
+          if (supportedGroupAccounts && supportedGroupAccounts.length > 0) {
+            for (const account of supportedGroupAccounts) {
+              allAccountsWithGroupId.push({ account, groupId });
+              byGroupId[groupId].byAddress[account.address] = false;
+            }
+          }
+        }
+
+        if (allAccountsWithGroupId.length === 0) {
+          setIsError(true);
+          return {
+            success: false,
+            totalGroups: accountGroupIds.length,
+            successfulGroups: 0,
+            failedGroups: accountGroupIds.length,
+            byGroupId,
+          };
+        }
+
+        // Get opt-in status for all accounts in a single call
+        const allAddresses = allAccountsWithGroupId.map(
+          ({ account }) => account.address,
+        );
+        const optInResponse: OptInStatusDto =
+          await Engine.controllerMessenger.call(
+            'RewardsController:getOptInStatus',
+            { addresses: allAddresses },
+          );
+
+        // Update byAddress with opt-in status and collect accounts to link
+        const accountsToLink: InternalAccount[] = [];
+        allAccountsWithGroupId.forEach(({ account, groupId }, index) => {
+          if (optInResponse.ois[index]) {
+            byGroupId[groupId].byAddress[account.address] = true;
+          } else {
+            accountsToLink.push(account);
+          }
+        });
+
+        if (accountsToLink.length === 0) {
+          // All accounts already linked
+          for (const groupId of accountGroupIds) {
+            const allLinked = Object.values(byGroupId[groupId].byAddress).every(
+              (status) => status,
+            );
+            byGroupId[groupId].success = allLinked;
+            if (allLinked) {
+              successfulGroups += 1;
+            } else {
+              failedGroups += 1;
+            }
+          }
+          return {
+            success: failedGroups === 0,
+            totalGroups: accountGroupIds.length,
+            successfulGroups,
+            failedGroups,
+            byGroupId,
+          };
+        }
+
+        // Emit started events for all accounts
+        for (const account of accountsToLink) {
+          triggerAccountLinkingEvent(
+            MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_STARTED,
+            account,
+          );
+        }
+
+        // Link all accounts in a single call
+        const results = await Engine.controllerMessenger.call(
+          'RewardsController:linkAccountsToSubscriptionCandidate',
+          accountsToLink,
+        );
+
+        // Process results and update byGroupId
+        for (const result of results) {
+          // Find which group this account belongs to
+          const accountWithGroup = allAccountsWithGroupId.find(
+            ({ account }) => account.address === result.account.address,
+          );
+          if (accountWithGroup) {
+            byGroupId[accountWithGroup.groupId].byAddress[
+              result.account.address
+            ] = result.success;
+            if (result.success) {
+              triggerAccountLinkingEvent(
+                MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_COMPLETED,
+                result.account,
+              );
+            } else {
+              triggerAccountLinkingEvent(
+                MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_FAILED,
+                result.account,
+              );
+            }
+          }
+        }
+
+        // Calculate success/failure for each group
+        for (const groupId of accountGroupIds) {
+          const groupAddresses = Object.values(byGroupId[groupId].byAddress);
+          const allLinked =
+            groupAddresses.length > 0 &&
+            groupAddresses.every((status) => status);
+          byGroupId[groupId].success = allLinked;
+          if (allLinked) {
+            successfulGroups += 1;
+          } else {
+            failedGroups += 1;
+          }
+        }
+
+        const overallSuccess = failedGroups === 0;
+        if (!overallSuccess) {
+          setIsError(true);
+        }
+
+        return {
+          success: overallSuccess,
+          totalGroups: accountGroupIds.length,
+          successfulGroups,
+          failedGroups,
+          byGroupId,
+        };
+      } catch (err) {
+        setIsError(true);
+        return {
+          success: false,
+          totalGroups: accountGroupIds.length,
+          successfulGroups: 0,
+          failedGroups: accountGroupIds.length,
+          byGroupId,
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getAccountsByGroupId, triggerAccountLinkingEvent],
+  );
+
   return {
     linkAccountGroup,
+    linkMultipleAccountGroups,
     isLoading,
     isError,
   };

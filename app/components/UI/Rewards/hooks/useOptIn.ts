@@ -24,9 +24,11 @@ export interface UseOptinResult {
   optin: ({
     referralCode,
     isPrefilled,
+    bulkLink,
   }: {
     referralCode?: string;
     isPrefilled?: boolean;
+    bulkLink?: boolean;
   }) => Promise<void>;
 
   /**
@@ -49,7 +51,8 @@ export const useOptin = (): UseOptinResult => {
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-  const { linkAccountGroup } = useLinkAccountGroup(false);
+  const { linkAccountGroup, linkMultipleAccountGroups } =
+    useLinkAccountGroup(false);
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const walletsMap = useSelector(selectWalletByAccount);
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
@@ -83,9 +86,11 @@ export const useOptin = (): UseOptinResult => {
     async ({
       referralCode,
       isPrefilled,
+      bulkLink,
     }: {
       referralCode?: string;
       isPrefilled?: boolean;
+      bulkLink?: boolean;
     }) => {
       if (!accountGroup?.id) {
         return;
@@ -96,6 +101,7 @@ export const useOptin = (): UseOptinResult => {
         referred,
         referral_code_used: referralCode,
         referral_code_input_type: isPrefilled ? 'prefill' : 'manual',
+        bulk_link: bulkLink,
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_STARTED)
@@ -131,7 +137,42 @@ export const useOptin = (): UseOptinResult => {
         );
 
         if (subscriptionId) {
-          if (accountGroupToLinkAfterOptIn) {
+          if (bulkLink && accountGroupsByWallet) {
+            // Link all account groups from all wallets in a single batch
+            const allAccountGroupIds = accountGroupsByWallet.flatMap(
+              (walletGroup) => walletGroup.data?.map((group) => group.id) ?? [],
+            );
+
+            const bulkLinkStartTime = Date.now();
+            // eslint-disable-next-line no-console
+            console.log(
+              `[useOptIn] Bulk link started at ${new Date(bulkLinkStartTime).toISOString()}`,
+            );
+            // eslint-disable-next-line no-console
+            console.log(
+              `[useOptIn] Total account groups to link: ${allAccountGroupIds.length}`,
+            );
+
+            // Single batched call to link all account groups
+            const bulkResult = await linkMultipleAccountGroups(
+              allAccountGroupIds as AccountGroupId[],
+            );
+
+            const bulkLinkEndTime = Date.now();
+            const elapsedMs = bulkLinkEndTime - bulkLinkStartTime;
+            // eslint-disable-next-line no-console
+            console.log(
+              `[useOptIn] Bulk link completed at ${new Date(bulkLinkEndTime).toISOString()}`,
+            );
+            // eslint-disable-next-line no-console
+            console.log(
+              `[useOptIn] Total time elapsed: ${elapsedMs}ms (${(elapsedMs / 1000).toFixed(2)}s)`,
+            );
+            // eslint-disable-next-line no-console
+            console.log(
+              `[useOptIn] Final results - Success: ${bulkResult.successfulGroups}, Failed: ${bulkResult.failedGroups}`,
+            );
+          } else if (accountGroupToLinkAfterOptIn) {
             try {
               await linkAccountGroup(
                 accountGroupToLinkAfterOptIn as AccountGroupId,
@@ -180,8 +221,10 @@ export const useOptin = (): UseOptinResult => {
       sideEffectAccountGroupIdToLink,
       sideEffectAccounts,
       activeGroupAccounts,
+      accountGroupsByWallet,
       addTraitsToUser,
       linkAccountGroup,
+      linkMultipleAccountGroups,
       dispatch,
     ],
   );
