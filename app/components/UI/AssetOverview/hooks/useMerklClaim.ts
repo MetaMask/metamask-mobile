@@ -1,0 +1,131 @@
+import { useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { WalletDevice } from '@metamask/transaction-controller';
+import { Interface } from '@ethersproject/abi';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
+import { addTransaction } from '../../../../util/transaction-controller';
+
+const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
+const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
+
+// ABI for the claim method
+const DISTRIBUTOR_ABI = [
+  'function claim(address[] calldata users, address[] calldata tokens, uint256[] calldata amounts, bytes32[][] calldata proofs)',
+];
+
+interface MerklRewardData {
+  rewards: Array<{
+    token: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      price: number | null;
+    };
+    accumulated: string;
+    unclaimed: string;
+    pending: string;
+    proofs: string[];
+    amount: string;
+    claimed: string;
+    recipient: string;
+  }>;
+}
+
+export const useMerklClaim = () => {
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const networkClientId = useSelector(selectSelectedNetworkClientId);
+
+  const claimRewards = useCallback(async () => {
+    if (!selectedAddress || !networkClientId) {
+      setError('No account or network selected');
+      return;
+    }
+
+    setIsClaiming(true);
+    setError(null);
+
+    try {
+      console.log('Fetching Merkl rewards for:', selectedAddress);
+
+      // Fetch claim data from Merkl API
+      const response = await fetch(
+        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=1&test=true`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Merkl rewards: ${response.status}`);
+      }
+
+      const data: MerklRewardData[] = await response.json();
+      console.log('Merkl API response:', JSON.stringify(data, null, 2));
+
+      // Get the first reward data
+      if (!data?.[0]?.rewards?.[0]) {
+        throw new Error('No claimable rewards found');
+      }
+
+      const rewardData = data[0].rewards[0];
+      console.log('Reward data:', JSON.stringify(rewardData, null, 2));
+
+      // Prepare claim parameters
+      const users = [selectedAddress];
+      const tokens = [rewardData.token.address]; // Use token.address not token object
+      const amounts = [rewardData.pending];
+      const proofs = [rewardData.proofs]; // Note: proofs is plural!
+
+      // Encode the claim transaction data using ethers Interface
+      const contractInterface = new Interface(DISTRIBUTOR_ABI);
+
+      const claimData = [users, tokens, amounts, proofs];
+
+      console.log('Claim data:', JSON.stringify(claimData, null, 2));
+
+      const encodedData = contractInterface.encodeFunctionData('claim', claimData);
+
+      console.log('Encoded claim data:', encodedData);
+
+      // Create transaction params
+      const txParams = {
+        from: selectedAddress as Hex,
+        to: MERKL_DISTRIBUTOR_ADDRESS as Hex,
+        value: '0x0',
+        data: encodedData as Hex,
+        chainId: toHex(1), // Ethereum mainnet
+      };
+
+      console.log('Submitting transaction:', txParams);
+
+      // Submit transaction
+      const result = await addTransaction(txParams, {
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
+        origin: 'merkl-claim',
+      });
+
+      console.log('Merkl claim transaction submitted:', result);
+
+      return result;
+    } catch (e) {
+      const errorMessage = (e as Error).message;
+      console.error('Merkl claim failed:', errorMessage, e);
+      setError(errorMessage);
+      throw e;
+    } finally {
+      setIsClaiming(false);
+    }
+  }, [selectedAddress, networkClientId]);
+
+  return {
+    claimRewards,
+    isClaiming,
+    error,
+  };
+};

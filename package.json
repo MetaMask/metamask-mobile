@@ -180,6 +180,7 @@
     "qs": "6.14.1"
   },
   "dependencies": {
+    "@angleprotocol/sdk": "^3.0.129",
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^2.1.7",
     "@consensys/on-ramp-sdk": "2.1.12",
