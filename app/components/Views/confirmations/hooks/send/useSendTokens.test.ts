@@ -104,8 +104,20 @@ describe('useSendTokens', () => {
       isSolanaSendType: undefined,
       isBitcoinSendType: undefined,
       isTronSendType: undefined,
+      isPredefinedEvm: false,
+      isPredefinedSolana: false,
+      isPredefinedBitcoin: false,
+      isPredefinedTron: false,
     });
   });
+
+  function createMockUseSendType(
+    returnValues: Partial<ReturnType<typeof useSendType>>,
+  ) {
+    mockUseSendType.mockReturnValue(
+      returnValues as ReturnType<typeof useSendType>,
+    );
+  }
 
   it('returns all tokens when no send type is set', () => {
     mockUseAccountTokens.mockReturnValue([
@@ -123,15 +135,12 @@ describe('useSendTokens', () => {
     expect(result.current).toHaveLength(4);
   });
 
-  it('filters to EVM tokens when isEvmSendType is true', () => {
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: true,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: undefined,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: undefined,
-      isBitcoinSendType: undefined,
-      isTronSendType: undefined,
+  it('filters to EVM tokens when isPredefinedEvm is true', () => {
+    createMockUseSendType({
+      isPredefinedEvm: true,
+      isPredefinedSolana: false,
+      isPredefinedTron: false,
+      isPredefinedBitcoin: false,
     });
     mockUseAccountTokens.mockReturnValue([
       mockEvmToken,
@@ -149,15 +158,12 @@ describe('useSendTokens', () => {
     expect(result.current[0]).toEqual(mockEvmToken);
   });
 
-  it('filters to Solana tokens when isSolanaSendType is true', () => {
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: undefined,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: true,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: true,
-      isBitcoinSendType: undefined,
-      isTronSendType: undefined,
+  it('filters to Solana tokens when isPredefinedSolana is true', () => {
+    createMockUseSendType({
+      isPredefinedEvm: false,
+      isPredefinedSolana: true,
+      isPredefinedTron: false,
+      isPredefinedBitcoin: false,
     });
     mockUseAccountTokens.mockReturnValue([
       mockEvmToken,
@@ -175,15 +181,12 @@ describe('useSendTokens', () => {
     expect(result.current[0]).toEqual(mockSolanaToken);
   });
 
-  it('filters to Tron tokens when isTronSendType is true', () => {
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: undefined,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: true,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: undefined,
-      isBitcoinSendType: undefined,
-      isTronSendType: true,
+  it('filters to Tron tokens when isPredefinedTron is true', () => {
+    createMockUseSendType({
+      isPredefinedEvm: false,
+      isPredefinedSolana: false,
+      isPredefinedTron: true,
+      isPredefinedBitcoin: false,
     });
     mockUseAccountTokens.mockReturnValue([
       mockEvmToken,
@@ -201,15 +204,12 @@ describe('useSendTokens', () => {
     expect(result.current[0]).toEqual(mockTronToken);
   });
 
-  it('filters to Bitcoin tokens when isBitcoinSendType is true', () => {
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: undefined,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: true,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: undefined,
-      isBitcoinSendType: true,
-      isTronSendType: undefined,
+  it('filters to Bitcoin tokens when isPredefinedBitcoin is true', () => {
+    createMockUseSendType({
+      isPredefinedEvm: false,
+      isPredefinedSolana: false,
+      isPredefinedTron: false,
+      isPredefinedBitcoin: true,
     });
     mockUseAccountTokens.mockReturnValue([
       mockEvmToken,
@@ -238,14 +238,11 @@ describe('useSendTokens', () => {
   });
 
   it('prioritizes first matching account type when multiple are true', () => {
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: true,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: true,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: true,
-      isBitcoinSendType: undefined,
-      isTronSendType: undefined,
+    createMockUseSendType({
+      isPredefinedEvm: true,
+      isPredefinedSolana: true,
+      isPredefinedTron: false,
+      isPredefinedBitcoin: false,
     });
     mockUseAccountTokens.mockReturnValue([
       mockEvmToken,

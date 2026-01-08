@@ -43,7 +43,7 @@ jest.mock(
 );
 
 // Mock sections.config to avoid complex Perps dependencies
-jest.mock('../../TrendingView/config/sections.config', () => ({
+jest.mock('../../TrendingView/sections.config', () => ({
   SECTIONS_CONFIG: {
     tokens: {
       getSearchableText: (item: { name?: string; symbol?: string }) =>
@@ -241,7 +241,7 @@ describe('TrendingTokensFullView', () => {
       false, // Exclude NavigationContainer since we're mocking navigation
     );
 
-    expect(getByText('Trending Tokens')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
@@ -317,11 +317,10 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('displays skeleton loader when loading', () => {
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
+    mockUseTrendingSearch.mockReturnValue({
+      data: [],
       isLoading: true,
-      error: null,
-      fetch: jest.fn(),
+      refetch: jest.fn(),
     });
 
     const { queryAllByTestId } = renderWithProvider(
@@ -335,23 +334,20 @@ describe('TrendingTokensFullView', () => {
     expect(skeletons[0]).toBeOnTheScreen();
   });
 
-  it('displays skeleton loader when results are empty', () => {
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
+  it('displays empty error state when results are empty', () => {
+    mockUseTrendingSearch.mockReturnValue({
+      data: [],
       isLoading: false,
-      error: null,
-      fetch: jest.fn(),
+      refetch: jest.fn(),
     });
 
-    const { queryAllByTestId } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    const skeletons = queryAllByTestId('trending-tokens-skeleton');
-    expect(skeletons.length).toBeGreaterThan(0);
-    expect(skeletons[0]).toBeOnTheScreen();
+    expect(getByText('Trending tokens is not available')).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {

@@ -1,6 +1,10 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
+import {
+  getRandomValues,
+  randomUUID,
+  subtle as quickCryptoSubtle,
+} from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
@@ -12,13 +16,7 @@ import {
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
-import { getPublicKey } from '@metamask/native-utils';
-
-// polyfill getPublicKey with much faster C++ implementation
-// IMPORTANT: This patching works only if @noble/curves version in root package.json is same as @noble/curves version in package.json of @scure/bip32.
-// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
-const secp256k1_1 = require('@noble/curves/secp256k1');
-secp256k1_1.secp256k1.getPublicKey = getPublicKey;
+import './shimPerf';
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -102,6 +100,12 @@ global.crypto = {
   ...crypto,
   randomUUID,
   getRandomValues,
+  subtle: {
+    ...global.crypto.subtle,
+    ...crypto.subtle,
+    // Shimming just digest as it has been fully implemented.
+    digest: quickCryptoSubtle.digest,
+  },
 };
 
 process.browser = false;

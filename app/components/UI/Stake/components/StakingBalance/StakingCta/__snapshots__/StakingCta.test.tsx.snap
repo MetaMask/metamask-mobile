@@ -5,6 +5,7 @@ exports[`StakingCta render matches snapshot 1`] = `
   <View
     style={
       {
+        "alignSelf": "center",
         "borderRadius": 12,
         "flexDirection": "row",
         "flexWrap": "wrap",
@@ -17,10 +18,11 @@ exports[`StakingCta render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
+          "textAlign": "center",
         }
       }
     >
@@ -29,7 +31,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -44,7 +46,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         style={
           {
             "color": "#457a39",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -58,7 +60,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -73,7 +75,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

@@ -1,7 +1,9 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
@@ -35,6 +37,7 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
+import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 
 export interface OtpCodeParams {
   email: string;
@@ -244,6 +247,15 @@ const OtpCode = () => {
     setLatestValueSubmitted(null);
   }, []);
 
+  const handlePaste = useCallback(async () => {
+    const text = await Clipboard.getString();
+    // Extract only numeric characters and limit to CELL_COUNT digits
+    const numericText = text.replace(/\D/g, '').slice(0, CELL_COUNT);
+    if (numericText.length > 0) {
+      handleValueChange(numericText);
+    }
+  }, [handleValueChange]);
+
   useEffect(() => {
     if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
       setLatestValueSubmitted(value);
@@ -267,6 +279,18 @@ const OtpCode = () => {
           <Text style={styles.description}>
             {strings('deposit.otp_code.description', { email })}
           </Text>
+
+          <Box alignItems={BoxAlignItems.End}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              onPress={handlePaste}
+              testID="otp-code-paste-button"
+            >
+              {strings('deposit.otp_code.paste')}
+            </Text>
+          </Box>
+
           <CodeField
             testID="otp-code-input"
             ref={inputRef as React.RefObject<TextInput>}
@@ -319,7 +343,7 @@ const OtpCode = () => {
             {resendButtonState === 'resendError' ? (
               <ResendButton
                 onPress={handleContactSupport}
-                text="deposit.otp_code.resend_error"
+                text="deposit.otp_code.resend_code_error"
                 button="deposit.otp_code.contact_support"
               />
             ) : null}

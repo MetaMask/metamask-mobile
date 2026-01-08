@@ -7,12 +7,6 @@ import {
 } from '@metamask/bridge-controller';
 
 /**
- * Swaps testnet chain ID (1337 in decimal)
- * Used for testing swaps functionality on local/test networks
- */
-export const SWAPS_TESTNET_CHAIN_ID: Hex = '0x539';
-
-/**
  * Native token address (zero address)
  * Used to represent native tokens (ETH, BNB, MATIC, etc.) across all EVM chains
  */
@@ -48,10 +42,10 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.LINEA_MAINNET]: 'Linea',
   [CHAIN_IDS.POLYGON]: 'Polygon',
   [CHAIN_IDS.AVALANCHE]: 'Avalanche',
-  [CHAIN_IDS.BSC]: 'Binance Smart Chain',
+  [CHAIN_IDS.BSC]: 'BNB',
   [CHAIN_IDS.ARBITRUM]: 'Arbitrum',
   [CHAIN_IDS.OPTIMISM]: 'Optimism',
-  [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
+  [CHAIN_IDS.ZKSYNC_ERA]: 'zkSync',
   [CHAIN_IDS.BASE]: 'Base',
   [CHAIN_IDS.SEI]: 'Sei',
   [CHAIN_IDS.MONAD]: 'Monad',

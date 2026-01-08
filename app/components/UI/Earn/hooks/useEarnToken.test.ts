@@ -16,6 +16,7 @@ import {
 import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
+  MOCK_KEYRING_CONTROLLER_STATE,
 } from '../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
@@ -59,6 +60,7 @@ const mockState = {
     backgroundState: {
       ...MOCK_ROOT_STATE_WITH_EARN_CONTROLLER.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
       CurrencyRateController: {
         currentCurrency: 'usd',
         currencyRates: {

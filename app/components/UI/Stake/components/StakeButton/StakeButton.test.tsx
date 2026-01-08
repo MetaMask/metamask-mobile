@@ -14,26 +14,16 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMusdConversionPaymentTokensAllowlist,
+  selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useFeatureFlag } from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import { Alert } from 'react-native';
-import { Hex } from '@metamask/utils';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 const mockNavigate = jest.fn();
-
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
 
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
   Ethereum: '2.3',
@@ -42,33 +32,49 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   DAI: '5.0',
 };
 
+const mockGetEarnToken = jest.fn((token: TokenI) => {
+  const experienceType =
+    token.symbol === 'USDC'
+      ? EARN_EXPERIENCES.STABLECOIN_LENDING
+      : EARN_EXPERIENCES.POOLED_STAKING;
+
+  const experiences = [
+    {
+      type: experienceType as EARN_EXPERIENCES,
+      apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+      estimatedAnnualRewardsFormatted: '',
+      estimatedAnnualRewardsFiatNumber: 0,
+    },
+  ];
+
+  const baseEarnToken = {
+    ...token,
+    balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+    balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+    balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+    balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+  };
+
+  const adjustedEarnToken =
+    token.symbol === 'TRX'
+      ? {
+          ...baseEarnToken,
+          balanceMinimalUnit: '1',
+        }
+      : baseEarnToken;
+
+  return {
+    ...adjustedEarnToken,
+    experiences,
+    tokenUsdExchangeRate: 0,
+    experience: experiences[0],
+  };
+});
+
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
   default: () => ({
-    getEarnToken: (token: TokenI) => {
-      const experienceType =
-        token.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING';
-
-      const experiences = [
-        {
-          type: experienceType as EARN_EXPERIENCES,
-          apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
-          estimatedAnnualRewardsFormatted: '',
-          estimatedAnnualRewardsFiatNumber: 0,
-        },
-      ];
-
-      return {
-        ...token,
-        balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-        balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-        balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-        balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-        experiences,
-        tokenUsdExchangeRate: 0,
-        experience: experiences[0],
-      };
-    },
+    getEarnToken: (token: TokenI) => mockGetEarnToken(token),
   }),
 }));
 
@@ -84,6 +90,16 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../hooks/useMetrics');
 
+jest.mock('../../../../hooks/useBuildPortfolioUrl', () => ({
+  useBuildPortfolioUrl: jest.fn(() => (baseUrl: string) => {
+    const url = new URL(baseUrl);
+    url.searchParams.set('metamaskEntry', 'mobile');
+    url.searchParams.set('marketingEnabled', 'true');
+    url.searchParams.set('metricsEnabled', 'true');
+    return url;
+  }),
+}));
+
 // Mock the environment variables
 jest.mock('../../../../../util/environment', () => ({
   isProduction: jest.fn().mockReturnValue(false),
@@ -91,31 +107,9 @@ jest.mock('../../../../../util/environment', () => ({
 
 // Mock the feature flags selector
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
-  selectIsMusdConversionFlowEnabledFlag: jest.fn().mockReturnValue(false),
-  selectMusdConversionPaymentTokensAllowlist: jest.fn().mockReturnValue({}),
 }));
-
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: jest.fn(() => ({
-    initiateConversion: jest.fn(),
-    error: null,
-  })),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: jest.fn(),
-}));
-
-const mockUseMusdConversionTokens =
-  useMusdConversionTokens as jest.MockedFunction<
-    typeof useMusdConversionTokens
-  >;
-mockUseMusdConversionTokens.mockReturnValue({
-  isConversionToken: jest.fn().mockReturnValue(false),
-  tokenFilter: jest.fn(),
-  tokens: [],
-});
 
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
@@ -124,16 +118,6 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
     ),
   },
 }));
-
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    useFeatureFlag: jest.fn().mockReturnValue(true),
-    FeatureFlagNames: actual.FeatureFlagNames,
-  };
-});
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: jest.fn(),
@@ -168,6 +152,24 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn().mockReturnValue(true),
+  }),
+);
+
+const mockIsTronChainId = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../../../core/Multichain/utils', () => {
+  const actual = jest.requireActual('../../../../../core/Multichain/utils');
+  return {
+    ...actual,
+    isTronChainId: (...args: unknown[]) =>
+      mockIsTronChainId(...(args as [string])),
+  };
+});
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
@@ -229,6 +231,10 @@ const renderComponent = (state = STATE_MOCK) =>
     state,
   });
 
+const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
+  '../../../../../selectors/earnController/earn',
+).earnSelectors.selectPrimaryEarnExperienceTypeForAsset as jest.Mock;
+
 describe('StakeButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -256,7 +262,7 @@ describe('StakeButton', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
           params: {
-            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
             timestamp: expect.any(Number),
           },
           screen: Routes.BROWSER.VIEW,
@@ -365,8 +371,49 @@ describe('StakeButton', () => {
     });
   });
 
+  describe('Tron staking', () => {
+    const MOCK_TRX_ASSET: TokenI = {
+      ...MOCK_ETH_MAINNET_ASSET,
+      symbol: 'TRX',
+      name: 'Tron',
+      chainId: TrxScope.Mainnet as unknown as string,
+      isNative: true,
+      // Ensure ETH-specific logic does not apply
+      isETH: false,
+    };
+
+    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.POOLED_STAKING,
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: MOCK_TRX_ASSET,
+          },
+        });
+      });
+    });
+  });
+
   it('does not render button when all earn experiences are disabled', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -379,7 +426,11 @@ describe('StakeButton', () => {
   });
 
   it('does not render button when all pooled staking experience is disabled and token is ETH', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -389,199 +440,5 @@ describe('StakeButton', () => {
     const { queryByTestId } = renderComponent();
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
-  });
-
-  describe('mUSD Conversion', () => {
-    const mockInitiateConversion = jest.fn();
-
-    const useMusdConversionMock = jest.mocked(useMusdConversion);
-    const selectIsMusdConversionFlowEnabledFlagMock = jest.mocked(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const selectMusdConversionPaymentTokensAllowlistMock = jest.mocked(
-      selectMusdConversionPaymentTokensAllowlist,
-    );
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockInitiateConversion.mockResolvedValue('tx-123');
-      useMusdConversionMock.mockReturnValue({
-        initiateConversion: mockInitiateConversion,
-        error: null,
-        hasSeenConversionEducationScreen: true,
-      });
-      mockUseMusdConversionTokens.mockReturnValue({
-        isConversionToken: jest.fn().mockReturnValue(false),
-        tokenFilter: jest.fn(),
-        tokens: [],
-      });
-    });
-
-    it('renders Convert CTA for convertible stablecoin when flag enabled', () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      });
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        isConversionToken: jest.fn(
-          (asset) =>
-            asset?.address?.toLowerCase() ===
-              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
-            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
-        ),
-        tokenFilter: jest.fn(),
-        tokens: [],
-      });
-
-      const { getByText } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      expect(getByText('Convert to mUSD')).toBeDefined();
-    });
-
-    it('calls initiateConversion with correct parameters when Convert button pressed', async () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      const mockAllowlist = {
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      } as Record<Hex, Hex[]>;
-
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue(
-        mockAllowlist,
-      );
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        isConversionToken: jest.fn(
-          (asset) =>
-            asset?.address?.toLowerCase() ===
-              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
-            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
-        ),
-        tokenFilter: jest.fn(),
-        tokens: [],
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-      await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
-          preferredPaymentToken: {
-            address: '0xaBc',
-            chainId: '0x1',
-          },
-          navigationStack: Routes.EARN.ROOT,
-        });
-      });
-    });
-
-    it('shows Alert when conversion fails', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert');
-      const conversionError = new Error('Conversion failed');
-      mockInitiateConversion.mockRejectedValue(conversionError);
-
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      });
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        isConversionToken: jest.fn(
-          (asset) =>
-            asset?.address?.toLowerCase() ===
-              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
-            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
-        ),
-        tokenFilter: jest.fn(),
-        tokens: [],
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-      await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalledWith(
-          'Conversion Failed',
-          expect.stringContaining('Conversion failed'),
-          expect.any(Array),
-        );
-      });
-
-      mockAlert.mockRestore();
-    });
-
-    it('renders button for convertible stablecoin even with zero balance', () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      });
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        isConversionToken: jest.fn(
-          (asset) =>
-            asset?.address?.toLowerCase() ===
-              MOCK_USDC_MAINNET_ASSET.address.toLowerCase() &&
-            asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
-        ),
-        tokenFilter: jest.fn(),
-        tokens: [],
-      });
-
-      const zeroBalanceAsset = {
-        ...MOCK_USDC_MAINNET_ASSET,
-        balance: '0',
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <StakeButton asset={zeroBalanceAsset} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
-    });
-
-    it('does not render Convert CTA when flag disabled', () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(false);
-
-      const { queryByText } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      expect(queryByText('Convert')).toBeNull();
-    });
-
-    it('does not render Convert CTA for non-convertible tokens', () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      // Allowlist doesn't include ETH address, so ETH won't show Convert CTA
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      });
-
-      const { queryByText } = renderComponent();
-
-      expect(queryByText('Convert')).toBeNull();
-    });
   });
 });

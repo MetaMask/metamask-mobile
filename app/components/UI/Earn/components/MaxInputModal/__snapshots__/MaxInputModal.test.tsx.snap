@@ -440,32 +440,36 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                               style={
                                 [
                                   {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                     "gap": 16,
-                                    "padding": 16,
+                                    "height": 56,
                                   },
                                   false,
+                                  {
+                                    "paddingHorizontal": 16,
+                                  },
                                 ]
                               }
                               testID="header"
                             >
-                              <View
-                                style={
-                                  {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
+                              <View>
                                 <View
                                   onLayout={[Function]}
                                 />
                               </View>
                               <View
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "flex": 1,
-                                  }
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                      "flexBasis": "0%",
+                                      "flexGrow": 1,
+                                      "flexShrink": 1,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 <Text
@@ -473,7 +477,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -483,13 +487,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   Max
                                 </Text>
                               </View>
-                              <View
-                                style={
-                                  {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
+                              <View>
                                 <View
                                   onLayout={[Function]}
                                 >
@@ -541,7 +539,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -597,7 +595,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -641,7 +639,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

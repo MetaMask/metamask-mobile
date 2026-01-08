@@ -13,6 +13,9 @@ import { KVStore } from '../store/kv-store';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
+import { errorCodes, providerErrors } from '@metamask/rpc-errors';
+import Engine from '../../Engine';
+import NavigationService from '../../NavigationService';
 
 jest.mock('@metamask/mobile-wallet-protocol-wallet-client');
 jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
@@ -24,6 +27,19 @@ jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
 }));
 jest.mock('../store/kv-store');
 jest.mock('../adapters/rpc-bridge-adapter');
+jest.mock('../../Engine', () => ({
+  context: {
+    ApprovalController: {
+      getTotalApprovalCount: jest.fn(),
+      clear: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    goBack: jest.fn(),
+  },
+}));
 
 const MockedWalletClient = WalletClient as jest.MockedClass<
   typeof WalletClient
@@ -60,6 +76,8 @@ const mockHostApp: jest.Mocked<HostApplicationAdapter> = {
   showConnectionLoading: jest.fn(),
   hideConnectionLoading: jest.fn(),
   showConnectionError: jest.fn(),
+  showNotFoundError: jest.fn(),
+  showConfirmationRejectionError: jest.fn(),
   showReturnToApp: jest.fn(),
   syncConnectionList: jest.fn(),
   revokePermissions: jest.fn(),
@@ -192,7 +210,10 @@ describe('Connection', () => {
         mockHostApp,
       );
 
-      const dAppPayload = { id: 1, method: 'eth_accounts', params: [] };
+      const dAppPayload = {
+        name: 'metamask-provider',
+        data: { id: 1, method: 'eth_accounts', params: [] },
+      };
       // Simulate the WalletClient receiving a message
       onClientMessageCallback(dAppPayload);
 
@@ -208,7 +229,10 @@ describe('Connection', () => {
         mockHostApp,
       );
 
-      const walletPayload = { id: 1, result: ['0x123'] };
+      const walletPayload = {
+        name: 'metamask-provider',
+        data: { id: 1, result: ['0x123'] },
+      };
       // Simulate the RPCBridgeAdapter emitting a response
       onBridgeResponseCallback(walletPayload);
 
@@ -216,6 +240,77 @@ describe('Connection', () => {
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         walletPayload,
       );
+    });
+
+    describe('wallet_createSession request', () => {
+      it('clears all pending approvals and navigates away from the open approval modal when there are pending approval requests', async () => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        (
+          Engine.context.ApprovalController.getTotalApprovalCount as jest.Mock
+        ).mockReturnValue(2);
+
+        const walletCreateSessionPayload = {
+          name: 'metamask-multichain-provider',
+          data: {
+            method: 'wallet_createSession',
+            params: {},
+            id: 1,
+          },
+        };
+
+        await onClientMessageCallback(walletCreateSessionPayload);
+
+        expect(NavigationService.navigation?.goBack).toHaveBeenCalledTimes(1);
+        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledTimes(
+          1,
+        );
+        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledWith(
+          providerErrors.userRejectedRequest({
+            data: {
+              cause: 'rejectAllApprovals',
+            },
+          }),
+        );
+        expect(mockBridgeInstance.send).toHaveBeenCalledWith(
+          walletCreateSessionPayload,
+        );
+      });
+
+      it('does not clear pending approvals or navigate away when there are no pending approval requests', async () => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        (
+          Engine.context.ApprovalController.getTotalApprovalCount as jest.Mock
+        ).mockReturnValue(0);
+
+        const walletCreateSessionPayload = {
+          name: 'metamask-multichain-provider',
+          data: {
+            method: 'wallet_createSession',
+            params: {},
+            id: 1,
+          },
+        };
+
+        await onClientMessageCallback(walletCreateSessionPayload);
+
+        expect(NavigationService.navigation?.goBack).not.toHaveBeenCalled();
+        expect(Engine.context.ApprovalController.clear).not.toHaveBeenCalled();
+        expect(mockBridgeInstance.send).toHaveBeenCalledWith(
+          walletCreateSessionPayload,
+        );
+      });
     });
   });
 
@@ -365,6 +460,45 @@ describe('Connection', () => {
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         errorResponsePayload,
+      );
+    });
+
+    it('shows confirmation rejection error toast when bridge response includes user rejected request error', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const userRejectedErrorResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: errorCodes.provider.userRejectedRequest,
+            message: 'User rejected the request',
+          },
+        },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting a user rejected error response
+      onBridgeResponseCallback(userRejectedErrorResponsePayload);
+
+      // Should show confirmation rejection error toast, not generic error toast
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      // And still send the error response to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        userRejectedErrorResponsePayload,
       );
     });
 

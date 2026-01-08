@@ -20,14 +20,14 @@ import {
   internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
 
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(() => false), // Default to BottomSheet version for tests
-  FeatureFlagNames: {
-    rewardsEnabled: 'rewardsEnabled',
-    otaUpdatesEnabled: 'otaUpdatesEnabled',
-    fullPageAccountList: 'fullPageAccountList',
-  },
-}));
+const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
+jest.mock(
+  '../../../selectors/featureFlagController/fullPageAccountList',
+  () => ({
+    selectFullPageAccountListEnabledFlag: () =>
+      mockSelectFullPageAccountListEnabledFlag(),
+  }),
+);
 
 const mockAvatarAccountType = 'Maskicon' as const;
 
@@ -907,17 +907,13 @@ describe('AccountSelector', () => {
   });
 
   describe('Feature Flag: Full-Page Account List', () => {
-    let mockUseFeatureFlag: jest.Mock;
-
     beforeEach(() => {
       jest.clearAllMocks();
-      mockUseFeatureFlag = jest.requireMock(
-        '../../hooks/useFeatureFlag',
-      ).useFeatureFlag;
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
     });
 
     it('renders BottomSheet when feature flag is disabled', () => {
-      mockUseFeatureFlag.mockReturnValue(false);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
 
       renderScreen(
         AccountSelectorWrapper,
@@ -939,7 +935,7 @@ describe('AccountSelector', () => {
     });
 
     it('renders full-page modal when feature flag is enabled', () => {
-      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       renderScreen(
         AccountSelectorWrapper,
@@ -962,7 +958,7 @@ describe('AccountSelector', () => {
 
     it('renders add button in both modes', () => {
       // Arrange: BottomSheet mode
-      mockUseFeatureFlag.mockReturnValue(false);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
 
       // Act: Render in BottomSheet mode
       const { unmount } = renderScreen(
@@ -987,7 +983,7 @@ describe('AccountSelector', () => {
 
       // Arrange: Full-page mode
       jest.useRealTimers();
-      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       // Act: Render in full-page mode
       renderScreen(
@@ -1014,7 +1010,7 @@ describe('AccountSelector', () => {
     it('switches between multichain screens in full-page mode', () => {
       // Arrange
       jest.useRealTimers();
-      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
       renderScreen(
@@ -1046,7 +1042,7 @@ describe('AccountSelector', () => {
       jest.useRealTimers();
 
       // Arrange
-      mockUseFeatureFlag.mockReturnValue(false);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
 
       const { getAllByTestId } = renderScreen(
         AccountSelectorWrapper,
@@ -1080,7 +1076,7 @@ describe('AccountSelector', () => {
 
     it('renders SheetHeader with title in full-page mode', () => {
       // Arrange
-      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       renderScreen(
         AccountSelectorWrapper,
@@ -1104,7 +1100,7 @@ describe('AccountSelector', () => {
     it('closes full-page modal when account is selected with feature flag enabled', async () => {
       // Arrange
       jest.useRealTimers();
-      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       // Mock the useNavigation hook to prevent navigation warnings
       const mockGoBack = jest.fn();

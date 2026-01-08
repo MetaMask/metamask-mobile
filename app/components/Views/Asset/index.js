@@ -2,6 +2,17 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
@@ -11,10 +22,8 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
-  selectChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
@@ -34,7 +43,6 @@ import {
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import {
@@ -53,8 +61,13 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import {
@@ -69,7 +82,6 @@ import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../select
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -125,6 +137,92 @@ const createStyles = (colors) =>
     },
   });
 
+// Styles for inline header
+const inlineHeaderStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    gap: 16,
+  },
+  leftButton: {
+    marginLeft: 16,
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightButton: {
+    marginRight: 16,
+  },
+  rightPlaceholder: {
+    marginRight: 16,
+    width: 24,
+  },
+});
+
+/**
+ * Inline header component for instant rendering during transitions
+ */
+const AssetInlineHeader = ({
+  title,
+  networkName,
+  onBackPress,
+  onOptionsPress,
+  colors,
+}) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={[
+        inlineHeaderStyles.container,
+        { marginTop: insets.top, backgroundColor: colors.background.default },
+      ]}
+    >
+      <ButtonIcon
+        style={inlineHeaderStyles.leftButton}
+        onPress={onBackPress}
+        size={ButtonIconSize.Lg}
+        iconName={IconName.ArrowLeft}
+        iconColor={IconColor.Default}
+      />
+      <View style={inlineHeaderStyles.titleWrapper}>
+        <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
+          {title}
+        </Text>
+        {networkName ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            numberOfLines={1}
+          >
+            {networkName}
+          </Text>
+        ) : null}
+      </View>
+      {onOptionsPress ? (
+        <ButtonIcon
+          style={inlineHeaderStyles.rightButton}
+          onPress={onOptionsPress}
+          size={ButtonIconSize.Lg}
+          iconName={IconName.MoreVertical}
+          iconColor={IconColor.Default}
+        />
+      ) : (
+        <View style={inlineHeaderStyles.rightPlaceholder} />
+      )}
+    </View>
+  );
+};
+
+AssetInlineHeader.propTypes = {
+  title: PropTypes.string,
+  networkName: PropTypes.string,
+  onBackPress: PropTypes.func,
+  onOptionsPress: PropTypes.func,
+  colors: PropTypes.object,
+};
+
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -150,7 +248,11 @@ class Asset extends PureComponent {
     */
     selectedInternalAccount: PropTypes.object,
     /**
-     * The chain ID for the current selected network
+     * The selected address for the asset's chain (handles both EVM and non-EVM)
+     */
+    selectedAddressForAsset: PropTypes.string,
+    /**
+     * The chain ID for the asset being viewed
      */
     chainId: PropTypes.string,
     /**
@@ -161,8 +263,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    swapsIsLive: PropTypes.bool,
-    swapsTokens: PropTypes.object,
     searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
@@ -201,64 +301,18 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = isHexAddress(this.props.selectedInternalAccount?.address)
-    ? safeToChecksumAddress(this.props.selectedInternalAccount?.address)
-    : this.props.selectedInternalAccount?.address;
+  // Use the selectedAddressForAsset which is already computed in mapStateToProps
+  // to be the correct address for the asset's chain (EVM or non-EVM)
+  selectedAddress = isHexAddress(this.props.selectedAddressForAsset)
+    ? safeToChecksumAddress(this.props.selectedAddressForAsset)
+    : this.props.selectedAddressForAsset;
 
-  updateNavBar = (contentOffset = 0) => {
-    const {
-      route: { params },
-      navigation,
-      route,
-      chainId,
-      rpcUrl,
-      networkConfigurations,
-    } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const isNativeToken = route.params.isNative ?? route.params.isETH;
-    const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = isNonEvmChainId(chainId)
-      ? findBlockExplorerForNonEvmChainId(chainId)
-      : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
-
-    const shouldShowMoreOptionsInNavBar =
-      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
-    const asset = navigation && params;
-    const currentNetworkName =
-      this.props.networkConfigurations[asset.chainId]?.name;
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        route.params?.symbol ?? '',
-        false,
-        navigation,
-        colors,
-        // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar
-          ? () =>
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: 'AssetOptions',
-                params: {
-                  isNativeCurrency: isNativeToken,
-                  address: route.params?.address,
-                  chainId: route.params?.chainId || '0x1',
-                  asset,
-                },
-              })
-          : undefined,
-        true,
-        contentOffset,
-        currentNetworkName,
-      ),
-    );
-  };
-
-  onScrollThroughContent = (contentOffset = 0) => {
-    this.updateNavBar(contentOffset);
+  // No-op: inline header doesn't need scroll updates
+  onScrollThroughContent = () => {
+    // Intentionally empty - inline header doesn't respond to scroll
   };
 
   componentDidMount() {
-    this.updateNavBar();
-
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -273,10 +327,18 @@ class Asset extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
+    // Update selectedAddress if the address for the asset's chain has changed
+    if (
+      prevProps.selectedAddressForAsset !== this.props.selectedAddressForAsset
+    ) {
+      this.selectedAddress = isHexAddress(this.props.selectedAddressForAsset)
+        ? safeToChecksumAddress(this.props.selectedAddressForAsset)
+        : this.props.selectedAddressForAsset;
+    }
+
     if (
       prevProps.chainId !== this.props.chainId ||
-      prevProps.selectedInternalAccount.address !==
-        this.props.selectedInternalAccount?.address
+      prevProps.selectedAddressForAsset !== this.props.selectedAddressForAsset
     ) {
       this.showLoaderAndNormalize();
     } else {
@@ -539,12 +601,10 @@ class Asset extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const asset = navigation && params;
-    const isSwapsFeatureLive = this.props.swapsIsLive;
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
       searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
-      swapsTokens: this.props.swapsTokens,
     });
 
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -558,8 +618,43 @@ class Asset extends PureComponent {
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
+    // Inline header props
+    const isNativeToken = params.isNative ?? params.isETH;
+    const isMainnet = isMainnetByChainId(chainId);
+    const blockExplorer = isNonEvmChainId(chainId)
+      ? findBlockExplorerForNonEvmChainId(chainId)
+      : findBlockExplorerForRpc(
+          this.props.rpcUrl,
+          this.props.networkConfigurations,
+        );
+    const shouldShowMoreOptionsInNavBar =
+      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
+    const currentNetworkName =
+      this.props.networkConfigurations[asset.chainId]?.name;
+
+    const openAssetOptions = () => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: 'AssetOptions',
+        params: {
+          isNativeCurrency: isNativeToken,
+          address: params?.address,
+          chainId: params?.chainId || '0x1',
+          asset,
+        },
+      });
+    };
+
     return (
       <View style={styles.wrapper}>
+        <AssetInlineHeader
+          title={params?.symbol ?? ''}
+          networkName={currentNetworkName}
+          onBackPress={() => navigation.pop()}
+          onOptionsPress={
+            shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          }
+          colors={colors}
+        />
         {loading ? (
           this.renderLoader()
         ) : isNonEvmAsset ? (
@@ -571,7 +666,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -596,7 +690,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
@@ -617,6 +710,7 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
             tokenChainId={asset.chainId}
+            skipScrollOnClick
           />
         )}
       </View>
@@ -633,6 +727,23 @@ const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
   const asset = route.params;
+
+  // Get the correct selected address for the asset's chain
+  // For non-EVM assets (like Solana), we need to get the address from the account
+  // that matches the asset's chain scope
+  let selectedAddressForAsset;
+
+  if (asset?.chainId) {
+    const caipChainId = formatChainIdToCaip(asset.chainId);
+    const accountByScope =
+      selectSelectedInternalAccountByScope(state)(caipChainId);
+    selectedAddressForAsset = accountByScope?.address;
+  }
+
+  // Fallback to the standard selected account address
+  if (!selectedAddressForAsset) {
+    selectedAddressForAsset = selectSelectedInternalAccountAddress(state);
+  }
 
   let allTransactions = evmTransactions;
 
@@ -732,8 +843,6 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
-    swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
       route.params.chainId,
@@ -742,17 +851,18 @@ const mapStateToProps = (state, { route }) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     selectedInternalAccount,
-    chainId: selectChainId(state),
+    selectedAddressForAsset,
+    chainId: route.params.chainId,
     tokens: selectTokens(state),
     transactions: allTransactions,
     rpcUrl: selectRpcUrl(state),
     networkConfigurations: selectNetworkConfigurations(state),
     isNetworkRampSupported: isNetworkRampSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isDepositEnabled: (() => {

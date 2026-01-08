@@ -20,7 +20,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../../util/number';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
-import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
+import { useLegacySwapsBlockExplorer } from '../../../Bridge/hooks/useLegacySwapsBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';
 import useAnalytics from '../../hooks/useAnalytics';
 import { PROVIDER_LINKS } from '../types';
@@ -245,7 +245,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const explorer = useBlockExplorer(networkConfigurations);
+  const explorer = useLegacySwapsBlockExplorer(networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);

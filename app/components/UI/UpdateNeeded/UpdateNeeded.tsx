@@ -100,6 +100,7 @@ const UpdateNeeded = () => {
       <HeaderBase
         style={styles.header}
         includesTopInset
+        twClassName="h-auto"
         endAccessory={
           <ButtonIcon
             onPress={triggerClose}
