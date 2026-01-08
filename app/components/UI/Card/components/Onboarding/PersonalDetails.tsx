@@ -26,6 +26,7 @@ import {
   resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
+  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
@@ -52,7 +53,7 @@ const PersonalDetails = () => {
   const dispatch = useDispatch();
   const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -119,6 +120,19 @@ const PersonalDetails = () => {
     () => regions.find((region) => region.key === nationalityKey)?.name,
     [regions, nationalityKey],
   );
+
+  const selectedCountry = useMemo(
+    () =>
+      initialSelectedCountry ||
+      regions.find((region) => region.key === userData?.countryOfResidence),
+    [initialSelectedCountry, regions, userData?.countryOfResidence],
+  );
+
+  useEffect(() => {
+    if (!initialSelectedCountry && selectedCountry) {
+      dispatch(setSelectedCountry(selectedCountry));
+    }
+  }, [selectedCountry, dispatch, initialSelectedCountry]);
 
   const {
     registerPersonalDetails,

@@ -1,4 +1,4 @@
-# Deeplink Processing Visual Flowcharts
+# Deeplink Processing Visual Diagrams
 
 > 📚 **[Back to Main Deeplink Guide](./deeplinking.md)** for detailed explanations, implementation steps, and code examples
 
@@ -17,11 +17,16 @@
 
 ```mermaid
 flowchart TD
-    Start[User Clicks Deeplink<br/>https://link.metamask.io/perps?...] --> Parse[DeeplinkManager.parse<br/>Extract URL components and params]
+    Start[User Clicks Deeplink<br/>https://link.metamask.io/perps?...] --> EarlyIntercept{SDKConnectV2<br/>MWP Deeplink?}
+
+    EarlyIntercept -->|Yes| MWP[SDKConnectV2.handleMwpDeeplink<br/>Early WebSocket connection]
+    EarlyIntercept -->|No| Parse[DeeplinkManager.parse<br/>Extract URL components and params]
 
     Parse --> Protocol{Protocol?}
-    Protocol -->|HTTPS| Universal[handleUniversalLink]
-    Protocol -->|Other| Other[Other Protocols<br/>metamask://, wc://]
+    Protocol -->|HTTPS/HTTP/metamask| Universal[handleUniversalLink<br/>metamask:// converted to https://]
+    Protocol -->|wc://| WCHandler[connectWithWC<br/>WalletConnect handler]
+    Protocol -->|ethereum://| EthHandler[handleEthereumUrl<br/>EIP-681 handler]
+    Protocol -->|dapp://| DappHandler[handleDappUrl<br/>In-app browser]
 
     Universal --> Domain{Domain Valid?<br/>link.metamask.io or<br/>link-test.metamask.io?}
     Domain -->|No| InvalidDomain[INVALID DOMAIN<br/>Show error modal]
@@ -34,21 +39,26 @@ flowchart TD
     BuildCanonical --> CryptoVerify[Verify with Public Key<br/>ECDSA P-256]
 
     CryptoVerify -->|VALID| PrivateLink[PRIVATE LINK<br/>Trusted source]
-    CryptoVerify -->|INVALID| InvalidLink[INVALID LINK<br/>Tampered/Wrong signature]
+    CryptoVerify -->|INVALID| PublicLink3[PUBLIC LINK<br/>Demoted - invalid signature]
     CryptoVerify -->|MISSING| PublicLink2[PUBLIC LINK<br/>No signature]
 
     PrivateLink --> Modal
     PublicLink1 --> Modal
     PublicLink2 --> Modal
-    InvalidLink --> Modal
+    PublicLink3 --> Modal
     InvalidDomain --> Modal
 
-    Modal[Interstitial Modal Decision] --> ModalType{Link Type?}
+    Modal[Interstitial Modal Decision] --> BypassCheck{Bypass Conditions?}
+    BypassCheck -->|Whitelisted Action| Skip[Skip modal<br/>WC, enable-card-button]
+    BypassCheck -->|Whitelist URL| Skip
+    BypassCheck -->|Private + In-App Source| Skip
+    BypassCheck -->|None| ModalType
+
+    ModalType{Link Type?}
     ModalType -->|Private| ShowPrivate[Show confirmation<br/>can remember choice]
     ModalType -->|Public| ShowPublic[Show security warning]
     ModalType -->|Invalid| ShowInvalid[Show 'Page doesn't exist' modal]
     ModalType -->|Unsupported| ShowUnsupported[Show 'Not supported' modal]
-    ModalType -->|Whitelisted| Skip[Skip modal<br/>WC, enable-card-button]
 
     ShowPrivate --> UserContinue{User Continues?}
     ShowPublic --> UserContinue
@@ -60,21 +70,35 @@ flowchart TD
     UserContinue -->|No| End[End]
 
     Route --> Action{Action Type?}
-    Action -->|swap| HandleSwap[_handleSwap]
-    Action -->|buy| HandleBuy[_handleBuyCrypto]
-    Action -->|perps| HandlePerps[_handlePerps]
-    Action -->|send| HandleSend[_handleEthereumUrl]
-    Action -->|dapp| HandleDapp[_handleBrowserUrl]
-    Action -->|rewards| HandleRewards[_handleRewards]
-    Action -->|other| HandleOther[Other Handlers...]
+    Action -->|swap| HandleSwap[handleSwapUrl]
+    Action -->|buy/sell| HandleRamp[handleRampUrl]
+    Action -->|deposit| HandleDeposit[handleDepositCashUrl]
+    Action -->|home| HandleHome[navigateToHomeUrl]
+    Action -->|perps/perps-markets| HandlePerps[handlePerpsUrl]
+    Action -->|perps-asset| NotImplemented[⚠️ NOT IMPLEMENTED]
+    Action -->|predict| HandlePredict[handlePredictUrl]
+    Action -->|rewards| HandleRewards[handleRewardsUrl]
+    Action -->|dapp| HandleBrowser[handleBrowserUrl]
+    Action -->|create-account| HandleAccount[handleCreateAccountUrl]
+    Action -->|onboarding| HandleOnboard[handleFastOnboarding]
+    Action -->|enable-card-button| HandleCard[handleEnableCardButton]
+    Action -->|wc/send| HandleRecurse[Recursive parse call]
+    Action -->|SDK actions| HandleSDK[handleMetaMaskDeeplink]
 
     HandleSwap --> Execute
-    HandleBuy --> Execute
+    HandleRamp --> Execute
+    HandleDeposit --> Execute
+    HandleHome --> Execute
     HandlePerps --> Execute
-    HandleSend --> Execute
-    HandleDapp --> Execute
+    HandlePredict --> Execute
     HandleRewards --> Execute
-    HandleOther --> Execute
+    HandleBrowser --> Execute
+    HandleAccount --> Execute
+    HandleOnboard --> Execute
+    HandleCard --> Execute
+    HandleRecurse --> Execute
+    HandleSDK --> Execute
+    NotImplemented --> NoOp[No action taken]
 
     Execute[Handler Execution<br/>1. Parse parameters<br/>2. Navigate to screen<br/>3. Pass data to components<br/>4. Update app state]
 
@@ -82,9 +106,12 @@ flowchart TD
     style PrivateLink fill:#d4edda
     style PublicLink1 fill:#fff3cd
     style PublicLink2 fill:#fff3cd
-    style InvalidLink fill:#f8d7da
+    style PublicLink3 fill:#fff3cd
     style InvalidDomain fill:#f8d7da
     style Execute fill:#d4edda
+    style MWP fill:#e1f5ff
+    style NotImplemented fill:#f8d7da
+    style NoOp fill:#f8d7da
 ```
 
 ## Signature Creation and Verification Detail
@@ -133,13 +160,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Server[SIGNED URL FROM SERVER<br/>https://link.metamask.io/swap?<br/>chainId=1&sig_params=chainId&sig=X]
+    Server[SIGNED URL FROM SERVER<br/>https://link.metamask.io/swap?<br/>from=eip155:1/slip44:60&sig_params=from&sig=X]
 
     Server --> Client[CLIENT ADDS UNSIGNED PARAMS<br/>debug=true, userId=123]
 
-    Client --> Final[FINAL URL TO VERIFY<br/>https://link.metamask.io/swap?chainId=1&<br/>debug=true&userId=123&<br/>sig_params=chainId&sig=X]
+    Client --> Final[FINAL URL TO VERIFY<br/>https://link.metamask.io/swap?from=eip155:1/slip44:60&<br/>debug=true&userId=123&<br/>sig_params=from&sig=X]
 
-    Final --> Canonicalize[CANONICALIZATION FOR VERIFY<br/><br/>sig_params says: 'chainId'<br/>canonical URL = ?chainId=1&sig_params=chainId<br/><br/>debug and userId are IGNORED<br/>not in sig_params]
+    Final --> Canonicalize[CANONICALIZATION FOR VERIFY<br/><br/>sig_params says: 'from'<br/>canonical URL = ?from=eip155:1/slip44:60&sig_params=from<br/><br/>debug and userId are IGNORED<br/>not in sig_params]
 
     Canonicalize --> Valid[✅ SIGNATURE VALID!<br/>Because canonical URL<br/>matches what was signed]
 
@@ -161,7 +188,7 @@ flowchart LR
     Click[User clicks<br/>https://link.metamask.io/buy] --> NoSig[No signature]
     NoSig --> Warning[Shows warning interstitial]
     Warning --> Proceed{User proceeds?}
-    Proceed -->|Yes| Buy[Opens buy screen]
+    Proceed -->|Yes| Buy[handleRampUrl<br/>Opens buy screen]
     Proceed -->|No| Cancel[Cancelled]
 
     style Click fill:#e1f5ff
@@ -176,7 +203,7 @@ flowchart LR
     Click[User clicks<br/>https://link.metamask.io/perps?<br/>sig=XXX&sig_params=...] --> HasSig[Has valid signature]
     HasSig --> Confirm[Shows confirmation<br/>or skips if remembered]
     Confirm --> Proceed{User proceeds?}
-    Proceed -->|Yes| Perps[Opens perps with<br/>trusted params]
+    Proceed -->|Yes| Perps[handlePerpsUrl<br/>Opens perps with<br/>trusted params]
     Proceed -->|No| Cancel[Cancelled]
 
     style Click fill:#e1f5ff
@@ -184,20 +211,25 @@ flowchart LR
     style Perps fill:#d4edda
 ```
 
-### Scenario 3: Tampered Link (Invalid)
+### Scenario 3: Tampered Link (Demoted to Public)
 
 ```mermaid
 flowchart LR
     Click[User clicks<br/>https://link.metamask.io/swap?<br/>amount=1000&sig=XXX] --> Check[Signature doesn't match<br/>amount was changed]
-    Check --> Modal[Shows 'This page<br/>doesn't exist' modal]
-    Modal --> Options[Options:<br/>• Update app<br/>• Go to home page]
-    Options --> Rejected[Link rejected]
+    Check --> Demoted[Link demoted to PUBLIC<br/>isPrivateLink = false]
+    Demoted --> Warning[Shows public link<br/>security warning]
+    Warning --> Proceed{User proceeds?}
+    Proceed -->|Yes| Handler[handleSwapUrl<br/>Proceeds as untrusted]
+    Proceed -->|No| Cancelled[Cancelled]
 
     style Click fill:#e1f5ff
-    style Check fill:#f8d7da
-    style Modal fill:#f8d7da
-    style Rejected fill:#f8d7da
+    style Check fill:#fff3cd
+    style Demoted fill:#fff3cd
+    style Warning fill:#fff3cd
+    style Handler fill:#d4edda
 ```
+
+> ⚠️ **Important**: Invalid signatures do NOT show the "page doesn't exist" modal. Instead, the link is treated as an untrusted public link. Only invalid domains or unsupported actions show the INVALID modal.
 
 ### Scenario 4: WalletConnect (Whitelisted)
 
@@ -205,9 +237,82 @@ flowchart LR
 flowchart LR
     Click[User clicks<br/>https://link.metamask.io/wc?<br/>uri=wc:123...] --> Whitelist[WC action is whitelisted]
     Whitelist --> Skip[Skips interstitial<br/>completely]
-    Skip --> WC[Direct to WalletConnect<br/>handler]
+    Skip --> WC[Recursive parse call<br/>→ connectWithWC]
 
     style Click fill:#e1f5ff
     style Whitelist fill:#d4edda
     style WC fill:#d4edda
 ```
+
+### Scenario 5: In-App Private Link (Bypass Modal)
+
+```mermaid
+flowchart LR
+    Click[User clicks signed link<br/>from carousel/notification] --> Check[Valid signature +<br/>In-app source]
+    Check --> Bypass[Bypasses modal<br/>completely]
+    Bypass --> Handler[Direct to handler]
+
+    style Click fill:#e1f5ff
+    style Check fill:#d4edda
+    style Bypass fill:#d4edda
+    style Handler fill:#d4edda
+```
+
+### Scenario 6: Prediction Markets
+
+```mermaid
+flowchart LR
+    Click[User clicks<br/>https://link.metamask.io/predict?<br/>market=23246] --> Parse[Parse market ID]
+    Parse --> Modal[Show interstitial]
+    Modal --> Proceed{User proceeds?}
+    Proceed -->|Yes| Predict[handlePredictUrl<br/>Opens market details]
+    Proceed -->|No| Cancel[Cancelled]
+
+    style Click fill:#e1f5ff
+    style Predict fill:#d4edda
+```
+
+### Scenario 7: Swap with CAIP-19 (Modern Format)
+
+```mermaid
+flowchart LR
+    Click[User clicks<br/>https://link.metamask.io/swap?<br/>from=eip155:1/erc20:0x...&<br/>to=eip155:137/erc20:0x...] --> Parse[Parse CAIP-19 tokens]
+    Parse --> Modal[Show interstitial]
+    Modal --> Proceed{User proceeds?}
+    Proceed -->|Yes| Swap[handleSwapUrl<br/>Opens bridge view<br/>with tokens pre-filled]
+    Proceed -->|No| Cancel[Cancelled]
+
+    style Click fill:#e1f5ff
+    style Swap fill:#d4edda
+```
+
+### Scenario 8: Invalid Domain (Actually Invalid)
+
+```mermaid
+flowchart LR
+    Click[User clicks<br/>https://fake.metamask.io/swap] --> Check[Domain check fails<br/>Not in allowed list]
+    Check --> Invalid[INVALID LINK<br/>isInvalidLink = true]
+    Invalid --> Modal[Shows 'This page<br/>doesn't exist' modal]
+    Modal --> Options[Options:<br/>• Update app<br/>• Go to home]
+
+    style Click fill:#e1f5ff
+    style Check fill:#f8d7da
+    style Invalid fill:#f8d7da
+    style Modal fill:#f8d7da
+```
+
+### Scenario 9: Predict with Analytics (utm_source)
+
+```mermaid
+flowchart LR
+    Click[User clicks<br/>https://link.metamask.io/predict?<br/>market=23246&utm_source=twitter] --> Parse[Parse market + utm_source]
+    Parse --> Modal[Show interstitial]
+    Modal --> Proceed{User proceeds?}
+    Proceed -->|Yes| Predict[handlePredictUrl<br/>entryPoint='deeplink_twitter']
+    Proceed -->|No| Cancel[Cancelled]
+
+    style Click fill:#e1f5ff
+    style Predict fill:#d4edda
+```
+
+> 📝 **Note**: The `utm_source` parameter is appended to the entry point for analytics tracking.
