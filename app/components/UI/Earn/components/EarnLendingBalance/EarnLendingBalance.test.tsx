@@ -10,6 +10,7 @@ import { createMockToken } from '../../../Stake/testUtils';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectPooledStakingEnabledFlag,
@@ -123,6 +124,10 @@ jest.mock('../../hooks/useEarnings', () => ({
 
 jest.mock('../../hooks/useEarnTokens');
 jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange');
+jest.mock('../../hooks/useMusdCtaVisibility', () => ({
+  __esModule: true,
+  useMusdCtaVisibility: jest.fn(),
+}));
 
 jest.mock('../../hooks/useMusdConversionTokens', () => ({
   __esModule: true,
@@ -173,9 +178,18 @@ describe('EarnLendingBalance', () => {
       backgroundState,
     },
   };
+  let mockShouldShowAssetOverviewCta: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShouldShowAssetOverviewCta = jest.fn().mockReturnValue(false);
+    (
+      useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+    ).mockReturnValue({
+      shouldShowBuyGetMusdCta: jest.fn(),
+      shouldShowTokenListItemCta: jest.fn(),
+      shouldShowAssetOverviewCta: mockShouldShowAssetOverviewCta,
+    });
     (
       selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
         typeof selectIsMusdConversionFlowEnabledFlag
@@ -336,12 +350,10 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      isTokenWithCta: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
-      tokensWithCTAs: [],
     });
 
     const { toJSON } = renderWithProvider(
@@ -496,12 +508,10 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      isTokenWithCta: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
-      tokensWithCTAs: [],
     });
 
     const { queryByTestId } = renderWithProvider(
@@ -527,12 +537,10 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
-      isTokenWithCta: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
-      tokensWithCTAs: [],
     });
 
     const { queryByTestId } = renderWithProvider(
@@ -564,13 +572,13 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      isTokenWithCta: jest.fn().mockReturnValue(true),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
-      tokensWithCTAs: [],
     });
+
+    mockShouldShowAssetOverviewCta.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
@@ -602,12 +610,10 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
-      isTokenWithCta: jest.fn().mockReturnValue(true),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
-      tokensWithCTAs: [],
     });
 
     (
@@ -630,6 +636,8 @@ describe('EarnLendingBalance', () => {
       outputToken: mockEmptyReceiptToken,
       earnToken: mockDaiMainnet,
     });
+
+    mockShouldShowAssetOverviewCta.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,

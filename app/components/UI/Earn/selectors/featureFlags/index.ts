@@ -68,6 +68,11 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Selects the flag to determine if the "Get/Buy mUSD" CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
 export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
@@ -86,6 +91,11 @@ export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Selects the flag to determine if the asset overview CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
 export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
@@ -105,6 +115,11 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Selects the flag to determine if the token list item CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
 export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
@@ -203,4 +218,26 @@ export const selectMusdConversionPaymentTokensBlocklist = createSelector(
       process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST,
       'MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
     ),
+);
+
+/**
+ * Selects the flag to determine if the rewards UI elements should be displayed in mUSD conversion flow.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
+export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
