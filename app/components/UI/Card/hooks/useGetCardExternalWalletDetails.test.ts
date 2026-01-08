@@ -6,7 +6,6 @@ import { useWrapWithCache } from './useWrapWithCache';
 import Logger from '../../../../util/Logger';
 import {
   CardExternalWalletDetail,
-  CardTokenAllowance,
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
 } from '../types';
@@ -362,7 +361,7 @@ describe('useGetCardExternalWalletDetails', () => {
   });
 
   describe('Auto-fetch Behavior', () => {
-    it('triggers fetch when all prerequisites are ready and no data exists', () => {
+    it('does not auto-fetch when all prerequisites are ready and no data exists', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
@@ -372,100 +371,11 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      expect(mockFetchData).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not trigger fetch when SDK is not available', () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
+      // Auto-fetch is intentionally disabled (fetchOnMount: false)
       expect(mockFetchData).not.toHaveBeenCalled();
     });
 
-    it('does not trigger fetch when not authenticated', () => {
-      mockUseSelector.mockReturnValue(false);
-
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when delegation settings are null', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(null));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when already loading', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: true,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when data already exists', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: {
-          walletDetails: [mockWalletDetail1],
-          mappedWalletDetails: [] as CardTokenAllowance[],
-          priorityWalletDetail: null,
-        },
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when error exists', () => {
-      const mockError = new Error('Previous fetch failed');
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: mockError,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('re-triggers fetch when prerequisites change from unavailable to available', () => {
+    it('does not auto-fetch when prerequisites change from unavailable to available', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
@@ -483,8 +393,6 @@ describe('useGetCardExternalWalletDetails', () => {
         useGetCardExternalWalletDetails(mockDelegationSettings),
       );
 
-      expect(mockFetchData).not.toHaveBeenCalled();
-
       // SDK becomes available
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
@@ -493,7 +401,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       rerender();
 
-      expect(mockFetchData).toHaveBeenCalledTimes(1);
+      // Auto-fetch is intentionally disabled (fetchOnMount: false)
+      expect(mockFetchData).not.toHaveBeenCalled();
     });
   });
 

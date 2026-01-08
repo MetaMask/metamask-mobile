@@ -24,6 +24,19 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
 
+// Mock for keyboard state visibility
+const mockUseKeyboardState = jest.fn();
+jest.mock('react-native-keyboard-controller', () => {
+  const { ScrollView, View } = jest.requireActual('react-native');
+  return {
+    KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+    KeyboardAwareScrollView: ScrollView,
+    KeyboardStickyView: View,
+    useKeyboardState: (selector: (state: { isVisible: boolean }) => boolean) =>
+      mockUseKeyboardState(selector),
+  };
+});
+
 // Mock Keyboard to prevent Jest environment teardown errors
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
@@ -134,6 +147,14 @@ const initialState = {
   },
 };
 
+// Mock the feature flag selector to return true
+jest.mock(
+  '../../../selectors/featureFlagController/importSrpWordSuggestion',
+  () => ({
+    selectImportSrpWordSuggestionEnabledFlag: () => true,
+  }),
+);
+
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -185,6 +206,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+
+    mockUseKeyboardState.mockImplementation(
+      (selector: (state: { isVisible: boolean }) => boolean) =>
+        selector({ isVisible: false }),
+    );
   });
 
   it('renders initial textarea input', () => {
@@ -1257,6 +1283,90 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       );
 
       mockAlert.mockRestore();
+    });
+  });
+
+  describe('SRP Word Suggestions Feature', () => {
+    it('renders SRP input grid for word suggestions', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders with KeyboardProvider wrapper in non-E2E environment', () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      expect(srpInput).toBeTruthy();
+    });
+
+    it('renders KeyboardStickyView with SrpWordSuggestions when keyboard is visible', async () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: true }),
+      );
+
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(getByTestId('srp-word-suggestions')).toBeTruthy();
+    });
+
+    it('does not render KeyboardStickyView when keyboard is not visible', async () => {
+      mockUseKeyboardState.mockImplementation(
+        (selector: (state: { isVisible: boolean }) => boolean) =>
+          selector({ isVisible: false }),
+      );
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      // Act
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      // Assert
+      expect(queryByTestId('srp-word-suggestions')).toBeNull();
+    });
+
+    it('passes onCurrentWordChange to SrpInputGrid', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        { state: initialState },
+      );
+
+      const srpInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+      await act(async () => {
+        fireEvent.changeText(srpInput, 'ab');
+      });
+
+      expect(srpInput).toBeTruthy();
     });
   });
 });

@@ -129,6 +129,10 @@ jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
     mockIsMultichainAccountsState2Enabled(),
 }));
 
+jest.mock('../../UI/ScreenshotDeterrent', () => ({
+  ScreenshotDeterrent: () => null,
+}));
+
 describe('Login test suite 2', () => {
   const createMockReduxStore = (
     stateOverrides?: RecursivePartial<RootState>,

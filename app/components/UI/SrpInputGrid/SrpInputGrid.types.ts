@@ -43,4 +43,9 @@ export interface SrpInputGridProps {
    * Whether the inputs should be disabled
    */
   disabled?: boolean;
+
+  /**
+   * Callback when the current input word changes
+   */
+  onCurrentWordChange?: (word: string) => void;
 }

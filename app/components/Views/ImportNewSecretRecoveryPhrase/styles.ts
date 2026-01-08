@@ -112,6 +112,12 @@ const createStyles = (colors: Colors) =>
       fontSize: 28,
       color: colors.text.default,
     },
+    keyboardStickyView: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
   });
 
 export { createStyles };

@@ -476,6 +476,14 @@ const PerpsTutorialCarousel: React.FC = () => {
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={buttonLabel}
+            onPress={handleContinue}
+            size={ButtonSize.Lg}
+            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
+            style={styles.continueButton}
+          />
           {isLastScreen && (
             <Button
               variant={ButtonVariants.Secondary}
@@ -486,14 +494,6 @@ const PerpsTutorialCarousel: React.FC = () => {
               testID={PerpsTutorialSelectorsIDs.LEARN_MORE_BUTTON}
             />
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
-            onPress={handleContinue}
-            size={ButtonSize.Lg}
-            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
-            style={styles.continueButton}
-          />
           {!isLastScreen && (
             <View style={styles.skipButton}>
               <TouchableOpacity

@@ -7,7 +7,6 @@ import { isSwapsAllowed } from '../../UI/Swaps/utils';
 export const getIsSwapsAssetAllowed = ({
   asset,
   searchDiscoverySwapsTokens,
-  swapsTokens,
 }: {
   asset: {
     isETH: boolean;
@@ -17,7 +16,6 @@ export const getIsSwapsAssetAllowed = ({
     isFromSearch?: boolean;
   };
   searchDiscoverySwapsTokens: string[];
-  swapsTokens: Record<string, unknown>;
 }) => {
   let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
@@ -28,7 +26,8 @@ export const getIsSwapsAssetAllowed = ({
       asset.address?.toLowerCase(),
     );
   } else {
-    isSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
+    // show Swaps CTA for EVM assets as tokens on Trending list will not be in SwapsController.swapsTokens
+    isSwapsAssetAllowed = true;
   }
 
   // Solana Swaps

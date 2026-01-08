@@ -34,8 +34,8 @@ const PredictOffline: React.FC<PredictOfflineProps> = ({
     <Box testID={testID} style={styles.errorState}>
       <Icon
         name={IconName.Warning}
-        size={IconSize.XXL}
-        color={IconColor.Error}
+        size={IconSize.Xl}
+        color={IconColor.Muted}
         style={styles.errorStateIcon}
       />
       <Text

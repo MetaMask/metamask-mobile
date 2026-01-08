@@ -61,7 +61,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     selectIsMusdConversionFlowEnabledFlag,
   );
 
-  const { isConversionToken } = useMusdConversionTokens();
+  const { isTokenWithCta } = useMusdConversionTokens();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -182,11 +182,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     </View>
   );
 
-  const isConvertibleStablecoin =
-    isMusdConversionFlowEnabled && isConversionToken(asset);
+  const hasMusdConversionCta =
+    isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
   if (!isStablecoinLendingEnabled) {
-    if (isConvertibleStablecoin) {
+    if (hasMusdConversionCta) {
       return renderMusdConversionCta();
     }
     return null;
@@ -194,7 +194,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const renderCta = () => {
     // Favour the mUSD Conversion CTA over the lending empty state CTA
-    if (isConvertibleStablecoin) {
+    if (hasMusdConversionCta) {
       return renderMusdConversionCta();
     }
 

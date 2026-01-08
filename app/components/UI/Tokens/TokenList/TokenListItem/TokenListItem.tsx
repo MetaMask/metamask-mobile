@@ -120,16 +120,12 @@ export const TokenListItem = React.memo(
       selectIsMusdConversionFlowEnabledFlag,
     );
 
-    const { isConversionToken, getMusdOutputChainId } =
-      useMusdConversionTokens();
+    const { isTokenWithCta, getMusdOutputChainId } = useMusdConversionTokens();
 
     const { initiateConversion } = useMusdConversion();
 
-    const isConvertibleStablecoin =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
-
     const shouldShowConvertToMusdCta =
-      isConvertibleStablecoin && Number(asset?.balance) > 0;
+      isMusdConversionFlowEnabled && isTokenWithCta(asset);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -236,7 +232,7 @@ export const TokenListItem = React.memo(
 
     const renderEarnCta = useCallback(() => {
       // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
-      if (!asset || isConvertibleStablecoin) {
+      if (!asset || shouldShowConvertToMusdCta) {
         return null;
       }
 
@@ -252,9 +248,9 @@ export const TokenListItem = React.memo(
     }, [
       asset,
       earnToken,
-      isConvertibleStablecoin,
       isStablecoinLendingEnabled,
       isStakeable,
+      shouldShowConvertToMusdCta,
     ]);
 
     if (!asset || !chainId) {
