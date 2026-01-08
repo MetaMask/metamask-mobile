@@ -28,8 +28,6 @@ import {
 } from '@metamask/bridge-controller';
 import {
   Box,
-  Button,
-  ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
   IconColor,
@@ -315,12 +313,6 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch(text);
   };
 
-  const handleClearSearch = useCallback(() => {
-    setSearchString('');
-    debouncedSearch.cancel();
-    resetSearch();
-  }, [debouncedSearch, resetSearch]);
-
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
       const networkName = getNetworkName(item.chainId, networkConfigurations);
@@ -469,9 +461,6 @@ export const BridgeTokenSelector: React.FC = () => {
         >
           {strings('bridge.no_tokens_found_description')}
         </Text>
-        <Button variant={ButtonVariant.Secondary} onPress={handleClearSearch}>
-          {strings('wallet.view_all_tokens')}
-        </Button>
       </Box>
     );
   }, [
@@ -481,7 +470,6 @@ export const BridgeTokenSelector: React.FC = () => {
     styles.emptyStateTitle,
     styles.emptyStateDescription,
     NoSearchResultsIcon,
-    handleClearSearch,
   ]);
 
   return (
