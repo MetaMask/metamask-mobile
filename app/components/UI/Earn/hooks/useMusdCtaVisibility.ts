@@ -25,19 +25,24 @@ import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
 
-// TODO: Update Comments
-// TODO: Update tests
-// TODO: Add separate rewards feature flag for mUSD conversion. This will impact if the rewards UI elements are displayed on the musd-conversion-info screen.
 /**
- * Hook to determine visibility and network icon display for the MUSD CTA.
+ * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
+ *
+ * Centralizes CTA visibility logic for:
+ * - Buy/Get mUSD CTA (includes network badge info when exactly one chain is selected)
+ * - Token list item mUSD conversion CTA
+ * - Asset overview mUSD conversion CTA
+ *
+ * Decisions are driven by feature flags, selected network(s), mUSD balance, Ramp buyability by chain,
+ * and the configured wildcard token list for conversion CTAs.
  *
  * @returns Object containing:
- * - shouldShowCta: false if non-MUSD chain selected OR user has MUSD balance OR MUSD not buyable in region
- * - showNetworkIcon: true only when a single MUSD-supported chain is selected
- * - selectedChainId: the selected chain ID for the network badge (null if all networks)
+ * - shouldShowBuyGetMusdCta(): { shouldShowCta, showNetworkIcon, selectedChainId }
+ * - shouldShowTokenListItemCta(asset?): boolean
+ * - shouldShowAssetOverviewCta(asset?): boolean
  */
 export const useMusdCtaVisibility = () => {
-  // CTA Feature Flag Selectors
+  // mUSD CTA feature flag selectors
   const isMusdGetBuyCtaEnabled = useSelector(selectIsMusdGetBuyCtaEnabledFlag);
   const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
   const isMusdConversionTokenListItemCtaEnabled = useSelector(
@@ -135,7 +140,7 @@ export const useMusdCtaVisibility = () => {
   );
 
   const shouldShowBuyGetMusdCta = useCallback(() => {
-    // If the mUSD CTA feature flag is disabled, don't show the CTA
+    // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
     if (!isMusdGetBuyCtaEnabled) {
       return {
         shouldShowCta: false,
@@ -146,7 +151,7 @@ export const useMusdCtaVisibility = () => {
 
     // If all networks are selected
     if (isPopularNetworksFilterSelected) {
-      // Show CTA without network icon if:
+      // Show the buy/get mUSD CTA without network icon if:
       // - User doesn't have MUSD on any chain
       // - AND mUSD is buyable on at least one chain in user's region
       return {
@@ -161,7 +166,7 @@ export const useMusdCtaVisibility = () => {
     const isBuyableChain = MUSD_BUYABLE_CHAIN_IDS.includes(chainId);
 
     if (!isBuyableChain) {
-      // Chain doesn't have buy routes available (e.g., BSC) - hide CTA
+      // Chain doesn't have buy routes available (e.g., BSC) - hide the buy/get mUSD CTA
       return {
         shouldShowCta: false,
         showNetworkIcon: false,
@@ -173,7 +178,7 @@ export const useMusdCtaVisibility = () => {
     const isMusdBuyableInRegion = isMusdBuyableOnChain[chainId] ?? false;
 
     if (!isMusdBuyableInRegion) {
-      // mUSD not buyable in user's region for this chain - hide CTA
+      // mUSD not buyable in user's region for this chain - hide the buy/get mUSD CTA
       return {
         shouldShowCta: false,
         showNetworkIcon: false,

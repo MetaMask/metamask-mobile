@@ -22,17 +22,17 @@ describe('useMusdBalance', () => {
   });
 
   describe('hook structure', () => {
-    it('returns object with hasMusdBalance and balancesByChain properties', () => {
+    it('returns object with hasMusdBalanceOnAnyChainOnAnyChain and balancesByChain properties', () => {
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current).toHaveProperty('hasMusdBalance');
+      expect(result.current).toHaveProperty('hasMusdBalanceOnAnyChain');
       expect(result.current).toHaveProperty('balancesByChain');
     });
 
-    it('returns hasMusdBalance as boolean', () => {
+    it('returns hasMusdBalanceOnAnyChainOnAnyChain as boolean', () => {
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(typeof result.current.hasMusdBalance).toBe('boolean');
+      expect(typeof result.current.hasMusdBalanceOnAnyChain).toBe('boolean');
     });
 
     it('returns balancesByChain as object', () => {
@@ -43,16 +43,16 @@ describe('useMusdBalance', () => {
   });
 
   describe('balance detection', () => {
-    it('returns hasMusdBalance false when no balances exist', () => {
+    it('returns hasMusdBalanceOnAnyChain false when no balances exist', () => {
       mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(false);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
     });
 
-    it('returns hasMusdBalance false when MUSD balance is 0x0', () => {
+    it('returns hasMusdBalanceOnAnyChain false when MUSD balance is 0x0', () => {
       mockUseSelector.mockReturnValue({
         [CHAIN_IDS.MAINNET]: {
           [MUSD_ADDRESS]: '0x0',
@@ -61,11 +61,11 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(false);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
     });
 
-    it('returns hasMusdBalance true when MUSD balance exists on mainnet', () => {
+    it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on mainnet', () => {
       const balance = '0x1234';
       mockUseSelector.mockReturnValue({
         [CHAIN_IDS.MAINNET]: {
@@ -75,13 +75,13 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
       expect(result.current.balancesByChain).toEqual({
         [CHAIN_IDS.MAINNET]: balance,
       });
     });
 
-    it('returns hasMusdBalance true when MUSD balance exists on Linea', () => {
+    it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on Linea', () => {
       const lineaMusdAddress =
         MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
       const balance = '0x5678';
@@ -93,13 +93,13 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
       expect(result.current.balancesByChain).toEqual({
         [CHAIN_IDS.LINEA_MAINNET]: balance,
       });
     });
 
-    it('returns hasMusdBalance true when MUSD balance exists on BSC', () => {
+    it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on BSC', () => {
       const bscMusdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.BSC];
       const balance = '0x9abc';
       mockUseSelector.mockReturnValue({
@@ -110,7 +110,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
       expect(result.current.balancesByChain).toEqual({
         [CHAIN_IDS.BSC]: balance,
       });
@@ -130,7 +130,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
       expect(result.current.balancesByChain).toEqual({
         [CHAIN_IDS.MAINNET]: mainnetBalance,
         [CHAIN_IDS.LINEA_MAINNET]: lineaBalance,
@@ -149,7 +149,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
     });
 
     it('handles checksummed token address in balances', () => {
@@ -163,7 +163,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
     });
   });
 
@@ -179,7 +179,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(false);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
     });
 
@@ -193,7 +193,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(false);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
     });
 
@@ -210,7 +210,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(true);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
       expect(result.current.balancesByChain).toEqual({
         [CHAIN_IDS.LINEA_MAINNET]: balance,
       });
@@ -223,7 +223,7 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalance).toBe(false);
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
     });
   });
