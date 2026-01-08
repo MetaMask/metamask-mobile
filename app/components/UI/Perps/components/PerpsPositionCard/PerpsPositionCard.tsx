@@ -351,14 +351,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               }
 
               return (
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {parts.join(', ')}
                 </Text>
               );
             }
 
             return (
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('perps.auto_close.description')}
               </Text>
             );

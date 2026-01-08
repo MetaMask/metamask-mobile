@@ -731,7 +731,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VALIDATING_KYC when registration is complete', async () => {
+    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
@@ -823,7 +823,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
@@ -1104,7 +1104,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
