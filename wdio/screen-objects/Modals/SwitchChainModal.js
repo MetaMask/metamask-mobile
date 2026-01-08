@@ -40,9 +40,6 @@ class SwitchChainModal {
 
         const element = await this.connectButton;
         await AppwrightGestures.tap(element)
-
-        // Temporarily tapping by coordinates
-        // await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
     }
 
 

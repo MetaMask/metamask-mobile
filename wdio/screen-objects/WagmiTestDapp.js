@@ -39,7 +39,6 @@ class WagmiTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // //p[@id="connected-status"]
             return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connected-status"]');
         }
     }
@@ -70,7 +69,6 @@ class WagmiTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // //p[@id="connected-status"]
             return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="sign-message-button"]');
         }
     }

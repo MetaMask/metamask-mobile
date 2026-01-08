@@ -19,7 +19,6 @@ class SignModal {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // Use getElementByID which is more efficient than XPath
             return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
         }
     }
@@ -51,9 +50,6 @@ class SignModal {
 
         const element = await this.confirmButton;
         await AppwrightGestures.tap(element)
-
-        // Temporarily tapping by coordinates
-        // await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2060 }, { delay: 1500 });
     }
 
     async tapCancelButton() {
@@ -63,9 +59,6 @@ class SignModal {
 
         const element = await this.cancelButton;
         await AppwrightGestures.tap(element)
-
-        // Temporarily tapping by coordinates
-        // await AppwrightGestures.tapByCoordinates(this._device, { x: 165, y: 2060 }, { delay: 1500 });
     }
 
     async assertNetworkText(network) {

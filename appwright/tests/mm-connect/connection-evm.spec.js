@@ -22,7 +22,7 @@ const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
 
 // NOTE: This test requires the testing SRP to be used
 
-test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
+test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;

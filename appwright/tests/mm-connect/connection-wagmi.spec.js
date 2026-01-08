@@ -22,7 +22,7 @@ const WAGMI_TEST_DAPP_NAME = 'React Vite';
 
 // NOTE: This test requires the testing SRP to be used
 
-test.skip('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
+test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;

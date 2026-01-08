@@ -38,7 +38,6 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // //p[@id="connected-status"]
             return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connected-status"]');
         }
     }
@@ -49,7 +48,6 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // //p[@id="connected-status"]
             return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="personal-sign-button"]');
         }
     }
