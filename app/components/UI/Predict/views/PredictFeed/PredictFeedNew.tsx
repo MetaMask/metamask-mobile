@@ -617,7 +617,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   }, [tabKey, trackRef]);
 
   const contentInsetTop = headerHeight + tabBarHeight;
-  const currentHeaderOffset = headerHidden ? headerHeight : 0;
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
 
   // contentOffset should only be set on first FlashList mount, then undefined
@@ -627,7 +626,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     hasFlashListMounted.current = true;
     return Platform.select({
       ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
-      android: { x: 0, y: currentHeaderOffset },
+      android: { x: 0, y: 0 },
     });
   };
 
@@ -736,7 +735,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          progressViewOffset={contentInsetTop}
+          progressViewOffset={ headerHidden ? tabBarHeight : contentInsetTop }
         />
       }
       contentContainerStyle={contentContainerStyle}
