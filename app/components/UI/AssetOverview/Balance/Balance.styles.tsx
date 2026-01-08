@@ -17,15 +17,6 @@ const styleSheet = (params: { theme: Theme }) => {
     badgeWrapper: {
       alignSelf: 'center',
     },
-    stockBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 8,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      gap: 4,
-    },
     ethLogo: {
       width: 40,
       height: 40,

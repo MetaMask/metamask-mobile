@@ -1,9 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
+const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'row',
@@ -32,16 +31,6 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 2,
       alignSelf: 'stretch',
     },
-    stockBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 8,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      gap: 4,
-      alignSelf: 'flex-start',
-    },
   });
-};
+
 export default styleSheet;

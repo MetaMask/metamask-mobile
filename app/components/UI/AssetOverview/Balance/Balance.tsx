@@ -50,13 +50,9 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import StockBadge from '../../shared/StockBadge';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -272,19 +268,7 @@ const Balance = ({
               </SensitiveText>
             )}
             {isStockToken(asset as BridgeToken) && (
-              <View style={styles.stockBadge}>
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Xs}
-                  color={IconColor.Alternative}
-                />
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('token.stock')}
-                </Text>
-              </View>
+              <StockBadge token={asset as BridgeToken} />
             )}
           </View>
         </View>

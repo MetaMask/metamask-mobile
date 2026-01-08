@@ -29,11 +29,7 @@ import Text, {
 import TokenIcon from '../../../Base/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
@@ -111,15 +107,6 @@ const createStyles = ({
     nativeTokenIcon: {
       width: 32,
       height: 32,
-    },
-    stockBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 8,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      gap: 4,
     },
   });
 
@@ -257,21 +244,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
-            {isStockToken(token) && (
-              <View style={styles.stockBadge}>
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Xs}
-                  color={IconColor.Alternative}
-                />
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('token.stock')}
-                </Text>
-              </View>
-            )}
+            {isStockToken(token) && <StockBadge token={token} />}
           </Box>
 
           {/* Token balance and fiat value */}

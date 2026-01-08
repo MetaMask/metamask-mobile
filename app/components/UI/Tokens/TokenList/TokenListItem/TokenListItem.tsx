@@ -13,11 +13,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -50,7 +45,9 @@ import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
@@ -83,15 +80,6 @@ const createStyles = (colors: Colors) =>
     },
     centered: {
       textAlign: 'center',
-    },
-    stockBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.background.muted,
-      borderRadius: 8,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      gap: 4,
     },
   });
 
@@ -335,21 +323,7 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
-            {isStockToken(asset) && (
-              <View style={styles.stockBadge}>
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Xs}
-                  color={IconColor.Alternative}
-                />
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('token.stock')}
-                </Text>
-              </View>
-            )}
+            {isStockToken(asset as BridgeToken) && <StockBadge token={asset} />}
             {renderEarnCta()}
           </View>
         </View>

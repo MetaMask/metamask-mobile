@@ -43,12 +43,7 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import { strings } from '../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import StockBadge from '../../../shared/StockBadge';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -312,18 +307,7 @@ const TrendingTokenRowItem = ({
               token.aggregatedUsdVolume ?? 0,
             )}
           </Text>
-          {isStockToken(token) && (
-            <View style={styles.stockBadge}>
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Xs}
-                color={IconColor.Alternative}
-              />
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-                {strings('token.stock')}
-              </Text>
-            </View>
-          )}
+          {isStockToken(token) && <StockBadge token={token} />}
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
