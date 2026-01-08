@@ -1,0 +1,41 @@
+name: Run Maestro Test (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on'
+        required: false
+        default: 'main'
+        type: string
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - flask
+
+jobs:
+  build-android-apks:
+    name: 'Build Android APKs'
+    uses: ./.github/workflows/build-android-e2e-maestro.yml
+    with:
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+      branch: ${{ inputs.branch }}
+    secrets: inherit
+
+  maestro-test:
+    name: 'Maestro Add Wallet Test'
+    needs: [build-android-apks]
+    uses: ./.github/workflows/run-maestro-workflow.yml
+    with:
+      test-suite-name: 'maestro-add-wallet'
+      test-file: 'e2e/maestro/tests/add-wallet-test.yaml'
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: 'e2e'
+      branch: ${{ inputs.branch }}
+    secrets: inherit

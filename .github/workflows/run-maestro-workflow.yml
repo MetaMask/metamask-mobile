@@ -1,0 +1,143 @@
+name: Run Maestro Workflow
+
+on:
+  workflow_call:
+    inputs:
+      test-suite-name:
+        description: 'Name of the test suite'
+        required: true
+        type: string
+      test-file:
+        description: 'Path to Maestro test file'
+        required: true
+        type: string
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      branch:
+        description: 'Branch to checkout'
+        required: false
+        type: string
+        default: 'main'
+
+jobs:
+  test-maestro:
+    name: ${{ inputs.test-suite-name }}
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    timeout-minutes: 30
+
+    env:
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+      PLATFORM: android
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
+
+      - name: Set up E2E environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: android
+          setup-simulator: true
+          android-avd-name: emulator
+          configure-keystores: false
+
+      - name: Determine Android target paths
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-flask-release" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-prod-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
+      - name: Setup Android artifacts directories
+        run: |
+          echo "🏗 Setting up Android artifacts directories..."
+          mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: artifacts/
+
+      - name: Move APK to expected location
+        run: |
+          cp artifacts/${{ steps.determine-target-paths.outputs.artifact_name }}.apk \
+             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          echo "✅ APK ready at: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk"
+
+      - name: Install Maestro CLI
+        run: |
+          echo "📦 Installing Maestro CLI..."
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Verify Maestro installation
+        run: |
+          export PATH="$HOME/.maestro/bin:$PATH"
+          echo "✅ Maestro version:"
+          maestro --version
+          echo "✅ Java version:"
+          java -version
+
+      - name: Wait for emulator to be ready
+        run: |
+          echo "⏳ Waiting for emulator to boot..."
+          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          echo "✅ Emulator ready"
+
+      - name: Install APK on emulator
+        run: |
+          echo "📲 Installing APK on emulator..."
+          adb install ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          echo "✅ APK installed"
+
+      - name: Run Maestro Test
+        id: maestro-test
+        run: |
+          echo "🎭 Running Maestro test: ${{ inputs.test-file }}"
+          echo "📍 Branch: ${{ inputs.branch }}"
+          maestro test ${{ inputs.test-file }}
+
+      - name: Upload Maestro test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-${{ inputs.test-suite-name }}-results
+          path: |
+            ~/.maestro/tests/**/*
+            **/maestro_*.mp4
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-${{ inputs.test-suite-name }}-screenshots
+          path: ~/.maestro/tests/**/screenshot_*.png
+          retention-days: 7
+          if-no-files-found: warn
