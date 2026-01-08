@@ -30,6 +30,13 @@ jest.mock('../utils/formatUtils', () => ({
   formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
+  // Include significant figures utilities (re-exported via tpslValidation)
+  countSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .countSignificantFigures,
+  hasExceededSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .hasExceededSignificantFigures,
+  roundToSignificantFigures: jest.requireActual('../utils/formatUtils')
+    .roundToSignificantFigures,
 }));
 
 // Mock i18n strings
