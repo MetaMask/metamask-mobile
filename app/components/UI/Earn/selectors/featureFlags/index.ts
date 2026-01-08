@@ -68,8 +68,7 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
-// TODO: Rename here and in LaunchDarkly
-export const selectIsMusdCtaEnabledFlag = createSelector(
+export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
@@ -94,7 +93,7 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
     const localFlag =
       process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.earnMusdConversionAssetOverviewEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
 
     // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {

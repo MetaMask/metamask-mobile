@@ -2,14 +2,14 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useHasMusdBalance } from './useHasMusdBalance';
+import { useMusdBalance } from './useMusdBalance';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 
 jest.mock('react-redux');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-describe('useHasMusdBalance', () => {
+describe('useMusdBalance', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 
   beforeEach(() => {
@@ -23,20 +23,20 @@ describe('useHasMusdBalance', () => {
 
   describe('hook structure', () => {
     it('returns object with hasMusdBalance and balancesByChain properties', () => {
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current).toHaveProperty('hasMusdBalance');
       expect(result.current).toHaveProperty('balancesByChain');
     });
 
     it('returns hasMusdBalance as boolean', () => {
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(typeof result.current.hasMusdBalance).toBe('boolean');
     });
 
     it('returns balancesByChain as object', () => {
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(typeof result.current.balancesByChain).toBe('object');
     });
@@ -46,7 +46,7 @@ describe('useHasMusdBalance', () => {
     it('returns hasMusdBalance false when no balances exist', () => {
       mockUseSelector.mockReturnValue({});
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
@@ -59,7 +59,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
@@ -73,7 +73,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
       expect(result.current.balancesByChain).toEqual({
@@ -91,7 +91,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
       expect(result.current.balancesByChain).toEqual({
@@ -108,7 +108,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
       expect(result.current.balancesByChain).toEqual({
@@ -128,7 +128,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
       expect(result.current.balancesByChain).toEqual({
@@ -147,7 +147,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
     });
@@ -161,7 +161,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
     });
@@ -177,7 +177,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
@@ -191,7 +191,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
@@ -208,7 +208,7 @@ describe('useHasMusdBalance', () => {
         },
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(true);
       expect(result.current.balancesByChain).toEqual({
@@ -221,7 +221,7 @@ describe('useHasMusdBalance', () => {
         [CHAIN_IDS.MAINNET]: undefined,
       });
 
-      const { result } = renderHook(() => useHasMusdBalance());
+      const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalance).toBe(false);
       expect(result.current.balancesByChain).toEqual({});
