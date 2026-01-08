@@ -5690,9 +5690,10 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "Earn rewards with mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
-        "continue_button": "Get started"
+        "heading": "Boost Earnings with mUSD",
+        "description": "Get an automatic mUSD bonus when you convert your stablecoins to mUSD, MetaMask’s dollar-backed stable.",
+        "primary_button": "Convert to mUSD",
+        "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
