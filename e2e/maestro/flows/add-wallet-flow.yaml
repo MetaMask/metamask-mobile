@@ -3,41 +3,48 @@ tags:
   - SRP
 ---
 - runFlow: ../pages/loadElements.yaml
-- assertVisible: ${output.importSRP.screenTitle}
+- assertVisible: ${output.addWallet.screenTitle}
 - tapOn:
-    id: ${output.importSRP.word1}
-- inputText: club
-- tapOn:
-    id: ${output.importSRP.word2}
-- inputText: badge
-- tapOn:
-    id: ${output.importSRP.word3}
-- inputText: diamond
-- tapOn:
-    id: ${output.importSRP.word4}
-- inputText: staff
-- tapOn:
-    id: ${output.importSRP.word5}
-- inputText: object
-- tapOn:
-    id: ${output.importSRP.word6}
-- inputText: stamp
-- tapOn:
-    id: ${output.importSRP.word7}
-- inputText: common
-- tapOn:
-    id: ${output.importSRP.word8}
-- inputText: maze
-- tapOn:
-    id: ${output.importSRP.word9}
-- inputText: blush
-- tapOn:
-    id: ${output.importSRP.word10}
-- inputText: food
-- tapOn:
-    id: ${output.importSRP.word11}
-- inputText: wedding
-- tapOn:
-    id: ${output.importSRP.word12}
-- inputText: foil
-- doubleTapOn: ${output.importSRP.continueBtn}
+    id: seed-phrase-input
+
+
+# - tapOn:
+#     id: ${output.importSRP.word1}
+# - inputText: "club badge diamond staff object stamp common maze blush food wedding foil"
+- inputText: "club "
+# - tapOn:
+#     id: ${output.importSRP.word2}
+# - tapOn:
+#     id: seed-phrase-input_1
+- inputText: "badge "
+# - tapOn:
+#     id: ${output.importSRP.word3}
+- inputText: "diamond "
+# - tapOn:
+#     id: ${output.importSRP.word4}
+- inputText: "staff "
+# - tapOn:
+#     id: ${output.importSRP.word5}
+- inputText: "object "
+# - tapOn:
+#     id: ${output.importSRP.word6}
+- inputText: "stamp "
+# - tapOn:
+#     id: ${output.importSRP.word7}
+- inputText: "common "
+# - tapOn:
+#     id: ${output.importSRP.word8}
+- inputText: "maze "
+# - tapOn:
+#     id: ${output.importSRP.word9}
+- inputText: "blush "
+# - tapOn:
+#     id: ${output.importSRP.word10}
+- inputText: "food "
+# - tapOn:
+#     id: ${output.importSRP.word11}
+- inputText: "wedding "
+# - tapOn:
+#     id: ${output.importSRP.word12}
+- inputText: "foil "
+- doubleTapOn: ${output.addWallet.continueBtn}

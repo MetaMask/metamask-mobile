@@ -12,7 +12,7 @@ output.addWallet = {
   importAccountBtn: 'import-account-button',
 
   // Import SRP Screen
-  screenTitle: 'Import Secret Recovery Phrase',
+  screenTitle: 'Import a wallet',
   srpInput: 'import-srp-input',
 
   // SRP Input Fields (12-word - individual word inputs)

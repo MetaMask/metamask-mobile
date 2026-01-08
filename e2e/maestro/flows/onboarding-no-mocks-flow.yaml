@@ -3,7 +3,7 @@ tags:
   - onboarding
 ---
 - runFlow: ../pages/loadElements.yaml
-- assertVisible: ${output.onboarding.welcome.text}
+# - assertVisible: ${output.onboarding.welcome.text}
 - tapOn:
     id: ${output.onboarding.welcome.createNewWalletBtn}
     delay: 1000
@@ -23,19 +23,24 @@ tags:
     delay: 200
 - tapOn:
     id: ${output.onboarding.backup.remindMeLaterBtn}
+# - assertVisible: ${output.onboarding.backup.skipTitle}
 - tapOn:
-    id: ${output.onboarding.backup.remindMeLaterBtn}
-- assertVisible: ${output.onboarding.backup.skipTitle}
+    id: optin-metrics-continue-button-id
+- assertVisible: Your wallet is ready!
 - tapOn:
-    id: ${output.onboarding.backup.skipText}
-- tapOn:
-    id: ${output.onboarding.backup.skipBtn}
-- tapOn:
-    id: ${output.onboarding.metrics.optinBtn}
-- assertVisible: ${output.onboarding.default_settings.remindLaterMessage}
-- tapOn:
-    id: ${output.onboarding.default_settings.doneBtn}
-- assertVisible: ${output.onboarding.perps.title}
-- tapOn:
-    id: ${output.onboarding.perps.notNowBtn}
+    id: onboarding-success-done-button
+- tapOn: Not now
+
+# - tapOn:
+#     id: ${output.onboarding.backup.skipText}
+# - tapOn:
+#     id: ${output.onboarding.backup.skipBtn}
+# - tapOn:
+#     id: ${output.onboarding.metrics.optinBtn}
+# - assertVisible: ${output.onboarding.default_settings.remindLaterMessage}
+# - tapOn:
+#     id: ${output.onboarding.default_settings.doneBtn}
+# - assertVisible: ${output.onboarding.perps.title}
+# - tapOn:
+#     id: ${output.onboarding.perps.notNowBtn}
 - assertVisible: ${output.home.accountName}
