@@ -58,11 +58,6 @@ const EarnModalStack = () => (
       component={LendingLearnMoreModal}
       options={{ headerShown: false }}
     />
-    <ModalStack.Screen
-      name={Routes.EARN.MODALS.MUSD_MAX_CONVERSION}
-      component={Confirm}
-      options={{ headerShown: false }}
-    />
   </ModalStack.Navigator>
 );
 
