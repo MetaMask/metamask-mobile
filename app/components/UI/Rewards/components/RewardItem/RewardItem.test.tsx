@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { TouchableOpacity } from 'react-native';
 import RewardItem from './RewardItem';
 import {
   SeasonRewardDto,
@@ -263,7 +264,31 @@ describe('RewardItem', () => {
       ).toBeNull();
     });
 
-    it('shows claim button for end of season reward even when already claimed', () => {
+    it('hides claim button for end of season reward when already claimed', () => {
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const seasonRewardWithFutureClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: futureDate,
+      };
+
+      const { queryByTestId } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={seasonRewardWithFutureClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON),
+      ).toBeNull();
+    });
+
+    it('displays claimed label for end of season reward when claimed', () => {
       const claimedReward: RewardDto = {
         ...mockReward,
         claimStatus: RewardClaimStatus.CLAIMED,
@@ -282,7 +307,7 @@ describe('RewardItem', () => {
         />,
       );
 
-      expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+      expect(getByText('rewards.unlocked_rewards.claimed_label')).toBeDefined();
     });
 
     it('hides claim button for non-end-of-season reward when already claimed', () => {
@@ -336,6 +361,50 @@ describe('RewardItem', () => {
       );
 
       expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+    });
+
+    it('disables TouchableOpacity when end of season reward claim has expired', () => {
+      const seasonRewardWithExpiredClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: pastDate,
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithExpiredClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      expect(touchableOpacity.props.disabled).toBe(true);
+    });
+
+    it('does not call onPress when end of season reward claim has expired', () => {
+      const mockOnPress = jest.fn();
+      const seasonRewardWithExpiredClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: pastDate,
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithExpiredClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+          onPress={mockOnPress}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+
+      // Call onPress directly to test the handler logic
+      touchableOpacity.props.onPress?.();
+
+      expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
 });

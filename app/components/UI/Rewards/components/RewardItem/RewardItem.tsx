@@ -32,31 +32,30 @@ interface RewardItemProps {
   seasonReward: SeasonRewardDto;
   isLast?: boolean;
   isLocked?: boolean;
-  canPressToNavigateToInfo?: boolean;
   isEndOfSeasonReward?: boolean;
   compact?: boolean;
+  onPress?: (rewardId: string, seasonReward: SeasonRewardDto) => void;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
   reward,
   seasonReward,
   isLast = false,
-  canPressToNavigateToInfo = true,
   isLocked = true,
   isEndOfSeasonReward = false,
   compact = false,
+  onPress,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const isSeasonRewardClaimExpired = useMemo(() => {
     if (
-      isEndOfSeasonReward &&
       seasonReward.claimEndDate &&
       new Date(seasonReward.claimEndDate) < new Date()
     ) {
       return true;
     }
     return false;
-  }, [seasonReward.claimEndDate, isEndOfSeasonReward]);
+  }, [seasonReward.claimEndDate]);
   const timeRemaining = useMemo(() => {
     // Prefer reward-specific activeUntil if available
     const pointsBoostActiveUntil = (
@@ -166,6 +165,28 @@ const RewardItem: React.FC<RewardItemProps> = ({
   const shortDescription = useMemo(() => {
     // End of season rewards: show time status or description
     if (isEndOfSeasonReward) {
+      if (hasClaimed) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-text-alternative"
+          >
+            {strings('rewards.unlocked_rewards.claimed_label')}
+          </Text>
+        );
+      } else if (isSeasonRewardClaimExpired) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-text-alternative"
+          >
+            {strings('rewards.unlocked_rewards.expired')}
+          </Text>
+        );
+      }
+
       return renderTimeStatusIndicator({
         isExpired: hasExpired,
         remainingTime: timeRemaining,
@@ -251,6 +272,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
     hasExpired,
     timeRemaining,
     renderTimeStatusIndicator,
+    isSeasonRewardClaimExpired,
   ]);
 
   const longDescription = isLocked
@@ -293,7 +315,13 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [isLocked, currentAccountAddress, seasonReward.claimUrl]);
 
   const handleRewardItemPress = useCallback(() => {
-    if (!canPressToNavigateToInfo || isSeasonRewardClaimExpired) return;
+    if (isLocked || hasClaimed || isSeasonRewardClaimExpired) return;
+
+    if (onPress) {
+      onPress(reward?.id as string, seasonReward);
+      return;
+    }
+
     navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
       title: seasonReward.name,
       icon: getIconName(seasonReward.iconName),
@@ -308,13 +336,10 @@ const RewardItem: React.FC<RewardItemProps> = ({
       hasClaimed,
     });
   }, [
-    canPressToNavigateToInfo,
     isSeasonRewardClaimExpired,
     navigation,
-    seasonReward.name,
-    seasonReward.iconName,
-    seasonReward.rewardType,
-    seasonReward.id,
+    onPress,
+    seasonReward,
     longDescription,
     rewardClaimUrl,
     rewardInputAction,
@@ -326,7 +351,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
 
   return (
     <TouchableOpacity
-      disabled={!canPressToNavigateToInfo}
+      disabled={isLocked || hasClaimed || isSeasonRewardClaimExpired}
       onPress={handleRewardItemPress}
     >
       <Box
@@ -364,21 +389,23 @@ const RewardItem: React.FC<RewardItemProps> = ({
         </Box>
 
         {/* Claim Button - hidden when locked, already claimed, or end of season reward claim period has expired */}
-        {!isLocked &&
-          (!hasClaimed || isEndOfSeasonReward) &&
-          !isSeasonRewardClaimExpired && (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleRewardItemPress();
-              }}
-              testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
-            >
-              {strings('rewards.unlocked_rewards.claim_label')}
-            </Button>
-          )}
+        {!isLocked && !hasClaimed && !isSeasonRewardClaimExpired && (
+          <Button
+            variant={
+              isEndOfSeasonReward
+                ? ButtonVariant.Primary
+                : ButtonVariant.Secondary
+            }
+            size={isEndOfSeasonReward ? ButtonSize.Md : ButtonSize.Sm}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleRewardItemPress();
+            }}
+            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
+          >
+            {strings('rewards.unlocked_rewards.claim_label')}
+          </Button>
+        )}
       </Box>
     </TouchableOpacity>
   );

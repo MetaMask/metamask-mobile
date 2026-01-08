@@ -114,7 +114,7 @@ const Routes = {
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
-    OTA_UPDATES_MODAL: 'OTAUpdatesModal',
+    REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET: 'MetalCardClaimBottomSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
