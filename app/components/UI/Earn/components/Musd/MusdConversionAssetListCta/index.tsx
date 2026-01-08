@@ -11,7 +11,6 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import {
-  MUSD_APY,
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -21,8 +20,6 @@ import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
@@ -38,13 +35,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
-import { useSelector } from 'react-redux';
 
-/**
- * TODO: Create a feature flag wrapper util (if one doesn't exist) to easily block rendering of components when feature is disabled.
- * We don't want to exclusively rely on the caller to check.
- */
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -57,10 +48,6 @@ const MusdConversionAssetListCta = () => {
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
     useMusdCtaVisibility();
 
-  const navigation = useNavigation();
-
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
-
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
     [tokens],
@@ -71,7 +58,7 @@ const MusdConversionAssetListCta = () => {
       return strings('earn.musd_conversion.buy_musd');
     }
 
-    return strings('earn.musd_conversion.convert');
+    return strings('earn.musd_conversion.get_musd');
   }, [canConvert]);
 
   const handlePress = async () => {
@@ -96,13 +83,6 @@ const MusdConversionAssetListCta = () => {
     const paymentTokenAddress = toChecksumAddress(address);
 
     try {
-      if (isQuickConvertEnabled) {
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.MUSD.QUICK_CONVERT,
-        });
-        return;
-      }
-
       await initiateConversion({
         preferredPaymentToken: {
           address: paymentTokenAddress,
@@ -159,10 +139,8 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
-            {strings('earn.musd_conversion.earn_apy', {
-              apy: MUSD_APY,
-            })}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Success}>
+            {strings('earn.musd_conversion.earn_points_daily')}
           </Text>
         </View>
       </View>

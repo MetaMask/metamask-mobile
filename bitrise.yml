@@ -3373,9 +3373,6 @@ app:
       MM_MUSD_CONVERSION_FLOW_ENABLED: false
     - opts:
         is_expand: false
-      MM_MUSD_QUICK_CONVERT_ENABLED: false
-    - opts:
-        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false

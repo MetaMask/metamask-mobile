@@ -5681,14 +5681,6 @@
     },
     "musd_conversion": {
       "convert_to_musd": "Convert to mUSD",
-      "fetching_quote": "Fetching quote...",
-      "you_convert": "You convert",
-      "you_receive": "You receive",
-      "network_fee": "Network fee",
-      "earning": "Earning",
-      "convert": "Convert",
-      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
-      "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
@@ -5705,8 +5697,7 @@
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to",
-      "max": "Max"
+      "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",

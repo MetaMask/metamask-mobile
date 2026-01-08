@@ -133,7 +133,6 @@ export function useTransactionConfirm() {
         screen: Routes.PERPS.PERPS_HOME,
       });
     } else if (type === TransactionType.musdConversion) {
-      // Fallback to wallet home if we can't go back
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
