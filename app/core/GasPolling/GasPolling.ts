@@ -33,9 +33,8 @@ export const startGasPolling = async (token?: string) => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { GasFeeController }: any = Engine.context;
-  const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(
-    token,
-  );
+  const pollToken =
+    await GasFeeController.getGasFeeEstimatesAndStartPolling(token);
   return pollToken;
 };
 
@@ -61,7 +60,6 @@ export const useDataStore = () => {
     ticker,
     transaction,
     selectedAsset,
-    showCustomNonce,
   ] = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +74,6 @@ export const useDataStore = () => {
       selectEvmTicker(state),
       state.transaction,
       state.transaction.selectedAsset,
-      state.settings.showCustomNonce,
     ],
     shallowEqual,
   );
@@ -92,7 +89,6 @@ export const useDataStore = () => {
     contractBalances,
     selectedAsset,
     ticker,
-    showCustomNonce,
   };
 };
 

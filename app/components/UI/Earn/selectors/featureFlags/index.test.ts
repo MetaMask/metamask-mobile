@@ -3,6 +3,8 @@ import {
   selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+  selectMusdConversionPaymentTokensAllowlist,
+  selectMusdConversionPaymentTokensBlocklist,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -811,6 +813,609 @@ describe('Earn Feature Flag Selectors', () => {
         } as unknown as VersionGatedFeatureFlag;
         const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
+      });
+    });
+  });
+
+  describe('selectMusdConversionPaymentTokensAllowlist', () => {
+    let consoleWarnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore();
+      delete process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
+    });
+
+    it('returns parsed remote allowlist when available', () => {
+      const remoteAllowlist = {
+        '0x1': ['USDC', 'USDT'],
+        '0xe708': ['USDC'],
+      };
+
+      const stateWithRemoteAllowlist = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist: remoteAllowlist,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionPaymentTokensAllowlist(
+        stateWithRemoteAllowlist,
+      );
+
+      expect(result).toEqual(remoteAllowlist);
+    });
+
+    it('falls back to local env variable when remote unavailable', () => {
+      const localAllowlist = {
+        '0x1': ['USDC', 'DAI'],
+      };
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST =
+        JSON.stringify(localAllowlist);
+
+      const stateWithoutRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result =
+        selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
+
+      expect(result).toEqual(localAllowlist);
+    });
+
+    it('returns empty object when both remote and local are unavailable', () => {
+      delete process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
+
+      const stateWithoutRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result =
+        selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
+
+      expect(result).toEqual({});
+    });
+
+    it('handles JSON parsing errors for local env gracefully', () => {
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST = 'invalid json';
+
+      const stateWithoutRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result =
+        selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
+        ),
+        expect.anything(),
+      );
+      expect(result).toEqual({});
+    });
+
+    it('handles JSON parsing errors for remote flag gracefully', () => {
+      const stateWithInvalidRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist:
+                  'invalid json string that cannot be parsed',
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionPaymentTokensAllowlist(
+        stateWithInvalidRemote,
+      );
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Failed to parse remote earnMusdConvertibleTokensAllowlist',
+        ),
+        expect.anything(),
+      );
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when remote flag is not formatted correctly as object keyed by chain IDs with array of token symbols as values', () => {
+      const stateWithArrayRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist: ['0x1', 'USDC'],
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result =
+        selectMusdConversionPaymentTokensAllowlist(stateWithArrayRemote);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns allowlist with wildcards', () => {
+      const remoteAllowlist = {
+        '*': ['USDC'],
+        '0x1': ['*'],
+        '0xa4b1': ['USDT', 'DAI'],
+      };
+
+      const stateWithRemoteAllowlist = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist: remoteAllowlist,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionPaymentTokensAllowlist(
+        stateWithRemoteAllowlist,
+      );
+
+      expect(result).toEqual(remoteAllowlist);
+    });
+
+    it('uses remote allowlist over local when both are available', () => {
+      const localAllowlist = { '0x1': ['DAI'] };
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST =
+        JSON.stringify(localAllowlist);
+      const remoteAllowlist = { '0x1': ['USDC', 'USDT'] };
+      const stateWithBoth = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist: remoteAllowlist,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionPaymentTokensAllowlist(stateWithBoth);
+
+      expect(result).toEqual(remoteAllowlist);
+    });
+
+    it('uses local allowlist when remote is invalid structure', () => {
+      const localAllowlist = { '0x1': ['DAI'] };
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST =
+        JSON.stringify(localAllowlist);
+      const stateWithInvalidRemote = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnMusdConvertibleTokensAllowlist: { '0x1': 'not-an-array' },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectMusdConversionPaymentTokensAllowlist(
+        stateWithInvalidRemote,
+      );
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('produced invalid structure'),
+      );
+      expect(result).toEqual(localAllowlist);
+    });
+  });
+
+  describe('selectMusdConversionPaymentTokensBlocklist', () => {
+    let consoleWarnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore();
+      delete process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST;
+    });
+
+    describe('remote flag precedence', () => {
+      it('returns parsed remote blocklist when valid', () => {
+        const remoteBlocklist = {
+          '*': ['USDC'],
+          '0x1': ['USDT'],
+        };
+
+        const stateWithRemoteBlocklist = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: remoteBlocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithRemoteBlocklist,
+        );
+
+        expect(result).toEqual({
+          '*': ['USDC'],
+          '0x1': ['USDT'],
+        });
+      });
+
+      it('returns remote blocklist over local when both are valid', () => {
+        const localBlocklist = { '0x1': ['DAI'] };
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
+          JSON.stringify(localBlocklist);
+
+        const remoteBlocklist = { '*': ['USDC'], '0x1': ['*'] };
+
+        const stateWithBoth = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: remoteBlocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result =
+          selectMusdConversionPaymentTokensBlocklist(stateWithBoth);
+
+        expect(result).toEqual(remoteBlocklist);
+      });
+
+      it('parses remote blocklist from JSON string', () => {
+        const remoteBlocklistString = '{"*":["USDC"],"0x1":["*"]}';
+
+        const stateWithStringRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: remoteBlocklistString,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithStringRemote,
+        );
+
+        expect(result).toEqual({
+          '*': ['USDC'],
+          '0x1': ['*'],
+        });
+      });
+    });
+
+    describe('local env fallback', () => {
+      it('returns local blocklist when remote is unavailable', () => {
+        const localBlocklist = { '0xa4b1': ['USDT', 'DAI'] };
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
+          JSON.stringify(localBlocklist);
+
+        const stateWithoutRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result =
+          selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
+
+        expect(result).toEqual({ '0xa4b1': ['USDT', 'DAI'] });
+      });
+
+      it('returns local blocklist when remote is invalid', () => {
+        const localBlocklist = { '0x1': ['USDC'] };
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
+          JSON.stringify(localBlocklist);
+
+        const stateWithInvalidRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: { '0x1': 'not-an-array' },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithInvalidRemote,
+        );
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'Remote earnMusdConvertibleTokensBlocklist produced invalid structure',
+          ),
+        );
+        expect(result).toEqual({ '0x1': ['USDC'] });
+      });
+    });
+
+    describe('default empty blocklist', () => {
+      it('returns empty object when both remote and local are unavailable', () => {
+        delete process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST;
+
+        const stateWithoutBlocklist = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithoutBlocklist,
+        );
+
+        expect(result).toEqual({});
+      });
+
+      it('returns empty object when both remote and local are invalid', () => {
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST = 'invalid json';
+
+        const stateWithInvalidRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: 'also invalid json {{',
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithInvalidRemote,
+        );
+
+        expect(consoleWarnSpy).toHaveBeenCalled();
+        expect(result).toEqual({});
+      });
+    });
+
+    describe('wildcard format validation', () => {
+      it('accepts blocklist with global wildcard key', () => {
+        const blocklist = { '*': ['USDC', 'USDT'] };
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: blocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(state);
+
+        expect(result).toEqual(blocklist);
+      });
+
+      it('accepts blocklist with chain wildcard symbol', () => {
+        const blocklist = { '0x1': ['*'] };
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: blocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(state);
+
+        expect(result).toEqual(blocklist);
+      });
+
+      it('accepts combined wildcard blocklist', () => {
+        const blocklist = {
+          '*': ['USDC'],
+          '0x1': ['*'],
+          '0xa4b1': ['USDT', 'DAI'],
+        };
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: blocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(state);
+
+        expect(result).toEqual(blocklist);
+      });
+    });
+
+    describe('error handling', () => {
+      it('handles JSON parsing errors for local env gracefully', () => {
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST = 'not valid json';
+
+        const stateWithoutRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result =
+          selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
+          ),
+          expect.anything(),
+        );
+        expect(result).toEqual({});
+      });
+
+      it('handles JSON parsing errors for remote flag gracefully', () => {
+        const stateWithInvalidRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: '{ invalid json }',
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(
+          stateWithInvalidRemote,
+        );
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'Failed to parse remote earnMusdConvertibleTokensBlocklist',
+          ),
+          expect.anything(),
+        );
+        expect(result).toEqual({});
+      });
+
+      it('rejects blocklist when values are not arrays', () => {
+        const invalidBlocklist = { '0x1': 'USDC' };
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: invalidBlocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(state);
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('produced invalid structure'),
+        );
+        expect(result).toEqual({});
+      });
+
+      it('rejects blocklist when array contains non-strings', () => {
+        const invalidBlocklist = { '0x1': [123, 456] };
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensBlocklist: invalidBlocklist,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionPaymentTokensBlocklist(state);
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('produced invalid structure'),
+        );
+        expect(result).toEqual({});
       });
     });
   });

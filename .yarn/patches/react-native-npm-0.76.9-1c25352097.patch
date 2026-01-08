@@ -1,16 +1,20 @@
 diff --git a/Libraries/Pressability/Pressability.js b/Libraries/Pressability/Pressability.js
-index 1bd6853b4202e4f726e80709660f6d049a4fc741..005008a26a5e07ae697098c82cce03dc86791635 100644
+index 1bd6853b4202e4f726e80709660f6d049a4fc741..550651260129f3fb5081601a970775ec478de105 100644
 --- a/Libraries/Pressability/Pressability.js
 +++ b/Libraries/Pressability/Pressability.js
-@@ -806,7 +806,7 @@ export default class Pressability {
+@@ -806,7 +806,11 @@ export default class Pressability {
      if (typeof this._responderID === 'number') {
        UIManager.measure(this._responderID, this._measureCallback);
      } else {
 -      this._responderID.measure(this._measureCallback);
-+      this._responderID.measureAsyncOnUI(this._measureCallback);
++      if (Platform.OS === "android") {
++        this._responderID.measureAsyncOnUI(this._measureCallback);
++      } else {
++        this._responderID.measure(this._measureCallback);
++      }
      }
    }
- 
+  
 diff --git a/Libraries/ReactNative/FabricUIManager.js b/Libraries/ReactNative/FabricUIManager.js
 index a31fe41f232a4b5e79f37c2a98f51ee8208c9585..d77b10e87657987092e92fcd2ecbe9b368eb03eb 100644
 --- a/Libraries/ReactNative/FabricUIManager.js
@@ -97,7 +101,7 @@ index ec4354583ac04fa8df6de7c1896902a4c7d5c4b4..d372b05e17749b73e94bc51616b9123c
 +    UIView<RCTComponentViewProtocol> *view = [self->_componentViewRegistry findComponentViewWithTag:reactTag];
 +    if (!view) {
 +      // this view was probably collapsed out
-+      RCTLogWarn(@"measure cannot find view with tag #%@", reactTag);
++      RCTLogWarn(@"measure cannot find view with tag #%@", @(reactTag));
 +      callbackCopy({});
 +      return;
 +    }

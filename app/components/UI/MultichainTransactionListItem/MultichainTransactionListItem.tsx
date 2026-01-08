@@ -18,6 +18,11 @@ import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import { getNetworkImageSource } from '../../../util/networks';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -43,12 +48,25 @@ const MultichainTransactionListItem = ({
   const renderTxElementIcon = (transactionType: string) => {
     const isFailedTransaction = transaction.status === 'failed';
     const icon = getTransactionIcon(
-      transactionType,
+      transactionType.toLowerCase(),
       isFailedTransaction,
       appTheme,
       osColorScheme,
     );
-    return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+    const networkImageSource = getNetworkImageSource({ chainId });
+
+    return (
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <Image source={icon} style={style.icon} resizeMode="stretch" />
+      </BadgeWrapper>
+    );
   };
 
   const displayAmount = () => {

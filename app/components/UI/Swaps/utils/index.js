@@ -3,65 +3,38 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
-
-const {
-  ETH_CHAIN_ID,
-  BSC_CHAIN_ID,
-  SWAPS_TESTNET_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  BASE_CHAIN_ID,
-  SEI_CHAIN_ID,
-} = swapsUtils;
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 const allowedChainIds = [
-  ETH_CHAIN_ID,
-  BSC_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  BASE_CHAIN_ID,
-  SEI_CHAIN_ID,
-  SWAPS_TESTNET_CHAIN_ID,
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  CHAIN_IDS.SEI,
+  CHAIN_IDS.MONAD,
 ];
-
-export const allowedTestnetChainIds = [
-  NETWORKS_CHAIN_ID.GOERLI,
-  NETWORKS_CHAIN_ID.SEPOLIA,
-];
-
-if (__DEV__) {
-  allowedChainIds.push(...allowedTestnetChainIds);
-}
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
     return false;
   }
-  if (!AppConstants.SWAPS.ONLY_MAINNET) {
-    allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
-  }
 
-  if (chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet) {
+  if (
+    chainId === SolScope.Mainnet ||
+    chainId === BtcScope.Mainnet ||
+    chainId === TrxScope.Mainnet
+  ) {
     return true;
   }
 
   return allowedChainIds.includes(chainId);
-}
-
-export function isSwapsNativeAsset(token) {
-  return (
-    Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-  );
 }
 
 export function isDynamicToken(token) {

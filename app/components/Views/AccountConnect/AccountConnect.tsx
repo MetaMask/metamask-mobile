@@ -106,6 +106,8 @@ import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 import { isSnapId } from '@metamask/snaps-utils';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -654,7 +656,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
 
-    const handleUserActions = (action: USER_INTENT) => {
+    const handleUserActions = async (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConfirm();
@@ -681,11 +683,20 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-            ).build(),
-          );
+          try {
+            const connectedDeviceCount = await getConnectedDevicesCount();
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+                .addProperties({
+                  device_type: HardwareDeviceTypes.QR,
+                  connected_device_count: connectedDeviceCount,
+                })
+                .build(),
+            );
+          } catch (error) {
+            // [AccountConnect] Analytics error should not disrupt user flow
+            console.error('[AccountConnect] Failed to track analytics:', error);
+          }
 
           break;
         }
@@ -863,7 +874,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         animationOut="slideOutDown"
         style={styles.fullScreenModal}
         backdropOpacity={1}
-        backdropColor={colors.error.default}
+        backdropColor={colors.background.alternative}
         animationInTiming={300}
         animationOutTiming={300}
         useNativeDriver
@@ -880,7 +891,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ),
     [
       blockedUrl,
-      colors.error.default,
+      colors.background.alternative,
       continueToPhishingSite,
       goBackToSafety,
       goToETHPhishingDetector,

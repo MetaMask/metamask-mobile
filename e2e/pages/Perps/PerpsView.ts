@@ -1,10 +1,10 @@
 import {
-  PerpsPositionCardSelectorsIDs,
   PerpsGeneralSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
+  PerpsMarketDetailsViewSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
@@ -14,7 +14,9 @@ import Utilities from '../../framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {
-    return Matchers.getElementByID(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON);
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+    );
   }
 
   getPositionItem(
@@ -64,11 +66,6 @@ class PerpsView {
       PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
     );
   }
-  get backButtonMarketList() {
-    return Matchers.getElementByID(
-      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
-    );
-  }
 
   get orderSuccessToastDismissButton() {
     return Matchers.getElementByID(
@@ -114,8 +111,8 @@ class PerpsView {
 
   getStopLossPercentageButton(percentage: number) {
     // Support legacy tests passing index (1..4) by mapping to actual ROE% (loss magnitudes)
-    // SL quick buttons: [5, 10, 25, 50]
-    const mapped = [0, 5, 10, 25, 50][percentage] || percentage;
+    // SL quick buttons: [-5, -10, -25, -50]
+    const mapped = [0, -5, -10, -25, -50][percentage] || percentage;
     return Matchers.getElementByID(
       getPerpsTPSLViewSelector.stopLossPercentageButton(mapped),
     );
@@ -269,7 +266,6 @@ class PerpsView {
       elemDescription: 'Close position bottom sheet button',
       checkStability: true,
       timeout: 10000,
-      waitForElementToDisappear: true,
     });
   }
 
@@ -281,12 +277,6 @@ class PerpsView {
   async tapBackButtonPositionSheet() {
     await Gestures.waitAndTap(this.backButtonPositionSheet, {
       elemDescription: 'Back button position sheet',
-    });
-  }
-
-  async tapBackButtonMarketList() {
-    await Gestures.waitAndTap(this.backButtonMarketList, {
-      elemDescription: 'Back button market list',
     });
   }
 }

@@ -40,6 +40,9 @@ const createStyles = (theme: Theme) =>
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
     },
+    defaultMarginBottom: {
+      marginBottom: 16,
+    },
     cardBalanceContainer: {
       marginTop: 16,
       backgroundColor: theme.colors.background.muted,
@@ -103,6 +106,10 @@ const createStyles = (theme: Theme) =>
     },
     shouldBeHidden: {
       display: 'none',
+    },
+    managementOptionsContainer: {
+      marginTop: 16,
+      gap: 8,
     },
   });
 

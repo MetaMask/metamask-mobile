@@ -9,7 +9,10 @@ import reducer, {
   setBridgeViewMode,
   selectBridgeViewMode,
   setDestToken,
+  setIsDestTokenManuallySet,
+  selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
+  selectGasIncludedQuoteParams,
 } from '.';
 import {
   BridgeToken,
@@ -43,13 +46,15 @@ describe('bridge slice', () => {
   };
 
   describe('initial state', () => {
-    it('should have the correct initial state', () => {
+    it('has correct initial state', () => {
       expect(initialState).toEqual({
         bridgeViewMode: undefined,
         sourceAmount: undefined,
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        isGasIncludedSTXSendBundleSupported: false,
+        isGasIncluded7702Supported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
@@ -57,6 +62,7 @@ describe('bridge slice', () => {
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isMaxSourceAmount: false,
+        isDestTokenManuallySet: false,
       });
     });
   });
@@ -167,12 +173,70 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
-    it('should set the destination token and update selectedDestChainId', () => {
+    it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
 
       expect(state.destToken).toBe(mockDestToken);
       expect(state.selectedDestChainId).toBe(mockDestToken.chainId);
+    });
+
+    it('does not modify isDestTokenManuallySet flag', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setDestToken(mockDestToken);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setIsDestTokenManuallySet', () => {
+    it('sets the flag to true', () => {
+      const action = setIsDestTokenManuallySet(true);
+      const state = reducer(initialState, action);
+
+      expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('sets the flag to false', () => {
+      const stateWithManualFlag = {
+        ...initialState,
+        isDestTokenManuallySet: true,
+      };
+
+      const action = setIsDestTokenManuallySet(false);
+      const state = reducer(stateWithManualFlag, action);
+
+      expect(state.isDestTokenManuallySet).toBe(false);
+    });
+  });
+
+  describe('selectIsDestTokenManuallySet', () => {
+    it('returns false from initial state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is set', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isDestTokenManuallySet: true,
+        },
+      } as RootState;
+
+      const result = selectIsDestTokenManuallySet(mockState);
+
+      expect(result).toBe(true);
     });
   });
 
@@ -226,8 +290,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -257,8 +320,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -297,8 +359,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         {
           eip155: {
@@ -385,6 +446,70 @@ describe('bridge slice', () => {
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectGasIncludedQuoteParams', () => {
+    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded false with 7702 false for bridge mode', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: mockDestToken,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
     });
   });
 });

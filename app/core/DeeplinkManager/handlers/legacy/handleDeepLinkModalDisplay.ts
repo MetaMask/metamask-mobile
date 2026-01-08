@@ -1,0 +1,33 @@
+// Handles deep link modal display - analytics tracked in handleUniversalLink
+import {
+  createDeepLinkModalNavDetails,
+  DeepLinkModalParams,
+} from '../../../../components/UI/DeepLinkModal';
+import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
+import ReduxService from '../../../redux';
+import NavigationService from '../../../NavigationService';
+import { DeepLinkAnalyticsContext } from '../../types/deepLinkAnalytics.types';
+
+const handleDeepLinkModalDisplay = async (
+  params: DeepLinkModalParams,
+  deepLinkContext?: DeepLinkAnalyticsContext,
+) => {
+  // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
+  const deepLinkModalDisabled = selectDeepLinkModalDisabled(
+    ReduxService.store.getState(),
+  );
+
+  if (params.linkType === 'private' && deepLinkModalDisabled) {
+    // Skip interstitial if don't remind me again was toggled
+    params.onContinue();
+    return;
+  }
+  NavigationService.navigation.navigate(
+    ...createDeepLinkModalNavDetails({
+      ...params,
+      deepLinkContext,
+    }),
+  );
+};
+
+export default handleDeepLinkModalDisplay;

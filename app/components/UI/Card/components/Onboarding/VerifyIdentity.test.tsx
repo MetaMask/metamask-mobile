@@ -15,6 +15,41 @@ jest.mock('@react-navigation/native', () => ({
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
 
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({ event: 'test' }),
+}));
+
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
+    CARD_VIEWED: 'CARD_VIEWED',
+  },
+}));
+
+// Mock metrics util
+jest.mock('../../util/metrics', () => ({
+  CardActions: {
+    VERIFY_IDENTITY_BUTTON: 'VERIFY_IDENTITY_BUTTON',
+  },
+  CardScreens: {
+    VERIFY_IDENTITY: 'VERIFY_IDENTITY',
+  },
+}));
+
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
@@ -65,8 +100,21 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
+    Icon: ({ name, ...props }: { name: string } & Record<string, unknown>) =>
+      React.createElement(View, { ...props, testID: `icon-${name}` }),
     TextVariant: {
       BodySm: 'BodySm',
+      BodyMd: 'BodyMd',
+    },
+    IconName: {
+      EyeSlash: 'EyeSlash',
+      Verified: 'Verified',
+    },
+    IconSize: {
+      Lg: 'Lg',
+    },
+    IconColor: {
+      IconAlternative: 'IconAlternative',
     },
   };
 });
@@ -144,6 +192,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.continue_button': 'Continue',
       'card.card_onboarding.verify_identity.start_verification_error':
         'Unable to start verification. Please try again.',
+      'card.card_onboarding.verify_identity.terms_1':
+        'Your identity data is encrypted and stored securely.',
+      'card.card_onboarding.verify_identity.terms_2':
+        'We verify your identity with a trusted partner.',
     };
     return mockStrings[key] || key;
   }),
@@ -180,6 +232,9 @@ describe('VerifyIdentity Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -350,7 +405,7 @@ describe('VerifyIdentity Component', () => {
   });
 
   describe('Button Interaction and Navigation', () => {
-    it('navigates with sessionUrl when continue button is pressed', async () => {
+    it('navigates to WebView when continue button is pressed', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <VerifyIdentity />
@@ -370,7 +425,7 @@ describe('VerifyIdentity Component', () => {
       });
     });
 
-    it('does not navigate when continue button is pressed without sessionUrl', () => {
+    it('does not navigate when continue button is pressed without sessionUrl', async () => {
       (useStartVerification as jest.Mock).mockReturnValue({
         data: null,
         isLoading: false,
@@ -387,10 +442,12 @@ describe('VerifyIdentity Component', () => {
       const button = getByTestId('verify-identity-continue-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
     });
 
-    it('handles multiple button presses correctly', async () => {
+    it('handles multiple button presses', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <VerifyIdentity />
@@ -536,6 +593,55 @@ describe('VerifyIdentity Component', () => {
       expect(strings).toHaveBeenCalledWith(
         'card.card_onboarding.verify_identity.start_verification_error',
       );
+    });
+
+    it('uses correct i18n keys for terms text', () => {
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
+
+      render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      expect(strings).toHaveBeenCalledWith(
+        'card.card_onboarding.verify_identity.terms_1',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'card.card_onboarding.verify_identity.terms_2',
+      );
+    });
+  });
+
+  describe('Metrics Tracking', () => {
+    it('tracks CARD_VIEWED event on component mount', () => {
+      render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED event when continue button is pressed', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      const button = getByTestId('verify-identity-continue-button');
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
     });
   });
 });

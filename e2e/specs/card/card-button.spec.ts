@@ -51,12 +51,9 @@ describe.skip(SmokeCard('Card NavBar Button'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should open Card Home when pressing card navbar button', async () => {
+  it('opens Card Home when pressing card navbar button', async () => {
     await setupCardTest(async () => {
       await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await Assertions.expectElementToBeVisible(
-        WalletView.navbarCardButtonBadge,
-      );
       await WalletView.tapNavbarCardButton();
       await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
     });
@@ -64,22 +61,22 @@ describe.skip(SmokeCard('Card NavBar Button'), () => {
 
   it('should validate segment/metametric event when opening Card Home', async () => {
     const expectedEvents = {
-      CARD_VIEWED: 'Card Viewed',
+      CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
     };
 
     const softAssert = new SoftAssert();
 
     // Find all events
-    const cardViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_VIEWED,
+    const cardButtonViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
     );
     const cardHomeClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
     );
 
     const checkCardViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardViewed);
+      await Assertions.checkIfValueIsDefined(cardButtonViewed);
     }, 'Check Card Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {

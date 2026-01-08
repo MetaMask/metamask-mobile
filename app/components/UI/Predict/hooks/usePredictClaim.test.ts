@@ -1,17 +1,16 @@
 import { NavigationProp } from '@react-navigation/native';
 import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -21,14 +20,11 @@ const mockClaimWinnings = jest.fn();
 const mockShowToast = jest.fn();
 
 // Mock dependencies
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-  connect: jest.fn(() => (component: unknown) => component),
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('./usePredictEligibility');
@@ -56,15 +52,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
 >;
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
-const mockCaptureException = captureException as jest.MockedFunction<
-  typeof captureException
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
 >;
 
 const mockNavigation = {
@@ -104,10 +99,6 @@ describe('usePredictClaim', () => {
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     } as ReturnType<typeof useConfirmNavigation>);
-
-    mockUseSelector.mockReturnValue({
-      status: 'pending',
-    });
   });
 
   afterEach(() => {
@@ -129,13 +120,12 @@ describe('usePredictClaim', () => {
     );
 
   describe('initialization', () => {
-    it('returns claim function and status', () => {
+    it('returns claim function', () => {
       // Arrange & Act
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
       expect(result.current.claim).toBeInstanceOf(Function);
-      expect(result.current.status).toBe('pending');
     });
   });
 
@@ -152,7 +142,8 @@ describe('usePredictClaim', () => {
       // Assert
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        stack: Routes.PREDICT.ROOT,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
@@ -193,18 +184,24 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            feature: 'Predict',
           },
-        },
-      });
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -240,18 +237,24 @@ describe('usePredictClaim', () => {
 
       // Assert - first attempt should call goBack and captureException
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            feature: 'Predict',
           },
-        },
-      });
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
 
       // Get the onPress function from the toast call
       const toastCall = mockShowToast.mock.calls[0][0];
@@ -262,7 +265,7 @@ describe('usePredictClaim', () => {
       mockClaimWinnings.mockClear();
       mockNavigateToConfirmation.mockClear();
       mockGoBack.mockClear();
-      mockCaptureException.mockClear();
+      mockLoggerError.mockClear();
 
       // Act - retry claim
       await retryFunction();
@@ -270,14 +273,15 @@ describe('usePredictClaim', () => {
       // Assert - second attempt should succeed
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        stack: Routes.PREDICT.ROOT,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
       });
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockCaptureException).not.toHaveBeenCalled();
+      expect(mockLoggerError).not.toHaveBeenCalled();
     });
 
     it('captures exception to Sentry when claim fails', async () => {
@@ -292,18 +296,24 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            feature: 'Predict',
           },
-        },
-      });
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
     });
 
     it('converts non-Error exceptions to Error when capturing to Sentry', async () => {
@@ -318,16 +328,19 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('String error message'),
         {
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -348,87 +361,24 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('[object Object]'),
         {
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         },
       );
-    });
-  });
-
-  describe('status', () => {
-    it('returns status from claimTransaction selector', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue({
-        status: 'completed',
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('completed');
-    });
-
-    it('returns undefined when claimTransaction is not available', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(undefined);
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBeUndefined();
-    });
-
-    it('returns different status values from claimTransaction', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue({
-        status: 'processing',
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('processing');
-    });
-
-    it('selects claimTransaction from Redux state', () => {
-      // Arrange
-      const mockClaimTransaction = {
-        status: 'failed',
-        error: 'Transaction failed',
-      };
-
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          engine: {
-            backgroundState: {
-              PredictController: {
-                claimTransaction: mockClaimTransaction,
-              },
-            },
-          },
-        };
-        return selector(mockState);
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('failed');
     });
   });
 
@@ -458,18 +408,24 @@ describe('usePredictClaim', () => {
 
       // Assert - captures exception and goes back even without toastRef
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            feature: 'Predict',
           },
-        },
-      });
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });

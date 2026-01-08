@@ -2,26 +2,35 @@ import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
-import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 dayjs.extend(relativeTime);
 
 /**
- * Formats a date string as relative time (e.g., "1 minute ago", "2 hours ago")
+ * Formats a market end date, showing relative time or "Resolved early" if the date is in the future
  * @param dateString - The date string to format
- * @returns Formatted relative time string
+ * @returns Formatted relative time string or "Resolved" if date is in the future
  */
-const formatRelativeTime = (dateString: string): string => {
+const formatMarketEndDate = (dateString: string): string => {
   const date = dayjs(dateString);
-  return date.fromNow();
+  const now = dayjs();
+
+  if (date.isAfter(now)) {
+    return strings('predict.market_details.resolved_early');
+  }
+
+  return strings('predict.market_details.ended') + ' ' + date.fromNow();
 };
 
 interface PredictPositionResolvedProps {
@@ -43,10 +52,11 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
     percentPnl,
   } = position;
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.resolvedPositionCard(position.id)}
+      testID={PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
@@ -55,26 +65,49 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       </View>
       <View style={styles.positionDetails}>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          ${initialValue.toFixed(2)} on {outcome} • Ended{' '}
-          {formatRelativeTime(endDate)}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          style={tw.style('font-medium')}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {strings('predict.market_details.amount_on_outcome', {
+            amount: formatPrice(initialValue, { maximumDecimals: 2 }),
+            outcome,
+          })}{' '}
+          • {formatMarketEndDate(endDate)}
         </Text>
       </View>
       <View>
         {percentPnl > 0 ? (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            Won {formatPrice(currentValue, { maximumDecimals: 2 })}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.SuccessDefault}
+            style={tw.style('font-medium')}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {strings('predict.market_details.won')}{' '}
+            {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-            Lost{' '}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            style={tw.style('font-medium')}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {strings('predict.market_details.lost')}{' '}
             {formatPrice(initialValue - currentValue, { maximumDecimals: 2 })}
           </Text>
         )}

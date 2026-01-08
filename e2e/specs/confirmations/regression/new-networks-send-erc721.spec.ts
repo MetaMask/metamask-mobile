@@ -41,9 +41,8 @@ describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
         // Remove any once withFixtures is typed
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async ({ contractRegistry }) => {
-          const nftsAddress = await contractRegistry?.getContractAddress(
-            NFT_CONTRACT,
-          );
+          const nftsAddress =
+            await contractRegistry?.getContractAddress(NFT_CONTRACT);
 
           await loginToApp();
 

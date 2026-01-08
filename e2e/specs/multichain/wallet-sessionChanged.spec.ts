@@ -49,9 +49,8 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
           MultichainUtilities.CHAIN_IDS.BASE,
         );
 
-        const eventText = await MultichainTestDApp.getSessionChangedEventData(
-          0,
-        );
+        const eventText =
+          await MultichainTestDApp.getSessionChangedEventData(0);
 
         // Verify event text exists
         await Assertions.checkIfValueIsDefined(eventText);

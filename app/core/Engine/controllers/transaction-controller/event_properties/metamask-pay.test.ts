@@ -6,9 +6,37 @@ import { getMetaMaskPayProperties } from './metamask-pay';
 import { TransactionMetricsBuilder } from '../types';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../../reducers';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 
 const BATCH_ID_MOCK = '0x1234' as Hex;
+
+const PAY_CONTROLLER_STATE_MOCK = {
+  engine: {
+    backgroundState: {
+      TransactionPayController: {
+        transactionData: {
+          'parent-1': {
+            quotes: [
+              {},
+              {
+                original: {
+                  metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
+                  quote: { bridgeId: 'testBridge' },
+                },
+                request: {
+                  targetTokenAddress: '0x123',
+                },
+                strategy: TransactionPayStrategy.Bridge,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+} as unknown as RootState;
 
 describe('Metamask Pay Metrics', () => {
   const getStateMock: jest.MockedFn<
@@ -37,19 +65,6 @@ describe('Metamask Pay Metrics', () => {
 
   it('returns nothing if perps_deposit', () => {
     request.transactionMeta.type = TransactionType.perpsDeposit;
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: {},
-      sensitiveProperties: {},
-    });
-  });
-
-  it('returns nothing if predict_deposit', () => {
-    request.transactionMeta.nestedTransactions = [
-      { type: TransactionType.predictDeposit },
-    ];
 
     const result = getMetaMaskPayProperties(request);
 
@@ -185,22 +200,7 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue({
-      confirmationMetrics: {
-        transactionBridgeQuotesById: {
-          'parent-1': [
-            {},
-            {
-              metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-              quote: { bridgeId: 'testBridge' },
-              request: {
-                targetTokenAddress: '0x123',
-              },
-            },
-          ],
-        },
-      },
-    } as unknown as RootState);
+    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
 
     const result = getMetaMaskPayProperties(request);
 
@@ -235,22 +235,7 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue({
-      confirmationMetrics: {
-        transactionBridgeQuotesById: {
-          'parent-1': [
-            {},
-            {
-              metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-              quote: { bridgeId: 'testBridge' },
-              request: {
-                targetTokenAddress: '0x123',
-              },
-            },
-          ],
-        },
-      },
-    } as unknown as RootState);
+    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
 
     const result = getMetaMaskPayProperties(request);
 
@@ -288,22 +273,7 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue({
-      confirmationMetrics: {
-        transactionBridgeQuotesById: {
-          'parent-1': [
-            {},
-            {
-              metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-              quote: { bridgeId: 'testBridge' },
-              request: {
-                targetTokenAddress: '0x123',
-              },
-            },
-          ],
-        },
-      },
-    } as unknown as RootState);
+    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
 
     const result = getMetaMaskPayProperties(request);
 
@@ -338,25 +308,129 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue({
-      confirmationMetrics: {
-        transactionBridgeQuotesById: {
-          'parent-1': [
-            {},
-            {
-              metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-              quote: { bridgeId: 'testBridge' },
-              request: {
-                targetTokenAddress: NATIVE_TOKEN_ADDRESS,
+    getStateMock.mockReturnValue(
+      merge({}, PAY_CONTROLLER_STATE_MOCK, {
+        engine: {
+          backgroundState: {
+            TransactionPayController: {
+              transactionData: {
+                'parent-1': {
+                  quotes: [
+                    {},
+                    {
+                      request: {
+                        targetTokenAddress: NATIVE_TOKEN_ADDRESS,
+                      },
+                    },
+                  ],
+                },
               },
             },
-          ],
+          },
         },
-      },
-    } as unknown as RootState);
+      }) as unknown as RootState,
+    );
 
     const result = getMetaMaskPayProperties(request);
 
     expect(result.properties.mm_pay_dust_usd).toBeUndefined();
+  });
+
+  it('sets polymarket_account_created as true if predict deposit and matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDeposit },
+      { data: '0xa1884d2c1234' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: true,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('sets polymarket_account_created as false if predict deposit with no matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDeposit },
+      { data: '0xa1884d2d' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: false,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('generates fallback properties from transaction metadata', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x3',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {
+              '0x3': {
+                '0x123': [
+                  {
+                    address: '0x123',
+                    symbol: 'USDC',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x3',
+        mm_pay_token_selected: 'USDC',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('does not include token symbol in fallback properties if token is not found', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x3',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {},
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x3',
+        mm_pay_token_selected: undefined,
+      }),
+      sensitiveProperties: {},
+    });
   });
 });

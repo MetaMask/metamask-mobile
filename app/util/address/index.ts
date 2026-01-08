@@ -4,6 +4,11 @@ import {
   isValidChecksumAddress,
   isHexPrefixed,
 } from 'ethereumjs-util';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import {
+  isBtcMainnetAddress,
+  isTronAddress,
+} from '../../core/Multichain/utils';
 import {
   getChecksumAddress,
   type Hex,
@@ -33,6 +38,7 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../constants/address';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
@@ -146,6 +152,24 @@ export function renderShortAddress(address: string, chars = 5) {
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
     -chars,
   )}`;
+}
+
+/**
+ * Returns short account name format
+ * @param {String} accountName - String corresponding to an account name
+ * @param {Number} chars - Number of characters to show at the end and beginning.
+ * Defaults to 20.
+ * @returns {String} - String corresponding to short account name format
+ */
+export function renderShortAccountName(
+  accountName: string,
+  chars: number = 20,
+): string {
+  if (!accountName) return accountName;
+  if (accountName.length <= chars) {
+    return accountName;
+  }
+  return `${accountName.substr(0, chars)}...`;
 }
 
 export function renderSlightlyLongAddress(
@@ -443,7 +467,7 @@ export function getAddressAccountType(address: string) {
   if (targetKeyring) {
     switch (targetKeyring.type) {
       case ExtendedKeyringTypes.qr:
-        return 'QR';
+        return 'QR Hardware';
       case ExtendedKeyringTypes.simple:
         return 'Imported';
       case ExtendedKeyringTypes.ledger:
@@ -628,6 +652,22 @@ export async function validateAddressOrENS(
   let [addressReady, addToAddressToAddressBook] = [false, false];
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    // Check if address is a burn address
+    if (LOWER_CASED_BURN_ADDRESSES.includes(toAccount.toLowerCase())) {
+      addressError = strings('transaction.invalid_address');
+      addressReady = false;
+      return {
+        addressError,
+        toEnsName,
+        addressReady,
+        toEnsAddress,
+        addToAddressToAddressBook,
+        toAddressName,
+        errorContinue,
+        confusableCollection,
+      };
+    }
+
     const contactAlreadySaved = checkIfAddressAlreadySaved(
       toAccount,
       addressBook,
@@ -662,9 +702,10 @@ export async function validateAddressOrENS(
       // Check if it's token contract address on mainnet
       if (isMainnet) {
         try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
+          const symbol =
+            await AssetsContractController.getERC721AssetSymbol(
+              checksummedAddress,
+            );
           if (symbol) {
             addressError = SYMBOL_ERROR;
             errorContinue = true;
@@ -698,6 +739,22 @@ export async function validateAddressOrENS(
     );
 
     if (resolvedAddress) {
+      // Check if resolved ENS address is a burn address
+      if (LOWER_CASED_BURN_ADDRESSES.includes(resolvedAddress.toLowerCase())) {
+        addressError = strings('transaction.invalid_address');
+        addressReady = false;
+        return {
+          addressError,
+          toEnsName,
+          addressReady,
+          toEnsAddress,
+          addToAddressToAddressBook,
+          toAddressName,
+          errorContinue,
+          confusableCollection,
+        };
+      }
+
       if (!contactAlreadySaved) {
         addToAddressToAddressBook = true;
       } else {
@@ -725,13 +782,25 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
-/** Method to evaluate if an input is a valid ethereum address
+/** Method to evaluate if an input is a valid ethereum, solana, bitcoin, or tron address
  * via QR code scanning.
  *
  * @param {string} input - a random string.
  * @returns {boolean} indicates if the string is a valid input.
  */
 export function isValidAddressInputViaQRCode(input: string) {
+  if (isSolanaAddress(input)) {
+    return true;
+  }
+
+  if (isBtcMainnetAddress(input)) {
+    return true;
+  }
+
+  if (isTronAddress(input)) {
+    return true;
+  }
+
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

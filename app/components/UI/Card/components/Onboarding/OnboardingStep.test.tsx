@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import { render } from '@testing-library/react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
 // Mock dependencies
@@ -55,33 +55,11 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
       ),
     TextVariant: {
-      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
   };
 });
-
-// Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(
-      View,
-      { testID: 'safe-area-view', ...props },
-      children,
-    );
-  },
-}));
-
-// Mock the FOX logo image
-jest.mock('../../../../../images/branding/fox.png', () => 'fox-logo');
 
 describe('OnboardingStep Component', () => {
   const defaultProps = {
@@ -96,12 +74,6 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders without crashing with required props', () => {
-      render(<OnboardingStep {...defaultProps} />);
-
-      expect(screen.getByTestId('safe-area-view')).toBeDefined();
-    });
-
     it('renders with all required props provided', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
@@ -241,22 +213,13 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Critical Visual Elements', () => {
-    it('displays the FOX logo image', () => {
-      const { UNSAFE_getByType } = render(<OnboardingStep {...defaultProps} />);
-
-      const images = UNSAFE_getByType(Image);
-      expect(images).toBeDefined();
-      expect(images.props.source).toBe('fox-logo');
-      expect(images.props.resizeMode).toBe('contain');
-    });
-
     it('displays the title with correct variant and styling', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const titleElement = getByText('Test Title');
       expect(titleElement).toBeDefined();
-      expect(titleElement.props['data-variant']).toBe('HeadingMd');
-      expect(titleElement.props['data-tw-class']).toContain('text-center');
+      expect(titleElement.props['data-variant']).toBe('HeadingLg');
+      expect(titleElement.props['data-tw-class']).toContain('text-default');
     });
 
     it('displays the description with correct variant and styling', () => {
@@ -266,7 +229,7 @@ describe('OnboardingStep Component', () => {
       expect(descriptionElement).toBeDefined();
       expect(descriptionElement.props['data-variant']).toBe('BodyMd');
       expect(descriptionElement.props['data-tw-class']).toContain(
-        'text-center',
+        'text-text-alternative',
       );
     });
 
@@ -284,22 +247,12 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Layout Structure', () => {
-    it('renders with proper container structure', () => {
-      const { getByTestId } = render(<OnboardingStep {...defaultProps} />);
-
-      // Verify SafeAreaView is rendered with correct props
-      const safeAreaView = getByTestId('safe-area-view');
-      expect(safeAreaView).toBeDefined();
-      expect(safeAreaView.props.edges).toEqual(['bottom']);
-    });
-
     it('maintains proper component hierarchy', () => {
       const { getByText, getByTestId } = render(
         <OnboardingStep {...defaultProps} />,
       );
 
       // Verify all main elements are present in the component tree
-      expect(getByTestId('safe-area-view')).toBeDefined();
       expect(getByText('Test Title')).toBeDefined();
       expect(getByText('Test Description')).toBeDefined();
       expect(getByTestId('test-form-fields')).toBeDefined();
@@ -493,7 +446,7 @@ describe('OnboardingStep Component', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const titleElement = getByText('Test Title');
-      expect(titleElement.props['data-variant']).toBe('HeadingMd');
+      expect(titleElement.props['data-variant']).toBe('HeadingLg');
 
       const descriptionElement = getByText('Test Description');
       expect(descriptionElement.props['data-variant']).toBe('BodyMd');

@@ -22,6 +22,12 @@ import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsEventValues,
+  PerpsEventProperties,
+} from '../../constants/eventNames';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 /**
  * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
@@ -82,10 +88,21 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       );
     };
 
+    const { track } = usePerpsEventTracking();
+
     // Memoize the button handler to prevent recreation
     const handleGotItPress = useCallback(() => {
+      // Track tooltip button click
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PerpsEventProperties.BUTTON_CLICKED]:
+          PerpsEventValues.BUTTON_CLICKED.TOOLTIP,
+        [PerpsEventProperties.BUTTON_LOCATION]:
+          PerpsEventValues.BUTTON_LOCATION.TOOLTIP,
+      });
       bottomSheetRef.current?.onCloseBottomSheet();
-    }, []);
+    }, [track]);
 
     // Memoize button label and footer buttons
     const buttonLabel = useMemo(
@@ -111,6 +128,10 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [buttonConfigProps, buttonConfigDefault],
     );
 
+    // Content keys that render their own header (with icon)
+    const hasCustomHeader =
+      contentKey === 'market_hours' || contentKey === 'after_hours_trading';
+
     // Only render when visible and title is defined
     if (!isVisible || !title) return null;
 
@@ -121,14 +142,16 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         onClose={onClose}
         testID={testID}
       >
-        <BottomSheetHeader>
-          <Text
-            variant={TextVariant.HeadingMD}
-            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-          >
-            {title}
-          </Text>
-        </BottomSheetHeader>
+        {!hasCustomHeader && (
+          <BottomSheetHeader>
+            <Text
+              variant={TextVariant.HeadingMD}
+              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+            >
+              {title}
+            </Text>
+          </BottomSheetHeader>
+        )}
         <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

@@ -114,50 +114,6 @@ const copyAndSourceEnvVarsTask = {
   },
 };
 
-const buildPpomTask = {
-  title: 'Build PPOM',
-  task: (_, task) => {
-    const $ppom = $({ cwd: 'ppom' });
-
-    return task.newListr(
-      [
-        {
-          title: 'Install deps',
-          task: async () => {
-            await $ppom`yarn install`;
-          },
-        },
-        {
-          title: 'Clean',
-          task: async (_, task) => {
-            if (GITHUB_CI) {
-              return task.skip('Skipping clean in GitHub CI.');
-            }
-            await $ppom`yarn clean`;
-          },
-        },
-        {
-          title: 'Lint',
-          task: async () => {
-            await $ppom`yarn lint`;
-          },
-        },
-        {
-          title: 'Build',
-          task: async () => {
-            await $ppom`yarn build`;
-          },
-        },
-      ],
-      {
-        concurrent: false,
-        exitOnError: true,
-        rendererOptions,
-      },
-    );
-  },
-};
-
 const setupIosTask = {
   title: 'Set up iOS',
   task: async (_, task) => {
@@ -414,7 +370,7 @@ const prepareDependenciesTask = {
 const concurrentTasks = {
   title: 'Concurrent tasks',
   task: (_, task) =>
-    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
+    task.newListr([setupIosTask, generateTermsOfUseTask], {
       concurrent: true,
       exitOnError: true,
       rendererOptions,

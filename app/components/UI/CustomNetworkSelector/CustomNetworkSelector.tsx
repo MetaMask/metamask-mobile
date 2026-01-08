@@ -15,10 +15,7 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from './../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from './../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconName,
   IconSize,
@@ -28,7 +25,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
-import Device from '../../../util/device';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -48,9 +46,10 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 const CustomNetworkSelector = ({
   openModal,
   dismissModal,
+  openRpcModal,
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, { colors });
+  const { styles } = useStyles(createStyles, {});
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -76,9 +75,24 @@ const CustomNetworkSelector = ({
     });
   }, [navigate]);
 
+  const createAvatarProps = useCallback(
+    (item: CustomNetworkItem) => ({
+      variant: AvatarVariant.Network as const,
+      name: item.name,
+      imageSource: item.imageSource as ImageSourcePropType,
+    }),
+    [],
+  );
+
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
-      const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
+      const {
+        name,
+        caipChainId,
+        networkTypeOrRpcUrl,
+        isSelected,
+        hasMultipleRpcs,
+      } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = isNonEvmChainId(caipChainId)
         ? rawChainId
@@ -104,13 +118,16 @@ const CustomNetworkSelector = ({
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
+            secondaryText={
+              networkTypeOrRpcUrl && hasMultipleRpcs
+                ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
+                : undefined
+            }
             onPress={handlePress}
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource: item.imageSource as ImageSourcePropType,
-              size: AvatarSize.Sm,
-            }}
+            onTextClick={() =>
+              openRpcModal && openRpcModal({ chainId, networkName: name })
+            }
+            avatarProps={createAvatarProps(item)}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
               onButtonClick: handleMenuPress,
@@ -119,11 +136,19 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
+            style={styles.networkItem}
           />
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal],
+    [
+      selectCustomNetwork,
+      openModal,
+      dismissModal,
+      openRpcModal,
+      createAvatarProps,
+      styles.networkItem,
+    ],
   );
 
   const renderFooter = useCallback(
@@ -132,14 +157,15 @@ const CustomNetworkSelector = ({
         style={styles.addNetworkButtonContainer}
         onPress={goToNetworkSettings}
       >
-        <Icon
-          name={IconName.Add}
-          size={IconSize.Lg}
-          color={colors.icon.alternative}
-          style={styles.iconContainer}
-        />
+        <View style={styles.iconContainer}>
+          <Icon
+            name={IconName.Add}
+            size={IconSize.Md}
+            color={colors.primary.default}
+          />
+        </View>
 
-        <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+        <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>
@@ -159,8 +185,7 @@ const CustomNetworkSelector = ({
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          paddingBottom:
-            safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+          paddingBottom: safeAreaInsets.bottom,
         }}
       />
     </ScrollView>

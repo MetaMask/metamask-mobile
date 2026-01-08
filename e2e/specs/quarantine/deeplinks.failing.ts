@@ -78,13 +78,6 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
     await CommonView.tapOKAlertButton();
   });
 
-  it('should go to settings then networks', async () => {
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapNetworks();
-
-    await Assertions.expectElementToBeVisible(NetworkView.networkContainer);
-  });
-
   it('should add BSC network', async () => {
     // Tap on Add Network button
     await TestHelpers.delay(3000);

@@ -56,7 +56,10 @@ describe('useNetworksByNamespace', () => {
       caipChainId: 'eip155:1' as CaipChainId,
       chainId: '0x1',
       name: 'Ethereum Mainnet',
-      rpcEndpoints: [{ url: 'https://mainnet.infura.io/v3/test' }],
+      rpcEndpoints: [
+        { url: 'https://mainnet.infura.io/v3/test' },
+        { url: 'https://mainnet.alchemy.com' },
+      ],
       defaultRpcEndpointIndex: 0,
     },
     'eip155:137': {
@@ -107,6 +110,11 @@ describe('useNetworksByNamespace', () => {
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
+      enabledNetworksForAllNamespaces: {
+        '0x1': true,
+        '0x89': false,
+        '0x13881': true,
+      },
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -204,6 +212,7 @@ describe('useNetworksByNamespace', () => {
       );
       expect(ethereumNetwork).toEqual({
         id: 'eip155:1',
+        hasMultipleRpcs: true,
         name: 'Ethereum Mainnet',
         caipChainId: 'eip155:1',
         isSelected: true,
@@ -222,6 +231,7 @@ describe('useNetworksByNamespace', () => {
       const mumbaiNetwork = result.current.networks[0];
       expect(mumbaiNetwork).toEqual({
         id: 'eip155:80001',
+        hasMultipleRpcs: false,
         name: 'Mumbai Testnet',
         caipChainId: 'eip155:80001',
         isSelected: true,
@@ -282,6 +292,10 @@ describe('useNetworksByNamespace', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -332,6 +346,10 @@ describe('useNetworksByNamespace', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': false,
+          '0x89': false,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -432,6 +450,9 @@ describe('useNetworksByNamespace', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+        },
       });
 
       (parseCaipChainId as jest.Mock).mockReturnValue({
@@ -462,6 +483,7 @@ describe('useNetworksByNamespace', () => {
             isSelected: true,
             imageSource: mockNetworkImageSource,
             networkTypeOrRpcUrl: 'https://mainnet.infura.io/v3/test',
+            hasMultipleRpcs: true,
           }),
           expect.objectContaining({
             id: 'eip155:137',
@@ -470,6 +492,7 @@ describe('useNetworksByNamespace', () => {
             isSelected: false,
             imageSource: mockNetworkImageSource,
             networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+            hasMultipleRpcs: false,
           }),
         ]),
         selectedNetworks: expect.arrayContaining([
@@ -516,6 +539,70 @@ describe('useNetworksByNamespace', () => {
         networkCount: 1,
         selectedCount: 1,
       });
+    });
+  });
+
+  describe('hasMultipleRpcs property', () => {
+    it('sets hasMultipleRpcs to true when network has multiple RPC endpoints', () => {
+      const networksWithMultipleRpcs = {
+        'eip155:1': {
+          caipChainId: 'eip155:1' as CaipChainId,
+          chainId: '0x1',
+          name: 'Ethereum Mainnet',
+          rpcEndpoints: [
+            { url: 'https://mainnet.infura.io' },
+            { url: 'https://mainnet.alchemy.com' },
+            { url: 'https://cloudflare-eth.com' },
+          ],
+          defaultRpcEndpointIndex: 0,
+        },
+      };
+
+      mockUseSelector.mockReturnValue(networksWithMultipleRpcs);
+
+      const { result } = renderHook(() =>
+        useNetworksByNamespace({ networkType: NetworkType.Popular }),
+      );
+
+      expect(result.current.networks[0].hasMultipleRpcs).toBe(true);
+    });
+
+    it('sets hasMultipleRpcs to false when network has single RPC endpoint', () => {
+      const networksWithSingleRpc = {
+        'eip155:137': {
+          caipChainId: 'eip155:137' as CaipChainId,
+          chainId: '0x89',
+          name: 'Polygon',
+          rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
+          defaultRpcEndpointIndex: 0,
+        },
+      };
+
+      mockUseSelector.mockReturnValue(networksWithSingleRpc);
+
+      const { result } = renderHook(() =>
+        useNetworksByNamespace({ networkType: NetworkType.Popular }),
+      );
+
+      expect(result.current.networks[0].hasMultipleRpcs).toBe(false);
+    });
+
+    it('sets hasMultipleRpcs to false when network has no RPC endpoints', () => {
+      const networksWithoutRpc = {
+        'eip155:1': {
+          caipChainId: 'eip155:1' as CaipChainId,
+          chainId: '0x1',
+          name: 'Ethereum Mainnet',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(networksWithoutRpc);
+
+      const { result } = renderHook(() =>
+        useNetworksByNamespace({ networkType: NetworkType.Popular }),
+      );
+
+      expect(result.current.networks[0].hasMultipleRpcs).toBe(false);
     });
   });
 });

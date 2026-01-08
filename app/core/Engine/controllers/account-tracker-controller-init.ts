@@ -1,6 +1,8 @@
-import { ControllerInitFunction, EngineState } from '../types';
-import { AccountTrackerController } from '@metamask/assets-controllers';
-import { AccountTrackerControllerMessenger } from '../messengers/account-tracker-controller-messenger';
+import { ControllerInitFunction } from '../types';
+import {
+  AccountTrackerController,
+  AccountTrackerControllerMessenger,
+} from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
@@ -28,9 +30,7 @@ export const accountTrackerControllerInit: ControllerInitFunction<
         assetsContractController,
       ),
     accountsApiChainIds: () =>
-      selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: persistedState as EngineState },
-      }) as `0x${string}`[],
+      selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
   });
 

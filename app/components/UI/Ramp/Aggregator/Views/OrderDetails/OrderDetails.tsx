@@ -10,14 +10,18 @@ import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
-import StyledButton from '../../../../StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import {
   FiatOrder,
   getOrderById,
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -31,10 +35,8 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../../routes/utils';
+import { useRampNavigation } from '../../../hooks/useRampNavigation';
+import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -54,27 +56,29 @@ const OrderDetails = () => {
     order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
+  const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
+  const { goToAggregator, goToSell } = useRampNavigation();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
-          showCancel: false,
-          showNetwork: false,
+          showClose: false,
         },
-        colors,
+        theme,
       ),
     );
-  }, [colors, navigation]);
+  }, [theme, navigation]);
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
@@ -115,6 +119,10 @@ const OrderDetails = () => {
         trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
           currency_destination: cryptocurrency,
+          currency_destination_symbol: cryptocurrency,
+          currency_destination_network: getAggregatorOrderNetworkName(
+            data as Order,
+          ),
           currency_source: currency,
           provider_onramp: providerName,
           chain_id_destination: network,
@@ -123,6 +131,8 @@ const OrderDetails = () => {
         trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
           currency_source: cryptocurrency,
+          currency_source_symbol: cryptocurrency,
+          currency_source_network: getAggregatorOrderNetworkName(data as Order),
           currency_destination: currency,
           provider_offramp: providerName,
           chain_id_source: network,
@@ -181,11 +191,11 @@ const OrderDetails = () => {
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
     if (order?.orderType === OrderOrderTypeEnum.Buy) {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToAggregator();
     } else {
-      navigation.navigate(...createSellNavigationDetails());
+      goToSell();
     }
-  }, [navigation, order?.orderType]);
+  }, [navigation, order?.orderType, goToAggregator, goToSell]);
 
   useInterval(
     () => {
@@ -256,27 +266,29 @@ const OrderDetails = () => {
             !order.sellTxHash &&
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={navigateToSendTransaction}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               </Row>
             ) : null}
 
             {order.state !== FIAT_ORDER_STATES.CREATED &&
               order.state !== FIAT_ORDER_STATES.PENDING && (
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={handleMakeAnotherPurchase}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.start_new_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

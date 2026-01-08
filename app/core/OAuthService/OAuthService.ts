@@ -8,8 +8,12 @@ import {
   AuthResponse,
   OAuthUserInfo,
   OAuthLoginResultType,
+  LoginHandlerResult,
 } from './OAuthInterface';
-import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import {
+  Web3AuthNetwork,
+  AuthConnection as SeedlessAuthConnection,
+} from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnectionConfig,
   AuthServerUrl,
@@ -20,6 +24,13 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
+import { MetaMetrics } from '../Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -48,6 +59,7 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
+  userClickedRehydration?: boolean;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -96,7 +108,7 @@ export class OAuthService {
 
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
-    authConnection: AuthConnection,
+    authConnection: SeedlessAuthConnection,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;
@@ -110,6 +122,23 @@ export class OAuthService {
           authConnection
         ];
 
+      const refreshToken = data.refresh_token;
+      const revokeToken = data.revoke_token;
+
+      if (!refreshToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No refresh token found',
+        );
+      }
+
+      if (!revokeToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No revoke token found',
+        );
+      }
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
@@ -118,8 +147,8 @@ export class OAuthService {
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
-          refreshToken: data.refresh_token,
-          revokeToken: data.revoke_token,
+          refreshToken,
+          revokeToken,
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
         });
@@ -140,8 +169,44 @@ export class OAuthService {
     }
   };
 
+  #trackSocialLoginFailure = ({
+    authConnection,
+    errorCategory,
+    error,
+  }: {
+    authConnection: AuthConnection;
+    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
+    error: unknown;
+  }) => {
+    const isUserCancelled =
+      error instanceof OAuthError &&
+      (error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed);
+
+    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
+    if (this.localState.userClickedRehydration !== undefined) {
+      userClickedRehydration = this.localState.userClickedRehydration
+        ? 'true'
+        : 'false';
+    }
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+      )
+        .addProperties({
+          account_type: `default_${authConnection}`,
+          is_rehydration: userClickedRehydration,
+          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
+          error_category: errorCategory,
+        })
+        .build(),
+    );
+  };
+
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
+    userClickedRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -151,17 +216,27 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
+    this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
 
     try {
-      let result, data, handleCodeFlowResult;
+      let result: LoginHandlerResult,
+        data: AuthResponse,
+        handleCodeFlowResult: HandleOAuthLoginResult;
       let providerLoginSuccess = false;
       try {
         trace({
           name: TraceName.OnboardingOAuthProviderLogin,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        result = await loginHandler.login();
+        const loginResult = await loginHandler.login();
+        if (!loginResult) {
+          throw new OAuthError(
+            'Login handler return empty result',
+            OAuthErrorType.LoginError,
+          );
+        }
+        result = loginResult;
         providerLoginSuccess = true;
       } catch (error) {
         const errorMessage =
@@ -173,6 +248,12 @@ export class OAuthService {
           tags: { errorMessage },
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+
+        this.#trackSocialLoginFailure({
+          authConnection: loginHandler.authConnection,
+          errorCategory: 'provider_login',
+          error,
+        });
 
         throw error;
       } finally {
@@ -196,6 +277,9 @@ export class OAuthService {
             { ...result, web3AuthNetwork },
             this.config.authServerUrl,
           );
+          if (!data.id_token) {
+            throw new OAuthError('No token found', OAuthErrorType.LoginError);
+          }
           getAuthTokensSuccess = true;
         } catch (error) {
           const errorMessage =
@@ -210,16 +294,18 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
+          this.#trackSocialLoginFailure({
+            authConnection,
+            errorCategory: 'get_auth_tokens',
+            error,
+          });
+
           throw error;
         } finally {
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             data: { success: getAuthTokensSuccess },
           });
-        }
-
-        if (!data.id_token) {
-          throw new OAuthError('No token found', OAuthErrorType.LoginError);
         }
 
         const jwtPayload = JSON.parse(
@@ -255,6 +341,12 @@ export class OAuthService {
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+          });
+
+          this.#trackSocialLoginFailure({
+            authConnection,
+            errorCategory: 'seedless_auth',
+            error,
           });
 
           throw error;

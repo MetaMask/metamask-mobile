@@ -130,8 +130,11 @@ export interface PolymarketApiMarket {
   icon: string;
   image: string;
   groupItemTitle: string;
+  groupItemThreshold?: number;
+  sportsMarketType?: string;
   status: 'open' | 'closed' | 'resolved';
   volumeNum: number;
+  liquidity: number;
   negRisk: boolean;
   clobTokenIds: string;
   outcomes: string;
@@ -142,6 +145,7 @@ export interface PolymarketApiMarket {
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
+  line?: number;
 }
 
 export interface PolymarketApiSeries {
@@ -174,6 +178,7 @@ export interface PolymarketApiEvent {
   tags: PolymarketApiTag[];
   liquidity: number;
   volume: number;
+  sortBy?: 'price' | 'ascending' | 'descending';
 }
 
 export interface PolymarketApiActivity {
@@ -302,13 +307,13 @@ export interface L2HeaderArgs {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderResponse = {
-  errorMsg: string;
-  makingAmount: string;
-  orderID: string;
-  status: string;
+  errorMsg?: string;
+  makingAmount?: string;
+  orderID?: string;
+  status?: string;
   success: boolean;
-  takingAmount: string;
-  transactionsHashes: string[];
+  takingAmount?: string;
+  transactionsHashes?: string[];
 };
 
 export interface TickSizeResponse {

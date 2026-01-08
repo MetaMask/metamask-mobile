@@ -10,7 +10,7 @@ export interface MultichainBalancesData {
   totalNativeTokenBalance: string | undefined;
   nativeTokenUnit: string;
   shouldShowAggregatedPercentage: boolean;
-  isPortfolioVieEnabled: boolean;
+  isPortfolioViewEnabled: boolean;
   aggregatedBalance: AggregatedPercentageProps;
   isLoadingAccount: boolean;
 }

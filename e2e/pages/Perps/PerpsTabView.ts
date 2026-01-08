@@ -1,6 +1,10 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { PerpsTabViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import Utilities from '../../framework/Utilities';
+import {
+  PerpsMarketBalanceActionsSelectorsIDs,
+  PerpsTabViewSelectorsIDs,
+} from '../../selectors/Perps/Perps.selectors';
 
 class PerpsTabView {
   get balanceButton(): DetoxElement {
@@ -16,12 +20,23 @@ class PerpsTabView {
   }
 
   get onboardingButton(): DetoxElement {
-    // The onboarding button no longer exposes a testID; select by visible text
     return Matchers.getElementByText('Start trading');
+  }
+
+  get startNewTradeButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA,
+    );
   }
 
   get balanceValue(): DetoxElement {
     return Matchers.getElementByID(PerpsTabViewSelectorsIDs.BALANCE_VALUE);
+  }
+
+  get marketBalanceValue(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+    );
   }
 
   async tapBalanceButton(): Promise<void> {
@@ -31,9 +46,23 @@ class PerpsTabView {
   }
 
   async tapAddFundsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addFundsButton, {
+    // Prefer new market add funds button; fallback to legacy id
+    const useMarketButton = await Utilities.isElementVisible(
+      this.marketAddFundsButton,
+      1500,
+    );
+    const target = useMarketButton
+      ? this.marketAddFundsButton
+      : this.addFundsButton;
+    await Gestures.waitAndTap(target, {
       elemDescription: 'Perps Add Funds Button',
     });
+  }
+
+  get marketAddFundsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+    );
   }
 
   async tapWithdrawButton(): Promise<void> {
@@ -48,14 +77,36 @@ class PerpsTabView {
     });
   }
 
+  async tapStartNewTradeButton(): Promise<void> {
+    await Gestures.waitAndTap(this.startNewTradeButton, {
+      elemDescription: 'Perps Start New Trade Button',
+    });
+  }
+
   async getBalance(): Promise<number> {
-    const balanceElement = await this.balanceValue;
+    // Prefer explicit value elements; fallback to balance button for accessibility labels
+    const isMarketValueVisible = await Utilities.isElementVisible(
+      this.marketBalanceValue,
+      1500,
+    );
+    const isLegacyValueVisible = await Utilities.isElementVisible(
+      this.balanceValue,
+      1000,
+    );
+
+    const targetElement: DetoxElement = isMarketValueVisible
+      ? this.marketBalanceValue
+      : isLegacyValueVisible
+        ? this.balanceValue
+        : this.balanceButton; // final fallback to button
+
     const attributes = await (
-      balanceElement as IndexableNativeElement
+      (await targetElement) as IndexableNativeElement
     ).getAttributes();
     const balanceText =
-      (attributes as { text: string; label: string }).text ||
-      (attributes as { text: string; label: string }).label ||
+      (attributes as { text?: string; label?: string; value?: string }).text ||
+      (attributes as { text?: string; label?: string; value?: string }).label ||
+      (attributes as { text?: string; label?: string; value?: string }).value ||
       '0';
 
     // Extract numeric value from balance text (remove currency symbols, commas, etc.)

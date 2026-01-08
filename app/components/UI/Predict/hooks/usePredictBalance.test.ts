@@ -1,10 +1,37 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { usePredictBalance } from './usePredictBalance';
 
+// Mock Engine with AccountTreeController - MUST BE FIRST
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
+  },
+}));
+
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
   },
 }));
 
@@ -16,11 +43,57 @@ jest.mock('./usePredictTrading', () => ({
   }),
 }));
 
-// Mock react-redux
-const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockSelectedAddress),
+// Mock usePredictNetworkManagement
+const mockEnsurePolygonNetworkExists = jest.fn();
+jest.mock('./usePredictNetworkManagement', () => ({
+  usePredictNetworkManagement: () => ({
+    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
+  }),
 }));
+
+// Mock selectors - balance comes from Redux state now
+const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+let mockCachedBalance = 0;
+
+jest.mock('../selectors/predictController', () => ({
+  selectPredictBalanceByAddress: jest.fn(() =>
+    jest.fn(() => mockCachedBalance),
+  ),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => {
+  const actualRedux = jest.requireActual('react-redux');
+  return {
+    ...actualRedux,
+    useSelector: jest.fn((selector: (state: unknown) => unknown) => {
+      // Mock behavior: try to call selector with mock state
+      try {
+        const mockState = {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                balances: {
+                  polymarket: {
+                    [mockSelectedAddress]: mockCachedBalance,
+                  },
+                },
+              },
+            },
+          },
+        };
+        const result = selector(mockState);
+        // Return the balance from the mock state
+        if (typeof result === 'number') {
+          return result;
+        }
+      } catch (e) {
+        // Selector doesn't match our mock state shape
+      }
+      return undefined;
+    }),
+  };
+});
 
 // Mock useFocusEffect
 let mockFocusCallback: (() => void) | null = null;
@@ -34,6 +107,8 @@ describe('usePredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetBalance.mockResolvedValue(100);
+    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockCachedBalance = 0;
     mockFocusCallback = null;
   });
 
@@ -72,6 +147,7 @@ describe('usePredictBalance', () => {
     it('loads balance automatically on mount when loadOnMount is true', async () => {
       // Given loadOnMount is true
       mockGetBalance.mockResolvedValue(150.5);
+      mockCachedBalance = 150.5;
 
       // When hook is mounted
       const { result } = renderHook(() =>
@@ -104,6 +180,7 @@ describe('usePredictBalance', () => {
       // Given custom providerId
       const customProviderId = 'custom-provider';
       mockGetBalance.mockResolvedValue(200);
+      mockCachedBalance = 200;
 
       // When hook is mounted with custom providerId
       const { result } = renderHook(() =>
@@ -126,6 +203,7 @@ describe('usePredictBalance', () => {
     it('loads balance and updates state correctly', async () => {
       // Given hook is initialized without auto-loading
       mockGetBalance.mockResolvedValue(250.75);
+      mockCachedBalance = 250.75;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: false }),
       );
@@ -145,6 +223,7 @@ describe('usePredictBalance', () => {
     it('sets isLoading to true when loading without refresh flag', async () => {
       // Given hook is initialized
       mockGetBalance.mockResolvedValue(100);
+      mockCachedBalance = 100;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: false }),
       );
@@ -162,6 +241,7 @@ describe('usePredictBalance', () => {
     it('sets isRefreshing to true when loading with refresh flag', async () => {
       // Given hook is initialized and balance is already loaded
       mockGetBalance.mockResolvedValue(100);
+      mockCachedBalance = 100;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: true }),
       );
@@ -240,6 +320,7 @@ describe('usePredictBalance', () => {
 
       // When loadBalance is called again and succeeds
       mockGetBalance.mockResolvedValue(300);
+      mockCachedBalance = 300;
       await act(async () => {
         await result.current.loadBalance();
       });
@@ -254,6 +335,7 @@ describe('usePredictBalance', () => {
     it('returns true when balance is zero and not loading', async () => {
       // Given balance is successfully loaded as 0
       mockGetBalance.mockResolvedValue(0);
+      mockCachedBalance = 0;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: true }),
       );
@@ -270,6 +352,7 @@ describe('usePredictBalance', () => {
     it('returns false when balance is greater than zero', async () => {
       // Given balance is successfully loaded as non-zero
       mockGetBalance.mockResolvedValue(100);
+      mockCachedBalance = 100;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: true }),
       );
@@ -286,6 +369,7 @@ describe('usePredictBalance', () => {
     it('returns false when refreshing even if balance is zero', async () => {
       // Given balance is 0 and loaded
       mockGetBalance.mockResolvedValue(0);
+      mockCachedBalance = 0;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: true }),
       );
@@ -320,7 +404,8 @@ describe('usePredictBalance', () => {
     it('refreshes balance when screen comes into focus', async () => {
       // Given hook is mounted with refreshOnFocus enabled
       mockGetBalance.mockResolvedValue(100);
-      const { result } = renderHook(() =>
+      mockCachedBalance = 100;
+      const { result, rerender } = renderHook(() =>
         usePredictBalance({ refreshOnFocus: true, loadOnMount: true }),
       );
 
@@ -334,9 +419,13 @@ describe('usePredictBalance', () => {
       mockGetBalance.mockResolvedValue(200);
       await act(async () => {
         if (mockFocusCallback) {
-          await mockFocusCallback();
+          mockFocusCallback();
         }
       });
+
+      // Update cached balance and force re-render to pick up new value
+      mockCachedBalance = 200;
+      rerender({});
 
       await waitFor(() => {
         expect(result.current.balance).toBe(200);
@@ -344,12 +433,12 @@ describe('usePredictBalance', () => {
 
       // Then balance should be refreshed
       expect(mockGetBalance).toHaveBeenCalledTimes(2);
-      expect(result.current.balance).toBe(200);
     });
 
     it('does not refresh on focus when refreshOnFocus is false', async () => {
       // Given hook is mounted with refreshOnFocus disabled and loadOnMount enabled
       mockGetBalance.mockResolvedValue(100);
+      mockCachedBalance = 100;
       renderHook(() =>
         usePredictBalance({ refreshOnFocus: false, loadOnMount: true }),
       );
@@ -372,6 +461,7 @@ describe('usePredictBalance', () => {
     it('resets state when selected account address changes', async () => {
       // Given hook is mounted with loaded balance
       mockGetBalance.mockResolvedValue(500);
+      mockCachedBalance = 500;
       const { result, rerender } = renderHook(() =>
         usePredictBalance({ loadOnMount: true }),
       );
@@ -416,6 +506,7 @@ describe('usePredictBalance', () => {
       mockGetBalance.mockImplementation(
         () => new Promise((resolve) => setTimeout(() => resolve(100), 100)),
       );
+      mockCachedBalance = 100;
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: false }),
       );
@@ -457,6 +548,7 @@ describe('usePredictBalance', () => {
     it('loads balance with default providerId when loadOnMount is true', async () => {
       // Given loadOnMount is explicitly enabled
       mockGetBalance.mockResolvedValue(100);
+      mockCachedBalance = 100;
 
       // When hook is mounted
       const { result } = renderHook(() =>

@@ -13,7 +13,7 @@ import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
@@ -21,7 +21,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, chainId, ticker, transactionState, origin } = props;
@@ -170,11 +169,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     <View style={styles.container}>
       {fromAddress && (
         <AddressFrom
-          chainId={
-            isPerDappSelectedNetworkEnabled()
-              ? transactionState?.chainId
-              : undefined
-          }
+          chainId={transactionState?.chainId}
           asset={selectedAsset}
           from={fromAddress}
           origin={origin}

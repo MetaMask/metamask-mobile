@@ -2,6 +2,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   hasMinimumRequiredVersion,
   validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '.';
 
@@ -15,6 +16,142 @@ jest.mock(
     isRemoteFeatureFlagOverrideActivated: false,
   }),
 );
+
+describe('isVersionGatedFeatureFlag', () => {
+  it('returns true for valid VersionGatedFeatureFlag', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+
+    const result = isVersionGatedFeatureFlag(validFlag);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for valid VersionGatedFeatureFlag with enabled false', () => {
+    const validFlag = {
+      enabled: false,
+      minimumVersion: '1.0.0',
+    };
+
+    const result = isVersionGatedFeatureFlag(validFlag);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for null', () => {
+    const result = isVersionGatedFeatureFlag(null);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    const result = isVersionGatedFeatureFlag(undefined);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for missing enabled property', () => {
+    const invalidFlag = {
+      minimumVersion: '1.0.0',
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for missing minimumVersion property', () => {
+    const invalidFlag = {
+      enabled: true,
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when enabled is not a boolean', () => {
+    const invalidFlag = {
+      enabled: 'true',
+      minimumVersion: '1.0.0',
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when minimumVersion is not a string', () => {
+    const invalidFlag = {
+      enabled: true,
+      minimumVersion: 100,
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when both properties have wrong types', () => {
+    const invalidFlag = {
+      enabled: 'true',
+      minimumVersion: 123,
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for primitive types', () => {
+    expect(isVersionGatedFeatureFlag('string')).toBe(false);
+    expect(isVersionGatedFeatureFlag(123)).toBe(false);
+    expect(isVersionGatedFeatureFlag(true)).toBe(false);
+  });
+
+  it('returns false for empty object', () => {
+    const result = isVersionGatedFeatureFlag({});
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true for flag with additional properties', () => {
+    const flagWithExtraProps = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      variant: 'control',
+      extraProperty: 'value',
+    };
+
+    const result = isVersionGatedFeatureFlag(flagWithExtraProps);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when enabled is null', () => {
+    const invalidFlag = {
+      enabled: null,
+      minimumVersion: '1.0.0',
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when minimumVersion is null', () => {
+    const invalidFlag = {
+      enabled: true,
+      minimumVersion: null,
+    };
+
+    const result = isVersionGatedFeatureFlag(invalidFlag);
+
+    expect(result).toBe(false);
+  });
+});
 
 describe('hasMinimumRequiredVersion', () => {
   let mockedGetVersion: jest.MockedFunction<typeof getVersion>;

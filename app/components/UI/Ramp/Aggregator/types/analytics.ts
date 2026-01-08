@@ -14,14 +14,7 @@ export type ScreenLocation =
 interface RampButtonClicked {
   text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started';
   location: string;
-}
-
-interface BuyButtonClicked extends RampButtonClicked {
-  chain_id_destination?: string;
-}
-
-interface SellButtonClicked extends RampButtonClicked {
-  chain_id_source?: string;
+  region?: string;
 }
 
 interface RampRegionSelected {
@@ -60,10 +53,14 @@ interface RampQuoteRequested {
 
 interface OnRampQuoteRequested extends RampQuoteRequested {
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 
 interface OffRampQuoteRequested extends RampQuoteRequested {
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 interface RampCanceled {
@@ -100,6 +97,8 @@ interface RampQuotesReceived {
 interface OnRampQuotesReceived extends RampQuotesReceived {
   average_crypto_out: number;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   provider_onramp_list: string[];
   provider_onramp_first: string;
   provider_onramp_last?: string;
@@ -109,6 +108,8 @@ interface OnRampQuotesReceived extends RampQuotesReceived {
 interface OffRampQuotesReceived extends RampQuotesReceived {
   average_fiat_out: number;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
   provider_offramp_list: string[];
   provider_offramp_first: string;
   provider_offramp_last?: string;
@@ -137,11 +138,15 @@ interface OnRampProviderSelected extends RampProviderSelected {
   provider_onramp: string;
   crypto_out: number;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 interface OffRampProviderSelected extends RampProviderSelected {
   provider_offramp: string;
   fiat_out: number;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 interface OnRampProviderDetailsViewed {
@@ -161,10 +166,14 @@ interface RampDirectProviderClicked {
 interface OnRampDirectProviderClicked extends RampDirectProviderClicked {
   provider_onramp: string;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 interface OffRampDirectProviderClicked extends RampDirectProviderClicked {
   provider_offramp: string;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 interface RampPurchaseSubmitted {
@@ -178,6 +187,8 @@ interface RampPurchaseSubmitted {
 interface OnRampPurchaseSubmitted extends RampPurchaseSubmitted {
   provider_onramp: string;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   has_zero_currency_destination_balance: boolean;
   has_zero_native_balance?: boolean;
 }
@@ -185,6 +196,8 @@ interface OnRampPurchaseSubmitted extends RampPurchaseSubmitted {
 interface OffRampPurchaseSubmitted extends RampPurchaseSubmitted {
   provider_offramp: string;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 interface RampPurchase {
   amount: number;
@@ -205,22 +218,30 @@ interface RampPurchaseCompleted extends RampPurchase {
 interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
   crypto_out: number;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   provider_onramp: string;
 }
 
 interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
   fiat_out: number;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
   provider_offramp: string;
 }
 
 interface OnRampPurchaseFailed extends RampPurchase {
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   provider_onramp: string;
 }
 
 interface OffRampPurchaseFailed extends RampPurchase {
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
   provider_offramp: string;
 }
 
@@ -238,10 +259,14 @@ interface RampPurchaseDetailsViewed {
 interface OnRampPurchaseDetailsViewed extends RampPurchaseDetailsViewed {
   provider_onramp: string;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 interface OffRampPurchaseDetailsViewed extends RampPurchaseDetailsViewed {
   provider_offramp: string;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 interface RampExternalLinkClicked {
@@ -266,11 +291,15 @@ interface RampQuoteError {
 interface OnRampQuoteError extends RampQuoteError {
   provider_onramp: string;
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 
 interface OffRampQuoteError extends RampQuoteError {
   provider_offramp: string;
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 interface RampError {
@@ -285,6 +314,8 @@ interface RampError {
 interface RampTransaction {
   crypto_amount: string;
   chain_id_source: number;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
   fiat_out: number;
   payment_method_id: string;
   currency_source: string;
@@ -305,16 +336,17 @@ interface RampQuotesExpanded {
 
 interface OnRampQuotesExpanded extends RampQuotesExpanded {
   chain_id_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
 }
 
 interface OffRampQuotesExpanded extends RampQuotesExpanded {
   chain_id_source: string;
+  currency_source_symbol?: string;
+  currency_source_network?: string;
 }
 
 export interface AnalyticsEvents {
-  BUY_BUTTON_CLICKED: BuyButtonClicked;
-  SELL_BUTTON_CLICKED: SellButtonClicked;
-
   RAMP_REGION_SELECTED: RampRegionSelected;
   RAMP_REGION_RESET: RampRegionReset;
 

@@ -3,7 +3,14 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Alert,
+  Image,
+  Platform,
+} from 'react-native';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -73,13 +80,16 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock react-native Keyboard
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Keyboard: {
+      dismiss: jest.fn(),
+    },
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -101,6 +111,7 @@ jest.mock('../../../core/Authentication', () => ({
   userEntryAuth: jest.fn(),
   appTriggeredAuth: jest.fn(),
   lockApp: jest.fn(),
+  checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
 }));
 
 jest.mock('../../../actions/security', () => ({
@@ -127,6 +138,51 @@ jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
 }));
 
+// Mock animation components
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
+
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  isE2E: false,
+}));
+
+// Mock Rive animations
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 'contain' },
+  Alignment: { Center: 'center' },
+}));
+
+// Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('react-native-keyboard-aware-scroll-view', () => ({
+  KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardController: {
+    setInputMode: jest.fn(),
+    setDefaultMode: jest.fn(),
+  },
+  AndroidSoftInputModes: {
+    SOFT_INPUT_ADJUST_NOTHING: 0,
+    SOFT_INPUT_ADJUST_PAN: 1,
+    SOFT_INPUT_ADJUST_RESIZE: 2,
+    SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+  },
+}));
+
 jest.mock('../../../util/validators', () => ({
   parseVaultValue: jest.fn(),
 }));
@@ -134,6 +190,10 @@ jest.mock('../../../util/validators', () => ({
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
+  jest.fn(),
+);
 
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
@@ -160,16 +220,15 @@ jest.mock('../../hooks/useMetrics', () => ({
     isEnabled: jest.fn(() => true),
   })),
   withMetricsAwareness: jest.fn(
-    (Component) => (props: Record<string, unknown>) =>
-      (
-        <Component
-          {...props}
-          metrics={{
-            trackEvent: mockMetricsTrackEvent,
-            createEventBuilder: mockMetricsCreateEventBuilder,
-          }}
-        />
-      ),
+    (Component) => (props: Record<string, unknown>) => (
+      <Component
+        {...props}
+        metrics={{
+          trackEvent: mockMetricsTrackEvent,
+          createEventBuilder: mockMetricsCreateEventBuilder,
+        }}
+      />
+    ),
   ),
   MetaMetricsEvents: {
     ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
@@ -196,6 +255,9 @@ const mockBackHandlerRemoveEventListener = jest.fn();
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
   const mockEndTrace = jest.mocked(endTrace);
+  const mockTrackOnboarding = jest.mocked(
+    jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -210,6 +272,7 @@ describe('Login', () => {
     mockEndTrace.mockClear();
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
+    mockTrackOnboarding.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
@@ -256,7 +319,7 @@ describe('Login', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call trace function for AuthenticateUser during non-OAuth login', async () => {
+  it('calls trace function for AuthenticateUser during non-OAuth login', async () => {
     (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
       if (key === OPTIN_META_METRICS_UI_SEEN) return true;
       return null;
@@ -289,16 +352,16 @@ describe('Login', () => {
   });
 
   describe('Forgot Password', () => {
-    it('show the forgot password modal', () => {
+    it('shows forgot password modal when reset wallet pressed', () => {
+      // Arrange
       const { getByTestId } = renderWithProvider(<Login />);
-      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeTruthy();
+
+      // Act
       fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
 
+      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
-        params: {
-          oauthLoginSuccess: false,
-        },
       });
     });
 
@@ -313,7 +376,7 @@ describe('Login', () => {
         });
       });
 
-      it('should navigate to opt-in metrics when UI not seen and metrics disabled', async () => {
+      it('navigates to opt-in metrics when UI not seen and metrics disabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
@@ -347,7 +410,6 @@ describe('Login', () => {
           fireEvent.press(loginButton);
         });
 
-        // Wait for async operations to complete
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 0));
         });
@@ -368,7 +430,7 @@ describe('Login', () => {
         });
       });
 
-      it('should navigate to home when UI not seen but metrics enabled', async () => {
+      it('navigates to home when UI not seen but metrics enabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
@@ -411,7 +473,7 @@ describe('Login', () => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
 
-      it('should navigate to home when UI seen and metrics disabled', async () => {
+      it('navigates to home when UI seen and metrics disabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
@@ -455,7 +517,7 @@ describe('Login', () => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
 
-      it('should navigate to home when UI seen and metrics enabled', async () => {
+      it('navigates to home when UI seen and metrics enabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
@@ -500,7 +562,7 @@ describe('Login', () => {
       });
     });
 
-    describe('checkMetricsUISeen', () => {
+    describe('checkMetricsUISeen navigation', () => {
       beforeEach(() => {
         jest.clearAllMocks();
         mockRoute.mockReturnValue({
@@ -719,7 +781,7 @@ describe('Login', () => {
       fireEvent.changeText(passwordInput, 'testpassword123');
 
       // Assert
-      expect(passwordInput).toBeTruthy();
+      expect(passwordInput).toBeOnTheScreen();
     });
   });
 
@@ -738,111 +800,6 @@ describe('Login', () => {
       });
 
       expect(setAllowLoginWithRememberMe).toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('Password Error Handling', () => {
-    beforeEach(() => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should handle WRONG_PASSWORD_ERROR', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Decrypt failed'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error(
-          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        ),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Password requirements not met'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle generic error (else case)', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Some unexpected error'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        'Error: Some unexpected error',
-      );
     });
   });
 
@@ -893,7 +850,7 @@ describe('Login', () => {
       });
 
       // Should render biometric button when biometric is available
-      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeTruthy();
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
 
     it('biometric button is not shown when device is locked', async () => {
@@ -951,13 +908,20 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      mockTrackOnboarding.mockClear();
     });
 
     afterEach(() => {
       jest.clearAllMocks();
     });
 
-    it('should handle WRONG_PASSWORD_ERROR', async () => {
+    it('displays invalid password error when decryption fails', async () => {
+      // Arrange
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'password',
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Decrypt failed'),
       );
@@ -965,6 +929,7 @@ describe('Login', () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
+      // Act
       await act(async () => {
         fireEvent.changeText(passwordInput, 'valid-password123');
       });
@@ -972,14 +937,20 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
+      // Assert
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
+      expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
     });
 
-    it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
+    it('displays invalid password error for Android BAD_DECRYPT error', async () => {
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'password',
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error(
           'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
@@ -997,13 +968,52 @@ describe('Login', () => {
       });
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
+      expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
     });
 
-    it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
+    it('displays invalid password error for Android DoCipher error', async () => {
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'password',
+      });
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('error in DoCipher, status: 2'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeOnTheScreen();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('displays invalid password error when password requirements not met', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'password',
+        oauth2Login: true,
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Password requirements not met'),
       );
@@ -1019,13 +1029,13 @@ describe('Login', () => {
       });
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
+      expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
     });
 
-    it('should handle generic error (else case)', async () => {
+    it('displays generic error message for unexpected errors', async () => {
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Some unexpected error'),
       );
@@ -1041,50 +1051,10 @@ describe('Login', () => {
       });
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
+      expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual(
         'Error: Some unexpected error',
       );
-    });
-
-    it('should handle OnboardingPasswordLoginError trace during onboarding flow', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-          onboardingTraceCtx: 'mockTraceContext',
-        },
-      });
-
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Some unexpected error'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        'Error: Some unexpected error',
-      );
-
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-        op: TraceOperation.OnboardingError,
-        tags: { errorMessage: 'Error: Some unexpected error' },
-        parentContext: 'mockTraceContext',
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-      });
     });
   });
 
@@ -1102,7 +1072,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('should handle PASSCODE_NOT_SET_ERROR with alert', async () => {
+    it('displays alert when passcode not set', async () => {
       const mockAlert = jest
         .spyOn(Alert, 'alert')
         .mockImplementation(() => undefined);
@@ -1191,7 +1161,8 @@ describe('Login', () => {
       });
     });
 
-    it('handle biometric authentication failure', async () => {
+    it('does not navigate when biometric authentication fails', async () => {
+      // Arrange
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
@@ -1210,13 +1181,14 @@ describe('Login', () => {
 
       const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
 
+      // Act
       await act(async () => {
         fireEvent.press(biometryButton);
       });
 
+      // Assert
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
-      expect(biometryButton).toBeTruthy();
     });
   });
 
@@ -1242,7 +1214,7 @@ describe('Login', () => {
       );
     });
 
-    it('handleBackPress locks app when oauthLoginSuccess is false', () => {
+    it('locks app when back button is pressed', () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -1259,26 +1231,131 @@ describe('Login', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
+  });
 
-    it('handleBackPress navigates back when oauthLoginSuccess is true', () => {
+  describe('Conditional Rendering Based on OAuth Status', () => {
+    describe('Regular Login', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+      });
+
+      it('renders static MetaMask logo and fox animation', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
+
+        // Assert - Fox animation is rendered
+        expect(getByTestId('fox-animation-mock')).toBeDefined();
+
+        // Assert - Regular login elements
+        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
+
+        // Assert - OAuth elements are hidden
+        expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
+        expect(
+          queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeNull();
+
+        // Assert - metaMask logo is rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+
+        expect(hasMetaMaskLogo).toBe(true);
+      });
+
+      it('checks for seedless password status after 100ms delay', () => {
+        // Arrange
+        jest.useFakeTimers();
+        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+        // Act
+        renderWithProvider(<Login />);
+
+        // Assert
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+
+        setTimeoutSpy.mockRestore();
+        jest.useRealTimers();
+      });
+    });
+
+    describe('Common Elements', () => {
+      it('renders core login elements', () => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+      });
+    });
+  });
+
+  describe('KeyboardAwareScrollView Configuration', () => {
+    let originalPlatform: string;
+
+    beforeEach(() => {
+      originalPlatform = Platform.OS;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('sets extraScrollHeight to 50 on Android', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
       mockRoute.mockReturnValue({
         params: {
           locked: false,
-          oauthLoginSuccess: true,
+          oauthLoginSuccess: false,
         },
       });
 
-      renderWithProvider(<Login />);
+      const { UNSAFE_root } = renderWithProvider(<Login />);
 
-      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
-      const result = handleBackPress();
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 50 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.extraScrollHeight).toBe(50);
+    });
 
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(Authentication.lockApp).not.toHaveBeenCalled();
-      expect(result).toBe(false);
+    it('sets extraScrollHeight to 0 on iOS', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { UNSAFE_root } = renderWithProvider(<Login />);
+
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.extraScrollHeight).toBe(0);
     });
   });
 });
+
 // it('should navigate back and reset OAuth state when using other methods', async () => {
 //   mockRoute.mockReturnValue({
 //     params: {

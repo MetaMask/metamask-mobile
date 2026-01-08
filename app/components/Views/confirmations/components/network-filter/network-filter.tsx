@@ -5,7 +5,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { ScrollView, Pressable, ImageSourcePropType } from 'react-native';
+import { Pressable, ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -19,6 +19,7 @@ import {
   useNetworkFilter,
   NETWORK_FILTER_ALL,
 } from '../../hooks/send/useNetworkFilter';
+import { ScrollView } from 'react-native-gesture-handler';
 
 interface NetworkFilterTabProps {
   label: string;
@@ -49,11 +50,8 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
       }
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {label}
-      </Text>
       {showIcon && imageSource && (
-        <Box twClassName="ml-2">
+        <Box twClassName="mr-2">
           <Avatar
             variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
@@ -62,6 +60,10 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
           />
         </Box>
       )}
+
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
     </Pressable>
   );
 };

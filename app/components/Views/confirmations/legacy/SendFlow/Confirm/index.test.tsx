@@ -177,6 +177,10 @@ jest.mock('../../../../../../core/Engine', () => {
           },
         }),
         updateSecurityAlertResponse: jest.fn(),
+        getNonceLock: jest.fn().mockResolvedValue({
+          nextNonce: 1,
+          releaseLock: jest.fn(),
+        }),
       },
       PreferencesController: {
         state: {

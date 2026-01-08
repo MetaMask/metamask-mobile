@@ -1,19 +1,23 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getAccountTrackerControllerMessenger,
-  type AccountTrackerControllerMessenger,
-} from '../messengers/account-tracker-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getAccountTrackerControllerMessenger } from '../messengers/account-tracker-controller-messenger';
+
 import { ControllerInitRequest } from '../types';
 import { accountTrackerControllerInit } from './account-tracker-controller-init';
-import { AccountTrackerController } from '@metamask/assets-controllers';
+import {
+  AccountTrackerController,
+  AccountTrackerControllerMessenger,
+} from '@metamask/assets-controllers';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AccountTrackerControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

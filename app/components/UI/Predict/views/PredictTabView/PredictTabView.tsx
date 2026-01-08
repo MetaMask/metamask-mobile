@@ -1,6 +1,7 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
@@ -13,10 +14,16 @@ import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
-interface PredictTabViewProps {}
+interface PredictTabViewProps {
+  isVisible?: boolean;
+}
 
-const PredictTabView: React.FC<PredictTabViewProps> = () => {
+const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [positionsError, setPositionsError] = useState<string | null>(null);
@@ -25,11 +32,34 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
+
   usePredictDepositToasts();
   usePredictClaimToasts();
   usePredictWithdrawToasts();
 
   const hasError = Boolean(positionsError || headerError);
+
+  // Track positions tab load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictTabView,
+    conditions: [
+      !positionsError,
+      !headerError,
+      !isRefreshing,
+      isVisible === true,
+    ],
+    debugContext: {
+      hasErrors: !!(positionsError || headerError),
+      errorStates: {
+        positionsError: !!positionsError,
+        headerError: !!headerError,
+      },
+      isRefreshing,
+    },
+  });
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -54,30 +84,49 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     setHeaderError(error);
   }, []);
 
+  const content = (
+    <>
+      <PredictPositionsHeader
+        ref={predictPositionsHeaderRef}
+        onError={handleHeaderError}
+      />
+      <PredictPositions
+        ref={predictPositionsRef}
+        onError={handlePositionsError}
+        isVisible={isVisible}
+      />
+      <PredictAddFundsSheet />
+    </>
+  );
+
   return (
-    <View style={tw.style('flex-1 bg-default')}>
+    <View
+      style={tw.style(
+        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+      )}
+      testID={
+        isHomepageRedesignV1Enabled
+          ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+          : undefined
+      }
+    >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
       ) : (
-        <ScrollView
-          testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-            />
-          }
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
+            refreshControl: (
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            ),
+          }}
         >
-          <PredictPositionsHeader
-            ref={predictPositionsHeaderRef}
-            onError={handleHeaderError}
-          />
-          <PredictPositions
-            ref={predictPositionsRef}
-            onError={handlePositionsError}
-          />
-          <PredictAddFundsSheet />
-        </ScrollView>
+          {content}
+        </ConditionalScrollView>
       )}
     </View>
   );

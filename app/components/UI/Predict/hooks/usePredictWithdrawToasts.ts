@@ -5,18 +5,25 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { usePredictToasts } from './usePredictToasts';
 import { PredictWithdrawStatus } from '../types';
 import { useEffect } from 'react';
+import { usePredictBalance } from './usePredictBalance';
+import { formatPrice } from '../utils/format';
 
 export const usePredictWithdrawToasts = () => {
+  const { loadBalance } = usePredictBalance();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const { showPendingToast } = usePredictToasts({
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictWithdraw,
     confirmedToastConfig: {
       title: strings('predict.withdraw.withdraw_completed'),
       description: strings('predict.withdraw.withdraw_completed_subtitle', {
         amount: '{amount}',
       }),
-      getAmount: () => withdrawTransaction?.amount.toString() ?? '0',
+      getAmount: () =>
+        formatPrice(withdrawTransaction?.amount.toString() ?? '0'),
     },
     errorToastConfig: {
       title: strings('predict.withdraw.error_title'),
@@ -31,14 +38,9 @@ export const usePredictWithdrawToasts = () => {
   useEffect(() => {
     if (withdrawTransaction?.status === PredictWithdrawStatus.PENDING) {
       showPendingToast({
-        amount: withdrawTransaction?.amount.toString() ?? '0',
         config: {
-          title: strings('predict.withdraw.withdrawing', {
-            amount: '{amount}',
-          }),
-          description: strings('predict.withdraw.withdrawing_subtitle', {
-            time: 30,
-          }),
+          title: strings('predict.withdraw.withdrawing'),
+          description: strings('predict.withdraw.withdrawing_subtitle'),
         },
       });
     }

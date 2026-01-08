@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
-import { Image, useWindowDimensions, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Image, View, useWindowDimensions } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -9,90 +9,127 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import MM_CARDS_MOCKUP from '../../../../../images/mm-cards-mockup.png';
+import MM_CARDS_WELCOME from '../../../../../images/mm-card-welcome.png';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
+import { selectHasCardholderAccounts } from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 const CardWelcome = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
-  const isCardholder = useIsCardholder();
+  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
-  const deviceWidth = useWindowDimensions().width;
-  const styles = createStyles(theme, deviceWidth);
+  const dimensions = useWindowDimensions();
+  const styles = createStyles(theme, dimensions);
 
-  const cardWelcomeCopies = useMemo(() => {
-    if (isCardholder) {
-      return {
-        title: strings('card.card_onboarding.title'),
-        description: strings('card.card_onboarding.description'),
-        verify_account_button: strings(
-          'card.card_onboarding.verify_account_button',
-        ),
-      };
-    }
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.WELCOME,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
-    return {
-      title: strings('card.card_onboarding.non_cardholder_title'),
-      description: strings('card.card_onboarding.non_cardholder_description'),
-      verify_account_button: strings(
-        'card.card_onboarding.non_cardholder_verify_account_button',
-      ),
-    };
-  }, [isCardholder]);
+  const handleClose = useCallback(() => {
+    navigate(Routes.WALLET.HOME);
+  }, [navigate]);
 
   const handleButtonPress = useCallback(() => {
-    if (isCardholder) {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_ACCOUNT_BUTTON,
+        })
+        .build(),
+    );
+
+    if (hasCardholderAccounts) {
       navigate(Routes.CARD.AUTHENTICATION);
     } else {
       navigate(Routes.CARD.ONBOARDING.ROOT);
     }
-  }, [isCardholder, navigate]);
+  }, [hasCardholderAccounts, navigate, trackEvent, createEventBuilder]);
 
   return (
-    <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
-      <View style={styles.container}>
-        <View style={styles.imageWrapper}>
-          <Image
-            source={MM_CARDS_MOCKUP}
-            style={styles.image}
-            resizeMode="contain"
-            testID={CardWelcomeSelectors.CARD_IMAGE}
-          />
-        </View>
-        <View>
+    <View style={[styles.pageContainer]} testID="card-gtm-modal-container">
+      <SafeAreaView style={styles.contentContainer}>
+        {/* Header Section */}
+        <View style={styles.headerContainer}>
           <Text
+            style={styles.title}
             variant={TextVariant.HeadingLG}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
-            {cardWelcomeCopies.title}
+            {strings('card.card_onboarding.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            style={styles.titleDescription}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
           >
-            {cardWelcomeCopies.description}
+            {strings('card.card_onboarding.description')}
           </Text>
+        </View>
 
-          <Button
-            variant={ButtonVariants.Primary}
-            label={cardWelcomeCopies.verify_account_button}
-            size={ButtonSize.Lg}
-            testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            onPress={handleButtonPress}
-            style={styles.button}
-            width={ButtonWidthTypes.Full}
+        {/* Image Section */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={MM_CARDS_WELCOME}
+            style={styles.image}
+            resizeMode="cover"
+            testID={CardWelcomeSelectors.CARD_IMAGE}
           />
         </View>
-      </View>
-    </SafeAreaView>
+
+        {/* Footer Section */}
+        <View style={styles.footerContainer}>
+          <ButtonBase
+            onPress={handleButtonPress}
+            testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            style={styles.getStartedButton}
+            activeOpacity={0.6}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.getStartedButtonText}
+              >
+                {strings('card.card_onboarding.apply_now_button')}
+              </Text>
+            }
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            onPress={handleClose}
+            testID="predict-gtm-not-now-button"
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            style={styles.notNowButton}
+            activeOpacity={0.6}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.notNowButtonText}
+              >
+                {strings('predict.gtm_content.not_now')}
+              </Text>
+            }
+          />
+        </View>
+      </SafeAreaView>
+    </View>
   );
 };
 

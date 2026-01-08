@@ -2,6 +2,7 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
+import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -20,6 +21,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
+import { isEmpty } from 'lodash';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -133,7 +135,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -143,6 +144,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
+    expect(engine.context).toHaveProperty('RampsController');
+    expect(engine.context).toHaveProperty('RampsService');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -159,7 +162,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -177,7 +181,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -224,11 +229,11 @@ describe('Engine', () => {
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        claimTransaction: null,
-        claimablePositions: [],
-        depositTransaction: null,
+        balances: {},
+        claimablePositions: {},
+        pendingDeposits: {},
         withdrawTransaction: null,
-        isOnboarded: {},
+        accountMeta: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({
@@ -249,8 +254,21 @@ describe('Engine', () => {
         withdrawalProgress: {
           progress: 0,
           lastUpdated: 0,
-          activeWithdrawalId: undefined,
+          activeWithdrawalId: null,
         },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
+        hip3ConfigVersion: 0,
+        initializationState: InitializationState.UNINITIALIZED,
+        initializationError: null,
+        initializationAttempts: 0,
       },
     };
 
@@ -822,7 +840,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to active
@@ -841,7 +867,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to background
@@ -865,6 +899,33 @@ describe('Engine', () => {
 
     // Simulate app state change to inactive
     mockAppStateListener('inactive');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
+  });
+
+  it('does not call `SnapController:setClientActive` when the app is locked', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
+      },
+    });
+
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
@@ -1179,6 +1240,30 @@ describe('Engine', () => {
 
       expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
       expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Engine.state', () => {
+    it('throws error when accessing state before Engine exists', () => {
+      expect(() => Engine.state).toThrow('Engine does not exist');
+    });
+
+    it('returns state from all controllers with state', () => {
+      Engine.init({});
+      const controllersWithState = Object.entries(Engine.context)
+        .filter(
+          ([_, controller]) =>
+            'state' in controller &&
+            Boolean(controller.state) &&
+            !isEmpty(controller.state),
+        )
+        .map(([controllerName]) => controllerName);
+
+      const state = Engine.state;
+
+      const sortedControllersInState = Object.keys(state).sort();
+      const sortedExpectedControllers = controllersWithState.sort();
+      expect(sortedControllersInState).toEqual(sortedExpectedControllers);
     });
   });
 });

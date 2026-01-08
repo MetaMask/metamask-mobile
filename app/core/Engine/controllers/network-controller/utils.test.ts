@@ -388,6 +388,8 @@ function setQuicknodeEnvironmentVariables() {
   process.env.QUICKNODE_POLYGON_URL = 'https://example.quicknode.com/polygon';
   process.env.QUICKNODE_BASE_URL = 'https://example.quicknode.com/base';
   process.env.QUICKNODE_BSC_URL = 'https://example.quicknode.com/bsc';
+  process.env.QUICKNODE_SEI_URL = 'https://example.quicknode.com/sei';
+  process.env.QUICKNODE_MONAD_URL = 'https://example.quicknode.com/monad';
 }
 
 /**

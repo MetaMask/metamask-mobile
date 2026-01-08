@@ -20,6 +20,7 @@ export interface ShowNetworkConnectionBannerAction extends Action {
   status: NetworkConnectionBannerStatus;
   networkName: string;
   rpcUrl: string;
+  isInfuraEndpoint: boolean;
 }
 
 /**
@@ -45,11 +46,13 @@ export function showNetworkConnectionBanner({
   status,
   networkName,
   rpcUrl,
+  isInfuraEndpoint,
 }: {
   chainId: Hex;
   status: NetworkConnectionBannerStatus;
   networkName: string;
   rpcUrl: string;
+  isInfuraEndpoint: boolean;
 }): ShowNetworkConnectionBannerAction {
   return {
     type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
@@ -57,6 +60,7 @@ export function showNetworkConnectionBanner({
     status,
     networkName,
     rpcUrl,
+    isInfuraEndpoint,
   };
 }
 

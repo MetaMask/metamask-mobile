@@ -6,7 +6,7 @@ import { TransactionDetailsBridgeFeeRow } from './transaction-details-bridge-fee
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
-const BRIDGE_FEE_FIAT_MOCK = '$123.45';
+const BRIDGE_FEE_FIAT_MOCK = '123.45';
 
 function render() {
   return renderWithProvider(<TransactionDetailsBridgeFeeRow />, {});
@@ -29,7 +29,7 @@ describe('TransactionDetailsBridgeFeeRow', () => {
 
   it('renders bridge fee fiat', () => {
     const { getByText } = render();
-    expect(getByText(BRIDGE_FEE_FIAT_MOCK)).toBeDefined();
+    expect(getByText(`$${BRIDGE_FEE_FIAT_MOCK}`)).toBeDefined();
   });
 
   it('renders nothing if no bridge fee fiat', () => {
@@ -41,6 +41,6 @@ describe('TransactionDetailsBridgeFeeRow', () => {
 
     const { queryByText } = render();
 
-    expect(queryByText(BRIDGE_FEE_FIAT_MOCK)).toBeNull();
+    expect(queryByText(`$${BRIDGE_FEE_FIAT_MOCK}`)).toBeNull();
   });
 });

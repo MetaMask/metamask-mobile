@@ -26,6 +26,10 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selec
 import { EthScope } from '@metamask/keyring-api';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { getTokenIconUrl } from '../../utils';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -204,6 +208,7 @@ export const useTokensWithBalance: ({
       .map((token, i) => {
         const evmBalance = evmBalances?.[i]?.balance;
         const nonEvmBalance = renderNumber(token.balance ?? '0');
+        const chainId = token.chainId as Hex | CaipChainId;
 
         const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
         const nonEvmBalanceFiat = renderFiat(
@@ -219,11 +224,11 @@ export const useTokensWithBalance: ({
           name: token.name,
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
-          chainId: token.chainId as Hex | CaipChainId,
+          chainId,
           image:
             getTokenIconUrl(
-              token.address,
-              token.chainId as Hex | CaipChainId,
+              formatAddressToAssetId(token.address, chainId),
+              isNonEvmChainId(chainId),
             ) || token.image,
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,

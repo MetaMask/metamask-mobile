@@ -4,7 +4,7 @@ import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { Consent } from '../types';
+import { Consent, ConsentSet } from '../types';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -15,16 +15,26 @@ interface UseRegisterUserConsentState {
 }
 
 interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
-  registerUserConsent: (onboardingId: string, userId: string) => Promise<void>;
+  createOnboardingConsent: (onboardingId: string) => Promise<string>;
+  linkUserToConsent: (consentSetId: string, userId: string) => Promise<void>;
   clearError: () => void;
   reset: () => void;
+  getOnboardingConsentSetByOnboardingId: (
+    onboardingId: string,
+  ) => Promise<ConsentSet | null>;
 }
 
 /**
  * Hook for managing the 2-stage user consent registration process
  *
- * Stage 1: Creates onboarding consent record via createOnboardingConsent
- * Stage 2: Links the user to the consent record via linkUserToConsent
+ * IMPORTANT: These operations must be performed in the correct order:
+ * Step 7: createOnboardingConsent - Creates consent record and returns consentSetId
+ * Step 8: Register physical address (via useRegisterPhysicalAddress)
+ * Step 9: Register mailing address if needed (via useRegisterMailingAddress)
+ * Step 10: linkUserToConsent - Links the user to the consent record
+ *
+ * This ensures that if address registration fails, no consent is linked to the user,
+ * preventing inconsistent state.
  *
  * @returns {UseRegisterUserConsentReturn} Object containing state and methods for consent registration
  */
@@ -57,13 +67,36 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
     });
   }, []);
 
-  const registerUserConsent = useCallback(
-    async (onboardingId: string, userId: string): Promise<void> => {
+  const getOnboardingConsentSetByOnboardingId = useCallback(
+    async (onboardingId: string): Promise<ConsentSet | null> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
       }
 
-      const policy = selectedCountry === 'US' ? 'US' : 'global';
+      const consentSetResponse =
+        await sdk.getConsentSetByOnboardingId(onboardingId);
+      if (!consentSetResponse) {
+        return null;
+      }
+
+      return consentSetResponse.consentSets[0];
+    },
+    [sdk],
+  );
+
+  /**
+   * Step 7: Creates an onboarding consent record
+   * This should be called BEFORE address registration
+   * @param onboardingId - The onboarding ID
+   * @returns The consentSetId to be used later in linkUserToConsent
+   */
+  const createOnboardingConsent = useCallback(
+    async (onboardingId: string): Promise<string> => {
+      if (!sdk) {
+        throw new Error('Card SDK not initialized');
+      }
+
+      const policy = selectedCountry?.key === 'US' ? 'us' : 'global';
 
       try {
         // Reset state and start loading
@@ -75,7 +108,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           isSuccess: false,
         }));
 
-        // Stage 1: Create onboarding consent
+        // Build consent array based on policy
         const eSignActConsent: Consent = {
           consentType: 'eSignAct',
           consentStatus: 'granted',
@@ -84,7 +117,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           },
         };
         const consents: Consent[] = [
-          ...(policy === 'US' ? [eSignActConsent] : []),
+          ...(policy === 'us' ? [eSignActConsent] : []),
           {
             consentType: 'termsAndPrivacy',
             consentStatus: 'granted',
@@ -114,11 +147,12 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
             },
           },
         ];
+
+        // Create onboarding consent
         const { consentSetId } = await sdk.createOnboardingConsent({
           policyType: policy,
           onboardingId,
           consents,
-          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: new Date().toISOString(),
@@ -126,16 +160,61 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         });
 
         if (!consentSetId) {
+          const error = 'Failed to create onboarding consent';
           setState((prevState) => ({
             ...prevState,
             isLoading: false,
             isError: true,
-            error: 'Failed to create onboarding consent',
+            error,
           }));
-          return;
+          throw new Error(error);
         }
 
-        // Stage 2: Link user to consent
+        // Update state with consentSetId
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: false,
+          consentSetId,
+        }));
+
+        return consentSetId;
+      } catch (err) {
+        const errorMessage = getErrorMessage(err);
+
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: false,
+          isError: true,
+          error: errorMessage,
+        }));
+
+        throw err;
+      }
+    },
+    [sdk, selectedCountry],
+  );
+
+  /**
+   * Step 10: Links the user to an existing consent record
+   * This should be called AFTER successful address registration
+   * @param consentSetId - The consent set ID from createOnboardingConsent
+   * @param userId - The user ID to link
+   */
+  const linkUserToConsent = useCallback(
+    async (consentSetId: string, userId: string): Promise<void> => {
+      if (!sdk) {
+        throw new Error('Card SDK not initialized');
+      }
+
+      try {
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: true,
+          isError: false,
+          error: null,
+        }));
+
+        // Link user to consent
         await sdk.linkUserToConsent(consentSetId, {
           userId,
         });
@@ -145,7 +224,6 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           ...prevState,
           isLoading: false,
           isSuccess: true,
-          consentSetId,
         }));
       } catch (err) {
         const errorMessage = getErrorMessage(err);
@@ -156,14 +234,18 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           isError: true,
           error: errorMessage,
         }));
+
+        throw err;
       }
     },
-    [sdk, selectedCountry],
+    [sdk],
   );
 
   return {
     ...state,
-    registerUserConsent,
+    getOnboardingConsentSetByOnboardingId,
+    createOnboardingConsent,
+    linkUserToConsent,
     clearError,
     reset,
   };

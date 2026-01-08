@@ -47,11 +47,9 @@ const AutoDetectNFTSettings = () => {
       });
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED)
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
           .addProperties({
-            ...(value && { [UserProfileProperty.ENABLE_OPENSEA_API]: value }),
-            [UserProfileProperty.NFT_AUTODETECTION]: value,
-            location: 'app_settings',
+            nft_autodetection_enabled: value,
           })
           .build(),
       );

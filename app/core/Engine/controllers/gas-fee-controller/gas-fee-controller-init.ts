@@ -1,5 +1,8 @@
-import { GasFeeController } from '@metamask/gas-fee-controller';
-import { swapsUtils } from '@metamask/swaps-controller';
+import {
+  GasFeeController,
+  type GasFeeMessenger,
+} from '@metamask/gas-fee-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import type {
   ControllerInitFunction,
@@ -7,9 +10,7 @@ import type {
 } from '../../types';
 import AppConstants from '../../../AppConstants';
 import Logger from '../../../../util/Logger';
-import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
-import { type GasFeeControllerMessenger } from '../../messengers/gas-fee-controller-messenger/gas-fee-controller-messenger';
 
 const LEGACY_GAS_API_ENDPOINT =
   'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices';
@@ -18,7 +19,7 @@ const EIP1559_API_ENDPOINT =
 
 export const GasFeeControllerInit: ControllerInitFunction<
   GasFeeController,
-  GasFeeControllerMessenger
+  GasFeeMessenger
 > = (request) => {
   const { controllerMessenger, getGlobalChainId } = request;
 
@@ -34,8 +35,8 @@ export const GasFeeControllerInit: ControllerInitFunction<
         const chainId = getGlobalChainId();
         return (
           isMainnetByChainId(chainId) ||
-          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
-          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
+          chainId === CHAIN_IDS.BSC ||
+          chainId === CHAIN_IDS.POLYGON
         );
       },
       getProvider: () =>
@@ -52,9 +53,7 @@ export const GasFeeControllerInit: ControllerInitFunction<
   }
 };
 
-function getControllers(
-  request: ControllerInitRequest<GasFeeControllerMessenger>,
-) {
+function getControllers(request: ControllerInitRequest<GasFeeMessenger>) {
   return {
     networkController: request.getController('NetworkController'),
   };

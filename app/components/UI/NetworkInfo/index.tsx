@@ -174,14 +174,14 @@ const NetworkInfo = (props: NetworkInfoProps) => {
                     ticker,
                   })
                 : type !== RPC
-                ? strings('network_information.first_description', { ticker })
-                : [
-                    ticker === undefined
-                      ? strings('network_information.private_network')
-                      : strings('network_information.first_description', {
-                          ticker,
-                        }),
-                  ]
+                  ? strings('network_information.first_description', { ticker })
+                  : [
+                      ticker === undefined
+                        ? strings('network_information.private_network')
+                        : strings('network_information.first_description', {
+                            ticker,
+                          }),
+                    ]
             }
             number={1}
             clickableText={undefined}

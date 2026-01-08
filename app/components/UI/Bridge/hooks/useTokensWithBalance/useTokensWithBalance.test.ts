@@ -6,12 +6,6 @@ import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 
-// Mock dependencies
-jest.mock('../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../../Tokens/util', () => ({
   ...jest.requireActual('../../../Tokens/util'),
   sortAssets: jest.fn().mockImplementation((assets) => assets),

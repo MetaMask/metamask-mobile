@@ -35,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('useEmailVerificationVerify', () => {
   const mockEmailVerificationVerify = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     emailVerificationVerify: mockEmailVerificationVerify,
@@ -67,11 +66,8 @@ describe('useEmailVerificationVerify', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -98,9 +94,8 @@ describe('useEmailVerificationVerify', () => {
 
       let response: EmailVerificationVerifyResponse | undefined;
       await act(async () => {
-        response = await result.current.verifyEmailVerification(
-          mockVerifyRequest,
-        );
+        response =
+          await result.current.verifyEmailVerification(mockVerifyRequest);
       });
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
@@ -204,11 +199,8 @@ describe('useEmailVerificationVerify', () => {
 
     it('throws error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useEmailVerificationVerify());
@@ -423,11 +415,8 @@ describe('useEmailVerificationVerify', () => {
   describe('handles undefined SDK gracefully', () => {
     it('throws appropriate error when SDK is undefined', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useEmailVerificationVerify());

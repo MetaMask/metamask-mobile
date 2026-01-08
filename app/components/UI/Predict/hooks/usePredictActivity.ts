@@ -1,10 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import type { PredictActivity } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 interface UsePredictActivityOptions {
   providerId?: string;
@@ -30,10 +30,6 @@ export function usePredictActivity(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
-
   const loadActivity = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
       const { isRefresh = false } = loadOptions || {};
@@ -42,13 +38,11 @@ export function usePredictActivity(
           setIsRefreshing(true);
         } else {
           setIsLoading(true);
-          setActivity([]);
         }
         setError(null);
 
         const controller = Engine.context.PredictController;
         const data = await controller.getActivity({
-          address: selectedInternalAccountAddress,
           providerId,
         });
         setActivity(data ?? []);
@@ -58,14 +52,17 @@ export function usePredictActivity(
         setError(message);
 
         // Capture exception with activity loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictActivity',
-            action: 'activity_load',
-            operation: 'data_fetching',
           },
-          extra: {
-            activityContext: {
+          context: {
+            name: 'usePredictActivity',
+            data: {
+              method: 'loadActivity',
+              action: 'activity_load',
+              operation: 'data_fetching',
               providerId,
             },
           },
@@ -75,7 +72,7 @@ export function usePredictActivity(
         setIsRefreshing(false);
       }
     },
-    [providerId, selectedInternalAccountAddress],
+    [providerId],
   );
 
   useEffect(() => {

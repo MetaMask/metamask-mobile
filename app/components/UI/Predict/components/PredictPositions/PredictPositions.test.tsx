@@ -49,6 +49,10 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../hooks/usePredictPositions');
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
 const mockOnPress = jest.fn();
 jest.mock('../PredictPosition/PredictPosition', () => {
   const ReactNative = jest.requireActual('react-native');
@@ -196,8 +200,11 @@ describe('PredictPositions', () => {
     // Act
     renderWithProvider(<PredictPositions />);
 
-    // Assert
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    // Assert - Check for skeleton loaders instead of activity indicator
+    expect(screen.getByTestId('predict-position-skeleton-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-2')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-3')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-4')).toBeOnTheScreen();
   });
 
   it('renders loading state when isRefreshing and no positions', () => {
@@ -216,8 +223,11 @@ describe('PredictPositions', () => {
     // Act
     renderWithProvider(<PredictPositions />);
 
-    // Assert
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    // Assert - Check for skeleton loaders instead of activity indicator
+    expect(screen.getByTestId('predict-position-skeleton-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-2')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-3')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-4')).toBeOnTheScreen();
   });
 
   it('renders active positions list when no positions and not loading', () => {
@@ -400,11 +410,12 @@ describe('PredictPositions', () => {
       const positionElement = screen.getAllByTestId('predict-position')[0];
       fireEvent.press(positionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: mockPositions[0].marketId,
           headerShown: false,
+          entryPoint: 'homepage_positions',
         },
       });
     });
@@ -428,11 +439,12 @@ describe('PredictPositions', () => {
       );
       fireEvent.press(resolvedPositionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: claimablePosition.marketId,
           headerShown: false,
+          entryPoint: 'homepage_positions',
         },
       });
     });
@@ -517,6 +529,416 @@ describe('PredictPositions', () => {
       expect(
         screen.queryByTestId('predict-position-empty'),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-active-positions-list'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-claimable-positions-list'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Homepage Redesign V1 Features', () => {
+    const mockLoadPositions = jest.fn();
+    const mockLoadClaimablePositions = jest.fn();
+
+    it('calculates correct activePositionsHeight when isHomepageRedesignV1Enabled is true', () => {
+      const positions = [createMockPosition(), createMockPosition()];
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions,
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId('predict-active-positions-list'),
+      ).toBeOnTheScreen();
+    });
+
+    it('calculates correct claimablePositionsHeight when isHomepageRedesignV1Enabled is true', () => {
+      const claimablePosition = createClaimablePosition();
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [claimablePosition],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId('predict-claimable-positions-list'),
+      ).toBeOnTheScreen();
+    });
+
+    it('returns undefined activePositionsHeight when positions are empty', () => {
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(screen.getByTestId('predict-position-empty')).toBeOnTheScreen();
+    });
+
+    it('does not calculate fixed heights when isHomepageRedesignV1Enabled is false', () => {
+      const position = createMockPosition();
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [position],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId('predict-active-positions-list'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Loading State Styling', () => {
+    const mockLoadPositions = jest.fn();
+    const mockLoadClaimablePositions = jest.fn();
+
+    it('applies correct styles for loading state when isHomepageRedesignV1Enabled is true', () => {
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: true,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      // Check for skeleton loaders instead of activity indicator
+      expect(
+        screen.getByTestId('predict-position-skeleton-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-2'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-3'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-4'),
+      ).toBeOnTheScreen();
+    });
+
+    it('applies correct styles for loading state when isHomepageRedesignV1Enabled is false', () => {
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: true,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      // Check for skeleton loaders instead of activity indicator
+      expect(
+        screen.getByTestId('predict-position-skeleton-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-2'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-3'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-4'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fixed Height Wrapping', () => {
+    const mockLoadPositions = jest.fn();
+    const mockLoadClaimablePositions = jest.fn();
+
+    it('wraps active positions FlashList with fixed height when homepage redesign is enabled', () => {
+      const positions = [
+        createMockPosition(),
+        createMockPosition({ id: '2' }),
+        createMockPosition({ id: '3' }),
+      ];
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions,
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId('predict-active-positions-list'),
+      ).toBeOnTheScreen();
+    });
+
+    it('wraps claimable positions FlashList with fixed height when homepage redesign is enabled', () => {
+      const claimablePositions = [
+        createClaimablePosition(),
+        createClaimablePosition({ id: '4' }),
+      ];
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: claimablePositions,
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        screen.getByTestId('predict-claimable-positions-list'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not wrap FlashLists when homepage redesign is disabled', () => {
+      const position = createMockPosition();
+      const claimablePosition = createClaimablePosition();
+      mockUsePredictPositions
+        .mockReturnValueOnce({
+          positions: [position],
+          isRefreshing: false,
+          loadPositions: mockLoadPositions,
+          isLoading: false,
+          error: null,
+        })
+        .mockReturnValueOnce({
+          positions: [claimablePosition],
+          isRefreshing: false,
+          loadPositions: mockLoadClaimablePositions,
+          isLoading: false,
+          error: null,
+        });
+
+      renderWithProvider(<PredictPositions />, {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  homepageRedesignV1: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
+      });
+
       expect(
         screen.getByTestId('predict-active-positions-list'),
       ).toBeOnTheScreen();

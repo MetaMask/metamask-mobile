@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 // formatPrice import removed - using raw values for input state
 import { strings } from '../../../../../locales/i18n';
@@ -803,13 +803,26 @@ export function usePerpsTPSLForm(
   }, []);
 
   // Validation logic
-  // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
-  // This ensures TP/SL are validated against the price where the order will execute
-  const referencePrice =
-    orderType === 'market' ? currentPrice : entryPrice || currentPrice;
+  // For existing positions, always validate against current price to allow setting TP/SL
+  // between entry and current price when position is at a loss
+  // For new orders, use entry price (limit price for limit orders, current price for market orders)
+  const { referencePrice, priceType } = useMemo(() => {
+    if (position) {
+      // Existing position: validate against current price
+      return { referencePrice: currentPrice, priceType: 'current' };
+    }
 
-  // Determine what type of price we're comparing against for error messages
-  const priceType = orderType === 'market' ? 'current' : 'entry';
+    if (orderType === 'market') {
+      // New market order: validate against current price
+      return { referencePrice: currentPrice, priceType: 'current' };
+    }
+
+    // New limit order: validate against entry price (limit price)
+    return {
+      referencePrice: entryPrice || currentPrice,
+      priceType: 'entry',
+    };
+  }, [position, currentPrice, orderType, entryPrice]);
 
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
     currentPrice: referencePrice,

@@ -11,8 +11,10 @@ import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
   resetOnboardingState,
+  selectConsentSetId,
   selectOnboardingId,
   selectSelectedCountry,
+  setConsentSetId,
   setIsAuthenticatedCard,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -20,12 +22,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { CardError } from '../../types';
+import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -33,7 +36,14 @@ const MailingAddress = () => {
   const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const consentSetId = useSelector(selectConsentSetId);
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const {
+    createOnboardingConsent,
+    linkUserToConsent,
+    getOnboardingConsentSetByOnboardingId,
+  } = useRegisterUserConsent();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -43,9 +53,9 @@ const MailingAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.MAILING_ADDRESS,
+          screen: CardScreens.MAILING_ADDRESS,
         })
         .build(),
     );
@@ -106,7 +116,7 @@ const MailingAddress = () => {
       !onboardingId ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
+      (!state && selectedCountry?.key === 'US') ||
       !zipCode,
     [
       registerLoading,
@@ -125,7 +135,7 @@ const MailingAddress = () => {
       !onboardingId ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
+      (!state && selectedCountry?.key === 'US') ||
       !zipCode
     ) {
       return;
@@ -133,9 +143,9 @@ const MailingAddress = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.MAILING_ADDRESS_BUTTON_CLICKED,
+            action: CardActions.MAILING_ADDRESS_BUTTON,
           })
           .build(),
       );
@@ -152,9 +162,9 @@ const MailingAddress = () => {
         setUser(updatedUser);
       }
 
-      if (accessToken) {
+      if (accessToken && updatedUser?.id) {
         // Store the access token for immediate authentication
-        const location = mapCountryToLocation(selectedCountry);
+        const location = mapCountryToLocation(selectedCountry?.key || null);
         const accessTokenExpiresIn = extractTokenExpiration(accessToken);
 
         const storeResult = await storeCardBaanxToken({
@@ -169,8 +179,44 @@ const MailingAddress = () => {
           dispatch(setUserCardLocation(location));
         }
 
-        // Registration complete
-        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+        // Step 10: Handle consent with defensive checks (similar to PhysicalAddress)
+        // Defensive fallback in case Redux state was lost or consent creation failed
+        let finalConsentSetId = consentSetId;
+        let shouldLinkConsent = true;
+
+        if (!finalConsentSetId) {
+          // Fallback: Check if consent already exists for this onboarding
+          const consentSet =
+            await getOnboardingConsentSetByOnboardingId(onboardingId);
+
+          if (consentSet) {
+            // Check if consent is already completed (both fields must be present)
+            if (consentSet.completedAt && consentSet.userId) {
+              // Consent already linked - skip consent operations
+              shouldLinkConsent = false;
+            } else {
+              // Consent exists but not completed - reuse it
+              finalConsentSetId = consentSet.consentSetId;
+            }
+          } else {
+            // Safety net: Create consent if it doesn't exist
+            // This shouldn't normally happen, but protects against edge cases
+            finalConsentSetId = await createOnboardingConsent(onboardingId);
+          }
+        }
+
+        // Link consent to user (only if needed)
+        if (shouldLinkConsent && finalConsentSetId) {
+          await linkUserToConsent(finalConsentSetId, updatedUser.id);
+          dispatch(setConsentSetId(null));
+        }
+
+        // Reset the navigation stack to the verifying registration screen
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+        });
+        return;
       }
 
       // Something is wrong. We need to display the registerError or restart the flow

@@ -23,6 +23,7 @@ import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -43,8 +44,15 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
+  // Flag to pause emission during operations (keeps WebSocket alive)
+  protected isPaused = false;
 
   protected notifySubscribers(updates: T) {
+    // Block emission if paused (WebSocket continues receiving updates)
+    if (this.isPaused) {
+      return;
+    }
+
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
@@ -63,14 +71,17 @@ abstract class StreamChannel<T> {
       // Store pending update
       subscriber.pendingUpdate = updates;
 
-      // Only set timer if one isn't already running
+      // Throttle pattern: Only set timer if one isn't already running
+      // This ensures callbacks fire at most once per throttleMs interval
+      // WITHOUT resetting the countdown on every update (which would be debouncing)
+      // The conditional check prevents timer accumulation - no memory leaks
       if (!subscriber.timer) {
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
             subscriber.callback(subscriber.pendingUpdate);
             subscriber.pendingUpdate = undefined;
-            subscriber.timer = undefined;
           }
+          subscriber.timer = undefined;
         }, subscriber.throttleMs);
       }
     });
@@ -100,10 +111,12 @@ abstract class StreamChannel<T> {
     // Ensure WebSocket connected
     this.connect();
 
+    // Return unsubscribe function
     return () => {
       const sub = this.subscribers.get(id);
       if (sub?.timer) {
         clearTimeout(sub.timer);
+        sub.timer = undefined;
       }
       this.subscribers.delete(id);
 
@@ -119,6 +132,15 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    // This prevents orphaned timers from continuing to run after disconnect
+    this.subscribers.forEach((subscriber) => {
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+
     if (this.wsSubscription) {
       this.wsSubscription();
       this.wsSubscription = null;
@@ -127,12 +149,39 @@ abstract class StreamChannel<T> {
     this.wsConnectionStartTime = null;
   }
 
+  /**
+   * Pause emission of updates to subscribers
+   * WebSocket connection stays alive and continues receiving data
+   * Used during batch operations to prevent UI re-renders from stale data
+   */
+  public pause(): void {
+    this.isPaused = true;
+  }
+
+  /**
+   * Resume emission of updates to subscribers
+   * Subscribers will receive the next update from the WebSocket
+   */
+  public resume(): void {
+    this.isPaused = false;
+  }
+
   protected getCachedData(): T | null {
     // Override in subclasses to return null for no cache, or actual data
     return null;
   }
 
   public clearCache(): void {
+    // This ensures no timers are orphaned during the disconnect/reconnect cycle
+    this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+
     // Disconnect the old WebSocket subscription to stop receiving old account data
     if (this.wsSubscription) {
       this.disconnect();
@@ -148,12 +197,6 @@ abstract class StreamChannel<T> {
     // Notify subscribers with cleared data to trigger loading state
     // Using getClearedData() ensures type safety while maintaining loading semantics
     this.subscribers.forEach((subscriber) => {
-      // Clear any pending updates and timers
-      if (subscriber.timer) {
-        clearTimeout(subscriber.timer);
-        subscriber.timer = undefined;
-      }
-      subscriber.pendingUpdate = undefined;
       // Send cleared data to indicate "no data yet" (loading state)
       subscriber.callback(this.getClearedData());
     });
@@ -204,7 +247,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
-      includeOrderBook: true, // include bid/ask data from L2 book
       callback: (updates: PriceUpdate[]) => {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
@@ -311,7 +353,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Subscribe to all market prices
       this.prewarmUnsubscribe = controller.subscribeToPrices({
         symbols: this.allMarketSymbols,
-        includeOrderBook: true, // include bid/ask data from L2 book
         callback: (updates: PriceUpdate[]) => {
           // Update cache and build price map
           const priceMap: Record<string, PriceUpdate> = {};
@@ -396,7 +437,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
         // Validate account context
@@ -532,7 +572,6 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         // Validate account context
@@ -642,18 +681,84 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  /**
+   * Apply optimistic update for TP/SL prices to a position
+   * This immediately updates the UI before WebSocket confirms the change
+   * @param coin - The coin/asset symbol
+   * @param takeProfitPrice - The new take profit price (undefined to remove)
+   * @param stopLossPrice - The new stop loss price (undefined to remove)
+   */
+  public updatePositionTPSLOptimistic(
+    coin: string,
+    takeProfitPrice: string | undefined,
+    stopLossPrice: string | undefined,
+  ): void {
+    const cachedPositions = this.cache.get('positions');
+    if (!cachedPositions) {
+      DevLogger.log(
+        'PositionStreamChannel: Cannot apply optimistic update - no cached positions',
+      );
+      return;
+    }
+
+    const positionIndex = cachedPositions.findIndex((p) => p.coin === coin);
+    if (positionIndex === -1) {
+      DevLogger.log(
+        `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
+      );
+      return;
+    }
+
+    // Create updated positions array with the optimistic TP/SL values
+    const updatedPositions = cachedPositions.map((position, index) => {
+      if (index === positionIndex) {
+        return {
+          ...position,
+          takeProfitPrice,
+          stopLossPrice,
+          // Update counts based on whether TP/SL is set
+          takeProfitCount: takeProfitPrice ? 1 : 0,
+          stopLossCount: stopLossPrice ? 1 : 0,
+        };
+      }
+      return position;
+    });
+
+    DevLogger.log('PositionStreamChannel: Applying optimistic TP/SL update', {
+      coin,
+      takeProfitPrice,
+      stopLossPrice,
+    });
+
+    // Update cache and notify subscribers immediately
+    this.cache.set('positions', updatedPositions);
+    this.notifySubscribers(updatedPositions);
+  }
 }
 
 // Specific channel for fills
 class FillStreamChannel extends StreamChannel<OrderFill[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[]) => {
-        // Append to existing fills (it's a time series)
-        const existing = this.cache.get('fills') || [];
-        const updated = [...existing, ...fills].slice(-100); // Keep last 100
+      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+        let updated: OrderFill[];
+        if (isSnapshot) {
+          // Snapshot: replace cache with initial historical data
+          // Sort by timestamp descending (newest first)
+          updated = [...fills]
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 100);
+        } else {
+          // Streaming: prepend new fills to existing (newest first)
+          const existing = this.cache.get('fills') || [];
+          // New fills go at the beginning since they're most recent
+          updated = [...fills, ...existing].slice(0, 100);
+        }
         this.cache.set('fills', updated);
         this.notifySubscribers(updated);
       },
@@ -666,6 +771,42 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
   protected getClearedData(): OrderFill[] {
     return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches fills data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('FillStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('FillStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
   }
 }
 
@@ -807,6 +948,188 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
+// Open Interest Cap channel for tracking markets at capacity
+class OICapStreamChannel extends StreamChannel<string[]> {
+  private prewarmUnsubscribe?: () => void;
+
+  protected connect() {
+    if (this.wsSubscription) return;
+
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
+
+    // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
+    this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
+      callback: (caps: string[]) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(new Error('OICapStreamChannel: Wrong account context'), {
+            expected: currentAccount,
+            received: this.accountAddress,
+          });
+          return;
+        }
+        this.accountAddress = currentAccount;
+
+        this.cache.set('oiCaps', caps);
+        this.notifySubscribers(caps);
+      },
+    });
+  }
+
+  protected getCachedData(): string[] | null {
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('oiCaps');
+    return cached !== undefined ? cached : null;
+  }
+
+  protected getClearedData(): string[] {
+    return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('OICapStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('OICapStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
+}
+
+// Top of book channel for best bid/ask data
+class TopOfBookStreamChannel extends StreamChannel<
+  { bestBid?: string; bestAsk?: string; spread?: string } | undefined
+> {
+  private currentSymbol: string | null = null;
+  private cachedTopOfBook:
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined = undefined;
+
+  protected connect() {
+    if (!this.currentSymbol || this.wsSubscription) {
+      return;
+    }
+
+    DevLogger.log(`TopOfBookStreamChannel: Subscribing to top of book`, {
+      symbol: this.currentSymbol,
+    });
+
+    this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
+      symbols: [this.currentSymbol],
+      includeOrderBook: true,
+      callback: (updates: PriceUpdate[]) => {
+        const update = updates.find((u) => u.coin === this.currentSymbol);
+        if (update) {
+          const topOfBook = {
+            bestBid: update.bestBid,
+            bestAsk: update.bestAsk,
+            spread: update.spread,
+          };
+          this.cachedTopOfBook = topOfBook;
+          this.notifySubscribers(topOfBook);
+        }
+      },
+    });
+  }
+
+  protected getCachedData():
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined {
+    return this.cachedTopOfBook;
+  }
+
+  protected getClearedData():
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined {
+    return undefined;
+  }
+
+  public clearCache(): void {
+    this.cachedTopOfBook = undefined;
+    super.clearCache();
+  }
+
+  subscribeToSymbol(params: {
+    symbol: string;
+    callback: (
+      orderBook:
+        | { bestBid?: string; bestAsk?: string; spread?: string }
+        | undefined,
+    ) => void;
+  }): () => void {
+    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+      DevLogger.log(
+        'TopOfBookStreamChannel: Warning - different symbol requested, staying on current',
+        {
+          currentSymbol: this.currentSymbol,
+          requestedSymbol: params.symbol,
+        },
+      );
+
+      // Force disconnect to clear old symbol
+      this.disconnect();
+
+      // Set new symbol
+      this.currentSymbol = params.symbol;
+    } else if (!this.currentSymbol) {
+      this.currentSymbol = params.symbol;
+    }
+
+    return this.subscribe({
+      callback: params.callback,
+    });
+  }
+
+  public disconnect() {
+    this.currentSymbol = null;
+    this.cachedTopOfBook = undefined;
+    super.disconnect();
+  }
+}
+
 // Market data channel for caching market list data
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
@@ -814,10 +1137,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
-    // Wait for connection to complete if in progress
-    while (PerpsConnectionManager.isCurrentlyConnecting()) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+  protected connect() {
+    // Check if connection manager is still connecting - retry later if so
+    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+      setTimeout(() => this.connect(), 200);
+      return;
     }
 
     // Fetch if cache is stale or empty
@@ -976,11 +1300,32 @@ export class PerpsStreamManager {
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
   public readonly marketData = new MarketDataChannel();
+  public readonly oiCaps = new OICapStreamChannel();
+  public readonly topOfBook = new TopOfBookStreamChannel();
+  public readonly candles = new CandleStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
-  // public readonly orderBook = new OrderBookStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  /**
+   * Force reconnection of all stream channels after WebSocket reconnection
+   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
+   * will automatically reconnect when subscribers are still active
+   */
+  public clearAllChannels(): void {
+    // Disconnect all channels to clear dead WebSocket subscriptions
+    // Channels will automatically reconnect when subscribers call connect()
+    this.prices.disconnect();
+    this.orders.disconnect();
+    this.positions.disconnect();
+    this.fills.disconnect();
+    this.account.disconnect();
+    this.marketData.disconnect();
+    this.oiCaps.disconnect();
+    this.topOfBook.disconnect();
+    this.candles.disconnect();
+  }
 }
 
 // Singleton instance
@@ -1023,5 +1368,14 @@ export const usePerpsStream = () => {
   }
   return context;
 };
+
+// Type that only includes channel properties (excludes methods like clearAllChannels)
+export type PerpsStreamChannelKey = {
+  [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
+    pause(): void;
+  }
+    ? K
+    : never;
+}[keyof PerpsStreamManager];
 
 // Types are exported from controllers/types

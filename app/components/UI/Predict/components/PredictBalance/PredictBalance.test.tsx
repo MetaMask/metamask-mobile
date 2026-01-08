@@ -26,16 +26,10 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 const mockUsePredictDeposit = jest.fn();
 jest.mock('../../hooks/usePredictDeposit', () => ({
   usePredictDeposit: () => mockUsePredictDeposit(),
-  PredictDepositStatus: {
-    IDLE: 'idle',
-    PENDING: 'pending',
-    CONFIRMED: 'confirmed',
-    FAILED: 'failed',
-  },
 }));
 
 // Mock usePredictActionGuard hook
-const mockExecuteGuardedAction = jest.fn((action) => action());
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
@@ -77,7 +71,7 @@ describe('PredictBalance', () => {
 
     mockUsePredictDeposit.mockReturnValue({
       deposit: jest.fn(),
-      status: 'idle',
+      isDepositPending: false,
     });
 
     mockUsePredictWithdraw.mockReturnValue({
@@ -85,7 +79,9 @@ describe('PredictBalance', () => {
     });
 
     // Reset executeGuardedAction mock to default behavior
-    mockExecuteGuardedAction.mockImplementation((action) => action());
+    mockExecuteGuardedAction.mockImplementation(
+      async (action) => await action(),
+    );
   });
 
   afterEach(() => {
@@ -193,7 +189,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$0\.00/)).toBeOnTheScreen();
+      expect(getByText(/\$0/)).toBeOnTheScreen();
     });
 
     it('displays large balance correctly', () => {
@@ -311,7 +307,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -338,7 +334,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -349,10 +345,11 @@ describe('PredictBalance', () => {
       fireEvent.press(addFundsButton);
 
       // Assert - executeGuardedAction is called (it executes the deposit function)
+      expect(mockExecuteGuardedAction).toHaveBeenCalledTimes(1);
       expect(mockDeposit).toHaveBeenCalled();
     });
 
-    it('calls executeGuardedAction with checkBalance option when Withdraw button is pressed', () => {
+    it('calls withdraw directly when Withdraw button is pressed', () => {
       // Arrange
       const mockWithdraw = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -374,17 +371,18 @@ describe('PredictBalance', () => {
       const withdrawButton = getByText(/Withdraw/i);
       fireEvent.press(withdrawButton);
 
-      // Assert - executeGuardedAction is called with checkBalance option (it executes the withdraw function)
-      expect(mockWithdraw).toHaveBeenCalled();
+      // Assert - withdraw is called directly without executeGuardedAction
+      expect(mockWithdraw).toHaveBeenCalledTimes(1);
+      expect(mockExecuteGuardedAction).not.toHaveBeenCalled();
     });
   });
 
   describe('balance refresh', () => {
     it('component renders with adding funds state when deposit is pending', () => {
-      // Arrange - set up CONFIRMED status to test the adding funds UI
+      // Arrange - set up pending deposit to test the adding funds UI
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'pending',
+        isDepositPending: true,
       });
 
       // Act
@@ -398,11 +396,11 @@ describe('PredictBalance', () => {
       ).toBeOnTheScreen();
     });
 
-    it('component renders normally when deposit status is idle', () => {
-      // Arrange - set up IDLE status
+    it('component renders normally when deposit is not pending', () => {
+      // Arrange - set up no pending deposit
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -523,7 +521,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'pending',
+        isDepositPending: true,
       });
 
       // Act

@@ -14,7 +14,10 @@ import {
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
-import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
+import {
+  isPublicEndpointUrl,
+  getIsMetaMaskInfuraEndpointUrl,
+} from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 
@@ -62,9 +65,10 @@ const useNetworkConnectionBanner = (): {
       network: rpcUrl,
       shouldNetworkSwitchPopToWallet: false,
       shouldShowPopularNetworks: false,
+      trackRpcUpdateFromBanner: true,
     });
 
-    // Tracking the event
+    const sanitizedUrl = sanitizeRpcUrl(rpcUrl);
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
@@ -72,12 +76,12 @@ const useNetworkConnectionBanner = (): {
         .addProperties({
           banner_type: status,
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-          rpc_endpoint_url: sanitizeRpcUrl(rpcUrl),
+          // @deprecated: will be removed in a future release
+          rpc_endpoint_url: sanitizedUrl,
+          rpc_domain: sanitizedUrl,
         })
         .build(),
     );
-
-    dispatch(hideNetworkConnectionBanner());
   }
 
   useEffect(() => {
@@ -91,6 +95,7 @@ const useNetworkConnectionBanner = (): {
         status: NetworkConnectionBannerStatus;
         networkName: string;
         rpcUrl: string;
+        isInfuraEndpoint: boolean;
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
@@ -120,11 +125,17 @@ const useNetworkConnectionBanner = (): {
                 networkConfig.defaultRpcEndpointIndex || 0
               ]?.url || networkConfig.rpcEndpoints[0]?.url;
 
+            const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
+              rpcUrl,
+              infuraProjectId,
+            );
+
             firstUnavailableNetwork = {
               chainId: evmEnabledNetworkChainId,
               status: timeoutType,
               networkName: networkConfig.name,
               rpcUrl,
+              isInfuraEndpoint,
             };
 
             break; // Only show one banner at a time
@@ -157,6 +168,7 @@ const useNetworkConnectionBanner = (): {
               status: firstUnavailableNetwork.status,
               networkName: firstUnavailableNetwork.networkName,
               rpcUrl: firstUnavailableNetwork.rpcUrl,
+              isInfuraEndpoint: firstUnavailableNetwork.isInfuraEndpoint,
             }),
           );
         }
@@ -186,8 +198,36 @@ const useNetworkConnectionBanner = (): {
     bannerStateRef.current = networkConnectionBannerState;
   }, [networkConnectionBannerState]);
 
+  // Subscribe to NetworkController:rpcEndpointChainAvailable event
+  // to hide the banner when a network becomes available again
+  useEffect(() => {
+    const handleChainAvailable = ({ chainId }: { chainId: Hex }) => {
+      const currentBannerState = bannerStateRef.current;
+      // Only hide the banner if it's visible and matches the chain that became available
+      if (
+        currentBannerState.visible &&
+        currentBannerState.chainId === chainId
+      ) {
+        dispatch(hideNetworkConnectionBanner());
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'NetworkController:rpcEndpointChainAvailable',
+      handleChainAvailable,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'NetworkController:rpcEndpointChainAvailable',
+        handleChainAvailable,
+      );
+    };
+  }, [dispatch]);
+
   useEffect(() => {
     if (networkConnectionBannerState.visible) {
+      const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
           .addProperties({
@@ -195,9 +235,8 @@ const useNetworkConnectionBanner = (): {
             chain_id_caip: `eip155:${hexToNumber(
               networkConnectionBannerState.chainId,
             )}`,
-            rpc_endpoint_url: sanitizeRpcUrl(
-              networkConnectionBannerState.rpcUrl,
-            ),
+            rpc_endpoint_url: sanitizedUrl,
+            rpc_domain: sanitizedUrl,
           })
           .build(),
       );

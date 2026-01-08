@@ -53,9 +53,14 @@ import createStyles from './index.styles';
 import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
+  ShowMultiRpcSelectModalState,
 } from './index.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -80,6 +85,7 @@ const NetworkManager = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
+  const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -89,7 +95,16 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Custom,
+  });
+  const { disableNetwork, enableNetwork, enabledNetworksByNamespace } =
+    useNetworkEnablement();
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -121,10 +136,35 @@ const NetworkManager = () => {
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
+  const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
+    useState<ShowMultiRpcSelectModalState>({
+      isVisible: false,
+      chainId: '0x1',
+      networkName: '',
+    });
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+
+  /**
+   * Convert CAIP network configurations to hex-based format for RpcSelectionModal
+   * Filter only EVM networks as RPC selection is only supported for EVM
+   */
+  const evmNetworkConfigurations = useMemo(() => {
+    const evmConfigs: Record<string, NetworkConfiguration> = {};
+    Object.entries(networkConfigurations).forEach(([caipChainId, config]) => {
+      if (
+        !isNonEvmChainId(caipChainId as CaipChainId) &&
+        'rpcEndpoints' in config
+      ) {
+        const parsedCaipChainId = parseCaipChainId(caipChainId as CaipChainId);
+        const hexChainId = toHex(parsedCaipChainId.reference);
+        evmConfigs[hexChainId] = config as NetworkConfiguration;
+      }
+    });
+    return evmConfigs;
+  }, [networkConfigurations]);
 
   const containerStyle = useMemo(
     () => [
@@ -218,6 +258,27 @@ const NetworkManager = () => {
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: string; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
+
+  const closeRpcModal = useCallback(() => {
+    setShowMultiRpcSelectModal({
+      isVisible: false,
+      chainId: '0x1',
+      networkName: '',
+    });
+    rpcMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleEditNetwork = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.ADD_NETWORK, {
@@ -253,17 +314,24 @@ const NetworkManager = () => {
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
+      const otherNetwork = networksToUse.find(
+        (network) => network.caipChainId !== caipChainId,
+      );
 
+      // Remove the network from controller and disable it
       NetworkController.removeNetwork(chainId);
-      disableNetwork(showConfirmDeleteModal.caipChainId);
 
+      if (otherNetwork?.caipChainId) {
+        enableNetwork(otherNetwork.caipChainId);
+      }
+      disableNetwork(showConfirmDeleteModal.caipChainId);
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork]);
+  }, [showConfirmDeleteModal, disableNetwork, networksToUse, enableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -304,88 +372,96 @@ const NetworkManager = () => {
   }, []);
 
   return (
-    <BottomSheet
-      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
-      ref={sheetRef}
-      style={containerStyle}
-      shouldNavigateBack
-    >
-      <View style={styles.sheet}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          style={styles.networkTabsSelectorTitle}
-        >
-          {strings('wallet.networks')}
-        </Text>
-
-        <View style={styles.networkTabsSelectorWrapper}>
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            onChangeTab={onChangeTab}
-            initialPage={defaultTabIndex}
+    <>
+      <BottomSheet
+        testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
+        ref={sheetRef}
+        style={containerStyle}
+        shouldNavigateBack
+      >
+        <View style={styles.sheet}>
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.networkTabsSelectorTitle}
           >
-            <NetworkMultiSelector
-              {...defaultTabProps}
-              openModal={openModal}
-              dismissModal={dismissModal}
-            />
-            <CustomNetworkSelector
-              {...customTabProps}
-              openModal={openModal}
-              dismissModal={dismissModal}
-            />
-          </ScrollableTabView>
-        </View>
-      </View>
+            {strings('wallet.networks')}
+          </Text>
 
-      {showNetworkMenuModal.isVisible && (
-        <BottomSheet
-          ref={networkMenuSheetRef}
-          onClose={closeModal}
-          shouldNavigateBack={false}
-        >
-          <View style={styles.editNetworkMenu}>
-            <AccountAction
-              actionTitle={strings('transaction.edit')}
-              iconName={IconName.Edit}
-              onPress={handleEditNetwork}
-            />
-            {showNetworkMenuModal.displayEdit && (
-              <AccountAction
-                actionTitle={strings('app_settings.delete')}
-                iconName={IconName.Trash}
-                onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+          <View style={styles.networkTabsSelectorWrapper}>
+            <ScrollableTabView
+              renderTabBar={renderTabBar}
+              onChangeTab={onChangeTab}
+              initialPage={defaultTabIndex}
+            >
+              <NetworkMultiSelector
+                {...defaultTabProps}
+                openModal={openModal}
+                dismissModal={dismissModal}
+                openRpcModal={openRpcModal}
               />
-            )}
+              <CustomNetworkSelector
+                {...customTabProps}
+                openModal={openModal}
+                dismissModal={dismissModal}
+                openRpcModal={openRpcModal}
+              />
+            </ScrollableTabView>
           </View>
-        </BottomSheet>
-      )}
+        </View>
 
-      {showConfirmDeleteModal.isVisible && (
-        <BottomSheet
-          ref={deleteModalSheetRef}
-          onClose={closeDeleteModal}
-          shouldNavigateBack={false}
-        >
-          <BottomSheetHeader>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('app_settings.delete')}{' '}
-              {showConfirmDeleteModal.networkName}{' '}
-              {strings('asset_details.network')}
-            </Text>
-          </BottomSheetHeader>
-          <View style={styles.containerDeleteText}>
-            <Text style={styles.textCentred}>
-              {strings('app_settings.network_delete')}
-            </Text>
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Horizontal}
-              buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
-            />
-          </View>
-        </BottomSheet>
-      )}
-    </BottomSheet>
+        {showNetworkMenuModal.isVisible && (
+          <BottomSheet
+            ref={networkMenuSheetRef}
+            onClose={closeModal}
+            shouldNavigateBack={false}
+          >
+            <View style={styles.editNetworkMenu}>
+              <AccountAction
+                actionTitle={strings('transaction.edit')}
+                iconName={IconName.Edit}
+                onPress={handleEditNetwork}
+              />
+              {showNetworkMenuModal.displayEdit && (
+                <AccountAction
+                  actionTitle={strings('app_settings.delete')}
+                  iconName={IconName.Trash}
+                  onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+                />
+              )}
+            </View>
+          </BottomSheet>
+        )}
+
+        {showConfirmDeleteModal.isVisible && (
+          <BottomSheet
+            ref={deleteModalSheetRef}
+            onClose={closeDeleteModal}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader>
+              {`${strings('app_settings.delete')} ${showConfirmDeleteModal.networkName} ${strings('asset_details.network')}`}
+            </BottomSheetHeader>
+            <View style={styles.containerDeleteText}>
+              <Text style={styles.textCentred}>
+                {strings('app_settings.network_delete')}
+              </Text>
+              <BottomSheetFooter
+                buttonsAlignment={ButtonsAlignment.Horizontal}
+                buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+              />
+            </View>
+          </BottomSheet>
+        )}
+      </BottomSheet>
+
+      <RpcSelectionModal
+        showMultiRpcSelectModal={showMultiRpcSelectModal}
+        closeRpcModal={closeRpcModal}
+        rpcMenuSheetRef={rpcMenuSheetRef}
+        networkConfigurations={evmNetworkConfigurations}
+        styles={styles}
+      />
+    </>
   );
 };
 

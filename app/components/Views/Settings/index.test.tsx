@@ -6,6 +6,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 // Mock Authentication module
 jest.mock('../../../core', () => ({
@@ -60,55 +61,48 @@ describe('Settings', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders settings component with all sections', () => {
     const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     expect(toJSON()).toMatchSnapshot();
   });
-  it('should render general settings button', () => {
+  it('renders general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const generalSettings = getByTestId(SettingsViewSelectorsIDs.GENERAL);
     expect(generalSettings).toBeDefined();
   });
-  it('should render security settings button', () => {
+  it('renders security settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const securitySettings = getByTestId(SettingsViewSelectorsIDs.SECURITY);
     expect(securitySettings).toBeDefined();
   });
-  it('should render advanced settings button', () => {
+  it('renders advanced settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('should render contacts settings button', () => {
+  it('renders contacts settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
     expect(contactsSettings).toBeDefined();
   });
-  it('should render network settings button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const networksSettings = getByTestId(SettingsViewSelectorsIDs.NETWORKS);
-    expect(networksSettings).toBeDefined();
-  });
-  it('should render feature request button', () => {
+  it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const onRampSettings = getByTestId(SettingsViewSelectorsIDs.ON_RAMP);
     expect(onRampSettings).toBeDefined();
   });
-  it('should render experimental settings button', () => {
+  it('renders experimental settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -117,35 +111,35 @@ describe('Settings', () => {
     );
     expect(experimentalSettings).toBeDefined();
   });
-  it('should render about metamask button', () => {
+  it('renders about metamask button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
     expect(aboutMetamask).toBeDefined();
   });
-  it('should render request feature button', () => {
+  it('renders request feature button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
     expect(requestFeature).toBeDefined();
   });
-  it('should render contact support button', () => {
+  it('renders contact support button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
     expect(contactSupport).toBeDefined();
   });
-  it('should render lock button', () => {
+  it('renders lock button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
     expect(lock).toBeDefined();
   });
-  it('should render permissions settings button when enabled', () => {
+  it('renders permissions settings button when enabled', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -154,7 +148,7 @@ describe('Settings', () => {
     );
     expect(permissionsSettings).toBeDefined();
   });
-  it('should render backup and sync settings button, and navigate to the correct page on press', () => {
+  it('renders backup and sync settings button and navigates to correct page on press', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -167,7 +161,7 @@ describe('Settings', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
   });
 
-  it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
+  it('calls Authentication.lockApp with correct parameters when onPressLock is called', async () => {
     // Test the Authentication.lockApp function directly with the expected parameters
     await Authentication.lockApp({ reset: false, locked: false });
 
@@ -177,5 +171,41 @@ describe('Settings', () => {
       locked: false,
     });
     expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Feature Flag Override', () => {
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset to original value before each test
+      if (originalEnv !== undefined) {
+        process.env.METAMASK_ENVIRONMENT = originalEnv;
+      } else {
+        delete process.env.METAMASK_ENVIRONMENT;
+      }
+    });
+
+    afterEach(() => {
+      if (originalEnv !== undefined) {
+        process.env.METAMASK_ENVIRONMENT = originalEnv;
+      } else {
+        delete process.env.METAMASK_ENVIRONMENT;
+      }
+    });
+
+    it('renders feature flag override drawer when METAMASK_ENVIRONMENT is not production', () => {
+      process.env.METAMASK_ENVIRONMENT = 'development';
+
+      const { getByText } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const featureFlagOverrideTitle = getByText(
+        strings('app_settings.feature_flag_override.title'),
+      );
+
+      expect(featureFlagOverrideTitle).toBeDefined();
+    });
   });
 });

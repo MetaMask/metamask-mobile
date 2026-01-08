@@ -5,7 +5,7 @@ import {
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
-  getPredictPositionSelector,
+  PredictPositionSelectorsIDs,
 } from '../../selectors/Predict/Predict.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -51,6 +51,12 @@ class WalletView {
     );
   }
 
+  get hamburgerMenuButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+    );
+  }
+
   get navbarNetworkText(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
@@ -69,10 +75,6 @@ class WalletView {
 
   get navbarCardButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
-  }
-
-  get navbarCardButtonBadge(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON_BADGE);
   }
 
   get nftTab(): DetoxElement {
@@ -163,7 +165,14 @@ class WalletView {
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
     return Matchers.getElementByID(
-      getPredictPositionSelector.currentPositionCard,
+      PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
+      index,
+    );
+  }
+
+  getPredictResolvedPositionCardByIndex(index: number = 0): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD,
       index,
     );
   }
@@ -210,6 +219,12 @@ class WalletView {
   async tapBellIcon(): Promise<void> {
     await Gestures.waitAndTap(this.notificationBellIcon, {
       elemDescription: 'Notification Bell Icon',
+    });
+  }
+
+  async tapHamburgerMenu(): Promise<void> {
+    await Gestures.waitAndTap(this.hamburgerMenuButton, {
+      elemDescription: 'Hamburger Menu Button',
     });
   }
 
@@ -437,6 +452,14 @@ class WalletView {
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+    );
+  }
+  get predictScrollViewIdentifier() {
+    return Matchers.getIdentifier(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+  }
 
   get defiPositionDetailsContainer(): DetoxElement {
     return Matchers.getElementByID(
@@ -450,6 +473,10 @@ class WalletView {
 
   get PredictionsTabContainer(): DetoxElement {
     return Matchers.getElementByID(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+  }
+
+  get availableBalanceLabel(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
   }
 
   async tapOnDeFiTab(): Promise<void> {
@@ -483,11 +510,43 @@ class WalletView {
       elemDescription: `tapping Predictions Position: ${positionName}`,
     });
   }
-  async tapClaimButton(): Promise<void> {
-    const elem = Matchers.getElementByID(
-      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+
+  async scrollDownOnPredictionsTab(): Promise<void> {
+    await Gestures.swipe(this.PredictionsTabContainer, 'up', {
+      speed: 'slow',
+      percentage: 0.6,
+    });
+  }
+
+  async scrollUpOnPredictionsTab(): Promise<void> {
+    await Gestures.swipe(this.PredictionsTabContainer, 'down', {
+      speed: 'slow',
+      percentage: 0.6,
+    });
+  }
+
+  async scrollToPosition(
+    positionName: string,
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    const positionElement = (await Matchers.getElementByText(
+      positionName,
+    )) as unknown as DetoxElement;
+    await Gestures.scrollToElement(
+      positionElement,
+      this.predictScrollViewIdentifier,
+      { direction },
     );
-    await Gestures.waitAndTap(elem, {
+  }
+
+  async tapOnAvailableBalance(): Promise<void> {
+    await Gestures.waitAndTap(this.availableBalanceLabel, {
+      elemDescription: 'tap available balance to expand balance card',
+    });
+  }
+
+  async tapClaimButton(): Promise<void> {
+    await Gestures.waitAndTap(this.claimButton, {
       elemDescription: 'Claim Button',
     });
   }
@@ -568,6 +627,18 @@ class WalletView {
       WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
     );
   }
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  get balanceEmptyStateContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+    );
+  }
+
+  get balanceEmptyStateActionButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
+    );
+  }
 
   async tapWalletBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletBuyButton, {
@@ -617,6 +688,20 @@ class WalletView {
         description: `token network filter should display "${expectedText}"`,
       },
     );
+  }
+
+  async tapBalanceEmptyStateActionButton(): Promise<void> {
+    await Gestures.waitAndTap(this.balanceEmptyStateActionButton, {
+      elemDescription: 'Balance Empty State Action Button',
+    });
+  }
+
+  async tapPredictPosition(positionName: string): Promise<void> {
+    const position = Matchers.getElementByText(positionName);
+
+    await Gestures.waitAndTap(position, {
+      elemDescription: `Tapping Prediction position ${positionName}`,
+    });
   }
 }
 

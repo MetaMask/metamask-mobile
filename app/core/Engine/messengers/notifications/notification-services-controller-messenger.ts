@@ -1,12 +1,25 @@
 import type { NotificationServicesControllerMessenger } from '@metamask/notification-services-controller/notification-services';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 
 export function getNotificationServicesControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): NotificationServicesControllerMessenger {
-  return baseControllerMessenger.getRestricted({
-    name: 'NotificationServicesController',
-    allowedActions: [
+  const messenger = new Messenger<
+    'NotificationServicesController',
+    MessengerActions<NotificationServicesControllerMessenger>,
+    MessengerEvents<NotificationServicesControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'NotificationServicesController',
+    parent: baseControllerMessenger,
+  });
+  baseControllerMessenger.delegate({
+    actions: [
       // Keyring Actions
       'KeyringController:getState',
       // Auth Actions
@@ -18,7 +31,7 @@ export function getNotificationServicesControllerMessenger(
       'NotificationServicesPushController:disablePushNotifications',
       'NotificationServicesPushController:subscribeToPushNotifications',
     ],
-    allowedEvents: [
+    events: [
       // Keyring Events
       'KeyringController:stateChange',
       'KeyringController:lock',
@@ -27,5 +40,7 @@ export function getNotificationServicesControllerMessenger(
       'NotificationServicesPushController:onNewNotifications',
       'NotificationServicesPushController:stateChange',
     ],
+    messenger,
   });
+  return messenger;
 }

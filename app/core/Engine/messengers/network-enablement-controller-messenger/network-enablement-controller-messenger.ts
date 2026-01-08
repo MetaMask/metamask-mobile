@@ -1,25 +1,40 @@
 import type { NetworkEnablementControllerMessenger } from '@metamask/network-enablement-controller';
-import type { BaseControllerMessenger } from '../../types';
-
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootMessenger, RootExtendedMessenger } from '../../types';
 /**
  * Get the messenger for the NetworkEnablementController.
  *
- * @param baseControllerMessenger - The base controller messenger.
- * @returns The restricted messenger for the NetworkEnablementController.
+ * @param rootExtendedMessenger - The root extended messenger.
+ * @returns The NetworkEnablementControllerMessenger.
  */
-export const getNetworkEnablementControllerMessenger = (
-  baseControllerMessenger: BaseControllerMessenger,
-): NetworkEnablementControllerMessenger =>
-  baseControllerMessenger.getRestricted({
-    name: 'NetworkEnablementController',
-    allowedActions: [
+export function getNetworkEnablementControllerMessenger(
+  rootExtendedMessenger: RootExtendedMessenger,
+): NetworkEnablementControllerMessenger {
+  const messenger = new Messenger<
+    'NetworkEnablementController',
+    MessengerActions<NetworkEnablementControllerMessenger>,
+    MessengerEvents<NetworkEnablementControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'NetworkEnablementController',
+    parent: rootExtendedMessenger,
+  });
+  rootExtendedMessenger.delegate({
+    actions: [
       'NetworkController:getState',
       'MultichainNetworkController:getState',
     ],
-    allowedEvents: [
+    events: [
       'NetworkController:networkAdded',
       'NetworkController:networkRemoved',
       'NetworkController:stateChange',
       'TransactionController:transactionSubmitted',
     ],
+    messenger,
   });
+  return messenger;
+}

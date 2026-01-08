@@ -1,40 +1,50 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
+import { LOWER_CASED_BURN_ADDRESSES } from '../../../../../constants/address';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
+import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
-  const { isEvmSendType } = useSendType();
+  const { isEvmSendType, isNonEvmSendType } = useSendType();
+  const { chainId } = useSendContext();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
     const seenAddresses = new Set<string>();
 
-    Object.values(addressBook).forEach((chainContacts) => {
-      Object.values(chainContacts).forEach((contact) => {
-        if (!seenAddresses.has(contact.address)) {
-          seenAddresses.add(contact.address);
-          flattenedContacts.push({
-            contactName: contact.name,
-            address: contact.address,
-          });
-        }
-      });
+    const chainContacts = addressBook[chainId as keyof typeof addressBook];
+    if (!chainContacts) {
+      return [];
+    }
+    Object.values(chainContacts).forEach((contact) => {
+      if (!seenAddresses.has(contact.address)) {
+        seenAddresses.add(contact.address);
+        flattenedContacts.push({
+          contactName: contact.name,
+          address: contact.address,
+        });
+      }
     });
 
     return flattenedContacts.filter((contact) => {
-      // Only possibility to check if the address is EVM compatible because contacts are only EVM compatible as of now
       if (isEvmSendType) {
         return (
-          contact.address.startsWith('0x') && contact.address.length === 42
+          contact.address.startsWith('0x') &&
+          contact.address.length === 42 &&
+          !LOWER_CASED_BURN_ADDRESSES.includes(contact.address.toLowerCase())
         );
       }
       return true;
     });
-  }, [addressBook, isEvmSendType]);
+  }, [addressBook, chainId, isEvmSendType]);
+
+  if (isNonEvmSendType) {
+    return [];
+  }
 
   return contacts;
 };

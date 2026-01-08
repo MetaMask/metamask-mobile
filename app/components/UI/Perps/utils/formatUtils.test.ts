@@ -17,6 +17,7 @@ import {
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
+  formatPositiveFiat,
 } from './formatUtils';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
@@ -191,6 +192,140 @@ describe('formatUtils', () => {
 
       // Then it should round to configured decimal places
       expect(result).toBe('0.0543%');
+    });
+  });
+
+  describe('formatPositiveFiat', () => {
+    it('returns "$0" when fee is exactly zero', () => {
+      // Given a fee of exactly zero
+      const fee = 0;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "$0"
+      expect(result).toBe('$0');
+    });
+
+    it('returns "< $0.01" when fee is below threshold', () => {
+      // Given a fee below the 0.01 threshold
+      const fee = 0.005;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('formats fee normally when exactly at 0.01 threshold', () => {
+      // Given a fee at exactly the 0.01 threshold
+      const fee = 0.01;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it formats normally
+      expect(result).toBe('$0.01');
+    });
+
+    it('formats fee normally when above threshold', () => {
+      // Given a fee above the 0.01 threshold
+      const fee = 1.5;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it formats normally
+      expect(result).toBe('$1.50');
+    });
+
+    it('returns "< $0.01" for very small positive fees', () => {
+      // Given a very small positive fee
+      const fee = 0.0001;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('returns "< $0.01" for fee just below threshold', () => {
+      // Given a fee just below the 0.01 threshold
+      const fee = 0.0099;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('formats fee normally when just above threshold', () => {
+      // Given a fee just above the 0.01 threshold
+      const fee = 0.0101;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it formats normally (rounded to $0.01)
+      expect(result).toBe('$0.01');
+    });
+
+    it('formats large fees with proper decimals', () => {
+      // Given a large fee value
+      const fee = 123.45;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it formats with proper decimals
+      expect(result).toBe('$123.45');
+    });
+
+    it('strips trailing zeros for whole number fees', () => {
+      // Given a whole number fee
+      const fee = 100;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then trailing zeros are stripped
+      expect(result).toBe('$100');
+    });
+
+    it('handles fees with many decimal places', () => {
+      // Given a fee with many decimal places
+      const fee = 1.23456789;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it rounds appropriately
+      expect(result).toBe('$1.23');
+    });
+
+    it('returns "$0" for negative zero', () => {
+      // Given a negative zero value
+      const fee = -0;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "$0"
+      expect(result).toBe('$0');
+    });
+
+    it('returns "< $0.01" for smallest representable positive fee', () => {
+      // Given the smallest positive fee
+      const fee = 0.00000001;
+
+      // When formatting the fee
+      const result = formatPositiveFiat(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
     });
   });
 

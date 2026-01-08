@@ -106,12 +106,17 @@ import migration102 from './102';
 import migration103 from './103';
 import migration104 from './104';
 import migration105 from './105';
+import migration106 from './106';
+import migration107 from './107';
+import migration108 from './108';
+import migration109 from './109';
 
 // Add migrations above this line
-import { validatePostMigrationState } from '../validateMigration/validateMigration';
-import { RootState } from '../../reducers';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
+import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -230,13 +235,14 @@ export const migrationList: MigrationsList = {
   103: migration103,
   104: migration104,
   105: migration105,
+  106: migration106,
+  107: migration107,
+  108: migration108,
+  109: migration109,
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (
-  inputMigrations: MigrationsList,
-  onMigrationsComplete?: (state: unknown) => void,
-) => {
+export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
 
@@ -288,8 +294,6 @@ export const asyncifyMigrations = (
         ),
       );
 
-      // CRASH on load failure, don't allow migrations to run with incomplete data
-      // This could result in data loss if migrations can't access all controller state
       throw new Error(
         `Critical: Failed to load controller data for migration. ` +
           `Cannot continue safely as migrations may corrupt data without complete state. ` +
@@ -319,9 +323,6 @@ export const asyncifyMigrations = (
         string,
         unknown,
       ][];
-
-      // Save all controller states to individual storage
-      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -330,7 +331,6 @@ export const asyncifyMigrations = (
               JSON.stringify(controllerState),
             );
           } catch (error) {
-            // Log the error for debugging
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -339,8 +339,6 @@ export const asyncifyMigrations = (
               ),
             );
 
-            // CRASH immediately, don't allow partial migration success
-            // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
                 `Cannot continue with partial migration as this would corrupt user data. ` +
@@ -350,7 +348,6 @@ export const asyncifyMigrations = (
         }),
       );
 
-      // All controllers saved successfully, safe to strip engine state
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch (error) {
@@ -362,8 +359,6 @@ export const asyncifyMigrations = (
         ),
       );
 
-      // CRASH on any deflation error, don't return original state
-      // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
           `Cannot continue safely as this indicates severe migration system failure. ` +
@@ -377,33 +372,43 @@ export const asyncifyMigrations = (
       const asyncMigration = async (
         incomingState: Promise<unknown> | unknown,
       ) => {
-        let state = await incomingState;
+        try {
+          let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 104) {
-          state = await inflateFromControllers(state);
-          didInflate = true;
-        }
-
-        const migratedState = await migrationFunction(state);
-
-        if (
-          onMigrationsComplete &&
-          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
-        ) {
-          onMigrationsComplete(migratedState);
-        }
-        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
-          const s2 = migratedState as StateWithEngine;
-          const hasControllers = Boolean(
-            s2.engine?.backgroundState &&
-              Object.keys(s2.engine.backgroundState).length > 0,
-          );
-          if (hasControllers) {
-            return await deflateToControllersAndStrip(migratedState);
+          if (!didInflate && Number(migrationNumber) > 107) {
+            state = await inflateFromControllers(state);
+            didInflate = true;
           }
-        }
 
-        return migratedState;
+          const migratedState = await migrationFunction(state);
+          if (Number(migrationNumber) === lastVersion && lastVersion >= 107) {
+            const s2 = migratedState as StateWithEngine;
+            const hasControllers = Boolean(
+              s2.engine?.backgroundState &&
+                Object.keys(s2.engine.backgroundState).length > 0,
+            );
+            if (hasControllers) {
+              return await deflateToControllersAndStrip(migratedState);
+            }
+          }
+
+          return migratedState;
+        } catch (error) {
+          try {
+            // Use FilesystemStorage with isIos flag to exclude from iCloud backup
+            // This prevents the flag from persisting across app deletions on iOS
+            await FilesystemStorage.setItem(
+              MIGRATION_ERROR_HAPPENED,
+              'true',
+              Device.isIos(),
+            );
+          } catch (storageError) {
+            captureException(storageError as Error);
+          }
+
+          // Re-throw to let redux-persist handle it
+          throw error;
+        }
       };
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;
@@ -413,9 +418,9 @@ export const asyncifyMigrations = (
 };
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(migrationList, (state) => {
-  validatePostMigrationState(state as RootState);
-}) as unknown as MigrationManifest;
+export const migrations = asyncifyMigrations(
+  migrationList,
+) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;

@@ -142,33 +142,3 @@ export const showSeedphraseDefinition = ({
     screen: Routes.SHEET.SEEDPHRASE_MODAL,
   });
 };
-
-/**
- * Parameters for showSkipAccountSecurityBottomsheet function
- */
-interface ShowSkipAccountSecurityBottomsheetParams {
-  navigation: NavigationObject;
-  onConfirm: () => void;
-  track: TrackFunction;
-}
-
-/**
- * Shows the skip account security bottomsheet
- * @param params - Bottomsheet parameters
- */
-export const showSkipAccountSecurityBottomsheet = ({
-  navigation,
-  onConfirm,
-  track,
-}: ShowSkipAccountSecurityBottomsheetParams): void => {
-  navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-    params: {
-      onConfirm,
-      onCancel: () => {
-        track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
-      },
-    },
-  });
-  track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-};

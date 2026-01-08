@@ -28,21 +28,17 @@ const DeveloperOptions = () => {
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.developer_options.title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.developer_options.title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+  }, [navigation, isFullScreenModal, colors]);
 
   return (
     <ScrollView style={styles.wrapper}>

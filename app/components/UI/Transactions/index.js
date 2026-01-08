@@ -23,11 +23,7 @@ import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  CancelTransactionError,
-  SpeedupTransactionError,
-  TransactionError,
-} from '../../../core/Transaction/TransactionError';
+import { TransactionError } from '../../../core/Transaction/TransactionError';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -72,6 +68,7 @@ import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -87,9 +84,11 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
+      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
+      paddingVertical: 40,
+      backgroundColor: colors.background.default,
     },
     keyboardAwareWrapper: {
       flex: 1,
@@ -97,11 +96,6 @@ const createStyles = (colors) =>
     },
     loader: {
       alignSelf: 'center',
-    },
-    text: {
-      fontSize: 20,
-      color: colors.text.muted,
-      ...fontStyles.normal,
     },
     textTransactions: {
       fontSize: 20,
@@ -197,6 +191,11 @@ class Transactions extends PureComponent {
      * Whether multichain accounts state 2 is enabled
      */
     isMultichainAccountsState2Enabled: PropTypes.bool,
+    /**
+     * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
+     * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
+     */
+    skipScrollOnClick: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -333,7 +332,11 @@ class Transactions extends PureComponent {
         const selectedTx = new Map(state.selectedTx);
         const show = !selectedTx.get(id);
         selectedTx.set(id, show);
-        if (show && (this.props.headerHeight || index)) {
+        const invokeScroll =
+          show &&
+          (this.props.headerHeight || index) &&
+          !this.props.skipScrollOnClick;
+        if (invokeScroll) {
           InteractionManager.runAfterInteractions(() => {
             this.scrollToIndex(index);
           });
@@ -393,7 +396,7 @@ class Transactions extends PureComponent {
     }
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+        <TabEmptyState description={strings('wallet.no_transactions')} />
       </View>
     );
   };

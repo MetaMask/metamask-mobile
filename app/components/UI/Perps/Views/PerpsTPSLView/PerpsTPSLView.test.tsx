@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import type { Position } from '../../controllers/types';
 
@@ -192,7 +192,7 @@ describe('PerpsTPSLView', () => {
   };
 
   const defaultRouteParams = {
-    currentPrice: '3000.00',
+    currentPrice: 3000,
     coin: 'ETH',
     direction: 'long',
     onConfirm: jest.fn(),
@@ -271,6 +271,54 @@ describe('PerpsTPSLView', () => {
         },
       });
 
+      const clearButtons = screen.getAllByText('perps.tpsl.clear');
+      fireEvent.press(clearButtons[0]);
+
+      expect(mockHandler).toHaveBeenCalled();
+    });
+
+    it('dismisses keyboard before clearing take profit when input is focused', () => {
+      const mockHandler = jest.fn();
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3150',
+        },
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleTakeProfitOff: mockHandler,
+        },
+      });
+
+      // Focus the input first to set internal focusedInput state
+      const takeProfitInput = getTakeProfitPriceInput();
+      fireEvent(takeProfitInput, 'focus');
+
+      // Now press clear
+      const clearButtons = screen.getAllByText('perps.tpsl.clear');
+      fireEvent.press(clearButtons[0]);
+
+      expect(mockHandler).toHaveBeenCalled();
+    });
+
+    it('dismisses keyboard before clearing stop loss when input is focused', () => {
+      const mockHandler = jest.fn();
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPrice: '2850',
+        },
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleStopLossOff: mockHandler,
+        },
+      });
+
+      // Focus the input first to set internal focusedInput state
+      const stopLossInput = getStopLossPriceInput();
+      fireEvent(stopLossInput, 'focus');
+
+      // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
       fireEvent.press(clearButtons[0]);
 
@@ -432,8 +480,8 @@ describe('PerpsTPSLView', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('calls onConfirm with hook values when Set button pressed', () => {
-      const mockOnConfirm = jest.fn();
+    it('calls onConfirm with hook values when Set button pressed', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
       renderView({
         formState: {
@@ -444,20 +492,40 @@ describe('PerpsTPSLView', () => {
       });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      fireEvent.press(setButton);
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00');
+      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
+        direction: 'long',
+        source: 'tp_sl_view',
+        positionSize: 0,
+        takeProfitPercentage: undefined,
+        stopLossPercentage: undefined,
+        isEditingExistingPosition: false,
+        entryPrice: 3000,
+      });
     });
 
-    it('calls onConfirm with undefined when values are empty', () => {
-      const mockOnConfirm = jest.fn();
+    it('calls onConfirm with undefined when values are empty', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
       renderView();
 
       const setButton = screen.getByText('perps.tpsl.set');
-      fireEvent.press(setButton);
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
+        direction: 'long',
+        source: 'tp_sl_view',
+        positionSize: 0,
+        takeProfitPercentage: undefined,
+        stopLossPercentage: undefined,
+        isEditingExistingPosition: false,
+        entryPrice: 3000,
+      });
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {

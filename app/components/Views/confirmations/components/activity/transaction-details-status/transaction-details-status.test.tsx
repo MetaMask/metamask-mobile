@@ -13,9 +13,9 @@ import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionDetailsStatus } from './transaction-details-status';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { ARBITRUM_USDC } from '../../../constants/perps';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
@@ -168,7 +168,7 @@ describe('TransactionDetailsStatus', () => {
     selectBridgeHistoryForAccountMock.mockReturnValue({
       '1': {
         quote: {
-          destAsset: { address: ARBITRUM_USDC_ADDRESS },
+          destAsset: { address: ARBITRUM_USDC.address },
         },
         status: {
           status: StatusTypes.COMPLETE,

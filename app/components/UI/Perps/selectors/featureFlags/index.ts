@@ -3,8 +3,19 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { hasProperty } from '@metamask/utils';
+import type { RootState } from '../../../../../reducers';
+import type { ButtonColorVariantName } from '../../utils/abTesting/types';
+
+/**
+ * Valid variants for button color A/B test (TAT-1937)
+ * Used for runtime validation of LaunchDarkly responses
+ */
+const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
+  'control',
+  'monochrome',
+];
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -44,55 +55,92 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
- * Selector for HIP-3 equity perps master switch
- * Controls whether HIP-3 (builder-deployed) DEXs are enabled
+ * Selector for Order Book feature flag
+ * Controls visibility of the Order Book navigation in Market Details view
  *
- * @returns boolean - true = HIP-3 enabled, false = main DEX only
+ * @returns boolean - true if Order Book should be shown, false otherwise
  */
-export const selectPerpsEquityEnabledFlag = createSelector(
+export const selectPerpsOrderBookEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_EQUITY_ENABLED === 'true';
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
 /**
- * Selector for HIP-3 DEX whitelist
- * Controls which specific HIP-3 DEXs are shown to users
+ * Selector for button color A/B test variant from LaunchDarkly
+ * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *
- * Only applies when perpsEquityEnabled === true
- *
- * @returns string[] - Empty array = auto-discover all DEXs, non-empty = whitelist
+ * @returns Variant name ('control' | 'monochrome') or null if test is disabled
  */
-export const selectPerpsEnabledDexs = createSelector(
+export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_ENABLED_DEXS
-      ? process.env.MM_PERPS_ENABLED_DEXS.split(',')
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0)
-      : [];
+  (remoteFeatureFlags): string | null => {
+    const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
 
-    if (!hasProperty(remoteFeatureFlags, 'perpsEnabledDexs')) {
-      return localFallback;
+    // LaunchDarkly can return:
+    // 1. A string variant name: 'control' or 'monochrome'
+    // 2. A version-gated object: { enabled: true, minAppVersion: '7.60.0', variant: 'control' }
+    // 3. null/undefined if test is disabled
+
+    if (!remoteFlag) {
+      return null;
     }
 
-    const enabledDexs = remoteFeatureFlags.perpsEnabledDexs;
-
-    // Validate it's an array of non-empty strings
-    if (
-      !Array.isArray(enabledDexs) ||
-      !enabledDexs.every((item) => typeof item === 'string' && item.length > 0)
-    ) {
-      return localFallback;
+    // Direct string variant (simpler LaunchDarkly config)
+    if (typeof remoteFlag === 'string') {
+      // Validate variant is a known value
+      if (
+        VALID_BUTTON_COLOR_VARIANTS.includes(
+          remoteFlag as ButtonColorVariantName,
+        )
+      ) {
+        return remoteFlag; // Already a string, validated against known variants
+      }
+      return null;
     }
 
-    return enabledDexs as string[];
+    // Check if it's a version-gated flag with variant
+    if (isVersionGatedFeatureFlag(remoteFlag)) {
+      // Validate version gating (enabled and version check)
+      const isValid = validatedVersionGatedFeatureFlag(remoteFlag);
+
+      if (!isValid) {
+        return null;
+      }
+
+      // Safely access variant property if it exists
+      if ('variant' in remoteFlag && typeof remoteFlag.variant === 'string') {
+        // Validate variant is a known value
+        if (
+          VALID_BUTTON_COLOR_VARIANTS.includes(
+            remoteFlag.variant as ButtonColorVariantName,
+          )
+        ) {
+          return remoteFlag.variant; // Already a string, validated against known variants
+        }
+      }
+
+      return null;
+    }
+
+    return null;
   },
+);
+
+/**
+ * Selector for HIP-3 configuration version
+ * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
+ *
+ * @param state - Redux root state
+ * @returns number - Version increments when HIP-3 config changes
+ */
+export const selectHip3ConfigVersion = createSelector(
+  (state: RootState) => state?.engine?.backgroundState?.PerpsController,
+  (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
 );

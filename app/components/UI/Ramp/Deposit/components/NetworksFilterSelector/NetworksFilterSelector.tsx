@@ -2,7 +2,6 @@ import { CaipChainId } from '@metamask/utils';
 import React, { useCallback } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
 
 import styleSheet from './NetworksFilterSelector.styles';
 
@@ -23,10 +22,8 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 
 import { useStyles } from '../../../../../hooks/useStyles';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { strings } from '../../../../../../../locales/i18n';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../constants/networks';
+import { useTokenNetworkInfo } from '../../../hooks/useTokenNetworkInfo';
 import { excludeFromArray } from '../../utils';
 
 interface NetworksFilterSelectorProps {
@@ -47,9 +44,7 @@ function NetworksFilterSelector({
     screenHeight,
   });
 
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const getTokenNetworkInfo = useTokenNetworkInfo();
 
   const handleNetworkOnPress = useCallback(
     (chainId: CaipChainId) => () => {
@@ -80,32 +75,31 @@ function NetworksFilterSelector({
       <FlatList
         style={styles.list}
         data={networks}
-        renderItem={({ item: chainId }) => (
-          <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
-            <ListItemColumn>
-              <Checkbox
-                isChecked={networkFilter?.includes(chainId) ?? false}
-                onPress={handleNetworkOnPress(chainId)}
-              />
-            </ListItemColumn>
-            <ListItemColumn>
-              <AvatarNetwork
-                name={
-                  DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-                  allNetworkConfigurations[chainId]?.name
-                }
-                imageSource={getNetworkImageSource({ chainId })}
-                size={AvatarSize.Md}
-              />
-            </ListItemColumn>
-            <ListItemColumn widthType={WidthType.Fill}>
-              <Text variant={TextVariant.BodyMD}>
-                {DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-                  allNetworkConfigurations[chainId]?.name}
-              </Text>
-            </ListItemColumn>
-          </ListItemSelect>
-        )}
+        renderItem={({ item: chainId }) => {
+          const { depositNetworkName, networkName, networkImageSource } =
+            getTokenNetworkInfo(chainId);
+          const displayName = depositNetworkName ?? networkName;
+          return (
+            <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
+              <ListItemColumn>
+                <Checkbox
+                  isChecked={networkFilter?.includes(chainId) ?? false}
+                  onPress={handleNetworkOnPress(chainId)}
+                />
+              </ListItemColumn>
+              <ListItemColumn>
+                <AvatarNetwork
+                  name={displayName}
+                  imageSource={networkImageSource}
+                  size={AvatarSize.Md}
+                />
+              </ListItemColumn>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodyMD}>{displayName}</Text>
+              </ListItemColumn>
+            </ListItemSelect>
+          );
+        }}
         keyExtractor={(item) => item}
       ></FlatList>
       <View style={styles.buttonContainer}>

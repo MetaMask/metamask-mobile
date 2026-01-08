@@ -114,7 +114,7 @@ const EditAccountName = () => {
           const analyticsProperties = async () => {
             const accountType = getAddressAccountType(selectedAccount?.address);
             const account_type =
-              accountType === 'QR' ? 'hardware' : accountType;
+              accountType === 'QR Hardware' ? 'hardware' : accountType;
             return { account_type, chain_id: getDecimalChainId(chainId) };
           };
           const analyticsProps = await analyticsProperties();

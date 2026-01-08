@@ -44,7 +44,7 @@ const createMockState = (
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe('selectWallets', () => {
   it('returns empty array when multichain accounts feature is disabled', () => {

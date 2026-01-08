@@ -81,7 +81,6 @@ import {
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
-import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -103,10 +102,12 @@ import {
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import {
-  BaseControllerMessenger,
+  RootExtendedMessenger,
   EngineState,
   EngineContext,
   StatefulControllers,
+  getRootExtendedMessenger,
+  RootMessenger,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -148,6 +149,7 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
@@ -162,17 +164,21 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
-import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
+import { storageServiceInit } from './controllers/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
+import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
+import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,13 +194,17 @@ export class Engine {
    */
   static instance: Engine | null;
   /**
+   * Flag to disable automatic vault backups (used during wallet reset)
+   */
+  static disableAutomaticVaultBackup = false;
+  /**
    * A collection of all controller instances
    */
   context: EngineContext;
   /**
    * The global controller messenger.
    */
-  controllerMessenger: BaseControllerMessenger;
+  controllerMessenger: RootExtendedMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -260,7 +270,7 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = new ExtendedControllerMessenger();
+    this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -275,10 +285,11 @@ export class Engine {
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-
+    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
+        StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
@@ -302,6 +313,7 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionController: TransactionControllerInit,
+        TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
@@ -342,7 +354,6 @@ export class Engine {
         MultichainRouter: multichainRouterInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -352,11 +363,14 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        ProfileMetricsController: profileMetricsControllerInit,
+        ProfileMetricsService: profileMetricsServiceInit,
+        RampsService: rampsServiceInit,
+        RampsController: rampsControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -381,7 +395,6 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
-    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -390,6 +403,10 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const profileMetricsController = controllersByName.ProfileMetricsController;
+    const profileMetricsService = controllersByName.ProfileMetricsService;
+    const rampsService = controllersByName.RampsService;
+    const rampsController = controllersByName.RampsController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -454,7 +471,6 @@ export class Engine {
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
     const multichainAccountService = controllersByName.MultichainAccountService;
-    const ratesController = controllersByName.RatesController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -466,8 +482,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    // Notify Snaps that the app is active when the Engine is initialized.
-    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
@@ -489,6 +503,7 @@ export class Engine {
       TokenBalancesController: tokenBalancesController,
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
+      TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
@@ -516,10 +531,8 @@ export class Engine {
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       AccountsController: accountsController,
-      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
-      RatesController: ratesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
@@ -540,6 +553,10 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
+      ProfileMetricsController: profileMetricsController,
+      ProfileMetricsService: profileMetricsService,
+      RampsService: rampsService,
+      RampsController: rampsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -548,14 +565,26 @@ export class Engine {
         delete childControllers[name];
       }
     });
+    const composableControllerMessenger = new Messenger<
+      'ComposableController',
+      never,
+      MessengerEvents<RootMessenger>,
+      RootMessenger
+    >({
+      namespace: 'ComposableController',
+      parent: this.controllerMessenger,
+    });
+
+    this.controllerMessenger.delegate({
+      actions: [],
+      events: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+      messenger: composableControllerMessenger,
+    });
+
     this.datamodel = new ComposableController<EngineState, StatefulControllers>(
       {
         controllers: childControllers as StatefulControllers,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ComposableController',
-          allowedActions: [],
-          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
-        }),
+        messenger: composableControllerMessenger,
       },
     );
 
@@ -661,12 +690,19 @@ export class Engine {
         if (state !== 'active' && state !== 'background') {
           return;
         }
+
+        const { isUnlocked } = this.controllerMessenger.call(
+          'KeyringController:getState',
+        );
+
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        return this.controllerMessenger.call(
-          'SnapController:setClientActive',
-          state === 'active',
-        );
+        if (isUnlocked) {
+          return this.controllerMessenger.call(
+            'SnapController:setClientActive',
+            state === 'active',
+          );
+        }
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -682,6 +718,11 @@ export class Engine {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
+        // Check if automatic backups are disabled (during wallet reset)
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
         if (!state.vault) {
           return;
         }
@@ -705,10 +746,6 @@ export class Engine {
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    this.context.RatesController.start();
-    ///: END:ONLY_INCLUDE_IF
   }
 
   configureControllersOnNetworkChange() {
@@ -1268,6 +1305,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1277,7 +1315,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,
@@ -1295,12 +1332,15 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1309,8 +1349,8 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     } = instance.datamodel.state;
 
     return {
@@ -1330,6 +1370,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1339,7 +1380,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,
@@ -1357,12 +1397,15 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1371,8 +1414,8 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     };
   },
 

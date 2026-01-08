@@ -162,7 +162,7 @@ describe('useHandleOptInClick', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       mockCreateEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
         .addProperties({
-          action_type: 'activated',
+          action_type: 'completed',
           is_profile_syncing_enabled: true,
         })
         .build(),

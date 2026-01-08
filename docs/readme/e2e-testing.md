@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest test runners.
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -98,9 +98,11 @@ Please follow the [native development guide](../../README.md#native-development)
 # Build the app for testing
 yarn test:e2e:ios:debug:build
 yarn test:e2e:android:debug:build
+
+# These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
-### Use Expo prebuilds (recommended)
+### Use Expo prebuilds (iOS Only)
 
 You can use prebuilt app files instead of building the app locally.
 
@@ -128,39 +130,15 @@ You can use prebuilt app files instead of building the app locally.
    open -a Simulator # to open the simulator app GUI
    ```
 
-#### Android builds
-
-1. **Download Android builds** from Runway/Bitrise/GitHub workflows (build jobs)
-
-   > ⚠️ **Important**: You need **both APK files** from the downloaded zip:
-   >
-   > - Main APK from `/prod/debug/` folder
-   > - Test APK from `/androidTest/` folder
-
-2. **Install the builds**:
-
-   ```bash
-   # Copy the main APK (from /prod/debug/ folder)
-   cp /path/to/downloaded/prod/debug/AAA.apk build/MetaMask.apk
-
-   # Copy the test APK (from /androidTest/ folder)
-   cp /path/to/downloaded/androidTest/prod/debug/BBB.apk build/MetaMask-Test.apk
-   ```
-
-3. **Start the build watcher**:
-
-   ```bash
-   source .e2e.env && yarn watch:clean
-   ```
-
-4. **Launch the Android emulator**: through Android Studio
-
 ### Run the E2E Tests
 
 ```bash
 # Firstly, make sure the build watcher is running in a dedicated terminal for the logs
 # and the emulators are up and running
-source .e2e.env && yarn watch:clean
+# Ensure METAMASK_BUILD_TYPE is set to `main` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
+source .e2e.env   # Ensure .js.env is sourced
+yarn watch:clean  # First time or after dependency changes
+yarn watch        # Subsequent runs
 
 # Run all Tests
 source .e2e.env && yarn test:e2e:ios:debug:run
@@ -195,12 +173,10 @@ Ensure you have completed the [Local environment setup](#local-environment-setup
 
 ```bash
 # Start Metro bundler for Flask development
-yarn watch:flask:clean  # First time or after dependency changes
-yarn watch:flask        # Subsequent runs
-
-# In a separate terminal, build and install Flask app
-yarn start:ios:e2e:flask     # iOS
-yarn start:android:e2e:flask # Android
+# Ensure METAMASK_BUILD_TYPE is set to `flask` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
+source .e2e.env   # Ensure .js.env is sourced
+yarn watch:clean  # First time or after dependency changes
+yarn watch        # Subsequent runs
 ```
 
 **Build for E2E Testing:**
@@ -217,6 +193,7 @@ yarn test:e2e:android:flask:build
 # Run all Flask E2E tests
 yarn test:e2e:ios:flask:run
 yarn test:e2e:android:flask:run
+# These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
 
 # Run specific Flask test
 yarn test:e2e:ios:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
@@ -283,10 +260,10 @@ export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-production}
 
 ```bash
 # Clean previous builds
-yarn watch:flask:clean
+yarn watch:clean
 
 # Rebuild Flask app
-yarn start:android:e2e:flask  # or iOS
+yarn test:e2e:android:flask:build  # or iOS
 ```
 
 #### 3. Metro Bundler Not Running ⚠️
@@ -297,10 +274,10 @@ yarn start:android:e2e:flask  # or iOS
 
 ```bash
 # Terminal 1: Start Metro bundler
-yarn watch:flask:clean
+yarn watch:clean
 
-# Terminal 2: Build and run Flask app
-yarn start:android:e2e:flask
+# Terminal 2: Reinstall and run Flask app
+yarn test:e2e:android:flask:run
 ```
 
 ### Flask vs Main Build Differences
@@ -320,20 +297,20 @@ yarn start:android:e2e:flask
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
 2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
-3. Rebuild the app with `yarn start:*:e2e:flask`
+3. Rebuild the app with `yarn test:e2e:*:flask:build`
 4. Verify Flask build by checking app icon/splash screen
 
 **Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
 
 1. Stop Metro bundler (Ctrl+C)
-2. Clean bundler cache: `yarn watch:flask:clean`
-3. Restart Metro bundler: `yarn watch:flask`
+2. Clean bundler cache: `yarn watch:clean`
+3. Restart Metro bundler: `yarn watch`
 
 **App crashes or shows blank screen:**
 
 1. Ensure emulator/simulator is running before building
 2. Check Metro bundler logs for JavaScript errors
-3. Try clean build: `yarn watch:flask:clean && yarn start:*:e2e:flask`
+3. Try clean build: `yarn watch:clean && yarn test:e2e:*:flask:build`
 
 **Tests timeout waiting for elements:**
 
@@ -358,9 +335,20 @@ yarn start:android:e2e:flask
     - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
   - you don't need to repeat these steps unless emulator or metro server is restarted
 
-## Appium
+## ~~Appium~~ (Deprecated)
 
-We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
+> **⚠️ DEPRECATED**: The Appium/WebDriver.io/Cucumber test infrastructure has been removed. This section is kept for historical reference only.
+
+~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
+
+**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `appwright/` directory for performance tests including app launch times and feature-specific performance measurements.
+
+**Test Location**: `appwright/tests/performance/`
+
+---
+
+<details>
+<summary>Legacy Appium Documentation (for reference only)</summary>
 
 **Supported Platform**: Android  
 **Test Location**: `wdio`
@@ -524,6 +512,8 @@ You can also run Appium tests on CI using Bitrise pipelines:
 - `app_upgrade_pipeline`
 
 For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitrise-pipelines-overview).
+
+</details>
 
 ### API Spec Tests
 

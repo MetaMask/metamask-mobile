@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsTransactionsView from './PerpsTransactionsView';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsTransactionHistory,
+  usePerpsEventTracking,
+} from '../../hooks';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import renderWithProvider, {
@@ -13,6 +17,9 @@ import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
+import type { CaipAccountId } from '@metamask/utils';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -25,6 +32,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
+  usePerpsEventTracking: jest.fn(),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -95,7 +103,7 @@ const mockTransactions = [
     fundingAmount: {
       isPositive: false,
       fee: '-$25.00',
-      feeNumber: -25.0,
+      feeNumber: -25,
       rate: '0.0001',
     },
   },
@@ -109,6 +117,8 @@ describe('PerpsTransactionsView', () => {
     usePerpsTransactionHistory as jest.MockedFunction<
       typeof usePerpsTransactionHistory
     >;
+  const mockUsePerpsEventTracking =
+    usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -130,6 +140,10 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+    });
+
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: jest.fn(),
     });
   });
 
@@ -251,9 +265,10 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
       expect(
-        component.getByText('Your trading history will appear here'),
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
       ).toBeTruthy();
     });
   });
@@ -273,7 +288,11 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // Should show empty state when API fails
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
@@ -377,7 +396,11 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
@@ -584,5 +607,234 @@ describe('PerpsTransactionsView', () => {
     ];
 
     expect(testTransactions).toHaveLength(6);
+  });
+
+  describe('accountId handling', () => {
+    const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+    const mockChainId = '0xa4b1'; // 42161 in hex (Arbitrum)
+    const expectedAccountId =
+      'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+    beforeEach(() => {
+      // Reset mocks
+      mockUsePerpsTransactionHistory.mockClear();
+    });
+
+    it('computes and passes accountId when address and chainId are available', async () => {
+      const stateWithAccount = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithAccount,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify accountId was passed to the hook
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: expectedAccountId,
+      });
+    });
+
+    it('passes undefined accountId when address is missing', async () => {
+      const stateWithoutAccount = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: 'non-existent-account-id',
+              },
+            },
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithoutAccount,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('passes undefined accountId when chainId is missing', async () => {
+      const stateWithoutChainId = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: {
+              selectedNetworkClientId: 'no-network',
+              networkConfigurationsByChainId: {},
+              networksMetadata: {},
+            },
+            MultichainNetworkController: {
+              isEvmSelected: false,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithoutChainId,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('computes accountId with different address', async () => {
+      const secondAddress = '0x9876543210987654321098765432109876543210';
+      const secondAccountId =
+        'eip155:42161:0x9876543210987654321098765432109876543210' as CaipAccountId;
+
+      const stateWithSecondAddress = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [secondAddress],
+              secondAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithSecondAddress,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: secondAccountId,
+      });
+    });
+
+    it('computes accountId with different chainId', async () => {
+      const secondChainId = '0x1'; // Ethereum mainnet (1)
+      const secondAccountId =
+        'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+      const stateWithSecondChainId = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: secondChainId,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithSecondChainId,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: secondAccountId,
+      });
+    });
   });
 });

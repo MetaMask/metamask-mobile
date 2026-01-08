@@ -1,26 +1,35 @@
-import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
-import { RootState } from '../../../../../reducers';
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import { useIsTransactionPayLoading } from '../pay/useIsTransactionPayLoading';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
+  useTransactionPaySourceAmounts,
+} from '../pay/useTransactionPayData';
 
 export function useNoPayTokenQuotesAlert() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const transactionId = transactionMeta?.id ?? '';
   const { payToken } = useTransactionPayToken();
-  const { isLoading } = useIsTransactionPayLoading();
+  const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayLoading();
+  const sourceAmounts = useTransactionPaySourceAmounts();
+  const requiredTokens = useTransactionPayRequiredTokens();
 
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
+  const isOptionalOnly = (sourceAmounts ?? []).every(
+    (t) =>
+      requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
+        ?.skipIfBalance,
   );
 
-  const showAlert = payToken && !isLoading && quotes === undefined;
+  const showAlert =
+    payToken &&
+    !isQuotesLoading &&
+    sourceAmounts?.length &&
+    !quotes?.length &&
+    !isOptionalOnly;
 
   return useMemo(() => {
     if (!showAlert) {
@@ -32,6 +41,7 @@ export function useNoPayTokenQuotesAlert() {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
         message: strings('alert_system.no_pay_token_quotes.message'),
+        title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },

@@ -20,11 +20,14 @@ interface Props {
  */
 export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
+  const gasSponsored = quote?.quote?.gasSponsored;
+  const gasIncluded7702 = quote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const sourceChainId = quote?.quote.srcChainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId && !gasIncluded) {
+  if (sourceChainId && !isGasless && !gasSponsored) {
     if (isNonEvmChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
@@ -32,7 +35,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     }
   }
   const sourceChainNativeAsset =
-    hexOrCaipChainId && !gasIncluded
+    hexOrCaipChainId && !isGasless && !gasSponsored
       ? getNativeSourceToken(hexOrCaipChainId)
       : undefined;
 
@@ -42,6 +45,10 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     decimals: sourceChainNativeAsset?.decimals,
   });
 
+  if (isGasless || gasSponsored) {
+    return true;
+  }
+
   // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
   const gasAmount = quote?.gasFee?.effective?.amount;
   const effectiveGasFee =
@@ -50,16 +57,12 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
       : null;
 
   const atomicGasFee =
-    effectiveGasFee && !gasIncluded
+    effectiveGasFee && !isGasless
       ? ethers.utils.parseUnits(
           effectiveGasFee,
           sourceChainNativeAsset?.decimals,
         )
       : null;
-
-  if (gasIncluded) {
-    return true;
-  }
 
   return gasTokenBalance?.atomicBalance && atomicGasFee
     ? gasTokenBalance.atomicBalance.gte(atomicGasFee)

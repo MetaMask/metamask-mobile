@@ -1,13 +1,12 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,tron)
+import { SolScope, TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
   searchDiscoverySwapsTokens,
-  swapsTokens,
 }: {
   asset: {
     isETH: boolean;
@@ -17,7 +16,6 @@ export const getIsSwapsAssetAllowed = ({
     isFromSearch?: boolean;
   };
   searchDiscoverySwapsTokens: string[];
-  swapsTokens: Record<string, unknown>;
 }) => {
   let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
@@ -28,7 +26,8 @@ export const getIsSwapsAssetAllowed = ({
       asset.address?.toLowerCase(),
     );
   } else {
-    isSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
+    // show Swaps CTA for EVM assets as tokens on Trending list will not be in SwapsController.swapsTokens
+    isSwapsAssetAllowed = true;
   }
 
   // Solana Swaps
@@ -37,6 +36,13 @@ export const getIsSwapsAssetAllowed = ({
     isSwapsAssetAllowed = true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  // Tron Swaps
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (asset.chainId === TrxScope.Mainnet) {
+    isSwapsAssetAllowed = true;
+  }
+  ///: END:ONLY_INCLUDE_IF(tron)
 
   return isSwapsAssetAllowed;
 };

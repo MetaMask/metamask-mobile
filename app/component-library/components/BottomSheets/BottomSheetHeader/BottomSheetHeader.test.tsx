@@ -101,43 +101,6 @@ describe('BottomSheetHeader', () => {
     );
   });
 
-  it('applies compact variant by default', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader testID="header">Header Content</BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('center');
-  });
-
-  it('applies display variant when variant prop is set to Display', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader
-        variant={BottomSheetHeaderVariant.Display}
-        testID="header"
-      >
-        Header Content
-      </BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('left');
-  });
-
-  it('applies compact variant when variant prop is set to Compact', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader
-        variant={BottomSheetHeaderVariant.Compact}
-        testID="header"
-      >
-        Header Content
-      </BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('center');
-  });
-
   it('renders snapshot correctly with Display variant', () => {
     const wrapper = render(
       <BottomSheetHeader variant={BottomSheetHeaderVariant.Display}>

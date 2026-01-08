@@ -5,7 +5,9 @@ import { Colors } from 'app/util/theme/models';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     rowWrapper: {
+      flex: 1,
       paddingVertical: 16,
+      backgroundColor: colors.background.default,
     },
     root: {
       backgroundColor: colors.background.default,

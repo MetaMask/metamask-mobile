@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  ViewStyle,
+  TextStyle,
+  Linking,
+} from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -16,6 +22,14 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+import { noop } from 'lodash';
+import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
+import { usePerpsEventTracking } from '../../hooks';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 export enum FillType {
   Standard = 'standard',
@@ -52,6 +66,8 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
+
+  const { track } = usePerpsEventTracking();
 
   const fillTag = useMemo(() => {
     const { fill } = item;
@@ -101,18 +117,42 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       return null;
     }
 
+    let onTagPress = noop;
+
+    if (fill.fillType === FillType.AutoDeleveraging) {
+      onTagPress = () => {
+        Linking.openURL(PERPS_SUPPORT_ARTICLES_URLS.ADL_URL).catch((error) => {
+          console.error('Error opening ADL support article:', error);
+        });
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TAP,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PerpsEventProperties.TAB_NAME]:
+            PerpsEventValues.PERPS_HISTORY_TABS.TRADES,
+          [PerpsEventProperties.ACTION_TYPE]:
+            PerpsEventValues.ACTION_TYPE.ADL_LEARN_MORE,
+          [PerpsEventProperties.ASSET]: item.asset,
+          [PerpsEventProperties.ORDER_TIMESTAMP]: item.timestamp,
+        });
+      };
+    }
+
     return (
-      <TagBase
-        shape={TagShape.Pill}
-        severity={tagConfig.severity}
-        includesBorder={tagConfig.includesBorder}
-      >
-        <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
-          {tagConfig.label}
-        </Text>
-      </TagBase>
+      <TouchableOpacity onPress={onTagPress}>
+        <TagBase
+          shape={TagShape.Pill}
+          severity={tagConfig.severity}
+          includesBorder={tagConfig.includesBorder}
+        >
+          <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+            {tagConfig.label}
+          </Text>
+        </TagBase>
+      </TouchableOpacity>
     );
-  }, [item, selectedAccount?.address]);
+  }, [item, selectedAccount?.address, track]);
 
   return (
     <TouchableOpacity
@@ -154,7 +194,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
           {fillTag}
         </View>
 
-        {item.subtitle && (
+        {!!item.subtitle && (
           <Text style={styles.transactionSubtitle}>{item.subtitle}</Text>
         )}
       </View>

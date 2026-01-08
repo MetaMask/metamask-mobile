@@ -21,12 +21,14 @@ interface CardAssetItemProps {
   asset: TokenI | undefined;
   privacyMode: boolean;
   onPress?: (asset: TokenI) => void;
+  balanceFormatted?: string;
 }
 
 const CardAssetItem: React.FC<CardAssetItemProps> = ({
   asset,
   onPress,
   privacyMode,
+  balanceFormatted,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const chainId = asset?.chainId as Hex;
@@ -46,7 +48,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
       disabled
       asset={asset}
       balance={asset.balanceFiat}
-      secondaryBalance={`${asset.balance} ${asset.symbol}`}
+      secondaryBalance={balanceFormatted ?? `${asset.balance} ${asset.symbol}`}
       privacyMode={privacyMode}
     >
       <BadgeWrapper

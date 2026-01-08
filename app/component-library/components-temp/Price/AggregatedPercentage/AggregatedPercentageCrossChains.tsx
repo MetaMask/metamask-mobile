@@ -26,7 +26,7 @@ export const getCalculatedTokenAmount1dAgo = (
 ) =>
   tokenPricePercentChange1dAgo !== undefined && tokenFiatBalance
     ? tokenFiatBalance / (1 + tokenPricePercentChange1dAgo / 100)
-    : tokenFiatBalance ?? 0;
+    : (tokenFiatBalance ?? 0);
 
 const isValidAmount = (amount: number | null | undefined): boolean =>
   amount !== null && amount !== undefined && !Number.isNaN(amount);

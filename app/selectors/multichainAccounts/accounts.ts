@@ -21,6 +21,8 @@ import {
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
 import type { AccountGroupWithInternalAccounts } from './accounts.type';
+import { sortNetworkAddressItems } from '../../component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.utils';
+import { toFormattedAddress } from '../../util/address';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -172,9 +174,9 @@ const filterTestnets = (
 export const selectSelectedInternalAccountByScope = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectInternalAccountsById],
   (
-      accountTreeState: AccountTreeControllerState,
-      internalAccountsMap: Record<AccountId, InternalAccount>,
-    ) =>
+    accountTreeState: AccountTreeControllerState,
+    internalAccountsMap: Record<AccountId, InternalAccount>,
+  ) =>
     (scope: CaipChainId): InternalAccount | undefined => {
       if (!accountTreeState?.accountTree?.selectedAccountGroup) {
         return undefined;
@@ -211,9 +213,9 @@ export const selectInternalAccountByAccountGroupAndScope =
   createDeepEqualSelector(
     [selectAccountTreeControllerState, selectInternalAccountsById],
     (
-        accountTreeState: AccountTreeControllerState,
-        internalAccountsMap: Record<AccountId, InternalAccount>,
-      ) =>
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+    ) =>
       (
         scope: CaipChainId,
         accountGroupId: string,
@@ -282,22 +284,49 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       return (groupId: AccountGroupId) => {
         const accounts = internalAccounts(groupId);
 
-        return accounts.flatMap((account) => {
+        const items = accounts.flatMap((account) => {
           // Determine scopes based on account type
           const scopes =
             account.type === EthAccountType.Eoa
               ? ethereumNetworkIds
               : account.scopes || [];
+          // Format address once: checksummed for EVM, raw for non-EVM
+          const formattedAddress = toFormattedAddress(account.address);
           // Filter out testnets from scopes and map each scope to an account-scope object
           return filterTestnets(
             scopes as CaipChainId[],
             networkConfigurations,
           ).map((scope: CaipChainId) => ({
-            account,
+            account: { ...account, address: formattedAddress },
             scope,
             networkName:
               networkConfigurations[scope]?.name || 'Unknown Network',
           }));
+        });
+
+        // Sort items using the same sorting logic as MultichainAddressRowsList
+        const sortedItems = sortNetworkAddressItems(
+          items.map((item) => ({
+            chainId: item.scope,
+            networkName: item.networkName,
+            address: item.account.address,
+          })),
+        );
+
+        // Map back to the original format with sorted order
+        return sortedItems.map((sortedItem) => {
+          const originalItem = items.find(
+            (item) =>
+              item.scope === sortedItem.chainId &&
+              item.account.address === sortedItem.address,
+          );
+          // originalItem should always exist since sortedItems is derived from items
+          if (!originalItem) {
+            throw new Error(
+              `Failed to find original item for scope ${sortedItem.chainId} and address ${sortedItem.address}`,
+            );
+          }
+          return originalItem;
         });
       };
     },

@@ -23,8 +23,6 @@ import { TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import {
   internalAccount2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -33,6 +31,26 @@ import {
   MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE,
   MOCK_NETWORK_CONTROLLER_STATE,
 } from '../../../util/test/confirm-data-helpers';
+
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
+import { getVersion } from 'react-native-device-info';
+// eslint-disable-next-line import/no-namespace
+import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
 
 jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   __esModule: true,
@@ -228,6 +246,10 @@ const mockState = {
           },
         },
       },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [],
+      },
     },
   },
 } as unknown as RootState;
@@ -246,13 +268,10 @@ describe('Earn Controller Selectors', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
   });
 
   describe('selectEarnTokens', () => {
     it('returns pooled staking earn tokens data when no markets are present and pooled staking is disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       (
         selectPooledStakingEnabledFlag as jest.MockedFunction<
           typeof selectPooledStakingEnabledFlag
@@ -369,7 +388,6 @@ describe('Earn Controller Selectors', () => {
     });
 
     it('sorts tokens by balance, placing zero balance tokens at the end', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       (
         selectPooledStakingEnabledFlag as jest.MockedFunction<
           typeof selectPooledStakingEnabledFlag
@@ -677,6 +695,123 @@ describe('Earn Controller Selectors', () => {
       expect(result.outputToken?.address.toLowerCase()).toBe(
         MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
       );
+    });
+  });
+
+  describe('selectPrimaryEarnExperienceTypeForAsset', () => {
+    let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockHasMinimumRequiredVersion = jest.spyOn(
+        remoteFeatureFlagModule,
+        'hasMinimumRequiredVersion',
+      );
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      (getVersion as jest.MockedFunction<typeof getVersion>).mockReturnValue(
+        '1.0.0',
+      );
+    });
+
+    afterEach(() => {
+      mockHasMinimumRequiredVersion?.mockRestore();
+    });
+
+    const createBaseState = (remoteFlags: Record<string, unknown>) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: remoteFlags,
+            cacheTimestamp: 0,
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: '',
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {},
+              selectedAccountGroup: null,
+            },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: 'eip155:1',
+            multichainNetworkConfigurationsByChainId: {},
+            networksWithTransactionActivity: {},
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {},
+          },
+          EarnController: {
+            pooled_staking: {
+              isEligible: false,
+            },
+          },
+          TokenBalancesController: {
+            tokenBalances: {},
+          },
+          TokenRatesController: {
+            marketData: {},
+          },
+          AccountTrackerController: {
+            accountsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurationsByChainId: {},
+            networksMetadata: {},
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [],
+          },
+        },
+      },
+      settings: {
+        showFiatOnTestnets: false,
+      },
+    });
+
+    const tronNativeAsset = {
+      address: 'TTrxNative',
+      chainId: 'tron:0x2b6653dc',
+      ticker: 'TRX',
+      symbol: 'TRX',
+      isNative: true,
+      isETH: false,
+      isStaked: false,
+      decimals: 6,
+      balance: '0',
+    } as const;
+
+    it('returns pooled staking for TRX when metadata is missing and flag is enabled', () => {
+      const state = createBaseState({
+        trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
+      });
+
+      const result = earnSelectors.selectPrimaryEarnExperienceTypeForAsset(
+        state as unknown as RootState,
+        tronNativeAsset as unknown as TokenI,
+      );
+
+      expect(result).toBe(EARN_EXPERIENCES.POOLED_STAKING);
+    });
+
+    it('returns undefined for TRX when flag is disabled', () => {
+      const state = createBaseState({
+        trxStakingEnabled: { enabled: false, minimumVersion: '0.0.0' },
+      });
+
+      const result = earnSelectors.selectPrimaryEarnExperienceTypeForAsset(
+        state as unknown as RootState,
+        tronNativeAsset as unknown as TokenI,
+      );
+
+      expect(result).toBeUndefined();
     });
   });
 });

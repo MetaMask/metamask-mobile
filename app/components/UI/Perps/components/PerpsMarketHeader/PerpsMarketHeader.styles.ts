@@ -10,6 +10,7 @@ interface PerpsMarketHeaderStyles {
   assetRow: ViewStyle;
   secondRow: ViewStyle;
   assetName: TextStyle;
+  fullscreenButton: ViewStyle;
   moreButton: ViewStyle;
 }
 
@@ -22,17 +23,15 @@ export const styleSheet = ({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
+      paddingLeft: 8,
+      paddingRight: 12,
       paddingVertical: 16,
       backgroundColor: theme.colors.background.default,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
     },
     backButton: {
-      padding: 12,
-      marginLeft: -12,
-      marginTop: -12,
-      marginBottom: -12,
+      padding: 4,
     },
     perpIcon: {
       marginRight: 12,
@@ -59,6 +58,11 @@ export const styleSheet = ({
     },
     assetName: {
       fontWeight: '600',
+      flexShrink: 1,
+    },
+    fullscreenButton: {
+      padding: 4,
+      marginRight: 4,
     },
     moreButton: {
       padding: 4,

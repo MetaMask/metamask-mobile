@@ -61,8 +61,8 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
         ? DEFAULT_BUTTONLINK_LABEL_COLOR_ERROR_PRESSED
         : DEFAULT_BUTTONLINK_LABEL_COLOR_ERROR
       : pressed
-      ? DEFAULT_BUTTONLINK_LABEL_COLOR_PRESSED
-      : DEFAULT_BUTTONLINK_LABEL_COLOR;
+        ? DEFAULT_BUTTONLINK_LABEL_COLOR_PRESSED
+        : DEFAULT_BUTTONLINK_LABEL_COLOR;
 
   const renderLabel = () =>
     typeof label === 'string' ? (

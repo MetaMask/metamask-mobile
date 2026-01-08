@@ -1,17 +1,24 @@
 import { useCallback, useContext, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { PlaceOrderParams } from '../providers/types';
 import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
-import { usePredictBalance } from './usePredictBalance';
+import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -41,7 +48,6 @@ export function usePredictPlaceOrder(
 ): UsePredictPlaceOrderReturn {
   const { onError, onComplete } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
-  const { loadBalance } = usePredictBalance();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -50,41 +56,71 @@ export function usePredictPlaceOrder(
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
-      // NOTE: When cashing out happens fast, stacking toasts messes the UX.
-      // Figure out how toast behavior can be improved to avoid this.
-      setTimeout(() => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Check,
-          labelOptions: [
-            { label: strings('predict.order.cashed_out'), isBold: true },
-            { label: '\n', isBold: false },
-            {
-              label: strings('predict.order.cashed_out_subtitle', {
-                amount,
-              }),
-              isBold: false,
-            },
-          ],
-          hasNoTimeout: false,
-        });
-      }, 2000);
-    },
-    [toastRef],
-  );
+      // Track cashout confirmation toast display performance
+      const traceId = `cashout-toast-${Date.now()}`;
+      trace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        op: TraceOperation.PredictOperation,
+        id: traceId,
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        },
+      });
 
-  const showOrderPlacedToast = useCallback(
-    () =>
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Check,
         labelOptions: [
-          { label: strings('predict.order.prediction_placed'), isBold: true },
+          { label: strings('predict.order.cashed_out'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.order.cashed_out_subtitle', {
+              amount,
+            }),
+            isBold: false,
+          },
         ],
         hasNoTimeout: false,
-      }),
+      });
+
+      // End trace immediately after toast is shown
+      endTrace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        id: traceId,
+        data: { success: true },
+      });
+    },
     [toastRef],
   );
+
+  const showOrderPlacedToast = useCallback(() => {
+    // Track order confirmation toast display performance
+    const traceId = `order-toast-${Date.now()}`;
+    trace({
+      name: TraceName.PredictOrderConfirmationToast,
+      op: TraceOperation.PredictOperation,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      },
+    });
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      labelOptions: [
+        { label: strings('predict.order.prediction_placed'), isBold: true },
+      ],
+      hasNoTimeout: false,
+    });
+
+    // End trace immediately after toast is shown
+    endTrace({
+      name: TraceName.PredictOrderConfirmationToast,
+      id: traceId,
+      data: { success: true },
+    });
+  }, [toastRef]);
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
@@ -94,49 +130,8 @@ export function usePredictPlaceOrder(
 
       try {
         setIsLoading(true);
-
-        DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
-        if (side === Side.BUY) {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Loading,
-            labelOptions: [
-              { label: strings('predict.order.placing_prediction') },
-            ],
-            hasNoTimeout: false,
-          });
-        } else {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Loading,
-            labelOptions: [
-              {
-                label: strings('predict.order.cashing_out', {
-                  amount: formatPrice(minAmountReceived, {
-                    maximumDecimals: 2,
-                  }),
-                }),
-                isBold: true,
-              },
-              { label: '\n', isBold: false },
-              {
-                label: strings('predict.order.cashing_out_subtitle', {
-                  time: 5,
-                }),
-                isBold: false,
-              },
-            ],
-            hasNoTimeout: false,
-          });
-        }
-
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
-
-        if (!orderResult.success) {
-          // Error will be caught and toast shown in catch block
-          throw new Error(orderResult.error);
-        }
 
         // Clear any previous error state
         setError(undefined);
@@ -153,26 +148,29 @@ export function usePredictPlaceOrder(
           );
         }
 
-        await loadBalance({ isRefresh: true });
-
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to place order';
-        DevLogger.log('usePredictPlaceOrder: Error placing order', {
+        const parsedErrorMessage = parseErrorMessage({
           error: err,
+          defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        });
+        DevLogger.log('usePredictPlaceOrder: Error placing order', {
+          error: parsedErrorMessage,
           orderParams,
         });
 
-        // Capture exception with order context (no sensitive data like amounts)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with order context (no sensitive data like amounts)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPlaceOrder',
-            action: 'order_placement',
-            operation: 'order_management',
           },
-          extra: {
-            orderContext: {
+          context: {
+            name: 'usePredictPlaceOrder',
+            data: {
+              method: 'placeOrder',
+              action: 'order_placement',
+              operation: 'order_management',
               providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
@@ -181,20 +179,8 @@ export function usePredictPlaceOrder(
           },
         });
 
-        setError(errorMessage);
-        onError?.(errorMessage);
-
-        // Show error toast to user
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          labelOptions: [
-            { label: strings('predict.order.order_failed'), isBold: true },
-            { label: '\n', isBold: false },
-            { label: errorMessage, isBold: false },
-          ],
-          hasNoTimeout: false,
-        });
+        setError(parsedErrorMessage);
+        onError?.(parsedErrorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -202,8 +188,6 @@ export function usePredictPlaceOrder(
     [
       controllerPlaceOrder,
       onComplete,
-      loadBalance,
-      toastRef,
       showCashedOutToast,
       showOrderPlacedToast,
       onError,

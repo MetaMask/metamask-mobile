@@ -8,6 +8,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
+import { Gestures } from '../../framework';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
@@ -54,6 +55,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           'on',
         );
 
+        await Gestures.swipe(
+          NotificationSettingsView.featureAnnouncementSeparator,
+          'up',
+        );
+
         // Test account notifications toggle functionality
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
           DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
@@ -62,6 +68,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
           DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'on',
+        );
+
+        await Gestures.swipe(
+          NotificationSettingsView.featureAnnouncementSeparator,
+          'down',
         );
 
         // Disable main toggle and verify all sub-settings are hidden

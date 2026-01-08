@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePredictActionGuard } from './usePredictActionGuard';
 
@@ -35,7 +35,7 @@ describe('usePredictActionGuard', () => {
   });
 
   describe('when user is eligible and has balance', () => {
-    it('executes action without navigation when checkBalance is false', () => {
+    it('executes action without navigation when checkBalance is false', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -44,13 +44,16 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction);
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction);
+      });
 
       expect(mockAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('executes action without navigation when checkBalance is true', () => {
+    it('executes action without navigation when checkBalance is true', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -59,7 +62,12 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction, { checkBalance: true });
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          checkBalance: true,
+        });
+      });
 
       expect(mockAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -86,10 +94,13 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAsyncAction = jest.fn().mockResolvedValue('success');
-      const promise = result.current.executeGuardedAction(mockAsyncAction);
 
-      expect(promise).toBeInstanceOf(Promise);
-      await promise;
+      await act(async () => {
+        const promise = result.current.executeGuardedAction(mockAsyncAction);
+        expect(promise).toBeInstanceOf(Promise);
+        await promise;
+      });
+
       expect(mockAsyncAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -103,7 +114,7 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    it('navigates to unavailable modal and does not execute action', () => {
+    it('navigates to unavailable modal and does not execute action', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -112,7 +123,10 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction);
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -120,7 +134,7 @@ describe('usePredictActionGuard', () => {
       expect(mockAction).not.toHaveBeenCalled();
     });
 
-    it('navigates to unavailable modal even with checkBalance option', () => {
+    it('navigates to unavailable modal even with checkBalance option', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -129,7 +143,12 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction, { checkBalance: true });
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          checkBalance: true,
+        });
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -156,7 +175,7 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    it('executes action when checkBalance is false (default)', () => {
+    it('executes action when checkBalance is false (default)', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -165,13 +184,16 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction);
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction);
+      });
 
       expect(mockAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to add funds sheet when checkBalance is true', () => {
+    it('navigates to add funds sheet when checkBalance is true', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -180,7 +202,12 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction, { checkBalance: true });
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          checkBalance: true,
+        });
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
@@ -211,7 +238,7 @@ describe('usePredictActionGuard', () => {
       });
     });
 
-    it('checks eligibility before balance (navigates to unavailable, not add funds)', () => {
+    it('checks eligibility before balance (navigates to unavailable, not add funds)', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
           providerId: 'polymarket',
@@ -220,7 +247,12 @@ describe('usePredictActionGuard', () => {
       );
 
       const mockAction = jest.fn();
-      result.current.executeGuardedAction(mockAction, { checkBalance: true });
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          checkBalance: true,
+        });
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,

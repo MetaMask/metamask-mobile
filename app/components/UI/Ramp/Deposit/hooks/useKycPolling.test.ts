@@ -62,8 +62,6 @@ describe('useKycPolling', () => {
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       logoutFromProvider: jest.fn(),
-      getStarted: true,
-      setGetStarted: jest.fn(),
       selectedRegion: MOCK_US_REGION,
       setSelectedRegion: jest.fn(),
       selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
@@ -71,6 +69,8 @@ describe('useKycPolling', () => {
       selectedCryptoCurrency: MOCK_USDC_TOKEN,
       setSelectedCryptoCurrency: jest.fn(),
       selectedWalletAddress: '0x1234567890123456789012345678901234567890',
+      intent: undefined,
+      setIntent: jest.fn(),
     });
   });
 

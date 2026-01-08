@@ -35,8 +35,8 @@ export default function migrate(state) {
       const networkType = matchingProviderConfig
         ? matchingProviderConfig.type
         : matchingNetworkConfigurations?.length
-        ? NetworkType.rpc
-        : undefined;
+          ? NetworkType.rpc
+          : undefined;
 
       return {
         chainId: tx.chainId,

@@ -39,12 +39,14 @@ describe('switchToNetwork', () => {
       build: jest.fn().mockReturnValue(mockMetricsBuilderBuild),
     });
 
+    const fromChainId = '0x89';
     const mockHooks = {
       getCaveat: jest
         .fn()
         .mockReturnValue({ value: getDefaultCaip25CaveatValue() }),
       requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
       hasApprovalRequestsForOrigin: jest.fn(),
+      fromNetworkConfiguration: { chainId: fromChainId },
     };
 
     const chainId = '0x1';
@@ -82,6 +84,9 @@ describe('switchToNetwork', () => {
       chain_id: '1',
       source: 'Custom Network API',
       symbol: 'ETH',
+      from_network: fromChainId,
+      to_network: chainId,
+      custom_network: false,
       test: 'test',
     });
     expect(mockTrackEvent).toHaveBeenCalledWith(mockMetricsBuilderBuild);

@@ -33,18 +33,21 @@ export const useWalletBalances = (walletId: string): UseWalletBalancesHook => {
 
   const multichainBalancesForAllAccounts = useMemo(
     () =>
-      Object.values(walletBalance.groups).reduce((acc, group) => {
-        acc[group.groupId] = formatWithThreshold(
-          group.totalBalanceInUserCurrency ?? 0,
-          0.01,
-          I18n.locale,
-          {
-            style: 'currency',
-            currency: displayCurrency.toUpperCase(),
-          },
-        );
-        return acc;
-      }, {} as Record<string, string>),
+      Object.values(walletBalance.groups).reduce(
+        (acc, group) => {
+          acc[group.groupId] = formatWithThreshold(
+            group.totalBalanceInUserCurrency ?? 0,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: displayCurrency.toUpperCase(),
+            },
+          );
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
     [walletBalance.groups, displayCurrency],
   );
 

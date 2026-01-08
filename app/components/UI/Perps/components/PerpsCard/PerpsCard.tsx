@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
@@ -20,6 +20,13 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  PerpsEventValues,
+  PerpsEventProperties,
+} from '../../constants/eventNames';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 /**
  * PerpsCard Component
@@ -33,9 +40,11 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { track } = usePerpsEventTracking();
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
@@ -76,32 +85,51 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = strings('perps.order.limit');
   }
 
+  // Memoize market lookup to avoid array search on every press
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
+
   const handlePress = useCallback(() => {
     if (onPress) {
       onPress();
-    } else if (markets.length > 0 && symbol) {
-      // Find the market data for this symbol
-      const market = markets.find((m) => m.symbol === symbol);
-      if (market) {
-        let initialTab: 'position' | 'orders' | undefined;
-        if (order) {
-          initialTab = 'orders';
-        } else if (position) {
-          initialTab = 'position';
-        }
-        // Navigate to market details with the full market data
-        // When navigating from a tab, we need to navigate through the root stack
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market,
-            initialTab,
-            source,
-          },
+    } else if (market) {
+      // Track open position button click if this is a position
+      if (position) {
+        // Map source to button_location
+        const buttonLocation =
+          source === PerpsEventValues.SOURCE.POSITION_TAB
+            ? PerpsEventValues.BUTTON_LOCATION.PERPS_TAB
+            : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.OPEN_POSITION,
+          [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
         });
       }
+
+      let initialTab: 'position' | 'orders' | undefined;
+      if (order) {
+        initialTab = 'orders';
+      } else if (position) {
+        initialTab = 'position';
+      }
+      // Navigate to market details with the full market data
+      // When navigating from a tab, we need to navigate through the root stack
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          initialTab,
+          source,
+        },
+      });
     }
-  }, [onPress, markets, symbol, navigation, order, position, source]);
+  }, [onPress, market, navigation, order, position, source, track]);
 
   if (!position && !order) {
     return null;
@@ -120,7 +148,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           {symbol && (
             <PerpsTokenLogo
               symbol={symbol}
-              size={40}
+              size={iconSize}
               style={styles.assetIcon}
             />
           )}

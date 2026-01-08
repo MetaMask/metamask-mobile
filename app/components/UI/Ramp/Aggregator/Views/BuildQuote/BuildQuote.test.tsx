@@ -30,6 +30,7 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
+import { RampIntent } from '../../types';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -87,6 +88,7 @@ const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockSetIntent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -195,6 +197,7 @@ const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
     feeFixedRate: 1,
     quickAmounts: [100, 500, 1000],
   },
+  isFetching: false,
   isAmountBelowMinimum: jest
     .fn()
     .mockImplementation((amount) => amount < MIN_LIMIT),
@@ -245,6 +248,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  setIntent: mockSetIntent,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
@@ -259,9 +263,11 @@ jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-let mockUseParamsValues: {
-  showBack?: boolean;
-} = {
+let mockUseParamsValues:
+  | {
+      showBack?: boolean;
+    }
+  | RampIntent = {
   showBack: undefined,
 };
 
@@ -396,7 +402,7 @@ describe('BuildQuote View', () => {
     };
     render(BuildQuote);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
 
@@ -410,7 +416,7 @@ describe('BuildQuote View', () => {
     };
     render(BuildQuote);
     fireEvent.press(
-      screen.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to home screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
   });
@@ -427,11 +433,21 @@ describe('BuildQuote View', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
+  it('calls setIntent when params have intent', async () => {
+    mockUseParamsValues = {
+      assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    };
+    render(BuildQuote);
+    expect(mockSetIntent).toHaveBeenCalledWith({
+      assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    });
+  });
+
   it('navigates and tracks event on cancel button press', async () => {
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
@@ -443,9 +459,9 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
@@ -982,6 +998,9 @@ describe('BuildQuote View', () => {
       amount: VALID_AMOUNT,
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_network:
+        mockUseRampSDKValues?.selectedAsset?.network.shortName,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
@@ -1024,6 +1043,9 @@ describe('BuildQuote View', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_network:
+        mockUseRampSDKValues?.selectedAsset?.network?.shortName,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,

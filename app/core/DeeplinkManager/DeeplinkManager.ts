@@ -1,46 +1,30 @@
 'use strict';
 
-import { ParseOutput } from 'eth-url-parser';
-import { Dispatch } from 'redux';
-import handleBrowserUrl from './Handlers/handleBrowserUrl';
-import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import handleRampUrl from './Handlers/handleRampUrl';
-import handleDepositCashUrl from './Handlers/handleDepositCashUrl';
-import switchNetwork from './Handlers/switchNetwork';
-import parseDeeplink from './ParseManager/parseDeeplink';
-import approveTransaction from './TransactionManager/approveTransaction';
-import { RampType } from '../../reducers/fiatOrders/types';
-import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import { navigateToHomeUrl } from './Handlers/handleHomeUrl';
-import Routes from '../../constants/navigation/Routes';
-import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
-import { store } from '../../store';
-import NavigationService from '../NavigationService';
+import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './Handlers/handleDeeplink';
-import SharedDeeplinkManager from './SharedDeeplinkManager';
+import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
-import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
-import handleFastOnboarding from './Handlers/handleFastOnboarding';
 
-class DeeplinkManager {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public navigation: any;
+export class DeeplinkManager {
+  // singleton instance
+  private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public dispatch: Dispatch<any>;
 
   constructor() {
-    const navigation = NavigationService.navigation;
-    const dispatch = store.dispatch;
-    this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.dispatch = dispatch;
+  }
+
+  static getInstance(): DeeplinkManager {
+    if (!DeeplinkManager._instance) {
+      DeeplinkManager._instance = new DeeplinkManager();
+    }
+    return DeeplinkManager._instance;
+  }
+
+  static resetInstance(): void {
+    this._instance = null;
   }
 
   setDeeplink = (url: string) => (this.pendingDeeplink = url);
@@ -48,103 +32,6 @@ class DeeplinkManager {
   getPendingDeeplink = () => this.pendingDeeplink;
 
   expireDeeplink = () => (this.pendingDeeplink = null);
-
-  /**
-   * Method in charge of changing network if is needed
-   *
-   * @param switchToChainId - Corresponding chain id for new network
-   */
-  _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    switchNetwork({
-      deeplinkManager: this,
-      switchToChainId,
-    });
-
-  _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction({
-      deeplinkManager: this,
-      ethUrl,
-      origin,
-    });
-
-  async _handleEthereumUrl(url: string, origin: string) {
-    return handleEthereumUrl({
-      deeplinkManager: this,
-      url,
-      origin,
-    });
-  }
-
-  _handleBrowserUrl(url: string, callback?: (url: string) => void) {
-    return handleBrowserUrl({
-      deeplinkManager: this,
-      url,
-      callback,
-    });
-  }
-
-  _handleBuyCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.BUY,
-    });
-  }
-
-  _handleSellCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.SELL,
-    });
-  }
-
-  _handleDepositCash(depositCashPath: string) {
-    handleDepositCashUrl({
-      depositPath: depositCashPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handleRewards(rewardsPath: string) {
-    handleRewardsUrl({
-      rewardsPath,
-    });
-  }
-
-  // NOTE: open the home screen for new subdomain
-  _handleOpenHome(homePath?: string) {
-    navigateToHomeUrl({ homePath });
-  }
-
-  // NOTE: this will be used for new deeplink subdomain
-  _handleSwap(swapPath: string) {
-    handleSwapUrl({
-      swapPath,
-    });
-  }
-
-  _handleCreateAccount(createAccountPath: string) {
-    handleCreateAccountUrl({
-      path: createAccountPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handlePerps(perpsPath: string) {
-    handlePerpsUrl({
-      perpsPath,
-    });
-  }
-
-  // NOTE: keeping this for backwards compatibility
-  _handleOpenSwap() {
-    this.navigation.navigate(Routes.SWAPS);
-  }
-
-  _handleFastOnboarding(onboardingPath: string) {
-    handleFastOnboarding({ onboardingPath });
-  }
 
   async parse(
     url: string,
@@ -168,7 +55,7 @@ class DeeplinkManager {
   }
 
   static start() {
-    SharedDeeplinkManager.init();
+    DeeplinkManager.getInstance();
 
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
@@ -233,4 +120,19 @@ class DeeplinkManager {
   }
 }
 
-export default DeeplinkManager;
+export default {
+  init: () => DeeplinkManager.getInstance(),
+  start: () => DeeplinkManager.start(),
+  getInstance: () => DeeplinkManager.getInstance(),
+  parse: (
+    url: string,
+    args: {
+      browserCallBack?: (url: string) => void;
+      origin: string;
+      onHandled?: () => void;
+    },
+  ) => DeeplinkManager.getInstance().parse(url, args),
+  setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
+  getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
+  expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),
+};

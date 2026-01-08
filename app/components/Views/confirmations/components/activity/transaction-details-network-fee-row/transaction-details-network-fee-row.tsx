@@ -1,15 +1,39 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
+import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { BigNumber } from 'bignumber.js';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
+
+const FALLBACK_TYPES = [
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
+];
 
 export function TransactionDetailsNetworkFeeRow() {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { transactionMeta } = useTransactionDetails();
-  const { metamaskPay } = transactionMeta;
-  const { networkFeeFiat } = metamaskPay || {};
+  const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-  if (!networkFeeFiat) {
+  const { metamaskPay } = transactionMeta;
+  const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
+
+  const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
+
+  const networkFeeFormatted = useMemo(
+    () => formatFiat(new BigNumber(networkFee ?? 0)),
+    [formatFiat, networkFee],
+  );
+
+  if (
+    !payNetworkFeeFiat &&
+    !hasTransactionType(transactionMeta, FALLBACK_TYPES)
+  ) {
     return null;
   }
 
@@ -17,7 +41,9 @@ export function TransactionDetailsNetworkFeeRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.network_fee')}
     >
-      <Text>{networkFeeFiat}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
+        {networkFeeFormatted}
+      </Text>
     </TransactionDetailsRow>
   );
 }

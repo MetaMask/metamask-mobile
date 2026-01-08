@@ -23,6 +23,12 @@ import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fe
 import { hasTransactionType } from '../../../utils/transaction';
 import { ScrollView } from 'react-native';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
+import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
+
+export const SUMMARY_SECTION_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -39,28 +45,46 @@ export function TransactionDetails() {
     );
   }, [colors, navigation, theme, title]);
 
+  const showSummarySection = hasTransactionType(
+    transactionMeta,
+    SUMMARY_SECTION_TYPES,
+  );
+
   return (
     <ScrollView>
       <Box style={styles.container} gap={12}>
         <TransactionDetailsHero />
         <TransactionDetailsStatusRow />
         <TransactionDetailsDateRow />
+        <TransactionDetailsAccountRow />
         <TransactionDetailDivider />
         <TransactionDetailsPaidWithRow />
         <TransactionDetailsNetworkFeeRow />
         <TransactionDetailsBridgeFeeRow />
         <TransactionDetailsTotalRow />
-        <TransactionDetailDivider />
-        <TransactionDetailsSummary />
-        <TransactionDetailsRetry />
+        {showSummarySection && (
+          <>
+            <TransactionDetailDivider />
+            <TransactionDetailsSummary />
+            <TransactionDetailsRetry />
+          </>
+        )}
       </Box>
     </ScrollView>
   );
 }
 
 function getTitle(transactionMeta: TransactionMeta) {
+  if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
+    return strings('transaction_details.title.predict_claim');
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     return strings('transaction_details.title.predict_deposit');
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return strings('transaction_details.title.predict_withdraw');
   }
 
   switch (transactionMeta.type) {

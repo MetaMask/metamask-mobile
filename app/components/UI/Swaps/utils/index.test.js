@@ -3,8 +3,7 @@ import {
   shouldShowMaxBalanceLink,
   isSwapsAllowed,
 } from './index';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // Mock AppConstants
 const mockSwapsConstantsGetter = jest.fn(() => ({
@@ -17,18 +16,15 @@ jest.mock('../../../../core/AppConstants', () => ({
   },
 }));
 
-const {
-  ETH_CHAIN_ID,
-  BSC_CHAIN_ID,
-  SWAPS_TESTNET_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  BASE_CHAIN_ID,
-} = swapsUtils;
+const ETH_CHAIN_ID = CHAIN_IDS.MAINNET;
+const BSC_CHAIN_ID = CHAIN_IDS.BSC;
+const POLYGON_CHAIN_ID = CHAIN_IDS.POLYGON;
+const AVALANCHE_CHAIN_ID = CHAIN_IDS.AVALANCHE;
+const ARBITRUM_CHAIN_ID = CHAIN_IDS.ARBITRUM;
+const OPTIMISM_CHAIN_ID = CHAIN_IDS.OPTIMISM;
+const ZKSYNC_ERA_CHAIN_ID = CHAIN_IDS.ZKSYNC_ERA;
+const LINEA_CHAIN_ID = CHAIN_IDS.LINEA_MAINNET;
+const BASE_CHAIN_ID = CHAIN_IDS.BASE;
 
 describe('getFetchParams', () => {
   const mockSourceToken = {
@@ -223,25 +219,5 @@ describe('isSwapsAllowed', () => {
   it('should return false for unsupported chain IDs', () => {
     const unsupportedChainId = '0x9999';
     expect(isSwapsAllowed(unsupportedChainId)).toBe(false);
-  });
-
-  describe('testnet chain IDs', () => {
-    it('should return true for testnet chain IDs in development when ONLY_MAINNET is true', () => {
-      global.__DEV__ = true;
-      mockSwapsConstantsGetter.mockReturnValue({
-        ...mockSwapsConstantsGetter(),
-        ONLY_MAINNET: true,
-      });
-      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
-    });
-
-    it('should return true for testnet chain IDs when ONLY_MAINNET is false', () => {
-      global.__DEV__ = false;
-      mockSwapsConstantsGetter.mockReturnValue({
-        ...mockSwapsConstantsGetter(),
-        ONLY_MAINNET: false,
-      });
-      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
-    });
   });
 });

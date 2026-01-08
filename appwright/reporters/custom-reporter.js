@@ -1,6 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
+import QualityGatesValidator from '../utils/QualityGatesValidator';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,6 +10,7 @@ class CustomReporter {
     this.metrics = [];
     this.sessions = []; // Array to store all session data
     this.processedTests = new Set(); // Track processed tests to avoid duplicates
+    this.qualityGatesValidator = new QualityGatesValidator();
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
@@ -114,6 +116,26 @@ class CustomReporter {
           // Ensure we have steps array for consistency
           if (!metricsEntry.steps) {
             metricsEntry.steps = [];
+          }
+        }
+
+        // Validate quality gates using thresholds from timers
+        if (metricsEntry.steps && metricsEntry.steps.length > 0) {
+          const qualityGatesResult = this.qualityGatesValidator.validateMetrics(
+            test.title,
+            metricsEntry.steps,
+            metricsEntry.total || 0,
+            metricsEntry.totalThreshold || null,
+          );
+          metricsEntry.qualityGates = qualityGatesResult;
+
+          // Log quality gates result to console
+          if (qualityGatesResult.hasThresholds) {
+            console.log(
+              this.qualityGatesValidator.formatConsoleReport(
+                qualityGatesResult,
+              ),
+            );
           }
         }
 
@@ -427,8 +449,8 @@ class CustomReporter {
           <html>
           <head>
             <title>Performance Metrics: ${testName} - ${
-          this.metrics[0].device
-        }</title>
+              this.metrics[0].device
+            }</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 40px; }
               table { border-collapse: collapse; width: 100%; }
@@ -462,61 +484,100 @@ class CustomReporter {
               <table>
                 <tr>
                   <th>Steps</th>
-                  <th>Time (ms)</th>
+                  <th>Duration</th>
+                  <th>Threshold</th>
+                  <th>Status</th>
                 </tr>
                 ${
                   test.steps && Array.isArray(test.steps)
-                    ? // New array structure with steps
-                      test.steps
+                    ? test.steps
                         .map((stepObject) => {
+                          // Handle new format with threshold info
+                          if (stepObject.name !== undefined) {
+                            const { name, duration, threshold, baseThreshold } =
+                              stepObject;
+                            const hasThreshold =
+                              threshold !== null && threshold !== undefined;
+                            const passed =
+                              !hasThreshold || duration <= threshold;
+                            const statusIcon = hasThreshold
+                              ? passed
+                                ? '✅'
+                                : '❌'
+                              : '—';
+                            const rowStyle =
+                              hasThreshold && !passed
+                                ? 'background-color: #ffebee;'
+                                : '';
+                            const thresholdStr = hasThreshold
+                              ? `${threshold}ms<br><small style="color: #666;">(base: ${baseThreshold}ms)</small>`
+                              : '—';
+                            return `
+                        <tr style="${rowStyle}">
+                          <td>${name}</td>
+                          <td>${duration} ms</td>
+                          <td>${thresholdStr}</td>
+                          <td>${statusIcon}</td>
+                        </tr>
+                      `;
+                          }
+                          // Handle old format {stepName: duration}
                           const [stepName, duration] =
                             Object.entries(stepObject)[0];
                           return `
                         <tr>
                           <td>${stepName}</td>
                           <td>${duration} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `;
                         })
                         .join('')
                     : test.steps && typeof test.steps === 'object'
-                    ? // Backward compatibility for old object structure
-                      Object.entries(test.steps)
-                        .map(
-                          ([stepName, duration]) => `
+                      ? // Backward compatibility for old object structure
+                        Object.entries(test.steps)
+                          .map(
+                            ([stepName, duration]) => `
                         <tr>
                           <td>${stepName}</td>
                           <td>${duration} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `,
-                        )
-                        .join('')
-                    : // Fallback to old structure
-                      Object.entries(test)
-                        .filter(
-                          ([key]) =>
-                            key !== 'testName' &&
-                            key !== 'device' &&
-                            key !== 'videoURL' &&
-                            key !== 'sessionId' &&
-                            key !== 'testFailed' &&
-                            key !== 'failureReason' &&
-                            key !== 'note' &&
-                            key !== 'total',
-                        )
-                        .map(
-                          ([key, value]) => `
+                          )
+                          .join('')
+                      : // Fallback to old structure
+                        Object.entries(test)
+                          .filter(
+                            ([key]) =>
+                              key !== 'testName' &&
+                              key !== 'device' &&
+                              key !== 'videoURL' &&
+                              key !== 'sessionId' &&
+                              key !== 'testFailed' &&
+                              key !== 'failureReason' &&
+                              key !== 'note' &&
+                              key !== 'total',
+                          )
+                          .map(
+                            ([key, value]) => `
                         <tr>
                           <td>${key}</td>
                           <td>${value} ms</td>
+                          <td>—</td>
+                          <td>—</td>
                         </tr>
                       `,
-                        )
-                        .join('')
+                          )
+                          .join('')
                 }
                 <tr class="total">
                   <td>TOTAL TIME</td>
                   <td>${test.total} s</td>
+                  <td>${test.totalThreshold ? `${(test.totalThreshold / 1000).toFixed(2)} s` : '—'}</td>
+                  <td>${test.totalThreshold ? (test.total * 1000 <= test.totalThreshold ? '✅' : '❌') : '—'}</td>
                 </tr>
                 ${
                   test.testFailed
@@ -547,6 +608,13 @@ class CustomReporter {
                     : ''
                 }
               </table>
+              ${
+                test.qualityGates
+                  ? this.qualityGatesValidator.generateHtmlSection(
+                      test.qualityGates,
+                    )
+                  : ''
+              }
             `,
               )
               .join('')}
@@ -611,10 +679,10 @@ class CustomReporter {
                                 'cpu.avg',
                                 'N/A',
                               )}% | Max: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'cpu.max',
-                          'N/A',
-                        )}%</span>
+                                session.profilingSummary,
+                                'cpu.max',
+                                'N/A',
+                              )}%</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
                               <strong style="color: #4caf50;">Memory</strong><br>
@@ -623,10 +691,10 @@ class CustomReporter {
                                 'memory.avg',
                                 'N/A',
                               )} MB | Max: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'memory.max',
-                          'N/A',
-                        )} MB</span>
+                                session.profilingSummary,
+                                'memory.max',
+                                'N/A',
+                              )} MB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
                               <strong style="color: #ff9800;">Battery</strong><br>
@@ -635,12 +703,12 @@ class CustomReporter {
                                 'battery.total',
                                 'N/A',
                               )} mAh (${(
-                          this.getNestedProperty(
-                            session.profilingSummary,
-                            'battery.percentage',
-                            0,
-                          ) * 100
-                        ).toFixed(1)}%)</span>
+                                this.getNestedProperty(
+                                  session.profilingSummary,
+                                  'battery.percentage',
+                                  0,
+                                ) * 100
+                              ).toFixed(1)}%)</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0;">
                               <strong style="color: #9c27b0;">UI Performance</strong><br>
@@ -649,10 +717,10 @@ class CustomReporter {
                                 'uiRendering.slowFrames',
                                 'N/A',
                               )}% | ANRs: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'uiRendering.anrs',
-                          'N/A',
-                        )}</span>
+                                session.profilingSummary,
+                                'uiRendering.anrs',
+                                'N/A',
+                              )}</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #607d8b;">
                               <strong style="color: #607d8b;">Disk I/O</strong><br>
@@ -661,10 +729,10 @@ class CustomReporter {
                                 'diskIO.reads',
                                 'N/A',
                               )} KB | Writes: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'diskIO.writes',
-                          'N/A',
-                        )} KB</span>
+                                session.profilingSummary,
+                                'diskIO.writes',
+                                'N/A',
+                              )} KB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #795548;">
                               <strong style="color: #795548;">Network I/O</strong><br>
@@ -673,10 +741,10 @@ class CustomReporter {
                                 'networkIO.upload',
                                 'N/A',
                               )} KB | Download: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'networkIO.download',
-                          'N/A',
-                        )} KB</span>
+                                session.profilingSummary,
+                                'networkIO.download',
+                                'N/A',
+                              )} KB</span>
                             </div>
                           </div>
                           ${
@@ -1033,6 +1101,14 @@ class CustomReporter {
           if (test.note) {
             csvRows.push(`NOTE,"${test.note}",,,,`);
           }
+        }
+
+        // Add quality gates information
+        if (test.qualityGates) {
+          const qgRows = this.qualityGatesValidator.generateCsvRows(
+            test.qualityGates,
+          );
+          csvRows.push(...qgRows);
         }
 
         // Add spacing between tables (3 blank lines to clearly separate tables)

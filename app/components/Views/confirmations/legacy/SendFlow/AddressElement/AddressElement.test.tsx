@@ -18,16 +18,6 @@ const mockedNetworkControllerState = mockNetworkState({
   ticker: 'ETH',
 });
 
-const mockIsRemoveGlobalNetworkSelectorEnabled = jest
-  .fn()
-  .mockReturnValue(false);
-
-jest.mock('../../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: () =>
-    mockIsRemoveGlobalNetworkSelectorEnabled(),
-}));
-
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
     '../../../../../../util/test/accountsControllerTestUtils',
@@ -102,8 +92,7 @@ describe('AddressElement', () => {
     expect(addressText).toBeDefined();
   });
 
-  it('renders the network badge when displayNetworkBadge is true and the isRemoveGlobalNetworkSelectorEnabled feature flag is enabled', () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+  it('renders the network badge when displayNetworkBadge is true', () => {
     const { getByTestId } = renderComponent(
       {
         ...initialState,

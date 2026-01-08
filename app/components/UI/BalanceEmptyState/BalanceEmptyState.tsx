@@ -1,9 +1,10 @@
 import React from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  Button,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -14,15 +15,17 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -34,17 +37,14 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToBuy } = useRampNavigation();
+  const buttonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const handleAction = () => {
-    navigation.navigate(...createDepositNavigationDetails());
-
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
-      ).build(),
-    );
+    goToBuy();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
@@ -52,13 +52,18 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'DEPOSIT',
+          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          region: rampGeodetectedRegion,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
         })
         .build(),
     );
 
     trace({
-      name: TraceName.LoadDepositExperience,
+      name: TraceName.LoadRampExperience,
     });
   };
 
@@ -104,13 +109,14 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           {strings('wallet.get_ready_for_web3')}
         </Text>
       </Box>
-      <ButtonHero
+      <Button
+        size={ButtonSize.Lg}
         onPress={handleAction}
         isFullWidth
         testID={`${testID}-action-button`}
       >
         {strings('wallet.add_funds')}
-      </ButtonHero>
+      </Button>
     </Box>
   );
 };

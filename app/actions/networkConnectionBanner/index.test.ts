@@ -24,22 +24,25 @@ describe('networkConnectionBanner actions', () => {
         status: 'degraded' as const,
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       },
       {
         chainId: '0x89',
         status: 'unavailable' as const,
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       },
     ] as const)(
       'should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl for $status status',
-      ({ chainId, status, networkName, rpcUrl }) => {
+      ({ chainId, status, networkName, rpcUrl, isInfuraEndpoint }) => {
         expect(
           showNetworkConnectionBanner({
             chainId,
             status,
             networkName,
             rpcUrl,
+            isInfuraEndpoint,
           }),
         ).toStrictEqual({
           type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
@@ -47,21 +50,24 @@ describe('networkConnectionBanner actions', () => {
           status,
           networkName,
           rpcUrl,
+          isInfuraEndpoint,
         });
       },
     );
 
-    it('should require chainId, status, networkName and rpcUrl parameters', () => {
+    it('should require chainId, status, networkName, rpcUrl, and isInfuraEndpoint parameters', () => {
       const chainId = '0x1';
       const status: NetworkConnectionBannerStatus = 'degraded';
       const networkName = 'Ethereum Mainnet';
       const rpcUrl = 'https://mainnet.infura.io/v3/123';
+      const isInfuraEndpoint = true;
 
       const action = showNetworkConnectionBanner({
         chainId,
         status,
         networkName,
         rpcUrl,
+        isInfuraEndpoint,
       });
 
       expect(action.chainId).toBe(chainId);
@@ -74,6 +80,7 @@ describe('networkConnectionBanner actions', () => {
         'status',
         'networkName',
         'rpcUrl',
+        'isInfuraEndpoint',
       ]);
     });
   });

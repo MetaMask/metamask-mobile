@@ -4,7 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => (className: string) => ({ className }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = () => ({});
+    return tw;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -59,16 +63,6 @@ describe('TokensFullView', () => {
     expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 
-  it('renders tokens component with isFullView prop', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(TokensFullView, {
-      name: 'TokensFullView',
-    });
-
-    // Act & Assert
-    expect(getByTestId('tokens-component')).toBeOnTheScreen();
-  });
-
   it('calls goBack when back button is pressed', () => {
     // Arrange
     const { getByTestId } = renderScreen(TokensFullView, {
@@ -76,23 +70,10 @@ describe('TokensFullView', () => {
     });
 
     // Act
-    const backButton = getByTestId('header').find(
-      (element) => element.type?.toString() === 'TouchableOpacity',
-    );
-    backButton?.props.onPress();
+    const backButton = getByTestId('back-button');
+    backButton.props.onPress();
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays correct header title', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(TokensFullView, {
-      name: 'TokensFullView',
-    });
-
-    // Act & Assert
-    const headerTitle = getByTestId('header-title');
-    expect(headerTitle).toBeOnTheScreen();
   });
 });

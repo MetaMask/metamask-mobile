@@ -162,9 +162,8 @@ const SecureKeychain = {
     if (instance) {
       try {
         instance.isAuthenticating = true;
-        const keychainObject = await Keychain.getGenericPassword(
-          defaultOptions,
-        );
+        const keychainObject =
+          await Keychain.getGenericPassword(defaultOptions);
         if (keychainObject && keychainObject.password) {
           const encryptedPassword = keychainObject.password;
           const decrypted = await instance.decryptPassword(encryptedPassword);
@@ -253,6 +252,7 @@ const SecureKeychain = {
 
             return;
           }
+          throw error;
         }
       }
     } else if (type === this.TYPES.PASSCODE) {

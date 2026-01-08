@@ -39,7 +39,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      await AppwrightGestures.tap(this.existingWalletButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.existingWalletButton); 
     }
   }
 
@@ -47,7 +47,16 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      await AppwrightGestures.tap(this.createNewWalletButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.createNewWalletButton); 
+    }
+  }
+
+  async isScreenTitleVisible() {
+    if (!this._device) {
+      await expect(this.createNewWalletButton).toBeDisplayed();
+    } else {
+      const element = await this.createNewWalletButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
     }
   }
 }
