@@ -63,7 +63,9 @@ describe('PerpsFillTag', () => {
 
   it('renders null for standard fill type', () => {
     const transaction = createMockTransaction(FillType.Standard);
+
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 
@@ -77,19 +79,25 @@ describe('PerpsFillTag', () => {
       timestamp: Date.now(),
       asset: 'ETH',
     };
+
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 
   it('renders Take Profit pill', () => {
     const transaction = createMockTransaction(FillType.TakeProfit);
+
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(getByText('Take profit')).toBeOnTheScreen();
   });
 
   it('renders Stop Loss pill', () => {
     const transaction = createMockTransaction(FillType.StopLoss);
+
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(getByText('Stop loss')).toBeOnTheScreen();
   });
 
@@ -145,6 +153,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(getByText('Liquidated')).toBeOnTheScreen();
   });
 
@@ -172,6 +181,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 
@@ -179,7 +189,6 @@ describe('PerpsFillTag', () => {
     mockUseSelector.mockImplementation(
       () => () => null as unknown as { address: string },
     );
-
     const transaction = createMockTransaction(FillType.Liquidation, {
       fill: {
         shortTitle: 'Closed long',
@@ -203,6 +212,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 
@@ -211,7 +221,6 @@ describe('PerpsFillTag', () => {
     mockUseSelector.mockImplementation(
       () => () => ({ address: undefined }) as unknown as { address: string },
     );
-
     const transaction = createMockTransaction(FillType.Liquidation, {
       fill: {
         shortTitle: 'Closed long',
@@ -231,6 +240,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 
@@ -254,6 +264,7 @@ describe('PerpsFillTag', () => {
     });
 
     const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
     expect(toJSON()).toBeNull();
   });
 });
