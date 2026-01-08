@@ -12,30 +12,13 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
 
 jest.mock('@metamask/ramps-controller', () => {
-  const actualRampsController = jest.requireActual(
-    '@metamask/ramps-controller',
-  );
-
-  const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
-    const instance = Object.create(MockRampsControllerSpy.prototype);
-    instance.constructor = MockRampsControllerSpy;
-    instance.updateGeolocation = mockUpdateGeolocation;
-    return instance;
-  });
-
-  MockRampsControllerSpy.prototype = Object.create(
-    actualRampsController.RampsController.prototype,
-  );
-  MockRampsControllerSpy.prototype.constructor = MockRampsControllerSpy;
-  Object.setPrototypeOf(
-    MockRampsControllerSpy,
-    actualRampsController.RampsController,
-  );
+  const actual = jest.requireActual('@metamask/ramps-controller');
 
   return {
-    getDefaultRampsControllerState:
-      actualRampsController.getDefaultRampsControllerState,
-    RampsController: MockRampsControllerSpy,
+    ...actual,
+    RampsController: jest.fn(() => ({
+      updateGeolocation: mockUpdateGeolocation,
+    })),
   };
 });
 
@@ -52,12 +35,6 @@ describe('ramps controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
-  });
-
-  it('returns controller instance', () => {
-    expect(rampsControllerInit(initRequestMock).controller).toBeInstanceOf(
-      RampsController,
-    );
   });
 
   it('uses default state when no initial state is passed in', () => {

@@ -5,10 +5,7 @@ import {
   selectGeolocation,
   selectGeolocationRequest,
 } from '../../../../selectors/rampsController';
-import {
-  ExecuteRequestOptions,
-  RequestSelectorResult,
-} from '@metamask/ramps-controller';
+import { ExecuteRequestOptions } from '@metamask/ramps-controller';
 
 /**
  * Result returned by the useRampsGeolocation hook.
@@ -50,9 +47,7 @@ export interface UseRampsGeolocationResult {
  */
 export function useRampsGeolocation(): UseRampsGeolocationResult {
   const geolocation = useSelector(selectGeolocation);
-  const { isFetching, error } = useSelector(
-    selectGeolocationRequest,
-  ) as RequestSelectorResult<string>;
+  const { isFetching, error } = useSelector(selectGeolocationRequest);
 
   const fetchGeolocation = useCallback(
     (options?: ExecuteRequestOptions) =>
