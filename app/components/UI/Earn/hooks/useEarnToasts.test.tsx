@@ -99,7 +99,6 @@ describe('useEarnToasts', () => {
       const testConfig =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
-          tokenIcon: 'https://example.com/eth.png',
         });
 
       result.current.showToast(testConfig);
@@ -144,13 +143,10 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
-          tokenIcon: 'https://example.com/eth.png',
         });
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
       expect(inProgressToast.iconName).toBe(IconName.Loading);
-      expect(inProgressToast.iconColor).toBeDefined();
-      expect(inProgressToast.backgroundColor).toBeDefined();
       expect(inProgressToast.hapticsType).toBe(
         NotificationFeedbackType.Warning,
       );
@@ -176,7 +172,6 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
-          tokenIcon: 'https://example.com/eth.png',
         });
 
       expect(inProgressToast.startAccessory).toBeDefined();
@@ -190,7 +185,6 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
-          tokenIcon: 'https://example.com/eth.png',
         });
 
       expect(inProgressToast.labelOptions).toBeDefined();
@@ -227,7 +221,6 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
-          tokenIcon: 'https://example.com/eth.png',
         });
 
       expect(inProgressToast.closeButtonOptions).toBeDefined();
@@ -310,7 +303,6 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'DAI',
-          tokenIcon: 'https://example.com/dai.png',
         });
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
@@ -348,30 +340,6 @@ describe('useEarnToasts', () => {
 
       expect(failedToast.iconColor).toBeDefined();
       expect(typeof failedToast.iconColor).toBe('string');
-    });
-
-    it('sets iconColor on inProgress toast', () => {
-      const { result } = renderHook(() => useEarnToasts(), { wrapper });
-
-      const inProgressToast =
-        result.current.EarnToastOptions.mUsdConversion.inProgress({
-          tokenSymbol: 'ETH',
-        });
-
-      expect(inProgressToast.iconColor).toBeDefined();
-      expect(typeof inProgressToast.iconColor).toBe('string');
-    });
-
-    it('sets backgroundColor on inProgress toast', () => {
-      const { result } = renderHook(() => useEarnToasts(), { wrapper });
-
-      const inProgressToast =
-        result.current.EarnToastOptions.mUsdConversion.inProgress({
-          tokenSymbol: 'ETH',
-        });
-
-      expect(inProgressToast.backgroundColor).toBeDefined();
-      expect(typeof inProgressToast.backgroundColor).toBe('string');
     });
   });
 

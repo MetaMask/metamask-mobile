@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import useEarnToasts from './useEarnToasts';
 
 /**
@@ -19,7 +18,7 @@ import useEarnToasts from './useEarnToasts';
  * 1. Subscribes to TransactionController:transactionStatusUpdated events
  * 2. Filters for mUSD conversion transactions (type === 'musdConversion')
  * 3. Shows toasts based on transaction status:
- * - approved → in-progress toast with token icon and ETA (fires immediately after confirm)
+ * - approved → in-progress toast with token symbol (fires immediately after confirm)
  * - confirmed → success toast
  * - failed → failed toast
  * 4. Tracks shown toasts to prevent duplicates
@@ -81,16 +80,10 @@ export const useMusdConversionStatus = () => {
             ? getTokenData(payChainId as Hex, payTokenAddress)
             : { symbol: '' };
           const tokenSymbol = tokenData.symbol;
-          // Use cached icon if available, fallback to static URL
-          const tokenIcon = payTokenAddress
-            ? tokenData.iconUrl ||
-              getAssetImageUrl(payTokenAddress.toLowerCase(), payChainId as Hex)
-            : undefined;
 
           showToast(
             EarnToastOptions.mUsdConversion.inProgress({
               tokenSymbol: tokenSymbol || 'Token',
-              tokenIcon,
             }),
           );
           shownToastsRef.current.add(toastKey);

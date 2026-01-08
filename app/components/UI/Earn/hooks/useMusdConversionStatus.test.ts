@@ -14,9 +14,6 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
-jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: jest.fn(),
-}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -25,11 +22,9 @@ jest.mock('../../../../selectors/tokenListController', () => ({
 }));
 
 import { useSelector } from 'react-redux';
-import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockGetAssetImageUrl = jest.mocked(getAssetImageUrl);
 const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
 
 type TransactionStatusUpdatedHandler = (event: {
@@ -111,8 +106,6 @@ describe('useMusdConversionStatus', () => {
       }
       return {};
     });
-
-    mockGetAssetImageUrl.mockReturnValue('https://example.com/token-icon.png');
   });
 
   // Helper to setup token cache mock
@@ -211,7 +204,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('passes token symbol and icon from metamaskPay data to in-progress toast', () => {
+    it('passes token symbol from metamaskPay data to in-progress toast', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x89';
       const mockTokenData = {
@@ -235,13 +228,8 @@ describe('useMusdConversionStatus', () => {
 
       handler({ transactionMeta });
 
-      expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
-        tokenAddress.toLowerCase(),
-        chainId,
-      );
       expect(mockInProgressFn).toHaveBeenCalledWith({
         tokenSymbol: 'USDC',
-        tokenIcon: 'https://example.com/token-icon.png',
       });
     });
 
@@ -311,7 +299,6 @@ describe('useMusdConversionStatus', () => {
 
       handler({ transactionMeta });
 
-      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
       expect(mockInProgressFn).toHaveBeenCalledWith({
         tokenSymbol: 'Token',
         tokenIcon: undefined,
@@ -326,82 +313,9 @@ describe('useMusdConversionStatus', () => {
 
       handler({ transactionMeta });
 
-      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
       expect(mockInProgressFn).toHaveBeenCalledWith({
         tokenSymbol: 'Token',
         tokenIcon: undefined,
-      });
-    });
-
-    it('uses iconUrl from token cache when available', () => {
-      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-      const chainId = '0x89';
-      const cachedIconUrl = 'https://cached.example.com/usdc-icon.png';
-      const mockTokenData = {
-        [chainId]: {
-          data: {
-            [tokenAddress]: {
-              symbol: 'USDC',
-              iconUrl: cachedIconUrl,
-            },
-          },
-        },
-      };
-      setupTokensCacheMock(mockTokenData);
-
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.approved,
-        'test-tx-cached-icon',
-        TransactionType.musdConversion,
-        { chainId, tokenAddress },
-      );
-
-      handler({ transactionMeta });
-
-      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
-      expect(mockInProgressFn).toHaveBeenCalledWith({
-        tokenSymbol: 'USDC',
-        tokenIcon: cachedIconUrl,
-      });
-    });
-
-    it('falls back to getAssetImageUrl when iconUrl is not in token cache', () => {
-      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-      const chainId = '0x89';
-      const mockTokenData = {
-        [chainId]: {
-          data: {
-            [tokenAddress]: {
-              symbol: 'USDC',
-              // No iconUrl
-            },
-          },
-        },
-      };
-      setupTokensCacheMock(mockTokenData);
-
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.approved,
-        'test-tx-fallback-icon',
-        TransactionType.musdConversion,
-        { chainId, tokenAddress },
-      );
-
-      handler({ transactionMeta });
-
-      expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
-        tokenAddress.toLowerCase(),
-        chainId,
-      );
-      expect(mockInProgressFn).toHaveBeenCalledWith({
-        tokenSymbol: 'USDC',
-        tokenIcon: 'https://example.com/token-icon.png',
       });
     });
   });
