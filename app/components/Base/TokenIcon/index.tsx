@@ -168,6 +168,7 @@ function TokenIcon({
   if (source && !showFallback) {
     return (
       <RemoteImage
+        key={icon || `symbol-${symbol}`}
         testID={testID}
         fadeIn
         source={getSource()}
