@@ -47,4 +47,8 @@ export const ALLOWLISTED_URLS = [
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
+  // Trending Token APIs (Added for trending tests stability)
+  'https://token.api.cx.metamask.io/v3/tokens/trending',
+  'https://api.hyperliquid.xyz/exchange',
+  'https://token.api.cx.metamask.io/tokens/search',
 ];

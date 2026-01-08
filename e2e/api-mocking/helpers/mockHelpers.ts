@@ -1,6 +1,11 @@
 import { Mockttp } from 'mockttp';
 import _ from 'lodash';
-import { createLogger, LogLevel, MockApiEndpoint } from '../../framework';
+import {
+  createLogger,
+  LogLevel,
+  MockApiEndpoint,
+  MockEventsObject,
+} from '../../framework';
 import { getDecodedProxiedURL } from '../../specs/notifications/utils/helpers';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
@@ -332,4 +337,95 @@ export const interceptProxyUrl = async (
         body: await response.text(),
       };
     });
+};
+
+/**
+ * Sets up multiple mock events from a structured MockEventsObject definition
+ *
+ * @param mockServer - The mock server instance
+ * @param mockEvents - Object containing mock definitions grouped by method (GET, POST, etc.)
+ */
+export const setupMockEvents = async (
+  mockServer: Mockttp,
+  mockEvents: MockEventsObject,
+): Promise<void> => {
+  // Setup GET mocks
+  if (mockEvents.GET) {
+    for (const mock of mockEvents.GET) {
+      await setupMockRequest(
+        mockServer,
+        {
+          requestMethod: 'GET',
+          url: mock.urlEndpoint,
+          response: mock.response,
+          responseCode: mock.responseCode,
+        },
+        mock.priority,
+      );
+    }
+  }
+
+  // Setup POST mocks
+  if (mockEvents.POST) {
+    for (const mock of mockEvents.POST) {
+      // If requestBody is provided, use setupMockPostRequest for body matching
+      if (mock.requestBody) {
+        await setupMockPostRequest(
+          mockServer,
+          mock.urlEndpoint,
+          mock.requestBody,
+          mock.response,
+          {
+            statusCode: mock.responseCode,
+            ignoreFields: mock.ignoreFields,
+            priority: mock.priority,
+          },
+        );
+      } else {
+        // Otherwise use standard setupMockRequest
+        await setupMockRequest(
+          mockServer,
+          {
+            requestMethod: 'POST',
+            url: mock.urlEndpoint,
+            response: mock.response,
+            responseCode: mock.responseCode,
+          },
+          mock.priority,
+        );
+      }
+    }
+  }
+
+  // Setup PUT mocks
+  if (mockEvents.PUT) {
+    for (const mock of mockEvents.PUT) {
+      await setupMockRequest(
+        mockServer,
+        {
+          requestMethod: 'PUT',
+          url: mock.urlEndpoint,
+          response: mock.response,
+          responseCode: mock.responseCode,
+        },
+        mock.priority,
+      );
+    }
+  }
+
+  // Setup DELETE mocks
+  if (mockEvents.DELETE) {
+    for (const mock of mockEvents.DELETE) {
+      await setupMockRequest(
+        mockServer,
+        {
+          requestMethod: 'DELETE',
+          url: mock.urlEndpoint,
+          response: mock.response,
+          responseCode: mock.responseCode,
+        },
+        mock.priority,
+      );
+    }
+  }
 };
