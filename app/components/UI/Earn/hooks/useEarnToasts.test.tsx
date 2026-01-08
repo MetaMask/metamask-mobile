@@ -100,7 +100,6 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
           tokenIcon: 'https://example.com/eth.png',
-          estimatedTimeSeconds: 15,
         });
 
       result.current.showToast(testConfig);
@@ -146,7 +145,6 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
           tokenIcon: 'https://example.com/eth.png',
-          estimatedTimeSeconds: 15,
         });
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
@@ -179,7 +177,6 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
           tokenIcon: 'https://example.com/eth.png',
-          estimatedTimeSeconds: 15,
         });
 
       expect(inProgressToast.startAccessory).toBeDefined();
@@ -194,7 +191,6 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
           tokenIcon: 'https://example.com/eth.png',
-          estimatedTimeSeconds: 15,
         });
 
       expect(inProgressToast.labelOptions).toBeDefined();
@@ -232,7 +228,6 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'ETH',
           tokenIcon: 'https://example.com/eth.png',
-          estimatedTimeSeconds: 15,
         });
 
       expect(inProgressToast.closeButtonOptions).toBeDefined();
@@ -303,7 +298,6 @@ describe('useEarnToasts', () => {
       const inProgressToast =
         result.current.EarnToastOptions.mUsdConversion.inProgress({
           tokenSymbol: 'USDC',
-          estimatedTimeSeconds: 30,
         });
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
