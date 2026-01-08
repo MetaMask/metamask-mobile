@@ -1930,9 +1930,8 @@ export function getDepositNavbarOptions(
   return getHeaderCenterNavbarOptions({
     title,
     startButtonIconProps,
-    onClose: showClose ? handleClose : undefined,
     closeButtonProps: showClose
-      ? { testID: 'deposit-close-navbar-button' }
+      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
       : undefined,
     includesTopInset: true,
   });
