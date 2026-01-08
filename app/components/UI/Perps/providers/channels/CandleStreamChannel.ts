@@ -451,4 +451,27 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     });
     this.wsSubscriptions.clear();
   }
+
+  /**
+   * Reconnect all active subscriptions after WebSocket reconnection
+   * Clears dead subscriptions and re-establishes connections for active subscribers
+   */
+  public reconnect(): void {
+    // Get unique cache keys from subscribers before disconnecting
+    const activeCacheKeys = new Set(
+      Array.from(this.subscribers.values()).map((sub) => sub.cacheKey),
+    );
+
+    // Disconnect all WebSocket subscriptions (they're dead after reconnection)
+    this.disconnectAll();
+
+    // Re-establish connections for each active cache key
+    activeCacheKeys.forEach((cacheKey) => {
+      // Parse coin and interval from cacheKey (format: "coin-interval")
+      const [coin, interval] = cacheKey.split('-');
+      if (coin && interval) {
+        this.connect(coin, interval as CandlePeriod, cacheKey);
+      }
+    });
+  }
 }

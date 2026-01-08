@@ -737,10 +737,6 @@ export class HyperLiquidClientService {
 
     // Notify if state changed OR if this is a reconnection attempt (to update attempt count)
     if (stateChanged || isReconnectionAttempt) {
-      // TEMPORARY: Log for debugging state changes
-      console.log(
-        `[WebSocket] State Changed: ${previousState} → ${newState} (attempt: ${this.reconnectionAttempt})`,
-      );
       this.notifyConnectionStateListeners();
     }
   }
@@ -870,7 +866,8 @@ export class HyperLiquidClientService {
         throw new Error('Failed to recreate WebSocket transport');
       }
 
-      // Recreate SubscriptionClient with new transport
+      // Recreate clients that use WebSocket transport
+      this.infoClient = new InfoClient({ transport: this.wsTransport });
       this.subscriptionClient = new SubscriptionClient({
         transport: this.wsTransport,
       });
@@ -887,9 +884,6 @@ export class HyperLiquidClientService {
     } catch {
       // Reconnection failed - schedule a retry after a delay
       // Stay in CONNECTING state to indicate we're still trying
-      console.log(
-        `[WebSocket] Reconnection attempt ${this.reconnectionAttempt} failed, scheduling retry...`,
-      );
 
       // Reset flag before scheduling retry so the next attempt can proceed
       this.isReconnecting = false;

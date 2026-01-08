@@ -56,11 +56,6 @@ export function useWebSocketHealthToast(): void {
           const isNowConnected =
             newState === WebSocketConnectionState.CONNECTED;
 
-          // TEMPORARY: Debug log
-          console.log(
-            `[Hook] State Change: prev=${previousWsState}, new=${newState}, attempt=${reconnectionAttempt}, hasDisconnected=${hasExperiencedDisconnectionRef.current}`,
-          );
-
           // Only show toasts after we've been connected at least once
           // This prevents showing toasts during initial connection
           if (previousWsState === null) {
