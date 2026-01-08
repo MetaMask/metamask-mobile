@@ -1,5 +1,5 @@
-import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import enContent from '../../../locales/languages/en.json';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
+import enContent from '../../../../locales/languages/en.json';
 
 export const NetworkManagerSelectorIDs = {
   // Containers

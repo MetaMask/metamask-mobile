@@ -4,7 +4,7 @@ import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TokenList } from './TokenList';
 import { useNavigation } from '@react-navigation/native';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 

@@ -10,8 +10,8 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { fireEvent, act } from '@testing-library/react-native';
-import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
+import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
+import { AccountOverviewSelectorsIDs } from '../AccountRightButton/AccountOverview.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();

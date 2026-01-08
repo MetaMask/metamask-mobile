@@ -32,7 +32,7 @@ import Modal from 'react-native-modal';
 import Box from '../Ramp/Aggregator/components/Box';
 import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Routes from '../../../constants/navigation/Routes';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';

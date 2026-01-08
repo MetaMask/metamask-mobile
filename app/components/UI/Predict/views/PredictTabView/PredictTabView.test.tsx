@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, act } from '@testing-library/react-native';
 import React from 'react';
-import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
 
 /**
  * Mock Strategy:

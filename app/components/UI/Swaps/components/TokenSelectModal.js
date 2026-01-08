@@ -49,7 +49,7 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
+import { QuoteViewSelectorIDs } from '../QuoteView.testIds';
 import { getDecimalChainId } from '../../../../util/networks';
 import { getSortedTokensByFiatValue } from '../utils/token-list-utils';
 

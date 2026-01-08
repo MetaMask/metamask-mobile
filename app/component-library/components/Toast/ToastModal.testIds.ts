@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const ToastSelectorsText = {
   CLOSE_BUTTON: enContent.privacy_policy.toast_action_button,

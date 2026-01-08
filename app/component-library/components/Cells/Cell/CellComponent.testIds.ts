@@ -7,4 +7,4 @@ export const CellComponentSelectorsIDs = {
   SELECT_WITH_MENU: 'select-with-menu',
   TAG_LABEL: 'celltag-label',
   MULTISELECT_WITH_MENU: 'multiselect-with-menu',
-};
+} as const;

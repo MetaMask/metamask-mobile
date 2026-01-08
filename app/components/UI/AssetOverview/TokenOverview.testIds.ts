@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const TokenOverviewSelectorsIDs = {
   CONTAINER: 'token-asset-overview',

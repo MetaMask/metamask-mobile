@@ -12,7 +12,7 @@ import { connect, useSelector } from 'react-redux';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
   closeAllTabs,
   closeTab,

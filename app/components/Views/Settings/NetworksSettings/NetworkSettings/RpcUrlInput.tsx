@@ -5,7 +5,7 @@ import { isWebUri } from 'valid-url';
 import { strings } from '../../../../../../locales/i18n';
 import { isPrivateConnection } from '../../../../../util/networks';
 import Text from '../../../../../component-library/components/Texts/Text';
-import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../NetworksView.testIds';
 
 type InputProps = Pick<
   TextInputProps,

@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const AccountListBottomSheetSelectorsIDs = {
   ACCOUNT_LIST_ID: 'account-list',

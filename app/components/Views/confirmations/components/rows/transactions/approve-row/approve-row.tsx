@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useApproveTransactionData } from '../../../../hooks/useApproveTransactionData';
 import { ApproveMethod } from '../../../../types/approve';
 import { ApproveAndPermit2 } from '../../../approve-static-simulations/approve-and-permit2';

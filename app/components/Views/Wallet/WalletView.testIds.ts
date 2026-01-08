@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const WalletViewSelectorsIDs = {
   WALLET_CONTAINER: 'wallet-screen',
@@ -77,13 +77,11 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
-  // Wallet-specific action buttons to avoid conflicts with TokenOverview
   WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
-  // Balance Empty State - displayed when account group has zero balance across all networks
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
@@ -111,6 +109,5 @@ export const WalletViewSelectorsText = {
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;
 
-// Type definitions for the selectors
 export type WalletViewSelectorsIDsType = typeof WalletViewSelectorsIDs;
 export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText;
