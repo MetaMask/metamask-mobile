@@ -123,10 +123,10 @@ export async function handleIntentTransaction(
       intent.settlementContract ?? '0x9008D19f58AAbd9eD0D60971565AA8510560ab41';
 
     const order = intent.order;
+    // TODO: this should be mapped directly inside Crosschain API
     const message: IntentOrderInput = {
       ...order,
       appDataHash: normalizeAppData(order.appData),
-      // TODO: align bridge controller types so we don't have to cast or add default value here
       receiver: (order.receiver as Hex) ?? accountAddress,
       sellAmount: order.sellAmount ?? '0',
       buyAmount: order.buyAmount ?? '0',
