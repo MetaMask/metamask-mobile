@@ -574,7 +574,11 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== takeProfitPrice) {
-            setTakeProfitPrice(zeroRoePrice.toString());
+            // Round to 5 significant figures to match input validation
+            const roundedPrice = roundToSignificantFigures(
+              zeroRoePrice.toString(),
+            );
+            setTakeProfitPrice(roundedPrice);
           }
         }
       }
