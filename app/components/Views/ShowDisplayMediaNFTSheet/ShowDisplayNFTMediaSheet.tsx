@@ -1,6 +1,5 @@
 // Third party dependencies
 import React, { useRef } from 'react';
-import { View } from 'react-native';
 
 // External dependencies
 import BottomSheet, {

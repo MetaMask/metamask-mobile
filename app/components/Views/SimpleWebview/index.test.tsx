@@ -47,25 +47,31 @@ describe('SimpleWebview', () => {
     expect(getHeaderCenterNavbarOptions).toHaveBeenCalled();
   });
 
-  it('calls share function when dispatch is called', () => {
-    mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
+  it('calls Share.open when share button is pressed', () => {
     render(<SimpleWebview />);
 
-    const open = jest.spyOn(Share, 'open');
-    expect(open).toHaveBeenCalled();
+    const call = (getHeaderCenterNavbarOptions as jest.Mock).mock.calls[0][0];
+    const shareButton = call.endButtonIconProps[0];
+    shareButton.onPress();
+
+    expect(Share.open).toHaveBeenCalledWith({ url: 'https://etherscan.io' });
   });
 
   it('logs error when share function fails', async () => {
     const log = jest.spyOn(Logger, 'log');
-    jest
-      .spyOn(Share, 'open')
-      .mockImplementation(() => Promise.reject(new Error('Test error')));
-    mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
+    (Share.open as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
 
     render(<SimpleWebview />);
 
+    const call = (getHeaderCenterNavbarOptions as jest.Mock).mock.calls[0][0];
+    const shareButton = call.endButtonIconProps[0];
+    shareButton.onPress();
+
     await waitFor(() => {
-      expect(log).toHaveBeenCalled();
+      expect(log).toHaveBeenCalledWith(
+        'Error while trying to share simple web view',
+        expect.any(Error),
+      );
     });
   });
 });
