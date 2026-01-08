@@ -343,7 +343,7 @@ const OtpCode = () => {
             {resendButtonState === 'resendError' ? (
               <ResendButton
                 onPress={handleContactSupport}
-                text="deposit.otp_code.resend_error"
+                text="deposit.otp_code.resend_code_error"
                 button="deposit.otp_code.contact_support"
               />
             ) : null}

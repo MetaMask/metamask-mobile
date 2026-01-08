@@ -20,7 +20,7 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { tokenFilter: musdTokenFilter } = useMusdConversionTokens();
+  const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
