@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Colors } from '../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -11,7 +11,7 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       flexGrow: 1,
       paddingHorizontal: 16,
-      paddingBottom: 12,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     contentContainer: {
       flex: 1,

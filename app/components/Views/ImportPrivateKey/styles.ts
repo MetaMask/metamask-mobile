@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { Platform, StyleSheet } from 'react-native';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,30 +26,21 @@ const createStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
-      paddingBottom: 12,
-      backgroundColor: colors.background.default,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     descriptionContainer: {
       marginTop: 4,
     },
     bottom: {
       width: '100%',
-      marginTop: 20,
       paddingHorizontal: 16,
-      backgroundColor: colors.background.default,
     },
     input: {
-      backgroundColor: colors.background.default,
-      fontSize: 14,
-      borderRadius: 6,
       height: 120,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      ...fontStyles.normal,
-      color: colors.text.muted,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginVertical: 16,
+      backgroundColor: colors.background.section,
+      borderWidth: 0,
+      alignItems: 'flex-start',
+      paddingVertical: 16,
     },
   });
 

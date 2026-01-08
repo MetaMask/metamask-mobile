@@ -1,12 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Alert,
-  TextInput,
-  View,
-  DimensionValue,
-  SafeAreaView,
-} from 'react-native';
+import { Alert, View, DimensionValue, SafeAreaView } from 'react-native';
+import TextField from '../../../component-library/components/Form/TextField';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -168,52 +163,49 @@ const ImportPrivateKey = () => {
               title: strings('import_private_key.title'),
               bottomAccessory: (
                 <View style={styles.descriptionContainer}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {isSRP
-                      ? strings('import_private_key.description_srp')
-                      : strings('import_private_key.description_one')}
-                  </Text>
                   {isSRP ? (
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
-                      onPress={learnMore}
                     >
-                      {strings('import_private_key.learn_more_srp')}{' '}
+                      {strings('import_private_key.description_srp')}{' '}
                       <Text
                         variant={TextVariant.BodyMD}
                         color={TextColor.Primary}
+                        onPress={learnMore}
                       >
-                        {strings('import_private_key.here')}
+                        {strings('import_private_key.learn_more')}
                       </Text>
                     </Text>
                   ) : (
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                      onPress={learnMore}
-                    >
+                    <>
                       <Text
                         variant={TextVariant.BodyMD}
-                        color={TextColor.Primary}
+                        color={TextColor.Alternative}
                       >
-                        {strings('import_private_key.learn_more')}{' '}
+                        {strings('import_private_key.description_one')}
                       </Text>
-                      {strings('import_private_key.learn_more_here')}
-                    </Text>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        onPress={learnMore}
+                      >
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                        >
+                          {strings('import_private_key.learn_more')}{' '}
+                        </Text>
+                        {strings('import_private_key.learn_more_here')}
+                      </Text>
+                    </>
                   )}
                 </View>
               ),
             }}
           />
           <View style={styles.bottom}>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-              {strings('import_private_key.subtitle')}
-            </Text>
-            <TextInput
+            <TextField
               value={privateKey}
               numberOfLines={3}
               multiline
@@ -223,8 +215,7 @@ const ImportPrivateKey = () => {
               blurOnSubmit
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
-              placeholder={strings('import_private_key.example')}
-              placeholderTextColor={colors.text.muted}
+              placeholder={strings('import_private_key.subtitle')}
               autoCapitalize={'none'}
               keyboardAppearance={themeAppearance}
             />

@@ -42,7 +42,6 @@ const createStyle = (colors: any) =>
       flexDirection: 'row',
       paddingHorizontal: 16,
       gap: 12,
-      marginTop: 8,
     },
     image: {
       width: 150,
