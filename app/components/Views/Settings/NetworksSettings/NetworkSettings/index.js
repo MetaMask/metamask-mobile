@@ -87,7 +87,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT } from '../../../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
-import { CellComponentSelectorsIDs } from '../../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
+import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
