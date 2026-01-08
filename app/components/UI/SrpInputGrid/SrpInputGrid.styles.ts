@@ -18,7 +18,7 @@ export const createStyles = (colors: Colors) =>
       paddingTop: 16,
       backgroundColor: colors.background.section,
       borderRadius: 10,
-      minHeight: 264,
+      minHeight: 210,
       maxHeight: 'auto',
     },
     seedPhraseInnerContainer: {
@@ -91,8 +91,8 @@ export const createStyles = (colors: Colors) =>
     },
     pasteText: {
       textAlign: 'right' as const,
-      paddingTop: 12,
-      paddingBottom: 16,
+      paddingTop: 8,
+      paddingBottom: 1,
       alignSelf: 'flex-end' as const,
     } satisfies TextStyle,
 
