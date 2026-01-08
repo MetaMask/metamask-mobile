@@ -9,9 +9,23 @@ import { createDeepEqualSelector } from './util';
 import { selectShowFiatInTestnets } from './settings';
 import { isTestNet } from '../util/networks';
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/selectors/tokenBalancesController.ts (6)
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/selectors/tokenBalancesController.ts (1)
+// app/selectors/earnController/earn/index.ts (1)
+// app/selectors/multichain/evm.ts (2)
+// app/components/Views/AssetDetails/index.tsx (1)
+// app/components/UI/AssetOverview/AssetOverview.tsx (1)
+// app/components/UI/Bridge/hooks/useTokensWithBalance/index.ts (1)
+// app/components/Views/DetectedTokens/components/Token.tsx (1)
 export const selectTokensBalances = createSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>
@@ -33,6 +47,10 @@ export const selectHasAnyBalance = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/components/Views/confirmations/hooks/tokens/useTokenWithBalance.ts (1)
 export const selectSingleTokenBalance = createSelector(
   [
     (
@@ -61,6 +79,20 @@ export const selectSingleTokenBalance = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/reducers/swaps/index.js (2)
+// app/components/Views/confirmations/legacy/SendFlow/Amount/index.js (1)
+// app/components/UI/Swaps/index.js (1)
+// app/components/UI/Swaps/components/TokenSelectModal.js (1)
+// app/components/UI/Swaps/QuotesView.js (1)
+// app/core/GasPolling/GasPolling.ts (1)
+// app/components/hooks/useAddressBalance/useAddressBalance.ts (1)
+// app/components/Views/confirmations/legacy/SendFlow/Confirm/index.js (1)
+// app/components/Views/confirmations/legacy/Send/index.js (1)
+// app/components/Views/confirmations/legacy/Approval/components/TransactionEditor/index.js (1)
+// app/components/hooks/useTokenBalancesController/useTokenBalancesController.ts (1)
 export const selectContractBalances = createSelector(
   selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
@@ -75,6 +107,12 @@ export const selectContractBalances = createSelector(
     ]?.[chainId as Hex] ?? {},
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/components/UI/Earn/hooks/useHasMusdBalance.ts (1)
+// app/components/UI/Ramp/Aggregator/hooks/useBalance.ts (1)
+// app/components/hooks/useAddressBalance/useAddressBalance.ts (1)
 export const selectContractBalancesPerChainId = createSelector(
   selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
@@ -87,6 +125,13 @@ export const selectContractBalancesPerChainId = createSelector(
     ] ?? {},
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenBalancesController: tokenBalances
+// References
+// app/selectors/tokenBalancesController.ts (1)
+// app/selectors/assets/balances.ts (1)
+// app/components/UI/Card/hooks/useGetPriorityCardToken.tsx (1)
+// app/components/hooks/useGetFormattedTokensPerChain.tsx (1)
 export const selectAllTokenBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>

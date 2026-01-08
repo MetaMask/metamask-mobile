@@ -11,15 +11,34 @@ import { createDeepEqualSelector } from './util';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 
+// TODO Unified Assets Controller State Access (1)
+// NftController: allNftContracts, allNfts
+// References
+// app/selectors/nftController.ts (2)
 const selectNftControllerState = (state: RootState) =>
   state.engine.backgroundState.NftController;
 
+// TODO Unified Assets Controller State Access (1)
+// NftController: allNftContracts
+// References
+// app/selectors/nftController.ts (1)
+// app/reducers/collectibles/index.js (2)
+// app/components/Views/confirmations/hooks/nft/useNft.ts (1)
+// app/components/hooks/DisplayName/useWatchedNFTNames.ts (1)
 export const selectAllNftContracts = createSelector(
   selectNftControllerState,
   (nftControllerState: NftControllerState) =>
     nftControllerState.allNftContracts,
 );
 
+// TODO Unified Assets Controller State Access (1)
+// NftController: allNfts
+// References
+// app/selectors/nftController.ts (1)
+// app/reducers/collectibles/index.js (3)
+// app/reducers/collectibles/collectibles.ts (1)
+// app/components/Views/confirmations/hooks/send/useNfts.ts (1)
+// app/components/Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal.tsx (1)
 export const selectAllNfts = createSelector(
   selectNftControllerState,
   (nftControllerState: NftControllerState) => nftControllerState.allNfts,

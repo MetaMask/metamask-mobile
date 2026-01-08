@@ -17,9 +17,21 @@ export const isAssetFromSearch = (asset: unknown) =>
   'isFromSearch' in asset &&
   asset.isFromSearch === true;
 
+// TODO Unified Assets Controller State Access (1)
+// TokenSearchDiscoveryDataController: tokenDisplayData, swapsTokenAddressesByChainId
+// References
+// app/selectors/tokenSearchDiscoveryDataController.ts (3)
 const selectTokenSearchDiscoveryDataControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenSearchDiscoveryDataController;
 
+// TODO Unified Assets Controller State Access (1)
+// TokenSearchDiscoveryDataController: tokenDisplayData
+// References
+// app/components/UI/AssetOverview/AssetOverview.tsx (1)
+// app/components/UI/Bridge/components/TokenInsightsSheet/TokenInsightsSheet.tsx (1)
+// app/components/UI/AssetOverview/TokenDetails/TokenDetails.tsx (1)
+// app/components/Views/AssetLoader/index.tsx (1)
+// app/components/UI/Earn/hooks/useEarnToken.ts (1)
 export const selectTokenDisplayData = createDeepEqualSelector(
   selectTokenSearchDiscoveryDataControllerState,
   selectCurrentCurrency,
@@ -34,12 +46,20 @@ export const selectTokenDisplayData = createDeepEqualSelector(
     ),
 );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenSearchDiscoveryDataController: swapsTokenAddressesByChainId
+// References
+// None found
 export const selectSupportedSwapTokenAddressesByChainId =
   createDeepEqualSelector(
     selectTokenSearchDiscoveryDataControllerState,
     (state) => state?.swapsTokenAddressesByChainId,
   );
 
+// TODO Unified Assets Controller State Access (1)
+// TokenSearchDiscoveryDataController: swapsTokenAddressesByChainId
+// References
+// None found
 export const selectSupportedSwapTokenAddressesForChainId =
   createDeepEqualSelector(
     selectTokenSearchDiscoveryDataControllerState,
