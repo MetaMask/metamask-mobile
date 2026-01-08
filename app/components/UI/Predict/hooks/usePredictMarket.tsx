@@ -9,6 +9,7 @@ export interface UsePredictMarketOptions {
   id?: string | number;
   providerId?: string;
   enabled?: boolean;
+  pollingInterval?: number;
 }
 
 export interface UsePredictMarketResult {
@@ -18,13 +19,10 @@ export interface UsePredictMarketResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook to fetch detailed Predict market information
- */
 export const usePredictMarket = (
   options: UsePredictMarketOptions = {},
 ): UsePredictMarketResult => {
-  const { id, providerId, enabled = true } = options;
+  const { id, providerId, enabled = true, pollingInterval } = options;
   const [market, setMarket] = useState<PredictMarket | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +117,22 @@ export const usePredictMarket = (
   useEffect(() => {
     fetchMarket();
   }, [fetchMarket]);
+
+  useEffect(() => {
+    if (!enabled || !pollingInterval || pollingInterval <= 0) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      if (isMountedRef.current) {
+        fetchMarket();
+      }
+    }, pollingInterval);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [enabled, pollingInterval, fetchMarket]);
 
   return {
     market,
