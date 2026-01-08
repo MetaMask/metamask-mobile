@@ -53,6 +53,7 @@ jobs:
 
       # TODO: Revert to @v1 after testing - currently testing caching improvements
       - name: Setup Android Build Environment
+        timeout-minutes: 15
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@ci/speed-up-e2e-setup
         with:
           platform: android
