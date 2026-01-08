@@ -19,8 +19,9 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 const WAGMI_TEST_DAPP_URL =
   'https://metamask.github.io/connect-monorepo/wagmi-e2e/';
 const WAGMI_TEST_DAPP_NAME = 'React Vite';
-
 // NOTE: This test requires the testing SRP to be used
+const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
+const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
 test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   device,
@@ -77,9 +78,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     async () => {
       await WagmiTestDapp.isDappConnected();
       await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(
-        '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
-      );
+      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_1_ADDRESS);
       await WagmiTestDapp.tapPersonalSignButton();
     },
     WAGMI_TEST_DAPP_URL,
@@ -163,10 +162,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WagmiTestDapp.assertConnectedAccountsValue(
-        // Account 3 is now the first account connected
-        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
-      );
+      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
       await WagmiTestDapp.tapSwitchChainButton('42220'); // Celo
     },
     WAGMI_TEST_DAPP_URL,
@@ -217,9 +213,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       await WagmiTestDapp.isDappConnected();
       // TODO: Determine why the chain resets to 1 after refresh
       await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(
-        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
-      );
+      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
       await WagmiTestDapp.tapPersonalSignButton();
     },
     WAGMI_TEST_DAPP_URL,
@@ -264,9 +258,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     async () => {
       await WagmiTestDapp.isDappConnected();
       await WagmiTestDapp.assertConnectedChainValue('1');
-      await WagmiTestDapp.assertConnectedAccountsValue(
-        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
-      );
+      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
     },
     WAGMI_TEST_DAPP_URL,
   );

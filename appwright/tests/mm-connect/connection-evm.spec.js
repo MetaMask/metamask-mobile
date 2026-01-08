@@ -19,8 +19,9 @@ import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 const EVM_LEGACY_TEST_DAPP_URL =
   'https://metamask.github.io/connect-monorepo/legacy-evm-e2e/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
-
 // NOTE: This test requires the testing SRP to be used
+const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
+const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
 test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   device,
@@ -76,8 +77,8 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
       await MultiChainEvmTestDapp.isDappConnected();
       await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
       await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        '0x19a7ad8256ab119655f1d758348501d598fc1c94,0xe2beca5cadc60b61368987728b4229822e6cda83',
-      ); // Accounts 1 and 3 connected
+        `${ACCOUNT_1_ADDRESS.toLowerCase()},${ACCOUNT_3_ADDRESS.toLowerCase()}`,
+      );
       await MultiChainEvmTestDapp.tapPersonalSignButton();
     },
     EVM_LEGACY_TEST_DAPP_URL,
@@ -96,6 +97,7 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
     device,
     async () => {
       await MultiChainEvmTestDapp.assertRequestResponseValue(
+        // Account 1 signed the message
         '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
       );
       await MultiChainEvmTestDapp.tapSendTransactionButton();
@@ -182,9 +184,8 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
     device,
     async () => {
       await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        // Account 3 is now the first account connected
         // Note that this is checksummed but the initial connection is not checksummed. Fix this
-        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83,0x19a7ad8256ab119655f1d758348501d598fc1c94',
+        `${ACCOUNT_3_ADDRESS},${ACCOUNT_1_ADDRESS.toLowerCase()}`,
       );
     },
     EVM_LEGACY_TEST_DAPP_URL,
@@ -205,9 +206,8 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
       await MultiChainEvmTestDapp.isDappConnected();
       await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
       await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        // Account 3 is now the first account connected
         // Note that this is checksummed but the initial connection is not checksummed. Fix this
-        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83,0x19a7ad8256ab119655f1d758348501d598fc1c94',
+        `${ACCOUNT_3_ADDRESS},${ACCOUNT_1_ADDRESS.toLowerCase()}`,
       );
       await MultiChainEvmTestDapp.assertRequestResponseValue(''); // Make this better
       await MultiChainEvmTestDapp.tapPersonalSignButton();
@@ -265,7 +265,7 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
       await MultiChainEvmTestDapp.isDappConnected();
       await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
       await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-        '0xe2beca5cadc60b61368987728b4229822e6cda83', // Account 3 because it's the currently selected account
+        ACCOUNT_3_ADDRESS.toLowerCase(),
       );
       await MultiChainEvmTestDapp.tapPersonalSignButton();
     },
