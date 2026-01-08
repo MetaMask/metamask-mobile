@@ -67,11 +67,9 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
-      # Note: CocoaPods specs caching is handled by the setup-e2e-env action
-      # TODO: Revert to @v1 after testing - currently testing caching improvements
       - name: Installing iOS Environment Setup
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@ci/speed-up-e2e-setup
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ios
           setup-simulator: false

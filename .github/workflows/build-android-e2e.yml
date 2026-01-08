@@ -51,10 +51,9 @@ jobs:
           "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
           echo "✅ System images installed"
 
-      # TODO: Revert to @v1 after testing - currently testing caching improvements
       - name: Setup Android Build Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@ci/speed-up-e2e-setup
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
           setup-simulator: false
