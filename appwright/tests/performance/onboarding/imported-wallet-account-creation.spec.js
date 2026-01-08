@@ -8,7 +8,7 @@ import AccountListComponent from '../../../../wdio/screen-objects/AccountListCom
 import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { onboardingFlowImportSRP } from '../../../utils/flows/Flows.js';
+import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
 import AddNewHdAccountComponent from '../../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */

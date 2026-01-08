@@ -1,6 +1,6 @@
 import { test } from 'appwright';
 
-import { login } from '../../utils/flows/Flows.js';
+import { login } from '../../utils/Flows.js';
 import {
   launchMobileBrowser,
   navigateToDapp,

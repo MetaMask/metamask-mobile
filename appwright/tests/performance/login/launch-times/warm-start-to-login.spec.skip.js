@@ -4,7 +4,7 @@ import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScree
 import {
   login,
   dismissMultichainAccountsIntroModal,
-} from '../../../../utils/flows/Flows.js';
+} from '../../../../utils/Flows.js';
 
 import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
