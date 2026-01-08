@@ -3413,37 +3413,30 @@ workflows:
                 echo "Group: MetaMask Fastlane Test"
                 echo "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
               
-                
-                # Ensure environment variables are available and export them
-                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
-                
                 # Convert key filepath to absolute path BEFORE changing directory
-                if [ -n "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" ]; then
-                  if [[ "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" != /* ]]; then
-                    ABS_KEY_FILEPATH="$(pwd)/$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
-                  else
-                    ABS_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
-                  fi
-                  export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
-                fi
+                # if [ -n "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" ]; then
+                #   if [[ "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" != /* ]]; then
+                #     ABS_KEY_FILEPATH="$(pwd)/$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+                #   else
+                #     ABS_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+                #   fi
+                #   export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
+                # fi
                 
                 # Convert IPA path to absolute path (in case it's relative)
-                if [[ "$IPA_PATH" != /* ]]; then
-                  ABS_IPA_PATH="$(pwd)/$IPA_PATH"
-                else
-                  ABS_IPA_PATH="$IPA_PATH"
-                fi
+                # if [[ "$IPA_PATH" != /* ]]; then
+                #  ABS_IPA_PATH="$(pwd)/$IPA_PATH"
+                #else
+                #  ABS_IPA_PATH="$IPA_PATH"
+                #fi
                 
                 # Change to ios directory where fastlane folder is located
                 cd ios
                 
                 # Export again after cd to ensure they're still available
-                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
-
+                # export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+                # export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
+                # export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
 
 
                 bundle exec fastlane upload_to_testflight_only \
