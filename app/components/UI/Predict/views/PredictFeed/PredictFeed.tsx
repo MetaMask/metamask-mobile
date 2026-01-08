@@ -336,7 +336,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
-          info.index,
+          info.index + 1, // E2E tests use 1-based indexing
         )}
       />
     ),
@@ -421,6 +421,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   return (
     <AnimatedFlashList
       ref={listRef}
+      testID={`predict-market-list-${category}`}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -483,9 +484,15 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       style={tw.style('flex-1')}
       initialPage={0}
       onPageSelected={handlePageSelected}
+      testID="predict-feed-pager"
     >
       {TABS.map((tab, index) => (
-        <View key={tab.key} style={tw.style('flex-1')}>
+        <View
+          key={tab.key}
+          style={tw.style('flex-1')}
+          testID={`predict-feed-tab-page-${tab.key}`}
+          collapsable={false}
+        >
           <PredictTabContent
             category={tab.key}
             isActive={index === activeIndex}

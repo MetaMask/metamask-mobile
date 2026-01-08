@@ -491,14 +491,14 @@ describe('PredictFeed', () => {
   });
 
   describe('market list rendering', () => {
-    it('renders market cards with correct testIDs', () => {
+    it('renders market cards with correct testIDs using 1-based indexing', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(
-        getByTestId('predict-market-list-trending-card-0'),
+        getByTestId('predict-market-list-trending-card-1'),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('predict-market-list-trending-card-1'),
+        getByTestId('predict-market-list-trending-card-2'),
       ).toBeOnTheScreen();
     });
   });
