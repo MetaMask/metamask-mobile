@@ -80,6 +80,7 @@ import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderS
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import PredictGameDetails from '../PredictGameDetails';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -151,6 +152,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
+
+  if (market?.game) {
+    return <PredictGameDetails />;
+  }
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
