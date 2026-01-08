@@ -280,15 +280,6 @@ const useFeedScrollManager = ({
       const atTop =
         Platform.OS === 'ios' ? currentY < 0 : currentY < contentInsetTop;
 
-      if (atTop && isHeaderHidden.value === 1) {
-        isHeaderHidden.value = 0;
-        headerTranslateY.value = withTiming(0, animationConfig);
-        accumulatedDelta.value = 0;
-        lastDirection.value = 0;
-        runOnJS(setHeaderHidden)(false);
-        return;
-      }
-
       const currentDirection = delta > 0 ? 1 : delta < 0 ? -1 : 0;
       if (currentDirection === 0) return;
 
@@ -298,6 +289,15 @@ const useFeedScrollManager = ({
       }
 
       accumulatedDelta.value += Math.abs(delta);
+
+      if (atTop && isHeaderHidden.value === 1 && currentDirection === -1) {
+        isHeaderHidden.value = 0;
+        headerTranslateY.value = withTiming(0, animationConfig);
+        accumulatedDelta.value = 0;
+        lastDirection.value = 0;
+        runOnJS(setHeaderHidden)(false);
+        return;
+      }
 
       if (accumulatedDelta.value < SCROLL_THRESHOLD) {
         return;
@@ -726,6 +726,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.7}
       ListFooterComponent={renderFooter}
+      scrollEventThrottle={50}
       onScroll={isActive ? (scrollHandler as never) : undefined}
       onScrollEndDrag={onScrollEnd}
       onMomentumScrollEnd={onScrollEnd}
@@ -735,7 +736,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          progressViewOffset={ headerHidden ? tabBarHeight : contentInsetTop }
+          progressViewOffset={headerHidden ? tabBarHeight : contentInsetTop}
         />
       }
       contentContainerStyle={contentContainerStyle}
