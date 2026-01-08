@@ -1,5 +1,6 @@
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { renderHook } from '@testing-library/react-hooks';
@@ -147,6 +148,7 @@ describe('useEarnLendingTransactionStatus', () => {
       type,
       chainId: CHAIN_ID,
       networkClientId: 'mainnet',
+      status: TransactionStatus.submitted,
       time: Date.now(),
       txParams: {
         from: '0x1230000000000000000000000000000000000456',

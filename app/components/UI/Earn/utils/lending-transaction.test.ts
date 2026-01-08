@@ -1,5 +1,6 @@
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { ethers } from 'ethers';
@@ -16,6 +17,7 @@ import {
 } from './lending-transaction';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
+import { EarnTokenDetails } from '../types/lending.types';
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
@@ -54,6 +56,7 @@ describe('lending-transaction utils', () => {
       type,
       chainId: CHAIN_ID,
       networkClientId: 'mainnet',
+      status: TransactionStatus.submitted,
       time: Date.now(),
       txParams: {
         from: '0x1230000000000000000000000000000000000456',
@@ -272,7 +275,7 @@ describe('lending-transaction utils', () => {
         address: UNDERLYING_TOKEN_ADDRESS,
         decimals: 6,
         balanceFormatted: '100.00 USDC',
-      };
+      } as unknown as EarnTokenDetails;
 
       const result = getTrackEventProperties(
         txMeta,
@@ -304,7 +307,7 @@ describe('lending-transaction utils', () => {
         address: UNDERLYING_TOKEN_ADDRESS,
         decimals: 6,
         balanceFormatted: '50.00 USDC',
-      };
+      } as unknown as EarnTokenDetails;
 
       const result = getTrackEventProperties(
         txMeta,
@@ -349,7 +352,7 @@ describe('lending-transaction utils', () => {
         address: UNDERLYING_TOKEN_ADDRESS,
         decimals: 6,
         balanceFormatted: '100.00 USDC',
-      };
+      } as unknown as EarnTokenDetails;
 
       const result = getTrackEventProperties(txMeta, 'deposit', earnToken);
 
