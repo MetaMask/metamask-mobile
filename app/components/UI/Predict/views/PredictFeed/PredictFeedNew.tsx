@@ -678,11 +678,11 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
           ios: { flexGrow: 1 },
           android: {
             flexGrow: 1,
-            paddingTop: contentInsetTop,
+            paddingTop: headerHidden ? tabBarHeight : contentInsetTop,
           },
         }),
       ),
-    [tw, contentInsetTop],
+    [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
