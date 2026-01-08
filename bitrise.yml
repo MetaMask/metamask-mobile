@@ -189,7 +189,7 @@ pipelines:
       build_ios_main_exp:
         depends_on:
         - bump_version_code
-      deploy_ios_testflight:
+      upload_ios_main_to_testflight:
         depends_on:
         - build_ios_main_exp    
   nightly_rc_builds_to_testflight_pipeline:
@@ -201,7 +201,7 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-      deploy_ios_testflight:
+      upload_ios_main_to_testflight:
         depends_on:
         - build_ios_main_rc
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -238,9 +238,6 @@ stages:
   deploy_ios_release:
     workflows:
       - deploy_ios_to_store: {}
-  deploy_ios_testflight:
-    workflows:
-      - upload_ios_main_to_testflight: {}
   create_android_release:
     workflows:
       - build_android_main_prod: {}
