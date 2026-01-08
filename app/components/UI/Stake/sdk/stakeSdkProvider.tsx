@@ -1,6 +1,5 @@
 import {
   EarnApiService,
-  EarnEnvironments,
   EarnSdk,
   LendingProvider,
   PooledStakingContract,
@@ -64,7 +63,6 @@ export const StakeSDKProvider: React.FC<
 
       try {
         const sdk = await EarnSdk.create(provider, {
-          env: EarnEnvironments.DEV,
           chainId: getDecimalChainId(chainId),
         });
         setSdkService(sdk);

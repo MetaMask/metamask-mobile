@@ -4,13 +4,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { ethers } from 'ethers';
-import Logger from '../../../../util/Logger';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
-
-const LOG_TAG = '[EarnLendingTxUtils]';
 
 // Aave V3 ABIs for decoding transaction data
 export const AAVE_V3_SUPPLY_ABI = [
@@ -64,11 +61,6 @@ export interface DecodedLendingData {
 export const getLendingTransactionInfo = (
   transactionMeta: TransactionMeta,
 ): LendingTransactionInfo | null => {
-  Logger.log(LOG_TAG, '[getLendingTransactionInfo] Extracting lending info', {
-    txType: transactionMeta.type,
-    isBatch: Boolean(transactionMeta.nestedTransactions?.length),
-  });
-
   // Direct lending transaction
   if (
     transactionMeta.type === TransactionType.lendingDeposit ||
@@ -76,17 +68,8 @@ export const getLendingTransactionInfo = (
   ) {
     const data = transactionMeta.txParams?.data;
     if (!data) {
-      Logger.log(
-        LOG_TAG,
-        '[getLendingTransactionInfo] ❌ Direct lending tx has no data',
-      );
       return null;
     }
-    Logger.log(
-      LOG_TAG,
-      '[getLendingTransactionInfo] ✓ Direct lending tx found',
-      { type: transactionMeta.type },
-    );
     return {
       type: transactionMeta.type,
       data: data as string,
@@ -94,15 +77,6 @@ export const getLendingTransactionInfo = (
   }
 
   // Batch: find nested lending transaction
-  Logger.log(
-    LOG_TAG,
-    '[getLendingTransactionInfo] Searching nestedTransactions',
-    {
-      nestedCount: transactionMeta.nestedTransactions?.length ?? 0,
-      nestedTypes: transactionMeta.nestedTransactions?.map((tx) => tx.type),
-    },
-  );
-
   const nestedLendingTx = transactionMeta.nestedTransactions?.find(
     (tx: NestedTransactionMetadata) =>
       tx.type === TransactionType.lendingDeposit ||
@@ -110,26 +84,12 @@ export const getLendingTransactionInfo = (
   );
 
   if (!nestedLendingTx) {
-    Logger.log(
-      LOG_TAG,
-      '[getLendingTransactionInfo] ❌ No nested lending tx found',
-    );
     return null;
   }
 
   if (!nestedLendingTx.data) {
-    Logger.log(
-      LOG_TAG,
-      '[getLendingTransactionInfo] ❌ Nested lending tx has no data',
-    );
     return null;
   }
-
-  Logger.log(
-    LOG_TAG,
-    '[getLendingTransactionInfo] ✓ Found nested lending tx',
-    { type: nestedLendingTx.type },
-  );
 
   return {
     type: nestedLendingTx.type as
@@ -149,9 +109,6 @@ export const decodeLendingTransactionData = (
   lendingInfo: LendingTransactionInfo,
 ): DecodedLendingData | null => {
   const isDeposit = lendingInfo.type === TransactionType.lendingDeposit;
-  Logger.log(LOG_TAG, '[decodeLendingTransactionData] Decoding tx data', {
-    type: isDeposit ? 'deposit (supply)' : 'withdrawal (withdraw)',
-  });
 
   try {
     const abi = isDeposit ? AAVE_V3_SUPPLY_ABI : AAVE_V3_WITHDRAW_ABI;
@@ -166,18 +123,8 @@ export const decodeLendingTransactionData = (
     const tokenAddress = decoded[0] as string;
     const amountMinimalUnit = decoded[1].toString();
 
-    Logger.log(LOG_TAG, '[decodeLendingTransactionData] ✓ Decoded tx data', {
-      tokenAddress,
-      amountMinimalUnit,
-    });
-
     return { tokenAddress, amountMinimalUnit };
-  } catch (error) {
-    Logger.log(
-      LOG_TAG,
-      '[decodeLendingTransactionData] ❌ Failed to decode',
-      { error },
-    );
+  } catch {
     return null;
   }
 };
@@ -250,4 +197,3 @@ export const getMetricsEvent = (eventType: TransactionEventType) => {
   };
   return eventMap[eventType];
 };
-

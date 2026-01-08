@@ -4,7 +4,6 @@ import {
   EarnControllerMessenger,
 } from '@metamask/earn-controller';
 import { EarnControllerInitMessenger } from '../messengers/earn-controller-messenger';
-import { EarnEnvironments } from '@metamask/stake-sdk';
 
 /**
  * Initialize the earn controller.
@@ -22,7 +21,6 @@ export const earnControllerInit: ControllerInitFunction<
   const transactionController = getController('TransactionController');
 
   const controller = new EarnController({
-    env: EarnEnvironments.DEV,
     messenger: controllerMessenger,
     addTransactionFn: transactionController.addTransaction.bind(
       transactionController,

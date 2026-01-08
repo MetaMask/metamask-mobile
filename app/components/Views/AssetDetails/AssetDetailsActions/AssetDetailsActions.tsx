@@ -47,7 +47,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onBuy,
   goToSwaps,
   onSend,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onReceive,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
@@ -134,9 +133,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     withNavigationLock(onSend);
   }, [withNavigationLock, onSend]);
 
-  // const handleReceivePress = useCallback(() => {
-  //   withNavigationLock(onReceive);
-  // }, [withNavigationLock, onReceive]);
+  const handleReceivePress = useCallback(() => {
+    withNavigationLock(onReceive);
+  }, [withNavigationLock, onReceive]);
 
   return (
     <View style={styles.activitiesButton}>

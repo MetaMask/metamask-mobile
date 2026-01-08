@@ -11,35 +11,6 @@ import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectLastSelectedSolanaAccount } from '../../selectors/accountsController';
 
-/**
- * Temporary: aToken to underlying token address mapping for price API fallback.
- * Used when aToken historical prices aren't available in price API.
- * TODO: Remove once price API supports aToken prices.
- */
-const ATOKEN_TO_UNDERLYING_FALLBACK: Record<string, Record<string, string>> = {
-  '1': {
-    // amUSD -> mUSD (Mainnet)
-    '0xaa0200d169ff3ba9385c12e073c5d1d30434ae7b':
-      '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  },
-  '59144': {
-    // amUSD -> mUSD (Linea)
-    '0x61b19879f4033c2b5682a969cccc9141e022823c':
-      '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  },
-};
-
-/**
- * Gets the underlying token address for an aToken, or returns the original address.
- */
-const getUnderlyingAddressForHistoricalPrices = (
-  chainId: string,
-  address: string,
-): string => {
-  const lowerAddress = address.toLowerCase();
-  return ATOKEN_TO_UNDERLYING_FALLBACK[chainId]?.[lowerAddress] ?? address;
-};
-
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y' | 'all';
 
 export type TokenPrice = [string, number];
@@ -149,14 +120,10 @@ const useTokenHistoricalPrices = ({
           setPrices(transformedResult);
         } else {
           const baseUri = 'https://price.api.cx.metamask.io/v1';
-          const decimalChainId = getDecimalChainId(chainId);
-          // Use underlying token address for aTokens (temporary until price API supports aTokens)
-          const priceAddress = getUnderlyingAddressForHistoricalPrices(
-            decimalChainId,
-            address,
-          );
           const uri = new URL(
-            `${baseUri}/chains/${decimalChainId}/historical-prices/${priceAddress}`,
+            `${baseUri}/chains/${getDecimalChainId(
+              chainId,
+            )}/historical-prices/${address}`,
           );
           uri.searchParams.set(
             'timePeriod',

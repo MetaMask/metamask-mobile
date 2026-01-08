@@ -27,12 +27,6 @@ import {
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { selectTokenMarketData } from '../tokenRatesController';
-import { selectERC20TokensByChain } from '../tokenListController';
-import {
-  ATOKEN_METADATA_FALLBACK,
-  isAddressLikeOrMissing,
-} from '../../constants/tokens';
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -73,8 +67,6 @@ const getStateForAssetSelector = (state: RootState) => {
     ...TokensController,
     ...TokenBalancesController,
     ...TokenRatesController,
-    // Override marketData with enriched version that includes aToken price fallbacks
-    marketData: selectTokenMarketData(state),
     ...multichainState,
     ...CurrencyRateController,
     ...NetworkController,
@@ -92,47 +84,9 @@ const getStateForAssetSelector = (state: RootState) => {
   };
 };
 
-const selectAssetsBySelectedAccountGroupRaw = createDeepEqualSelector(
+export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => _selectAssetsBySelectedAccountGroup(assetsState),
-);
-
-/**
- * Enriched assets selector that adds fallback metadata for aTokens.
- * Patches name/symbol for aTokens not yet in the tokens API.
- */
-export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  selectAssetsBySelectedAccountGroupRaw,
-  (assets): Record<string, Asset[]> => {
-    const enriched: Record<string, Asset[]> = {};
-
-    for (const [chainId, chainAssets] of Object.entries(assets)) {
-      const fallbacksForChain = ATOKEN_METADATA_FALLBACK[chainId as Hex];
-
-      if (!fallbacksForChain) {
-        enriched[chainId] = chainAssets;
-        continue;
-      }
-
-      enriched[chainId] = chainAssets.map((asset) => {
-        const addressKey =
-          'address' in asset ? asset.address?.toLowerCase() : undefined;
-        const fallback = addressKey ? fallbacksForChain[addressKey] : undefined;
-
-        if (fallback) {
-          return {
-            ...asset,
-            name: fallback.name,
-            symbol: fallback.symbol,
-            decimals: asset.decimals ?? fallback.decimals,
-          };
-        }
-        return asset;
-      });
-    }
-
-    return enriched;
-  },
 );
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
@@ -304,8 +258,8 @@ export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
-    // Use enriched selector for aToken metadata fallback
-    selectERC20TokensByChain,
+    (state: RootState) =>
+      state.engine.backgroundState.TokenListController.tokensChainsCache,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
@@ -344,28 +298,16 @@ function assetToToken(
   asset: Asset & { isStaked?: boolean },
   tokensChainsCache: TokenListState['tokensChainsCache'],
 ): TokenI {
-  // Get fallback metadata from token list cache as additional safety net
-  const cachedTokenData =
-    'address' in asset
-      ? tokensChainsCache[asset.chainId]?.data[asset.address.toLowerCase()]
-      : undefined;
-
-  // Asset should already be enriched via selectAssetsBySelectedAccountGroup,
-  // but fall back to cache if still missing
-  const finalName = !isAddressLikeOrMissing(asset.name)
-    ? asset.name
-    : cachedTokenData?.name || '';
-  const finalSymbol = !isAddressLikeOrMissing(asset.symbol)
-    ? asset.symbol
-    : cachedTokenData?.symbol || '';
-
   return {
     address: asset.assetId,
-    aggregators: cachedTokenData?.aggregators || [],
-    decimals: asset.decimals ?? cachedTokenData?.decimals ?? 18,
+    aggregators:
+      ('address' in asset &&
+        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
+      [],
+    decimals: asset.decimals,
     image: asset.image,
-    name: finalName,
-    symbol: finalSymbol,
+    name: asset.name,
+    symbol: asset.symbol,
     balance: formatWithThreshold(
       parseFloat(asset.balance),
       oneHundredThousandths,
@@ -393,7 +335,7 @@ function assetToToken(
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
-    ticker: finalSymbol,
+    ticker: asset.symbol,
     accountType: asset.accountType,
   };
 }

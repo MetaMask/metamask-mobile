@@ -32,7 +32,7 @@ import {
   selectNetworkConfigurationByChainId,
   selectDefaultEndpointByChainId,
 } from '../../../../../selectors/networkController';
-import { selectTokenMarketDataByChainId } from '../../../../../selectors/tokenRatesController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import Keypad from '../../../../Base/Keypad';
@@ -105,7 +105,7 @@ const EarnInputView = () => {
   );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
-    selectTokenMarketDataByChainId(state, token?.chainId as Hex),
+    selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
   );
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),

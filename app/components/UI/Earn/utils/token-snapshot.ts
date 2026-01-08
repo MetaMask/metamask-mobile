@@ -1,13 +1,8 @@
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { getDecimalChainId } from '../../../../util/networks';
 import { store } from '../../../../store';
-import { earnSelectors } from '../../../../selectors/earnController/earn';
-import { EarnTokenDetails } from '../types/lending.types';
-
-const LOG_TAG = '[TokenSnapshot]';
 
 export interface TokenSnapshotResult {
   chainId: Hex;
@@ -27,17 +22,10 @@ export async function fetchTokenSnapshot(
   chainId: Hex,
   address: Hex,
 ): Promise<void> {
-  Logger.log(LOG_TAG, 'Fetching token snapshot', { chainId, address });
-  try {
-    await Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
-      chainId,
-      address,
-    );
-    Logger.log(LOG_TAG, '✓ Token snapshot fetch complete');
-  } catch (error) {
-    Logger.log(LOG_TAG, '❌ Token snapshot fetch failed', { error });
-    throw error;
-  }
+  await Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
+    chainId,
+    address,
+  );
 }
 
 /**
@@ -63,17 +51,8 @@ export function getTokenSnapshotFromState(
   );
 
   if (!entry || !entry.found || !entry.token) {
-    Logger.log(LOG_TAG, 'Token snapshot not found in state', {
-      chainId,
-      address,
-    });
     return null;
   }
-
-  Logger.log(LOG_TAG, '✓ Token snapshot found', {
-    symbol: entry.token.symbol,
-    address: entry.address,
-  });
 
   return {
     chainId: entry.chainId as Hex,
@@ -101,26 +80,6 @@ export function getEarnTokenPairAddressesFromState(
 ): EarnTokenPairResult {
   const state = store.getState();
 
-  Logger.log(
-    LOG_TAG,
-    '[getEarnTokenPairAddressesFromState] Looking up markets',
-    chainId,
-    tokenAddress,
-    {
-      markets: JSON.stringify(
-        state.engine.backgroundState.EarnController.lending.markets.map(
-          (m) => ({
-            chainId: m.chainId,
-            outputToken: m.outputToken.address,
-            underlying: m.underlying.address,
-          }),
-        ),
-        null,
-        2,
-      ),
-    },
-  );
-
   const market =
     state.engine.backgroundState.EarnController.lending.markets.find(
       (m) =>
@@ -129,35 +88,10 @@ export function getEarnTokenPairAddressesFromState(
           m.underlying.address.toLowerCase() === tokenAddress.toLowerCase()),
     );
 
-  Logger.log(LOG_TAG, '[getEarnTokenPairFromState] Looking up token', {
-    chainId,
-    market,
-    markets: state.engine.backgroundState.EarnController.lending.markets,
-  });
-
   // Try to find as earn token (underlying)
   const earnToken = market?.underlying.address;
   // Try to find as output token (receipt token like aToken)
   const outputToken = market?.outputToken.address;
-
-  if (earnToken) {
-    Logger.log(
-      LOG_TAG,
-      '[getEarnTokenPairFromState] ✓ Found as earn token',
-      earnToken,
-    );
-  } else if (outputToken) {
-    Logger.log(
-      LOG_TAG,
-      '[getEarnTokenPairFromState] ✓ Found as output token',
-      outputToken,
-    );
-  } else {
-    Logger.log(
-      LOG_TAG,
-      '[getEarnTokenPairFromState] ⚠️ Token not found in earn state',
-    );
-  }
 
   return {
     earnToken,
