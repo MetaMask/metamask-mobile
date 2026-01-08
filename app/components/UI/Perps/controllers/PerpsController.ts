@@ -50,56 +50,57 @@ import {
   getStreamManagerInstance,
   type PerpsStreamChannelKey,
 } from '../providers/PerpsStreamManager';
-import type {
-  AccountState,
-  AssetRoute,
-  CancelOrderParams,
-  CancelOrderResult,
-  CancelOrdersParams,
-  CancelOrdersResult,
-  ClosePositionParams,
-  ClosePositionsParams,
-  ClosePositionsResult,
-  EditOrderParams,
-  FeeCalculationParams,
-  FeeCalculationResult,
-  FlipPositionParams,
-  Funding,
-  GetAccountStateParams,
-  GetAvailableDexsParams,
-  GetFundingParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
-  GetPositionsParams,
-  IPerpsProvider,
-  LiquidationPriceParams,
-  LiveDataConfig,
-  MaintenanceMarginParams,
-  MarginResult,
-  MarketInfo,
-  Order,
-  OrderFill,
-  OrderParams,
-  OrderResult,
-  PerpsControllerConfig,
-  Position,
-  SubscribeAccountParams,
-  SubscribeCandlesParams,
-  SubscribeOICapsParams,
-  SubscribeOrderBookParams,
-  SubscribeOrderFillsParams,
-  SubscribeOrdersParams,
-  SubscribePositionsParams,
-  SubscribePricesParams,
-  SwitchProviderResult,
-  ToggleTestnetResult,
-  UpdateMarginParams,
-  UpdatePositionTPSLParams,
-  WithdrawParams,
-  WithdrawResult,
-  GetHistoricalPortfolioParams,
-  HistoricalPortfolioResult,
-  OrderType,
+import {
+  WebSocketConnectionState,
+  type AccountState,
+  type AssetRoute,
+  type CancelOrderParams,
+  type CancelOrderResult,
+  type CancelOrdersParams,
+  type CancelOrdersResult,
+  type ClosePositionParams,
+  type ClosePositionsParams,
+  type ClosePositionsResult,
+  type EditOrderParams,
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+  type FlipPositionParams,
+  type Funding,
+  type GetAccountStateParams,
+  type GetAvailableDexsParams,
+  type GetFundingParams,
+  type GetOrderFillsParams,
+  type GetOrdersParams,
+  type GetPositionsParams,
+  type IPerpsProvider,
+  type LiquidationPriceParams,
+  type LiveDataConfig,
+  type MaintenanceMarginParams,
+  type MarginResult,
+  type MarketInfo,
+  type Order,
+  type OrderFill,
+  type OrderParams,
+  type OrderResult,
+  type PerpsControllerConfig,
+  type Position,
+  type SubscribeAccountParams,
+  type SubscribeCandlesParams,
+  type SubscribeOICapsParams,
+  type SubscribeOrderBookParams,
+  type SubscribeOrderFillsParams,
+  type SubscribeOrdersParams,
+  type SubscribePositionsParams,
+  type SubscribePricesParams,
+  type SwitchProviderResult,
+  type ToggleTestnetResult,
+  type UpdateMarginParams,
+  type UpdatePositionTPSLParams,
+  type WithdrawParams,
+  type WithdrawResult,
+  type GetHistoricalPortfolioParams,
+  type HistoricalPortfolioResult,
+  type OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
@@ -1942,6 +1943,58 @@ export class PerpsController extends BaseController<
    */
   getCurrentNetwork(): 'mainnet' | 'testnet' {
     return this.state.isTestnet ? 'testnet' : 'mainnet';
+  }
+
+  /**
+   * Get the current WebSocket connection state from the active provider.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state, or DISCONNECTED if not supported
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.getWebSocketConnectionState) {
+        return provider.getWebSocketConnectionState();
+      }
+      // Fallback for providers that don't support this method
+      return WebSocketConnectionState.DISCONNECTED;
+    } catch {
+      // If no provider is active, return disconnected
+      return WebSocketConnectionState.DISCONNECTED;
+    }
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes from the active provider.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener, or no-op if not supported
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.subscribeToConnectionState) {
+        return provider.subscribeToConnectionState(listener);
+      }
+      // Fallback: immediately call with current state and return no-op unsubscribe
+      listener(this.getWebSocketConnectionState(), 0);
+      return () => {
+        // No-op
+      };
+    } catch {
+      // If no provider is active, call with disconnected and return no-op
+      listener(WebSocketConnectionState.DISCONNECTED, 0);
+      return () => {
+        // No-op
+      };
+    }
   }
 
   // Live data delegation (NO Redux) - delegates to active provider

@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
+import { useWebSocketHealthToast } from '../hooks/useWebSocketHealthToast';
 
 /**
  * PerpsStreamBridge - Bridges stream context to global hooks.
@@ -14,6 +15,9 @@ const PerpsStreamBridge: React.FC = () => {
 
   // Enable deposit status monitoring and toasts
   usePerpsDepositStatus();
+
+  // Enable WebSocket health monitoring and toasts
+  useWebSocketHealthToast();
 
   // This component doesn't render anything
   return null;

@@ -18,6 +18,7 @@ export { usePerpsNavigation } from './usePerpsNavigation';
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
+export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 
 // State hooks (Redux selectors)
 // Portfolio balance hook (for wallet integration)

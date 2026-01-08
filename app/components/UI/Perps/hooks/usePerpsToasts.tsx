@@ -175,6 +175,11 @@ export interface PerpsToastOptionsConfig {
       shareFailed: PerpsToastOptions;
     };
   };
+  websocketHealth: {
+    disconnected: PerpsToastOptions;
+    connecting: (attempt: number) => PerpsToastOptions;
+    connected: PerpsToastOptions;
+  };
 }
 
 const getPerpsToastLabels = (
@@ -913,6 +918,31 @@ const usePerpsToasts = (): {
               strings('perps.pnl_hero_card.share_failed'),
             ),
           },
+        },
+      },
+      websocketHealth: {
+        disconnected: {
+          ...perpsBaseToastOptions.error,
+          hasNoTimeout: true, // Stay on screen until connection is restored
+          labelOptions: getPerpsToastLabels(
+            strings('perps.connection.websocket_disconnected'),
+            strings('perps.connection.websocket_disconnected_message'),
+          ),
+        },
+        connecting: (attempt: number) => ({
+          ...perpsBaseToastOptions.inProgress,
+          hasNoTimeout: true, // Stay on screen until connected
+          labelOptions: getPerpsToastLabels(
+            strings('perps.connection.websocket_connecting'),
+            `${strings('perps.connection.websocket_connecting_message')} Attempt ${attempt}`,
+          ),
+        }),
+        connected: {
+          ...perpsBaseToastOptions.success,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.connection.websocket_connected'),
+            strings('perps.connection.websocket_connected_message'),
+          ),
         },
       },
     }),

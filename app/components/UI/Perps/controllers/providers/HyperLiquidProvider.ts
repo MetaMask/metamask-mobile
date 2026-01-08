@@ -28,7 +28,10 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  WebSocketConnectionState,
+} from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
@@ -350,13 +353,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
    * which may not be available during early app initialization.
    */
-  private ensureClientsInitialized(): void {
+  private async ensureClientsInitialized(): Promise<void> {
     if (this.clientsInitialized) {
       return; // Already initialized
     }
 
     const wallet = this.walletService.createWalletAdapter();
-    this.clientService.initialize(wallet);
+    await this.clientService.initialize(wallet);
 
     // Set reconnection callback to restore subscriptions when WebSocket reconnects
     this.clientService.setOnReconnectCallback(async () => {
@@ -449,7 +452,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Create and track initialization promise
     this.ensureReadyPromise = (async () => {
       // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
 
       // Verify clients are properly initialized
       this.clientService.ensureInitialized();
@@ -767,7 +770,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Fetch fresh data from API
     // Note: SDK types are incomplete, but API returns deployerFeeScale
-    this.ensureClientsInitialized();
+    await this.ensureClientsInitialized();
     const infoClient = this.clientService.getInfoClient();
     const perpDexs =
       (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
@@ -3720,7 +3723,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -3878,7 +3881,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -3938,7 +3941,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4050,7 +4053,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4095,7 +4098,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4151,7 +4154,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<RawHyperLiquidLedgerUpdate[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4185,7 +4188,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<UserHistoryItem[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4217,7 +4220,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4289,7 +4292,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Getting account state via HyperLiquid SDK');
 
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4552,7 +4555,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableHip3Dexs(): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       if (!this.hip3Enabled) {
@@ -5511,7 +5514,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async initialize(): Promise<InitializeResult> {
     try {
       // Ensure clients are initialized (lazy initialization)
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       return {
         success: true,
         chainId: getChainId(this.clientService.isTestnetMode()),
@@ -5679,7 +5682,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Read-only operation: only need client initialization, not full ensureReady()
       // (no DEX abstraction, referral, or builder fee needed for metadata)
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       // Extract DEX name for API calls (main DEX = null)
@@ -5830,7 +5833,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Fetch fresh rates from SDK
         // Read-only operation: only need client initialization
-        this.ensureClientsInitialized();
+        await this.ensureClientsInitialized();
         this.clientService.ensureInitialized();
         const infoClient = this.clientService.getInfoClient();
         const userFees = await infoClient.userFees({
@@ -6106,7 +6109,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async ping(timeoutMs?: number): Promise<void> {
     // Read-only operation: only need client initialization
-    this.ensureClientsInitialized();
+    await this.ensureClientsInitialized();
     this.clientService.ensureInitialized();
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -6152,6 +6155,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get the current WebSocket connection state from the client service.
+   * Used by the UI to monitor connection health and show notifications.
+   *
+   * @returns The current WebSocket connection state
+   */
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    return this.clientService.getConnectionState();
+  }
+
+  /**
+   * Subscribe to WebSocket connection state changes.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    return this.clientService.subscribeToConnectionState(listener);
+  }
+
+  /**
    * Get list of available HIP-3 builder-deployed DEXs
    * @param _params - Optional parameters (reserved for future filters/pagination)
    * @returns Array of DEX names (empty string '' represents main DEX)
@@ -6159,7 +6188,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableDexs(_params?: GetAvailableDexsParams): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      this.ensureClientsInitialized();
+      await this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();

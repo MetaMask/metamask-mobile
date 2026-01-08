@@ -54,6 +54,12 @@ export class HyperLiquidClientService {
   private healthCheckTimeout?: ReturnType<typeof setTimeout>;
   private isHealthCheckRunning = false;
   private onReconnectCallback?: () => Promise<void>;
+  // Reconnection attempt counter
+  private reconnectionAttempt = 0;
+  // Connection state change listeners for event-based notifications
+  private readonly connectionStateListeners: Set<
+    (state: WebSocketConnectionState, reconnectionAttempt: number) => void
+  > = new Set();
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -62,7 +68,7 @@ export class HyperLiquidClientService {
   /**
    * Initialize all HyperLiquid SDK clients
    */
-  public initialize(wallet: {
+  public async initialize(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -77,9 +83,9 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     try {
-      this.connectionState = WebSocketConnectionState.CONNECTING;
+      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
       this.createTransports();
 
       // Ensure transports are created
@@ -105,7 +111,11 @@ export class HyperLiquidClientService {
         transport: this.wsTransport,
       });
 
-      this.connectionState = WebSocketConnectionState.CONNECTED;
+      // Wait for WebSocket to actually be ready before setting CONNECTED
+      // This ensures we have a real connection, not just client objects
+      await this.wsTransport.ready();
+
+      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
 
       DevLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
@@ -118,7 +128,7 @@ export class HyperLiquidClientService {
       this.startHealthCheckMonitoring();
     } catch (error) {
       const errorInstance = ensureError(error);
-      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       // Log to Sentry: initialization failure blocks all Perps functionality
       Logger.error(errorInstance, {
@@ -609,7 +619,7 @@ export class HyperLiquidClientService {
 
   private async performDisconnection(): Promise<void> {
     try {
-      this.connectionState = WebSocketConnectionState.DISCONNECTING;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTING);
 
       DevLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
@@ -645,14 +655,14 @@ export class HyperLiquidClientService {
       this.wsTransport = undefined;
       this.httpTransport = undefined;
 
-      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       DevLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
     } catch (error) {
-      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
       Logger.error(ensureError(error), {
         context: 'HyperLiquidClientService.performDisconnection',
       });
@@ -681,6 +691,71 @@ export class HyperLiquidClientService {
    */
   public setOnReconnectCallback(callback: () => Promise<void>): void {
     this.onReconnectCallback = callback;
+  }
+
+  /**
+   * Subscribe to connection state changes.
+   * The listener will be called immediately with the current state and whenever the state changes.
+   *
+   * @param listener - Callback function that receives the new connection state and reconnection attempt
+   * @returns Unsubscribe function to remove the listener
+   */
+  public subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    this.connectionStateListeners.add(listener);
+
+    // Immediately notify with current state
+    listener(this.connectionState, this.reconnectionAttempt);
+
+    // Return unsubscribe function
+    return () => {
+      this.connectionStateListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Update connection state and notify all listeners
+   * Always notifies if state changes OR if we're in CONNECTING state (to update attempt count)
+   */
+  private updateConnectionState(newState: WebSocketConnectionState): void {
+    const previousState = this.connectionState;
+    const stateChanged = previousState !== newState;
+    const isReconnectionAttempt =
+      newState === WebSocketConnectionState.CONNECTING &&
+      this.reconnectionAttempt > 0;
+
+    this.connectionState = newState;
+
+    // Reset reconnection attempt counter when successfully connected
+    if (newState === WebSocketConnectionState.CONNECTED) {
+      this.reconnectionAttempt = 0;
+    }
+
+    // Notify if state changed OR if this is a reconnection attempt (to update attempt count)
+    if (stateChanged || isReconnectionAttempt) {
+      // TEMPORARY: Log for debugging state changes
+      console.log(
+        `[WebSocket] State Changed: ${previousState} → ${newState} (attempt: ${this.reconnectionAttempt})`,
+      );
+      this.notifyConnectionStateListeners();
+    }
+  }
+
+  /**
+   * Notify all connection state listeners of the current state
+   */
+  private notifyConnectionStateListeners(): void {
+    this.connectionStateListeners.forEach((listener) => {
+      try {
+        listener(this.connectionState, this.reconnectionAttempt);
+      } catch {
+        // Ignore errors in listeners to prevent breaking other listeners
+      }
+    });
   }
 
   /**
@@ -735,8 +810,8 @@ export class HyperLiquidClientService {
     try {
       const controller = new AbortController();
 
-      // Health check timeout: 5 seconds
-      const HEALTH_CHECK_TIMEOUT_MS = 5_000;
+      // Health check timeout: 1 second
+      const HEALTH_CHECK_TIMEOUT_MS = 1_000;
 
       this.healthCheckTimeout = setTimeout(() => {
         controller.abort();
@@ -759,18 +834,25 @@ export class HyperLiquidClientService {
     }
   }
 
+  // Flag to prevent concurrent reconnection attempts
+  private isReconnecting = false;
+
   /**
    * Handle detected connection drop
    * Recreates WebSocket transport and notifies callback to restore subscriptions
    */
   private async handleConnectionDrop(): Promise<void> {
     // Prevent multiple simultaneous reconnection attempts
-    if (this.connectionState === WebSocketConnectionState.CONNECTING) {
+    if (this.isReconnecting) {
       return;
     }
 
+    this.isReconnecting = true;
+
     try {
-      this.connectionState = WebSocketConnectionState.CONNECTING;
+      // Increment reconnection attempt counter
+      this.reconnectionAttempt++;
+      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
 
       // Close existing WebSocket transport
       if (this.wsTransport) {
@@ -793,17 +875,35 @@ export class HyperLiquidClientService {
         transport: this.wsTransport,
       });
 
-      this.connectionState = WebSocketConnectionState.CONNECTED;
+      await this.wsTransport.ready();
 
       // Notify callback to restore subscriptions
       if (this.onReconnectCallback) {
         await this.onReconnectCallback();
       }
-    } catch {
-      this.connectionState = WebSocketConnectionState.DISCONNECTED;
 
-      // Stop health checks if reconnection failed
-      this.stopHealthCheckMonitoring();
+      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
+      this.isReconnecting = false;
+    } catch {
+      // Reconnection failed - schedule a retry after a delay
+      // Stay in CONNECTING state to indicate we're still trying
+      console.log(
+        `[WebSocket] Reconnection attempt ${this.reconnectionAttempt} failed, scheduling retry...`,
+      );
+
+      // Reset flag before scheduling retry so the next attempt can proceed
+      this.isReconnecting = false;
+
+      // Retry after 5 seconds
+      setTimeout(() => {
+        // Only retry if we haven't been intentionally disconnected
+        if (
+          this.connectionState === WebSocketConnectionState.CONNECTING &&
+          !this.disconnectionPromise
+        ) {
+          this.handleConnectionDrop();
+        }
+      }, 5_000);
     }
   }
 }
