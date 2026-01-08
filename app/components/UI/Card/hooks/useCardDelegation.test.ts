@@ -927,7 +927,9 @@ describe('useCardDelegation', () => {
 
       expect(signedMessage).toContain(`${mockAddress}`);
       expect(signedMessage).toContain('Chain ID: 59144');
-      expect(signedMessage).toContain(`Nonce: ${mockNonce}`);
+      expect(signedMessage).toContain(
+        `Nonce: ${Buffer.from(mockNonce, 'utf8').toString('hex')}`,
+      );
       expect(signedMessage).toContain('metamask.app.link wants you to sign in');
     });
 
@@ -1405,7 +1407,9 @@ describe('useCardDelegation', () => {
         expect(decodedMessage).toContain('Solana account');
         expect(decodedMessage).toContain(mockSolanaAddress);
         expect(decodedMessage).toContain('Chain ID: 1');
-        expect(decodedMessage).toContain(mockNonce);
+        expect(decodedMessage).toContain(
+          Buffer.from(mockNonce, 'utf8').toString('hex'),
+        );
       });
 
       it('uses Chain ID 1 for Solana SIWE message regardless of token caipChainId', async () => {

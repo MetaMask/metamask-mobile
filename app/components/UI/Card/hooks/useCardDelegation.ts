@@ -5,7 +5,7 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { SolMethod, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
@@ -20,12 +20,12 @@ import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
-  SolanaWalletSnapSender,
   SOLANA_WALLET_SNAP_ID,
+  SolanaWalletSnapSender,
 } from '../../../../core/SnapKeyring/SolanaWalletSnap';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import { HandlerType } from '@metamask/snaps-utils';
+import { KeyringClient } from '@metamask/keyring-snap-client';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -46,6 +46,12 @@ interface DelegationParams {
   amount: string;
   currency: string;
   network: CardNetwork;
+}
+
+interface SignCardMessageResult {
+  signature: string;
+  signedMessage: string;
+  signatureType: 'ed25519';
 }
 
 /**
@@ -103,7 +109,8 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
       const uri = `https://${domain}`;
 
-      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
+      // Note: keep this as a single line and do not add extra fields like "Expiration Time".
+      return `${domain} wants you to sign in with your Solana account: ${address} Prove address ownership URI: ${uri} Version: 1 Chain ID: ${chainId} Nonce: ${nonce} Issued At: ${now.toISOString()} Expiration Time: ${expirationTime.toISOString()}`;
     },
     [],
   );
@@ -271,26 +278,130 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         throw new Error('Token mint address not found');
       }
 
-      // Convert amount to minimal units based on token decimals
-      // Solana USDC/USDT typically uses 6 decimals
-      const amountInMinimalUnits = toTokenMinimalUnit(
-        params.amount,
-        token.decimals ?? 6,
-      ).toString();
+      // Note: Unlike EVM, the Solana snap expects amounts in token units (e.g., "100.50"),
+      // not minimal units. The snap handles the conversion internally.
+      // We pass params.amount directly without conversion.
+
+      // {
+      //   "name": "approveCardAmount",
+      //   "summary": "Approve a delegate to spend tokens on behalf of the user",
+      //   "description": "Creates and signs an SPL token approval transaction that authorizes a delegate address to spend a specified amount of tokens from the user's associated token account. This is used by the Card team to enable card-related token spending.",
+      //   "paramStructure": "by-name",
+      //   "params": [
+      //     {
+      //       "name": "accountId",
+      //       "summary": "The UUID of the account to use for signing the approval transaction",
+      //       "required": true,
+      //       "schema": {
+      //         "$ref": "#/components/schemas/Uuid"
+      //       }
+      //     },
+      //     {
+      //       "name": "amount",
+      //       "summary": "The amount to approve as a positive number string (in token units, e.g., '100.50' for 100.50 USDC)",
+      //       "required": true,
+      //       "schema": {
+      //         "$ref": "#/components/schemas/PositiveNumberString"
+      //       }
+      //     },
+      //     {
+      //       "name": "mint",
+      //       "summary": "The token mint address (e.g., USDC mint address)",
+      //       "required": true,
+      //       "schema": {
+      //         "$ref": "#/components/schemas/SolanaAddress"
+      //       }
+      //     },
+      //     {
+      //       "name": "delegate",
+      //       "summary": "The Solana address that is authorized to spend the approved amount",
+      //       "required": true,
+      //       "schema": {
+      //         "$ref": "#/components/schemas/SolanaAddress"
+      //       }
+      //     },
+      //     {
+      //       "name": "scope",
+      //       "summary": "The Solana network to send the transaction to",
+      //       "required": true,
+      //       "schema": {
+      //         "$ref": "#/components/schemas/Network"
+      //       }
+      //     }
+      //   ],
+      //   "result": {
+      //     "name": "ApproveCardAmountResult",
+      //     "summary": "The result of approving a card amount",
+      //     "schema": {
+      //       "type": "object",
+      //       "properties": {
+      //         "signature": {
+      //           "$ref": "#/components/schemas/Base58String",
+      //           "description": "The transaction signature returned after successful execution on Solana"
+      //         }
+      //       },
+      //       "required": ["signature"],
+      //       "additionalProperties": false
+      //     }
+      //   },
+      //   "examples": [
+      //     {
+      //       "name": "approveCardAmountExample",
+      //       "description": "Example of approving a delegate to spend 100.50 USDC",
+      //       "params": [
+      //         {
+      //           "name": "accountId",
+      //           "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+      //         },
+      //         {
+      //           "name": "amount",
+      //           "value": "100.50"
+      //         },
+      //         {
+      //           "name": "mint",
+      //           "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      //         },
+      //         {
+      //           "name": "delegate",
+      //           "value": "4jepDb74FCMr1wgoSA34FeJ2mkvEsJBRZQQRumqp9EL3"
+      //         },
+      //         {
+      //           "name": "scope",
+      //           "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+      //         }
+      //       ],
+      //       "result": {
+      //         "name": "approveCardAmountResult",
+      //         "value": {
+      //           "signature": "61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu"
+      //         }
+      //       }
+      //     }
+      //   ]
 
       try {
         // Build the SPL Token Approve transaction via backend API
         // The backend constructs a properly serialized Solana transaction
         // Returns a base64-encoded serialized Solana transaction
-        const transactionData = await sdk.buildSolanaApproveTransaction({
-          tokenMintAddress,
-          delegateAddress: '3UsCVSxLJmWXBKFyVSsCJTG133dd1sMuxo1Uee5wqqUn',
-          ownerAddress: address,
-          amount: amountInMinimalUnits,
+        // const transactionData = await sdk.buildSolanaApproveTransaction({
+        //   tokenMintAddress,
+        //   delegateAddress: '3UsCVSxLJmWXBKFyVSsCJTG133dd1sMuxo1Uee5wqqUn',
+        //   ownerAddress: address,
+        //   amount: amountInMinimalUnits,
+        // });
+
+        Logger.log('Solana approval params', {
+          accountId,
+          amount: params.amount, // token units (e.g., "100.50" for 100.50 USDC)
+          mint: tokenMintAddress,
+          delegate: token.delegationContract,
+          scope: SolScope.Mainnet,
         });
 
         // Submit the transaction through the Solana Snap using onClientRequest handler
         // This matches the approach used by the Bridge controller for non-EVM transactions
+        // Note: The snap expects amount in token units (e.g., "100.50"), NOT minimal units.
+        // The snap handles the conversion to minimal units internally.
         const snapResponse = await handleSnapRequest(
           Engine.controllerMessenger,
           {
@@ -300,15 +411,19 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
             request: {
               id: crypto.randomUUID(),
               jsonrpc: '2.0' as const,
-              method: SolMethod.SignAndSendTransaction,
+              method: 'approveCardAmount',
               params: {
-                transaction: transactionData,
-                scope: SolScope.Mainnet,
                 accountId,
+                amount: params.amount, // token units, snap handles conversion
+                mint: tokenMintAddress,
+                delegate: token.delegationContract,
+                scope: SolScope.Mainnet,
               },
             },
           },
         );
+
+        Logger.log('snapResponse', snapResponse);
 
         // Extract transaction signature (hash) from response
         // The snap can return the signature in different formats:
@@ -380,8 +495,8 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const signSolanaMessage = useCallback(
     async (
       accountId: string | undefined,
-      accountAddress: string,
       message: string,
+      accountAddress: string,
     ): Promise<string> => {
       try {
         if (!accountId) {
@@ -407,14 +522,38 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           },
         });
 
-        // Perform a type check to ensure the result is the expected type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (!(keyringResponse as any).result?.signature) {
-          throw new Error('No signature found');
-        }
+        return (keyringResponse as unknown as { result: { signature: string } })
+          .result.signature;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (keyringResponse as any).result?.signature as string;
+        // Logger.log(
+        //   'Signing Solana message:',
+        //   accountId,
+        //   base64Message,
+        //   message,
+        // );
+
+        // const result = await handleSnapRequest(Engine.controllerMessenger, {
+        //   origin: 'metamask',
+        //   snapId: SOLANA_WALLET_SNAP_ID,
+        //   handler: HandlerType.OnClientRequest,
+        //   request: {
+        //     jsonrpc: '2.0',
+        //     id: Date.now(),
+        //     method: 'signCardMessage',
+        //     params: {
+        //       accountId,
+        //       message: base64Message,
+        //     },
+        //   },
+        // });
+
+        // const signCardMessageResult = result as SignCardMessageResult;
+
+        // if (!signCardMessageResult.signature) {
+        //   throw new Error('No signature found');
+        // }
+
+        // return signCardMessageResult.signature;
       } catch (error) {
         Logger.log('Error signing Solana message:', error);
         throw error;
@@ -470,7 +609,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           ? generateSolanaSignatureMessage(address, nonce)
           : generateEVMSignatureMessage(address, nonce);
         const signature = isSolana
-          ? await signSolanaMessage(userAccount?.id, address, signatureMessage)
+          ? await signSolanaMessage(userAccount?.id, signatureMessage, address)
           : await KeyringController.signPersonalMessage({
               data:
                 '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex'),
