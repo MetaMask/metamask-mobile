@@ -63,10 +63,9 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
-    // await DappConnectionModal.tapEditAccountsButton();
-    // await DappConnectionModal.tapAccountButton('Account 3');
-    // await DappConnectionModal.tapUpdateButton();
-
+    await DappConnectionModal.tapEditAccountsButton();
+    await DappConnectionModal.tapAccountButton('Account 3');
+    await DappConnectionModal.tapUpdateAccountsButton();
     await DappConnectionModal.tapPermissionsTabButton();
     await DappConnectionModal.tapEditNetworksButton();
     await DappConnectionModal.tapNetworkButton('OP');
@@ -176,6 +175,11 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('OP');
     await SignModal.tapCancelButton();
+
+    // Change to a specific account
+    await WalletMainScreen.tapIdenticon();
+    await AccountListComponent.isComponentDisplayed(); // Optional: verify modal opened
+    await AccountListComponent.tapOnAccountByName('Account 3');
   });
 
   // Explicit pausing to avoid navigating back too fast to the dapp
@@ -188,6 +192,10 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
+      await WagmiTestDapp.assertConnectedAccountsValue(
+        // Account 3 is now the first account connected
+        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
+      );
       await WagmiTestDapp.tapSwitchChainButton('42220'); // Celo
     },
     WAGMI_TEST_DAPP_URL,
@@ -250,7 +258,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       // TODO: Determine why the chain resets to 1 after refresh
       await WagmiTestDapp.assertConnectedChainValue('1');
       await WagmiTestDapp.assertConnectedAccountsValue(
-        '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
+        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
       );
       await WagmiTestDapp.tapPersonalSignButton();
     },
@@ -302,7 +310,7 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       await WagmiTestDapp.isDappConnected();
       await WagmiTestDapp.assertConnectedChainValue('1');
       await WagmiTestDapp.assertConnectedAccountsValue(
-        '0x19a7Ad8256ab119655f1D758348501d598fC1C94',
+        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
       );
       await WagmiTestDapp.tapDisconnectButton();
     },
