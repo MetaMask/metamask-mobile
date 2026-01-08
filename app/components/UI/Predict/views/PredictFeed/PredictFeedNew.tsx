@@ -98,14 +98,12 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 // =============================================================================
 
 interface UseFeedScrollManagerParams {
-  tabs: FeedTab[];
   headerRef: React.RefObject<View>;
   tabBarRef: React.RefObject<View>;
 }
 
 interface UseFeedScrollManagerReturn {
   headerTranslateY: SharedValue<number>;
-  isHeaderHidden: SharedValue<number>;
   headerHidden: boolean;
   headerHeight: number;
   tabBarHeight: number;
@@ -113,11 +111,6 @@ interface UseFeedScrollManagerReturn {
   activeIndex: number;
   setActiveIndex: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
-  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
-  getCurrentHeaderOffset: () => number;
-  onScrollEnd: () => void;
-  updateTabScrollPosition: (tabKey: string, position: number) => void;
-  getTabScrollPosition: (tabKey: string) => number;
 }
 
 /**
@@ -158,10 +151,6 @@ const useFeedScrollManager = ({
 
   // React state mirror of isHeaderHidden for reactive UI updates
   const [headerHidden, setHeaderHidden] = useState(false);
-
-  // Track refs and scroll positions for each tab
-  const tabKeyToRef = useRef<Record<string, PredictFlashListRef>>({});
-  const tabKeyToScrollPosition = useRef<Record<string, number>>({});
 
   // Measure heights using useLayoutEffect
   // Retry mechanism ensures we get measurements even if initial render hasn't completed
@@ -218,40 +207,6 @@ const useFeedScrollManager = ({
     sharedTabBarHeight,
   ]);
 
-  // Track ref for a tab
-  const trackRef = useCallback(
-    (tabKey: string, ref: PredictFlashListRef | null) => {
-      if (ref) {
-        tabKeyToRef.current[tabKey] = ref;
-      } else {
-        delete tabKeyToRef.current[tabKey];
-      }
-    },
-    [],
-  );
-
-  // Update scroll position for a tab
-  const updateTabScrollPosition = useCallback(
-    (tabKey: string, position: number) => {
-      tabKeyToScrollPosition.current[tabKey] = position;
-    },
-    [],
-  );
-
-  // Get scroll position for a tab
-  const getTabScrollPosition = useCallback(
-    (tabKey: string) => tabKeyToScrollPosition.current[tabKey] ?? 0,
-    [],
-  );
-
-  // Get current header offset (0 = visible, headerHeight = hidden)
-  const getCurrentHeaderOffset = useCallback(
-    () => -headerTranslateY.value,
-    [headerTranslateY],
-  );
-
-  const onScrollEnd = useCallback(() => undefined, []);
-
   const animationConfig = {
     duration: HEADER_ANIMATION_DURATION,
     easing: Easing.out(Easing.cubic),
@@ -273,7 +228,8 @@ const useFeedScrollManager = ({
 
       // This fixes an issue on Android where the scroll event fires after the header hides
       // and was causing the header to be shown again.
-      if (lastDirection.value === 1 && currentY < 5) {
+      if (lastDirection.value === 1 && currentY < lastScrollY.value) {
+        lastDirection.value = 0;
         lastScrollY.value = currentY;
         return;
       }
@@ -341,7 +297,6 @@ const useFeedScrollManager = ({
 
   return {
     headerTranslateY,
-    isHeaderHidden,
     headerHidden,
     headerHeight,
     tabBarHeight,
@@ -349,11 +304,6 @@ const useFeedScrollManager = ({
     activeIndex,
     setActiveIndex: handleSetActiveIndex,
     scrollHandler,
-    trackRef,
-    getCurrentHeaderOffset,
-    onScrollEnd,
-    updateTabScrollPosition,
-    getTabScrollPosition,
   };
 };
 
@@ -571,27 +521,21 @@ const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
 // =============================================================================
 
 interface PredictTabContentProps {
-  tabKey: string;
   category: PredictCategory;
   isActive: boolean;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
-  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
-  onScrollEnd: () => void;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
-  tabKey,
   category,
   isActive,
   scrollHandler,
   headerHeight,
   tabBarHeight,
   headerHidden,
-  trackRef,
-  onScrollEnd,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -616,12 +560,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   } = usePredictMarketData({ category, pageSize: 20 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Register ref with scroll manager
-  useEffect(() => {
-    trackRef(tabKey, listRef.current);
-    return () => trackRef(tabKey, null);
-  }, [tabKey, trackRef]);
 
   const contentInsetTop = headerHeight + tabBarHeight;
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
@@ -735,8 +673,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       ListFooterComponent={renderFooter}
       scrollEventThrottle={50}
       onScroll={isActive ? (scrollHandler as never) : undefined}
-      onScrollEndDrag={onScrollEnd}
-      onMomentumScrollEnd={onScrollEnd}
       contentInset={Platform.select({ ios: { top: contentInsetTop } })}
       contentOffset={getContentOffset()}
       refreshControl={
@@ -765,8 +701,6 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
-  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
-  onScrollEnd: () => void;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -776,8 +710,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
-  trackRef,
-  onScrollEnd,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -804,15 +736,12 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       {TABS.map((tab, index) => (
         <View key={tab.key} style={tw.style('flex-1')}>
           <PredictTabContent
-            tabKey={tab.key}
             category={tab.key}
             isActive={index === activeIndex}
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
-            trackRef={trackRef}
-            onScrollEnd={onScrollEnd}
           />
         </View>
       ))}
@@ -980,9 +909,7 @@ const PredictFeed: React.FC = () => {
     activeIndex,
     setActiveIndex,
     scrollHandler,
-    trackRef,
-    onScrollEnd,
-  } = useFeedScrollManager({ tabs: TABS, headerRef, tabBarRef });
+  } = useFeedScrollManager({ headerRef, tabBarRef });
 
   return (
     <Box
@@ -1019,8 +946,6 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
-            trackRef={trackRef}
-            onScrollEnd={onScrollEnd}
           />
         )}
       </Box>
