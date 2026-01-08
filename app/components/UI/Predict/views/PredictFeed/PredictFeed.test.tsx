@@ -79,6 +79,54 @@ jest.mock('../../components/PredictOffline', () => {
   };
 });
 
+jest.mock('@shopify/flash-list', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, ScrollView } = jest.requireActual('react-native');
+  const MockFlashList = MockReact.forwardRef(
+    (
+      {
+        data,
+        renderItem,
+        keyExtractor,
+        testID,
+        ListFooterComponent,
+      }: {
+        data: { id: string }[];
+        renderItem: (info: {
+          item: { id: string };
+          index: number;
+        }) => React.ReactNode;
+        keyExtractor: (item: { id: string }) => string;
+        testID?: string;
+        ListFooterComponent?: React.ComponentType | React.ReactElement | null;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({}));
+      return (
+        <ScrollView testID={testID}>
+          {data?.map((item, index) => (
+            <View key={keyExtractor?.(item) ?? item.id}>
+              {renderItem({ item, index })}
+            </View>
+          ))}
+          {ListFooterComponent &&
+            (typeof ListFooterComponent === 'function' ? (
+              <ListFooterComponent />
+            ) : (
+              ListFooterComponent
+            ))}
+        </ScrollView>
+      );
+    },
+  );
+  return {
+    FlashList: MockFlashList,
+    FlashListRef: {},
+    FlashListProps: {},
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -197,7 +245,9 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
-      expect(getByTestId('predict-back-button')).toBeOnTheScreen();
+      expect(
+        getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
       expect(getByTestId('predict-search-button')).toBeOnTheScreen();
       expect(getByTestId('predict-balance-mock')).toBeOnTheScreen();
       expect(getByTestId('predict-feed-tabs')).toBeOnTheScreen();
@@ -278,12 +328,277 @@ describe('PredictFeed', () => {
   });
 
   describe('navigation', () => {
-    it('calls goBack when back button pressed', () => {
+    it('calls goBack when back button pressed and navigation can go back', () => {
       const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId('predict-back-button'));
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('navigates to wallet home when back button pressed and navigation cannot go back', () => {
+      mockNavigation.canGoBack.mockReturnValue(false);
+      const { getByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+  });
+
+  describe('loading states', () => {
+    it('renders skeleton loaders when fetching initial data', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('skeleton-loading-trending-1')).toBeOnTheScreen();
+      expect(getByTestId('skeleton-loading-trending-2')).toBeOnTheScreen();
+    });
+  });
+
+  describe('error states', () => {
+    it('renders offline component when fetch error occurs', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: new Error('Network error'),
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('predict-offline-mock')).toBeOnTheScreen();
+    });
+  });
+
+  describe('empty states', () => {
+    it('renders empty state message when no markets available', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('predict-empty-state-trending')).toBeOnTheScreen();
+    });
+  });
+
+  describe('search overlay interactions', () => {
+    it('displays search results when query is entered', () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+      expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton loaders while search is fetching', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+    });
+
+    it('clears search query when clear button is pressed', () => {
+      const { getByTestId, getByPlaceholderText, queryByTestId } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test query');
+      fireEvent.press(getByTestId('clear-button'));
+
+      expect(queryByTestId('predict-search-result-0')).toBeNull();
+    });
+  });
+
+  describe('pager view interactions', () => {
+    it('updates active index and tracks analytics when page changes via swipe', () => {
+      const mockSetActiveIndex = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        activeIndex: 0,
+        setActiveIndex: mockSetActiveIndex,
+        scrollHandler: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+      const page1 = getByTestId('pager-page-1');
+
+      fireEvent(page1, 'onTouchEnd');
+
+      expect(mockSetActiveIndex).toHaveBeenCalledWith(1);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+    });
+  });
+
+  describe('layout states', () => {
+    it('hides pager view when layout is not ready', () => {
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: false,
+        activeIndex: 0,
+        setActiveIndex: jest.fn(),
+        scrollHandler: jest.fn(),
+      });
+
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('pager-view-mock')).toBeNull();
+    });
+  });
+
+  describe('market list rendering', () => {
+    it('renders market cards with correct testIDs', () => {
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(
+        getByTestId('predict-market-list-trending-card-0'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('predict-market-list-trending-card-1'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('search empty states', () => {
+    it('displays no results message when search returns empty', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText, getByText } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'nonexistent');
+
+      expect(getByText(/No results found/i)).toBeOnTheScreen();
+    });
+
+    it('displays error state in search when fetch fails', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: new Error('Search error'),
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText, getAllByTestId } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test');
+
+      const offlineElements = getAllByTestId('predict-offline-mock');
+      expect(offlineElements.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('pagination', () => {
+    it('renders footer skeleton when fetching more data', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Test Market 1' },
+          { id: '2', title: 'Test Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: true,
+        error: null,
+        hasMore: true,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('skeleton-footer-trending-1')).toBeOnTheScreen();
+      expect(getByTestId('skeleton-footer-trending-2')).toBeOnTheScreen();
+    });
+  });
+
+  describe('route params', () => {
+    it('starts session with entry point from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'wallet_action_button',
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'wallet_action_button',
+        'trending',
+      );
+    });
+
+    it('starts session with undefined entry point when not provided', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        undefined,
+        'trending',
+      );
     });
   });
 });

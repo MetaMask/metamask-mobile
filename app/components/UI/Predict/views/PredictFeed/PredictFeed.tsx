@@ -42,7 +42,10 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import {
+  PredictMarketListSelectorsIDs,
+  getPredictMarketListSelector,
+} from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import {
@@ -111,7 +114,10 @@ const PredictNavBackButton: React.FC = () => {
   }, [navigation]);
 
   return (
-    <Pressable testID="predict-back-button" onPress={handleBackPress}>
+    <Pressable
+      testID={PredictMarketListSelectorsIDs.BACK_BUTTON}
+      onPress={handleBackPress}
+    >
       <Icon
         name={IconName.ArrowLeft}
         size={IconSize.Lg}
@@ -328,7 +334,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       <PredictMarketListItem
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
-        testID={`predict-market-${category}-${info.index}`}
+        testID={getPredictMarketListSelector.marketCardByCategory(
+          category,
+          info.index,
+        )}
       />
     ),
     [category],
