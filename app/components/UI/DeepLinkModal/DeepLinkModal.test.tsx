@@ -123,23 +123,21 @@ describe('DeepLinkModal', () => {
 
         const mockBuilder: MockBuilder = {
           additionalProperties: {},
-          addProperties: jest
-            .fn()
-            .mockImplementation(function (
-              this: MockBuilder,
-              props: Record<string, unknown>,
-            ) {
-              this.additionalProperties = {
-                ...this.additionalProperties,
-                ...props,
-              };
-              return this;
-            }),
-          addSensitiveProperties: jest
-            .fn()
-            .mockImplementation(function (this: MockBuilder) {
-              return this;
-            }),
+          addProperties: jest.fn().mockImplementation(function (
+            this: MockBuilder,
+            props: Record<string, unknown>,
+          ) {
+            this.additionalProperties = {
+              ...this.additionalProperties,
+              ...props,
+            };
+            return this;
+          }),
+          addSensitiveProperties: jest.fn().mockImplementation(function (
+            this: MockBuilder,
+          ) {
+            return this;
+          }),
           build: jest.fn().mockImplementation(function (this: MockBuilder) {
             return {
               name: 'Deep link Used',
