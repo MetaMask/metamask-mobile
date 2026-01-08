@@ -19,7 +19,7 @@ import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
-import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/Send/SendView.testIds';
+import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/SendView.testIds';
 import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../util/device', () => ({
