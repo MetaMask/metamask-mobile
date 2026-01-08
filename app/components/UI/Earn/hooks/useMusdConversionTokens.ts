@@ -79,13 +79,13 @@ export const useMusdConversionTokens = () => {
     [musdConversionCTATokens],
   );
 
-  // TODO: Temp - We'll likely want to consolidate this with the useMusdCtaVisibility hook once it's available.
+  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
   const tokensWithCTAs = useMemo(
     () => getConversionTokensWithCtas(conversionTokens),
     [conversionTokens, getConversionTokensWithCtas],
   );
 
-  // TODO: Temp - We'll likely want to consolidate this with the useMusdCtaVisibility hook once it's available.
+  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
   const isTokenWithCta = (token?: AssetType | TokenI) => {
     if (!token) return false;
 
