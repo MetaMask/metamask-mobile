@@ -36,12 +36,49 @@ platform :ios do
     api_key_key_id = ENV['APP_STORE_CONNECT_API_KEY_KEY_ID']
     api_key_key_filepath = ENV['APP_STORE_CONNECT_API_KEY_KEY_FILEPATH']
     
-    if api_key_issuer_id.nil? || api_key_key_id.nil? || api_key_key_filepath.nil?
-      UI.user_error!("App Store Connect API Key environment variables are not set")
+    # Validate each variable individually without exposing values
+    missing_vars = []
+    
+    if api_key_issuer_id.nil? || api_key_issuer_id.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_ISSUER_ID is set (length: #{api_key_issuer_id.length})")
     end
     
-    unless File.exist?(api_key_key_filepath)
-      UI.user_error!("API key file not found at: #{api_key_key_filepath}")
+    if api_key_key_id.nil? || api_key_key_id.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_KEY_ID"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_KEY_ID is set (length: #{api_key_key_id.length})")
+    end
+    
+    if api_key_key_filepath.nil? || api_key_key_filepath.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_KEY_FILEPATH is set (length: #{api_key_key_filepath.length})")
+      UI.message("  Path value: #{api_key_key_filepath}")
+      
+      # Convert to absolute path if relative
+      unless api_key_key_filepath.start_with?('/')
+        api_key_key_filepath = File.expand_path(api_key_key_filepath)
+        UI.message("  Resolved to absolute path: #{api_key_key_filepath}")
+      end
+      
+      # Check if file exists
+      unless File.exist?(api_key_key_filepath)
+        UI.user_error!("API key file not found at: #{api_key_key_filepath}")
+      end
+      
+      # Check if file is readable
+      unless File.readable?(api_key_key_filepath)
+        UI.user_error!("API key file is not readable at: #{api_key_key_filepath}")
+      end
+      
+      UI.message("  File exists and is readable")
+    end
+    
+    # Report all missing variables at once
+    unless missing_vars.empty?
+      UI.user_error!("Missing required environment variables: #{missing_vars.join(', ')}")
     end
     
     # Upload to TestFlight with explicit API key
