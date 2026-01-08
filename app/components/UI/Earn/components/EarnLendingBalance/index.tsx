@@ -33,16 +33,13 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
+import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -57,11 +54,7 @@ export interface EarnLendingBalanceProps {
 
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-
-  const { isTokenWithCta } = useMusdConversionTokens();
+  const { shouldShowAssetOverviewCta } = useMusdCtaVisibility();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -182,11 +175,10 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     </View>
   );
 
-  const hasMusdConversionCta =
-    isMusdConversionFlowEnabled && isTokenWithCta(asset);
+  const shouldShowMusdConversionCta = shouldShowAssetOverviewCta(asset);
 
   if (!isStablecoinLendingEnabled) {
-    if (hasMusdConversionCta) {
+    if (shouldShowMusdConversionCta) {
       return renderMusdConversionCta();
     }
     return null;
@@ -194,7 +186,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const renderCta = () => {
     // Favour the mUSD Conversion CTA over the lending empty state CTA
-    if (hasMusdConversionCta) {
+    if (shouldShowMusdConversionCta) {
       return renderMusdConversionCta();
     }
 

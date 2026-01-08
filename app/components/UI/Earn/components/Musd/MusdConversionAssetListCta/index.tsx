@@ -46,8 +46,10 @@ const MusdConversionAssetListCta = () => {
 
   const { initiateConversion } = useMusdConversion();
 
+  const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
+
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    useMusdCtaVisibility();
+    shouldShowBuyGetMusdCta();
 
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),

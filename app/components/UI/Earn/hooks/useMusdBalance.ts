@@ -7,11 +7,12 @@ import { toChecksumAddress } from '../../../../util/address';
 
 /**
  * Hook to check if the user has any MUSD token balance across supported chains.
- * @returns Object containing hasMusdBalance boolean and balancesByChain for detailed balance info
+ * @returns Object containing hasAnyMusdBalance boolean and balancesByChain for detailed balance info
  */
-export const useHasMusdBalance = () => {
+export const useMusdBalance = () => {
   const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
-  const { hasMusdBalance, balancesByChain } = useMemo(() => {
+
+  const { hasMusdBalanceOnAnyChain, balancesByChain } = useMemo(() => {
     const result: Record<Hex, string> = {};
     let hasBalance = false;
 
@@ -35,14 +36,17 @@ export const useHasMusdBalance = () => {
     }
 
     return {
-      hasMusdBalance: hasBalance,
+      hasMusdBalanceOnAnyChain: hasBalance,
       balancesByChain: result,
     };
   }, [balancesPerChainId]);
 
+  const hasMusdBalanceOnChain = (chainId: Hex) =>
+    Boolean(balancesByChain[chainId]);
+
   return {
-    // Has mUSD balance on any chain
-    hasMusdBalance,
+    hasMusdBalanceOnAnyChain,
     balancesByChain,
+    hasMusdBalanceOnChain,
   };
 };

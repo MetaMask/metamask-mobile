@@ -2,14 +2,14 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdCtaVisibility } from './useMusdCtaVisibility';
-import { useHasMusdBalance } from './useHasMusdBalance';
+import { useMusdBalance } from './useMusdBalance';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
 import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
 
-jest.mock('./useHasMusdBalance');
+jest.mock('./useMusdBalance');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
@@ -21,8 +21,8 @@ jest.mock('../selectors/featureFlags');
 
 import { useSelector } from 'react-redux';
 
-const mockUseHasMusdBalance = useHasMusdBalance as jest.MockedFunction<
-  typeof useHasMusdBalance
+const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
+  typeof useMusdBalance
 >;
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
@@ -94,7 +94,7 @@ describe('useMusdCtaVisibility', () => {
       }
       return undefined;
     });
-    mockUseHasMusdBalance.mockReturnValue({
+    mockUseMusdBalance.mockReturnValue({
       hasMusdBalance: false,
       balancesByChain: {},
     });
@@ -171,7 +171,7 @@ describe('useMusdCtaVisibility', () => {
           { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
         ],
       });
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: false,
         balancesByChain: {},
       });
@@ -197,7 +197,7 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
       });
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: false,
         balancesByChain: {},
       });
@@ -227,7 +227,7 @@ describe('useMusdCtaVisibility', () => {
     });
 
     it('returns shouldShowCta true when user has no MUSD balance and MUSD is buyable', () => {
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: false,
         balancesByChain: {},
       });
@@ -240,7 +240,7 @@ describe('useMusdCtaVisibility', () => {
     });
 
     it('returns shouldShowCta false when user has MUSD balance', () => {
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: true,
         balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
       });
@@ -284,7 +284,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true when user has no MUSD on mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: false,
           balancesByChain: {},
         });
@@ -297,7 +297,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when user has MUSD on mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: true,
           balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
         });
@@ -308,7 +308,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true when user has MUSD on different chain but not mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: true,
           balancesByChain: { [CHAIN_IDS.LINEA_MAINNET]: '0x1234' },
         });
@@ -365,7 +365,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true with network icon when no MUSD on Linea', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: false,
           balancesByChain: {},
         });
@@ -407,7 +407,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when BSC selected', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: false,
           balancesByChain: {},
         });
@@ -420,7 +420,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when user has MUSD balance', () => {
-        mockUseHasMusdBalance.mockReturnValue({
+        mockUseMusdBalance.mockReturnValue({
           hasMusdBalance: true,
           balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
         });
@@ -495,7 +495,7 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
       });
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: true,
         balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
       });
@@ -539,7 +539,7 @@ describe('useMusdCtaVisibility', () => {
           { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
         ],
       });
-      mockUseHasMusdBalance.mockReturnValue({
+      mockUseMusdBalance.mockReturnValue({
         hasMusdBalance: true,
         balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
       });
