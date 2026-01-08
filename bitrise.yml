@@ -3394,6 +3394,11 @@ workflows:
                   fi
                 fi
                 
+                # Convert to absolute path if relative
+                if [[ "$IPA_PATH" != /* ]]; then
+                  IPA_PATH="$(pwd)/$IPA_PATH"
+                fi
+                
                 envman add --key IPA_PATH --value "$IPA_PATH"
                 echo "IPA_PATH set to: $IPA_PATH"
       - script@1:
