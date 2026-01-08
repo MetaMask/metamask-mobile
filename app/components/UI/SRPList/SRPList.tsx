@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import { SRPListProps } from './SRPList.types';
@@ -20,7 +20,8 @@ const SRPList = ({
   // trigger sync SRP when SRP list is shown
   useSyncSRPs();
 
-  const maxHeight = Dimensions.get('window').height * 0.7;
+  const { height: windowHeight } = useWindowDimensions();
+  const maxHeight = windowHeight * 0.7;
   const { styles } = useStyles(styleSheet, { maxHeight });
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useMetrics();
