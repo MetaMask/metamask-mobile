@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
@@ -71,7 +72,7 @@ const createStyles = (colors: any) =>
     button: {
       paddingHorizontal: 16,
       paddingTop: 24,
-      paddingBottom: 16,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     searchInput: {
       margin: 16,

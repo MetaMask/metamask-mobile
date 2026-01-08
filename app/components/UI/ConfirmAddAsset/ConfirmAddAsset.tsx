@@ -152,25 +152,24 @@ const ConfirmAddAsset = () => {
             {strings('wallet.search_information_not_saved')}
           </Text>
         </Box>
-        <Box style={styles.modalFooterContainer}>
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                onPress: showExitModalFunction,
-                label: strings('confirmation_modal.cancel_cta'),
-                variant: ButtonVariants.Secondary,
-                size: ButtonSize.Lg,
-              },
-              {
-                onPress: goToWalletPage,
-                label: strings('confirmation_modal.confirm_cta'),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-              },
-            ]}
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-          />
-        </Box>
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              onPress: showExitModalFunction,
+              label: strings('confirmation_modal.cancel_cta'),
+              variant: ButtonVariants.Secondary,
+              size: ButtonSize.Lg,
+            },
+            {
+              onPress: goToWalletPage,
+              label: strings('confirmation_modal.confirm_cta'),
+              variant: ButtonVariants.Primary,
+              size: ButtonSize.Lg,
+            },
+          ]}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          style={styles.modalFooterContainer}
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -227,28 +226,27 @@ const ConfirmAddAsset = () => {
         ))}
       </ScrollView>
 
-      <View style={styles.bottomContainer}>
-        <BottomSheetFooter
-          buttonPropsArray={[
-            {
-              onPress: showExitModalFunction,
-              label: strings('confirmation_modal.cancel_cta'),
-              variant: ButtonVariants.Secondary,
-              size: ButtonSize.Lg,
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: showExitModalFunction,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+          },
+          {
+            onPress: async () => {
+              await addTokenList();
+              goToWalletPage();
             },
-            {
-              onPress: async () => {
-                await addTokenList();
-                goToWalletPage();
-              },
-              label: strings('swaps.Import'),
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-            },
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
-      </View>
+            label: strings('swaps.Import'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        style={styles.buttonContainer}
+      />
       {renderImportModal()}
     </SafeAreaView>
   );

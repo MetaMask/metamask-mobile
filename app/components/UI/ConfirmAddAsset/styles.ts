@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from 'app/util/theme/models';
 
@@ -40,12 +40,12 @@ const createStyles = (colors: Colors) =>
     modalFooterContainer: {
       backgroundColor: colors.background.default,
       borderWidth: 0,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
       paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     box: {
       backgroundColor: colors.background.default,
-      paddingBottom: 16,
       borderWidth: 0,
       padding: 0,
       borderRadius: 8,
@@ -64,10 +64,10 @@ const createStyles = (colors: Colors) =>
     badge: {
       gap: 70,
     },
-    bottomContainer: {
-      paddingHorizontal: 8,
+    buttonContainer: {
+      paddingHorizontal: 16,
       paddingTop: 24,
-      paddingBottom: 16,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     assetIcon: {
       width: 32,

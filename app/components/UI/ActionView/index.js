@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -26,7 +27,7 @@ const getStyles = (colors) =>
     actionContainer: {
       flexDirection: 'row',
       paddingTop: 24,
-      paddingBottom: 16,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
       paddingHorizontal: 16,
       gap: 16,
       width: '100%',

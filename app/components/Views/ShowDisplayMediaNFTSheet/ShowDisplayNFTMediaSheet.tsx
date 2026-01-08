@@ -69,25 +69,24 @@ const ShowDisplayNftMediaSheet = () => {
           </Text>
         </Text>
       </Text>
-      <View style={styles.footerContainer}>
-        <BottomSheetFooter
-          buttonPropsArray={[
-            {
-              onPress: onCancel,
-              label: strings('confirmation_modal.cancel_cta'),
-              variant: ButtonVariants.Secondary,
-              size: ButtonSize.Lg,
-            },
-            {
-              onPress: onConfirm,
-              label: strings('confirmation_modal.confirm_cta'),
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-            },
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
-      </View>
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: onCancel,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+          },
+          {
+            onPress: onConfirm,
+            label: strings('confirmation_modal.confirm_cta'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        style={styles.footerContainer}
+      />
     </BottomSheet>
   );
 };
