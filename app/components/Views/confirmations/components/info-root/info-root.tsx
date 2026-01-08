@@ -8,6 +8,7 @@ import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionBatchesMetadata } from '../../hooks/transactions/useTransactionBatchesMetadata';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
@@ -25,6 +26,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
+import { LendingDepositInfo } from '../info/lending-deposit-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -77,6 +79,7 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
 
@@ -97,6 +100,23 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
     return <MusdConversionInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.lendingDeposit])
+  ) {
+    return <LendingDepositInfo />;
+  }
+
+  // Check for lending deposit in batch transactions (non-7702 chains like Linea)
+  if (
+    approvalRequest?.type === ApprovalType.TransactionBatch &&
+    transactionBatchesMetadata?.transactions?.some(
+      (tx) => tx.type === TransactionType.lendingDeposit,
+    )
+  ) {
+    return <LendingDepositInfo />;
   }
 
   if (
