@@ -1358,6 +1358,45 @@ describe('transactionTransforms', () => {
         // Assert
         expect(result[0].order?.filled).toBe('0%');
       });
+
+      it('returns 0% for position-bound TP/SL orders with zero size (not filled yet)', () => {
+        // Arrange: Position-bound TP/SL orders have size=0 and originalSize=0
+        // because they're tied to the position size, not a fixed amount
+        const positionTpslOrder = {
+          ...mockOrder,
+          orderId: 'position-tpsl-order',
+          size: '0', // No fixed size - tied to position
+          originalSize: '0', // No fixed original size
+          status: 'open' as const,
+          isTrigger: true,
+          reduceOnly: true,
+          detailedOrderType: 'Take Profit Limit',
+        };
+
+        // Act: No fill map - test the fallback logic
+        const result = transformOrdersToTransactions([positionTpslOrder]);
+
+        // Assert: Should show 0% (not triggered yet), NOT 100%
+        expect(result[0].order?.filled).toBe('0%');
+      });
+
+      it('returns 100% for regular order with zero remaining size (fully filled)', () => {
+        // Arrange: Regular order that was fully filled
+        // originalSize > 0 but size = 0 means it was filled
+        const fullyFilledOrder = {
+          ...mockOrder,
+          orderId: 'fully-filled-regular',
+          size: '0', // All filled
+          originalSize: '1', // Started with 1
+          status: 'open' as const, // Testing the size-based fallback
+        };
+
+        // Act: No fill map - test the fallback logic
+        const result = transformOrdersToTransactions([fullyFilledOrder]);
+
+        // Assert: Should show 100% (nothing remaining)
+        expect(result[0].order?.filled).toBe('100%');
+      });
     });
   });
 

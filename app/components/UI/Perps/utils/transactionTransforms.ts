@@ -457,14 +457,25 @@ export function transformOrdersToTransactions(
       filledPercent = '0';
     } else {
       // Open/pending orders - use the order's size fields
-      filledPercent = BigNumber(size).isEqualTo(0)
-        ? '100'
-        : BigNumber(originalSize)
-            .minus(size)
-            .dividedBy(originalSize)
-            .absoluteValue()
-            .multipliedBy(100)
-            .toString();
+      const sizeIsZero = BigNumber(size).isEqualTo(0);
+      const originalSizeIsZero = BigNumber(originalSize).isZero();
+
+      if (sizeIsZero && originalSizeIsZero) {
+        // Position-bound TP/SL orders have no fixed size (both are 0)
+        // They're not filled yet - they're just tied to the position size
+        filledPercent = '0';
+      } else if (sizeIsZero) {
+        // Regular order with 0 remaining size = fully filled
+        filledPercent = '100';
+      } else {
+        // Partially filled order
+        filledPercent = BigNumber(originalSize)
+          .minus(size)
+          .dividedBy(originalSize)
+          .absoluteValue()
+          .multipliedBy(100)
+          .toString();
+      }
     }
 
     return {
