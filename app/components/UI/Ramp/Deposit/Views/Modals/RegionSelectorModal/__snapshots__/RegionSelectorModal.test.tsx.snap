@@ -436,7 +436,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1148,7 +1148,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -2056,7 +2056,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -3196,7 +3196,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -3949,7 +3949,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -4790,7 +4790,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -5930,7 +5930,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -7070,7 +7070,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
