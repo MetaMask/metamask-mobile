@@ -122,4 +122,118 @@ describe('TokenIcon', () => {
       expect(getByText('X')).toBeOnTheScreen();
     });
   });
+
+  describe('Fallback State Reset', () => {
+    it('resets fallback state when icon prop changes', () => {
+      const { rerender, getByTestId, queryByText } = render(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/dai1.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+      expect(queryByText('D')).toBeNull();
+
+      rerender(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/dai2.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+      expect(queryByText('D')).toBeNull();
+    });
+
+    it('resets fallback state when symbol prop changes', () => {
+      const { rerender, getByTestId, queryByText } = render(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/token.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+      expect(queryByText('D')).toBeNull();
+
+      rerender(
+        <TokenIcon
+          symbol="USDC"
+          icon="https://example.com/token.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+      expect(queryByText('U')).toBeNull();
+    });
+
+    it('displays fallback symbol when RemoteImage fails to load', () => {
+      const { getByText } = render(<TokenIcon symbol="DAI" />);
+
+      expect(getByText('D')).toBeOnTheScreen();
+    });
+
+    it('attempts to load RemoteImage after icon changes from failed state', () => {
+      const { rerender, getByTestId } = render(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/invalid.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+
+      rerender(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/valid.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+    });
+
+    it('switches from symbol fallback to RemoteImage when icon is provided', () => {
+      const { rerender, getByText, getByTestId, queryByText } = render(
+        <TokenIcon symbol="DAI" />,
+      );
+
+      expect(getByText('D')).toBeOnTheScreen();
+
+      rerender(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/dai.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+      expect(queryByText('D')).toBeNull();
+    });
+
+    it('switches from RemoteImage to symbol fallback when icon is removed', () => {
+      const { rerender, getByTestId, getByText } = render(
+        <TokenIcon
+          symbol="DAI"
+          icon="https://example.com/dai.png"
+          testID="token-icon"
+        />,
+      );
+
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+
+      rerender(<TokenIcon symbol="DAI" testID="token-icon" />);
+
+      expect(getByText('D')).toBeOnTheScreen();
+      expect(getByTestId('token-icon')).toBeOnTheScreen();
+    });
+  });
 });

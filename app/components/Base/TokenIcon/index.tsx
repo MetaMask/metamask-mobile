@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useCallback, useState } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   ImageSourcePropType,
@@ -128,6 +133,11 @@ function TokenIcon({
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  // Reset fallback state when icon or symbol changes
+  useEffect(() => {
+    setShowFallback(false);
+  }, [icon, symbol]);
 
   const getSource = useCallback(() => {
     if (symbol === 'ETH') {

@@ -93,4 +93,85 @@ describe('RemoteImage', () => {
     await act(async () => {});
     expect(wrapper).toMatchSnapshot();
   });
+
+  describe('Error State Reset', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('renders image when source URI changes', async () => {
+      const { rerender, queryByTestId } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image1.png' }}
+          testID="remote-image"
+        />,
+      );
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+
+      await act(async () => {
+        rerender(
+          <RemoteImage
+            source={{ uri: 'https://example.com/image2.png' }}
+            testID="remote-image"
+          />,
+        );
+        jest.runAllTimers();
+      });
+
+      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+    });
+
+    it('renders Identicon when address is provided', async () => {
+      const { queryByTestId } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image.png' }}
+          address="0x123"
+          testID="remote-image"
+        />,
+      );
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(queryByTestId('remote-image')).toBeOnTheScreen();
+    });
+
+    it('renders new image after source changes', async () => {
+      const { rerender, queryByTestId } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/invalid1.png' }}
+          testID="remote-image-1"
+        />,
+      );
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(queryByTestId('remote-image-1')).toBeOnTheScreen();
+
+      await act(async () => {
+        rerender(
+          <RemoteImage
+            source={{ uri: 'https://example.com/valid.png' }}
+            testID="remote-image-2"
+          />,
+        );
+        jest.runAllTimers();
+      });
+
+      expect(queryByTestId('remote-image-2')).toBeOnTheScreen();
+    });
+  });
 });
