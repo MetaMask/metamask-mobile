@@ -13,82 +13,6 @@
 default_platform(:ios)
 
 platform :ios do
-  # Build and upload to TestFlight for main app
-  desc "Build and upload to TestFlight for MetaMask main app"
-  lane :testflight_main do |options|
-    # Ensure CocoaPods dependencies are installed before building
-    cocoapods
-    scheme = options[:scheme] || "MetaMask"
-    configuration = options[:configuration] || "Release"
-    groups = options[:groups] || []
-    notify_external_testers = options[:notify_external_testers] || false
-    skip_waiting_for_build_processing = options[:skip_waiting_for_build_processing] || false
-    
-    # Build the app
-    build_app(
-      workspace: "MetaMask.xcworkspace",
-      scheme: scheme,
-      configuration: configuration,
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "io.metamask.MetaMask" => "Bitrise AppStore io.metamask.MetaMask"
-        },
-        uploadSymbols: true,
-        teamID: "48XVW22RCG"
-      },
-      output_directory: "./build/output",
-      output_name: "#{scheme}.ipa"
-    )
-    
-    # Upload to TestFlight
-    upload_to_testflight(
-      ipa: "./build/output/#{scheme}.ipa",
-      skip_waiting_for_build_processing: skip_waiting_for_build_processing,
-      skip_submission: false,
-      distribute_external: true,
-      groups: groups,
-      notify_external_testers: notify_external_testers,
-      changelog: options[:changelog] || "New build uploaded via Fastlane"
-    )
-  end
-
-  # Helper lane to add a build to an existing external TestFlight group
-  desc "Add an existing build to external TestFlight groups"
-  lane :add_to_testflight_groups do |options|
-    build_number = options[:build_number]
-    groups = options[:groups] || []
-    notify_external_testers = options[:notify_external_testers] || false
-    
-    if groups.empty?
-      UI.user_error!("You must provide at least one group name using groups: ['Group Name']")
-    end
-    
-    if build_number.nil?
-      UI.user_error!("You must provide a build_number")
-    end
-    
-    # Use pilot to add the build to external groups
-    pilot(
-      distribute_external: true,
-      groups: groups,
-      notify_external_testers: notify_external_testers,
-      build_number: build_number
-    )
-  end
-
-  # Helper lane to list available external TestFlight groups
-  desc "List all available external TestFlight groups"
-  lane :list_testflight_groups do
-    # Hardcoded groups for now
-    groups = ['MetaMask Preview']
-    
-    UI.success("Available external TestFlight groups:")
-    groups.each do |group|
-      UI.message("  - #{group}")
-    end
-  end
-
   # Upload existing IPA to TestFlight (for use in CI/CD)
   desc "Upload existing IPA to TestFlight for MetaMask main app"
   lane :upload_to_testflight_only do |options|
@@ -107,8 +31,26 @@ platform :ios do
     
     UI.message("Uploading IPA to TestFlight: #{ipa_path}")
     
-    # Upload to TestFlight
+    # Get API key from environment variables
+    api_key_issuer_id = ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID']
+    api_key_key_id = ENV['APP_STORE_CONNECT_API_KEY_KEY_ID']
+    api_key_key_filepath = ENV['APP_STORE_CONNECT_API_KEY_KEY_FILEPATH']
+    
+    if api_key_issuer_id.nil? || api_key_key_id.nil? || api_key_key_filepath.nil?
+      UI.user_error!("App Store Connect API Key environment variables are not set")
+    end
+    
+    unless File.exist?(api_key_key_filepath)
+      UI.user_error!("API key file not found at: #{api_key_key_filepath}")
+    end
+    
+    # Upload to TestFlight with explicit API key
     upload_to_testflight(
+      api_key: {
+        key_id: api_key_key_id,
+        issuer_id: api_key_issuer_id,
+        key_filepath: api_key_key_filepath
+      },
       ipa: ipa_path,
       skip_waiting_for_build_processing: skip_waiting_for_build_processing,
       skip_submission: false,
