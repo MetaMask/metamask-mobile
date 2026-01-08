@@ -616,18 +616,20 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     return () => trackRef(tabKey, null);
   }, [tabKey, trackRef]);
 
-  // With binary header state, offset calculations are simple
   const contentInsetTop = headerHeight + tabBarHeight;
   const currentHeaderOffset = headerHidden ? headerHeight : 0;
-
-  // Padding for non-scrollable content (loading/error/empty states)
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
 
-  // Initial content offset - computed fresh each render, FlashList only uses on mount
-  const initialContentOffset = Platform.select({
-    ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
-    android: { x: 0, y: currentHeaderOffset },
-  });
+  // contentOffset should only be set on first FlashList mount, then undefined
+  const hasFlashListMounted = useRef(false);
+  const getContentOffset = () => {
+    if (hasFlashListMounted.current) return undefined;
+    hasFlashListMounted.current = true;
+    return Platform.select({
+      ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
+      android: { x: 0, y: currentHeaderOffset },
+    });
+  };
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -676,11 +678,11 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
           ios: { flexGrow: 1 },
           android: {
             flexGrow: 1,
-            paddingTop: headerHidden ? tabBarHeight : contentInsetTop,
+            paddingTop: contentInsetTop,
           },
         }),
       ),
-    [tw, headerHidden, tabBarHeight, contentInsetTop],
+    [tw, contentInsetTop],
   );
 
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
@@ -729,7 +731,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       onScrollEndDrag={onScrollEnd}
       onMomentumScrollEnd={onScrollEnd}
       contentInset={Platform.select({ ios: { top: contentInsetTop } })}
-      contentOffset={initialContentOffset}
+      contentOffset={getContentOffset()}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
