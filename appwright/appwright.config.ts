@@ -149,10 +149,10 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'emulator',
-          name: 'Pixel_5_API_34', // this can be changed to your emulator name
+          name: 'Samsung Galaxy S24 Ultra', // this can be changed to your emulator name
           osVersion: '14', // this can be changed to your emulator version
         },
-        buildPath: '/Users/jiexi/Downloads/metamask-main-rc-3092.apk', // Path to your .apk file
+        buildPath: 'PATH-TO-BUILD', // Path to your .apk file
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
