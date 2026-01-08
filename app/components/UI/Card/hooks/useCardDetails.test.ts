@@ -421,7 +421,8 @@ describe('useCardDetails', () => {
       // Then: Returns true, calls fetchCardDetails, and updates loading state
       expect(pollResult).toBe(true);
       expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchData).toHaveBeenCalledTimes(2);
+      // pollCardStatusUntilProvisioned refreshes card details once after provisioning
+      expect(mockFetchData).toHaveBeenCalledTimes(1);
       expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(
         false,
       );
