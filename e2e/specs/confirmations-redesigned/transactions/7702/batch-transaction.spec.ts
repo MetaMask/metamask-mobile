@@ -82,6 +82,11 @@ async function connectTestDappToLocalhost() {
   await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 }
 
+/**
+ * The test cases have been partially commented out and skipped.
+ * Click event on switch account toggle is not working in the e2e tests.
+ * Once that is fixed, the test cases can be uncommented and unskipped.
+ */
 describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
@@ -164,9 +169,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Smart contract interaction');
 
-        // following check have been commentted as events are somehow failing on account model
-        // https://github.com/MetaMask/metamask-mobile/issues/17930
-
         // // open switch account modal to downgrade account
         // await TabBarComponent.tapWallet();
         // await tapSwitchAccountModal();
@@ -181,19 +183,17 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // );
         // await checkConfirmationPage();
 
-        // // // Accept confirmation
+        // // Accept confirmation
         // await FooterActions.tapConfirmButton();
 
         // await goBackToWalletPage();
-        // // // Check activity tab
+        // // Check activity tab
         // await TabBarComponent.tapActivity();
         // await Assertions.expectTextDisplayed('Switch to standard account');
       },
     );
   });
 
-  // the test case has been skipped as events are somehow failing on account model
-  // https://github.com/MetaMask/metamask-mobile/issues/17930
   it.skip('upgrades an account', async () => {
     await withFixtures(
       {
@@ -202,7 +202,25 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
         localNodeOptions: [
           {
