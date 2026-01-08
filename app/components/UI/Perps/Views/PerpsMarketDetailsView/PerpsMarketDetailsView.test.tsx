@@ -430,7 +430,7 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   const { PerpsMarketDetailsViewSelectorsIDs: SelectorsIDs } =
-    jest.requireActual('../../../../../../e2e/selectors/Perps/Perps.selectors');
+    jest.requireActual('../../Perps.testIds');
 
   return {
     __esModule: true,
