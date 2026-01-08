@@ -25,9 +25,6 @@ import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { getTokenTransferData } from '../../../utils/transaction-pay';
-import { parseStandardTokenTransactionData } from '../../../utils/transaction';
-import { calcTokenAmount } from '../../../../../../util/transactions';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -100,16 +97,8 @@ export const MusdMaxConversionInfo = () => {
   const isLoading =
     !transactionMetadata || isQuoteLoading || quotes?.length === 0;
 
-  // Parse the mUSD receive amount from transaction metadata
-  // This gives us the actual amount that will be converted (with percentage applied)
-  const tokenTransferData = getTokenTransferData(transactionMetadata);
-  const parsedData = parseStandardTokenTransactionData(tokenTransferData?.data);
-  const amountRaw = parsedData?.args?._value?.toString() ?? '0';
-  // Convert from raw (minimal units) to human-readable using token decimals
-  const mUsdAmount = calcTokenAmount(
-    amountRaw,
-    token?.decimals ?? 18,
-  ).toString();
+  // mUSD receive amount (1:1 stablecoin conversion, using the token balance)
+  const mUsdAmount = token?.balance ?? '0';
 
   // Confirm button disabled state
   const isConfirmDisabled = isLoading || hasBlockingAlerts;

@@ -24,28 +24,26 @@ import {
   selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+} from '../../constants/musd';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
 import MusdQuickConvertLearnMoreCta from '../../components/Musd/MusdQuickConvertLearnMoreCta';
 import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
-import Tag from '../../../../../component-library/components/Tags/Tag';
-import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
 
-// TODO: Breakout
-interface TokenListDividerProps {
-  title: string;
-  tag: TagProps;
-}
-
-const SectionHeader = ({ title, tag }: TokenListDividerProps) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View style={styles.listHeaderContainer}>
-      <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
-      <Tag {...tag} />
-    </View>
-  );
+/**
+ * Determines the output chain ID for mUSD conversion.
+ * Uses same-chain if mUSD is deployed there, otherwise defaults to Ethereum mainnet.
+ */
+// TODO: Breakout into util since this is also defined in the useMusdMaxConversion hook.
+const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
+  const mUsdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[paymentTokenChainId];
+  if (mUsdAddress) {
+    return paymentTokenChainId;
+  }
+  return MUSD_CONVERSION_DEFAULT_CHAIN_ID as Hex;
 };
 
 /**
@@ -62,7 +60,6 @@ const MusdQuickConvertView = () => {
   const { initiateConversion } = useMusdConversion();
   const { createMaxConversion, isLoading: isMaxConversionLoading } =
     useMusdMaxConversion();
-  const { getMusdOutputChainId } = useMusdConversionTokens();
 
   // Track which token is currently loading for max conversion
   const [loadingTokenKey, setLoadingTokenKey] = useState<string | null>(null);
@@ -91,7 +88,7 @@ const MusdQuickConvertView = () => {
     }, [navigation, colors]),
   );
 
-  // navigate to max conversion bottom sheet
+  // Handle Max button press - navigate to max conversion confirmation
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
       if (!token.rawBalance) {
@@ -110,10 +107,10 @@ const MusdQuickConvertView = () => {
     [createMaxConversion],
   );
 
-  // navigate to existing confirmation screen
+  // Handle Edit button press - navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
-      const outputChainId = getMusdOutputChainId(token.chainId);
+      const outputChainId = getOutputChainId(token.chainId as Hex);
 
       await initiateConversion({
         outputChainId,
@@ -123,7 +120,7 @@ const MusdQuickConvertView = () => {
         },
       });
     },
-    [initiateConversion, getMusdOutputChainId],
+    [initiateConversion],
   );
 
   // Get status for a token
@@ -143,6 +140,7 @@ const MusdQuickConvertView = () => {
     [conversionStatuses, isMaxConversionLoading, loadingTokenKey],
   );
 
+  // Filter tokens to only show those with balance > 0
   const tokensWithBalance = useMemo(
     () =>
       conversionTokens.filter(
@@ -238,7 +236,18 @@ const MusdQuickConvertView = () => {
         showsVerticalScrollIndicator={false}
         testID={MusdQuickConvertViewTestIds.TOKEN_LIST}
         ListHeaderComponent={
-          <SectionHeader title="Stablecoins" tag={{ label: 'No fees' }} />
+          <View style={styles.listHeaderContainer}>
+            {/* TODO: Cleanup and replace hardcoded strings */}
+            <Text variant={TextVariant.BodyMDMedium}>Stablecoins</Text>
+            <View style={styles.noFeesTag}>
+              <Text
+                variant={TextVariant.BodyXSMedium}
+                color={TextColor.Alternative}
+              >
+                No fees
+              </Text>
+            </View>
+          </View>
         }
       />
     </SafeAreaView>

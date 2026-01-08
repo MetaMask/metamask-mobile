@@ -24,9 +24,9 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { strings } from '../../../../../../../locales/i18n';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
 import { TokenIconWithSpinner } from '../../TokenIconWithSpinner';
-import { useMusdQuickConvertPercentage } from '../../../hooks/useMusdQuickConvertPercentage';
 import styleSheet from './ConvertTokenRow.styles';
 import {
   ConvertTokenRowProps,
@@ -52,7 +52,6 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const networkName = useSelector(selectNetworkName);
-  const { buttonLabel } = useMusdQuickConvertPercentage();
 
   const isPending = status === 'pending';
 
@@ -118,7 +117,9 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
           onPress={handleMaxPress}
           testID={ConvertTokenRowTestIds.MAX_BUTTON}
         >
-          <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('earn.musd_conversion.max')}
+          </Text>
         </Button>
         <ButtonIcon
           style={styles.editButton}
