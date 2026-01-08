@@ -232,11 +232,18 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       {
         locale: i18n.locale,
         currentCurrency,
-        isEvmAssetSelected: !isNonEvmAsset,
+        isNativeAsset: !isNonEvmAsset && Boolean(asset.isNative || asset.isETH),
         conversionRate: conversionRate || 1, // Default to 1 for display if not available
       },
     );
-  }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
+  }, [
+    marketData,
+    currentCurrency,
+    isNonEvmAsset,
+    conversionRate,
+    asset.isNative,
+    asset.isETH,
+  ]);
 
   const hasAddressAndDecimals =
     tokenDetails.contractAddress && tokenDetails.tokenDecimal;

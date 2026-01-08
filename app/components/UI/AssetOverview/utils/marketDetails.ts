@@ -22,24 +22,29 @@ export interface MarketDetails {
 interface FormatMarketDetailsOptions {
   locale: string;
   currentCurrency: string;
-  isEvmAssetSelected: boolean;
+  /**
+   * Whether the asset is a native asset (ETH, MATIC, etc.) that needs conversion.
+   * Native assets have market data in native units, while ERC20 tokens have data already in fiat.
+   */
+  isNativeAsset: boolean;
   conversionRate: number;
 }
 
 /**
- * Formats market details with consistent formatting options
+ * Formats market details with consistent formatting options.
+ *
+ * Note: Native assets (ETH, MATIC, etc.) have market data in native units and need conversion.
  */
 export const formatMarketDetails = (
   marketData: MarketData,
   options: FormatMarketDetailsOptions,
 ): MarketDetails => {
-  const { locale, currentCurrency, isEvmAssetSelected, conversionRate } =
-    options;
+  const { locale, currentCurrency, isNativeAsset, conversionRate } = options;
 
   const marketCap =
     marketData.marketCap && marketData.marketCap > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
+          isNativeAsset
             ? marketData.marketCap * conversionRate
             : marketData.marketCap,
           0.01,
@@ -57,7 +62,7 @@ export const formatMarketDetails = (
   const totalVolume =
     marketData.totalVolume && marketData.totalVolume > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
+          isNativeAsset
             ? marketData.totalVolume * conversionRate
             : marketData.totalVolume,
           0.01,
@@ -99,7 +104,7 @@ export const formatMarketDetails = (
   const allTimeHigh =
     marketData.allTimeHigh && marketData.allTimeHigh > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
+          isNativeAsset
             ? marketData.allTimeHigh * conversionRate
             : marketData.allTimeHigh,
           0.01,
@@ -114,7 +119,7 @@ export const formatMarketDetails = (
   const allTimeLow =
     marketData.allTimeLow && marketData.allTimeLow > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
+          isNativeAsset
             ? marketData.allTimeLow * conversionRate
             : marketData.allTimeLow,
           0.01,
@@ -129,7 +134,7 @@ export const formatMarketDetails = (
   const fullyDiluted =
     marketData.dilutedMarketCap && marketData.dilutedMarketCap > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
+          isNativeAsset
             ? marketData.dilutedMarketCap * conversionRate
             : marketData.dilutedMarketCap,
           0.01,
