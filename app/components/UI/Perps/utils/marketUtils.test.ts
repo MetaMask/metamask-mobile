@@ -434,7 +434,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/xyz:TSLA.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/hip3:xyz_TSLA.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg',
       });
     });
@@ -472,14 +472,14 @@ describe('marketUtils', () => {
       });
     });
 
-    it('formats HIP-3 assets with lowercase dex and uppercase symbol', () => {
+    it('formats HIP-3 assets with hip3 prefix and underscore separator', () => {
       const symbol = 'ABC:xyz100';
 
       const result = getAssetIconUrls(symbol);
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/abc:XYZ100.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/hip3:abc_XYZ100.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/abc:XYZ100.svg',
       });
     });

@@ -492,7 +492,7 @@ export interface AssetIconUrls {
  *
  * @example HIP-3 asset
  * getAssetIconUrls('xyz:TSLA')
- * // → { primary: 'https://raw.githubusercontent.com/.../xyz:TSLA.svg',
+ * // → { primary: 'https://raw.githubusercontent.com/.../hip3:xyz_TSLA.svg',
  * //     fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg' }
  */
 export const getAssetIconUrls = (
@@ -504,10 +504,13 @@ export const getAssetIconUrls = (
   // Check for HIP-3 asset (contains colon) BEFORE uppercasing
   if (symbol.includes(':')) {
     const [dex, assetSymbol] = symbol.split(':');
-    const formattedSymbol = `${dex.toLowerCase()}:${assetSymbol.toUpperCase()}`;
+    // HyperLiquid uses dex:SYMBOL format
+    const hyperliquidFormat = `${dex.toLowerCase()}:${assetSymbol.toUpperCase()}`;
+    // MetaMask contract-metadata uses hip3:dex_SYMBOL format
+    const metamaskFormat = `hip3:${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
     return {
-      primary: `${METAMASK_PERPS_ICONS_BASE_URL}${formattedSymbol}.svg`,
-      fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${formattedSymbol}.svg`,
+      primary: `${METAMASK_PERPS_ICONS_BASE_URL}${metamaskFormat}.svg`,
+      fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${hyperliquidFormat}.svg`,
     };
   }
 

@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Text, {
   TextVariant,
@@ -71,7 +71,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   // Handle image error with fallback logic:
   // 1. If primary URL fails, try fallback URL
   // 2. If fallback URL also fails, show text fallback
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     if (!useFallbackUrl && iconUrls?.fallback) {
       // Primary failed - try fallback URL
       setUseFallbackUrl(true);
@@ -79,7 +79,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       // Both URLs failed - show text fallback
       handleError();
     }
-  };
+  }, [useFallbackUrl, iconUrls?.fallback, handleError]);
 
   // Image key includes fallback state for proper re-render when switching URLs
   const imageKey = `${recyclingKey || symbol}-${useFallbackUrl ? 'fallback' : 'primary'}`;
