@@ -473,8 +473,6 @@
     "initializationState": "uninitialized",
     "initializationError": null,
     "initializationAttempts": 0,
-    "connectionStatus": "disconnected",
-    "positions": [],
     "accountState": null,
     "depositInProgress": false,
     "depositRequests": [],

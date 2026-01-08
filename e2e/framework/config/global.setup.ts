@@ -69,7 +69,7 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
     console.error('\n❌ Error: --project flag is required\n');
     displayAvailableProjects(config);
     throw new Error(
-      'Please specify a project name with --project flag. Example: npx playwright test --project dummy-test-local',
+      'Please specify a project name with --project flag. Example: yarn playwright test --project dummy-test-local',
     );
   }
 

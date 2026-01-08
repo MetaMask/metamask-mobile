@@ -960,6 +960,7 @@
     }
   },
   "perps": {
+    "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
     "perps_trading": "Perps Trading",
     "perp_account_balance": "Perp account balance",
@@ -1979,7 +1980,8 @@
       "outcome_at_price": "{{outcome}} at {{price}}¢",
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
-      "resolved_early": "Resolved early"
+      "resolved_early": "Resolved early",
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -6167,7 +6169,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
@@ -6440,7 +6442,7 @@
       "title": "{{networkName}} address",
       "copy_address": "Copy address",
       "description": "Use this address to receive tokens and collectibles on",
-      "description_prefix": "Use this address to receive tokens and collectibles on"
+      "description_prefix": "Use this to receive assets on"
     },
     "export_credentials": {
       "export_private_key": "Private key",
@@ -6574,6 +6576,11 @@
         "description": "Our partner needs to approve your identity. Once you've been approved, you'll be ready to spend.",
         "timeout_button": "Restart verification",
         "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
+      },
+      "verifying_veriff_kyc": {
+        "title": "Verifying your identity",
+        "description": "Please wait while we verify your identity.",
+        "helper_text": "This usually takes a few seconds. Please don't close the app."
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -6785,7 +6792,7 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Log in",
-      "signup_button": "I don't have an account",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "unknown_error": "Unknown error, please try again later",
@@ -7292,5 +7299,12 @@
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
     }
+  },
+  "ota_update_modal": {
+    "title": "Update available",
+    "description_ios": "A new version of the app is available. Reload to apply the update now.",
+    "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
+    "primary_action_reload": "Reload",
+    "primary_action_acknowledge": "Got it"
   }
 }
