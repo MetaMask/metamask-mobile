@@ -617,6 +617,60 @@ describe('TokenInsightsSheet', () => {
     });
   });
 
+  describe('Token Avatar Display', () => {
+    it('renders token avatar with image when image URL is provided', () => {
+      const { getByTestId } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      const avatar = getByTestId('token-insights-icon-USDC');
+      expect(avatar).toBeOnTheScreen();
+    });
+
+    it('renders token avatar with fallback icon when image URL is not provided', () => {
+      const tokenWithoutImage = {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'CUSTOM',
+        name: 'Custom Token',
+        decimals: 18,
+        chainId: '0x1',
+        balance: '100',
+        balanceFiat: '$100.00',
+        currencyExchangeRate: 1.0,
+      };
+      // @ts-expect-error - Testing missing image property
+      mockRoute.params.token = tokenWithoutImage;
+
+      const { getByTestId } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      const avatar = getByTestId('token-insights-icon-CUSTOM');
+      expect(avatar).toBeOnTheScreen();
+    });
+
+    it('renders token avatar with fallback icon when image URL is empty string', () => {
+      mockRoute.params.token = {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'TEST',
+        name: 'Test Token',
+        decimals: 18,
+        chainId: '0x1',
+        balance: '50',
+        balanceFiat: '$50.00',
+        image: '',
+        currencyExchangeRate: 1.0,
+      };
+
+      const { getByTestId } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      const avatar = getByTestId('token-insights-icon-TEST');
+      expect(avatar).toBeOnTheScreen();
+    });
+  });
+
   describe('Contract Address Display', () => {
     it('hides contract address for EVM native tokens', () => {
       mockRoute.params.token = {

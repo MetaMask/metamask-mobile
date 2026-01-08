@@ -153,63 +153,34 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
             }
           >
             <View
-              useNativeDriver={true}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="token-insights-icon-USDC"
             >
-              <View
-                fadeIn={true}
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
                 source={
                   {
                     "uri": "https://example.com/usdc.png",
                   }
                 }
                 style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    {
-                      "borderRadius": 18,
-                      "height": 36,
-                      "width": 36,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                  ]
-                }
-                testID="token-insights-icon-USDC"
-              />
-              <View
-                collapsable={false}
-                style={
                   {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
                   }
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 18,
-                        "height": 36,
-                        "width": 36,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+                testID="token-avatar-image"
+              />
             </View>
           </View>
           <View
@@ -688,63 +659,34 @@ exports[`TokenInsightsSheet renders correctly with Solana token data 1`] = `
             }
           >
             <View
-              useNativeDriver={true}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="token-insights-icon-USDC"
             >
-              <View
-                fadeIn={true}
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
                 source={
                   {
                     "uri": "https://example.com/usdc-sol.png",
                   }
                 }
                 style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    {
-                      "borderRadius": 18,
-                      "height": 36,
-                      "width": 36,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                  ]
-                }
-                testID="token-insights-icon-USDC"
-              />
-              <View
-                collapsable={false}
-                style={
                   {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
                   }
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 18,
-                        "height": 36,
-                        "width": 36,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+                testID="token-avatar-image"
+              />
             </View>
           </View>
           <View
@@ -1223,63 +1165,34 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
             }
           >
             <View
-              useNativeDriver={true}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="token-insights-icon-USDC"
             >
-              <View
-                fadeIn={true}
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
                 source={
                   {
                     "uri": "https://example.com/usdc.png",
                   }
                 }
                 style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    {
-                      "borderRadius": 18,
-                      "height": 36,
-                      "width": 36,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                  ]
-                }
-                testID="token-insights-icon-USDC"
-              />
-              <View
-                collapsable={false}
-                style={
                   {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
                   }
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 18,
-                        "height": 36,
-                        "width": 36,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+                testID="token-avatar-image"
+              />
             </View>
           </View>
           <View
