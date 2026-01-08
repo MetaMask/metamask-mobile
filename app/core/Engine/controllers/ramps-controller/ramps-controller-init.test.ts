@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -72,9 +73,9 @@ describe('ramps controller init', () => {
   it('calls updateGeolocation at startup', async () => {
     rampsControllerInit(initRequestMock);
 
-    await new Promise(process.nextTick);
-
-    expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('handles updateGeolocation failure gracefully', async () => {
@@ -82,6 +83,8 @@ describe('ramps controller init', () => {
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 
-    await new Promise(process.nextTick);
+    await waitFor(() => {
+      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    });
   });
 });

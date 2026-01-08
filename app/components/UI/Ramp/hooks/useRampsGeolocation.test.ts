@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -188,7 +188,9 @@ describe('useRampsGeolocation', () => {
         wrapper: wrapper(store),
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(mockUpdateGeolocation).toHaveBeenCalled();
+      });
 
       expect(result.current).toMatchObject({
         geolocation: null,
