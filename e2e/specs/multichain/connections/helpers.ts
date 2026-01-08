@@ -32,8 +32,12 @@ export const requestPermissions = async ({
   });
 
   await bodyElement.runScript(
-    (el, request) => { window.ethereum.request(request); },
+    `(el, request) => {
+      const parsedRequest = JSON.parse(request);
+      window.ethereum.request(parsedRequest);
+    }`,
     requestPermissionsRequest,
   );
+
   logger.debug('Done requestPermissions');
 };
