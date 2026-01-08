@@ -1,6 +1,13 @@
 import { useSelector } from 'react-redux';
-import { selectMusdConversionPaymentTokensAllowlist } from '../selectors/featureFlags';
-import { isMusdConversionPaymentToken } from '../utils/musd';
+import {
+  selectMusdConversionCTATokens,
+  selectMusdConversionPaymentTokensAllowlist,
+  selectMusdConversionPaymentTokensBlocklist,
+} from '../selectors/featureFlags';
+import {
+  isTokenAllowed,
+  isTokenInWildcardList,
+} from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
@@ -17,29 +24,72 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionPaymentTokensAllowlist,
   );
 
+  const musdConversionPaymentTokensBlocklist = useSelector(
+    selectMusdConversionPaymentTokensBlocklist,
+  );
+
+  const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
+
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
-  const tokenFilter = useCallback(
+  // Filter tokens based on allowlist and blocklist rules.
+  // If allowlist is non-empty, token must be in it.
+  // If blocklist is non-empty, token must NOT be in it.
+  const filterAllowedTokens = useCallback(
     (tokens: AssetType[]) =>
       tokens.filter((token) =>
-        isMusdConversionPaymentToken(
-          token.address,
+        isTokenAllowed(
+          token.symbol,
           musdConversionPaymentTokensAllowlist,
+          musdConversionPaymentTokensBlocklist,
           token.chainId,
         ),
       ),
-    [musdConversionPaymentTokensAllowlist],
+    [
+      musdConversionPaymentTokensAllowlist,
+      musdConversionPaymentTokensBlocklist,
+    ],
   );
 
+  // Allowed tokens for conversion.
   const conversionTokens = useMemo(
-    () => tokenFilter(allTokens),
-    [allTokens, tokenFilter],
+    () => filterAllowedTokens(allTokens),
+    [allTokens, filterAllowedTokens],
   );
 
   const isConversionToken = (token?: AssetType | TokenI) => {
     if (!token) return false;
 
     return conversionTokens.some(
+      (musdToken) =>
+        token.address.toLowerCase() === musdToken.address.toLowerCase() &&
+        token.chainId === musdToken.chainId,
+    );
+  };
+
+  const getConversionTokensWithCtas = useCallback(
+    (tokens: AssetType[]) =>
+      tokens.filter((token) =>
+        isTokenInWildcardList(
+          token.symbol,
+          musdConversionCTATokens,
+          token.chainId,
+        ),
+      ),
+    [musdConversionCTATokens],
+  );
+
+  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
+  const tokensWithCTAs = useMemo(
+    () => getConversionTokensWithCtas(conversionTokens),
+    [conversionTokens, getConversionTokensWithCtas],
+  );
+
+  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
+  const isTokenWithCta = (token?: AssetType | TokenI) => {
+    if (!token) return false;
+
+    return tokensWithCTAs.some(
       (musdToken) =>
         token.address.toLowerCase() === musdToken.address.toLowerCase() &&
         token.chainId === musdToken.chainId,
@@ -62,10 +112,12 @@ export const useMusdConversionTokens = () => {
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
 
   return {
-    tokenFilter,
+    filterAllowedTokens,
     isConversionToken,
+    isTokenWithCta,
     isMusdSupportedOnChain,
     getMusdOutputChainId,
     tokens: conversionTokens,
+    tokensWithCTAs,
   };
 };
