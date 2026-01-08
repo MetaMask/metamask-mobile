@@ -6156,7 +6156,7 @@
     "quote_info_title": "Χρέωση",
     "network_fee_info_title": "Τέλη δικτύου",
     "network_fee_info_content": "Τα τέλη δικτύου εξαρτώνται από το φόρτο του δικτύου και από το πόσο περίπλοκη είναι η συναλλαγή σας.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Εκτ. πόντοι",
     "points_tooltip": "Πόντοι",
     "points_tooltip_content_1": "Οι πόντοι είναι ο τρόπος με τον οποίο κερδίζετε ανταμοιβές στο MetaMask Rewards, ολοκληρώνοντας συναλλαγές όπως ανταλλαγές, μεταφορές ή συμβόλαια αορίστου διάρκειας (perps).",

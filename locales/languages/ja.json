@@ -6156,7 +6156,7 @@
     "quote_info_title": "レート",
     "network_fee_info_title": "ネットワーク手数料",
     "network_fee_info_content": "ネットワーク手数料は、ネットワークの混雑状況とトランザクションの複雑さによって異なります。",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "推定ポイント数",
     "points_tooltip": "ポイント",
     "points_tooltip_content_1": "ポイントは、スワップ、ブリッジ、パーペチュアル取引など、トランザクションを完了したことによるMetaMaskリワードの獲得状況を示します。",

@@ -6156,7 +6156,7 @@
     "quote_info_title": "Tasa",
     "network_fee_info_title": "Tarifa de red",
     "network_fee_info_content": "Las tarifas de red dependen de qué tan ocupada esté la red y de qué tan compleja sea tu transacción.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Puntos estimados",
     "points_tooltip": "Puntos",
     "points_tooltip_content_1": "Los puntos son la forma de ganar recompensas de MetaMask por completar transacciones, como cuando canjeas, puenteas u operas con contratos perpetuos.",

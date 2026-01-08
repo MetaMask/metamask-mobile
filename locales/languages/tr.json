@@ -6156,7 +6156,7 @@
     "quote_info_title": "Oran",
     "network_fee_info_title": "Ağ Ücreti",
     "network_fee_info_content": "Ağ ücretleri, ağın yoğunluğuna ve işlemin karmaşıklığına bağlıdır.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Tah. puanlar",
     "points_tooltip": "Puan",
     "points_tooltip_content_1": "Takas, köprü ve sürekli vadeli işlem sözleşmeleri gibi işlemleri tamamladığınızda puan toplar ve MetaMask Ödülleri kazanırsınız.",

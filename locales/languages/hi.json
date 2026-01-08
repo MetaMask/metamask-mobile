@@ -6156,7 +6156,7 @@
     "quote_info_title": "रेट",
     "network_fee_info_title": "नेटवर्क फीस",
     "network_fee_info_content": "नेटवर्क फीस इस बात पर निर्भर करते हैं कि नेटवर्क कितना व्यस्त है और आपका ट्रांसेक्शन कितना जटिल है।",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "अनुमानित पॉइंट्स",
     "points_tooltip": "पॉइंट्स",
     "points_tooltip_content_1": "पॉइंट्स वह हैं जिनसे आप ट्रांसेक्शन पूरा करने पर MetaMask रिवार्ड्स कमाते हैं, जैसे जब आप स्वैप, ब्रिज या पर्प्स ट्रेड करते हैं।",

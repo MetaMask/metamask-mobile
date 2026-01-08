@@ -6156,7 +6156,7 @@
     "quote_info_title": "비율",
     "network_fee_info_title": "네트워크 수수료",
     "network_fee_info_content": "네트워크 수수료는 네트워크의 혼잡도와 트랜잭션의 복잡성에 따라 달라집니다.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "예상 포인트",
     "points_tooltip": "포인트",
     "points_tooltip_content_1": "포인트는 스왑, 브릿지, 무기한 선물 거래 등의 트랜잭션을 완료할 때마다 적립되며, 이를 통해 MetaMask 보상을 획득할 수 있습니다.",

@@ -6156,7 +6156,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Bayad sa Network",
     "network_fee_info_content": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Tinatayang mga point",
     "points_tooltip": "Mga Point",
     "points_tooltip_content_1": "Ang Mga Puntos ay kung paano ka nakakakuha ng mga Reward sa MetaMask para sa pagkumpleto ng mga transaksyon, gaya ng kapag nagsu-swap, nagbi-bridge, o nagti-trade ka ng perps.",
