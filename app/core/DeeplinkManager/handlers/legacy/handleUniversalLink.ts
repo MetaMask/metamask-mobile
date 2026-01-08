@@ -31,12 +31,16 @@ import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { RampType } from '../../../../reducers/fiatOrders/types';
-import { createDeepLinkUsedEventBuilder , mapSupportedActionToRoute } from '../../../../util/deeplinks/deepLinkAnalytics';
+import {
+  createDeepLinkUsedEventBuilder,
+  mapSupportedActionToRoute,
+} from '../../../../util/deeplinks/deepLinkAnalytics';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
 } from '../../types/deepLinkAnalytics.types';
+import { SupportedAction } from '../../types/deepLink.types';
 import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
 import { MetaMetrics } from '../../../Analytics';
@@ -238,7 +242,7 @@ async function handleUniversalLink({
         ? SignatureStatus.INVALID
         : SignatureStatus.MISSING;
 
-  const route = mapSupportedActionToRoute(action as ACTIONS);
+  const route = mapSupportedActionToRoute(action as unknown as SupportedAction);
 
   // Get interstitial disabled state safely
   let interstitialDisabled = false;

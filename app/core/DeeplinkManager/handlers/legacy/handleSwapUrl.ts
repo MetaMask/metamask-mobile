@@ -19,7 +19,7 @@ import { ethers } from 'ethers';
 import Engine from '../../../Engine';
 import { isHex } from 'viem';
 
-import { HandleSwapUrlParams } from '../types/deepLink.types';
+import { HandleSwapUrlParams } from '../../types/deepLink.types';
 
 /**
  * Validates and looks up a token from the bridge token list
