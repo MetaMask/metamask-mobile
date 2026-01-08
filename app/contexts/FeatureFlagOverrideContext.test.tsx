@@ -4,7 +4,6 @@ import {
   act,
   render,
   screen,
-  waitFor,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Text } from 'react-native';
