@@ -3412,10 +3412,7 @@ workflows:
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
                 echo "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
-                
-                # Get commit message (first line only, max 100 chars)
-                COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -1 | tr -d '\n' | cut -c1-100)
-                export BITRISE_GIT_MESSAGE="$COMMIT_MESSAGE"
+              
                 
                 # Ensure environment variables are available and export them
                 export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
@@ -3446,13 +3443,13 @@ workflows:
                 export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
                 export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
                 export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
-                export BITRISE_GIT_MESSAGE="$COMMIT_MESSAGE"
-                
+
+
+
                 bundle exec fastlane upload_to_testflight_only \
                   ipa_path:"$ABS_IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
-                  notify_external_testers:true \
-                  skip_waiting_for_build_processing:false
+                  changelog: "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown} | Branch: ${BITRISE_GIT_BRANCH} | Commit: ${BITRISE_GIT_COMMIT:0:7}"
       - script@1:
           title: Cleanup API Key
           if: always()

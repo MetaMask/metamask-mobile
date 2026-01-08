@@ -17,9 +17,8 @@ platform :ios do
   desc "Upload existing IPA to TestFlight for MetaMask main app"
   lane :upload_to_testflight_only do |options|
     ipa_path = options[:ipa_path]
-    groups = ['MetaMask Fastlane Test']
-    notify_external_testers = options[:notify_external_testers] || false
-    skip_waiting_for_build_processing = options[:skip_waiting_for_build_processing] || false
+    groups = options[:groups] || ['MetaMask BETA & Release Candidates']
+    notify_external_testers = true
     
     if ipa_path.nil? || ipa_path.empty?
       UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
@@ -82,28 +81,7 @@ platform :ios do
     end
     
     # Build changelog message from options or environment variables
-    changelog_message = options[:changelog]
-    
-    if changelog_message.nil? || changelog_message.empty?
-      # Build changelog from environment variables
-      workflow_name = ENV['BITRISE_TRIGGERED_WORKFLOW_ID'] || 'Unknown Workflow'
-      branch = ENV['BITRISE_GIT_BRANCH'] || 'Unknown Branch'
-      commit_hash = ENV['BITRISE_GIT_COMMIT'] ? ENV['BITRISE_GIT_COMMIT'][0..6] : 'Unknown'
-      commit_message = ENV['BITRISE_GIT_MESSAGE'] || ''
-      
-      changelog_parts = ["Workflow: #{workflow_name}", "Branch: #{branch}"]
-      
-      if commit_message && !commit_message.empty?
-        # Truncate commit message if too long (TestFlight has limits)
-        commit_msg = commit_message.split("\n").first.strip
-        commit_msg = commit_msg[0..100] + "..." if commit_msg.length > 100
-        changelog_parts << "Commit: #{commit_msg}"
-      else
-        changelog_parts << "Commit: #{commit_hash}"
-      end
-      
-      changelog_message = changelog_parts.join(" | ")
-    end
+    changelog_message = options[:changelog] || "No changelog provided"
     
     # Generate API key hash using app_store_connect_api_key action
     api_key = app_store_connect_api_key(
@@ -116,8 +94,6 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       ipa: ipa_path,
-      skip_waiting_for_build_processing: skip_waiting_for_build_processing,
-      skip_submission: false,
       distribute_external: true,
       groups: groups,
       notify_external_testers: notify_external_testers,
