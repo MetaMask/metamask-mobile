@@ -28,7 +28,8 @@ import {
   AlignItems as BoxAlignItems,
   FlexDirection as BoxFlexDirection,
 } from '../../../Box/box.types';
-import TokenIcon from '../../../../Base/TokenIcon';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { BridgeToken } from '../../types';
 import i18n, { strings } from '../../../../../../locales/i18n';
 import ClipboardManager from '../../../../../core/ClipboardManager';
@@ -353,10 +354,10 @@ const TokenInsightsSheet: React.FC = () => {
           style={styles.header}
         >
           <View style={styles.iconContainer}>
-            <TokenIcon
-              symbol={token.symbol}
-              icon={token.image}
-              medium
+            <AvatarToken
+              name={token.symbol}
+              imageSource={token.image ? { uri: token.image } : undefined}
+              size={AvatarSize.Md}
               testID={`token-insights-icon-${token.symbol}`}
             />
           </View>
