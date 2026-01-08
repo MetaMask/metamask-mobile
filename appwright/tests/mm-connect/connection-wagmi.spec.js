@@ -20,7 +20,9 @@ const WAGMI_TEST_DAPP_URL =
   'https://metamask.github.io/connect-monorepo/wagmi-e2e/';
 const WAGMI_TEST_DAPP_NAME = 'React Vite';
 
-test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
+// NOTE: This test requires the testing SRP to be used
+
+test.skip('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   device,
 }) => {
   WalletMainScreen.device = device;
@@ -38,19 +40,12 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     shouldWaitForQuiescence: false,
   });
 
-  await AppwrightHelpers.switchToNativeContext(device);
-
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
-    // commenting this out because we're manually dismissing modals and this check so slow
-    // await WalletMainScreen.isMainWalletViewVisible();
-
-    // Launch mobile browser and navigate to the dapp
     await launchMobileBrowser(device);
     await navigateToDapp(device, WAGMI_TEST_DAPP_URL, WAGMI_TEST_DAPP_NAME);
   });
 
-  await AppwrightHelpers.switchToWebViewContext(device, WAGMI_TEST_DAPP_URL);
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
@@ -59,25 +54,22 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-
     await DappConnectionModal.tapEditAccountsButton();
+    // Select account 3 in addition to Account 1
     await DappConnectionModal.tapAccountButton('Account 3');
     await DappConnectionModal.tapUpdateAccountsButton();
     await DappConnectionModal.tapPermissionsTabButton();
+    // Unselect OP Mainnet
     await DappConnectionModal.tapEditNetworksButton();
     await DappConnectionModal.tapNetworkButton('OP');
     await DappConnectionModal.tapUpdateNetworksButton();
     await DappConnectionModal.tapConnectButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -93,26 +85,19 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    // Accept in MetaMask app
-    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapConfirmButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      // This requires the SRP account to be used
       await WagmiTestDapp.assertPersonalSignResponseValue(
         '0xf6b3f2e43a0c7f1dbfb107b6d687979c8ae21ab7c065fa610bf52f8c579b21292e224e7af93cf16dd2f309de7072b46f11a21e08d76c6c5a3d10ce885e997d4b1b',
       );
@@ -123,20 +108,14 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    // Accept in MetaMask app
-    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Sepolia');
     await SignModal.tapCancelButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -147,18 +126,14 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SwitchChainModal.assertNetworkText('OP');
     await SwitchChainModal.tapConnectButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -170,23 +145,19 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('OP');
     await SignModal.tapCancelButton();
 
-    // Change to a specific account
+    // Change selected account to Account 3
     await WalletMainScreen.tapIdenticon();
-    await AccountListComponent.isComponentDisplayed(); // Optional: verify modal opened
+    await AccountListComponent.isComponentDisplayed();
     await AccountListComponent.tapOnAccountByName('Account 3');
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -201,21 +172,15 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    // Accept in MetaMask app
-    // await login(device, { dismissModals: false });
     await AddChainModal.assertText('42220');
     await AddChainModal.assertText('Celo');
     await AddChainModal.tapConfirmButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -227,28 +192,23 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    // Accept in MetaMask app
-    // await login(device, { dismissModals: false });
     await SignModal.assertNetworkText('Celo');
     await SignModal.tapCancelButton();
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  //
   // Resume from refresh
+  //
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await refreshMobileBrowser(device);
   });
-
-  // Wait for page to initialize
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   await AppwrightHelpers.withWebAction(
@@ -265,19 +225,18 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapCancelButton();
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  //
   // Terminate and connect
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -291,17 +250,13 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
     WAGMI_TEST_DAPP_URL,
   );
 
-  // Switch back to native context to interact with Android system dialog
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
 
-  // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
   await launchMobileBrowser(device);
-
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -312,6 +267,17 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
       await WagmiTestDapp.assertConnectedAccountsValue(
         '0xE2bEca5CaDC60b61368987728b4229822e6CDa83',
       );
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  //
+  // Reset dapp state
+  //
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
       await WagmiTestDapp.tapDisconnectButton();
     },
     WAGMI_TEST_DAPP_URL,
