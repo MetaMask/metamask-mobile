@@ -1,14 +1,21 @@
 import { formatMarketDetails } from './marketDetails';
 
 describe('formatMarketDetails', () => {
-  const mockOptions = {
+  const mockOptionsForNativeAsset = {
     locale: 'en-US',
     currentCurrency: 'USD',
-    isEvmAssetSelected: true,
+    isNativeAsset: true,
     conversionRate: 1.5,
   };
 
-  it('should format market details correctly with all values', () => {
+  const mockOptionsForERC20Token = {
+    locale: 'en-US',
+    currentCurrency: 'USD',
+    isNativeAsset: false,
+    conversionRate: 1.5,
+  };
+
+  it('formats market details with conversion for native assets', () => {
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -18,7 +25,7 @@ describe('formatMarketDetails', () => {
       dilutedMarketCap: 2000000,
     };
 
-    const result = formatMarketDetails(marketData, mockOptions);
+    const result = formatMarketDetails(marketData, mockOptionsForNativeAsset);
 
     expect(result).toEqual({
       marketCap: '$1.50M',
@@ -31,7 +38,7 @@ describe('formatMarketDetails', () => {
     });
   });
 
-  it('should handle null values correctly', () => {
+  it('returns null for zero or undefined values', () => {
     const marketData = {
       marketCap: 0,
       totalVolume: undefined,
@@ -41,7 +48,7 @@ describe('formatMarketDetails', () => {
       dilutedMarketCap: undefined,
     };
 
-    const result = formatMarketDetails(marketData, mockOptions);
+    const result = formatMarketDetails(marketData, mockOptionsForNativeAsset);
 
     expect(result).toEqual({
       marketCap: null,
@@ -54,7 +61,7 @@ describe('formatMarketDetails', () => {
     });
   });
 
-  it('should handle non-EVM network correctly', () => {
+  it('formats market details without conversion for ERC20 tokens', () => {
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -64,12 +71,7 @@ describe('formatMarketDetails', () => {
       dilutedMarketCap: 2000000,
     };
 
-    const nonEvmOptions = {
-      ...mockOptions,
-      isEvmAssetSelected: false,
-    };
-
-    const result = formatMarketDetails(marketData, nonEvmOptions);
+    const result = formatMarketDetails(marketData, mockOptionsForERC20Token);
 
     expect(result).toEqual({
       marketCap: '$1.00M',
@@ -82,8 +84,7 @@ describe('formatMarketDetails', () => {
     });
   });
 
-  it('should format market details correctly for French locale', () => {
-    // Test data with realistic market values
+  it('formats market details with French locale and EUR currency', () => {
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -94,27 +95,21 @@ describe('formatMarketDetails', () => {
     };
 
     const frenchLocaleOptions = {
-      ...mockOptions,
+      ...mockOptionsForNativeAsset,
       locale: 'fr-FR',
       currentCurrency: 'EUR',
     };
 
-    const formattedMarketDetails = formatMarketDetails(
-      marketData,
-      frenchLocaleOptions,
-    );
+    const result = formatMarketDetails(marketData, frenchLocaleOptions);
 
-    // Expected French-formatted values with currency
-    const expectedFormattedValues = {
-      marketCap: '1,50\xa0M\xa0€', // 1.5M EUR
-      totalVolume: '750,00\xa0k\xa0€', // 750K EUR
-      volumeToMarketCap: '50,00\xa0%', // 50% volume to market cap ratio
-      circulatingSupply: '1,00\xa0M', // 1M tokens
-      allTimeHigh: '150,00\xa0€', // 150 EUR
-      allTimeLow: '75,00\xa0€', // 75 EUR
-      fullyDiluted: '3,00\xa0M\xa0€', // 3M EUR
-    };
-
-    expect(formattedMarketDetails).toEqual(expectedFormattedValues);
+    expect(result).toEqual({
+      marketCap: '1,50\xa0M\xa0€',
+      totalVolume: '750,00\xa0k\xa0€',
+      volumeToMarketCap: '50,00\xa0%',
+      circulatingSupply: '1,00\xa0M',
+      allTimeHigh: '150,00\xa0€',
+      allTimeLow: '75,00\xa0€',
+      fullyDiluted: '3,00\xa0M\xa0€',
+    });
   });
 });
