@@ -5686,7 +5686,7 @@
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
+        "delivered": "Your mUSD is here!",
         "failed": "mUSD conversion failed"
       },
       "education": {
