@@ -271,6 +271,13 @@ const useFeedScrollManager = ({
         return;
       }
 
+      // This fixes an issue on Android where the scroll event fires after the header hides
+      // and was causing the header to be shown again.
+      if (lastDirection.value === 1 && currentY < 5) {
+        lastScrollY.value = currentY;
+        return;
+      }
+
       const delta = currentY - lastScrollY.value;
       lastScrollY.value = currentY;
 
@@ -626,7 +633,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     hasFlashListMounted.current = true;
     return Platform.select({
       ios: { x: 0, y: headerHidden ? -tabBarHeight : -contentInsetTop },
-      android: { x: 0, y: 0 },
+      android: undefined,
     });
   };
 
