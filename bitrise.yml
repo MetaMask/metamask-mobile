@@ -180,6 +180,30 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
+  nightly_exp_builds_to_testflight_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_exp:
+        depends_on:
+        - bump_version_code
+      build_ios_main_exp:
+        depends_on:
+        - bump_version_code
+      deploy_ios_testflight:
+        depends_on:
+        - build_ios_main_exp    
+  nightly_rc_builds_to_testflight_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_rc:
+        depends_on:
+        - bump_version_code
+      build_ios_main_rc:
+        depends_on:
+        - bump_version_code
+      deploy_ios_testflight:
+        depends_on:
+        - build_ios_main_rc
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -214,6 +238,9 @@ stages:
   deploy_ios_release:
     workflows:
       - deploy_ios_to_store: {}
+  deploy_ios_testflight:
+    workflows:
+      - upload_ios_main_to_testflight: {}
   create_android_release:
     workflows:
       - build_android_main_prod: {}
@@ -3050,7 +3077,6 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
-      - upload_ios_main_to_testflight
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
