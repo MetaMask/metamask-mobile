@@ -16,7 +16,8 @@ import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 
-const EVM_LEGACY_TEST_DAPP_URL = 'http://bs-local.com:5173/';
+const EVM_LEGACY_TEST_DAPP_URL =
+  'https://metamask.github.io/connect-monorepo/legacy-evm-e2e/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
 
 test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({

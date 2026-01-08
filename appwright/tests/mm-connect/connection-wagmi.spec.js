@@ -15,9 +15,9 @@ import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainMod
 import AddChainModal from '../../../wdio/screen-objects/Modals/AddChainModal.js';
 import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 
-const WAGMI_TEST_DAPP_URL = 'http://10.0.2.2:5173/';
+const WAGMI_TEST_DAPP_URL =
+  'https://metamask.github.io/connect-monorepo/wagmi-e2e/';
 const WAGMI_TEST_DAPP_NAME = 'React Vite';
 
 test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
