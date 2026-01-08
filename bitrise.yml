@@ -3077,6 +3077,7 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+      - upload_ios_main_to_testflight
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
@@ -3361,39 +3362,10 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # Validate all required secrets are set
-                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" ]; then
-                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID secret is not set"
-                  echo "Please set up App Store Connect API Key secrets in Bitrise"
-                  exit 1
-                fi
-                
-                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" ]; then
-                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID secret is not set"
-                  echo "Please set up App Store Connect API Key secrets in Bitrise"
-                  exit 1
-                fi
-                
-                if [ -z "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" ]; then
-                  echo "❌ Error: BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT secret is not set"
-                  echo "Please set up App Store Connect API Key secrets in Bitrise"
-                  exit 1
-                fi
-                
-                # Write the .p8 key file
-                echo "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT" > ios/AuthKey.p8
-                chmod 600 ios/AuthKey.p8
-                
-                # Export environment variables for Fastlane
-                export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_ID="$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
-                export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
-                
-                envman add --key APP_STORE_CONNECT_API_KEY_ISSUER_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID"
-                envman add --key APP_STORE_CONNECT_API_KEY_KEY_ID --value "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID"
-                envman add --key APP_STORE_CONNECT_API_KEY_KEY_FILEPATH --value "$(pwd)/ios/AuthKey.p8"
-                
-                echo "✅ App Store Connect API Key configured"
+                ./scripts/setup-app-store-connect-api-key.sh \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
+                  "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
       - script@1:
           title: Find IPA file
           inputs:
@@ -3466,7 +3438,7 @@ workflows:
 
 
                 bundle exec fastlane upload_to_testflight_only \
-                  ipa_path:"$ABS_IPA_PATH" \
+                  ipa_path:"$IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
                   changelog: "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown} | Branch: ${BITRISE_GIT_BRANCH} | Commit: ${BITRISE_GIT_COMMIT:0:7}"
       - script@1:
