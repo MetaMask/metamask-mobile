@@ -181,9 +181,9 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
 // Mock PerpsMarketHeader to avoid PerpsStreamProvider dependency
 jest.mock('../../components/PerpsMarketHeader', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  const selectors = jest.requireActual<
-    typeof import('../../../../../../e2e/selectors/Perps/Perps.selectors')
-  >('../../../../../../e2e/selectors/Perps/Perps.selectors');
+  const selectors = jest.requireActual<typeof import('../../Perps.testIds')>(
+    '../../Perps.testIds',
+  );
   return {
     __esModule: true,
     default: ({
