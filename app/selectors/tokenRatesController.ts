@@ -79,6 +79,10 @@ export const selectTokenMarketData = createSelector(
     tokenRatesControllerState.marketData,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData
+// References
+// app/components/UI/AssetOverview/Balance/Balance.tsx (1)
 export function selectPricePercentChange1d(
   state: RootState,
   chainId: Hex,
@@ -90,6 +94,10 @@ export function selectPricePercentChange1d(
   return pricePercentage1d;
 }
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData
+// References
+// app/components/UI/Earn/hooks/useEarnings.ts (1)
 export const selectSingleTokenPriceMarketData = createSelector(
   [
     (state: RootState, chainId: Hex, tokenAddress: Hex) => {
@@ -107,6 +115,10 @@ export const selectSingleTokenPriceMarketData = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData
+// References
+// app/components/hooks/useGetFormattedTokensPerChain.tsx (1)
 export const selectTokenMarketPriceData = createDeepEqualSelector(
   [selectTokenMarketData],
   (marketData) => {
@@ -118,6 +130,10 @@ export const selectTokenMarketPriceData = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData
+// References
+// app/components/Views/AssetDetails/index.tsx (1)
 export const selectTokenMarketDataByChainId = createSelector(
   [selectTokenMarketData, (_state: RootState, chainId: Hex) => chainId],
   (marketData, chainId) => marketData?.[chainId] || {},

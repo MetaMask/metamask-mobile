@@ -137,6 +137,11 @@ const getNonEvmCachedBalance = (
   return balanceOfAsset?.amount ?? undefined;
 };
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances
+// References
+// app/selectors/multichain/multichain.ts (1)
+// Note: selectNonEvmCachedBalance is used internally in this file
 export const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
@@ -259,6 +264,10 @@ export function selectMultichainHistoricalPrices(state: RootState) {
     .historicalPrices;
 }
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// app/components/Snaps/SnapUIAssetSelector/useSnapAssetDisplay.tsx (1)
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainBalances,
   selectMultichainAssets,
@@ -331,6 +340,11 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// app/selectors/multichain/multichain.ts (1)
+// app/components/UI/Bridge/hooks/useNonEvmTokensWithBalance/useNonEvmTokensWithBalance.ts (1)
 export const selectMultichainTokenListForAccountsAnyChain =
   createDeepEqualSelector(
     selectMultichainBalances,
@@ -538,6 +552,10 @@ export const getMultichainNetworkAggregatedBalance = (
   };
 };
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsRates
+// References
+// None found
 export const selectSelectedAccountMultichainNetworkAggregatedBalance =
   createDeepEqualSelector(
     selectSelectedInternalAccount,
@@ -571,6 +589,10 @@ interface MultichainNetworkAggregatedBalanceForAllAccounts {
   [accountId: InternalAccount['id']]: MultichainNetworkAggregatedBalance;
 }
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssets, selectMultichainAssetsRates
+// References
+// None found
 export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
   createDeepEqualSelector(
     selectInternalAccounts,
@@ -717,6 +739,10 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
     },
   );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances, selectMultichainAssetsMetadata, selectMultichainAssetsRates
+// References
+// None found
 export const makeSelectNonEvmAssetById = () =>
   createSelector(
     [
@@ -786,6 +812,10 @@ export const makeSelectNonEvmAssetById = () =>
     },
   );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectMultichainBalances
+// References
+// app/core/DeeplinkManager/handlers/legacy/handleCreateAccountUrl.ts (1)
 export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
   selectInternalAccounts,
   selectMultichainBalances,

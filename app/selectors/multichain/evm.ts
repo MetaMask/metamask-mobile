@@ -48,6 +48,10 @@ interface NativeTokenBalance {
 
 type ChainBalances = Record<string, NativeTokenBalance>;
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAccountsByChainId
+// References
+// app/selectors/multichain/evm.ts (2)
 /**
  * Get the cached native token balance for the selected account by chainId.
  *
@@ -100,6 +104,10 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
     ),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectCurrencyRates, selectCurrentCurrency
+// References
+// app/selectors/multichain/evm.ts (2)
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
@@ -222,6 +230,11 @@ export const selectNativeTokensAcrossChains = createSelector(
     selectNativeTokensAcrossChainsForAddress(state, selectedAddress),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/selectors/multichain/evm.ts (1)
+// app/components/UI/Bridge/hooks/useTokensWithBalance/index.ts (1)
 export const selectAccountTokensAcrossChainsForAddress =
   createDeepEqualSelector(
     selectAllTokens,
@@ -286,6 +299,10 @@ export const selectAccountTokensAcrossChains = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectConversionRate, selectCurrentCurrency
+// References
+// app/selectors/multichain/evm.ts (1)
 export const selectNativeEvmAsset = createDeepEqualSelector(
   selectAccountBalanceByChainId,
   selectEvmTicker,
@@ -314,6 +331,10 @@ export const selectNativeEvmAsset = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectConversionRate, selectCurrentCurrency
+// References
+// None found
 export const selectStakedEvmAsset = createDeepEqualSelector(
   selectAccountBalanceByChainId,
   selectConversionRate,
@@ -348,6 +369,10 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokensBalances
+// References
+// app/selectors/multichain/evm.ts (1)
 export const selectEvmTokensWithZeroBalanceFilter = createDeepEqualSelector(
   selectHideZeroBalanceTokens,
   selectAccountTokensAcrossChains,
@@ -422,6 +447,10 @@ export const selectEvmTokens = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenMarketData, selectTokensBalances, selectCurrencyRates, selectCurrentCurrency
+// References
+// None found
 export const selectEvmTokenFiatBalances = createDeepEqualSelector(
   selectEvmTokens,
   selectTokenMarketData,
@@ -463,6 +492,11 @@ export const selectEvmTokenFiatBalances = createDeepEqualSelector(
     }),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokenList, selectTokenMarketData
+// References
+// app/components/UI/Bridge/components/TokenInsightsSheet/TokenInsightsSheet.tsx (1)
+// app/components/UI/AssetOverview/TokenDetails/TokenDetails.tsx (1)
 export const selectEvmTokenMarketData = createDeepEqualSelector(
   [
     selectTokenList,

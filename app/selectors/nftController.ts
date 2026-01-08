@@ -44,6 +44,10 @@ export const selectAllNfts = createSelector(
   (nftControllerState: NftControllerState) => nftControllerState.allNfts,
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllNfts
+// References
+// app/util/sentry/tags/index.ts (1)
 export const selectAllNftsFlat = createSelector(
   selectAllNfts,
   (nftsByChainByAccount) => {
@@ -55,6 +59,10 @@ export const selectAllNftsFlat = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllNftContracts
+// References
+// None found
 /**
  * Selector that returns NFT contracts for the currently selected EVM account,
  * filtered by enabled networks in the EIP155 namespace.

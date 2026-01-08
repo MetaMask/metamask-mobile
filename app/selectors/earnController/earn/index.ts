@@ -69,6 +69,10 @@ const getPooledStakingApr = (
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokensBalances, selectTokenMarketData, selectCurrentCurrency, selectCurrencyRates, selectAccountsByChainId
+// References
+// app/selectors/earnController/earn/index.ts (1)
 const selectEarnTokenBaseData = createSelector(
   [
     selectEarnControllerState,
@@ -119,6 +123,13 @@ const selectEarnTokenBaseData = createSelector(
   }),
 );
 
+// TODO Unified Assets Controller State Access (3)
+// Uses: selectEarnTokenBaseData
+// References
+// app/selectors/earnController/earn/index.ts (5)
+// app/components/Views/WalletActions/WalletActions.tsx (1)
+// app/components/Views/TradeWalletActions/TradeWalletActions.tsx (1)
+// app/components/UI/Earn/hooks/useEarnTokens.ts (1)
 const selectEarnTokens = createDeepEqualSelector(
   selectEarnTokenBaseData,
   (earnTokenBaseData) => {
@@ -495,6 +506,13 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectEarnTokens
+// References
+// app/selectors/earnController/earn/index.ts (2)
+// app/components/UI/Earn/components/EarnBalance/index.tsx (1)
+// app/components/UI/Earn/components/EmptyStateCta/index.tsx (1)
+// app/components/UI/Earn/hooks/useEarnToken.ts (1)
 const selectEarnToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokens, asset) => {
@@ -510,6 +528,13 @@ const selectEarnToken = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectEarnTokens
+// References
+// app/selectors/earnController/earn/index.ts (2)
+// app/components/UI/Earn/components/EarnLendingBalance/index.tsx (1)
+// app/components/UI/Earn/components/EarnBalance/index.tsx (1)
+// app/components/UI/Earn/hooks/useEarnToken.ts (1)
 const selectEarnOutputToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokens, asset) => {
@@ -525,6 +550,10 @@ const selectEarnOutputToken = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectEarnTokens
+// References
+// app/selectors/earnController/earn/index.ts (1)
 const selectPairedEarnOutputToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokensData, earnToken) => {
@@ -545,6 +574,10 @@ const selectPairedEarnOutputToken = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (4)
+// Uses: selectEarnTokens
+// References
+// app/selectors/earnController/earn/index.ts (1)
 const selectPairedEarnToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokensData, earnOutputToken) => {
@@ -564,6 +597,17 @@ const selectPairedEarnToken = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (5)
+// Uses: selectEarnToken, selectEarnOutputToken, selectPairedEarnToken, selectPairedEarnOutputToken
+// References
+// app/components/UI/Earn/components/EarnLendingBalance/index.tsx (1)
+// app/components/UI/Stake/components/StakingBalance/StakingButtons/StakingButtons.tsx (1)
+// app/components/UI/Earn/hooks/useEarnLendingPosition.ts (1)
+// app/components/UI/Earn/hooks/useEarnings.ts (1)
+// app/components/UI/Earn/hooks/useEarnToken.ts (1)
+// app/components/UI/Earn/components/Earnings/index.tsx (1)
+// app/components/UI/Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton.tsx (1)
+// app/components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistory.tsx (1)
 const selectEarnTokenPair = createSelector(
   [
     (_state: RootState, asset: TokenI) => asset,

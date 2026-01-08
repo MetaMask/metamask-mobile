@@ -72,6 +72,10 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     ) ?? {},
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokens
+// References
+// app/components/UI/Notification/TransactionNotification/index.js (1)
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>
@@ -81,6 +85,13 @@ export const selectTokensByAddress = createSelector(
     }, {}),
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectTokens
+// References
+// app/components/Views/confirmations/legacy/components/ApproveTransactionReview/index.js (1)
+// app/components/Views/confirmations/legacy/ApproveView/Approve/index.js (1)
+// app/components/Views/confirmations/legacy/Approve/index.js (1)
+// app/components/UI/AccountApproval/index.js (1)
 export const selectTokensLength = createSelector(
   selectTokens,
   (tokens: Token[]) => tokens.length,
@@ -156,6 +167,10 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/util/sentry/tags/index.ts (1)
 export const selectAllTokensFlat = createSelector(
   selectAllTokens,
   (tokensByAccountByChain: {
@@ -203,6 +218,11 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllDetectedTokensForSelectedAddress
+// References
+// app/components/Views/Wallet/index.tsx (1)
+// app/components/Views/DetectedTokens/index.tsx (1)
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
@@ -227,6 +247,10 @@ export const selectAllDetectedTokensFlat = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// None found
 // Full selector implementation with selected address filtering
 export const selectTransformedTokens = createSelector(
   selectAllTokens,
@@ -263,6 +287,12 @@ export const selectTransformedTokens = createSelector(
   },
 );
 
+// TODO Unified Assets Controller State Access (2)
+// Uses: selectAllTokens
+// References
+// app/core/Engine/controllers/transaction-controller/event_properties/metamask-pay.ts (1)
+// app/components/Views/confirmations/hooks/transactions/useUpdateTokenAmount.ts (1)
+// app/components/Views/confirmations/hooks/tokens/useTokenWithBalance.ts (1)
 export const selectSingleTokenByAddressAndChainId = createSelector(
   selectAllTokens,
   (_state: RootState, tokenAddress: Hex) => tokenAddress,
