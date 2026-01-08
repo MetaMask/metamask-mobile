@@ -98,6 +98,9 @@ export const useFeedScrollManager = ({
   // Track if layout is already ready to avoid re-measuring
   const layoutReadyRef = useRef(false);
 
+  // Track all timeout IDs for proper cleanup
+  const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
   // Measure heights using useLayoutEffect
   // Retry mechanism ensures we get measurements even if initial render hasn't completed
   useLayoutEffect(() => {
@@ -105,6 +108,9 @@ export const useFeedScrollManager = ({
     if (layoutReadyRef.current) {
       return;
     }
+
+    // Clear any stale timeout IDs from previous renders
+    timeoutIdsRef.current = [];
 
     let headerMeasured = false;
     let tabBarMeasured = false;
@@ -144,13 +150,20 @@ export const useFeedScrollManager = ({
       // Retry if measurements failed and we haven't exceeded max retries
       if ((!headerMeasured || !tabBarMeasured) && retryCount < maxRetries) {
         retryCount++;
-        setTimeout(measureHeights, 50);
+        const retryTimeoutId = setTimeout(measureHeights, 50);
+        timeoutIdsRef.current.push(retryTimeoutId);
       }
     };
 
     // Initial measurement attempt
-    const timeoutId = setTimeout(measureHeights, 50);
-    return () => clearTimeout(timeoutId);
+    const initialTimeoutId = setTimeout(measureHeights, 50);
+    timeoutIdsRef.current.push(initialTimeoutId);
+
+    return () => {
+      // Clean up all pending timeouts on unmount
+      timeoutIdsRef.current.forEach(clearTimeout);
+      timeoutIdsRef.current = [];
+    };
   }, [headerRef, tabBarRef, sharedHeaderHeight, sharedTabBarHeight]);
 
   const animationConfig = {
