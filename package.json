@@ -198,7 +198,7 @@
     "@metamask/address-book-controller": "^7.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
-    "@metamask/assets-controllers": "^94.1.0",
+    "@metamask/assets-controllers": "^95.0.0",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.8.0",
     "@metamask/bridge-controller": "^64.2.0",
