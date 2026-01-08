@@ -91,9 +91,13 @@ jest.mock('../PerpsRowSkeleton', () => {
   };
 });
 
-jest.mock('../PerpsFillTag', () => function MockPerpsFillTag() {
-    return null;
-  });
+jest.mock(
+  '../PerpsFillTag',
+  () =>
+    function MockPerpsFillTag() {
+      return null;
+    },
+);
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
