@@ -134,7 +134,10 @@ import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
 } from './transaction-pay-controller-messenger';
-import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import {
+  getProfileMetricsControllerMessenger,
+  getProfileMetricsControllerInitMessenger,
+} from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 
@@ -426,7 +429,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   ProfileMetricsController: {
     getMessenger: getProfileMetricsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getProfileMetricsControllerInitMessenger,
   },
   ProfileMetricsService: {
     getMessenger: getProfileMetricsServiceMessenger,

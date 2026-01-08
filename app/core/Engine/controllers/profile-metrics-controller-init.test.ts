@@ -7,6 +7,7 @@ import { profileMetricsControllerInit } from './profile-metrics-controller-init'
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 jest.mock('@metamask/profile-metrics-controller');
 
@@ -20,7 +21,12 @@ function getInitRequestMock({
   remoteFeatureFlag: boolean;
   analyticsEnabled: boolean;
   pna25Acknowledged: boolean;
-}): jest.Mocked<ControllerInitRequest<ProfileMetricsControllerMessenger>> {
+}): jest.Mocked<
+  ControllerInitRequest<
+    ProfileMetricsControllerMessenger,
+    ProfileMetricsControllerInitMessenger
+  >
+> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -37,20 +43,19 @@ function getInitRequestMock({
     },
   });
 
-  // Create a mock controllerMessenger that handles AnalyticsController:isEnabled
-  const mockControllerMessenger = {
+  // Create a mock initMessenger that handles AnalyticsController:getState
+  const mockInitMessenger = {
     call: jest.fn((action: string) => {
-      if (action === 'AnalyticsController:isEnabled') {
-        return analyticsEnabled;
+      if (action === 'AnalyticsController:getState') {
+        return { optedIn: analyticsEnabled };
       }
       return undefined;
     }),
-  } as unknown as ProfileMetricsControllerMessenger;
+  } as unknown as ProfileMetricsControllerInitMessenger;
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
-    controllerMessenger: mockControllerMessenger,
-    initMessenger: undefined,
+    initMessenger: mockInitMessenger,
     analyticsId,
     getController: mockGetController,
     getState: mockGetState,

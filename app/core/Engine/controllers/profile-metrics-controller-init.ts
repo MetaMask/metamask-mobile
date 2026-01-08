@@ -2,7 +2,9 @@ import {
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
+import { analyticsControllerSelectors } from '@metamask/analytics-controller';
 import { ControllerInitFunction } from '../types';
+import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 /**
  * Initialize the profile metrics controller.
@@ -16,24 +18,24 @@ import { ControllerInitFunction } from '../types';
  */
 export const profileMetricsControllerInit: ControllerInitFunction<
   ProfileMetricsController,
-  ProfileMetricsControllerMessenger
+  ProfileMetricsControllerMessenger,
+  ProfileMetricsControllerInitMessenger
 > = ({
   controllerMessenger,
   persistedState,
   getController,
   analyticsId,
   getState,
+  initMessenger,
 }) => {
   const remoteFeatureFlagController = getController(
     'RemoteFeatureFlagController',
   );
   const assertUserOptedIn = () => {
     try {
-      const isEnabled = (
-        controllerMessenger as unknown as {
-          call: (action: string) => boolean;
-        }
-      ).call('AnalyticsController:isEnabled') as boolean;
+      const analyticsState = initMessenger.call('AnalyticsController:getState');
+      const isEnabled =
+        analyticsControllerSelectors.selectEnabled(analyticsState);
       return (
         remoteFeatureFlagController.state.remoteFeatureFlags
           .extensionUxPna25 === true &&
