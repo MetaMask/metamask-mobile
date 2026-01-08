@@ -129,6 +129,8 @@ const PreviousSeasonUnlockedRewards = () => {
                       ?.find(
                         (sr) => sr.id === unlockedReward.seasonRewardId,
                       ) as SeasonRewardDto;
+                    const isClaimable =
+                      seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
                     return (
                       <RewardItem
                         key={unlockedReward.id}
@@ -137,8 +139,8 @@ const PreviousSeasonUnlockedRewards = () => {
                         isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                         isEndOfSeasonReward
                         compact
-                        isLocked={false}
-                        onPress={handleRewardPress}
+                        isLocked={!isClaimable}
+                        onPress={isClaimable ? handleRewardPress : undefined}
                       />
                     );
                   })}

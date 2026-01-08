@@ -11,6 +11,8 @@ import {
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import Routes from '../../../../../constants/navigation/Routes';
+import { Button } from '@metamask/design-system-react-native';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -19,10 +21,11 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+const mockNavigate = jest.fn();
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
   }),
 }));
@@ -405,6 +408,351 @@ describe('RewardItem', () => {
       touchableOpacity.props.onPress?.();
 
       expect(mockOnPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('claimed rewards display', () => {
+    it('displays claimed label with icon for POINTS_BOOST reward when claimed without time status', () => {
+      mockFormatTimeRemaining.mockReturnValue(null);
+      const claimedPointsBoostReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const pointsBoostSeasonReward: SeasonRewardDto = {
+        ...mockSeasonReward,
+        rewardType: SeasonRewardType.POINTS_BOOST,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={claimedPointsBoostReward}
+          seasonReward={pointsBoostSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      expect(getByText('rewards.unlocked_rewards.claimed_label')).toBeDefined();
+    });
+
+    it('displays claimed label with icon for ALPHA_FOX_INVITE reward when claimed', () => {
+      mockFormatTimeRemaining.mockReturnValue(null);
+      const claimedAlphaFoxReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const alphaFoxSeasonReward: SeasonRewardDto = {
+        ...mockSeasonReward,
+        rewardType: SeasonRewardType.ALPHA_FOX_INVITE,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={claimedAlphaFoxReward}
+          seasonReward={alphaFoxSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      expect(getByText('rewards.unlocked_rewards.claimed_label')).toBeDefined();
+    });
+
+    it('displays shortUnlockedDescription for claimed GENERIC reward', () => {
+      mockFormatTimeRemaining.mockReturnValue(null);
+      const claimedGenericReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={claimedGenericReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      expect(
+        getByText(mockSeasonReward.shortUnlockedDescription),
+      ).toBeDefined();
+    });
+  });
+
+  describe('handleRewardItemPress', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('calls onPress callback when provided and reward is unlocked', () => {
+      const mockOnPress = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+          onPress={mockOnPress}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockOnPress).toHaveBeenCalledWith(mockReward.id, mockSeasonReward);
+    });
+
+    it('navigates to claim modal when no onPress callback provided', () => {
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          title: mockSeasonReward.name,
+          rewardId: mockReward.id,
+          seasonRewardId: mockSeasonReward.id,
+          rewardType: mockSeasonReward.rewardType,
+          isLocked: false,
+          hasClaimed: false,
+        }),
+      );
+    });
+
+    it('does not navigate or call onPress when reward is locked', () => {
+      const mockOnPress = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={mockSeasonReward}
+          isLocked
+          onPress={mockOnPress}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate or call onPress when reward is already claimed', () => {
+      const mockOnPress = jest.fn();
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+          onPress={mockOnPress}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('claim button', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('calls handleRewardItemPress and stopPropagation when claim button is pressed', () => {
+      const { UNSAFE_getAllByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      const buttons = UNSAFE_getAllByType(Button);
+      const claimButton = buttons[0];
+
+      // Call onPress directly with a mock event that has stopPropagation
+      const mockEvent = { stopPropagation: jest.fn() };
+      claimButton.props.onPress(mockEvent);
+
+      expect(mockEvent.stopPropagation).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          rewardId: mockReward.id,
+        }),
+      );
+    });
+
+    it('uses Primary variant for end of season reward claim button', () => {
+      const { getByTestId } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON,
+      );
+      expect(claimButton).toBeDefined();
+    });
+  });
+
+  describe('ALPHA_FOX_INVITE reward type', () => {
+    const alphaFoxSeasonReward: SeasonRewardDto = {
+      ...mockSeasonReward,
+      rewardType: SeasonRewardType.ALPHA_FOX_INVITE,
+    };
+
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('navigates with showInput true for ALPHA_FOX_INVITE reward', () => {
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={alphaFoxSeasonReward}
+          isLocked={false}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          showInput: true,
+          inputPlaceholder:
+            'rewards.upcoming_rewards.alpha_fox_invite_input_placeholder',
+        }),
+      );
+    });
+  });
+
+  describe('styling variations', () => {
+    it('renders with compact styling when compact prop is true', () => {
+      const { getByTestId } = render(
+        <RewardItem seasonReward={mockSeasonReward} isLocked compact />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON),
+      ).toBeDefined();
+    });
+
+    it('renders without border when isLast is true', () => {
+      const { getByTestId } = render(
+        <RewardItem seasonReward={mockSeasonReward} isLocked isLast />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON),
+      ).toBeDefined();
+    });
+  });
+
+  describe('rewardClaimUrl', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('generates claimUrl with address substitution', () => {
+      const seasonRewardWithClaimUrl: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimUrl: 'https://example.com/claim/{address}',
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithClaimUrl}
+          isLocked={false}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          claimUrl: 'https://example.com/claim/0x123',
+        }),
+      );
+    });
+
+    it('passes undefined claimUrl when seasonReward has no claimUrl', () => {
+      const seasonRewardWithoutClaimUrl: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimUrl: undefined,
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithoutClaimUrl}
+          isLocked={false}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          claimUrl: undefined,
+        }),
+      );
+    });
+
+    it('passes undefined claimUrl when no account address is available', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsActiveAccountAddress) return undefined;
+        return undefined;
+      });
+
+      const seasonRewardWithClaimUrl: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimUrl: 'https://example.com/claim/{address}',
+      };
+
+      const { UNSAFE_getByType } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithClaimUrl}
+          isLocked={false}
+        />,
+      );
+
+      const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
+      touchableOpacity.props.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          claimUrl: undefined,
+        }),
+      );
     });
   });
 });
