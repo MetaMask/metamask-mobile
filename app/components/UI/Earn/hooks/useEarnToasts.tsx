@@ -13,7 +13,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { TokenIconWithSpinner } from '../components/TokenIconWithSpinner';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { IconSize as ReactNativeDsIconSize } from '@metamask/design-system-react-native';
 
 export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -29,7 +30,6 @@ export type EarnToastOptions = Omit<
 
 export interface MusdConversionInProgressParams {
   tokenSymbol: string;
-  tokenIcon?: string;
 }
 
 export interface EarnToastOptionsConfig {
@@ -49,7 +49,7 @@ interface EarnToastLabelOptions {
 const getEarnToastLabels = ({
   primary,
   secondary,
-  primaryIsBold = true,
+  primaryIsBold = false,
 }: EarnToastLabelOptions) => {
   const labels = [
     {
@@ -117,8 +117,20 @@ const useEarnToasts = (): {
             <Icon
               name={IconName.Confirmation}
               color={theme.colors.success.default}
-              size={IconSize.Xl}
+              size={IconSize.Lg}
             />
+          </View>
+        ),
+      },
+      inProgress: {
+        ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
+        hapticsType: NotificationFeedbackType.Warning,
+        hasNoTimeout: true,
+        startAccessory: (
+          <View style={toastStyles.iconWrapper}>
+            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
           </View>
         ),
       },
@@ -155,23 +167,8 @@ const useEarnToasts = (): {
   const EarnToastOptions: EarnToastOptionsConfig = useMemo(
     () => ({
       mUsdConversion: {
-        inProgress: ({
-          tokenSymbol,
-          tokenIcon,
-        }: MusdConversionInProgressParams) => ({
-          ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
-          variant: ToastVariants.Icon,
-          iconName: IconName.Loading,
-          iconColor: theme.colors.icon.default,
-          backgroundColor: theme.colors.background.default,
-          hapticsType: NotificationFeedbackType.Warning,
-          hasNoTimeout: true,
-          startAccessory: (
-            <TokenIconWithSpinner
-              tokenSymbol={tokenSymbol}
-              tokenIcon={tokenIcon}
-            />
-          ),
+        inProgress: ({ tokenSymbol }: MusdConversionInProgressParams) => ({
+          ...earnBaseToastOptions.inProgress,
           labelOptions: getEarnToastLabels({
             primary: strings('earn.musd_conversion.toasts.converting', {
               token: tokenSymbol,
@@ -198,9 +195,8 @@ const useEarnToasts = (): {
     [
       closeButtonOptions,
       earnBaseToastOptions.error,
+      earnBaseToastOptions.inProgress,
       earnBaseToastOptions.success,
-      theme.colors.background.default,
-      theme.colors.icon.default,
     ],
   );
 
