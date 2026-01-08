@@ -12,19 +12,27 @@ import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import WalletView from '../../../../pages/wallet/WalletView';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
-import { AnvilNodeOptions, LocalNodeType } from '../../../../framework';
+import {
+  AnvilNodeOptions,
+  LocalNode,
+  LocalNodeType,
+} from '../../../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
-const LOCAL_CHAIN_NAME = 'Localhost';
+const LOCAL_CHAIN_NAME = 'Local RPC';
 
 const localNodeOptions = [
   {
@@ -99,11 +107,28 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         localNodeOptions: [
           {
@@ -137,7 +162,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Upgrade to smart account');
+        await Assertions.expectTextDisplayed('Smart contract interaction');
 
         // following check have been commentted as events are somehow failing on account model
         // https://github.com/MetaMask/metamask-mobile/issues/17930
