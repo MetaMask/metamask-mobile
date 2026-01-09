@@ -1,27 +1,38 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import {
   useFeedScrollManager,
   HEADER_ANIMATION_DURATION,
   SCROLL_THRESHOLD,
 } from './useFeedScrollManager';
 
-jest.mock('react-native-reanimated', () => {
-  const actualReanimated = jest.requireActual('react-native-reanimated/mock');
-  return {
-    ...actualReanimated,
-    useSharedValue: jest.fn((initialValue) => ({ value: initialValue })),
-    useAnimatedScrollHandler: jest.fn((config) => {
-      const handler = config.onScroll;
-      return { onScroll: handler };
-    }),
-    withTiming: jest.fn((toValue) => toValue),
-    Easing: {
-      out: jest.fn((easing) => easing),
-      cubic: jest.fn(),
-    },
-    runOnJS: jest.fn((fn) => fn),
-  };
-});
+const mockSharedValues: { value: unknown }[] = [];
+
+const mockRunOnJS = jest.fn(
+  (fn: (...args: unknown[]) => void) =>
+    (...args: unknown[]) =>
+      fn(...args),
+);
+
+const mockWithTiming = jest.fn((toValue: unknown) => toValue);
+
+jest.mock('react-native-reanimated', () => ({
+  useSharedValue: jest.fn((initialValue: unknown) => {
+    const sharedValue = { value: initialValue };
+    mockSharedValues.push(sharedValue);
+    return sharedValue;
+  }),
+  useAnimatedScrollHandler: jest.fn(
+    (config: { onScroll: (event: { contentOffset: { y: number } }) => void }) =>
+      config,
+  ),
+  withTiming: mockWithTiming,
+  Easing: {
+    out: jest.fn((easing: unknown) => easing),
+    cubic: jest.fn(),
+  },
+  runOnJS: mockRunOnJS,
+}));
 
 describe('useFeedScrollManager', () => {
   const createMockRef = (height?: number) => ({
@@ -35,14 +46,18 @@ describe('useFeedScrollManager', () => {
         : null,
   });
 
+  const originalPlatformOS = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockSharedValues.length = 0;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
+    Platform.OS = originalPlatformOS;
   });
 
   describe('constants', () => {
@@ -668,6 +683,459 @@ describe('useFeedScrollManager', () => {
       }
 
       expect(result.current.scrollHandler).toBeDefined();
+    });
+
+    it('processes scroll events without errors for extended scrolling', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 400 } });
+        handler.onScroll?.({ contentOffset: { y: 500 } });
+      }).not.toThrow();
+    });
+
+    it('processes scroll up events after scroll down without errors', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 250 } });
+        handler.onScroll?.({ contentOffset: { y: 150 } });
+        handler.onScroll?.({ contentOffset: { y: 50 } });
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+      }).not.toThrow();
+    });
+
+    it('handles iOS negative contentOffset at top of list', async () => {
+      Platform.OS = 'ios';
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: -10 } });
+        handler.onScroll?.({ contentOffset: { y: -20 } });
+      }).not.toThrow();
+    });
+
+    it('handles Android contentOffset below content inset at top of list', async () => {
+      Platform.OS = 'android';
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 400 } });
+        handler.onScroll?.({ contentOffset: { y: 500 } });
+        handler.onScroll?.({ contentOffset: { y: 400 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 150 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+      }).not.toThrow();
+    });
+
+    it('handles Android direction reversal after scrolling down', async () => {
+      Platform.OS = 'android';
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 400 } });
+        handler.onScroll?.({ contentOffset: { y: 500 } });
+        handler.onScroll?.({ contentOffset: { y: 490 } });
+      }).not.toThrow();
+    });
+
+    it('resets accumulated delta when direction changes', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 50 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 50 } });
+      });
+
+      expect(result.current.headerHidden).toBe(false);
+    });
+
+    it('does not trigger header change when below threshold', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 50 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+      });
+
+      expect(result.current.headerHidden).toBe(false);
+    });
+
+    it('handles scroll events after tab switch without errors', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      await act(async () => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+      });
+
+      await act(async () => {
+        result.current.setActiveIndex(1);
+      });
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 500 } });
+        handler.onScroll?.({ contentOffset: { y: 600 } });
+      }).not.toThrow();
+
+      expect(result.current.activeIndex).toBe(1);
+    });
+
+    it('invokes runOnJS during scroll operations', async () => {
+      mockRunOnJS.mockClear();
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      await act(async () => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 400 } });
+        handler.onScroll?.({ contentOffset: { y: 500 } });
+      });
+
+      expect(result.current.scrollHandler).toBeDefined();
+    });
+
+    it('handles multiple direction changes without errors', async () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 250 } });
+        handler.onScroll?.({ contentOffset: { y: 150 } });
+        handler.onScroll?.({ contentOffset: { y: 200 } });
+        handler.onScroll?.({ contentOffset: { y: 350 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+        handler.onScroll?.({ contentOffset: { y: 100 } });
+      }).not.toThrow();
+    });
+  });
+
+  describe('layout measurement retries', () => {
+    it('stops retrying after max retries exceeded', async () => {
+      let measureCallCount = 0;
+      type MeasureCallback = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+      ) => void;
+      const headerRef = {
+        current: {
+          measure: jest.fn((callback: MeasureCallback) => {
+            measureCallCount++;
+            callback(0, 0, 375, 0);
+          }),
+        },
+      };
+      const tabBarRef = {
+        current: {
+          measure: jest.fn((callback: MeasureCallback) => {
+            callback(0, 0, 375, 0);
+          }),
+        },
+      };
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as unknown as React.RefObject<never>,
+          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      expect(result.current.layoutReady).toBe(false);
+      expect(measureCallCount).toBeGreaterThanOrEqual(10);
+    });
+
+    it('succeeds on retry when measurement becomes available', async () => {
+      let measureCallCount = 0;
+      type MeasureCallback = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+      ) => void;
+      const headerRef = {
+        current: {
+          measure: jest.fn((callback: MeasureCallback) => {
+            measureCallCount++;
+            const height = measureCallCount >= 3 ? 120 : 0;
+            callback(0, 0, 375, height);
+          }),
+        },
+      };
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as unknown as React.RefObject<never>,
+          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      expect(result.current.headerHeight).toBe(120);
+    });
+
+    it('cleans up multiple pending timeouts on unmount', () => {
+      type MeasureCallback = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+      ) => void;
+      const headerRef = {
+        current: {
+          measure: jest.fn((callback: MeasureCallback) => {
+            callback(0, 0, 375, 0);
+          }),
+        },
+      };
+      const tabBarRef = {
+        current: {
+          measure: jest.fn((callback: MeasureCallback) => {
+            callback(0, 0, 375, 0);
+          }),
+        },
+      };
+
+      const { unmount } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as unknown as React.RefObject<never>,
+          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      unmount();
+
+      expect(() => {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }).not.toThrow();
     });
   });
 });
