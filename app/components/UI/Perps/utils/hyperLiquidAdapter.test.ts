@@ -1062,8 +1062,9 @@ describe('hyperLiquidAdapter', () => {
       );
 
       // Small decimal with many significant figures
+      // 0.123456 has 6 decimal digits, rounds to 5 sig figs = 0.12346
       expect(formatHyperLiquidPrice({ price: 0.123456, szDecimals: 0 })).toBe(
-        '0.1235',
+        '0.12346',
       );
     });
 
