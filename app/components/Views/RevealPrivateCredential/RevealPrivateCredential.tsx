@@ -201,8 +201,8 @@ const RevealPrivateCredential = ({
   };
 
   useEffect(() => {
-    // Track screen view analytics
     updateNavBar();
+    // Track screen view analytics
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build());
     revealCredential();
     // eslint-disable-next-line react-hooks/exhaustive-deps

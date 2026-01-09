@@ -501,7 +501,6 @@ exports[`SecuritySettings renders correctly 1`] = `
           </Text>
         </View>
       </View>
-      \\ 
       <View
         style={
           {
