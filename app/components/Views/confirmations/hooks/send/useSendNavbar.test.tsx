@@ -56,8 +56,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     ),
     ButtonIconSize: { Md: 'md' },
     IconName: { Close: 'Close', ArrowLeft: 'ArrowLeft' },
-    TextVariant: { BodyMd: 'body-md' },
+    TextVariant: { BodyMd: 'body-md', BodySm: 'body-sm' },
+    TextColor: { TextAlternative: 'text-alternative' },
     FontWeight: { Bold: 'bold' },
+    BoxAlignItems: { Center: 'center' },
   };
 });
 

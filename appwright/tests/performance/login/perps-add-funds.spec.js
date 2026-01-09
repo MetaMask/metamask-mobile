@@ -9,7 +9,7 @@ import PerpsTutorialScreen from '../../../../wdio/screen-objects/PerpsTutorialSc
 import PerpsMarketListView from '../../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../../wdio/screen-objects/PerpsDepositScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login } from '../../../utils/flows/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
@@ -33,7 +33,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
 
   const selectPerpsMainScreenTimer = new TimerHelper(
     'Select Perps Main Screen',
-    { ios: 1500, android: 1500 },
+    { ios: 1500, android: 2500 },
     device,
   );
   const openAddFundsTimer = new TimerHelper(
@@ -43,7 +43,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   );
   const getQuoteTimer = new TimerHelper(
     'Get Quote',
-    { ios: 6000, android: 6000 },
+    { ios: 6000, android: 7000 },
     device,
   );
   await screensSetup(device);

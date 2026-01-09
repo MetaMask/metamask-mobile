@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import {
   CardDetailsResponse,
@@ -78,14 +78,6 @@ const useCardDetails = () => {
     error,
     fetchData: fetchCardDetails,
   } = cacheResult;
-
-  useEffect(() => {
-    if (sdk && isAuthenticated && !isLoading && !error && !cardDetailsData) {
-      fetchCardDetails();
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk, isAuthenticated, isLoading, error, cardDetailsData]);
 
   // Poll logic to check if card is provisioned
   // max polling attempts is 10, polling interval is 2 seconds

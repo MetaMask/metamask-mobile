@@ -138,7 +138,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
-        buildPath: 'bs://bede505f232cc2fccff4d3356d2e4e1cc12b8bec', // Just a demo, CI will take care of this
+        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },

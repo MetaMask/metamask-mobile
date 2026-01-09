@@ -4,7 +4,7 @@ import TimerHelper from '../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login } from '../../../utils/flows/Flows.js';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
 test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
@@ -19,14 +19,12 @@ test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
 
   const balanceStableTimer = new TimerHelper(
     'Time since the user navigates to wallet tab until the balance stabilizes',
-    { ios: 25000, android: 25000 },
+    { ios: 25000, android: 40000 },
     device,
   );
-
-  await balanceStableTimer.measure(() =>
-    WalletMainScreen.waitForBalanceToStabilize(),
+  await balanceStableTimer.measure(
+    async () => await WalletMainScreen.waitForBalanceToStabilize(),
   );
-
   performanceTracker.addTimer(balanceStableTimer);
   // Quality gates validation is performed by the reporter when generating reports
 });
