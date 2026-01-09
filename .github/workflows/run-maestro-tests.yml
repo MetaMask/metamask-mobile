@@ -16,6 +16,8 @@ on:
         options:
           - main
           - flask
+  push:
+  pull_request:
 
 jobs:
   build-android-apks:
