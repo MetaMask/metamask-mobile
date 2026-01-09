@@ -14,7 +14,7 @@ export const styleSheet = (_params: { theme: Theme }) =>
     backgroundImage: {
       width: '100%',
       height: '100%',
-      resizeMode: 'center',
+      resizeMode: 'contain',
     },
     content: {
       paddingHorizontal: 16,
