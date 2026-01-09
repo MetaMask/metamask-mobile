@@ -142,6 +142,20 @@ jobs:
           pr-number: ${{ env.TARGET_PR_NUMBER }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
+  setup-dependencies:
+    name: Setup Dependencies
+    needs:
+      - fingerprint-comparison
+      - approval
+    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: refs/pull/${{ inputs.pr_number }}/head
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-eas-update
+      artifact-retention-days: 1
+
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
@@ -149,6 +163,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - approval
+      - setup-dependencies
     if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -208,17 +223,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
-      - name: Install dependencies
-        run: |
-          echo "📦 Installing dependencies..."
-          yarn install --immutable
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
 
-      - name: Setup project
+      - name: Verify downloaded artifacts
         run: |
-          echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
 
       - name: Display configuration
         run: |
