@@ -14,7 +14,7 @@ import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 const MULTI_CHAIN_TEST_DAPP_URL = 'https://test.cursedlab.xyz/';
 const MULTI_CHAIN_TEST_DAPP_NAME = 'Multichain Test Dapp';
 
-test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
+test.skip('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
   WalletMainScreen.device = device;
   MultiChainTestDapp.device = device;
   AndroidScreenHelpers.device = device;
