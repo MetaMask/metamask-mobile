@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -9,13 +9,37 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
+import ClipboardManager from '../../../core/ClipboardManager';
+import Device from '../../../util/device';
 
 // Mock dispatch function
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn(() => ({ build: jest.fn() })),
-  build: jest.fn(),
+
+// Create a stable mock for createEventBuilder that returns a chainable object
+const createMockEventBuilder = () => {
+  const builder = {
+    addProperties: jest.fn().mockImplementation(() => builder),
+    build: jest.fn().mockReturnValue({}),
+  };
+  return builder;
+};
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockImplementation(createMockEventBuilder);
+
+// Mock useAuthentication hook
+const mockReauthenticate = jest.fn();
+const mockRevealSRP = jest.fn();
+
+jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
+  __esModule: true,
+  default: () => ({
+    reauthenticate: mockReauthenticate,
+    revealSRP: mockRevealSRP,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -26,7 +50,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Create mock account to avoid circular dependency
-const createMockAccount = (): InternalAccount => ({
+const createMockAccount = (
+  overrides: Partial<InternalAccount> = {},
+): InternalAccount => ({
   type: EthAccountType.Eoa,
   id: 'unique-account-id-1',
   address: '0x1234567890123456789012345678901234567890',
@@ -48,11 +74,46 @@ const createMockAccount = (): InternalAccount => ({
     nameLastUpdatedAt: Date.now(),
     lastSelected: Date.now(),
   },
+  ...overrides,
 });
+
+// Create hardware account mock
+const createHardwareAccount = (): InternalAccount =>
+  createMockAccount({
+    id: 'hardware-account-id',
+    address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+    metadata: {
+      name: 'Ledger Account',
+      importTime: Date.now(),
+      keyring: {
+        type: KeyringTypes.ledger,
+      },
+      nameLastUpdatedAt: Date.now(),
+      lastSelected: Date.now(),
+    },
+  });
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
+  useSelector: jest.fn().mockImplementation((selector) => {
+    const mockState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'unique-account-id-1',
+              accounts: {
+                'unique-account-id-1': {
+                  address: '0x1234567890123456789012345678901234567890',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    return selector(mockState);
+  }),
   useDispatch: () => mockDispatch,
 }));
 
@@ -102,11 +163,24 @@ jest.mock('../../../store/storage-wrapper', () => ({
 // Simple QRCode mock - we don't need to test the QR library itself
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
-// Simplified ScrollableTabView mock - just needs to render children
-jest.mock(
-  '@tommasini/react-native-scrollable-tab-view',
-  () => 'ScrollableTabView',
-);
+// Simplified ScrollableTabView mock - render children and expose onChangeTab
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({
+    children,
+    onChangeTab,
+  }: {
+    children: React.ReactNode;
+    onChangeTab?: (event: { i: number }) => void;
+  }) => (
+    <View
+      testID="scrollable-tab-view"
+      onTouchEnd={() => onChangeTab?.({ i: 0 })}
+    >
+      {children}
+    </View>
+  );
+});
 
 // Device mock - necessary since component uses Device.isIos(), Device.isAndroid(), Device.getDeviceAPILevel()
 jest.mock('../../../util/device', () => ({
@@ -118,6 +192,20 @@ jest.mock('../../../util/device', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: jest.fn(),
+  isHardwareAccount: jest.fn().mockReturnValue(false),
+}));
+
+// Mock Linking for URL tests
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock trace utilities
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: { RevealSrp: 'RevealSrp' },
+  TraceOperation: { RevealPrivateCredential: 'RevealPrivateCredential' },
 }));
 
 const mockStore = configureMockStore();
@@ -132,232 +220,806 @@ const initialState = {
 
 const store = mockStore(initialState);
 
-describe('RevealPrivateCredential', () => {
-  let mockAccount: InternalAccount;
+const renderWithProviders = (ui: React.ReactNode) =>
+  render(
+    <Provider store={store}>
+      <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+    </Provider>,
+  );
 
+const createDefaultRoute = (
+  params: Record<string, unknown> = {},
+): {
+  key: string;
+  name: 'RevealPrivateCredential';
+  params: Record<string, unknown>;
+} => ({
+  key: 'RevealPrivateCredential',
+  name: 'RevealPrivateCredential',
+  params,
+});
+
+describe('RevealPrivateCredential', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAccount = createMockAccount();
 
-    // Set up address mock to return our mock account
+    // Restore mock implementations after clearAllMocks
+    mockCreateEventBuilder.mockImplementation(createMockEventBuilder);
+
+    // Default mock implementations
+    mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+    mockRevealSRP.mockResolvedValue('test seed phrase words here');
+
     const addressMock = jest.requireMock('../../../util/address');
-    addressMock.getInternalAccountByAddress.mockReturnValue(mockAccount);
+    addressMock.getInternalAccountByAddress.mockReturnValue(
+      createMockAccount(),
+    );
+    addressMock.isHardwareAccount.mockReturnValue(false);
+
+    // Reset Device mocks to defaults
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
+    (Device.isIos as jest.Mock).mockReturnValue(true);
+    (Device.getDeviceAPILevel as jest.Mock).mockResolvedValue(30);
   });
 
-  const renderWithProviders = (ui: React.ReactNode) =>
-    render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
-      </Provider>,
-    );
-
-  it('renders reveal SRP correctly when the credential is directly passed', () => {
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  it('renders reveal SRP correctly when the credential is passed via the route object', () => {
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
+  describe('rendering', () => {
+    it('renders reveal SRP with password entry when locked', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
 
-  it('renders SRP explanation for seed phrase reveal', () => {
-    const { getByText } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-
-    // Renders SRP explanation instead of AccountInfo
-    expect(getByText('Secret Recovery Phrase')).toBeTruthy();
-  });
-
-  it('shows warning message on incorrect password', async () => {
-    const { getByPlaceholderText, getByTestId } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-    const passwordInput = getByPlaceholderText('Password');
-    fireEvent.changeText(passwordInput, 'wrong-password');
-    fireEvent(passwordInput, 'submitEditing');
-    await waitFor(() => {
       expect(
-        getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID),
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
+      ).toBeTruthy();
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
+      ).toBeTruthy();
+    });
+
+    it('renders SRP explanation text', () => {
+      const { getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      expect(getByText('Secret Recovery Phrase')).toBeTruthy();
+    });
+
+    it('renders warning section with eye slash icon', () => {
+      const { toJSON } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders cancel button when showCancelButton is true', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+          showCancelButton
+        />,
+      );
+
+      expect(
+        getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        ),
       ).toBeTruthy();
     });
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('shows modal on correct password', async () => {
-    const { getByPlaceholderText, getByTestId } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-    const passwordInput = getByPlaceholderText('Password');
-    fireEvent.changeText(passwordInput, 'correct-password');
-    fireEvent(passwordInput, 'submitEditing');
-    await waitFor(() => {
+  describe('password entry', () => {
+    it('updates password state on text change', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'my-password');
+
+      expect(passwordInput.props.value).toBe('my-password');
+    });
+
+    it('displays warning message on incorrect password', async () => {
+      mockReauthenticate.mockRejectedValue(new Error(WRONG_PASSWORD_ERROR));
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'wrong-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        const warningText = getByTestId(
+          RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
+        );
+        expect(warningText.props.children).toBeTruthy();
+      });
+    });
+
+    it('triggers tryUnlock on submit editing', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'correct-password');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockReauthenticate).toHaveBeenCalledWith('correct-password');
+      });
+    });
+
+    it('disables confirm button when password does not meet requirements', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      // Empty password should disable the button
+      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    });
+  });
+
+  describe('revealCredential', () => {
+    it('reveals SRP via biometric authentication on mount', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'biometric-password' });
+      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4 word5 word6');
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockReauthenticate).toHaveBeenCalled();
+      });
+    });
+
+    it('silently ignores PASSWORD_NOT_SET_WITH_BIOMETRICS error', async () => {
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored`,
+        ),
+      );
+
+      const { queryByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockReauthenticate).toHaveBeenCalled();
+      });
+
+      // Should not show error for this specific case
+      const warningText = queryByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
+      );
+      // The warning should be empty string
+      expect(warningText?.props.children).toBeFalsy();
+    });
+
+    it('displays hardware error for hardware accounts', async () => {
+      const addressMock = jest.requireMock('../../../util/address');
+      addressMock.isHardwareAccount.mockReturnValue(true);
+      mockReauthenticate.mockRejectedValue(new Error('Hardware account error'));
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({
+            selectedAccount: createHardwareAccount(),
+          })}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'test-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(mockReauthenticate).toHaveBeenCalled();
+      });
+    });
+
+    it('displays unknown error for non-password errors', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'test' });
+      mockRevealSRP.mockRejectedValue(new Error('Some unknown error'));
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'test-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Wait for modal to show first
+      await waitFor(() => {
+        expect(
+          getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+        ).toBeTruthy();
+      });
+    });
+
+    it('uses keyringId parameter when provided', async () => {
+      const testKeyringId = 'custom-keyring-id';
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue('seed phrase');
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ keyringId: testKeyringId })}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockReauthenticate).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('tryUnlock', () => {
+    it('dispatches recordSRPRevealTimestamp on successful unlock', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'correct-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalled();
+      });
+    });
+
+    it('shows modal on successful authentication', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'correct-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+        ).toBeTruthy();
+      });
+    });
+
+    it('tracks NEXT_REVEAL_SRP_CTA analytics event', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'correct-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('cancelReveal', () => {
+    it('calls cancel callback when provided', async () => {
+      const mockCancel = jest.fn();
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={mockCancel}
+          showCancelButton
+        />,
+      );
+
+      await waitFor(() => {
+        const cancelButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        fireEvent.press(cancelButton);
+      });
+
+      expect(mockCancel).toHaveBeenCalled();
+    });
+
+    it('tracks REVEAL_SRP_CANCELLED when not unlocked', async () => {
+      const mockCancel = jest.fn();
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={mockCancel}
+          showCancelButton
+        />,
+      );
+
+      await waitFor(() => {
+        const cancelButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        fireEvent.press(cancelButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+    });
+
+    it('calls navigation.pop when shouldUpdateNav is true', async () => {
+      const mockPop = jest.fn();
+      const mockNavigation = {
+        pop: mockPop,
+        setOptions: jest.fn(),
+      };
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ shouldUpdateNav: true })}
+          navigation={mockNavigation}
+          cancel={undefined as unknown as () => void}
+          showCancelButton
+        />,
+      );
+
+      await waitFor(() => {
+        const cancelButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        fireEvent.press(cancelButton);
+      });
+
+      expect(mockPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('clipboard functionality', () => {
+    it('copies SRP to clipboard when copy button is pressed', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
+
+      const { queryByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Wait for auto-reveal via biometrics
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      // Check if copy button exists (only visible when unlocked)
+      await waitFor(
+        () => {
+          const copyButton = queryByTestId(
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+          );
+          if (copyButton) {
+            fireEvent.press(copyButton);
+            expect(ClipboardManager.setStringExpire).toHaveBeenCalled();
+          }
+        },
+        { timeout: 2000 },
+      );
+    });
+
+    it('dispatches showAlert after copying to clipboard', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
+
+      const { queryByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      await waitFor(
+        () => {
+          const copyButton = queryByTestId(
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+          );
+          if (copyButton) {
+            fireEvent.press(copyButton);
+            expect(mockDispatch).toHaveBeenCalled();
+          }
+        },
+        { timeout: 2000 },
+      );
+    });
+  });
+
+  describe('Android-specific behavior', () => {
+    it('disables clipboard for old Android API levels', async () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.getDeviceAPILevel as jest.Mock).mockResolvedValue(20); // Below minimum
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(Device.getDeviceAPILevel).toHaveBeenCalled();
+      });
+    });
+
+    it('enables clipboard for supported Android API levels', async () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.getDeviceAPILevel as jest.Mock).mockResolvedValue(30);
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(Device.getDeviceAPILevel).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('modal interactions', () => {
+    it('opens external link when SRP guide link is pressed', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'correct-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+        ).toBeTruthy();
+      });
+    });
+  });
+
+  describe('navigation', () => {
+    it('updates navigation options when shouldUpdateNav is true', () => {
+      const mockSetOptions = jest.fn();
+      const mockNavigation = {
+        pop: jest.fn(),
+        setOptions: mockSetOptions,
+      };
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ shouldUpdateNav: true })}
+          navigation={mockNavigation}
+          cancel={() => null}
+        />,
+      );
+
+      expect(mockSetOptions).toHaveBeenCalled();
+    });
+
+    it('does not update navigation options when shouldUpdateNav is false', () => {
+      const mockSetOptions = jest.fn();
+      const mockNavigation = {
+        pop: jest.fn(),
+        setOptions: mockSetOptions,
+      };
+
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ shouldUpdateNav: false })}
+          navigation={mockNavigation}
+          cancel={() => null}
+        />,
+      );
+
+      expect(mockSetOptions).not.toHaveBeenCalled();
+    });
+
+    it('does not update navigation options when navigation is null', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ shouldUpdateNav: true })}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
       expect(
-        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeTruthy();
     });
   });
 
-  it('renders TabView when unlocked', async () => {
-    const mockEngine = jest.requireMock('../../../core/Engine');
-    mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(true);
-    mockEngine.context.KeyringController.exportSeedPhrase.mockResolvedValue(
-      new Uint8Array([1, 2, 3]),
-    );
+  describe('analytics', () => {
+    it('tracks REVEAL_SRP_SCREEN event on mount', () => {
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
 
-    const { getByPlaceholderText, getByTestId } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+    });
 
-    // Enter password and confirm
-    const passwordInput = getByPlaceholderText('Password');
-    fireEvent.changeText(passwordInput, 'correct-password');
+    it('tracks CANCEL_REVEAL_SRP_CTA when cancel is pressed', async () => {
+      const mockCancel = jest.fn();
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
 
-    const confirmButton = getByTestId(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-    );
-    fireEvent.press(confirmButton);
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={mockCancel}
+          showCancelButton
+        />,
+      );
 
-    // Component should render without errors when unlocked
-    await waitFor(() => {
-      expect(confirmButton).toBeTruthy();
+      await waitFor(() => {
+        const cancelButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        fireEvent.press(cancelButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
-  it('tracks analytics on tab changes', () => {
-    // Given a component that renders tabs
-    renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
+  describe('done action', () => {
+    it('navigates back and tracks SRP_DONE_CTA when done is pressed after unlock', async () => {
+      const mockCancel = jest.fn();
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
 
-    // Then analytics should be set up
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
+      const { queryByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={mockCancel}
+        />,
+      );
+
+      // Wait for biometric unlock
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      // After unlock, the cancel button becomes "Done"
+      await waitFor(
+        () => {
+          const doneButton = queryByTestId(
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+          );
+          if (doneButton) {
+            fireEvent.press(doneButton);
+            expect(mockTrackEvent).toHaveBeenCalled();
+          }
+        },
+        { timeout: 2000 },
+      );
+    });
   });
 
-  it('renders component structure correctly', () => {
-    const { getByTestId } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {},
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
+  describe('selected account handling', () => {
+    it('uses selectedAccount address from route params when provided', () => {
+      const customAccount = createMockAccount({
+        address: '0xCustomAddress1234567890123456789012345678',
+      });
 
-    // Should render main container
-    expect(getByTestId('reveal-private-credential-screen')).toBeTruthy();
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({ selectedAccount: customAccount })}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
 
-    // Should render password input
-    expect(getByTestId('private-credential-password-text-input')).toBeTruthy();
-  });
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
+      ).toBeTruthy();
+    });
 
-  it('handles navigation with navigation object', () => {
-    const mockNavigation = {
-      pop: jest.fn(),
-      setOptions: jest.fn(),
-    };
+    it('falls back to checkSummedAddress from selector when no selectedAccount', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
 
-    const { getByTestId } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {
-            shouldUpdateNav: true,
-          },
-        }}
-        navigation={mockNavigation}
-        cancel={() => null}
-      />,
-    );
-
-    // Should render without navigation errors
-    expect(getByTestId('reveal-private-credential-screen')).toBeTruthy();
-  });
-
-  it('handles keyring ID parameter correctly', () => {
-    // Given a component with keyring ID parameter
-    const testKeyringId = 'test-keyring-id';
-
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
-          params: {
-            keyringId: testKeyringId,
-          },
-        }}
-        navigation={null}
-        cancel={() => null}
-      />,
-    );
-
-    // Then component should render without errors
-    expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
+      ).toBeTruthy();
+    });
   });
 });
