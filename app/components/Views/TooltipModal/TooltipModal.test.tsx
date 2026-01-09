@@ -79,8 +79,8 @@ describe('TooltipModal', () => {
     it('renders with string tooltip content', () => {
       const { getByText } = renderTooltipModal();
 
-      expect(getByText('Test Tooltip')).toBeDefined();
-      expect(getByText('This is a test tooltip')).toBeDefined();
+      expect(getByText('Test Tooltip')).toBeOnTheScreen();
+      expect(getByText('This is a test tooltip')).toBeOnTheScreen();
     });
 
     it('renders with ReactNode tooltip content', () => {
@@ -89,13 +89,13 @@ describe('TooltipModal', () => {
 
       const { getByTestId } = renderTooltipModal(props);
 
-      expect(getByTestId('custom-tooltip')).toBeDefined();
+      expect(getByTestId('custom-tooltip')).toBeOnTheScreen();
     });
 
     it('renders the Got It button', () => {
       const { getByText } = renderTooltipModal();
 
-      expect(getByText(strings('browser.got_it'))).toBeDefined();
+      expect(getByText(strings('browser.got_it'))).toBeOnTheScreen();
     });
   });
 
