@@ -201,7 +201,8 @@ export const usePredictMarketData = (
     setCurrentOffset(0);
     currentOffsetRef.current = 0;
     setHasMore(true);
-    setMarketData([]);
+    // Don't clear marketData here - keep showing existing data while loading new results
+    // This prevents the blank UI flash during search transitions
     fetchMarketData(false);
   }, [category, q, fetchMarketData]);
 
