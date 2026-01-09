@@ -286,7 +286,7 @@ describe('useMusdConversionStatus', () => {
       );
     });
 
-    it('passes empty tokenSymbol and undefined tokenIcon when payTokenAddress is missing', () => {
+    it('passes empty tokenSymbol when payTokenAddress is missing', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
@@ -301,11 +301,10 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockInProgressFn).toHaveBeenCalledWith({
         tokenSymbol: 'Token',
-        tokenIcon: undefined,
       });
     });
 
-    it('passes empty tokenSymbol and undefined tokenIcon when metamaskPay is missing', () => {
+    it('passes empty tokenSymbol when metamaskPay is missing', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
@@ -315,7 +314,6 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockInProgressFn).toHaveBeenCalledWith({
         tokenSymbol: 'Token',
-        tokenIcon: undefined,
       });
     });
   });
