@@ -155,7 +155,7 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
+    if: ${{ !cancelled() && (contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')) }}
     needs:
       - flask-android-smoke
     steps:

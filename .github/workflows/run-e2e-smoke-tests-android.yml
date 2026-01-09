@@ -36,6 +36,7 @@ jobs:
     secrets: inherit
 
   perps-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePerps')
     strategy:
       matrix:
         split: [1]
