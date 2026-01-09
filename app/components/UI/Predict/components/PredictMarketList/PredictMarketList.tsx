@@ -51,15 +51,18 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
   );
 
   const tabsAnimatedStyle = useAnimatedStyle(() => {
+    'worklet';
     if (!scrollCoordinator) {
       return {};
     }
     const offset = scrollCoordinator.balanceCardOffset.value;
+    // Transform AND marginBottom to fill space when card is hidden
+    // With direction-aware logic, marginBottom won't cause flicker anymore
     return {
       transform: [{ translateY: offset }],
       marginBottom: offset,
     };
-  }, [scrollCoordinator]);
+  }, [scrollCoordinator?.balanceCardOffset]);
 
   return (
     <>
