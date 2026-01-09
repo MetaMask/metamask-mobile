@@ -205,6 +205,8 @@ class AuthenticationService {
           }
         }),
       ).catch(console.error);
+
+      password = this.wipeSensitiveData();
     }
   };
 
@@ -810,6 +812,9 @@ class AuthenticationService {
       // Error while submitting password.
       // TODO: Also handle seedless error
       handlePasswordSubmissionError(error);
+    } finally {
+      // Wipe sensitive data.
+      password = this.wipeSensitiveData();
     }
   };
 
