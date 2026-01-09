@@ -10,9 +10,8 @@ import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedles
  * @param error - The error to handle.
  * @returns - void
  */
-export const handlePasswordSubmissionError = (error: unknown) => {
-  const loginError = error as Error;
-  const loginErrorMessage = loginError.message;
+export const handlePasswordSubmissionError = (error: Error) => {
+  const loginErrorMessage = error.message;
 
   if (error instanceof SeedlessOnboardingControllerError) {
     // Detected seedless onboarding controller error. Propogate error.
@@ -65,13 +64,10 @@ export const handlePasswordSubmissionError = (error: unknown) => {
     );
   } else if (
     containsErrorMessage(
-      loginError,
+      error,
       UNLOCK_WALLET_ERROR_MESSAGES.PREVIOUS_VAULT_NOT_FOUND,
     ) ||
-    containsErrorMessage(
-      loginError,
-      UNLOCK_WALLET_ERROR_MESSAGES.JSON_PARSE_ERROR,
-    )
+    containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.JSON_PARSE_ERROR)
   ) {
     // Vault corruption detected.
     throw new Error(

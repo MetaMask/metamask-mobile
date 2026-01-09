@@ -829,7 +829,6 @@ class AuthenticationService {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
-      await SecureKeychain.resetGenericPassword();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -872,7 +871,6 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      console.log('ERRPOR', e.message);
       const errorMessage = (e as Error).message;
 
       // Track authentication failures that could indicate vault/keychain issues to Segment
