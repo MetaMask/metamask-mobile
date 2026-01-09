@@ -169,9 +169,46 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
     },
     AvatarSize: {
       Xs: 'Xs',
+      Sm: 'Sm',
     },
     AvatarVariant: {
       Network: 'Network',
+      Icon: 'Icon',
+    },
+  };
+});
+
+jest.mock('../../../../../component-library/components/Cells/Cell', () => {
+  const { TouchableOpacity, View: RNView, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockCell({
+      title,
+      isSelected,
+      onPress,
+      avatarProps,
+    }: {
+      title: string;
+      isSelected: boolean;
+      onPress: () => void;
+      avatarProps: { variant: string; name?: string; imageSource?: { uri: string } };
+    }) {
+      return (
+        <TouchableOpacity onPress={onPress} testID={`cell-${title}`}>
+          {avatarProps.variant === 'Icon' ? (
+            <RNView testID={`icon-${avatarProps.name}`}>{avatarProps.name}</RNView>
+          ) : (
+            <RNView testID={`avatar-${avatarProps.name}`} data-image-source={avatarProps.imageSource}>
+              {avatarProps.name}
+            </RNView>
+          )}
+          <Text>{title}</Text>
+          {isSelected && <RNView testID="selection-indicator" />}
+        </TouchableOpacity>
+      );
+    },
+    CellVariant: {
+      Select: 'Select',
     },
   };
 });
@@ -232,7 +269,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
     expect(getByText('Networks')).toBeOnTheScreen();
     expect(getByText('All networks')).toBeOnTheScreen();
-    expect(getByTestId('icon-Check')).toBeOnTheScreen();
+    expect(getByTestId('selection-indicator')).toBeOnTheScreen();
   });
 
   it('renders all network options', () => {
@@ -339,7 +376,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('displays check icon for selected network', () => {
+  it('displays selection indicator for selected network', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet
         isVisible
@@ -351,10 +388,10 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     );
 
     expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
-    expect(getByTestId('icon-Check')).toBeOnTheScreen();
+    expect(getByTestId('selection-indicator')).toBeOnTheScreen();
   });
 
-  it('displays check icon for "All networks" when selected', () => {
+  it('displays selection indicator for "All networks" when selected', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
@@ -362,7 +399,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     );
 
     expect(getByText('All networks')).toBeOnTheScreen();
-    expect(getByTestId('icon-Check')).toBeOnTheScreen();
+    expect(getByTestId('selection-indicator')).toBeOnTheScreen();
   });
 
   it('renders network avatars with correct props', () => {
