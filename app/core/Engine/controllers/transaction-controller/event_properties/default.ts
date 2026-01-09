@@ -15,6 +15,7 @@ import type {
   TransactionMetrics,
   TransactionMetricsBuilderRequest,
 } from '../types';
+import { getConfirmationMetrics } from '../utils';
 import type { RootState } from '../../../../../reducers';
 import {
   getAddressAccountType,
@@ -62,7 +63,7 @@ export async function getDefaultMetricsProperties({
     sensitiveProperties: {},
   };
 
-  const confirmationMetrics = getConfirmationMetricProperties(getState, id);
+  const confirmationMetrics = getConfirmationMetrics(getState(), id);
 
   return merge({}, defaultProperties, confirmationMetrics);
 }
@@ -303,15 +304,6 @@ function getNativeBalance(
   const account = accountsByChainId?.[chainId]?.[address?.toLowerCase()];
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
-}
-
-function getConfirmationMetricProperties(
-  getState: () => RootState,
-  transactionId: string,
-): TransactionMetrics {
-  const state = getState();
-  return (state.confirmationMetrics.metricsById?.[transactionId] ||
-    {}) as unknown as TransactionMetrics;
 }
 
 function getAccountTypeProperties(transactionMeta: TransactionMeta): {

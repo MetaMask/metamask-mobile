@@ -10,6 +10,7 @@ import {
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import type {
   TransactionEventHandlerRequest,
+  TransactionMetrics,
   TransactionMetricsBuilder,
 } from './types';
 import { EMPTY_METRICS } from './constants';
@@ -21,6 +22,14 @@ export function isFinalizedEvent(eventType: IMetaMetricsEvent): boolean {
   return (
     eventType.category === TRANSACTION_EVENTS.TRANSACTION_FINALIZED.category
   );
+}
+
+export function getConfirmationMetrics(
+  state: ReturnType<TransactionEventHandlerRequest['getState']>,
+  transactionId: string,
+): TransactionMetrics {
+  return (state?.confirmationMetrics?.metricsById?.[transactionId] ||
+    {}) as unknown as TransactionMetrics;
 }
 
 export function generateEvent({
@@ -76,6 +85,9 @@ export async function getBuilderMetrics({
 
   const getState = request.getState;
 
+  const getUIMetrics = (transactionId: string): TransactionMetrics =>
+    getConfirmationMetrics(getState(), transactionId);
+
   const builderResults = await Promise.all(
     builders.map(async (builder) => {
       try {
@@ -83,7 +95,7 @@ export async function getBuilderMetrics({
           eventType,
           transactionMeta,
           allTransactions,
-          getUIMetrics: () => EMPTY_METRICS,
+          getUIMetrics,
           getState,
           transactionEventHandlerRequest: request,
         });
