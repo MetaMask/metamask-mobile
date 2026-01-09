@@ -12,13 +12,6 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
-jest.mock('../../../../Base/TabBar', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockTabBar() {
-    return <View testID="tab-bar" />;
-  };
-});
-
 jest.mock('../../components/MarketListContent', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockMarketListContent({ category }: { category: string }) {
@@ -42,35 +35,24 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 }));
 
 let mockOnChangeTab:
-  | ((changeInfo: { i: number; ref: unknown; from?: number }) => void)
+  | ((changeInfo: { i: number; ref: unknown }) => void)
   | undefined;
 
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+jest.mock('../../../../../component-library/components-temp/Tabs', () => {
   const { View } = jest.requireActual('react-native');
+
   return {
-    __esModule: true,
-    default: function MockScrollableTabView({
+    TabsList: function MockTabsList({
       children,
-      renderTabBar,
-      style,
       onChangeTab,
+      testID,
     }: {
-      children?: React.ReactNode;
-      renderTabBar?: false | (() => React.ReactNode);
-      style?: object;
-      onChangeTab?: (changeInfo: {
-        i: number;
-        ref: unknown;
-        from?: number;
-      }) => void;
+      children: React.ReactNode;
+      onChangeTab?: (changeInfo: { i: number; ref: unknown }) => void;
+      testID?: string;
     }) {
       mockOnChangeTab = onChangeTab;
-      return (
-        <View testID="scrollable-tab-view" style={style}>
-          {renderTabBar && typeof renderTabBar === 'function' && renderTabBar()}
-          {children}
-        </View>
-      );
+      return <View testID={testID}>{children}</View>;
     },
   };
 });
@@ -144,10 +126,9 @@ describe('PredictMarketList', () => {
   });
 
   describe('default view (no search)', () => {
-    it('displays scrollable tab view with all market categories', () => {
+    it('displays tab view with all market categories', () => {
       render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
-      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(
         screen.getByTestId('market-list-content-trending'),
       ).toBeOnTheScreen();
@@ -188,13 +169,14 @@ describe('PredictMarketList', () => {
     it('hides tab view when search is active without query', () => {
       render(<PredictMarketList isSearchVisible searchQuery="" />);
 
-      expect(screen.queryByTestId('scrollable-tab-view')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('market-list-content-trending'),
+      ).not.toBeOnTheScreen();
     });
 
     it('displays search results when query is provided', () => {
       render(<PredictMarketList isSearchVisible searchQuery="test" />);
 
-      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(
         screen.getByTestId('market-list-content-trending'),
       ).toBeOnTheScreen();
@@ -294,7 +276,9 @@ describe('PredictMarketList', () => {
         />,
       );
 
-      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('market-list-content-trending'),
+      ).toBeOnTheScreen();
     });
   });
 });
