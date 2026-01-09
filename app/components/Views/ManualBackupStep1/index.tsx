@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   View,
   ActivityIndicator,
@@ -8,8 +14,8 @@ import {
   ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Icon, {
   IconName,
@@ -36,6 +42,7 @@ import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import Button, {
@@ -54,25 +61,40 @@ import {
   handleSkipBackup,
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
+import type {
+  ManualBackupStep1NavigationProp,
+  ManualBackupStep1RouteProp,
+} from './ManualBackupStep1.types';
+
+import darkBlurImage from '../../../images/dark-blur.png';
+import lightBlurImage from '../../../images/blur.png';
 
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-const ManualBackupStep1 = ({
-  route,
-  navigation,
-  appTheme,
-  saveOnboardingEvent,
-}) => {
+const ManualBackupStep1 = () => {
+  const navigation = useNavigation<ManualBackupStep1NavigationProp>();
+  const route = useRoute<ManualBackupStep1RouteProp>();
+  const dispatch = useDispatch();
+
+  const saveOnboardingEvent = useCallback(
+    (...eventArgs: [ITrackingEvent]) => {
+      dispatch(saveEvent(eventArgs));
+    },
+    [dispatch],
+  );
+
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState(undefined);
-  const [warningIncorrectPassword, setWarningIncorrectPassword] =
-    useState(undefined);
+  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
+    string | undefined
+  >(undefined);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
-  const [words, setWords] = useState([]);
+  const [words, setWords] = useState<string[]>([]);
   const [hasFunds, setHasFunds] = useState(false);
+  const hasInitialized = useRef(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { isEnabled: isMetricsEnabled } = useMetrics();
@@ -111,9 +133,10 @@ const ManualBackupStep1 = ({
           route,
           {
             headerLeft,
+            headerRight: undefined,
           },
           colors,
-          false, // showLogo = false to hide title
+          false,
         ),
       );
     } else {
@@ -124,22 +147,24 @@ const ManualBackupStep1 = ({
     }
   }, [navigation, settingsBackup, backupFlow, colors, route, headerLeft]);
 
-  const tryExportSeedPhrase = async (password) => {
+  const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic =
-      await KeyringController.exportSeedPhrase(password);
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(pwd);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
   const showWhatIsSeedphrase = useCallback(() => {
     showSeedphraseDefinition({
-      navigation,
+      navigation: navigation as never,
       track,
       location: 'manual_backup_step_1',
     });
   }, [navigation, track]);
 
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const getSeedphrase = async () => {
       if (!words.length) {
         try {
@@ -167,8 +192,7 @@ const ManualBackupStep1 = ({
     }
 
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [seedPhrase, route.params?.words, words.length]);
 
   useEffect(() => {
     updateNavBar();
@@ -179,8 +203,8 @@ const ManualBackupStep1 = ({
     if (Engine.hasFunds()) setHasFunds(true);
   }, []);
 
-  const onPasswordChange = (password) => {
-    setPassword(password);
+  const onPasswordChange = (pwd: string) => {
+    setPassword(pwd);
   };
 
   const goNext = () => {
@@ -194,7 +218,7 @@ const ManualBackupStep1 = ({
 
   const skip = useCallback(async () => {
     await handleSkipBackup({
-      navigation,
+      navigation: navigation as never,
       routeParams: route.params,
       isMetricsEnabled,
       track,
@@ -215,16 +239,19 @@ const ManualBackupStep1 = ({
     track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
-  const tryUnlockWithPassword = async (password) => {
+  const tryUnlockWithPassword = async (pwd: string) => {
     setReady(false);
     try {
-      const seedPhrase = await tryExportSeedPhrase(password);
-      setWords(seedPhrase);
+      const exportedSeedPhrase = await tryExportSeedPhrase(pwd);
+      setWords(exportedSeedPhrase);
       setView(SEED_PHRASE);
       setReady(true);
     } catch (e) {
       let msg = strings('reveal_credential.warning_incorrect_password');
-      if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+      if (
+        e instanceof Error &&
+        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
+      ) {
         msg = strings('reveal_credential.unknown_error');
       }
       setWarningIncorrectPassword(msg);
@@ -233,7 +260,9 @@ const ManualBackupStep1 = ({
   };
 
   const tryUnlock = () => {
-    tryUnlockWithPassword(password);
+    if (password) {
+      tryUnlockWithPassword(password);
+    }
   };
 
   const renderSeedPhraseConcealer = () => (
@@ -246,8 +275,8 @@ const ManualBackupStep1 = ({
         <ImageBackground
           source={
             themeAppearance === AppThemeKey.dark
-              ? require('../../../images/dark-blur.png')
-              : require('../../../images/blur.png')
+              ? darkBlurImage
+              : lightBlurImage
           }
           style={styles.blurView}
           resizeMode="cover"
@@ -435,31 +464,4 @@ const ManualBackupStep1 = ({
   );
 };
 
-ManualBackupStep1.propTypes = {
-  /**
-  /* navigation object required to push and pop other views
-  */
-  navigation: PropTypes.object,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-  /**
-   * Theme that app is set to
-   */
-  appTheme: PropTypes.string,
-  /**
-   * Action to save onboarding event
-   */
-  saveOnboardingEvent: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
-  appTheme: state.user.appTheme,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);
+export default ManualBackupStep1;

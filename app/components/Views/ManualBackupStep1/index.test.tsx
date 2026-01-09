@@ -3,7 +3,7 @@ import ManualBackupStep1 from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -31,6 +31,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: jest.fn(),
+    useRoute: jest.fn(),
     useFocusEffect: jest.fn(),
   };
 });
@@ -161,6 +162,7 @@ describe('ManualBackupStep1', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
+      dispatch: mockDispatch,
     });
 
     const testRoute = {
@@ -170,19 +172,11 @@ describe('ManualBackupStep1', () => {
       },
     };
 
+    (useRoute as jest.Mock).mockReturnValue(testRoute);
+
     const wrapper = renderWithProvider(
       <Provider store={store}>
-        <ManualBackupStep1
-          route={testRoute}
-          navigation={{
-            navigate: mockNavigate,
-            goBack: mockGoBack,
-            setOptions: mockSetOptions,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            isFocused: jest.fn(),
-          }}
-        />
+        <ManualBackupStep1 />
       </Provider>,
     );
 
@@ -210,21 +204,14 @@ describe('ManualBackupStep1', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
+      dispatch: mockDispatch,
     });
+
+    (useRoute as jest.Mock).mockReturnValue(mockRoute);
 
     const wrapper = renderWithProvider(
       <Provider store={storeDark}>
-        <ManualBackupStep1
-          route={mockRoute}
-          navigation={{
-            navigate: mockNavigate,
-            goBack: mockGoBack,
-            setOptions: mockSetOptions,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            isFocused: jest.fn(),
-          }}
-        />
+        <ManualBackupStep1 />
       </Provider>,
     );
 
@@ -252,21 +239,14 @@ describe('ManualBackupStep1', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
+      dispatch: mockDispatch,
     });
+
+    (useRoute as jest.Mock).mockReturnValue(mockRoute);
 
     const wrapper = renderWithProvider(
       <Provider store={storeOs}>
-        <ManualBackupStep1
-          route={mockRoute}
-          navigation={{
-            navigate: mockNavigate,
-            goBack: mockGoBack,
-            setOptions: mockSetOptions,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            isFocused: jest.fn(),
-          }}
-        />
+        <ManualBackupStep1 />
       </Provider>,
     );
 
@@ -517,7 +497,7 @@ describe('ManualBackupStep1', () => {
         removeListener: jest.fn(),
       });
 
-      const mockRoute = {
+      const testRoute = {
         params: {
           seedPhrase: mockWords,
           backupFlow: false,
@@ -526,19 +506,11 @@ describe('ManualBackupStep1', () => {
         },
       };
 
+      (useRoute as jest.Mock).mockReturnValue(testRoute);
+
       const wrapper = renderWithProvider(
         <Provider store={store}>
-          <ManualBackupStep1
-            route={mockRoute}
-            navigation={{
-              navigate: mockNavigate,
-              setOptions: mockSetOptions,
-              dispatch: mockDispatch,
-              goBack: jest.fn(),
-              addListener: jest.fn(),
-              removeListener: jest.fn(),
-            }}
-          />
+          <ManualBackupStep1 />
         </Provider>,
       );
 
