@@ -235,6 +235,18 @@ const createStyles = (colors: any) =>
       left: 0,
       right: 0,
     },
+    stickyButtonContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: Platform.select({
+        ios: 32,
+        android: 32,
+        default: 32,
+      }),
+      backgroundColor: colors.background.default,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border.muted,
+    },
   });
 
 export default createStyles;

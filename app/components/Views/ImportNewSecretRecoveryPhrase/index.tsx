@@ -321,42 +321,40 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
           />
-
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              containerStyle={styles.button}
-              type={'confirm'}
-              onPress={onSubmit}
-              disabled={
-                isSRPContinueButtonDisabled || Boolean(error) || loading
-              }
-              testID={ImportSRPIDs.IMPORT_BUTTON}
-            >
-              {loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.inverse}
-                />
-              ) : (
-                strings('import_new_secret_recovery_phrase.cta_text')
-              )}
-            </StyledButton>
-          </View>
         </View>
       </KeyboardAwareScrollView>
-      {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
-        <KeyboardStickyView
-          offset={{ closed: 0, opened: 0 }}
-          style={styles.keyboardStickyView}
-        >
+
+      {/* Sticky bottom container */}
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: 0 }}
+        style={styles.keyboardStickyView}
+      >
+        <View style={styles.stickyButtonContainer}>
+          <StyledButton
+            containerStyle={styles.button}
+            type={'confirm'}
+            onPress={onSubmit}
+            disabled={isSRPContinueButtonDisabled || Boolean(error) || loading}
+            testID={ImportSRPIDs.IMPORT_BUTTON}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.primary.inverse} />
+            ) : (
+              strings('import_new_secret_recovery_phrase.cta_text')
+            )}
+          </StyledButton>
+        </View>
+
+        {/* Word suggestions bar */}
+        {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
           <SrpWordSuggestions
             currentInputWord={currentInputWord}
             onSuggestionSelect={(word) => {
               srpInputGridRef.current?.handleSuggestionSelect(word);
             }}
           />
-        </KeyboardStickyView>
-      )}
+        )}
+      </KeyboardStickyView>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

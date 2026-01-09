@@ -118,6 +118,12 @@ const createStyles = (colors: Colors) =>
       left: 0,
       right: 0,
     },
+    stickyButtonContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 16,
+      backgroundColor: colors.background.default,
+    },
   });
 
 export { createStyles };
