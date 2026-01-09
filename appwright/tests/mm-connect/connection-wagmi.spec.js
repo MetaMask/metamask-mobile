@@ -264,6 +264,71 @@ test('@metamask/connect-evm (wagmi) - Connect to the Wagmi Test Dapp', async ({
   );
 
   //
+  // Wait for incomplete session timeout on refresh and reconnect after
+  //
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.tapDisconnectButton();
+      await WagmiTestDapp.tapConnectButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Purposely not interacting with the approval
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await refreshMobileBrowser(device);
+  });
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.assertDappConnectedStatus('connecting');
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.assertDappConnectedStatus('disconnected');
+      await WagmiTestDapp.tapConnectButton();
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WagmiTestDapp.isDappConnected();
+      await WagmiTestDapp.assertConnectedChainValue('1');
+      await WagmiTestDapp.assertConnectedAccountsValue(ACCOUNT_3_ADDRESS);
+    },
+    WAGMI_TEST_DAPP_URL,
+  );
+
+  //
   // Reset dapp state
   //
 
