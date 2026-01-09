@@ -3385,8 +3385,7 @@ workflows:
                 # Build changelog with proper variable expansion
                 WORKFLOW_NAME="${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
                 BRANCH="${BITRISE_GIT_BRANCH:-Unknown}"
-                COMMIT_HASH=$(echo "${BITRISE_GIT_COMMIT:-Unknown}" | cut -c1-7)
-                CHANGELOG="Workflow: ${WORKFLOW_NAME} | Branch: ${BRANCH} | Commit: ${COMMIT_HASH}"
+                CHANGELOG="Workflow: ${WORKFLOW_NAME} | Branch: ${BRANCH} "
                 
                 echo "Changelog: $CHANGELOG"
                 
