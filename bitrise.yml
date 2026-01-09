@@ -3351,6 +3351,10 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build artifacts
       - script@1:
           title: Setup App Store Connect API Key
           inputs:
