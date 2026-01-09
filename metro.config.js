@@ -113,6 +113,19 @@ module.exports = function (baseConfig) {
                   ),
                 };
               }
+              // Mock OAuthService for E2E Google/Apple login tests
+              if (
+                moduleName.endsWith('core/OAuthService/OAuthService') ||
+                moduleName === './OAuthService'
+              ) {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'e2e/module-mocking/oauth/OAuthService.ts',
+                  ),
+                };
+              }
               return context.resolveRequest(context, moduleName, platform);
             }
           : defaultConfig.resolver.resolveRequest,

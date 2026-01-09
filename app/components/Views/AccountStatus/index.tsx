@@ -155,11 +155,27 @@ const AccountStatus = ({
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top', 'bottom']}
+      testID={
+        type === 'found'
+          ? 'account-status-found-container-id'
+          : 'account-status-not-found-container-id'
+      }
+    >
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
-            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
+              testID={
+                type === 'found'
+                  ? 'account-status-found-title-id'
+                  : 'account-status-not-found-title-id'
+              }
+            >
               {type === 'found'
                 ? strings('account_status.account_already_exists')
                 : strings('account_status.account_not_found')}
@@ -201,6 +217,11 @@ const AccountStatus = ({
                 ? strings(buttonLabelForFoundTypeAccountStatus())
                 : strings('account_status.create_new_wallet')
             }
+            testID={
+              type === 'found'
+                ? 'account-status-found-login-button-id'
+                : 'account-status-not-found-create-button-id'
+            }
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -210,6 +231,11 @@ const AccountStatus = ({
               navigation.goBack();
             }}
             label={strings('account_status.use_different_login_method')}
+            testID={
+              type === 'found'
+                ? 'account-status-found-different-method-button-id'
+                : 'account-status-not-found-different-method-button-id'
+            }
           />
         </View>
       </View>
