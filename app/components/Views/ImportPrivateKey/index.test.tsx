@@ -101,9 +101,13 @@ describe('ImportPrivateKey', () => {
 
     expect(getByText(strings('import_private_key.title'))).toBeTruthy();
     expect(
-      getByText(strings('import_private_key.description_srp'), { exact: false }),
+      getByText(strings('import_private_key.description_srp'), {
+        exact: false,
+      }),
     ).toBeTruthy();
-    expect(getByPlaceholderText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
     expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
     expect(
       getByText(strings('import_private_key.or_scan_a_qr_code')),
@@ -121,7 +125,9 @@ describe('ImportPrivateKey', () => {
     expect(
       getByText(strings('import_private_key.description_one')),
     ).toBeTruthy();
-    expect(getByPlaceholderText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
   });
 
   it('calls dismiss function when close button is pressed', () => {

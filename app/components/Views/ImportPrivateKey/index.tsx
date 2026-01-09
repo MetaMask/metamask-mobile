@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, View, DimensionValue, SafeAreaView } from 'react-native';
-import TextField from '../../../component-library/components/Form/TextField';
+import {
+  Alert,
+  TextInput,
+  View,
+  DimensionValue,
+  SafeAreaView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -33,13 +38,14 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 const ImportPrivateKey = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();
   const mounted = useRef<boolean>(false);
-  const { colors, themeAppearance } = useAppTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance, typography } = useAppTheme();
+  const styles = createStyles(colors, typography);
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -205,17 +211,24 @@ const ImportPrivateKey = () => {
             }}
           />
           <View style={styles.bottom}>
-            <TextField
+            <TextInput
               value={privateKey}
               numberOfLines={3}
               multiline
-              style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
+              style={[
+                styles.input,
+                isFocused && styles.inputFocused,
+                inputWidth ? { width: inputWidth } : {},
+              ]}
               onChangeText={setPrivateKey}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               testID={ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX}
               blurOnSubmit
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
               placeholder={strings('import_private_key.subtitle')}
+              placeholderTextColor={colors.text.muted}
               autoCapitalize={'none'}
               keyboardAppearance={themeAppearance}
             />
