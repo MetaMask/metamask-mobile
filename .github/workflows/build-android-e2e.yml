@@ -53,7 +53,7 @@ jobs:
 
       - name: Setup Android Build Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.4.0
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
           setup-simulator: false
@@ -201,6 +201,7 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { usePerpsLiveFills } from '../../hooks/stream';
+import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import type { OrderFill } from '../../controllers/types';
 
 // Mock dependencies
@@ -12,8 +12,13 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveFills: jest.fn(),
+jest.mock('../../hooks/usePerpsMarketFills', () => ({
+  usePerpsMarketFills: jest.fn(() => ({
+    fills: [],
+    isInitialLoading: false,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
 }));
 
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -116,8 +121,8 @@ jest.mock('../../utils/marketUtils', () => ({
 
 describe('PerpsMarketTradesList', () => {
   const mockNavigate = jest.fn();
-  const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
-    typeof usePerpsLiveFills
+  const mockUsePerpsMarketFills = usePerpsMarketFills as jest.MockedFunction<
+    typeof usePerpsMarketFills
   >;
 
   const mockOrderFills: OrderFill[] = [
@@ -175,12 +180,25 @@ describe('PerpsMarketTradesList', () => {
     },
   ];
 
+  // Helper to create mock return values for usePerpsMarketFills
+  const createMockFillsReturn = (
+    fills: OrderFill[] = [],
+    isInitialLoading = false,
+  ) => ({
+    fills,
+    isInitialLoading,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     const { useNavigation } = jest.requireMock('@react-navigation/native');
     useNavigation.mockReturnValue({
       navigate: mockNavigate,
     });
+    // Set default mock for usePerpsMarketFills
+    mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
   });
 
   afterEach(() => {
@@ -189,10 +207,7 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Loading State', () => {
     it('renders loading skeleton when hook is loading', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: true,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn([], true));
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -200,10 +215,7 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders header with title when loading', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: true,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn([], true));
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -211,10 +223,7 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('does not render See all button when loading', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: true,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn([], true));
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -224,10 +233,7 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Empty State', () => {
     it('renders empty message when trades array is empty', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -235,10 +241,7 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders header with title when empty', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -246,10 +249,7 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders See all button when empty', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -259,10 +259,9 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Component Rendering', () => {
     it('renders list with trades', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -272,10 +271,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders header with title and See all button', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -284,10 +282,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders trade subtitles correctly', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -297,10 +294,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders token logos for each trade', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -309,10 +305,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('renders fill amounts correctly', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -322,10 +317,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('uses default icon size when not provided', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [mockOrderFills[0]],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([mockOrderFills[0]]),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -334,10 +328,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('uses custom icon size when provided', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [mockOrderFills[0]],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([mockOrderFills[0]]),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" iconSize={48} />);
 
@@ -348,10 +341,9 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Navigation Handling', () => {
     it('navigates to Activity screen when See all is pressed', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -366,10 +358,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('navigates to position transaction detail when trade item is pressed', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -394,10 +385,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('navigates with correct transaction data for different trades', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -422,24 +412,21 @@ describe('PerpsMarketTradesList', () => {
   });
 
   describe('Hook Integration', () => {
-    it('calls usePerpsLiveFills with correct params', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
+    it('calls usePerpsMarketFills with correct params', () => {
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
 
       render(<PerpsMarketTradesList symbol="BTC" />);
 
-      expect(mockUsePerpsLiveFills).toHaveBeenCalledWith({
+      expect(mockUsePerpsMarketFills).toHaveBeenCalledWith({
+        symbol: 'BTC',
         throttleMs: 0,
       });
     });
 
     it('filters order fills by symbol', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -464,10 +451,9 @@ describe('PerpsMarketTradesList', () => {
         success: true,
       }));
 
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: manyETHFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(manyETHFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -478,10 +464,9 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Edge Cases', () => {
     it('handles single trade', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [mockOrderFills[0]],
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([mockOrderFills[0]]),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -490,10 +475,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('handles exactly 3 trades', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills.slice(0, 3),
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills.slice(0, 3)),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -503,24 +487,22 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('filters out non-matching symbols', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills, // Contains BTC and ETH fills
-        isInitialLoading: false,
-      });
+      // Hook returns only BTC fills when symbol="BTC"
+      const btcFills = mockOrderFills.filter((fill) => fill.symbol === 'BTC');
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn(btcFills));
 
       render(<PerpsMarketTradesList symbol="BTC" />);
 
-      // Should only show BTC trade (1 out of 4 fills)
+      // Hook returns only BTC trade (1 out of 4 fills)
       const logos = screen.getAllByTestId(/perps-token-logo/);
       expect(logos).toHaveLength(1);
       expect(screen.getByTestId('perps-token-logo-BTC')).toBeOnTheScreen();
     });
 
     it('renders recycling key correctly for token logos', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills.slice(0, 3),
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills.slice(0, 3)),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -534,10 +516,9 @@ describe('PerpsMarketTradesList', () => {
 
   describe('Component Lifecycle', () => {
     it('does not throw error on unmount', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       const { unmount } = render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -545,28 +526,30 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('updates when symbol prop changes', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      const ethFills = mockOrderFills.filter((fill) => fill.symbol === 'ETH');
+      const btcFills = mockOrderFills.filter((fill) => fill.symbol === 'BTC');
+
+      // Start with ETH fills
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn(ethFills));
 
       const { rerender } = render(<PerpsMarketTradesList symbol="ETH" />);
 
       expect(screen.getAllByTestId(/perps-token-logo-ETH/)).toHaveLength(3);
 
+      // Update mock to return BTC fills
+      mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn(btcFills));
       rerender(<PerpsMarketTradesList symbol="BTC" />);
 
-      // Should now show BTC trades
+      // Verifies hook is called with new symbol
       expect(screen.getByTestId('perps-token-logo-BTC')).toBeOnTheScreen();
     });
   });
 
   describe('FlatList Configuration', () => {
     it('uses transaction id as key extractor', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       render(<PerpsMarketTradesList symbol="ETH" />);
 
@@ -576,10 +559,9 @@ describe('PerpsMarketTradesList', () => {
     });
 
     it('disables scroll on FlatList', () => {
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: mockOrderFills,
-        isInitialLoading: false,
-      });
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
 
       const { root } = render(<PerpsMarketTradesList symbol="ETH" />);
 
