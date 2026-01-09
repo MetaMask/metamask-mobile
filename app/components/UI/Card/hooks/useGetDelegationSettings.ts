@@ -22,7 +22,7 @@ const useGetDelegationSettings = () => {
 
   return useWrapWithCache('delegation-settings', fetchDelegationSettings, {
     cacheDuration: 10 * 60 * 1000, // 10 minutes cache
-    fetchOnMount: isAuthenticated,
+    fetchOnMount: false, // Disabled - fetchAllData orchestrates fetching
   });
 };
 

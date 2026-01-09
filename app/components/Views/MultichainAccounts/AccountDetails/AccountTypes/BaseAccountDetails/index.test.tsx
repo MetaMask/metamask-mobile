@@ -247,15 +247,19 @@ describe('BaseAccountDetails', () => {
     const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
     fireEvent.press(accountNameLink);
 
+    const expectedAccountGroup = {
+      id: 'keyring:test-wallet/ethereum',
+      accounts: [mockAccount.id],
+      metadata: { name: 'Test Account Group' },
+      type: AccountGroupType.SingleAccount,
+    };
+
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
       {
-        accountGroup: {
-          id: 'keyring:test-wallet/ethereum',
-          accounts: [mockAccount.id],
-          metadata: { name: 'Test Account Group' },
-          type: AccountGroupType.SingleAccount,
-        },
+        accountGroup: expectedAccountGroup,
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        params: { accountGroup: expectedAccountGroup },
       },
     );
   });
