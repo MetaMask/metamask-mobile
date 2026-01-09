@@ -1,10 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import {
-  useNavigation,
-  useRoute,
-  ParamListBase,
-} from '@react-navigation/native';
-import { createStackNavigator, StackScreenProps } from '@react-navigation/stack';
+import { useRoute } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import NavigationService from '../../../core/NavigationService';
 
 /**
@@ -14,10 +10,10 @@ import NavigationService from '../../../core/NavigationService';
  *
  * TODO: Gradually replace with properly typed param lists.
  */
-type LooseParamList = {
+interface LooseParamList {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
-};
+}
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -378,7 +374,9 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+  <Stack.Navigator
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+  >
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -880,7 +878,9 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+    <Stack.Navigator
+      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -971,7 +971,10 @@ const AppNavigationHandler: React.FC = () => {
         // Get navigation from service since we're outside the navigator
         const navigation = NavigationService.navigation;
         if (!navigation) {
-          Logger.error(new Error('Navigation not ready'), 'AppNavigationHandler');
+          Logger.error(
+            new Error('Navigation not ready'),
+            'AppNavigationHandler',
+          );
           return;
         }
 
@@ -1059,7 +1062,9 @@ const AppNavigationHandler: React.FC = () => {
             new Error(errorMessage),
             'App: No credentials when starting app',
           );
-          NavigationService.navigation?.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
+          NavigationService.navigation?.reset({
+            routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+          });
         } else {
           Logger.error(new Error(errorMessage), 'App: Error starting app');
         }
@@ -1097,19 +1102,23 @@ const AppFlow = () => {
           <Stack.Screen
             name={Routes.ONBOARDING.HOME_NAV}
             component={Main}
-            options={{ headerShown: false }}
+            options={{ headerShown: false, presentation: 'card' }}
           />
         )}
-        <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
+        <Stack.Screen
+          name={Routes.FOX_LOADER}
+          component={FoxLoader}
+          options={{ presentation: 'card' }}
+        />
         <Stack.Screen
           name={Routes.ONBOARDING.LOGIN}
           component={Login}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, presentation: 'card' }}
         />
         <Stack.Screen
           name="Rehydrate"
           component={OAuthRehydration}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
@@ -1118,16 +1127,17 @@ const AppFlow = () => {
         <Stack.Screen
           name="OnboardingRootNav"
           component={OnboardingRootNav}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.ONBOARDING.SUCCESS_FLOW}
           component={OnboardingSuccessFlow}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
           component={VaultRecoveryFlow}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MODAL.ROOT_MODAL_FLOW}
@@ -1137,37 +1147,41 @@ const AppFlow = () => {
         <Stack.Screen
           name="ImportPrivateKeyView"
           component={ImportPrivateKeyView}
-          options={{ animation: 'default' }}
+          options={{ animation: 'default', presentation: 'card' }}
         />
         {
           <Stack.Screen
             name="ImportSRPView"
             component={ImportSRPView}
-            options={{ animation: 'default' }}
+            options={{ animation: 'default', presentation: 'card' }}
           />
         }
         <Stack.Screen
           name="ConnectQRHardwareFlow"
           component={ConnectQRHardwareFlow}
-          options={{ animation: 'default' }}
+          options={{ animation: 'default', presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.HW.CONNECT_LEDGER}
           component={LedgerConnectFlow}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.HW.CONNECT}
           component={ConnectHardwareWalletFlow}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
           component={MultichainAccountDetails}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
           options={{
             animation: 'default',
+            presentation: 'card',
             cardStyleInterpolator: ({ current, layouts }) => ({
               cardStyle: {
                 transform: [
@@ -1185,19 +1199,22 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
           component={MultichainAccountActions}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
-          options={{ animation: 'default' }}
+          options={{ animation: 'default', presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
           component={MultichainPrivateKeyList}
+          options={{ presentation: 'card' }}
         />
         <Stack.Screen
           options={{
@@ -1229,24 +1246,24 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.EDIT_ACCOUNT_NAME}
           component={EditAccountName}
-          options={{ animation: 'default' }}
+          options={{ animation: 'default', presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.ADD_NETWORK}
           component={AddNetworkFlow}
-          options={{ animation: 'default' }}
+          options={{ animation: 'default', presentation: 'card' }}
         />
         {isNetworkUiRedesignEnabled() ? (
           <Stack.Screen
             name={Routes.EDIT_NETWORK}
             component={AddNetworkFlow}
-            options={{ animation: 'default' }}
+            options={{ animation: 'default', presentation: 'card' }}
           />
         ) : null}
         <Stack.Screen
           name={Routes.LOCK_SCREEN}
           component={LockScreen}
-          options={{ gestureEnabled: false }}
+          options={{ gestureEnabled: false, presentation: 'card' }}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}

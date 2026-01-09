@@ -8,13 +8,12 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
-import Routes from '../../../../../constants/navigation/Routes';
 import SearchBox from '../SearchBox';
 
 interface PredictFeedHeaderProps {
@@ -37,12 +36,8 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      // Pop back to the first screen (Home) in the MainNavigator stack
+      navigation.dispatch(StackActions.popToTop());
     }
   };
 

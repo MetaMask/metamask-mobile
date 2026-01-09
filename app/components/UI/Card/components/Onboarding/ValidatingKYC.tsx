@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -25,7 +25,7 @@ const ValidatingKYC = () => {
     useUserRegistrationStatus();
 
   const handleClose = useCallback(() => {
-    navigation.navigate(Routes.ONBOARDING.HOME_NAV);
+    navigation.dispatch(StackActions.popToTop());
   }, [navigation]);
 
   useEffect(() => {

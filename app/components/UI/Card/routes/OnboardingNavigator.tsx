@@ -27,6 +27,7 @@ import {
   NavigationProp,
   ParamListBase,
   useNavigation,
+  StackActions,
 } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
@@ -53,7 +54,7 @@ export const PostEmailNavigationOptions = ({
         },
         {
           text: strings('card.card_onboarding.exit_confirmation.exit_button'),
-          onPress: () => navigation.navigate(Routes.ONBOARDING.HOME_NAV),
+          onPress: () => navigation.dispatch(StackActions.popToTop()),
           style: 'destructive',
         },
       ],
@@ -91,7 +92,7 @@ export const KYCStatusNavigationOptions = ({
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
       testID="exit-onboarding-button"
-      onPress={() => navigation.navigate(Routes.ONBOARDING.HOME_NAV)}
+      onPress={() => navigation.dispatch(StackActions.popToTop())}
     />
   ),
   gestureEnabled: false,
