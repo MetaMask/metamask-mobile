@@ -243,6 +243,7 @@ const ImportPrivateKey = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             loading={loading}
+            isDisabled={loading}
             testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
           />
         </View>
