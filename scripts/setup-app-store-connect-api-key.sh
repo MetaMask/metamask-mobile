@@ -41,8 +41,8 @@ fi
 
 KEY_FILEPATH="$(pwd)/ios/AuthKey.p8"
 
-# Write the .p8 key file using printf for safety
-echo -n "$KEY_CONTENT" > "$KEY_FILEPATH"
+# Write the .p8 key file using printf for safety (handles special characters correctly)
+printf '%s' "$KEY_CONTENT" > "$KEY_FILEPATH"
 chmod 600 "$KEY_FILEPATH"
 
 # Export environment variables for Fastlane
