@@ -4,6 +4,8 @@ import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
+const SEARCH_DEBOUNCE_DELAY = 300;
+
 interface SearchResult {
   assetId: CaipChainId;
   decimals: number;
@@ -16,7 +18,7 @@ interface SearchResult {
 }
 
 /**
- * Hook for handling search tokens request
+ * Hook for handling search tokens request with debouncing to prevent excessive API calls
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
 export const useSearchRequest = (options: {
@@ -43,6 +45,7 @@ export const useSearchRequest = (options: {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
@@ -50,8 +53,23 @@ export const useSearchRequest = (options: {
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
 
-  const searchTokensRequest = useCallback(async () => {
+  // Debounce the query to prevent excessive API calls when typing fast
+  useEffect(() => {
+    // If query is empty, update immediately without debounce
     if (!query) {
+      setDebouncedQuery(query);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, SEARCH_DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const searchTokensRequest = useCallback(async () => {
+    if (!debouncedQuery) {
       setResults([]);
       setIsLoading(false);
       return;
@@ -63,7 +81,7 @@ export const useSearchRequest = (options: {
     setError(null);
 
     try {
-      const searchResults = await searchTokens(stableChainIds, query, {
+      const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
         includeMarketData,
       });
@@ -83,16 +101,19 @@ export const useSearchRequest = (options: {
         setIsLoading(false);
       }
     }
-  }, [stableChainIds, query, limit, includeMarketData]);
+  }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
 
-  // Automatically trigger search when query changes
+  // Automatically trigger search when debounced query changes
   useEffect(() => {
     searchTokensRequest();
   }, [searchTokensRequest]);
 
+  // Show loading state when query is being debounced (user is typing)
+  const isDebouncing = query !== debouncedQuery;
+
   return {
     results,
-    isLoading,
+    isLoading: isLoading || isDebouncing,
     error,
     search: searchTokensRequest,
   };
