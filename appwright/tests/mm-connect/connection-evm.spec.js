@@ -292,6 +292,70 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
   );
 
   //
+  // Wait for incomplete session timeout on refresh and reconnect after
+  //
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.tapTerminateButton();
+      await MultiChainEvmTestDapp.tapConnectButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Purposely not interacting with the approval
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await refreshMobileBrowser(device);
+  });
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.assertDappConnected('false');
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.assertDappConnected('false'); // should still be false
+      await MultiChainEvmTestDapp.tapConnectButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.isDappConnected();
+      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  //
   // Read-only method should hit rpc endpoint instead of wallet
   //
 
