@@ -143,7 +143,7 @@ const MusdConversionAssetListCta = () => {
             MetaMask USD
           </Text>
           <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
-            {strings('earn.earn_percentage', {
+            {strings('earn.earn_a_percentage_bonus', {
               percentage: MUSD_CONVERSION_APY,
             })}
           </Text>
