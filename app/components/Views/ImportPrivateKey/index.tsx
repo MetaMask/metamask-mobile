@@ -38,7 +38,6 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 const ImportPrivateKey = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
@@ -215,14 +214,8 @@ const ImportPrivateKey = () => {
               value={privateKey}
               numberOfLines={3}
               multiline
-              style={[
-                styles.input,
-                isFocused && styles.inputFocused,
-                inputWidth ? { width: inputWidth } : {},
-              ]}
+              style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
               onChangeText={setPrivateKey}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
               testID={ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX}
               blurOnSubmit
               onSubmitEditing={() => goNext()}

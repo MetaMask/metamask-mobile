@@ -54,9 +54,6 @@ const createStyles = (
       lineHeight: Platform.OS === 'ios' ? 20 : 22,
       textAlignVertical: 'top',
     },
-    inputFocused: {
-      borderColor: colors.primary.default,
-    },
   });
 
 export { createStyles };
