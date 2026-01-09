@@ -718,5 +718,6 @@ export const initialState = {
     isSubmittingTx: false,
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
+    isSelectingToken: false,
   },
 };

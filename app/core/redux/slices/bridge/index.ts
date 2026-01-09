@@ -57,6 +57,7 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
+  isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
   /**
@@ -80,6 +81,7 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
+  isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
@@ -158,6 +160,9 @@ const slice = createSlice({
     },
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
+    },
+    setIsSelectingToken: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingToken = action.payload;
     },
     setIsGasIncludedSTXSendBundleSupported: (
       state,
@@ -550,6 +555,11 @@ export const selectIsSelectingRecipient = createSelector(
   (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
+export const selectIsSelectingToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingToken,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -623,6 +633,7 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
+  setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
 } = actions;

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
@@ -20,7 +20,10 @@ import { getNetworkName, NetworkPills } from './NetworkPills';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
-import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBridgeFeatureFlags,
+  setIsSelectingToken,
+} from '../../../../../core/redux/slices/bridge';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
@@ -64,6 +67,7 @@ const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger loa
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
@@ -71,6 +75,15 @@ export const BridgeTokenSelector: React.FC = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const flatListRef = useRef<FlatList>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  // Set selecting token state to prevent quote expired modal from showing
+  useEffect(() => {
+    dispatch(setIsSelectingToken(true));
+
+    return () => {
+      dispatch(setIsSelectingToken(false));
+    };
+  }, [dispatch]);
 
   // Get themed SVG for empty state
   const NoSearchResultsIcon = useAssetFromTheme(
