@@ -3074,7 +3074,6 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
-      - upload_ios_main_to_testflight
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
