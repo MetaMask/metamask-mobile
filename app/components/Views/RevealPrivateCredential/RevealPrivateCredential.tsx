@@ -205,6 +205,7 @@ const RevealPrivateCredential = ({
     // Track screen view analytics
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build());
     revealCredential();
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -502,7 +503,10 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = () => (
-    <View style={[styles.rowWrapper, styles.warningWrapper]}>
+    <View
+      style={[styles.rowWrapper, styles.warningWrapper]}
+      testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}
+    >
       <View style={[styles.warningRowWrapper]}>
         <Icon
           color={colors.error.default}

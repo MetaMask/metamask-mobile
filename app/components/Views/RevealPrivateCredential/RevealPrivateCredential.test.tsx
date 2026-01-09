@@ -14,6 +14,8 @@ import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
 import Device from '../../../util/device';
 
+const MOCK_PASSWORD = 'word1 word2 word3 word4';
+
 // Mock dispatch function
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -289,7 +291,7 @@ describe('RevealPrivateCredential', () => {
     });
 
     it('renders warning section with eye slash icon', () => {
-      const { toJSON } = renderWithProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -297,7 +299,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID),
+      ).toBeTruthy();
     });
 
     it('renders cancel button when showCancelButton is true', () => {
@@ -319,33 +323,6 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('password entry', () => {
-    it('accepts text input in password field', async () => {
-      mockReauthenticate.mockRejectedValue(
-        new Error(
-          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
-        ),
-      );
-
-      const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      const passwordInput = getByTestId(
-        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-      );
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'my-password');
-      });
-
-      // Verify onChangeText was triggered (the input accepts text)
-      expect(passwordInput).toBeTruthy();
-    });
-
     it('displays warning message on incorrect password', async () => {
       mockReauthenticate.mockRejectedValue(new Error(WRONG_PASSWORD_ERROR));
 
@@ -378,7 +355,7 @@ describe('RevealPrivateCredential', () => {
       });
     });
 
-    it('triggers tryUnlock on submit editing', async () => {
+    it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
@@ -429,23 +406,6 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('revealCredential', () => {
-    it('reveals SRP via biometric authentication on mount', async () => {
-      mockReauthenticate.mockResolvedValue({ password: 'biometric-password' });
-      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4 word5 word6');
-
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      await waitFor(() => {
-        expect(mockReauthenticate).toHaveBeenCalled();
-      });
-    });
-
     it('silently ignores PASSWORD_NOT_SET_WITH_BIOMETRICS error', async () => {
       mockReauthenticate.mockRejectedValue(
         new Error(
@@ -550,7 +510,10 @@ describe('RevealPrivateCredential', () => {
       );
 
       await waitFor(() => {
-        expect(mockReauthenticate).toHaveBeenCalled();
+        expect(mockRevealSRP).toHaveBeenCalledWith(
+          'test-password',
+          testKeyringId,
+        );
       });
     });
   });
@@ -581,7 +544,9 @@ describe('RevealPrivateCredential', () => {
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'RECORD_SRP_REVEAL_TIMESTAMP' }),
+        );
       });
     });
 
@@ -641,7 +606,11 @@ describe('RevealPrivateCredential', () => {
       });
 
       await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category: 'Clicks Next on Reveal Secret Recovery Phrase',
+          }),
+        );
       });
     });
   });
@@ -698,7 +667,11 @@ describe('RevealPrivateCredential', () => {
         fireEvent.press(cancelButton);
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Reveal SRP Cancelled',
+        }),
+      );
     });
 
     it('calls navigation.pop when shouldUpdateNav is true', async () => {
@@ -736,7 +709,7 @@ describe('RevealPrivateCredential', () => {
   describe('clipboard functionality', () => {
     it('copies SRP to clipboard when copy button is pressed', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
-      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
@@ -768,7 +741,7 @@ describe('RevealPrivateCredential', () => {
 
     it('dispatches showAlert after copying to clipboard', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
-      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
@@ -789,7 +762,9 @@ describe('RevealPrivateCredential', () => {
           );
           if (copyButton) {
             fireEvent.press(copyButton);
-            expect(mockDispatch).toHaveBeenCalled();
+            expect(mockDispatch).toHaveBeenCalledWith(
+              expect.objectContaining({ type: 'SHOW_ALERT' }),
+            );
           }
         },
         { timeout: 2000 },
@@ -801,8 +776,10 @@ describe('RevealPrivateCredential', () => {
     it('disables clipboard for old Android API levels', async () => {
       (Device.isAndroid as jest.Mock).mockReturnValue(true);
       (Device.getDeviceAPILevel as jest.Mock).mockResolvedValue(20); // Below minimum
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      renderWithProviders(
+      const { queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -811,8 +788,15 @@ describe('RevealPrivateCredential', () => {
       );
 
       await waitFor(() => {
-        expect(Device.getDeviceAPILevel).toHaveBeenCalled();
+        expect(mockRevealSRP).toHaveBeenCalled();
       });
+
+      // Copy button should not be visible when clipboard is disabled for old Android API levels
+      expect(
+        queryByTestId(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+        ),
+      ).toBeNull();
     });
 
     it('enables clipboard for supported Android API levels', async () => {
@@ -835,9 +819,12 @@ describe('RevealPrivateCredential', () => {
 
   describe('modal interactions', () => {
     it('opens external link when SRP guide link is pressed', async () => {
+      const Linking = jest.requireMock(
+        'react-native/Libraries/Linking/Linking',
+      );
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
-      const { getByTestId } = renderWithProviders(
+      const { getByTestId, getByText } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -863,6 +850,11 @@ describe('RevealPrivateCredential', () => {
           getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
         ).toBeTruthy();
       });
+
+      const linkText = getByText('but phishers might.');
+      fireEvent.press(linkText);
+
+      expect(Linking.openURL).toHaveBeenCalled();
     });
   });
 
@@ -934,8 +926,11 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Views Reveal Secret Recovery Phrase',
+        }),
+      );
     });
 
     it('tracks CANCEL_REVEAL_SRP_CTA when cancel is pressed', async () => {
@@ -962,7 +957,11 @@ describe('RevealPrivateCredential', () => {
         fireEvent.press(cancelButton);
       });
 
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Clicks Cancel on Reveal Secret Recovery Phrase Page',
+        }),
+      );
     });
   });
 
@@ -970,7 +969,7 @@ describe('RevealPrivateCredential', () => {
     it('navigates back and tracks SRP_DONE_CTA when done is pressed after unlock', async () => {
       const mockCancel = jest.fn();
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
-      mockRevealSRP.mockResolvedValue('word1 word2 word3 word4');
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
@@ -993,19 +992,28 @@ describe('RevealPrivateCredential', () => {
           );
           if (doneButton) {
             fireEvent.press(doneButton);
-            expect(mockTrackEvent).toHaveBeenCalled();
           }
         },
         { timeout: 2000 },
+      );
+
+      expect(mockCancel).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Clicks Done with SRP',
+        }),
       );
     });
   });
 
   describe('selected account handling', () => {
-    it('uses selectedAccount address from route params when provided', () => {
+    it('uses selectedAccount address from route params when provided', async () => {
+      const addressMock = jest.requireMock('../../../util/address');
+      const customAddress = '0xCustomAddress1234567890123456789012345678';
       const customAccount = createMockAccount({
-        address: '0xCustomAddress1234567890123456789012345678',
+        address: customAddress,
       });
+      mockReauthenticate.mockRejectedValue(new Error('Test error'));
 
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
@@ -1015,20 +1023,53 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      expect(
-        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
-      ).toBeTruthy();
+      const passwordInput = getByTestId(
+        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+      );
+      fireEvent.changeText(passwordInput, 'test-password');
+
+      const confirmButton = getByTestId(
+        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // Verify that isHardwareAccount was called with the custom address from selectedAccount
+      await waitFor(() => {
+        expect(addressMock.isHardwareAccount).toHaveBeenCalledWith(
+          customAddress,
+        );
+      });
     });
 
-    it('falls back to checkSummedAddress from selector when no selectedAccount', () => {
-      const { getByTestId } = renderWithProviders(
+    it('falls back to checkSummedAddress from selector when no selectedAccount', async () => {
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue('test seed phrase');
+
+      const { getByTestId, queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute()}
+          route={createDefaultRoute()} // No selectedAccount provided - falls back to selector
           navigation={null}
           cancel={() => null}
         />,
       );
 
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      // Verify component successfully unlocked using the fallback address from selector
+      // The SRP is revealed, proving the fallback address worked
+      await waitFor(() => {
+        const copyButton = queryByTestId(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+        );
+        expect(copyButton).toBeTruthy();
+      });
+
+      // Verify the container is still rendered (component didn't crash with fallback address)
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeTruthy();
