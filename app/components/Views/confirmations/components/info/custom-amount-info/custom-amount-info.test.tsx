@@ -29,6 +29,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
+import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -282,6 +283,37 @@ describe('CustomAmountInfo', () => {
     expect(
       await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
     ).toBeDefined();
+  });
+
+  it('renders earning percentage row when transaction metadata type is musdConversion', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.musdConversion,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByText } = render({
+      transactionType: TransactionType.musdConversion,
+    });
+
+    act(() => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(getByText(strings('earn.earning'))).toBeOnTheScreen();
+    expect(getByText(`${MUSD_CONVERSION_APY}%`)).toBeOnTheScreen();
+  });
+
+  it('does not render earning percentage row when transaction metadata type is not musdConversion', () => {
+    const { getByText, queryByText } = render({
+      transactionType: TransactionType.contractInteraction,
+    });
+
+    act(() => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(queryByText(strings('earn.earning'))).toBeNull();
+    expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
   });
 
   it('calls overrideContent with amountHuman and hides default content', () => {

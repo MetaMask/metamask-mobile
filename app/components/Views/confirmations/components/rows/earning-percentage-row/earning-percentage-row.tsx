@@ -7,8 +7,8 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import { strings } from '../../../../../../../locales/i18n';
 
-// TODO: Add tests
 export function EarningPercentageRow() {
   const isLoading = useIsTransactionPayLoading();
 
@@ -17,7 +17,7 @@ export function EarningPercentageRow() {
   }
 
   return (
-    <InfoRow label="Earning">
+    <InfoRow label={strings('earn.earning')}>
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%
       </Text>
