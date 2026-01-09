@@ -336,7 +336,9 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             },
-                            undefined,
+                            {
+                              "marginBottom": 16,
+                            },
                           ]
                         }
                       >
