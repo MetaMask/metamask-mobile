@@ -191,7 +191,7 @@ const ImportPrivateKey = () => {
               ) : (
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Default}
+                  color={TextColor.Alternative}
                   onPress={learnMore}
                 >
                   <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
