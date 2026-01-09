@@ -31,6 +31,9 @@ export const PERPS_CONSTANTS = {
   ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
 
   RECENT_ACTIVITY_LIMIT: 3,
+
+  // Historical data fetching constants
+  FILLS_LOOKBACK_MS: 90 * 24 * 60 * 60 * 1000, // 3 months in milliseconds - limits REST API fills fetch
 } as const;
 
 /**
