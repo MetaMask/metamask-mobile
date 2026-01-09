@@ -15,6 +15,7 @@ on:
       # remove before merge
       - 'rc-builds-gh-workflow'
 
+      # trigger new rc builds
 #remove before merge.
 #test auto-build on specific release branch
 env:
