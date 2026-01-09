@@ -75,7 +75,7 @@ describe('checkPasswordRequirement', () => {
   });
 
   it('return true if password exceeds the minimum length requirement', () => {
-    const password = 'password';
+    const password = 'password9';
     expect(checkPasswordRequirement(password)).toBe(true);
   });
 
