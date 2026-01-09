@@ -221,15 +221,17 @@ describe('TokenDetails', () => {
     expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
     expect(getByText('Market details')).toBeDefined();
     expect(getByText('Market cap')).toBeDefined();
+    expect(getAllByText('$5.22B').length).toBe(2); // marketCap and fullyDiluted (same value)
     expect(getByText('Total volume (24h)')).toBeDefined();
-    expect(getByText('$54.44K')).toBeDefined();
+    expect(getByText('$147.65M')).toBeDefined(); // totalVolume (ETH) * conversionRate
     expect(getByText('Volume / market cap')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.21B')).toBeDefined();
     expect(getByText('All time high')).toBeDefined();
-    expect(getAllByText('<$0.01').length).toBe(2); // All time high and low are very small
+    expect(getByText('$1.22')).toBeDefined(); // allTimeHigh (ETH) * conversionRate
     expect(getByText('All time low')).toBeDefined();
+    expect(getByText('$0.88')).toBeDefined(); // allTimeLow (ETH) * conversionRate
     expect(getByText('Fully diluted')).toBeDefined();
   });
 
