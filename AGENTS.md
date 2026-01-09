@@ -98,94 +98,35 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-### MANDATORY: Read Before Coding
+**Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
 
-1. `.github/guidelines/CODING_GUIDELINES.md`
-2. `README.md`
-3. Relevant documentation in `/docs`
-4. `.cursor/rules/` for specific patterns
+| Rule File                         | Scope                                                |
+| --------------------------------- | ---------------------------------------------------- |
+| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization |
+| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
+| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
+| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
+| `component-view-testing.mdc`      | Component testing with presets/renderers             |
+| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
+| `pr-creation-guidelines.mdc`      | Pull request standards                               |
 
-### TypeScript Requirements
+### Quick Reference
 
-- All new code MUST be TypeScript
-- Use proper types (NO `any` type)
-- Follow [MetaMask TypeScript Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/typescript.md)
-
-### Component Development
-
-**Component Hierarchy (STRICT ORDER)**:
-
-1. **FIRST**: Use `@metamask/design-system-react-native` components
-2. **SECOND**: Use `app/component-library` components
-3. **LAST RESORT**: Custom components
-
-**Styling Rules**:
-
-- Use `const tw = useTailwind();` hook (NEVER `import tw from 'twrnc'`)
-- Use `<Box>` instead of `<View>`
-- Use `<Text variant={TextVariant.BodyMd}>` instead of raw `<Text>`
-- Use `twClassName` prop for static styles
-- Use design tokens: `bg-default`, `text-primary`, `border-muted`
-- NEVER use StyleSheet.create()
-- NEVER use arbitrary color values
-
-### File Organization
-
-```
-ComponentName/
-├── ComponentName.tsx           # Main component
-├── ComponentName.types.ts      # TypeScript interfaces
-├── ComponentName.constants.ts  # Constants
-├── ComponentName.styles.ts     # Styles (if needed)
-├── ComponentName.test.tsx      # Unit tests
-├── ComponentName.stories.tsx   # Storybook stories
-├── README.md                   # Component documentation
-└── index.ts                    # Export
-```
-
-### Testing Requirements
-
-**Unit Tests**:
-
-- MANDATORY for all components and utilities
-- NEVER use "should" in test names
-- Use AAA pattern (Arrange, Act, Assert) with blank line separation
-- Mock ALL external dependencies
-- Use `act()` for async operations that update state
-- Follow [Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
-
-**E2E Tests**:
-
-- ALWAYS use Page Object Model pattern
-- Import framework utilities from `e2e/framework/index.ts`
-- NEVER use `TestHelpers.delay()` - use proper assertions
-- Use descriptive `description` parameters in all assertions/gestures
-- Follow `/docs/readme/e2e-testing.md`
+- **TypeScript**: All new code MUST be TypeScript, NO `any` type
+- **Components**: Design system first → `component-library` second → custom last
+- **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
+- **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
 
-**Required Tools**:
+See detailed setup documentation:
 
-- Node.js: ^20.18.0 (see `.nvmrc`)
-- Yarn: ^4.10.3 (use corepack)
-- Watchman (recommended)
+- **Expo (recommended)**: [docs/readme/expo-environment.md](./docs/readme/expo-environment.md)
+- **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
+- **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**iOS**:
-
-- Xcode (latest)
-- Ruby (see `.ruby-version`)
-- CocoaPods (via bundler)
-
-**Android**:
-
-- Android Studio
-- JDK 17
-
-**Configuration Files**:
-
-- `.js.env` - Environment variables (copy from `.js.env.example`)
-- Firebase setup required for FCM (see README.md)
-- Infura Project ID required (`MM_INFURA_PROJECT_ID`)
+**Required Tools**: Node.js ^20.18.0 • Yarn ^4.10.3 • Watchman
 
 ## Key Patterns
 
@@ -209,12 +150,6 @@ ComponentName/
 - Engine coordinates all controller interactions
 - Controllers are composable via ComposableController
 
-### Async Operations
-
-- Use Redux Saga for complex async flows
-- Use `useCallback` with dependencies for component async handlers
-- Always handle errors and loading states
-
 ## Build Types
 
 The app supports multiple build types:
@@ -225,22 +160,6 @@ The app supports multiple build types:
 
 Use environment variable `METAMASK_BUILD_TYPE` to switch.
 
-## Common Pitfalls
-
-1. **NEVER use npm/npx** - always use yarn
-2. **NEVER import twrnc directly** - use `useTailwind()` hook
-3. **NEVER skip mocking in tests** - mock everything not under test
-4. **NEVER use raw View/Text** - use Box/Text from design system
-5. **NEVER commit without running tests** - `yarn test:unit`
-6. **NEVER bypass git hooks** unless absolutely necessary
-
-## Performance Considerations
-
-- Use `useMemo` and `useCallback` for expensive computations
-- Use FlatList/FlashList for large lists
-- Follow performance guidelines in `/docs/readme/performance.md`
-- Profile with Reassure for performance testing
-
 ## Security
 
 - All sensitive data encrypted via SecureKeychain
@@ -249,25 +168,25 @@ Use environment variable `METAMASK_BUILD_TYPE` to switch.
 - Never log sensitive information
 - Follow OWASP security guidelines
 
-## Development workflow
+## Development Workflow
 
-If the user ask to implment a ticket directly from Jira
+If the user asks to implement a ticket directly from Jira:
 
-- You will get the details directly from the link
-- Start a simulator
-  - Ask which simulator they will like to open (Android or iOS)
-  - You have scripts on the `package.json` to run both
-    - First run `yarn setup`
-    - Once the above finishes `yarn watch:clean`
-    - Then on another terminal `yarn start:{ios|android}`
-- Start implementing the ticket as it was a prompt from the user.
-- If you need feedback you can make screenshots.
+1. Get the details directly from the link
+2. Start a simulator (ask which platform: iOS or Android)
+3. Run setup: `yarn setup` → `yarn watch:clean` → `yarn start:{ios|android}`
+4. Implement the ticket as prompted
+5. Use screenshots for feedback if needed
 
 ## Documentation References
 
-- Architecture: `/docs/readme/architecture.md`
-- Environment Setup: `/docs/readme/environment.md`
-- E2E Testing: `/docs/readme/e2e-testing.md`
-- Debugging: `/docs/readme/debugging.md`
-- MetaMask Contributor Docs: https://github.com/MetaMask/contributor-docs
-- Storybook: `/docs/readme/storybook.md`
+| Documentation             | Path                                         |
+| ------------------------- | -------------------------------------------- |
+| Architecture              | `/docs/readme/architecture.md`               |
+| Environment Setup         | `/docs/readme/environment.md`                |
+| E2E Testing               | `/docs/readme/e2e-testing.md`                |
+| Debugging                 | `/docs/readme/debugging.md`                  |
+| Performance               | `/docs/readme/performance.md`                |
+| Storybook                 | `/docs/readme/storybook.md`                  |
+| Troubleshooting           | `/docs/readme/troubleshooting.md`            |
+| MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
