@@ -25,6 +25,7 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { VALIDATION_THRESHOLDS } from '../../constants/perpsConfig';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
@@ -138,9 +139,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  // Check if balance is below the minimum threshold for trading
+  // This allows users to see and manage their balance even when it's low
+  const isBalanceLow = BigNumber(totalBalance).isLessThan(
+    VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD,
+  );
   const shouldShowPnl = hasPositions;
-  const shouldShowBalance = !isBalanceEmpty || shouldShowPnl;
+  const shouldShowBalance = !isBalanceLow || shouldShowPnl;
   const balancePillContainerStyle =
     shouldShowBalance && !shouldShowPnl
       ? styles.pillContainer

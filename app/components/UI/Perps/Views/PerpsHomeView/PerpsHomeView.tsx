@@ -39,6 +39,7 @@ import {
   HOME_SCREEN_CONFIG,
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
+  VALIDATION_THRESHOLDS,
 } from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -96,7 +97,12 @@ const PerpsHomeView = () => {
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  // Check if balance is below the minimum threshold for trading
+  // This allows users to add funds when their balance is too low,
+  // rather than hitting a dead-end error when trying to place an order
+  const isBalanceLow = BigNumber(totalBalance).isLessThan(
+    VALIDATION_THRESHOLDS.LOW_BALANCE_THRESHOLD,
+  );
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -255,8 +261,8 @@ const PerpsHomeView = () => {
       },
     ];
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
+    // Avoid duplicate "Learn more" button (shown in low balance/empty state card)
+    if (!isBalanceLow) {
       items.push({
         label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
         onPress: () => navigtateToTutorial(),
@@ -265,7 +271,7 @@ const PerpsHomeView = () => {
     }
 
     return items;
-  }, [navigateToContactSupport, navigtateToTutorial, isBalanceEmpty]);
+  }, [navigateToContactSupport, navigtateToTutorial, isBalanceLow]);
 
   // Bottom sheet handlers - open sheets directly
   const handleCloseAllPress = useCallback(() => {
@@ -305,9 +311,9 @@ const PerpsHomeView = () => {
   const bottomSpacerStyle = useMemo(
     () => ({
       // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
-      height: isBalanceEmpty ? 16 : footerHeight + 16,
+      height: isBalanceLow ? 16 : footerHeight + 16,
     }),
-    [isBalanceEmpty, footerHeight],
+    [isBalanceLow, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
@@ -448,8 +454,8 @@ const PerpsHomeView = () => {
         />
       )}
 
-      {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
-      {!isBalanceEmpty &&
+      {/* Fixed Footer with Action Buttons - Only show when balance is above threshold and no sheets are open */}
+      {!isBalanceLow &&
         !showCloseAllSheet &&
         !showCancelAllSheet &&
         !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
