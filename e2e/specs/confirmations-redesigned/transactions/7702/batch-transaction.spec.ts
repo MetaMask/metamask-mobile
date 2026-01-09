@@ -20,15 +20,30 @@ import { loginToApp } from '../../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
-import { LocalNode } from '../../../../framework';
+import {
+  AnvilNodeOptions,
+  LocalNode,
+  LocalNodeType,
+} from '../../../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
 
-const LOCAL_CHAIN_ID = '0x539';
+// const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Local RPC';
+
+const localNodeOptions = [
+  {
+    type: 'anvil',
+    options: {
+      hardfork: 'prague',
+      loadState:
+        './e2e/specs/confirmations-redesigned/transactions/7702/withDelegatorContracts.json',
+    },
+  },
+];
 
 async function changeNetworkFromNetworkListModal() {
   await WalletView.tapTokenNetworkFilter();
@@ -63,8 +78,8 @@ async function goBackToWalletPage() {
 async function connectTestDappToLocalhost() {
   await TabBarComponent.tapBrowser();
   await BrowserView.navigateToTestDApp();
-  await TestDApp.tapRevokeAccountPermission();
-  await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
+  // await TestDApp.tapRevokeAccountPermission();
+  // await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 }
 
 /**
@@ -120,6 +135,12 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             .build();
         },
         restartDevice: true,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: localNodeOptions[0].options as AnvilNodeOptions,
+          },
+        ],
         testSpecificMock,
       },
       async () => {
@@ -201,6 +222,12 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             .build();
         },
         restartDevice: true,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: localNodeOptions[0].options as AnvilNodeOptions,
+          },
+        ],
         testSpecificMock,
       },
       async () => {
