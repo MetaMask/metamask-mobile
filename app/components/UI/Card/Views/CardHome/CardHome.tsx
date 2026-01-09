@@ -150,7 +150,6 @@ const CardHome = () => {
     isBaanxLoginEnabled,
     fetchPriorityToken,
     fetchAllData,
-    refetchAllData,
     pollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned,
     allTokens,
@@ -650,14 +649,14 @@ const CardHome = () => {
       // Check if cache was cleared and needs refresh
       // When cache is cleared, externalWalletDetailsData becomes null
       if (!externalWalletDetailsData && !isLoading) {
-        refetchAllData();
+        fetchAllData();
       }
     }, [
       isSDKLoading,
       isAuthenticated,
       externalWalletDetailsData,
       isLoading,
-      refetchAllData,
+      fetchAllData,
     ]),
   );
 

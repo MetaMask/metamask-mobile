@@ -195,45 +195,16 @@ const useLoadCardData = () => {
           fetchKYCStatus(),
         ]);
       } else {
-        await Promise.all([fetchPriorityToken()]);
-      }
-    },
-    [
-      fetchPriorityToken,
-      fetchCardDetails,
-      isAuthenticated,
-      fetchExternalWalletDetails,
-      fetchKYCStatus,
-      fetchDelegationSettings,
-    ],
-  );
-
-  // Force refetch function that bypasses cache
-  const refetchAllData = useMemo(
-    () => async () => {
-      if (isAuthenticated) {
-        // First, refetch delegation settings (required for external wallet details)
-        // fetchExternalWalletDetails reads delegation settings from a ref, so it must
-        // run after delegation settings is available to avoid returning null.
-        await fetchDelegationSettings();
-
-        await Promise.all([
-          fetchExternalWalletDetails(),
-          fetchCardDetails(),
-          fetchPriorityToken(),
-          fetchKYCStatus(),
-        ]);
-      } else {
         await fetchPriorityToken();
       }
     },
     [
-      isAuthenticated,
-      fetchDelegationSettings,
-      fetchExternalWalletDetails,
-      fetchCardDetails,
       fetchPriorityToken,
+      fetchCardDetails,
+      isAuthenticated,
+      fetchExternalWalletDetails,
       fetchKYCStatus,
+      fetchDelegationSettings,
     ],
   );
 
@@ -258,7 +229,6 @@ const useLoadCardData = () => {
     isBaanxLoginEnabled,
     // Fetch functions
     fetchAllData,
-    refetchAllData,
     fetchPriorityToken,
     fetchCardDetails,
     // Card provisioning
