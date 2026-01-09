@@ -206,9 +206,6 @@ class AuthenticationService {
         }),
       ).catch(console.error);
     }
-
-    password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -1442,6 +1439,8 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
+
+    // Reset biometrics since the password that is stored should not be valid.
     await this.resetPassword();
   };
 
