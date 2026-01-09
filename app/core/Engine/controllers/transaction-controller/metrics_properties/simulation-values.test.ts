@@ -29,11 +29,8 @@ describe('getSimulationValuesProperties', () => {
       allTransactions: [],
       getUIMetrics: getUIMetricsMock,
       getState: getStateMock,
-      transactionEventHandlerRequest: {
-        getState: getStateMock,
-        initMessenger: {} as never,
-        smartTransactionsController: {} as never,
-      },
+      initMessenger: {} as never,
+      smartTransactionsController: {} as never,
     };
   });
 

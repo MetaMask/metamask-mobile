@@ -14,15 +14,15 @@ const log = createProjectLogger('transaction-metrics');
 export async function getStxMetricsProperties({
   eventType,
   transactionMeta,
-  transactionEventHandlerRequest,
+  getState,
+  initMessenger,
+  smartTransactionsController,
 }: TransactionMetricsBuilderRequest): Promise<TransactionMetrics> {
   if (!isFinalizedEvent(eventType)) {
     return EMPTY_METRICS;
   }
 
   try {
-    const { getState, initMessenger, smartTransactionsController } =
-      transactionEventHandlerRequest;
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
       transactionMeta.chainId,

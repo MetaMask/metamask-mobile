@@ -24,7 +24,8 @@ export interface TransactionMetricsBuilderRequest {
   allTransactions: TransactionMeta[];
   getUIMetrics: (transactionId: string) => TransactionMetrics;
   getState: () => RootState;
-  transactionEventHandlerRequest: TransactionEventHandlerRequest;
+  initMessenger: TransactionControllerInitMessenger;
+  smartTransactionsController: SmartTransactionsController;
 }
 
 export type TransactionMetricsBuilder = (

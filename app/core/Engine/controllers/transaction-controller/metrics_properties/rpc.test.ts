@@ -28,11 +28,8 @@ const createMockRequest = (
   allTransactions: [],
   getUIMetrics: () => EMPTY_METRICS,
   getState: jest.fn(),
-  transactionEventHandlerRequest: {
-    getState: jest.fn(),
-    initMessenger: {} as never,
-    smartTransactionsController: {} as never,
-  },
+  initMessenger: {} as never,
+  smartTransactionsController: {} as never,
 });
 
 describe('getRPCMetricsProperties', () => {

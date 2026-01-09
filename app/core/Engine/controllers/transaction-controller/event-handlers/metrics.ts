@@ -1,28 +1,32 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { merge } from 'lodash';
 import { createProjectLogger } from '@metamask/utils';
 
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
 import { MetaMetrics } from '../../../../Analytics';
-import {
-  generateEvent,
-  getBuilderMetrics,
-  retryIfEngineNotInitialized,
-} from '../utils';
+import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
   TransactionEventHandlerRequest,
+  TransactionMetrics,
   TransactionMetricsBuilder,
 } from '../types';
-import { getDefaultMetricsProperties } from '../event_properties/default';
-import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
-import { getSimulationValuesProperties } from '../event_properties/simulation-values';
-import { getRPCMetricsProperties } from '../event_properties/rpc';
-import { getStxMetricsProperties } from '../event_properties/stx';
-import { getHashMetricsProperties } from '../event_properties/hash';
+import { EMPTY_METRICS } from '../constants';
+import { getBaseMetricsProperties } from '../metrics_properties/base';
+import { getMetaMaskPayProperties } from '../metrics_properties/metamask-pay';
+import { getSimulationValuesProperties } from '../metrics_properties/simulation-values';
+import { getRPCMetricsProperties } from '../metrics_properties/rpc';
+import { getStxMetricsProperties } from '../metrics_properties/stx';
+import { getHashMetricsProperties } from '../metrics_properties/hash';
+import { getBatchMetricsProperties } from '../metrics_properties/batch';
+import { getGasMetricsProperties } from '../metrics_properties/gas';
 
 const log = createProjectLogger('transaction-metrics');
 
 const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
-  getDefaultMetricsProperties,
+  getBaseMetricsProperties,
+  getBatchMetricsProperties,
+  getGasMetricsProperties,
   getMetaMaskPayProperties,
   getSimulationValuesProperties,
   getRPCMetricsProperties,
@@ -108,4 +112,62 @@ export async function handleTransactionFinalizedEventForMetrics(
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }
+}
+
+function getConfirmationMetrics(
+  state: ReturnType<TransactionEventHandlerRequest['getState']>,
+  transactionId: string,
+): TransactionMetrics {
+  return (state?.confirmationMetrics?.metricsById?.[transactionId] ||
+    {}) as unknown as TransactionMetrics;
+}
+
+async function getBuilderMetrics({
+  builders,
+  eventType,
+  request,
+  transactionMeta,
+}: {
+  builders: TransactionMetricsBuilder[];
+  eventType: IMetaMetricsEvent;
+  request: TransactionEventHandlerRequest;
+  transactionMeta: TransactionMeta;
+}) {
+  const metrics = {
+    properties: {},
+    sensitiveProperties: {},
+  };
+
+  const allTransactions =
+    request.getState()?.engine?.backgroundState?.TransactionController
+      ?.transactions ?? [];
+
+  const getState = request.getState;
+
+  const getUIMetrics = (transactionId: string): TransactionMetrics =>
+    getConfirmationMetrics(getState(), transactionId);
+
+  const builderResults = await Promise.all(
+    builders.map(async (builder) => {
+      try {
+        return await builder({
+          eventType,
+          transactionMeta,
+          allTransactions,
+          getUIMetrics,
+          getState,
+          initMessenger: request.initMessenger,
+          smartTransactionsController: request.smartTransactionsController,
+        });
+      } catch (error) {
+        return EMPTY_METRICS;
+      }
+    }),
+  );
+
+  for (const currentMetrics of builderResults) {
+    merge(metrics, currentMetrics);
+  }
+
+  return metrics;
 }

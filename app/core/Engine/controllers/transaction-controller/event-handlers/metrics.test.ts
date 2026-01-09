@@ -53,7 +53,7 @@ jest.mock('../../../Engine', () => ({
   context: {},
 }));
 
-jest.mock('../event_properties/metamask-pay', () => ({
+jest.mock('../metrics_properties/metamask-pay', () => ({
   getMetaMaskPayProperties: jest.fn().mockReturnValue({
     properties: {
       builder_test: true,

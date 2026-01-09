@@ -22,11 +22,8 @@ const createMockRequest = (
   allTransactions: [],
   getUIMetrics: () => EMPTY_METRICS,
   getState: jest.fn() as TransactionMetricsBuilderRequest['getState'],
-  transactionEventHandlerRequest: {
-    getState: jest.fn() as TransactionMetricsBuilderRequest['getState'],
-    initMessenger: {} as never,
-    smartTransactionsController: {} as never,
-  },
+  initMessenger: {} as never,
+  smartTransactionsController: {} as never,
   ...overrides,
 });
 

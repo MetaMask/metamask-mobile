@@ -3,7 +3,7 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 
-import { getTransactionTypeValue } from './default';
+import { getTransactionTypeValue } from './base';
 
 describe('getTransactionTypeValue', () => {
   it('returns correct string value for snake case conversion cases', () => {
