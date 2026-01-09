@@ -124,5 +124,5 @@ export default {
   OKB: X_LAYER,
   BOB,
   RBTC: ROOTSTOCK,
-  TRBTC: ROOTSTOCK,
+  tRBTC: ROOTSTOCK,
 };
