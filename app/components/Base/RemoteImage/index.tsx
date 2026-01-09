@@ -84,7 +84,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
           false,
         );
         setResolvedIpfsUrl(ipfsUrl || false);
-      } catch (err) {
+      } catch {
         Logger.log(`Failed to resolve IPFS URL for ${source.uri}`);
         setResolvedIpfsUrl(false);
       }

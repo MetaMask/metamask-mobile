@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 
 import RemoteImage from '../RemoteImage';
-import Text from '../Text';
+import Text from '../../../../app/component-library/components/Texts/Text/Text.tsx';
 import { useTheme } from '../../../util/theme';
 import imageIcons from '../../../images/image-icons';
 import ethLogo from '../../../images/eth-logo-new.png';
@@ -129,7 +129,7 @@ function TokenIcon({
   style,
   emptyIconTextStyle,
   testID,
-}: TokenIconProps) {
+}: Readonly<TokenIconProps>) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
