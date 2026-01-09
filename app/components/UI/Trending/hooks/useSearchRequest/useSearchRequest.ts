@@ -23,8 +23,14 @@ export const useSearchRequest = (options: {
   chainIds?: CaipChainId[];
   query: string;
   limit: number;
+  includeMarketData?: boolean;
 }) => {
-  const { chainIds: providedChainIds = [], query, limit } = options;
+  const {
+    chainIds: providedChainIds = [],
+    query,
+    limit,
+    includeMarketData,
+  } = options;
 
   // Use provided chainIds or default to trending networks
   const chainIds = useMemo((): CaipChainId[] => {
@@ -59,6 +65,7 @@ export const useSearchRequest = (options: {
     try {
       const searchResults = await searchTokens(stableChainIds, query, {
         limit,
+        includeMarketData,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
@@ -76,7 +83,7 @@ export const useSearchRequest = (options: {
         setIsLoading(false);
       }
     }
-  }, [stableChainIds, query, limit]);
+  }, [stableChainIds, query, limit, includeMarketData]);
 
   // Automatically trigger search when query changes
   useEffect(() => {
