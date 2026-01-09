@@ -24,7 +24,8 @@ Changes to wdio/ or appwright/ directories (separate test frameworks) do not req
 Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
-Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.`;
+Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
+FlaskBuildTests is for MetaMask Snaps functionality (Android only). Select this tag when changes affect e2e/specs/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI), or Flask build configuration.`;
 
   const prompt = [
     role,
