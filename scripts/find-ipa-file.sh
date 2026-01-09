@@ -33,8 +33,9 @@ else
   # Fallback: search for IPA in build output directory
   IPA_DIR="ios/build/output"
   if [ -d "$IPA_DIR" ]; then
-    # Find the most recent IPA file
-    IPA_PATH=$(find "$IPA_DIR" -name "*.ipa" -type f | head -1)
+    # Find the most recent IPA file by modification time
+    # Use find with -exec to run ls -t on all found files, which sorts by modification time (newest first)
+    IPA_PATH=$(find "$IPA_DIR" -name "*.ipa" -type f -exec ls -t {} + 2>/dev/null | head -1)
     if [ -z "$IPA_PATH" ]; then
       echo "❌ Error: No IPA file found in $IPA_DIR"
       echo "Available files:"

@@ -3379,7 +3379,7 @@ workflows:
                   "${BITRISE_APP_STORE_IPA_PATH:-}"
       - script@1:
           title: Cleanup API Key
-          if: always()
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash

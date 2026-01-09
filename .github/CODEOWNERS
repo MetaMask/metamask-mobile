@@ -47,7 +47,6 @@ scripts/update-expo-channel.js                              @MetaMask/mobile-adm
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
-scripts/find-ipa-file.sh                                    @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 
 # Platform & Snaps Code Fencing File

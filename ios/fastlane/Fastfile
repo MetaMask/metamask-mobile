@@ -17,7 +17,9 @@ platform :ios do
   desc "Upload existing IPA to TestFlight for MetaMask main app"
   lane :upload_to_testflight_only do |options|
     ipa_path = options[:ipa_path]
-    groups = options[:groups] || ['MetaMask BETA & Release Candidates']
+    # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
+    groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
+    groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
     notify_external_testers = true
     
     if ipa_path.nil? || ipa_path.empty?
