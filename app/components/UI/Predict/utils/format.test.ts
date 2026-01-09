@@ -410,12 +410,12 @@ describe('format utils', () => {
       expect(result).toBe('$0.12');
     });
 
-    it('formats very small prices rounded', () => {
+    it('formats very small prices with subscript notation', () => {
       // Arrange & Act
       const result = formatPrice(0.0001234);
 
-      // Assert
-      expect(result).toBe('$0');
+      // Assert - subscript ₃ indicates 3 zeros after "0.0"
+      expect(result).toBe('$0.0₃1234');
     });
 
     it('handles string input with decimal value', () => {
@@ -511,10 +511,90 @@ describe('format utils', () => {
       [1000, '$1,000'],
       [1000.001, '$1,000'],
       [0.9999, '$1'],
-      [0.00009999, '$0'],
+      [0.00009999, '$0.0₄9999'], // 4 zeros after "0.0", then 9999
     ])('formats boundary value %f as %s', (input, expected) => {
       const result = formatPrice(input);
       expect(result).toBe(expected);
+    });
+
+    describe('very small prices with subscript notation', () => {
+      it('formats price with 5 leading zeros using subscript', () => {
+        // Arrange - 0.00000678 has 5 zeros after the decimal
+        const result = formatPrice(0.00000678);
+
+        // Assert - subscript ₅ indicates 5 zeros after "0.0"
+        expect(result).toBe('$0.0₅678');
+      });
+
+      it('formats price with 3 leading zeros using subscript', () => {
+        // Arrange - 0.0001234 has 3 zeros after the decimal
+        const result = formatPrice(0.0001234);
+
+        // Assert - subscript ₃ indicates 3 zeros after "0.0"
+        expect(result).toBe('$0.0₃1234');
+      });
+
+      it('formats price with 2 leading zeros using subscript', () => {
+        // Arrange - 0.001234 has 2 zeros after the decimal
+        const result = formatPrice(0.001234);
+
+        // Assert - subscript ₂ indicates 2 zeros after "0.0"
+        expect(result).toBe('$0.0₂1234');
+      });
+
+      it('formats price with 1 leading zero without subscript', () => {
+        // Arrange - 0.01234 has 1 zero after the decimal
+        const result = formatPrice(0.01234);
+
+        // Assert - shows 2 decimal places for prices >= 0.01
+        expect(result).toBe('$0.01');
+      });
+
+      it('formats very tiny prices correctly', () => {
+        // Arrange - extremely small price like some meme tokens
+        const result = formatPrice(0.000000001234);
+
+        // Assert - subscript ₈ indicates 8 zeros after "0.0"
+        expect(result).toBe('$0.0₈1234');
+      });
+
+      it('formats price just under 0.01 with subscript', () => {
+        // Arrange - 0.0099 is just under 0.01
+        const result = formatPrice(0.0099);
+
+        // Assert - subscript ₂ indicates 2 zeros after "0.0"
+        expect(result).toBe('$0.0₂99');
+      });
+
+      it('removes trailing zeros from significant part', () => {
+        // Arrange - 0.001 has 2 zeros followed by 1
+        const result = formatPrice(0.001);
+
+        // Assert - shows just "1" not "1000"
+        expect(result).toBe('$0.0₂1');
+      });
+
+      it('handles price with all zeros after initial significant digits', () => {
+        // Arrange - 0.00010 - trailing zeros should be removed
+        const result = formatPrice(0.0001);
+
+        // Assert
+        expect(result).toBe('$0.0₃1');
+      });
+
+      it.each([
+        [0.00000001, '$0.0₇1'], // 7 zeros
+        [0.0000001, '$0.0₆1'], // 6 zeros
+        [0.000001, '$0.0₅1'], // 5 zeros
+        [0.00001, '$0.0₄1'], // 4 zeros
+        [0.0001, '$0.0₃1'], // 3 zeros
+        [0.001, '$0.0₂1'], // 2 zeros
+        [0.00000678, '$0.0₅678'], // PEPE-like token
+        [0.000012345, '$0.0₄1234'], // 4 significant digits max
+        [0.0000056789, '$0.0₅5678'], // truncates to 4 significant digits
+      ])('formats %f as %s', (input, expected) => {
+        expect(formatPrice(input)).toBe(expected);
+      });
     });
   });
 

@@ -62,16 +62,95 @@ export const formatPercentage = (
   return `${formatted}%`;
 };
 
+// Unicode subscript digits for the CoinGecko-style notation
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  '0': '₀',
+  '1': '₁',
+  '2': '₂',
+  '3': '₃',
+  '4': '₄',
+  '5': '₅',
+  '6': '₆',
+  '7': '₇',
+  '8': '₈',
+  '9': '₉',
+};
+
 /**
- * Formats a price value as USD currency with rounding up to nearest cent
+ * Converts a number to its subscript representation
+ * @param num - The number to convert to subscript
+ * @returns The subscript representation of the number
+ * @example toSubscript(5) => "₅"
+ * @example toSubscript(12) => "₁₂"
+ */
+const toSubscript = (num: number): string =>
+  String(num)
+    .split('')
+    .map((digit) => SUBSCRIPT_DIGITS[digit] || digit)
+    .join('');
+
+/**
+ * Formats very small prices using CoinGecko-style subscript notation.
+ * For prices like 0.00000678, shows $0.0₅678 where ₅ indicates 5 zeros after "0.0"
+ * @param num - The small price value (must be > 0 and < 0.01)
+ * @returns Formatted string with subscript zero count
+ * @example formatSmallPrice(0.00000678) => "$0.0₅678"
+ * @example formatSmallPrice(0.0001234) => "$0.0₃1234"
+ */
+const formatSmallPrice = (num: number): string => {
+  // Convert to string to analyze the decimal places
+  // Use toFixed with high precision to avoid scientific notation
+  const priceStr = num.toFixed(18);
+  const [, decimalPart] = priceStr.split('.');
+
+  if (!decimalPart) {
+    return '$0';
+  }
+
+  // Count leading zeros after the decimal point
+  let leadingZeros = 0;
+  for (const char of decimalPart) {
+    if (char === '0') {
+      leadingZeros++;
+    } else {
+      break;
+    }
+  }
+
+  // Get the significant digits (up to 4 significant figures)
+  const significantPart = decimalPart.slice(leadingZeros, leadingZeros + 4);
+
+  // Remove trailing zeros from significant part for cleaner display
+  const cleanedSignificant = significantPart.replace(/0+$/, '') || '0';
+
+  // If there are 2 or more leading zeros, use subscript notation
+  // Format: $0.0₅678 means 5 zeros after the initial "0."
+  if (leadingZeros >= 2) {
+    // The subscript represents the count of zeros AFTER the first "0."
+    // So 0.00000678 = 0.0 + 5 zeros + 678 = $0.0₅678
+    const zeroCount = leadingZeros;
+    return `$0.0${toSubscript(zeroCount)}${cleanedSignificant}`;
+  }
+
+  // For prices with only 1 leading zero (0.0X), just show more decimals
+  return `$0.0${cleanedSignificant}`;
+};
+
+/**
+ * Formats a price value as USD currency with smart handling for very small prices
  * @param price - Raw numeric price value
- * @param options - Optional formatting options (kept for backwards compatibility, but not used)
- * @returns USD formatted string, hiding .00 for integer values, rounding up to nearest cent for 3+ decimals
- * @example formatPrice(1234.5678) => "$1,234.57" (rounds up from .5678)
- * @example formatPrice(0.1234) => "$0.13" (rounds up from .1234)
+ * @param options - Optional formatting options
+ * @param options.minimumDecimals - Minimum decimal places to show
+ * @param options.maximumDecimals - Maximum decimal places to show (default: 2)
+ * @returns USD formatted string with special handling for small prices:
+ * - For prices >= $0.01: Standard 2 decimal places
+ * - For prices < $0.01 and > 0: CoinGecko-style subscript notation (e.g., $0.0₅678)
+ * - For zero: "$0"
+ * @example formatPrice(1234.5678) => "$1,234.57" (rounds from .5678)
+ * @example formatPrice(0.1234) => "$0.12" (rounds from .1234)
  * @example formatPrice(50000) => "$50,000" (no .00 for integers)
- * @example formatPrice(1234.999) => "$1,235" (rounds up to next dollar)
- * @example formatPrice(0.991) => "$1" (rounds up from .991)
+ * @example formatPrice(0.00000678) => "$0.0₅678" (subscript notation for 5 zeros)
+ * @example formatPrice(0.0001234) => "$0.0₃1234" (subscript notation for 3 zeros)
  */
 export const formatPrice = (
   price: string | number,
@@ -83,6 +162,12 @@ export const formatPrice = (
 
   if (isNaN(num)) {
     return '$0.00';
+  }
+
+  // Handle very small positive prices with subscript notation
+  // Only apply when no custom options are provided (to avoid breaking existing usages)
+  if (num > 0 && num < 0.01 && minimumDecimals === undefined) {
+    return formatSmallPrice(num);
   }
 
   // Round to the specified maximum decimal places
