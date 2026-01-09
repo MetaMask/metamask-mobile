@@ -30,6 +30,14 @@ const createMockStore = () =>
               '0x89': { name: 'Polygon', chainId: '0x89' },
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+                '0x89': true,
+              },
+            },
+          },
           BridgeController: {
             bridgeState: {
               bridgeFeatureFlags: mockBridgeFeatureFlags,
@@ -72,9 +80,26 @@ jest.mock('../../../../../selectors/networkController', () => ({
   })),
 }));
 
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectBridgeFeatureFlags: jest.fn(() => mockBridgeFeatureFlags),
-}));
+// Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
+// This is needed because jest.mock is hoisted before variable declarations
+jest.mock('../../../../../core/redux/slices/bridge', () => {
+  // Access the variable from the outer scope via module exports hack
+  const getMockBridgeFeatureFlags = () =>
+    // This is evaluated when the selector is called, not when the mock is defined
+     ({
+      chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
+    })
+  ;
+  return {
+    selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
+    selectEnabledChainRanking: jest.fn(
+      () => getMockBridgeFeatureFlags().chainRanking,
+    ),
+    setIsSelectingToken: jest.fn(() => ({
+      type: 'bridge/setIsSelectingToken',
+    })),
+  };
+});
 
 let mockPopularTokensState = {
   popularTokens: [createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' })],

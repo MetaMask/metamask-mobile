@@ -11,6 +11,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import {
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+} from '../../../../selectors/networkEnablementController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -273,6 +277,46 @@ export const selectBridgeFeatureFlags = createSelector(
       remoteFeatureFlags: {
         bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
+    });
+  },
+);
+
+/**
+ * Selector that returns the chainRanking from feature flags filtered by user-enabled networks.
+ * Used by NetworkPills to only show networks the user has enabled.
+ */
+export const selectEnabledChainRanking = createSelector(
+  selectBridgeFeatureFlags,
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+  (bridgeFeatureFlags, evmEnabledNetworks, nonEvmEnabledNetworks) => {
+    // @ts-expect-error chainRanking is not yet in the type definition
+    const chainRanking = bridgeFeatureFlags.chainRanking as
+      | { chainId: CaipChainId }[]
+      | undefined;
+
+    if (!chainRanking) {
+      return [];
+    }
+
+    const enabledChainIds = new Set([
+      ...evmEnabledNetworks,
+      ...nonEvmEnabledNetworks,
+    ]);
+
+    return chainRanking.filter((chain) => {
+      const { chainId } = chain;
+
+      // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
+      if (chainId.startsWith('eip155:')) {
+        const decimalChainId = chainId.split(':')[1];
+        const hexChainId =
+          `0x${parseInt(decimalChainId, 10).toString(16)}` as Hex;
+        return enabledChainIds.has(hexChainId);
+      }
+
+      // For non-EVM chains, check directly against the CAIP chain ID
+      return enabledChainIds.has(chainId);
     });
   },
 );

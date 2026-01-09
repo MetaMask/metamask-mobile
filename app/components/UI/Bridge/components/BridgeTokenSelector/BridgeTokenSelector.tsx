@@ -21,7 +21,7 @@ import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectBridgeFeatureFlags,
+  selectEnabledChainRanking,
   setIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
@@ -97,7 +97,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const enabledChainRanking = useSelector(selectEnabledChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -131,10 +131,8 @@ export const BridgeTokenSelector: React.FC = () => {
     }
   }, [selectedChainId]);
 
-  // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
-    // @ts-expect-error chainRanking is not yet in the type definition
-    if (!bridgeFeatureFlags.chainRanking) {
+    if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
     }
 
@@ -143,12 +141,11 @@ export const BridgeTokenSelector: React.FC = () => {
       return [selectedChainId];
     }
 
-    // If "All" is selected, use all chains from chainRanking
-    // @ts-expect-error chainRanking is not yet in the type definition
-    return bridgeFeatureFlags.chainRanking.map(
+    // If "All" is selected, use all chains from filtered chainRanking
+    return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
-  }, [selectedChainId, bridgeFeatureFlags]);
+  }, [selectedChainId, enabledChainRanking]);
 
   // Get balances indexed by assetId for O(1) lookup when merging with API results
   const { tokensWithBalance, balancesByAssetId } = useBalancesByAssetId({

@@ -4,8 +4,7 @@ import { Pressable } from 'react-native';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
+import { selectEnabledChainRanking } from '../../../../../core/redux/slices/bridge';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { PopularList } from '../../../../../util/networks/customNetworks';
@@ -46,27 +45,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledRef = useRef(false);
-  const bridgeFeatureFlags = useSelector((state: RootState) =>
-    selectBridgeFeatureFlags(state),
-  );
+  const enabledChainRanking = useSelector(selectEnabledChainRanking);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  // Extract chainRanking from feature flags
-  const chainRanking = useMemo(() => {
-    // Use chainRanking from bridge feature flags
-    // @ts-expect-error chainRanking is not yet in the type definition
-    if (!bridgeFeatureFlags.chainRanking) {
-      return [];
-    }
-
-    // @ts-expect-error chainRanking is not yet in the type definition
-    return bridgeFeatureFlags.chainRanking.map(
-      (chain: { chainId: CaipChainId }) => ({
+  // Map chainRanking to include network names
+  const chainRanking = useMemo(
+    () =>
+      (enabledChainRanking ?? []).map((chain: { chainId: CaipChainId }) => ({
         ...chain,
         name: getNetworkName(chain.chainId, networkConfigurations),
-      }),
-    );
-  }, [bridgeFeatureFlags, networkConfigurations]);
+      })),
+    [enabledChainRanking, networkConfigurations],
+  );
 
   // Auto-scroll to selected network on initial layout
   const handleContentSizeChange = () => {
