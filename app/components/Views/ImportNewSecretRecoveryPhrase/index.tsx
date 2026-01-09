@@ -262,6 +262,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           },
         ]}
         titleLeftProps={{
+          testID: ImportSRPIDs.SCREEN_TITLE_ID,
           title: strings(
             'import_new_secret_recovery_phrase.import_wallet_title',
           ),
