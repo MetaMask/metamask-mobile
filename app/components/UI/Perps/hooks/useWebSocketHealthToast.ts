@@ -70,8 +70,10 @@ export function useWebSocketHealthToast(): void {
           // Handle state transitions
           switch (newState) {
             case WebSocketConnectionState.DISCONNECTED:
-              // Show disconnected if we were previously connected
-              if (wasWsConnected) {
+              // Show disconnected toast if:
+              // 1. We were previously connected (direct disconnect), OR
+              // 2. We've been trying to reconnect and gave up (max attempts reached)
+              if (wasWsConnected || hasExperiencedDisconnectionRef.current) {
                 show(WebSocketConnectionState.DISCONNECTED, attempt);
               }
               break;
