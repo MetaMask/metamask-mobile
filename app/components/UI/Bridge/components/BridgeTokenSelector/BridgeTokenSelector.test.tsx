@@ -251,14 +251,31 @@ jest.mock(
   '../../../../../component-library/components/Form/TextFieldSearch',
   () => {
     const { createElement } = jest.requireActual('react');
-    const { TextInput } = jest.requireActual('react-native');
+    const { TextInput, TouchableOpacity, View } =
+      jest.requireActual('react-native');
     return ({
       onChangeText,
       testID,
+      value,
+      showClearButton,
+      onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
-    }) => createElement(TextInput, { onChangeText, testID });
+      value?: string;
+      showClearButton?: boolean;
+      onPressClearButton?: () => void;
+    }) =>
+      createElement(
+        View,
+        null,
+        createElement(TextInput, { onChangeText, testID, value }),
+        showClearButton &&
+          createElement(TouchableOpacity, {
+            testID: 'bridge-token-search-clear-button',
+            onPress: onPressClearButton,
+          }),
+      );
   },
 );
 
@@ -416,6 +433,27 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
       await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+    });
+
+    it('clears search when clear button is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-search-clear-button')).toBeTruthy(),
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('bridge-token-search-clear-button'));
+      });
+
+      expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
+      expect(mockResetSearch).toHaveBeenCalled();
+      await waitFor(() =>
+        expect(queryByTestId('bridge-token-search-clear-button')).toBeNull(),
+      );
     });
   });
 

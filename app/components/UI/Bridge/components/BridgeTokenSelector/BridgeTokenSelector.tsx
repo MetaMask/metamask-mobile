@@ -323,6 +323,12 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch(text);
   };
 
+  const handleClearSearch = useCallback(() => {
+    setSearchString('');
+    debouncedSearch.cancel();
+    resetSearch();
+  }, [debouncedSearch, resetSearch]);
+
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
       const networkName = getNetworkName(item.chainId, networkConfigurations);
@@ -499,6 +505,8 @@ export const BridgeTokenSelector: React.FC = () => {
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
+          showClearButton={searchString.length > 0}
+          onPressClearButton={handleClearSearch}
         />
       </Box>
 
