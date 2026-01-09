@@ -78,6 +78,7 @@ import {
   isAssetFromTrending,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
+import { getNativeSourceToken } from '../Bridge/utils/tokenUtils';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -214,13 +215,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   // If coming from trending tokens list (explore page), user likely wants to BUY the token
-  // so we place it in the destination position. Otherwise, they likely want to SELL.
+  // so we place it in the destination position with native token of same chain as source.
+  // Otherwise, they likely want to SELL.
   const wantsToBuyToken = isAssetFromTrending(asset);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    sourceToken: wantsToBuyToken ? undefined : bridgeToken,
+    sourceToken: wantsToBuyToken
+      ? getNativeSourceToken(bridgeToken.chainId)
+      : bridgeToken,
     destToken: wantsToBuyToken ? bridgeToken : undefined,
   });
 
