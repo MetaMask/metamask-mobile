@@ -29,11 +29,11 @@ Wait for the user's response before proceeding.
 
 Based on the user's platform choice:
 
-| Choice           | Recommended MCP                                              | Why                                    |
-| ---------------- | ------------------------------------------------------------ | -------------------------------------- |
-| iOS only         | [XcodeBuildMCP](https://github.com/nicholascm/xcodebuildmcp) | Deep Xcode integration, 63 tools       |
-| Android only     | [Mobile MCP](https://github.com/mobile-next/mobile-mcp)      | Android emulator + real device support |
-| Both iOS/Android | [Mobile MCP](https://github.com/mobile-next/mobile-mcp)      | Cross-platform, supports both          |
+| Choice           | Recommended MCP                                                | Why                                    |
+| ---------------- | -------------------------------------------------------------- | -------------------------------------- |
+| iOS only         | [XcodeBuildMCP](https://github.com/cameroncooke/XcodeBuildMCP) | Deep Xcode integration, 63+ tools      |
+| Android only     | [Mobile MCP](https://github.com/mobile-next/mobile-mcp)        | Android emulator + real device support |
+| Both iOS/Android | [Mobile MCP](https://github.com/mobile-next/mobile-mcp)        | Cross-platform, supports both          |
 
 ---
 
@@ -221,7 +221,7 @@ claude mcp list
 
 ## Quick Reference
 
-| MCP Server    | Package                         | Platforms        | Docs                                        |
-| ------------- | ------------------------------- | ---------------- | ------------------------------------------- |
-| Mobile MCP    | `@mobilenext/mobile-mcp@latest` | iOS + Android    | https://github.com/mobile-next/mobile-mcp   |
-| XcodeBuildMCP | `xcodebuildmcp`                 | iOS + macOS only | https://github.com/nicholascm/xcodebuildmcp |
+| MCP Server    | Package                         | Platforms        | Docs                                          |
+| ------------- | ------------------------------- | ---------------- | --------------------------------------------- |
+| Mobile MCP    | `@mobilenext/mobile-mcp@latest` | iOS + Android    | https://github.com/mobile-next/mobile-mcp     |
+| XcodeBuildMCP | `xcodebuildmcp`                 | iOS + macOS only | https://github.com/cameroncooke/XcodeBuildMCP |
