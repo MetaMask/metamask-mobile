@@ -197,6 +197,35 @@ To make fiat assertions exact, use:
 3. Keep Engine mocks centralized in `mocks.ts`
 4. Only use state overrides and builder helpers to cover scenarios
 
+## Cross‑view scope and navigation (MANDATORY)
+
+Component‑view tests are scoped to the single “view” (screen) under test. To keep tests focused and maintainable:
+
+- Do not assert the UI of other screens from the current view’s test.
+  - Example: From `BridgeView.view.test.*`, do not render `ActivityView`/`UnifiedTransactionsView` to verify activity list rows. Write those UI assertions in `ActivityView.*.view.test.*` instead.
+- When the view navigates to another route, assert navigation intent only.
+  - Use `renderScreenWithRoutes` with a simple route “probe” component to confirm that `navigation.navigate(Routes.SOME_ROUTE)` occurred, without rendering the target screen’s UI.
+- If you need to verify side effects on global controllers (e.g., a transaction was added to `TransactionController.transactions`), you may read Redux state via a minimal probe component. UI verification of that state belongs to the destination view’s own tests.
+
+Example: assert navigation without coupling to the target view’s UI
+
+```ts
+const RouteProbe = () => <Text testID={`route-${Routes.TRANSACTIONS_VIEW}`} />;
+
+const { getByTestId } = renderScreenWithRoutes(
+  BridgeView as unknown as React.ComponentType,
+  { name: Routes.BRIDGE.BRIDGE_VIEW },
+  [{ name: Routes.TRANSACTIONS_VIEW, Component: RouteProbe }],
+  { state: initialStateBridge({ deterministicFiat: true }).build() },
+);
+
+// Trigger navigation in the view (e.g., press confirm)
+// ...
+
+// Assert we landed on the target route without rendering its full UI
+expect(getByTestId(`route-${Routes.TRANSACTIONS_VIEW}`)).toBeTruthy();
+```
+
 ## Execution
 
 Faster local iteration:
@@ -212,14 +241,20 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<test-name>" --runInBand --s
 - Don’t: Mock hooks, selectors, or component internals
 - Don’t: Depend on non-deterministic values (time, network) without controlling them first
 
+### Selectors (MANDATORY)
+
+- Use selector constants from `e2e/selectors/**` for all `testID` queries.
+- Avoid hardcoded string IDs and prefer `getByTestId`/`queryByTestId` with selector maps.
+- Example:
+  ```ts
+  import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
+  const { getByTestId } = read;
+  expect(getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeTruthy();
+  ```
+
 ## Enforcement (Allowed mocks only)
 
 To enforce component-view purity, we rely on a static ESLint guard:
-
-- ESLint override (static)
-  - Location: root `.eslintrc.js`
-  - Files: `**/*.view.test.{js,ts,tsx,jsx}`
-  - Blocks `jest.mock(...)` except a tight allowlist
 
 ```js
 // .eslintrc.js
@@ -230,7 +265,7 @@ To enforce component-view purity, we rely on a static ESLint guard:
       'error',
       {
         selector:
-          "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+          "CallExpression[callee.object.name='jest'][callee.property.name='mock'][ arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
         message:
           'Only Engine and react-native-device-info can be mocked in component-view tests.',
       },
