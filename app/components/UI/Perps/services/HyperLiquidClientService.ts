@@ -833,17 +833,24 @@ export class HyperLiquidClientService {
   // Flag to prevent concurrent reconnection attempts
   private isReconnecting = false;
 
+  // Maximum number of reconnection attempts before giving up
+  private static readonly MAX_RECONNECTION_ATTEMPTS = 10;
+
   /**
    * Manually trigger a reconnection attempt.
    * This is exposed for UI retry buttons when user wants to force reconnection.
+   * Resets the reconnection attempt counter to allow retrying after max attempts.
    */
   public async reconnect(): Promise<void> {
+    // Reset attempt counter when user manually triggers retry
+    this.reconnectionAttempt = 0;
     await this.handleConnectionDrop();
   }
 
   /**
    * Handle detected connection drop
    * Recreates WebSocket transport and notifies callback to restore subscriptions
+   * Will give up after MAX_RECONNECTION_ATTEMPTS and mark status as disconnected
    */
   private async handleConnectionDrop(): Promise<void> {
     // Prevent multiple simultaneous reconnection attempts
@@ -853,9 +860,20 @@ export class HyperLiquidClientService {
 
     this.isReconnecting = true;
 
+    // Increment reconnection attempt counter
+    this.reconnectionAttempt++;
+
+    // Check if we've exceeded max retry attempts
+    if (
+      this.reconnectionAttempt >
+      HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
+    ) {
+      this.isReconnecting = false;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      return;
+    }
+
     try {
-      // Increment reconnection attempt counter
-      this.reconnectionAttempt++;
       this.updateConnectionState(WebSocketConnectionState.CONNECTING);
 
       // Close existing WebSocket transport
@@ -890,12 +908,20 @@ export class HyperLiquidClientService {
       this.updateConnectionState(WebSocketConnectionState.CONNECTED);
       this.isReconnecting = false;
     } catch {
-      // Reconnection failed - schedule a retry after a delay
-      // Stay in CONNECTING state to indicate we're still trying
-
       // Reset flag before scheduling retry so the next attempt can proceed
       this.isReconnecting = false;
 
+      // Check if we've exceeded max retry attempts
+      if (
+        this.reconnectionAttempt >=
+        HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
+      ) {
+        this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+        return;
+      }
+
+      // Reconnection failed - schedule a retry after a delay
+      // Stay in CONNECTING state to indicate we're still trying
       // Retry after 5 seconds
       setTimeout(() => {
         // Only retry if we haven't been intentionally disconnected
