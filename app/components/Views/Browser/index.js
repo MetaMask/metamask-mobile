@@ -96,11 +96,25 @@ export const Browser = (props) => {
     [buildPortfolioUrlWithMetrics],
   );
 
+  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
+
   const newTab = useCallback(
     (url, linkType) => {
       // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
       if (tabs.length >= MAX_BROWSER_TABS) {
         navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        // If a URL was provided, open it in the active tab instead of discarding it
+        if (url) {
+          const activeTab = tabs.find((tab) => tab.id === activeTabId);
+          if (activeTab) {
+            updateTab(activeTab.id, {
+              url,
+              linkType,
+              isArchived: false,
+            });
+            setCurrentUrl(url);
+          }
+        }
       } else {
         const newTabUrl = isTokenDiscoveryBrowserEnabled()
           ? undefined
@@ -109,10 +123,8 @@ export const Browser = (props) => {
         createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, createNewTab, homePageUrl],
+    [tabs, navigation, createNewTab, homePageUrl, activeTabId, updateTab],
   );
-
-  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
   const updateTabInfo = useCallback(
     (tabID, info) => {
       updateTab(tabID, info);
