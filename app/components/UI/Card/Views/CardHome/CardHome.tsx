@@ -123,6 +123,7 @@ const CardHome = () => {
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
+  const hasTriggeredAutoProvision = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -416,6 +417,17 @@ const CardHome = () => {
     return kycStatus.verificationState === 'VERIFIED';
   }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
 
+  // Check if KYC is pending or unverified (user cannot provision card yet)
+  const isKYCPendingOrUnverified = useMemo(() => {
+    if (!isAuthenticated || !isBaanxLoginEnabled || !kycStatus) {
+      return false;
+    }
+    return (
+      kycStatus.verificationState === 'PENDING' ||
+      kycStatus.verificationState === 'UNVERIFIED'
+    );
+  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus]);
+
   const enableCardAction = useCallback(async () => {
     try {
       await provisionCard();
@@ -459,28 +471,46 @@ const CardHome = () => {
 
     if (isBaanxLoginEnabled) {
       if (needToEnableCard) {
-        return (
-          <Button
-            variant={ButtonVariants.Primary}
-            style={styles.defaultMarginTop}
-            label={strings('card.card_home.enable_card_button_label')}
-            size={ButtonSize.Lg}
-            onPress={enableCardAction}
-            width={ButtonWidthTypes.Full}
-            disabled={
-              isLoading ||
-              isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard ||
-              !canEnableCard
-            }
-            loading={
-              isLoading ||
-              isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
-            }
-            testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-          />
-        );
+        // For PENDING/UNVERIFIED users without a delegated asset: show delegation button
+        if (isKYCPendingOrUnverified && needToEnableAssets) {
+          return (
+            <Button
+              variant={ButtonVariants.Primary}
+              style={styles.defaultMarginTop}
+              label={strings('card.card_home.enable_card_button_label')}
+              size={ButtonSize.Lg}
+              onPress={changeAssetAction}
+              width={ButtonWidthTypes.Full}
+              disabled={isLoading}
+              loading={isLoading}
+              testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
+            />
+          );
+        }
+
+        // For PENDING/UNVERIFIED users with a delegated asset: fall through to show normal buttons
+
+        // For VERIFIED users: auto-provisioning is in progress, show loading state
+        if (!isKYCPendingOrUnverified) {
+          return (
+            <Button
+              variant={ButtonVariants.Primary}
+              style={styles.defaultMarginTop}
+              label={strings('card.card_home.enable_card_button_label')}
+              size={ButtonSize.Lg}
+              onPress={enableCardAction}
+              width={ButtonWidthTypes.Full}
+              disabled
+              loading={
+                isLoading ||
+                isLoadingPollCardStatusUntilProvisioned ||
+                isLoadingProvisionCard ||
+                canEnableCard // Show loading when auto-provisioning
+              }
+              testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
+            />
+          );
+        }
       }
 
       if (needToEnableAssets) {
@@ -554,6 +584,38 @@ const CardHome = () => {
     needToEnableCard,
     styles,
     canEnableCard,
+    isKYCPendingOrUnverified,
+  ]);
+
+  // Auto-provision card for VERIFIED users without a card
+  // This triggers automatically instead of requiring user to press "Enable Card"
+  useEffect(() => {
+    // Only trigger for authenticated users with VERIFIED KYC who don't have a card
+    if (
+      !isAuthenticated ||
+      !isBaanxLoginEnabled ||
+      !needToEnableCard ||
+      !canEnableCard || // KYC must be VERIFIED
+      isLoading ||
+      isLoadingProvisionCard ||
+      isLoadingPollCardStatusUntilProvisioned ||
+      hasTriggeredAutoProvision.current
+    ) {
+      return;
+    }
+
+    // Mark as triggered to prevent duplicate calls
+    hasTriggeredAutoProvision.current = true;
+    enableCardAction();
+  }, [
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    canEnableCard,
+    isLoading,
+    isLoadingProvisionCard,
+    isLoadingPollCardStatusUntilProvisioned,
+    enableCardAction,
   ]);
 
   useEffect(
@@ -780,7 +842,7 @@ const CardHome = () => {
       {isAuthenticated &&
         isBaanxLoginEnabled &&
         needToEnableCard &&
-        kycStatus?.verificationState === 'PENDING' && (
+        isKYCPendingOrUnverified && (
           <CardWarningBox warning={CardWarningBoxType.KYCPending} />
         )}
       <View style={styles.cardBalanceContainer}>
@@ -788,7 +850,9 @@ const CardHome = () => {
           style={[
             styles.balanceTextContainer,
             styles.defaultHorizontalPadding,
-            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
+            (needToEnableAssets ||
+              (needToEnableCard && !isKYCPendingOrUnverified)) &&
+              styles.shouldBeHidden,
           ]}
         >
           <SensitiveText
@@ -872,7 +936,9 @@ const CardHome = () => {
           style={[
             styles.cardAssetItemContainer,
             styles.defaultHorizontalPadding,
-            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
+            (needToEnableAssets ||
+              (needToEnableCard && !isKYCPendingOrUnverified)) &&
+              styles.shouldBeHidden,
           ]}
         >
           {isLoading ? (
@@ -912,7 +978,9 @@ const CardHome = () => {
 
       <View
         style={[
-          (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
+          (needToEnableAssets ||
+            (needToEnableCard && !isKYCPendingOrUnverified)) &&
+            styles.shouldBeHidden,
         ]}
       >
         {isBaanxLoginEnabled &&
