@@ -1698,9 +1698,9 @@
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
       "timeout_title": "Connection taking longer than expected",
-      "websocket_disconnected": "Disconnected",
-      "websocket_disconnected_message": "Live data updates paused",
-      "websocket_connecting": "Connecting",
+      "websocket_disconnected": "Your connection is offline.",
+      "websocket_disconnected_message": "Data may not be up to date.",
+      "websocket_connecting": "Connecting to perps...",
       "websocket_connecting_message": "Restoring connection...",
       "websocket_connected": "Connected",
       "websocket_connected_message": "Live data updates resumed"
