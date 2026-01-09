@@ -525,65 +525,62 @@ class TransactionElement extends PureComponent {
     }
 
     return (
-      <>
-        {accountImportTime > time && this.renderImportTime()}
-        <ListItem>
-          <ListItem.Date style={styles.listItemDate}>
-            {this.renderTxTime()}
-          </ListItem.Date>
-          <ListItem.Content style={styles.listItemContent}>
-            <ListItem.Icon>
-              {this.renderTxElementIcon(transactionElement, tx)}
-            </ListItem.Icon>
-            <ListItem.Body>
-              <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                {title}
-              </ListItem.Title>
-              {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-              isBridgeTransaction &&
-              !isBridgeComplete ? (
-                <BridgeActivityItemTxSegments
-                  bridgeTxHistoryItem={bridgeTxHistoryItem}
-                  transactionStatus={this.props.tx.status}
-                />
-              ) : (
-                <StatusText
-                  testID={`transaction-status-${i}`}
-                  status={transactionStatus}
-                  style={styles.listItemStatus}
-                />
-              )}
-            </ListItem.Body>
-            {Boolean(value) && (
-              <ListItem.Amounts>
-                {!isTestNet(chainId) && (
-                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
-                    {fiatValue}
-                  </ListItem.FiatAmount>
-                )}
-                <ListItem.Amount style={styles.listItemAmount}>
-                  {value}
-                </ListItem.Amount>
-              </ListItem.Amounts>
+      <ListItem>
+        <ListItem.Date style={styles.listItemDate}>
+          {this.renderTxTime()}
+        </ListItem.Date>
+        <ListItem.Content style={styles.listItemContent}>
+          <ListItem.Icon>
+            {this.renderTxElementIcon(transactionElement, tx)}
+          </ListItem.Icon>
+          <ListItem.Body>
+            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+              {title}
+            </ListItem.Title>
+            {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
+            isBridgeTransaction &&
+            !isBridgeComplete ? (
+              <BridgeActivityItemTxSegments
+                bridgeTxHistoryItem={bridgeTxHistoryItem}
+                transactionStatus={this.props.tx.status}
+              />
+            ) : (
+              <StatusText
+                testID={`transaction-status-${i}`}
+                status={transactionStatus}
+                style={styles.listItemStatus}
+              />
             )}
-          </ListItem.Content>
-          {renderNormalActions && (
-            <ListItem.Actions>
-              {this.renderSpeedUpButton()}
-              {this.renderCancelButton()}
-            </ListItem.Actions>
+          </ListItem.Body>
+          {Boolean(value) && (
+            <ListItem.Amounts>
+              {!isTestNet(chainId) && (
+                <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                  {fiatValue}
+                </ListItem.FiatAmount>
+              )}
+              <ListItem.Amount style={styles.listItemAmount}>
+                {value}
+              </ListItem.Amount>
+            </ListItem.Amounts>
           )}
-          {renderUnsignedQRActions && (
-            <ListItem.Actions>
-              {this.renderQRSignButton()}
-              {this.renderCancelUnsignedButton()}
-            </ListItem.Actions>
-          )}
-          {renderLedgerActions && (
-            <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
-          )}
-        </ListItem>
-      </>
+        </ListItem.Content>
+        {renderNormalActions && (
+          <ListItem.Actions>
+            {this.renderSpeedUpButton()}
+            {this.renderCancelButton()}
+          </ListItem.Actions>
+        )}
+        {renderUnsignedQRActions && (
+          <ListItem.Actions>
+            {this.renderQRSignButton()}
+            {this.renderCancelUnsignedButton()}
+          </ListItem.Actions>
+        )}
+        {renderLedgerActions && (
+          <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
+        )}
+      </ListItem>
     );
   };
 

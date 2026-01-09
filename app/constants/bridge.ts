@@ -58,6 +58,3 @@ export const BRIDGE_API_BASE_URL =
   process.env.BRIDGE_USE_DEV_APIS === 'true'
     ? BRIDGE_DEV_API_BASE_URL
     : BRIDGE_PROD_API_BASE_URL;
-
-//TODO link to dev bridge API. Update to prod bridge API when ready.
-// export const BRIDGE_API_BASE_URL = 'http://localhost:3000';
