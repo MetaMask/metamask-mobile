@@ -159,7 +159,7 @@ describe('useRampsGeolocation', () => {
       });
     });
 
-    it('handles error when fetchGeolocation rejects', async () => {
+    it('rejects with error when updateGeolocation fails', async () => {
       const store = createMockStore();
       const mockUpdateGeolocation = Engine.context.RampsController
         .updateGeolocation as jest.Mock;
@@ -177,7 +177,7 @@ describe('useRampsGeolocation', () => {
   });
 
   describe('useEffect error handling', () => {
-    it('handles error gracefully when updateGeolocation rejects in useEffect', async () => {
+    it('returns default state when updateGeolocation rejects in useEffect', async () => {
       const store = createMockStore();
       const mockUpdateGeolocation = Engine.context.RampsController
         .updateGeolocation as jest.Mock;

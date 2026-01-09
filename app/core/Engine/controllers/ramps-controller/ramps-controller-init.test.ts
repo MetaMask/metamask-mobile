@@ -79,7 +79,7 @@ describe('ramps controller init', () => {
     });
   });
 
-  it('handles updateGeolocation failure gracefully', async () => {
+  it('does not throw when updateGeolocation fails', async () => {
     mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
