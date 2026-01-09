@@ -1,4 +1,4 @@
-import React, { PureComponent, useCallback } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -488,11 +488,10 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      selectedInternalAccount,
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { time, status, isSmartTransaction, chainId, type },
+      tx: { status, isSmartTransaction, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -517,8 +516,8 @@ class TransactionElement extends PureComponent {
       !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
-    const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
+    const renderLedgerActions =
+      transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
@@ -537,12 +536,12 @@ class TransactionElement extends PureComponent {
             <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
               {title}
             </ListItem.Title>
-            {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
+            {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
             isBridgeTransaction &&
             !isBridgeComplete ? (
               <BridgeActivityItemTxSegments
                 bridgeTxHistoryItem={bridgeTxHistoryItem}
-                transactionStatus={this.props.tx.status}
+                transactionStatus={transactionStatus}
               />
             ) : (
               <StatusText
