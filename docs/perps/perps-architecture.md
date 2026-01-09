@@ -399,13 +399,13 @@ All user interactions are tracked via MetaMetrics events:
 
 ```bash
 # Format code
-npx prettier --write 'app/components/UI/Perps/**/*.{ts,tsx}'
+yarn prettier --write 'app/components/UI/Perps/**/*.{ts,tsx}'
 
 # Check for errors
-npx eslint app/components/UI/Perps/**/*.{ts,tsx}
+yarn eslint app/components/UI/Perps/**/*.{ts,tsx}
 
 # Run tests
-npx jest app/components/UI/Perps/ --no-coverage
+yarn jest app/components/UI/Perps/ --no-coverage
 ```
 
 ## Testing

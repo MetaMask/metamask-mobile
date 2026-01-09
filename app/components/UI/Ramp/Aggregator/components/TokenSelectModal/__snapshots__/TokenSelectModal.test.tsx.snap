@@ -436,7 +436,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {

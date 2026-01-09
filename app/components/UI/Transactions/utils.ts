@@ -15,7 +15,9 @@ export const filterDuplicateOutgoingTransactions = (
   }
 
   return transactions.filter((currentTx, currentIndex) => {
-    if (!currentTx.hash) {
+    // Treat placeholder hash ('0x0') as "no hash" to avoid deduping unrelated tx metas
+    // (e.g., MetaMask Pay intent/wrapper transactions that never receive a real tx hash).
+    if (!currentTx.hash || currentTx.hash === '0x0') {
       return true; // Keep transactions without a hash
     }
 
