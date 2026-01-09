@@ -200,6 +200,7 @@ const QuoteDetailsCard: React.FC = () => {
                 }),
                 size: TooltipSizes.Sm,
                 bottomPadding: TOOLTIP_BOTTOM_PADDING,
+                iconName: IconName.Info,
               },
             }}
             value={{
