@@ -422,8 +422,8 @@ describe('RevealPrivateCredential', () => {
         const confirmButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
         );
-        // Button should exist and be in a disabled-like state (opacity or accessibilityState)
         expect(confirmButton).toBeTruthy();
+        expect(confirmButton.props.disabled).toBe(true);
       });
     });
   });
@@ -503,6 +503,13 @@ describe('RevealPrivateCredential', () => {
 
       await waitFor(() => {
         expect(mockReauthenticate).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        const warningText = getByTestId(
+          RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
+        );
+        expect(warningText.props.children).toBeTruthy();
       });
     });
 
@@ -897,6 +904,8 @@ describe('RevealPrivateCredential', () => {
     });
 
     it('does not update navigation options when navigation is null', () => {
+      const mockSetOptions = jest.fn();
+
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute({ shouldUpdateNav: true })}
@@ -908,6 +917,10 @@ describe('RevealPrivateCredential', () => {
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeTruthy();
+      // When navigation is null, hasNavigation is false, so setOptions should never be called.
+      // The component handles null navigation gracefully (no error thrown),
+      // which proves updateNavBar returns early without calling navigation.setOptions()
+      expect(mockSetOptions).not.toHaveBeenCalled();
     });
   });
 
