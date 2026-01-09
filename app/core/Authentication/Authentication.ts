@@ -732,101 +732,84 @@ class AuthenticationService {
   unlockWallet = async (
     {
       password,
-      // authPreference,
+      authPreference,
     }: {
       password?: string;
-      // authPreference?: AuthData;
+      authPreference?: AuthData;
     } = {
       password: undefined,
-      // authPreference: undefined
+      authPreference: undefined,
     },
   ) => {
-    const { KeyringController } = Engine.context;
-    const existingUser = selectExistingUser(ReduxService.store.getState());
-    let passwordToUse;
+    try {
+      const existingUser = selectExistingUser(ReduxService.store.getState());
+      let passwordToUse;
 
-    if (existingUser) {
-      // User exists. Attempt to unlock wallet.
+      if (existingUser) {
+        // User exists. Attempt to unlock wallet.
 
-      if (password) {
-        // Explicitly provided password.
-        passwordToUse = password;
-      } else {
-        // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
-        // TODO: Add try catch block to handle canceling biometric/passcode etc
-        // TODO: Check if it throws if there's no password set, or biometrics is not allowed
-        const credentials = await SecureKeychain.getGenericPassword();
-        passwordToUse = credentials?.password;
-      }
+        if (password) {
+          // Explicitly provided password.
+          passwordToUse = password;
+        } else {
+          // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
+          // TODO: Add try catch block to handle canceling biometric/passcode etc
+          // TODO: Check if it throws if there's no password set, or biometrics is not allowed
+          const credentials = await SecureKeychain.getGenericPassword();
+          passwordToUse = credentials?.password;
+        }
 
-      if (passwordToUse) {
-        // Password available. Use password to unlock wallet.
-        try {
-          // TODO: Refactor in a follow up
-          // if (authPreference?.oauth2Login) {
-          //   // if seedless flow - rehydrate
-          //   await this.rehydrateSeedPhrase(passwordToUse);
-          // } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
-          //   // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-          //   await this.syncPasswordAndUnlockWallet(passwordToUse);
-          // } else {
-          //   // Unlock keyrings.
-          //   await KeyringController.submitPassword(passwordToUse);
-          //   if (
-          //     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
-          //   ) {
-          //     await Engine.context.SeedlessOnboardingController.submitPassword(
-          //       passwordToUse,
-          //     );
-
-          //     // renew refresh token
-          //     renewSeedlessControllerRefreshTokens(passwordToUse).catch(
-          //       (err) => {
-          //         Logger.error(err, 'Failed to renew refresh token');
-          //       },
-          //     );
-          //   }
-          // }
-
-          // Store password using authentication preference.
-          // if (authPreference) {
-          //   await this.updateAuthPreference({password, authPreference});
-          // }
-
-          // this.authData = authPreference ?? this.authData;
+        if (passwordToUse) {
+          // Password available. Use password to unlock wallet.
+          if (authPreference?.oauth2Login) {
+            // if seedless flow - rehydrate
+            // TODO: Bubble up invalid password error so that OAuthRehydration can handle it
+            await this.rehydrateSeedPhrase(passwordToUse);
+          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+            // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+            await this.syncPasswordAndUnlockWallet(passwordToUse);
+          }
 
           // Unlock keyrings.
-          await KeyringController.submitPassword(passwordToUse);
+          await this.loginVaultCreation(passwordToUse);
+
+          // Update authentication preference.
+          if (authPreference) {
+            await this.updateAuthPreference({
+              password: passwordToUse,
+              authType: authPreference.currentAuthType,
+            });
+          }
 
           // Perform post login operations.
           await this.dispatchLogin();
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
 
-          // Navigate to home screen.
+          // Authentication successful.Navigate to home screen.
           NavigationService.navigation?.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
-        } catch (error: unknown) {
-          // Error while submitting password.
-          // TODO: Also handle seedless error
-          handlePasswordSubmissionError(error);
+        } else {
+          // No password provided or derived. Navigate to login.
+          NavigationService.navigation?.reset({
+            routes: [
+              {
+                name: Routes.ONBOARDING.LOGIN,
+              },
+            ],
+          });
         }
       } else {
-        // No password found. Navigate to login.
+        // User is new. Navigate to onboarding.
         NavigationService.navigation?.reset({
-          routes: [
-            {
-              name: Routes.ONBOARDING.LOGIN,
-            },
-          ],
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       }
-    } else {
-      // User is new. Navigate to onboarding.
-      NavigationService.navigation?.reset({
-        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
-      });
+    } catch (error: unknown) {
+      // Error while submitting password.
+      // TODO: Also handle seedless error
+      handlePasswordSubmissionError(error);
     }
   };
 
@@ -1339,7 +1322,6 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
-      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
       throw error;
     }
@@ -1435,8 +1417,6 @@ class AuthenticationService {
         Logger.error(err, 'Failed to renew refresh token');
       });
     } catch (err) {
-      // lock app again on error after submitPassword succeeded
-      await this.lockApp({ locked: true });
       throw err;
     }
 
