@@ -53,7 +53,8 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      geolocation: 'US-CA',
+      userRegion: 'US-CA',
+      eligibility: null,
       requests: {},
     };
 
