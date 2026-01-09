@@ -75,6 +75,7 @@ import { formatWithThreshold } from '../../../util/assets';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
+  isAssetFromTrending,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { TraceName, endTrace } from '../../../util/trace';
@@ -198,10 +199,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
-    sourcePage: 'MainView',
-    sourceToken: {
+  // Build bridge token from asset
+  const bridgeToken = useMemo(
+    () => ({
       ...asset,
       address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
@@ -209,7 +209,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       symbol: asset.symbol,
       name: asset.name,
       image: asset.image,
-    },
+    }),
+    [asset],
+  );
+
+  // If coming from trending tokens list (explore page), user likely wants to BUY the token
+  // so we place it in the destination position. Otherwise, they likely want to SELL.
+  const wantsToBuyToken = isAssetFromTrending(asset);
+
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+    sourceToken: wantsToBuyToken ? undefined : bridgeToken,
+    destToken: wantsToBuyToken ? bridgeToken : undefined,
   });
 
   // Hook for handling non-EVM asset sending

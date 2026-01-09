@@ -299,6 +299,11 @@ const assetFromSearch = {
   isFromSearch: true,
 };
 
+const assetFromTrending = {
+  ...asset,
+  isFromTrending: true,
+};
+
 describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
@@ -1053,6 +1058,31 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     // Should navigate to bridge view
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        bridgeViewMode: 'Unified',
+        sourcePage: 'MainView',
+      }),
+    });
+  });
+
+  it('navigates to bridge for buy when coming from trending tokens', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={assetFromTrending}
+        displayBuyButton
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    await Promise.resolve();
+
+    // Navigates to Bridge with unified mode
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: expect.objectContaining({
