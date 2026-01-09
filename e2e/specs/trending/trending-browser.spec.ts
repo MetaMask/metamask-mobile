@@ -23,7 +23,7 @@ describe(SmokeWalletUX('Trending Feature Browser Test'), () => {
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
 
-  it('should navigate to browser from trending view and interact with dapp', async () => {
+  it('navigate to browser from trending view and interact with dapp', async () => {
     await withFixtures(
       {
         dapps: [

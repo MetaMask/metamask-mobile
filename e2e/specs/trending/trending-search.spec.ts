@@ -20,7 +20,7 @@ describe(SmokeWalletUX('Trending Search Smoke Test'), () => {
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
 
-  it('should interact with search bar and verify search UI elements', async () => {
+  it('interact with search bar and verify search UI elements', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),

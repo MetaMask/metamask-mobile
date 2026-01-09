@@ -21,7 +21,7 @@ describe(SmokeWalletUX('Trending Feed Smoke Test'), () => {
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
 
-  it('should verify visibility of trending sections and navigation to details', async () => {
+  it('verify visibility of trending sections and navigation to details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -63,7 +63,7 @@ describe(SmokeWalletUX('Trending Feed Smoke Test'), () => {
     );
   });
 
-  it('should expand section for full screen view', async () => {
+  it('expand section for full screen view', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
