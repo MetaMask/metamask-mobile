@@ -205,9 +205,10 @@ class AuthenticationService {
           }
         }),
       ).catch(console.error);
-
-      password = this.wipeSensitiveData();
     }
+
+    password = this.wipeSensitiveData();
+    parsedSeed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
