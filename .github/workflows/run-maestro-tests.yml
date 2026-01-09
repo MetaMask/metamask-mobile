@@ -1,33 +1,19 @@
-name: Run Maestro Test (Manual)
+name: Run Maestro Test (POC)
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run tests on'
-        required: false
-        default: 'main'
-        type: string
-      build_type:
-        description: 'Build type (main or flask)'
-        required: false
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - flask
   push:
-  pull_request:
+    branches:
+      - poc-maestro-import-srp
 
 jobs:
   build-android-apks:
     name: 'Build Android APKs'
     uses: ./.github/workflows/build-android-e2e-maestro.yml
     with:
-      build_type: ${{ inputs.build_type }}
+      build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
-      branch: ${{ inputs.branch }}
+      branch: ${{ github.ref_name }}
     secrets: inherit
 
   maestro-test:
@@ -37,7 +23,7 @@ jobs:
     with:
       test-suite-name: 'maestro-add-wallet'
       test-file: 'e2e/maestro/tests/add-wallet-test.yaml'
-      build_type: ${{ inputs.build_type }}
+      build_type: 'main'
       metamask_environment: 'e2e'
-      branch: ${{ inputs.branch }}
+      branch: ${{ github.ref_name }}
     secrets: inherit
