@@ -52,15 +52,20 @@ describe('getStxMetricsProperties', () => {
   it('returns smart transaction metrics when smart transactions are enabled', async () => {
     mockSelectShouldUseSmartTransaction.mockReturnValue(true);
     mockGetSmartTransactionMetricsProperties.mockResolvedValue({
-      stx_status: 'success',
-      stx_uuid: 'uuid-123',
+      is_smart_transaction: true,
+      smart_transaction_timed_out: false,
+      smart_transaction_proxied: true,
     });
     const request = createMockRequest('0x1');
 
     const result = await getStxMetricsProperties(request);
 
     expect(result).toEqual({
-      properties: { stx_status: 'success', stx_uuid: 'uuid-123' },
+      properties: {
+        is_smart_transaction: true,
+        smart_transaction_timed_out: false,
+        smart_transaction_proxied: true,
+      },
       sensitiveProperties: {},
     });
   });

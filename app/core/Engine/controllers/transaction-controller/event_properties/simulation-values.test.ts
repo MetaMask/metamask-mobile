@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import { getSimulationValuesProperties } from './simulation-values';
 import { TransactionMetricsBuilder } from '../types';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 
 describe('getSimulationValuesProperties', () => {
   const getStateMock: jest.MockedFn<
@@ -20,6 +21,7 @@ describe('getSimulationValuesProperties', () => {
     jest.resetAllMocks();
 
     request = {
+      eventType: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
       transactionMeta: {
         id: 'tx-1',
         txParams: { nonce: '0x1' },
@@ -27,6 +29,11 @@ describe('getSimulationValuesProperties', () => {
       allTransactions: [],
       getUIMetrics: getUIMetricsMock,
       getState: getStateMock,
+      transactionEventHandlerRequest: {
+        getState: getStateMock,
+        initMessenger: {} as never,
+        smartTransactionsController: {} as never,
+      },
     };
   });
 
