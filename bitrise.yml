@@ -3367,46 +3367,16 @@ workflows:
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
       - script@1:
-          title: Find IPA file
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                
-                ./scripts/find-ipa-file.sh
-      - script@1:
           title: Upload to TestFlight via Fastlane
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
                 
-                echo "🚀 Uploading to TestFlight..."
-                echo "IPA: $IPA_PATH"
-                echo "Group: MetaMask Fastlane Test"
-                echo "Pipeline: ${BITRISEIO_PIPELINE_TITLE:-Unknown}"
-                
-                # Build changelog with proper variable expansion
-                PIPELINE_NAME="${BITRISEIO_PIPELINE_TITLE:-Unknown}"
-                BRANCH="${BITRISE_GIT_BRANCH:-Unknown}"
-                
-                # Extract environment from pipeline name (first part before underscore)
-                ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
-                if [ -z "$ENVIRONMENT" ] || [ "$ENVIRONMENT" = "$PIPELINE_NAME" ]; then
-                  ENVIRONMENT="Unknown"
-                fi
-                
-                CHANGELOG="Pipeline: ${PIPELINE_NAME} | Environment: ${ENVIRONMENT} | Branch: ${BRANCH}"
-                
-                echo "Changelog: $CHANGELOG"
-                
-                # Change to ios directory where fastlane folder is located
-                cd ios
-                
-                bundle exec fastlane upload_to_testflight_only \
-                  ipa_path:"$IPA_PATH" \
-                  groups:"['MetaMask Fastlane Test']" \
-                  changelog:"$CHANGELOG"
+                ./scripts/upload-to-testflight.sh \
+                  "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
+                  "${BITRISE_GIT_BRANCH:-Unknown}" \
+                  "${BITRISE_APP_STORE_IPA_PATH:-}"
       - script@1:
           title: Cleanup API Key
           if: always()
