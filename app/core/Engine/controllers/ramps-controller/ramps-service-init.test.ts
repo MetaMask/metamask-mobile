@@ -105,6 +105,7 @@ describe('rampsServiceInit', () => {
     expect(rampsServiceClassMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       environment: expect.any(String),
+      context: expect.any(String),
       fetch,
     });
   });
