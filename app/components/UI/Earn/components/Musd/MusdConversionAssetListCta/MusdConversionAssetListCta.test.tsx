@@ -15,6 +15,7 @@ import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
@@ -23,6 +24,7 @@ import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import { strings } from '../../../../../../../locales/i18n';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -145,7 +147,13 @@ describe('MusdConversionAssetListCta', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Earn 2%')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('earn.earn_a_percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
