@@ -123,6 +123,138 @@ describe('useTrendingSearch', () => {
     );
   });
 
+  it('sorts combined search results by market cap in descending order', async () => {
+    // Create search results with different market caps to verify sorting
+    const searchResultsWithVaryingMarketCaps = [
+      {
+        assetId: 'eip155:1/erc20:0xabc' as CaipChainId,
+        symbol: 'LOWCAP',
+        name: 'Low Market Cap Token',
+        decimals: 18,
+        price: '0.01',
+        aggregatedUsdVolume: 50000,
+        marketCap: 1000000, // Lowest
+        pricePercentChange1d: '5',
+      },
+      {
+        assetId: 'eip155:1/erc20:0xdef' as CaipChainId,
+        symbol: 'HIGHCAP',
+        name: 'High Market Cap Token',
+        decimals: 18,
+        price: '100',
+        aggregatedUsdVolume: 5000000,
+        marketCap: 50000000000, // Highest
+        pricePercentChange1d: '2',
+      },
+      {
+        assetId: 'eip155:1/erc20:0xghi' as CaipChainId,
+        symbol: 'MIDCAP',
+        name: 'Mid Market Cap Token',
+        decimals: 18,
+        price: '10',
+        aggregatedUsdVolume: 500000,
+        marketCap: 500000000, // Middle
+        pricePercentChange1d: '3',
+      },
+    ];
+
+    // Set up trending results that match the query
+    const trendingResultsMatchingQuery: TrendingAsset[] = [
+      {
+        assetId: 'eip155:1/erc20:0xjkl',
+        symbol: 'TOKEN',
+        name: 'Another Token',
+        decimals: 18,
+        price: '5',
+        aggregatedUsdVolume: 100000,
+        marketCap: 100000000, // Between LOWCAP and MIDCAP
+      },
+    ];
+
+    mockUseTrendingRequest.mockReturnValue({
+      results: trendingResultsMatchingQuery,
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
+
+    mockUseSearchRequest.mockReturnValue({
+      results: searchResultsWithVaryingMarketCaps,
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch('token', 'h24_trending'),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(4);
+    });
+
+    // Verify results are sorted by market cap descending (highest first)
+    const marketCaps = result.current.data.map((item) => item.marketCap ?? 0);
+    expect(marketCaps).toEqual([50000000000, 500000000, 100000000, 1000000]);
+
+    // Verify specific order: HIGHCAP, MIDCAP, TOKEN, LOWCAP
+    expect(result.current.data[0].symbol).toBe('HIGHCAP');
+    expect(result.current.data[1].symbol).toBe('MIDCAP');
+    expect(result.current.data[2].symbol).toBe('TOKEN');
+    expect(result.current.data[3].symbol).toBe('LOWCAP');
+  });
+
+  it('handles tokens with undefined or null marketCap when sorting', async () => {
+    const searchResultsWithMissingMarketCap = [
+      {
+        assetId: 'eip155:1/erc20:0xabc' as CaipChainId,
+        symbol: 'NOMARKET',
+        name: 'No Market Cap Token',
+        decimals: 18,
+        price: '0.01',
+        aggregatedUsdVolume: 50000,
+        marketCap: undefined as unknown as number,
+        pricePercentChange1d: '5',
+      },
+      {
+        assetId: 'eip155:1/erc20:0xdef' as CaipChainId,
+        symbol: 'HASMARKET',
+        name: 'Has Market Cap Token',
+        decimals: 18,
+        price: '100',
+        aggregatedUsdVolume: 5000000,
+        marketCap: 1000000,
+        pricePercentChange1d: '2',
+      },
+    ];
+
+    mockUseTrendingRequest.mockReturnValue({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
+
+    mockUseSearchRequest.mockReturnValue({
+      results: searchResultsWithMissingMarketCap,
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch('market', 'h24_trending'),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(2);
+    });
+
+    // Token with marketCap should come first, token without should be last
+    expect(result.current.data[0].symbol).toBe('HASMARKET');
+    expect(result.current.data[1].symbol).toBe('NOMARKET');
+  });
+
   it('removes duplicate results when combining search and trending', async () => {
     const duplicateResult = {
       assetId: mockTrendingResults[0].assetId as CaipChainId,
