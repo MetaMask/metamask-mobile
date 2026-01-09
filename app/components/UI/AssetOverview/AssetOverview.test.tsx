@@ -273,6 +273,19 @@ jest.mock('../../../components/hooks/useAddNetwork', () => ({
   })),
 }));
 
+// Mock useSwapBridgeNavigation to capture hook arguments while still calling navigation
+const mockUseSwapBridgeNavigationArgs = jest.fn();
+jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => {
+  const actual = jest.requireActual('../Bridge/hooks/useSwapBridgeNavigation');
+  return {
+    ...actual,
+    useSwapBridgeNavigation: (args: unknown) => {
+      mockUseSwapBridgeNavigationArgs(args);
+      return actual.useSwapBridgeNavigation(args);
+    },
+  };
+});
+
 const mockUseRampsUnifiedV1Enabled = jest.fn();
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   __esModule: true,
@@ -1089,6 +1102,114 @@ describe('AssetOverview', () => {
         bridgeViewMode: 'Unified',
         sourcePage: 'MainView',
       }),
+    });
+  });
+
+  describe('useSwapBridgeNavigation token configuration', () => {
+    beforeEach(() => {
+      mockUseSwapBridgeNavigationArgs.mockClear();
+    });
+
+    it('passes native token as source and asset as destination when asset is from trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromTrending}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token (ETH) since user wants to BUY the trending token
+          sourceToken: expect.objectContaining({
+            symbol: 'ETH',
+            chainId: MOCK_CHAIN_ID,
+          }),
+          // destToken is the trending token (what user wants to buy)
+          destToken: expect.objectContaining({
+            address: assetFromTrending.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromTrending.symbol,
+          }),
+        }),
+      );
+    });
+
+    it('passes asset as source and undefined destination when asset is not from trending', () => {
+      renderWithProvider(
+        <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is the asset itself since user wants to SELL
+          sourceToken: expect.objectContaining({
+            address: asset.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: asset.symbol,
+          }),
+          // destToken is undefined since no specific destination
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes asset as source when asset is from search but not trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromSearch}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // isFromSearch does not trigger buy mode, only isFromTrending does
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({
+            address: assetFromSearch.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromSearch.symbol,
+          }),
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes native token of different chain as source when trending asset is on different chain', () => {
+      const trendingAssetOnPolygon = {
+        ...assetFromTrending,
+        chainId: '0x89', // Polygon
+      };
+
+      renderWithProvider(
+        <AssetOverview
+          asset={trendingAssetOnPolygon}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token of Polygon chain
+          sourceToken: expect.objectContaining({
+            chainId: '0x89',
+          }),
+          // destToken is the trending token on Polygon
+          destToken: expect.objectContaining({
+            address: trendingAssetOnPolygon.address,
+            chainId: '0x89',
+          }),
+        }),
+      );
     });
   });
 
