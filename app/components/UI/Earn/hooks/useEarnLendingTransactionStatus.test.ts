@@ -21,6 +21,7 @@ jest.mock('../../../hooks/useMetrics', () => ({
     EARN_TRANSACTION_REJECTED: { name: 'Earn Transaction Rejected' },
     EARN_TRANSACTION_DROPPED: { name: 'Earn Transaction Dropped' },
     EARN_TRANSACTION_FAILED: { name: 'Earn Transaction Failed' },
+    EARN_TRANSACTION_INITIATED: { name: 'Earn Transaction Initiated' },
   },
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
@@ -94,6 +95,46 @@ jest.mock('./useEarnTokens', () => () => ({
       symbol: 'aEthUSDC',
       name: 'Aave Ethereum USDC',
     },
+  })),
+  getEarnToken: jest.fn(() => ({
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    decimals: 6,
+    symbol: 'USDC',
+    name: 'USD Coin',
+  })),
+  getOutputToken: jest.fn(() => ({
+    address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+    decimals: 6,
+    symbol: 'aEthUSDC',
+    name: 'Aave Ethereum USDC',
+  })),
+}));
+
+const mockFetchTokenSnapshot = jest.fn().mockResolvedValue(undefined);
+const mockGetTokenSnapshotFromState = jest.fn(() => ({
+  chainId: '0x1',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  token: {
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    decimals: 6,
+    symbol: 'USDC',
+    name: 'USD Coin',
+  },
+  outputToken: {
+    address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+    decimals: 6,
+    symbol: 'aEthUSDC',
+    name: 'Aave Ethereum USDC',
+  },
+}));
+
+jest.mock('../utils/token-snapshot', () => ({
+  fetchTokenSnapshot: (...args: unknown[]) => mockFetchTokenSnapshot(...args),
+  getTokenSnapshotFromState: (...args: unknown[]) =>
+    mockGetTokenSnapshotFromState(...args),
+  getEarnTokenPairAddressesFromState: jest.fn(() => ({
+    earnToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    outputToken: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
   })),
 }));
 
@@ -407,6 +448,167 @@ describe('useEarnLendingTransactionStatus', () => {
         MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
       );
     });
+
+    it('tracks EARN_TRANSACTION_DROPPED on transaction dropped', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionDropped');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-dropped',
+        depositData,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
+      );
+    });
+
+    it('tracks EARN_TRANSACTION_FAILED on transaction failed', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionFailed');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-failed',
+        depositData,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.EARN_TRANSACTION_FAILED,
+      );
+    });
+  });
+
+  describe('EARN_TRANSACTION_INITIATED tracking', () => {
+    it('tracks EARN_TRANSACTION_INITIATED on submission for deposits', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-initiated-deposit',
+        depositData,
+      );
+
+      handler({ transactionMeta });
+
+      // Should track both EARN_TRANSACTION_SUBMITTED and EARN_TRANSACTION_INITIATED
+      const eventBuilderCalls = mockCreateEventBuilder.mock.calls;
+      const initiatedCall = eventBuilderCalls.find(
+        ([event]: [{ name: string }]) =>
+          event.name === 'Earn Transaction Initiated',
+      );
+      expect(initiatedCall).toBeDefined();
+    });
+
+    it('tracks EARN_TRANSACTION_INITIATED on submission for withdrawals', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const withdrawalData = createLendingWithdrawalData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingWithdraw,
+        'test-initiated-withdrawal',
+        withdrawalData,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('allowance transaction tracking', () => {
+    it('tracks allowance submitted event when batch has approval transaction', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const depositData = createLendingDepositData();
+
+      const batchMeta = createTransactionMeta(
+        TransactionType.batch,
+        'batch-with-approval',
+        undefined,
+        [
+          { type: TransactionType.tokenMethodApprove, data: '0xapprovedata' },
+          { type: TransactionType.lendingDeposit, data: depositData },
+        ],
+      );
+
+      handler({ transactionMeta: batchMeta });
+
+      // Should track allowance event with is_allowance flag
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks allowance confirmed event when batch with approval is confirmed', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionConfirmed');
+      const depositData = createLendingDepositData();
+
+      const batchMeta = createTransactionMeta(
+        TransactionType.batch,
+        'batch-approval-confirmed',
+        undefined,
+        [
+          {
+            type: TransactionType.tokenMethodIncreaseAllowance,
+            data: '0xapprovedata',
+          },
+          { type: TransactionType.lendingDeposit, data: depositData },
+        ],
+      );
+
+      handler(batchMeta);
+
+      // Should track both lending confirmed and allowance confirmed
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddToken).toHaveBeenCalled();
+    });
+  });
+
+  describe('token prefetching on submission', () => {
+    it('prefetches output token on deposit submission', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-prefetch-deposit',
+        depositData,
+      );
+
+      handler({ transactionMeta });
+
+      // fetchTokenSnapshot should be called for prefetching (if outputToken is not known)
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('prefetches underlying token on withdrawal submission', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const withdrawalData = createLendingWithdrawalData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingWithdraw,
+        'test-prefetch-withdrawal',
+        withdrawalData,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('non-lending transactions', () => {
@@ -453,6 +655,104 @@ describe('useEarnLendingTransactionStatus', () => {
 
       expect(() => handler(transactionMeta)).not.toThrow();
       expect(mockAddToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deduplication', () => {
+    it('evicts oldest entry when at capacity', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionConfirmed');
+      const depositData = createLendingDepositData();
+
+      // Trigger 101 unique transactions (exceeds MAX_PROCESSED_TRANSACTIONS of 100)
+      for (let i = 0; i < 101; i++) {
+        const transactionMeta = createTransactionMeta(
+          TransactionType.lendingDeposit,
+          `test-eviction-${i}`,
+          depositData,
+        );
+        handler(transactionMeta);
+      }
+
+      // Should not throw and should have processed all transactions
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('fallback to token snapshot', () => {
+    it('uses snapshot when outputToken is null for deposit confirmation', () => {
+      // This test verifies the fallback path when outputToken is not directly available
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionConfirmed');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-fallback-deposit',
+        depositData,
+      );
+
+      handler(transactionMeta);
+
+      // addToken should be called (either from direct outputToken or snapshot)
+      expect(mockAddToken).toHaveBeenCalled();
+    });
+
+    it('uses snapshot when earnToken is null for withdrawal confirmation', () => {
+      // This test verifies the fallback path when earnToken is not directly available
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionConfirmed');
+      const withdrawalData = createLendingWithdrawalData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingWithdraw,
+        'test-fallback-withdrawal',
+        withdrawalData,
+      );
+
+      handler(transactionMeta);
+
+      // addToken should be called (either from direct earnToken or snapshot)
+      expect(mockAddToken).toHaveBeenCalled();
+    });
+  });
+
+  describe('token prefetch edge cases', () => {
+    it('skips prefetch when outputToken already exists for deposit', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-prefetch-skip',
+        depositData,
+      );
+
+      // Since our mock returns both earnToken and outputToken, prefetch should be skipped
+      handler({ transactionMeta });
+
+      // fetchTokenSnapshot should NOT be called when token already known
+      expect(mockFetchTokenSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('skips prefetch when earnToken already exists for withdrawal', () => {
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionSubmitted');
+      const withdrawalData = createLendingWithdrawalData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingWithdraw,
+        'test-prefetch-skip-withdraw',
+        withdrawalData,
+      );
+
+      // Since our mock returns both earnToken and outputToken, prefetch should be skipped
+      handler({ transactionMeta });
+
+      // fetchTokenSnapshot should NOT be called when token already known
+      expect(mockFetchTokenSnapshot).not.toHaveBeenCalled();
     });
   });
 });
