@@ -68,7 +68,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         symbol: 'BTC',
-        name: 'BTC',
+        name: 'Bitcoin',
         maxLeverage: '50x',
         price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
         change24h: '+$2,000', // No trailing zeros
@@ -391,6 +391,88 @@ describe('marketDataTransform', () => {
       expect(result[0].symbol).toBe('BTC');
       expect(result[0].marketSource).toBeUndefined();
       expect(result[0].marketType).toBeUndefined();
+    });
+
+    it('uses human-readable names from PERPS_ASSET_NAMES mapping', () => {
+      // Arrange - Test that transformMarketData properly maps symbols to names
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [
+          { name: 'BTC', maxLeverage: 50, szDecimals: 4, marginTableId: 0 },
+          { name: 'ETH', maxLeverage: 50, szDecimals: 4, marginTableId: 0 },
+          { name: 'SOL', maxLeverage: 20, szDecimals: 2, marginTableId: 0 },
+        ],
+        assetCtxs: [
+          createMockAssetCtx(),
+          createMockAssetCtx(),
+          createMockAssetCtx(),
+        ],
+        allMids: { BTC: '52000', ETH: '3100', SOL: '150' },
+      };
+
+      // Act
+      const result = transformMarketData(hyperLiquidData);
+
+      // Assert - Names should be human-readable, not just symbols
+      expect(result[0].symbol).toBe('BTC');
+      expect(result[0].name).toBe('Bitcoin');
+      expect(result[1].symbol).toBe('ETH');
+      expect(result[1].name).toBe('Ethereum');
+      expect(result[2].symbol).toBe('SOL');
+      expect(result[2].name).toBe('Solana');
+    });
+
+    it('uses human-readable names for HIP-3 assets', () => {
+      // Arrange - Test that HIP-3 prefixed symbols also get proper names
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [
+          {
+            name: 'xyz:TSLA',
+            maxLeverage: 20,
+            szDecimals: 2,
+            marginTableId: 0,
+          },
+          {
+            name: 'xyz:GOLD',
+            maxLeverage: 10,
+            szDecimals: 2,
+            marginTableId: 0,
+          },
+        ],
+        assetCtxs: [createMockAssetCtx(), createMockAssetCtx()],
+        allMids: { 'xyz:TSLA': '200', 'xyz:GOLD': '2000' },
+      };
+
+      // Act
+      const result = transformMarketData(hyperLiquidData);
+
+      // Assert - Names should strip prefix and use mapping
+      expect(result[0].symbol).toBe('xyz:TSLA');
+      expect(result[0].name).toBe('Tesla');
+      expect(result[1].symbol).toBe('xyz:GOLD');
+      expect(result[1].name).toBe('Gold');
+    });
+
+    it('falls back to symbol for unknown assets', () => {
+      // Arrange - Test unknown asset that is not in the mapping
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [
+          {
+            name: 'UNKNOWNTOKEN',
+            maxLeverage: 10,
+            szDecimals: 2,
+            marginTableId: 0,
+          },
+        ],
+        assetCtxs: [createMockAssetCtx()],
+        allMids: { UNKNOWNTOKEN: '100' },
+      };
+
+      // Act
+      const result = transformMarketData(hyperLiquidData);
+
+      // Assert - Unknown tokens should fall back to their symbol
+      expect(result[0].symbol).toBe('UNKNOWNTOKEN');
+      expect(result[0].name).toBe('UNKNOWNTOKEN');
     });
   });
 

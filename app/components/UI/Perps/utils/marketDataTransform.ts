@@ -6,6 +6,7 @@ import type {
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
+import { getAssetName } from '../constants/assetNames';
 import type { PerpsMarketData, MarketType } from '../controllers/types';
 import {
   formatVolume,
@@ -238,7 +239,7 @@ export function transformMarketData(
 
     return {
       symbol,
-      name: symbol,
+      name: getAssetName(symbol),
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
