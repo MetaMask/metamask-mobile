@@ -6,9 +6,21 @@ import {
   IMetaMetricsEvent,
 } from '../../../Analytics/MetaMetrics.types';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
+import type {
+  TransactionEventHandlerRequest,
+  TransactionMetrics,
+} from './types';
 import Engine from '../../Engine';
 
 const log = createProjectLogger('transaction-metrics');
+
+export function getConfirmationMetrics(
+  state: ReturnType<TransactionEventHandlerRequest['getState']>,
+  transactionId: string,
+): TransactionMetrics {
+  return (state?.confirmationMetrics?.metricsById?.[transactionId] ||
+    {}) as unknown as TransactionMetrics;
+}
 
 export function isFinalizedEvent(eventType: IMetaMetricsEvent): boolean {
   return (

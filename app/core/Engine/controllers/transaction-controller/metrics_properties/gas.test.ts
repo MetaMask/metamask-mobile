@@ -117,7 +117,7 @@ describe('getGasMetricsProperties', () => {
       gasFeeTokens: [
         { symbol: 'ETH', tokenAddress: '0xeth' },
         { symbol: 'USDC', tokenAddress: '0xusdc' },
-      ] as TransactionMeta['gasFeeTokens'],
+      ] as unknown as TransactionMeta['gasFeeTokens'],
     });
 
     const result = getGasMetricsProperties(request);
