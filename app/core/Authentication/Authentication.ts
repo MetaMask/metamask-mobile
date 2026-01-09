@@ -1322,6 +1322,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
       throw error;
     }
@@ -1417,6 +1418,8 @@ class AuthenticationService {
         Logger.error(err, 'Failed to renew refresh token');
       });
     } catch (err) {
+      // lock app again on error after submitPassword succeeded
+      await this.lockApp({ locked: true });
       throw err;
     }
 
