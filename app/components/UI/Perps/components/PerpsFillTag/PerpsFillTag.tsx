@@ -55,7 +55,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
       return null;
     }
 
-    const tagConfig = {
+    const fillTypeConfigLookup = {
       [FillType.AutoDeleveraging]: {
         label: strings('perps.transactions.order.auto_deleveraging'),
         severity: TagSeverity.Info,
@@ -86,7 +86,9 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
         textColor: TextColor.Alternative,
         includesBorder: true,
       },
-    }[fill.fillType];
+    };
+
+    const tagConfig = fillTypeConfigLookup[fill.fillType];
 
     if (
       !tagConfig ||
