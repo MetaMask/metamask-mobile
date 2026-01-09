@@ -4,7 +4,7 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
-import Device from '../../../util/device';
+import Device from '../../../../util/device';
 
 export function getRampsEnvironment(): RampsEnvironment {
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
