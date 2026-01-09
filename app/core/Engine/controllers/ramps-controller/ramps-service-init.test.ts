@@ -102,24 +102,6 @@ describe('getRampsContext', () => {
   });
 });
 
-describe('getRampsContext', () => {
-  const originalOS = Platform.OS;
-
-  afterEach(() => {
-    Platform.OS = originalOS;
-  });
-
-  it('returns mobile-ios for iOS platform', () => {
-    Platform.OS = 'ios';
-    expect(getRampsContext()).toBe('mobile-ios');
-  });
-
-  it('returns mobile-android for Android platform', () => {
-    Platform.OS = 'android';
-    expect(getRampsContext()).toBe('mobile-android');
-  });
-});
-
 describe('rampsServiceInit', () => {
   const rampsServiceClassMock = jest.mocked(RampsService);
   let initRequestMock: jest.Mocked<

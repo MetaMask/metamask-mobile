@@ -8843,7 +8843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch":
+"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch::version=2.1.0&hash=b57661":
   version: 2.1.0
   resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A2.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch::version=2.1.0&hash=b57661"
   dependencies:
@@ -8851,6 +8851,17 @@ __metadata:
     "@metamask/controller-utils": "npm:^11.17.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/6980a2f6dd31bc6c5fadd8bda1f6354aa9c60bcb231eee0d382dbb08c6ef31f6a65ea5ba59be36678bb95e066af3612865cbbe360c39735f7002f0ba9472bfdc
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@patch:@metamask/ramps-controller@patch%3A@metamask/ramps-controller@npm%253A2.1.0%23~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch%3A%3Aversion=2.1.0&hash=b57661#~/.yarn/patches/@metamask-ramps-controller-patch-b26c8e57ce.patch":
+  version: 2.1.0
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@patch%3A@metamask/ramps-controller@npm%253A2.1.0%23~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch%3A%3Aversion=2.1.0&hash=b57661#~/.yarn/patches/@metamask-ramps-controller-patch-b26c8e57ce.patch::version=2.1.0&hash=aeb06c"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.17.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/10b89fce978609aee65b0cf610e39b350873595f942c190f364dc2c69896e86febe576efe09c3ecf28e499d07470a95e8d60fe9c6c751db7ef81de611d3b210e
   languageName: node
   linkType: hard
 
@@ -34233,7 +34244,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A2.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch"
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@patch%3A@metamask/ramps-controller@npm%253A2.1.0%23~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch%3A%3Aversion=2.1.0&hash=b57661#~/.yarn/patches/@metamask-ramps-controller-patch-b26c8e57ce.patch"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"

@@ -13,6 +13,7 @@ const createMockState = (
       backgroundState: {
         RampsController: {
           userRegion: null,
+          eligibility: null,
           requests: {},
           ...rampsController,
         },
