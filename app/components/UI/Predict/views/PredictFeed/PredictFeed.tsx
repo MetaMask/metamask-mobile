@@ -757,7 +757,7 @@ const PredictFeed: React.FC = () => {
             onPageChange={handlePageChange}
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
-            tabBarHeight={tabBarHeight}
+            tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
           />
         )}
