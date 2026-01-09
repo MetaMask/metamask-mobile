@@ -251,7 +251,11 @@ describe('TrendingView', () => {
       expect(getByText('99')).toBeOnTheScreen();
     });
 
-    it('navigates to TrendingBrowser when button is pressed', () => {
+    it('opens new tab with portfolio URL when no tabs exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 0 }),
+      );
+
       const { getByTestId } = render(
         <NavigationContainer>
           <TrendingView />
@@ -271,6 +275,25 @@ describe('TrendingView', () => {
           }),
         }),
       );
+    });
+
+    it('opens browser without creating new tab when tabs already exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 3 }),
+      );
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+      fireEvent.press(browserButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+      });
     });
   });
 

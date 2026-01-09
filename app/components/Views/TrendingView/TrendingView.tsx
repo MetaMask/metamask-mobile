@@ -133,15 +133,23 @@ export const ExploreFeed: React.FC = () => {
   );
 
   const handleBrowserPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: portfolioUrl.href,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
-    });
-  }, [navigation, portfolioUrl.href]);
+    // If there are existing tabs, just open the browser without creating a new tab
+    // Otherwise, create a new tab with the portfolio URL
+    if (browserTabsCount > 0) {
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+      });
+    } else {
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: portfolioUrl.href,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    }
+  }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
