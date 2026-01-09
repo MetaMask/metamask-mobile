@@ -8,9 +8,9 @@ import { Colors } from '../../../util/theme/models';
 export const createStyles = (colors: Colors) =>
   StyleSheet.create({
     suggestionContainer: {
-      paddingVertical: 1,
+      paddingVertical: 10,
       paddingHorizontal: 48,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.section,
     },
     suggestionListContent: {
       alignItems: 'center' as const,
@@ -23,7 +23,7 @@ export const createStyles = (colors: Colors) =>
       minWidth: 60,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.subsection,
     },
     suggestionPressed: {
       opacity: 0.7,
