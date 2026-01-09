@@ -36,7 +36,7 @@ describe('RampsController Selectors', () => {
   });
 
   describe('selectGeolocationRequest', () => {
-    it('returns request state with data, isFetching, and error', () => {
+    it('returns data when request is successful', () => {
       const state = createMockState({
         requests: {
           'updateGeolocation:[]': {
@@ -51,11 +51,43 @@ describe('RampsController Selectors', () => {
 
       const result = selectGeolocationRequest(state);
 
-      expect(result).toEqual({
-        data: 'US-CA',
-        isFetching: false,
-        error: null,
+      expect(result.data).toBe('US-CA');
+    });
+
+    it('returns isFetching false when request is successful', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
       });
+
+      const result = selectGeolocationRequest(state);
+
+      expect(result.isFetching).toBe(false);
+    });
+
+    it('returns error null when request is successful', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = selectGeolocationRequest(state);
+
+      expect(result.error).toBe(null);
     });
 
     it('returns isFetching true when request is loading', () => {
