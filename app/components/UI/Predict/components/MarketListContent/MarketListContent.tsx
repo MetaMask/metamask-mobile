@@ -14,11 +14,13 @@ import styleSheet from './MarketListContent.styles';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
+  Recurrence,
 } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
 import PredictMarketSkeleton from '../PredictMarketSkeleton';
+import PredictMarketSport from '../PredictMarketSport';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { ScrollCoordinator } from '../../types/scrollCoordinator';
 import PredictOffline from '../PredictOffline';
@@ -107,6 +109,33 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     );
   }, [isFetchingMore]);
 
+  const renderPinnedItem = useCallback(() => {
+    if (category !== 'trending') return null;
+
+    return (
+      <Box twClassName="my-2">
+        <PredictMarketSport
+          market={{
+            id: '1',
+            providerId: 'polymarket',
+            slug: 'super-bowl-lx-2026',
+            title: 'Super Bowl LX (2026)',
+            description: 'Super Bowl LX matchup between SEA and DEN',
+            image: '',
+            status: 'open',
+            recurrence: Recurrence.NONE,
+            category: 'sports',
+            tags: ['NFL', 'Super Bowl'],
+            outcomes: [],
+            liquidity: 0,
+            volume: 0,
+          }}
+          entryPoint={entryPoint}
+        />
+      </Box>
+    );
+  }, [category, entryPoint]);
+
   if (isFetching) {
     return (
       <Box style={styles.loadingContainer} twClassName="py-2 px-4">
@@ -160,6 +189,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
         data={marketData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        ListHeaderComponent={renderPinnedItem}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.7}
         ListFooterComponent={renderFooter}
@@ -181,6 +211,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      ListHeaderComponent={renderPinnedItem}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.7}
       ListFooterComponent={renderFooter}
