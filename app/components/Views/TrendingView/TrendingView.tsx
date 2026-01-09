@@ -16,6 +16,7 @@ import {
   IconName,
   Icon,
   IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -186,28 +187,25 @@ export const ExploreFeed: React.FC = () => {
           <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
 
-        <TouchableOpacity onPress={handleBrowserPress}>
-          {browserTabsCount > 0 ? (
-            <Box
-              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
-              style={{
-                borderColor: colors.text.default,
-              }}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                testID="trending-view-browser-button"
-              >
+        <TouchableOpacity
+          onPress={handleBrowserPress}
+          testID="trending-view-browser-button"
+        >
+          <Box
+            twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]"
+          >
+            {browserTabsCount > 0 ? (
+              <Text variant={TextVariant.BodyMd}>
                 {browserTabsCount}
               </Text>
-            </Box>
-          ) : (
-            <Icon
-              name={IconName.Explore}
-              size={IconSize.Xl}
-              testID="trending-view-browser-button"
-            />
-          )}
+            ) : (
+              <Icon
+                name={IconName.Explore}
+                size={IconSize.Md}
+                color={IconColor.IconMuted}
+              />
+            )}
+          </Box>
         </TouchableOpacity>
       </Box>
 
