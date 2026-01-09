@@ -94,7 +94,11 @@ export const useTronResources = (): {
 
     return {
       energy: createResource('energy', energyCurrent, maxEnergyValue),
-      bandwidth: createResource('bandwidth', bandwidthCurrent, maxBandwidthValue),
+      bandwidth: createResource(
+        'bandwidth',
+        bandwidthCurrent,
+        maxBandwidthValue,
+      ),
     };
   }, [tronResources]);
 };
