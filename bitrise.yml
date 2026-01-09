@@ -3370,37 +3370,7 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # Check if BITRISE_APP_STORE_IPA_PATH is set (from previous build)
-                if [ -n "$BITRISE_APP_STORE_IPA_PATH" ] && [ -f "$BITRISE_APP_STORE_IPA_PATH" ]; then
-                  IPA_PATH="$BITRISE_APP_STORE_IPA_PATH"
-                  echo "✅ Found IPA at: $IPA_PATH"
-                else
-                  # Fallback: search for IPA in build output directory
-                  IPA_DIR="ios/build/output"
-                  if [ -d "$IPA_DIR" ]; then
-                    # Find the most recent IPA file
-                    IPA_PATH=$(find "$IPA_DIR" -name "*.ipa" -type f | head -1)
-                    if [ -z "$IPA_PATH" ]; then
-                      echo "❌ Error: No IPA file found in $IPA_DIR"
-                      echo "Available files:"
-                      ls -la "$IPA_DIR" || true
-                      exit 1
-                    fi
-                    echo "✅ Found IPA at: $IPA_PATH"
-                  else
-                    echo "❌ Error: IPA directory not found: $IPA_DIR"
-                    echo "BITRISE_APP_STORE_IPA_PATH: $BITRISE_APP_STORE_IPA_PATH"
-                    exit 1
-                  fi
-                fi
-                
-                # Convert to absolute path if relative
-                if [[ "$IPA_PATH" != /* ]]; then
-                  IPA_PATH="$(pwd)/$IPA_PATH"
-                fi
-                
-                envman add --key IPA_PATH --value "$IPA_PATH"
-                echo "IPA_PATH set to: $IPA_PATH"
+                ./scripts/find-ipa-file.sh
       - script@1:
           title: Upload to TestFlight via Fastlane
           inputs:
@@ -3412,37 +3382,22 @@ workflows:
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
                 echo "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
-              
-                # Convert key filepath to absolute path BEFORE changing directory
-                # if [ -n "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" ]; then
-                #   if [[ "$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH" != /* ]]; then
-                #     ABS_KEY_FILEPATH="$(pwd)/$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
-                #   else
-                #     ABS_KEY_FILEPATH="$APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
-                #   fi
-                #   export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
-                # fi
                 
-                # Convert IPA path to absolute path (in case it's relative)
-                # if [[ "$IPA_PATH" != /* ]]; then
-                #  ABS_IPA_PATH="$(pwd)/$IPA_PATH"
-                #else
-                #  ABS_IPA_PATH="$IPA_PATH"
-                #fi
+                # Build changelog with proper variable expansion
+                WORKFLOW_NAME="${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
+                BRANCH="${BITRISE_GIT_BRANCH:-Unknown}"
+                COMMIT_HASH=$(echo "${BITRISE_GIT_COMMIT:-Unknown}" | cut -c1-7)
+                CHANGELOG="Workflow: ${WORKFLOW_NAME} | Branch: ${BRANCH} | Commit: ${COMMIT_HASH}"
+                
+                echo "Changelog: $CHANGELOG"
                 
                 # Change to ios directory where fastlane folder is located
                 cd ios
                 
-                # Export again after cd to ensure they're still available
-                # export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
-                # export APP_STORE_CONNECT_API_KEY_KEY_ID="$APP_STORE_CONNECT_API_KEY_KEY_ID"
-                # export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$ABS_KEY_FILEPATH"
-
-
                 bundle exec fastlane upload_to_testflight_only \
                   ipa_path:"$IPA_PATH" \
                   groups:"['MetaMask Fastlane Test']" \
-                  changelog: "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown} | Branch: ${BITRISE_GIT_BRANCH} | Commit: ${BITRISE_GIT_COMMIT:0:7}"
+                  changelog:"$CHANGELOG"
       - script@1:
           title: Cleanup API Key
           if: always()
