@@ -90,10 +90,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
 
     const tagConfig = fillTypeConfigLookup[fill.fillType];
 
-    if (
-      !tagConfig ||
-      (tagConfig.condition !== undefined && !tagConfig.condition)
-    ) {
+    if (!tagConfig || ('condition' in tagConfig && !tagConfig.condition)) {
       return null;
     }
 
