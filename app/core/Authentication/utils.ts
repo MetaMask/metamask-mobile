@@ -2,6 +2,7 @@ import { toLowerCaseEquals } from '../../util/general';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { UnlockErrorType, PasswordSubmissionErrorType } from './types';
 import { MIN_PASSWORD_LENGTH } from './constants';
+import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
 
 /**
  * Handles password submission errors by throwing the appropriate error.
@@ -12,7 +13,11 @@ import { MIN_PASSWORD_LENGTH } from './constants';
 export const handlePasswordSubmissionError = (error: unknown) => {
   const loginError = error as Error;
   const loginErrorMessage = loginError.toString();
-  if (
+
+  if (error instanceof SeedlessOnboardingControllerError) {
+    // Detected seedless onboarding controller error. Propogate error.
+    throw error;
+  } else if (
     toLowerCaseEquals(
       loginErrorMessage,
       PasswordSubmissionErrorType.WRONG_PASSWORD_ERROR,
@@ -61,12 +66,6 @@ export const handlePasswordSubmissionError = (error: unknown) => {
     throw new Error(
       `${UnlockErrorType.VAULT_CORRUPTION}: ${loginErrorMessage}`,
     );
-    // } else if (
-    //   error instanceof SeedlessOnboardingControllerError ||
-    //   loginError.message.includes('SeedlessOnboardingController')
-    // ) {
-    // Seedless onboarding controller error.
-    // TODO: Throw error
   } else {
     // Other password submission errors.
     throw new Error(
