@@ -87,7 +87,7 @@ describe('PerpsTokenLogo', () => {
 
     const image = UNSAFE_getByType(Image);
     expect(image.props.source.uri).toBe(
-      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/BTC.svg',
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
     );
     expect(image.props.style).toEqual(
       expect.objectContaining({
@@ -122,7 +122,7 @@ describe('PerpsTokenLogo', () => {
   });
 
   it('shows text fallback when both primary and fallback URLs fail', async () => {
-    const { UNSAFE_getByType, getByTestId, queryByType } = render(
+    const { UNSAFE_getByType, UNSAFE_queryByType, getByTestId } = render(
       <PerpsTokenLogo symbol="FAIL" testID="image-error" />,
     );
 
@@ -145,7 +145,7 @@ describe('PerpsTokenLogo', () => {
     const container = getByTestId('image-error');
     expect(container).toBeTruthy();
     // Image component no longer rendered, text fallback shown instead
-    expect(queryByType(Image)).toBeNull();
+    expect(UNSAFE_queryByType(Image)).toBeNull();
   });
 
   it('correctly applies size prop to container', () => {

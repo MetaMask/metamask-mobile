@@ -18,7 +18,7 @@ import { CandlePeriod } from '../constants/chartConfig';
 jest.mock('../constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
   METAMASK_PERPS_ICONS_BASE_URL:
-    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/',
+    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
 }));
 
 describe('marketUtils', () => {
@@ -422,7 +422,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/BTC.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/BTC.svg',
       });
     });
@@ -434,7 +434,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/hip3:xyz_TSLA.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:xyz_TSLA.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg',
       });
     });
@@ -455,7 +455,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/BONK.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BONK.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/BONK.svg',
       });
     });
@@ -467,7 +467,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/ETH.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/ETH.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/ETH.svg',
       });
     });
@@ -479,7 +479,7 @@ describe('marketUtils', () => {
 
       expect(result).toEqual({
         primary:
-          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/hip3:abc_XYZ100.svg',
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:abc_XYZ100.svg',
         fallback: 'https://app.hyperliquid.xyz/coins/abc:XYZ100.svg',
       });
     });
