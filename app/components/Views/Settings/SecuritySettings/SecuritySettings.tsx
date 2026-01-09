@@ -409,7 +409,7 @@ const Settings: React.FC = () => {
         <View style={styles.setting}>
           <RememberMeOptionSection />
         </View>
-        \ <BlockaidSettings />
+        <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
           <Text
