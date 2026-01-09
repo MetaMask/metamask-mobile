@@ -171,8 +171,8 @@ export const ExploreFeed: React.FC = () => {
   const isAnySectionLoading = loadingSections.size > 0;
 
   return (
-    <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="px-4 py-3 flex-row items-center justify-between">
+    <Box style={{ marginTop: insets.top }} twClassName="flex-1 bg-default gap-4">
+      <Box twClassName="px-4 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
@@ -181,7 +181,7 @@ export const ExploreFeed: React.FC = () => {
         )}
       </Box>
 
-      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+      <Box twClassName="flex-row items-center gap-2 px-4">
         <Box twClassName="flex-1">
           <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
