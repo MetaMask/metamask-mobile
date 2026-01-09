@@ -756,8 +756,6 @@ class AuthenticationService {
           passwordToUse = password;
         } else {
           // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
-          // TODO: Add try catch block to handle canceling biometric/passcode etc
-          // TODO: Check if it throws if there's no password set, or biometrics is not allowed
           const credentials = await SecureKeychain.getGenericPassword();
           passwordToUse = credentials?.password;
         }
@@ -766,7 +764,6 @@ class AuthenticationService {
           // Password available. Use password to unlock wallet.
           if (authPreference?.oauth2Login) {
             // if seedless flow - rehydrate
-            // TODO: Bubble up invalid password error so that OAuthRehydration can handle it
             await this.rehydrateSeedPhrase(passwordToUse);
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
@@ -809,10 +806,9 @@ class AuthenticationService {
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       // Error while submitting password.
-      // TODO: Also handle seedless error
-      handlePasswordSubmissionError(error);
+      handlePasswordSubmissionError(error as Error);
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -833,6 +829,7 @@ class AuthenticationService {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
+      await SecureKeychain.resetGenericPassword();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -875,6 +872,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      console.log('ERRPOR', e.message);
       const errorMessage = (e as Error).message;
 
       // Track authentication failures that could indicate vault/keychain issues to Segment

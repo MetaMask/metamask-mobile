@@ -1,7 +1,7 @@
 import { toLowerCaseEquals } from '../../util/general';
 import { containsErrorMessage } from '../../util/errorHandling';
-import { UnlockErrorType, PasswordSubmissionErrorType } from './types';
-import { MIN_PASSWORD_LENGTH } from './constants';
+import { UnlockWalletErrorType } from './types';
+import { MIN_PASSWORD_LENGTH, UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
 
 /**
@@ -20,56 +20,67 @@ export const handlePasswordSubmissionError = (error: unknown) => {
   } else if (
     toLowerCaseEquals(
       loginErrorMessage,
-      PasswordSubmissionErrorType.WRONG_PASSWORD_ERROR,
+      UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD,
     ) ||
     toLowerCaseEquals(
       loginErrorMessage,
-      PasswordSubmissionErrorType.WRONG_PASSWORD_ERROR_ANDROID,
+      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD,
     ) ||
     toLowerCaseEquals(
       loginErrorMessage,
-      PasswordSubmissionErrorType.WRONG_PASSWORD_ERROR_ANDROID_2,
+      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
     ) ||
     loginErrorMessage.includes(
-      PasswordSubmissionErrorType.PASSWORD_REQUIREMENTS_NOT_MET,
+      UNLOCK_WALLET_ERROR_MESSAGES.PASSWORD_REQUIREMENTS_NOT_MET,
     )
   ) {
     // Invalid password.
     throw new Error(
-      `${UnlockErrorType.INVALID_PASSWORD}: ${loginErrorMessage}`,
+      `${UnlockWalletErrorType.INVALID_PASSWORD}: ${loginErrorMessage}`,
     );
   } else if (
-    loginErrorMessage === PasswordSubmissionErrorType.PASSCODE_NOT_SET_ERROR
+    loginErrorMessage === UNLOCK_WALLET_ERROR_MESSAGES.PASSCODE_NOT_SET
   ) {
     // Password is not set. Is this an empty password?
     throw new Error(
-      `${UnlockErrorType.PASSWORD_NOT_SET}: ${loginErrorMessage}`,
+      `${UnlockWalletErrorType.PASSWORD_NOT_SET}: ${loginErrorMessage}`,
+    );
+  } else if (
+    loginErrorMessage ===
+    UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS
+  ) {
+    // User cancelled biometrics.
+    throw new Error(
+      `${UnlockWalletErrorType.IOS_USER_CANCELLED_BIOMETRICS}: ${loginErrorMessage}`,
     );
   } else if (
     toLowerCaseEquals(
       loginErrorMessage,
-      PasswordSubmissionErrorType.DENY_PIN_ERROR_ANDROID,
+      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED,
     )
   ) {
     // Pin code denied.
     throw new Error(
-      `${UnlockErrorType.ANDROID_PIN_DENIED}: ${loginErrorMessage}`,
+      `${UnlockWalletErrorType.ANDROID_PIN_DENIED}: ${loginErrorMessage}`,
     );
   } else if (
-    containsErrorMessage(loginError, PasswordSubmissionErrorType.VAULT_ERROR) ||
     containsErrorMessage(
       loginError,
-      PasswordSubmissionErrorType.JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+      UNLOCK_WALLET_ERROR_MESSAGES.PREVIOUS_VAULT_NOT_FOUND,
+    ) ||
+    containsErrorMessage(
+      loginError,
+      UNLOCK_WALLET_ERROR_MESSAGES.JSON_PARSE_ERROR,
     )
   ) {
     // Vault corruption detected.
     throw new Error(
-      `${UnlockErrorType.VAULT_CORRUPTION}: ${loginErrorMessage}`,
+      `${UnlockWalletErrorType.VAULT_CORRUPTION}: ${loginErrorMessage}`,
     );
   } else {
     // Other password submission errors.
     throw new Error(
-      `${UnlockErrorType.UNRECOGNIZED_ERROR}: ${loginErrorMessage}`,
+      `${UnlockWalletErrorType.UNRECOGNIZED_ERROR}: ${loginErrorMessage}`,
     );
   }
 };
