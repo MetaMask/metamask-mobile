@@ -291,7 +291,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('tracks analytics when tab pressed', () => {
+    it('does not track analytics when tab pressed', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId('tab-sports'));
