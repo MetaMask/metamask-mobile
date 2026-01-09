@@ -53,6 +53,8 @@ import PLASMA from './plasma-native.png';
 import CRONOS from './cronos.png';
 import HYPE from './hyperevm.png';
 import X_LAYER from './x-layer-native.png';
+import BOB from './bob.png';
+import ROOTSTOCK from './rootstock-native.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
@@ -120,4 +122,7 @@ export default {
   CRO: CRONOS,
   HYPE,
   OKB: X_LAYER,
+  BOB,
+  RBTC: ROOTSTOCK,
+  tRBTC: ROOTSTOCK,
 };
