@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -25,7 +26,6 @@ import { AccountId } from '@metamask/accounts-controller';
 import Engine from '../../../../../core/Engine';
 
 const RecipientSelectorModal: React.FC = () => {
-  const navigation = useNavigation();
   const dispatch = useDispatch();
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -53,9 +53,18 @@ const RecipientSelectorModal: React.FC = () => {
   }, [dispatch]);
 
   const handleClose = () => {
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-    });
+    // Use CommonActions to navigate from modal context
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({
+        name: Routes.ONBOARDING.HOME_NAV,
+        params: {
+          screen: Routes.BRIDGE.ROOT,
+          params: {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        },
+      }),
+    );
   };
 
   const getIsAccountSupported = useCallback(

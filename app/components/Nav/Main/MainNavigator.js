@@ -160,7 +160,9 @@ const clearStackNavigatorOptions = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+  <Stack.Navigator
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -223,7 +225,9 @@ const WalletTabStackFlow = () => (
 );
 
 const WalletTabModalFlow = () => (
-  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+  <Stack.Navigator
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+  >
     <Stack.Screen
       name={Routes.WALLET.TAB_STACK_FLOW}
       component={WalletTabStackFlow}
@@ -259,7 +263,9 @@ const TransactionsHome = () => (
 );
 
 const RewardsHome = () => (
-  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+  <Stack.Navigator
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+  >
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
@@ -309,7 +315,10 @@ const BrowserFlow = (props) => (
 );
 
 const ExploreHome = () => (
-  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} screenOptions={{ presentation: 'modal' }}>
+  <Stack.Navigator
+    initialRouteName={Routes.TRENDING_FEED}
+    screenOptions={{ presentation: 'modal' }}
+  >
     <Stack.Screen
       name={Routes.TRENDING_FEED}
       component={ExploreFeed}
@@ -704,7 +713,11 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+    <Tab.Navigator
+      initialRouteName={Routes.WALLET.HOME}
+      tabBar={renderTabBar}
+      screenOptions={{ headerShown: false }}
+    >
       <Tab.Screen
         name={Routes.WALLET.HOME}
         options={options.home}
@@ -764,10 +777,7 @@ const HomeTabs = () => {
 
 const Webview = () => (
   <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
-    <Stack.Screen
-      name="SimpleWebview"
-      component={SimpleWebview}
-    />
+    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
 

@@ -690,7 +690,7 @@ export function getOnboardingNavbarOptions(
             />
           </View>
         )
-      : null,
+      : () => null, // React Navigation v7 requires a function that returns null to hide title
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,

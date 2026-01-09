@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../../../core/NavigationService';
 import { DepositRegion } from '@consensys/native-ramps-sdk';
 
 import Text, {
@@ -68,14 +69,14 @@ function UnsupportedRegionModal() {
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.ONBOARDING.HOME_NAV,
+        }),
+      );
     });
-  }, [navigation]);
+  }, []);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
