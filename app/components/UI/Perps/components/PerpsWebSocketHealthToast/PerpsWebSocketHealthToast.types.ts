@@ -25,6 +25,11 @@ export interface PerpsWebSocketHealthToastProps {
   onHide?: () => void;
 
   /**
+   * Callback when the retry button is pressed (only shown in DISCONNECTED state).
+   */
+  onRetry?: () => void;
+
+  /**
    * Test ID for the component.
    */
   testID?: string;

@@ -834,6 +834,14 @@ export class HyperLiquidClientService {
   private isReconnecting = false;
 
   /**
+   * Manually trigger a reconnection attempt.
+   * This is exposed for UI retry buttons when user wants to force reconnection.
+   */
+  public async reconnect(): Promise<void> {
+    await this.handleConnectionDrop();
+  }
+
+  /**
    * Handle detected connection drop
    * Recreates WebSocket transport and notifies callback to restore subscriptions
    */

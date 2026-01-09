@@ -6190,6 +6190,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    return this.clientService.reconnect();
+  }
+
+  /**
    * Get list of available HIP-3 builder-deployed DEXs
    * @param _params - Optional parameters (reserved for future filters/pagination)
    * @returns Array of DEX names (empty string '' represents main DEX)

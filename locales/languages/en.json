@@ -1703,7 +1703,8 @@
       "websocket_connecting": "Connecting to perps...",
       "websocket_connecting_message": "Restoring connection...",
       "websocket_connected": "Connected",
-      "websocket_connected_message": "Live data updates resumed"
+      "websocket_connected_message": "Live data updates resumed",
+      "websocket_retry": "Retry"
     },
     "chart": {
       "no_data": "No chart data available",

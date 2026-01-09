@@ -9,8 +9,8 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       position: 'absolute',
       top: 74,
-      left: 16,
-      right: 16,
+      left: 12,
+      right: 12,
       zIndex: 9999,
     },
     // Inner toast content
@@ -43,6 +43,15 @@ const styleSheet = (params: { theme: Theme }) => {
     textContainer: {
       flex: 1,
       gap: 2,
+    },
+    // Retry button
+    retryButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 };

@@ -26,6 +26,11 @@ export interface WebSocketHealthToastState {
    * Callback to hide the toast (used after success auto-hide timeout).
    */
   onHide: () => void;
+
+  /**
+   * Callback to retry the connection (shown in DISCONNECTED state).
+   */
+  onRetry: () => void;
 }
 
 /**
@@ -63,6 +68,11 @@ export function useWebSocketHealthToast(): WebSocketHealthToastState {
   // Callback to hide the toast
   const onHide = useCallback(() => {
     setIsVisible(false);
+  }, []);
+
+  // Callback to retry the connection
+  const onRetry = useCallback(() => {
+    Engine.context.PerpsController?.reconnect?.();
   }, []);
 
   // Subscribe to WebSocket connection state changes
@@ -145,5 +155,6 @@ export function useWebSocketHealthToast(): WebSocketHealthToastState {
     connectionState,
     reconnectionAttempt,
     onHide,
+    onRetry,
   };
 }

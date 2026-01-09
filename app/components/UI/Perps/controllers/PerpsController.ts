@@ -1997,6 +1997,21 @@ export class PerpsController extends BaseController<
     }
   }
 
+  /**
+   * Manually trigger a WebSocket reconnection attempt.
+   * Used by the UI retry button when connection is lost.
+   */
+  async reconnect(): Promise<void> {
+    try {
+      const provider = this.getActiveProvider();
+      if (provider.reconnect) {
+        await provider.reconnect();
+      }
+    } catch {
+      // If no provider is active, do nothing
+    }
+  }
+
   // Live data delegation (NO Redux) - delegates to active provider
 
   /**

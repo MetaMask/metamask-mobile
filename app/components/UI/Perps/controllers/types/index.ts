@@ -917,6 +917,7 @@ export interface IPerpsProvider {
       reconnectionAttempt: number,
     ) => void,
   ): () => void; // Optional: subscribe to WebSocket connection state changes
+  reconnect?(): Promise<void>; // Optional: manually trigger WebSocket reconnection
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;

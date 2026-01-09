@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef, useMemo } from 'react';
-import { Animated } from 'react-native';
+import { Animated, TouchableOpacity, View } from 'react-native';
 import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
@@ -54,6 +54,7 @@ const PerpsWebSocketHealthToast: React.FC<PerpsWebSocketHealthToastProps> =
       connectionState,
       reconnectionAttempt = 0,
       onHide,
+      onRetry,
       testID = 'perps-websocket-health-toast',
     }) => {
       const { styles } = useStyles(styleSheet, {});
@@ -194,14 +195,28 @@ const PerpsWebSocketHealthToast: React.FC<PerpsWebSocketHealthToastProps> =
             </Animated.View>
 
             {/* Text Content */}
-            <Animated.View style={styles.textContainer}>
+            <View style={styles.textContainer}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {toastConfig.title}
               </Text>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {toastConfig.description}
               </Text>
-            </Animated.View>
+            </View>
+
+            {/* Retry Button - only shown when disconnected */}
+            {connectionState === WebSocketConnectionState.DISCONNECTED &&
+              onRetry && (
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={onRetry}
+                  testID={`${testID}-retry-button`}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.connection.websocket_retry')}
+                  </Text>
+                </TouchableOpacity>
+              )}
           </Animated.View>
         </Animated.View>
       );

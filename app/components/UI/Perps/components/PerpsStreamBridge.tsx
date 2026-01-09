@@ -20,7 +20,7 @@ const PerpsStreamBridge: React.FC = () => {
   usePerpsDepositStatus();
 
   // Enable WebSocket health monitoring and get toast state
-  const { isVisible, connectionState, reconnectionAttempt, onHide } =
+  const { isVisible, connectionState, reconnectionAttempt, onHide, onRetry } =
     useWebSocketHealthToast();
 
   // Render the WebSocket health toast
@@ -30,6 +30,7 @@ const PerpsStreamBridge: React.FC = () => {
       connectionState={connectionState}
       reconnectionAttempt={reconnectionAttempt}
       onHide={onHide}
+      onRetry={onRetry}
     />
   );
 };
