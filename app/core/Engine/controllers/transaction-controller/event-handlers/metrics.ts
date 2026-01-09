@@ -69,6 +69,9 @@ export const handleTransactionRejectedEventForMetrics =
 export const handleTransactionSubmittedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
 
+// Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
+// as unified type for all finalized transactions.
+// Status could be derived from transactionMeta.status
 export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
