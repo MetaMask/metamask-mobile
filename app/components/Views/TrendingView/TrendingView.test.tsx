@@ -127,17 +127,17 @@ describe('TrendingView', () => {
   const createMockSelectorImplementation =
     (
       overrides: {
-        browserTabsCount?: number;
+        browserTabs?: Array<{ id: number; url: string }>;
         multichainEnabled?: boolean;
         basicFunctionalityEnabled?: boolean;
       } = {},
     ) =>
     (selector: unknown) => {
-      // Handle browser tabs count selector
+      // Handle browser tabs selector
       if (typeof selector === 'function') {
         const selectorStr = selector.toString();
         if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
-          return overrides.browserTabsCount ?? 0;
+          return overrides.browserTabs ?? [];
         }
         // Handle selectSelectedInternalAccountByScope which is a selector factory
         if (
@@ -195,7 +195,7 @@ describe('TrendingView', () => {
   describe('browser button states', () => {
     it('displays add icon when no browser tabs are open', () => {
       mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 0 }),
+        createMockSelectorImplementation({ browserTabs: [] }),
       );
 
       const { getByTestId, queryByText } = render(
@@ -211,7 +211,9 @@ describe('TrendingView', () => {
 
     it('displays tab count when one browser tab is open', () => {
       mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 1 }),
+        createMockSelectorImplementation({
+          browserTabs: [{ id: 1, url: 'https://example.com' }],
+        }),
       );
 
       const { getByText } = render(
@@ -225,7 +227,15 @@ describe('TrendingView', () => {
 
     it('displays tab count when multiple browser tabs are open', () => {
       mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 5 }),
+        createMockSelectorImplementation({
+          browserTabs: [
+            { id: 1, url: 'https://example.com' },
+            { id: 2, url: 'https://example2.com' },
+            { id: 3, url: 'https://example3.com' },
+            { id: 4, url: 'https://example4.com' },
+            { id: 5, url: 'https://example5.com' },
+          ],
+        }),
       );
 
       const { getByText } = render(
@@ -238,8 +248,12 @@ describe('TrendingView', () => {
     });
 
     it('displays tab count when many browser tabs are open', () => {
+      const tabs = Array.from({ length: 99 }, (_, i) => ({
+        id: i + 1,
+        url: `https://example${i}.com`,
+      }));
       mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 99 }),
+        createMockSelectorImplementation({ browserTabs: tabs }),
       );
 
       const { getByText } = render(
@@ -251,7 +265,13 @@ describe('TrendingView', () => {
       expect(getByText('99')).toBeOnTheScreen();
     });
 
-    it('navigates to TrendingBrowser when button is pressed', () => {
+    it('navigates to browser with newTabUrl when no portfolio tab exists', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({
+          browserTabs: [{ id: 1, url: 'https://example.com' }],
+        }),
+      );
+
       const { getByTestId } = render(
         <NavigationContainer>
           <TrendingView />
@@ -268,6 +288,47 @@ describe('TrendingView', () => {
           params: expect.objectContaining({
             newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
             fromTrending: true,
+          }),
+        }),
+      );
+    });
+
+    it('navigates to existing portfolio tab when one already exists', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({
+          browserTabs: [
+            { id: 1, url: 'https://example.com' },
+            { id: 2, url: 'https://portfolio.metamask.io/explore' },
+            { id: 3, url: 'https://another.com' },
+          ],
+        }),
+      );
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+      fireEvent.press(browserButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            existingTabId: 2,
+            fromTrending: true,
+          }),
+        }),
+      );
+      // Should NOT have newTabUrl when using existingTabId
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          params: expect.objectContaining({
+            newTabUrl: expect.anything(),
           }),
         }),
       );
