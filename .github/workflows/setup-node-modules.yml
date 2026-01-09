@@ -1,0 +1,127 @@
+# Reusable workflow for setting up node_modules
+# This workflow installs dependencies and runs the project setup, then uploads
+# the prepared node_modules as an artifact for consumption by other workflows.
+
+name: Setup Node Modules
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout (e.g., refs/pull/123/head or branch name)'
+        required: false
+        type: string
+        default: ''
+      fetch-depth:
+        description: 'Number of commits to fetch (0 for all history)'
+        required: false
+        type: number
+        default: 1
+      upload-artifact:
+        description: 'Whether to upload node_modules as an artifact'
+        required: false
+        type: boolean
+        default: true
+      artifact-name:
+        description: 'Name of the artifact to upload'
+        required: false
+        type: string
+        default: 'node-modules'
+      artifact-retention-days:
+        description: 'Number of days to retain the artifact'
+        required: false
+        type: number
+        default: 1
+    outputs:
+      cache-hit:
+        description: 'Whether the node_modules cache was hit'
+        value: ${{ jobs.setup.outputs.cache-hit }}
+      cache-key:
+        description: 'The cache key used for node_modules'
+        value: ${{ jobs.setup.outputs.cache-key }}
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    name: Setup Node Modules
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache-node-modules.outputs.cache-hit }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: ${{ inputs.fetch-depth }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          # Create a cache key based on yarn.lock and setup script
+          CACHE_KEY="node-modules-${{ runner.os }}-${{ hashFiles('**/yarn.lock', 'scripts/setup.mjs') }}"
+          echo "key=$CACHE_KEY" >> "$GITHUB_OUTPUT"
+          echo "Cache key: $CACHE_KEY"
+
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+            app/util/termsOfUse/termsOfUseContent.ts
+            scripts/inpage-bridge/dist
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Setup project
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          echo "🔧 Running setup for GitHub CI..."
+          yarn setup:github-ci
+
+      - name: Verify setup completed
+        run: |
+          echo "✅ Verifying setup artifacts..."
+          # Check that critical setup artifacts exist
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/util/termsOfUse/termsOfUseContent.ts" ]; then
+            echo "❌ Terms of Use content not generated"
+            exit 1
+          fi
+          echo "✅ Setup verification passed"
+
+      - name: Upload node_modules artifact
+        if: inputs.upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+            app/util/termsOfUse/termsOfUseContent.ts
+            scripts/inpage-bridge/dist
+          retention-days: ${{ inputs.artifact-retention-days }}
+          compression-level: 1
+          if-no-files-found: error
