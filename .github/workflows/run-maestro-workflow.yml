@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "📦 Installing Maestro CLI..."
           curl -fsSL "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Verify Maestro installation
         run: |
@@ -106,6 +106,7 @@ jobs:
       - name: Wait for emulator to be ready
         run: |
           echo "⏳ Waiting for emulator to boot..."
+          # shellcheck disable=SC2016 # Single quotes intentional - command runs on device, not host
           adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
           echo "✅ Emulator ready"
 
