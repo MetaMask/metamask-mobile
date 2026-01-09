@@ -881,7 +881,7 @@ const EarnInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         earnToken,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -897,6 +897,7 @@ const EarnInputView = () => {
     earnToken?.name,
     earnToken,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF
   ]);
