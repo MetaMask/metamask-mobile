@@ -19,8 +19,13 @@ const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 
 // Create a stable mock for createEventBuilder that returns a chainable object
-const createMockEventBuilder = () => {
-  const builder = {
+interface MockEventBuilder {
+  addProperties: jest.Mock;
+  build: jest.Mock;
+}
+
+const createMockEventBuilder = (): MockEventBuilder => {
+  const builder: MockEventBuilder = {
     addProperties: jest.fn().mockImplementation(() => builder),
     build: jest.fn().mockReturnValue({}),
   };
