@@ -180,7 +180,7 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-  nightly_exp_builds_to_testflight_pipeline:
+  exp_builds_to_testflight_pipeline:
     workflows:
       bump_version_code: {}
       build_android_main_exp:
@@ -192,7 +192,7 @@ pipelines:
       upload_ios_main_to_testflight:
         depends_on:
         - build_ios_main_exp    
-  nightly_rc_builds_to_testflight_pipeline:
+  rc_builds_to_testflight_pipeline:
     workflows:
       bump_version_code: {}
       build_android_main_rc:
@@ -3384,12 +3384,19 @@ workflows:
                 echo "🚀 Uploading to TestFlight..."
                 echo "IPA: $IPA_PATH"
                 echo "Group: MetaMask Fastlane Test"
-                echo "Workflow: ${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
+                echo "Pipeline: ${BITRISEIO_PIPELINE_TITLE:-Unknown}"
                 
                 # Build changelog with proper variable expansion
-                WORKFLOW_NAME="${BITRISE_TRIGGERED_WORKFLOW_ID:-Unknown}"
+                PIPELINE_NAME="${BITRISEIO_PIPELINE_TITLE:-Unknown}"
                 BRANCH="${BITRISE_GIT_BRANCH:-Unknown}"
-                CHANGELOG="Workflow: ${WORKFLOW_NAME} | Branch: ${BRANCH} "
+                
+                # Extract environment from pipeline name (first part before underscore)
+                ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
+                if [ -z "$ENVIRONMENT" ] || [ "$ENVIRONMENT" = "$PIPELINE_NAME" ]; then
+                  ENVIRONMENT="Unknown"
+                fi
+                
+                CHANGELOG="Pipeline: ${PIPELINE_NAME} | Environment: ${ENVIRONMENT} | Branch: ${BRANCH}"
                 
                 echo "Changelog: $CHANGELOG"
                 
