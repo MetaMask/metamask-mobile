@@ -41,13 +41,46 @@ export function isNflGameEvent(event: PolymarketApiEvent): boolean {
 }
 
 const NOT_STARTED_PERIODS = ['NS', 'NOT_STARTED', 'PRE', 'PREGAME', ''];
+const ENDED_PERIODS = ['FT', 'VFT'];
+
+/**
+ * Formats the period string from Polymarket API to user-friendly display text.
+ *
+ * Polymarket Period Values:
+ * - NS → (not displayed, game is scheduled)
+ * - Q1/Q2/Q3/Q4 → Show as-is
+ * - End Q1/End Q3 → Show as-is
+ * - HT → "Halftime"
+ * - OT → "Overtime"
+ * - FT/VFT → "Final"
+ */
+export function formatPeriodDisplay(period: string): string {
+  const normalized = period.toUpperCase().trim();
+
+  switch (normalized) {
+    case 'HT':
+      return 'Halftime';
+    case 'OT':
+      return 'Overtime';
+    case 'FT':
+    case 'VFT':
+      return 'Final';
+    default:
+      return period;
+  }
+}
 
 export function getGameStatus(event: PolymarketApiEvent): PredictGameStatus {
-  if (event.closed) {
+  const period = (event.period ?? '').toUpperCase();
+
+  if (event.ended || event.closed || ENDED_PERIODS.includes(period)) {
     return 'ended';
   }
 
-  const period = (event.period ?? '').toUpperCase();
+  if (event.live) {
+    return 'ongoing';
+  }
+
   const isNotStartedPeriod = NOT_STARTED_PERIODS.includes(period);
 
   const hasScore = event.score && event.score !== '0-0' && event.score !== '';
@@ -94,7 +127,8 @@ export function buildNflGameData(
 
   return {
     id: event.id,
-    startTime: event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
+    startTime:
+      event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
     status: getGameStatus(event),
     league,
     elapsed: event.elapsed ?? '',

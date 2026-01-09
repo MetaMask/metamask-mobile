@@ -653,10 +653,72 @@ export const parsePolymarketEvents = (
           }
         : undefined;
 
-      const game =
+      let game =
         isNflGame && teamLookup
           ? (buildNflGameData(event, teamLookup) ?? undefined)
           : undefined;
+
+      // ============================================
+      // DEBUG: Test different game states
+      // Change DEBUG_GAME_STATE to test each state:
+      // - 'scheduled' - Shows date/time, percentages, buy buttons
+      // - 'ongoing_q1' - Q1 with score and elapsed time
+      // - 'ongoing_q3' - Q3 mid-game
+      // - 'ongoing_halftime' - Halftime
+      // - 'ongoing_overtime' - Overtime
+      // - 'ended' - Final score with WIN/LOSE
+      // - null - Use real data (no override)
+      // ============================================
+      const DEBUG_GAME_STATE: string | null = null; // Change this to test
+
+      if (DEBUG_GAME_STATE && game && event.slug === 'nfl-la-car-2026-01-10') {
+        const debugStates: Record<string, Partial<typeof game>> = {
+          scheduled: {
+            status: 'scheduled',
+            score: '',
+            period: '',
+            elapsed: '',
+          },
+          ongoing_q1: {
+            status: 'ongoing',
+            score: '7-3',
+            period: 'Q1',
+            elapsed: '8:42',
+          },
+          ongoing_q3: {
+            status: 'ongoing',
+            score: '21-14',
+            period: 'Q3',
+            elapsed: '5:15',
+          },
+          ongoing_halftime: {
+            status: 'ongoing',
+            score: '17-10',
+            period: 'HT',
+            elapsed: '',
+          },
+          ongoing_overtime: {
+            status: 'ongoing',
+            score: '24-24',
+            period: 'OT',
+            elapsed: '3:22',
+          },
+          ended: {
+            status: 'ended',
+            score: '31-17',
+            period: 'FT',
+            elapsed: '',
+          },
+        };
+
+        const override = debugStates[DEBUG_GAME_STATE];
+        if (override) {
+          game = { ...game, ...override };
+        }
+      }
+      // ============================================
+      // END DEBUG
+      // ============================================
 
       return {
         id: event.id,

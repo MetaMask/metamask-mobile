@@ -47,6 +47,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import TeamHelmet from '../../components/TeamHelmet';
+import { formatPeriodDisplay } from '../../utils/gameParser';
 
 const LIVE_POLLING_INTERVAL = 5000;
 const ONE_MONTH_FIDELITY = 720;
@@ -161,7 +162,7 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
             color={TextColor.TextAlternative}
             twClassName="mt-1"
           >
-            {game.homeTeam.name}
+            {game.homeTeam.alias}
           </Text>
         </Box>
       </Box>
@@ -268,11 +269,13 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
           color={TextColor.TextDefault}
           style={tw.style('font-medium')}
         >
-          Final
+          {formatPeriodDisplay(game.period || 'FT')}
         </Text>
       </Box>
     );
   }
+
+  const periodText = formatPeriodDisplay(game.period || '');
 
   return (
     <Box
@@ -286,7 +289,7 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
         color={TextColor.ErrorDefault}
         style={tw.style('font-medium')}
       >
-        {game.period}
+        {periodText}
         {game.elapsed ? ` ${game.elapsed}` : ''}
       </Text>
     </Box>

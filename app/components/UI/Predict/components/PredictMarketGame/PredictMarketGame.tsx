@@ -26,6 +26,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import TeamHelmet from '../TeamHelmet';
+import { formatPeriodDisplay } from '../../utils/gameParser';
 
 interface PredictMarketGameProps {
   market: PredictMarketType;
@@ -206,7 +207,7 @@ const OngoingContent: React.FC<OngoingContentProps> = ({ game }) => {
   const tw = useTailwind();
   const { away: awayScore, home: homeScore } = parseScore(game.score);
 
-  const periodDisplay = game.period || '';
+  const periodDisplay = formatPeriodDisplay(game.period || '');
   const elapsedDisplay = game.elapsed || '';
 
   return (

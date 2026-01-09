@@ -179,10 +179,14 @@ export interface PolymarketApiEvent {
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
-  // Live game fields (present when game is ongoing)
-  score?: string; // Format: "awayScore-homeScore"
-  elapsed?: string; // Game elapsed time
-  period?: string; // Current period (e.g., "Q1", "Q2", "Halftime")
+  active?: boolean;
+  startTime?: string;
+  live?: boolean;
+  ended?: boolean;
+  finishedTimestamp?: string;
+  score?: string;
+  elapsed?: string;
+  period?: string;
 }
 
 /**
