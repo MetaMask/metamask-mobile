@@ -11,6 +11,7 @@ import {
   RefreshControl,
   TextInput,
   Platform,
+  LayoutChangeEvent,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -205,6 +206,8 @@ interface AnimatedHeaderProps {
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;
+  onHeaderLayout: (event: LayoutChangeEvent) => void;
+  onTabBarLayout: (event: LayoutChangeEvent) => void;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -215,6 +218,8 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   tabs,
   activeIndex,
   onTabPress,
+  onHeaderLayout,
+  onTabBarLayout,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -243,10 +248,14 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         animatedContainerStyle,
       ]}
     >
-      <Animated.View ref={headerRef} style={animatedBalanceStyle}>
+      <Animated.View
+        ref={headerRef}
+        style={animatedBalanceStyle}
+        onLayout={onHeaderLayout}
+      >
         <PredictFeedHeader />
       </Animated.View>
-      <View ref={tabBarRef}>
+      <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -691,6 +700,8 @@ const PredictFeed: React.FC = () => {
     activeIndex,
     setActiveIndex,
     scrollHandler,
+    onHeaderLayout,
+    onTabBarLayout,
   } = useFeedScrollManager({ headerRef, tabBarRef });
 
   const handleTabPress = useCallback(
@@ -735,6 +746,8 @@ const PredictFeed: React.FC = () => {
           tabs={tabs}
           activeIndex={activeIndex}
           onTabPress={handleTabPress}
+          onHeaderLayout={onHeaderLayout}
+          onTabBarLayout={onTabBarLayout}
         />
 
         {layoutReady && (

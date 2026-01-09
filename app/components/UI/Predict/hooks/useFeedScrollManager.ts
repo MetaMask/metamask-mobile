@@ -1,5 +1,5 @@
-import { useState, useCallback, useLayoutEffect, useRef } from 'react';
-import { View, Platform } from 'react-native';
+import { useState, useCallback, useLayoutEffect } from 'react';
+import { View, Platform, LayoutChangeEvent } from 'react-native';
 import {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -27,6 +27,8 @@ export interface UseFeedScrollManagerReturn {
   activeIndex: number;
   setActiveIndex: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
+  onHeaderLayout: (event: LayoutChangeEvent) => void;
+  onTabBarLayout: (event: LayoutChangeEvent) => void;
 }
 
 // =============================================================================
@@ -95,76 +97,51 @@ export const useFeedScrollManager = ({
   // React state mirror of isHeaderHidden for reactive UI updates
   const [headerHidden, setHeaderHidden] = useState(false);
 
-  // Track if layout is already ready to avoid re-measuring
-  const layoutReadyRef = useRef(false);
-
-  // Track all timeout IDs for proper cleanup
-  const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  // Measure heights using useLayoutEffect
-  // Retry mechanism ensures we get measurements even if initial render hasn't completed
   useLayoutEffect(() => {
-    // Skip if already measured
-    if (layoutReadyRef.current) {
-      return;
+    if (headerRef.current) {
+      headerRef.current.measure((_x, _y, _width, height) => {
+        if (height > 0) {
+          setHeaderHeight(height);
+          sharedHeaderHeight.value = height;
+        }
+      });
     }
 
-    // Clear any stale timeout IDs from previous renders
-    timeoutIdsRef.current = [];
-
-    let headerMeasured = false;
-    let tabBarMeasured = false;
-    let retryCount = 0;
-    const maxRetries = 10;
-
-    const checkLayoutReady = () => {
-      if (headerMeasured && tabBarMeasured && !layoutReadyRef.current) {
-        layoutReadyRef.current = true;
-        setLayoutReady(true);
-      }
-    };
-
-    const measureHeights = () => {
-      if (headerRef.current) {
-        headerRef.current.measure((_x, _y, _width, height) => {
-          if (height > 0) {
-            setHeaderHeight(height);
-            sharedHeaderHeight.value = height;
-            headerMeasured = true;
-            checkLayoutReady();
-          }
-        });
-      }
-
-      if (tabBarRef.current) {
-        tabBarRef.current.measure((_x, _y, _width, height) => {
-          if (height > 0) {
-            setTabBarHeight(height);
-            sharedTabBarHeight.value = height;
-            tabBarMeasured = true;
-            checkLayoutReady();
-          }
-        });
-      }
-
-      // Retry if measurements failed and we haven't exceeded max retries
-      if ((!headerMeasured || !tabBarMeasured) && retryCount < maxRetries) {
-        retryCount++;
-        const retryTimeoutId = setTimeout(measureHeights, 50);
-        timeoutIdsRef.current.push(retryTimeoutId);
-      }
-    };
-
-    // Initial measurement attempt
-    const initialTimeoutId = setTimeout(measureHeights, 50);
-    timeoutIdsRef.current.push(initialTimeoutId);
-
-    return () => {
-      // Clean up all pending timeouts on unmount
-      timeoutIdsRef.current.forEach(clearTimeout);
-      timeoutIdsRef.current = [];
-    };
+    if (tabBarRef.current) {
+      tabBarRef.current.measure((_x, _y, _width, height) => {
+        if (height > 0) {
+          setTabBarHeight(height);
+          sharedTabBarHeight.value = height;
+        }
+      });
+    }
   }, [headerRef, tabBarRef, sharedHeaderHeight, sharedTabBarHeight]);
+
+  useLayoutEffect(() => {
+    setLayoutReady(headerHeight > 0 && tabBarHeight > 0);
+  }, [headerHeight, tabBarHeight]);
+
+  const onHeaderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0 && height !== sharedHeaderHeight.value) {
+        setHeaderHeight(height);
+        sharedHeaderHeight.value = height;
+      }
+    },
+    [sharedHeaderHeight],
+  );
+
+  const onTabBarLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0 && height !== sharedTabBarHeight.value) {
+        setTabBarHeight(height);
+        sharedTabBarHeight.value = height;
+      }
+    },
+    [sharedTabBarHeight],
+  );
 
   const animationConfig = {
     duration: HEADER_ANIMATION_DURATION,
@@ -263,5 +240,7 @@ export const useFeedScrollManager = ({
     activeIndex,
     setActiveIndex: handleSetActiveIndex,
     scrollHandler,
+    onHeaderLayout,
+    onTabBarLayout,
   };
 };

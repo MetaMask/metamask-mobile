@@ -301,7 +301,7 @@ describe('useFeedScrollManager', () => {
       expect(headerRef.current.measure).toHaveBeenCalled();
     });
 
-    it('does not re-measure when already measured', async () => {
+    it('measures on initial mount', async () => {
       type MeasureCallback = (
         x: number,
         y: number,
@@ -314,29 +314,14 @@ describe('useFeedScrollManager', () => {
       const headerRef = { current: { measure: measureFn } };
       const tabBarRef = createMockRef(48);
 
-      const props = {
-        headerRef: headerRef as unknown as React.RefObject<never>,
-        tabBarRef: tabBarRef as unknown as React.RefObject<never>,
-      };
-
-      const { rerender } = renderHook(
-        (p: typeof props) => useFeedScrollManager(p),
-        { initialProps: props },
+      renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as unknown as React.RefObject<never>,
+          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+        }),
       );
 
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
-
-      const callCountAfterFirst = measureFn.mock.calls.length;
-
-      rerender(props);
-
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
-
-      expect(measureFn.mock.calls.length).toBe(callCountAfterFirst);
+      expect(measureFn).toHaveBeenCalled();
     });
   });
 
@@ -1019,123 +1004,145 @@ describe('useFeedScrollManager', () => {
     });
   });
 
-  describe('layout measurement retries', () => {
-    it('stops retrying after max retries exceeded', async () => {
-      let measureCallCount = 0;
-      type MeasureCallback = (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-      ) => void;
-      const headerRef = {
-        current: {
-          measure: jest.fn((callback: MeasureCallback) => {
-            measureCallCount++;
-            callback(0, 0, 375, 0);
-          }),
-        },
-      };
-      const tabBarRef = {
-        current: {
-          measure: jest.fn((callback: MeasureCallback) => {
-            callback(0, 0, 375, 0);
-          }),
-        },
-      };
-
-      const { result } = renderHook(() =>
-        useFeedScrollManager({
-          headerRef: headerRef as unknown as React.RefObject<never>,
-          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
-        }),
-      );
-
-      act(() => {
-        jest.advanceTimersByTime(600);
-      });
-
-      expect(result.current.layoutReady).toBe(false);
-      expect(measureCallCount).toBeGreaterThanOrEqual(10);
-    });
-
-    it('succeeds on retry when measurement becomes available', async () => {
-      let measureCallCount = 0;
-      type MeasureCallback = (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-      ) => void;
-      const headerRef = {
-        current: {
-          measure: jest.fn((callback: MeasureCallback) => {
-            measureCallCount++;
-            const height = measureCallCount >= 3 ? 120 : 0;
-            callback(0, 0, 375, height);
-          }),
-        },
-      };
+  describe('onLayout callbacks', () => {
+    it('provides onHeaderLayout callback', () => {
+      const headerRef = createMockRef(120);
       const tabBarRef = createMockRef(48);
 
       const { result } = renderHook(() =>
         useFeedScrollManager({
-          headerRef: headerRef as unknown as React.RefObject<never>,
-          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
         }),
       );
 
-      act(() => {
-        jest.advanceTimersByTime(200);
-      });
-
-      await waitFor(() => {
-        expect(result.current.layoutReady).toBe(true);
-      });
-
-      expect(result.current.headerHeight).toBe(120);
+      expect(typeof result.current.onHeaderLayout).toBe('function');
     });
 
-    it('cleans up multiple pending timeouts on unmount', () => {
-      type MeasureCallback = (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-      ) => void;
-      const headerRef = {
-        current: {
-          measure: jest.fn((callback: MeasureCallback) => {
-            callback(0, 0, 375, 0);
-          }),
-        },
-      };
-      const tabBarRef = {
-        current: {
-          measure: jest.fn((callback: MeasureCallback) => {
-            callback(0, 0, 375, 0);
-          }),
-        },
-      };
+    it('provides onTabBarLayout callback', () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
 
-      const { unmount } = renderHook(() =>
+      const { result } = renderHook(() =>
         useFeedScrollManager({
-          headerRef: headerRef as unknown as React.RefObject<never>,
-          tabBarRef: tabBarRef as unknown as React.RefObject<never>,
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
         }),
       );
 
-      act(() => {
-        jest.advanceTimersByTime(200);
-      });
+      expect(typeof result.current.onTabBarLayout).toBe('function');
+    });
 
-      unmount();
+    it('onHeaderLayout can be called without error', () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
 
       expect(() => {
         act(() => {
-          jest.advanceTimersByTime(1000);
+          result.current.onHeaderLayout({
+            nativeEvent: { layout: { height: 150, width: 375, x: 0, y: 0 } },
+          } as never);
         });
       }).not.toThrow();
+    });
+
+    it('onTabBarLayout can be called without error', () => {
+      const headerRef = createMockRef(120);
+      const tabBarRef = createMockRef(48);
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      expect(() => {
+        act(() => {
+          result.current.onTabBarLayout({
+            nativeEvent: { layout: { height: 56, width: 375, x: 0, y: 0 } },
+          } as never);
+        });
+      }).not.toThrow();
+    });
+
+    it('updates headerHeight when onHeaderLayout called with value > 0', () => {
+      const headerRef = { current: null };
+      const tabBarRef = { current: null };
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      expect(result.current.headerHeight).toBe(0);
+
+      act(() => {
+        result.current.onHeaderLayout({
+          nativeEvent: { layout: { height: 150, width: 375, x: 0, y: 0 } },
+        } as never);
+      });
+
+      expect(result.current.headerHeight).toBe(150);
+    });
+
+    it('updates tabBarHeight when onTabBarLayout called with value > 0', () => {
+      const headerRef = { current: null };
+      const tabBarRef = { current: null };
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      expect(result.current.tabBarHeight).toBe(0);
+
+      act(() => {
+        result.current.onTabBarLayout({
+          nativeEvent: { layout: { height: 56, width: 375, x: 0, y: 0 } },
+        } as never);
+      });
+
+      expect(result.current.tabBarHeight).toBe(56);
+    });
+
+    it('ignores zero height in onHeaderLayout', () => {
+      const headerRef = { current: null };
+      const tabBarRef = { current: null };
+
+      const { result } = renderHook(() =>
+        useFeedScrollManager({
+          headerRef: headerRef as React.RefObject<never>,
+          tabBarRef: tabBarRef as React.RefObject<never>,
+        }),
+      );
+
+      act(() => {
+        result.current.onHeaderLayout({
+          nativeEvent: { layout: { height: 100, width: 375, x: 0, y: 0 } },
+        } as never);
+      });
+
+      expect(result.current.headerHeight).toBe(100);
+
+      act(() => {
+        result.current.onHeaderLayout({
+          nativeEvent: { layout: { height: 0, width: 375, x: 0, y: 0 } },
+        } as never);
+      });
+
+      expect(result.current.headerHeight).toBe(100);
     });
   });
 });
