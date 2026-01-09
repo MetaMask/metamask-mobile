@@ -86,10 +86,9 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   // Access the variable from the outer scope via module exports hack
   const getMockBridgeFeatureFlags = () =>
     // This is evaluated when the selector is called, not when the mock is defined
-     ({
+    ({
       chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
-    })
-  ;
+    });
   return {
     selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
     selectEnabledChainRanking: jest.fn(
