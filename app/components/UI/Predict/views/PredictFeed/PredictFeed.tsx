@@ -615,7 +615,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             </Box>
           ) : error ? (
             <PredictOffline onRetry={refetch} />
-          ) : marketData.length === 0 ? (
+          ) : !marketData || marketData.length === 0 ? (
             <Box twClassName="flex-1 justify-center items-center p-8">
               <Text
                 variant={TextVariant.BodyMd}
