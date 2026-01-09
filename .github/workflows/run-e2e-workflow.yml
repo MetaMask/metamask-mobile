@@ -91,6 +91,7 @@ jobs:
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
 
     steps:
       - name: Checkout
@@ -107,6 +108,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
+        timeout-minutes: 15
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ${{ inputs.platform }}
