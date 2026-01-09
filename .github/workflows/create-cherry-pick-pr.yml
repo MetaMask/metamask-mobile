@@ -35,5 +35,8 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME:  ${{ github.event.inputs.branch_name }}
+          COMMIT_HASH:  ${{ github.event.inputs.commit_hash }}
+          PR_NUMBER:    ${{ github.event.inputs.PR_number }}
         run: |
-          ./scripts/create-cherry-pick-pr.sh ${{ github.event.inputs.branch_name }} ${{ github.event.inputs.commit_hash }} ${{ github.event.inputs.PR_number }}
+          ./scripts/create-cherry-pick-pr.sh "$BRANCH_NAME" "$COMMIT_HASH" "$PR_NUMBER"
