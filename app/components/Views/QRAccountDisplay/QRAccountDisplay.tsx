@@ -74,6 +74,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
       <Text
         variant={TextVariant.BodyLg}
         fontWeight={FontWeight.Medium}
+        style={tw.style('mb-4')}
         {...labelProps}
       >
         {displayLabel}

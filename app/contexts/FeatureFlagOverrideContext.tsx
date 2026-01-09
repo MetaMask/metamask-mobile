@@ -4,7 +4,6 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
-  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -13,7 +12,6 @@ import {
   selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
 import { FeatureFlagInfo, getFeatureFlagType } from '../util/feature-flags';
-import useMetrics from '../components/hooks/useMetrics/useMetrics';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
 
@@ -44,20 +42,12 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
-  const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
   const featureFlagsWithOverrides = useSelector(selectRemoteFeatureFlags);
   const rawFeatureFlags = useSelector(selectRawFeatureFlags);
 
   // Get overrides from controller state via Redux
   const overrides = useSelector(selectLocalOverrides);
-
-  // Track remote feature flags and add all flags to user traits in bulk
-  useEffect(() => {
-    if (rawFeatureFlags && Object.keys(rawFeatureFlags).length > 0) {
-      addTraitsToUser(rawFeatureFlags);
-    }
-  }, [rawFeatureFlags, addTraitsToUser]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
     Engine.context?.RemoteFeatureFlagController?.setFlagOverride(
