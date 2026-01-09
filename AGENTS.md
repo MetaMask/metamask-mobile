@@ -13,11 +13,11 @@ MetaMask Mobile is a React Native mobile wallet providing access to Ethereum blo
 ```bash
 # Expo development (recommended for JS-only development)
 yarn setup:expo         # Setup for Expo development
-yarn watch              # Start Metro bundler
+yarn watch:clean        # Start Metro bundler
 
 # Native development (required for native code changes)
 yarn setup              # Full setup with native builds
-yarn watch              # Start Metro bundler
+yarn watch:clean        # Start Metro bundler
 yarn start:ios          # Run iOS app
 yarn start:android      # Run Android app
 ```
