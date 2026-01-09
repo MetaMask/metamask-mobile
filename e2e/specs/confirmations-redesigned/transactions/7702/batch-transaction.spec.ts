@@ -31,7 +31,6 @@ import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/moc
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
 
-// const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Local RPC';
 
 const localNodeOptions = [
@@ -78,8 +77,6 @@ async function goBackToWalletPage() {
 async function connectTestDappToLocalhost() {
   await TabBarComponent.tapBrowser();
   await BrowserView.navigateToTestDApp();
-  // await TestDApp.tapRevokeAccountPermission();
-  // await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 }
 
 /**
