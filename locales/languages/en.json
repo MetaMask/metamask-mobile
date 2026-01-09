@@ -5683,6 +5683,7 @@
     },
     "musd_conversion": {
       "convert_to_musd": "Convert to mUSD",
+      "convert": "Convert",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
