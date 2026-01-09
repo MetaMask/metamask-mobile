@@ -5598,7 +5598,7 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "earn_percentage": "Earn {{percentage}}%",
+    "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
