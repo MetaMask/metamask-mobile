@@ -12,7 +12,7 @@ import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedles
  */
 export const handlePasswordSubmissionError = (error: unknown) => {
   const loginError = error as Error;
-  const loginErrorMessage = loginError.toString();
+  const loginErrorMessage = loginError.message;
 
   if (error instanceof SeedlessOnboardingControllerError) {
     // Detected seedless onboarding controller error. Propogate error.
