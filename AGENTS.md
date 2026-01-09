@@ -2,8 +2,6 @@
 
 This file provides guidance to AI coding agents (Claude, Cursor, Copilot, Windsurf, etc.) when working with code in this repository.
 
-> **Note**: `CLAUDE.md` is a symlink to this file for tool compatibility.
-
 ## Project Overview
 
 MetaMask Mobile is a React Native mobile wallet providing access to Ethereum blockchain networks. The app is available for both iOS and Android platforms.
