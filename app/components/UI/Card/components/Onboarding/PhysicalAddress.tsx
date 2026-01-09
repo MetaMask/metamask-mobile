@@ -480,7 +480,7 @@ const PhysicalAddress = () => {
         // Reset the navigation stack to the verifying registration screen
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
         });
         return;
       }

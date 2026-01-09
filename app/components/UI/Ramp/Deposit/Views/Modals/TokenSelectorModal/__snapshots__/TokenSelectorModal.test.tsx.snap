@@ -436,7 +436,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -1390,7 +1390,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
@@ -2544,7 +2544,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {
