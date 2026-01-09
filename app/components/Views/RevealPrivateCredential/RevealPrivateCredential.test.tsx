@@ -169,23 +169,10 @@ jest.mock('../../../store/storage-wrapper', () => ({
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 // Simplified ScrollableTabView mock - render children and expose onChangeTab
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const { View } = jest.requireActual('react-native');
-  return ({
-    children,
-    onChangeTab,
-  }: {
-    children: React.ReactNode;
-    onChangeTab?: (event: { i: number }) => void;
-  }) => (
-    <View
-      testID="scrollable-tab-view"
-      onTouchEnd={() => onChangeTab?.({ i: 0 })}
-    >
-      {children}
-    </View>
-  );
-});
+jest.mock(
+  '@tommasini/react-native-scrollable-tab-view',
+  () => 'ScrollableTabView',
+);
 
 // Device mock - necessary since component uses Device.isIos(), Device.isAndroid(), Device.getDeviceAPILevel()
 jest.mock('../../../util/device', () => ({
