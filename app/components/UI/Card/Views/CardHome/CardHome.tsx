@@ -49,8 +49,8 @@ import {
   AllowanceState,
   CardStatus,
   CardType,
-  CardVerificationState,
-  CardWarning,
+  CardStateWarning,
+  CardWarningBoxType,
 } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
@@ -65,7 +65,6 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
-  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
@@ -123,8 +122,6 @@ const CardHome = () => {
   const hasCompletedInitialFetchRef = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
-  const hasShownKYCAlertRef = useRef(false);
-  const hasShownKYCErrorAlertRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
@@ -399,11 +396,11 @@ const CardHome = () => {
   }, [logoutFromProvider, navigation]);
 
   const needToEnableCard = useMemo(
-    () => cardDetailsWarning === CardWarning.NoCard,
+    () => cardDetailsWarning === CardStateWarning.NoCard,
     [cardDetailsWarning],
   );
   const needToEnableAssets = useMemo(
-    () => priorityTokenWarning === CardWarning.NeedDelegation,
+    () => priorityTokenWarning === CardStateWarning.NeedDelegation,
     [priorityTokenWarning],
   );
 
@@ -419,32 +416,6 @@ const CardHome = () => {
 
     return kycStatus.verificationState === 'VERIFIED';
   }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
-
-  const getKYCStatusMessage = useCallback(
-    (verificationState: CardVerificationState | null | undefined) => {
-      switch (verificationState) {
-        case 'PENDING':
-          return {
-            title: strings('card.card_home.kyc_status.pending.title'),
-            description: strings(
-              'card.card_home.kyc_status.pending.description',
-              { email: CARD_SUPPORT_EMAIL },
-            ),
-          };
-        case 'UNVERIFIED':
-          return {
-            title: strings('card.card_home.kyc_status.unverified.title'),
-            description: strings(
-              'card.card_home.kyc_status.unverified.description',
-              { email: CARD_SUPPORT_EMAIL },
-            ),
-          };
-        default:
-          return null;
-      }
-    },
-    [],
-  );
 
   const enableCardAction = useCallback(async () => {
     try {
@@ -690,105 +661,6 @@ const CardHome = () => {
     ]),
   );
 
-  // Show KYC status alert if needed
-  useEffect(() => {
-    if (
-      !isAuthenticated ||
-      !isBaanxLoginEnabled ||
-      !needToEnableCard ||
-      !kycStatus ||
-      isLoading
-    ) {
-      return;
-    }
-
-    // Prevent showing the alert multiple times
-    if (hasShownKYCAlertRef.current) {
-      return;
-    }
-
-    const verificationState = kycStatus.verificationState;
-
-    // Handle REJECTED separately with support message
-    if (verificationState === 'REJECTED') {
-      hasShownKYCAlertRef.current = true;
-      Alert.alert(
-        strings('card.card_home.kyc_status.rejected.title'),
-        strings('card.card_home.kyc_status.rejected.support_description', {
-          email: CARD_SUPPORT_EMAIL,
-        }),
-        [
-          {
-            text: strings('card.card_home.kyc_status.ok_button'),
-            style: 'default',
-          },
-        ],
-      );
-      return;
-    }
-
-    // Handle PENDING and UNVERIFIED
-    if (
-      verificationState &&
-      ['PENDING', 'UNVERIFIED'].includes(verificationState)
-    ) {
-      const message = getKYCStatusMessage(verificationState);
-      if (message) {
-        hasShownKYCAlertRef.current = true;
-        Alert.alert(message.title, message.description, [
-          {
-            text: strings('card.card_home.kyc_status.ok_button'),
-            style: 'default',
-          },
-        ]);
-      }
-    }
-  }, [
-    kycStatus,
-    isAuthenticated,
-    isBaanxLoginEnabled,
-    needToEnableCard,
-    getKYCStatusMessage,
-    isLoading,
-  ]);
-
-  // Handle KYC error separately
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      isBaanxLoginEnabled &&
-      needToEnableCard &&
-      cardError &&
-      kycStatus === null &&
-      !isLoading
-    ) {
-      // Prevent showing the error alert multiple times
-      if (hasShownKYCErrorAlertRef.current) {
-        return;
-      }
-
-      // KYC status fetch failed
-      hasShownKYCErrorAlertRef.current = true;
-      Alert.alert(
-        strings('card.card_home.kyc_status.error.title'),
-        strings('card.card_home.kyc_status.error.description'),
-        [
-          {
-            text: strings('card.card_home.kyc_status.ok_button'),
-            style: 'default',
-          },
-        ],
-      );
-    }
-  }, [
-    isAuthenticated,
-    isBaanxLoginEnabled,
-    needToEnableCard,
-    cardError,
-    kycStatus,
-    isLoading,
-  ]);
-
   /**
    * Check if the current token supports the spending limit progress bar feature.
    * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
@@ -891,7 +763,7 @@ const CardHome = () => {
     >
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
         <CardWarningBox
-          warning={CardWarning.CloseSpendingLimit}
+          warning={CardWarningBoxType.CloseSpendingLimit}
           onConfirm={() => {
             navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
               flow: 'enable',
@@ -906,6 +778,12 @@ const CardHome = () => {
           }}
         />
       )}
+      {isAuthenticated &&
+        isBaanxLoginEnabled &&
+        needToEnableCard &&
+        kycStatus?.verificationState === 'PENDING' && (
+          <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+        )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[

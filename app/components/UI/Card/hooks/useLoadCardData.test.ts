@@ -11,7 +11,7 @@ import useGetUserKYCStatus from './useGetUserKYCStatus';
 import {
   AllowanceState,
   CardTokenAllowance,
-  CardWarning,
+  CardStateWarning,
   CardDetailsResponse,
   CardStatus,
   CardType,
@@ -306,13 +306,13 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('returns warning from card details', () => {
@@ -320,7 +320,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -328,7 +328,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.Frozen);
+      expect(result.current.warning).toBe(CardStateWarning.Frozen);
     });
 
     it('returns authentication and cardholder status', () => {
@@ -614,7 +614,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -622,7 +622,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -630,7 +630,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('handles Baanx login disabled state', () => {
@@ -1256,7 +1256,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -1264,7 +1264,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.NoCard,
+        warning: CardStateWarning.NoCard,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -1272,7 +1272,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NoCard);
+      expect(result.current.warning).toBe(CardStateWarning.NoCard);
     });
   });
 });

@@ -6708,6 +6708,10 @@
         "blocked": {
           "title": "Your card is blocked",
           "description": "Please contact support to unblock your card"
+        },
+        "kyc_pending": {
+          "title": "Verification in progress",
+          "description": "Your identity verification is being reviewed. This usually takes a few minutes."
         }
       },
       "kyc_status": {

@@ -8,7 +8,7 @@ import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import useGetUserKYCStatus from './useGetUserKYCStatus';
-import { CardTokenAllowance, CardWarning } from '../types';
+import { CardTokenAllowance, CardStateWarning } from '../types';
 
 /**
  * Hook to load card data.
@@ -173,7 +173,7 @@ const useLoadCardData = () => {
   // Combined warning (only from priority token and card details)
   // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
   const warning = useMemo(() => {
-    if (cardDetailsWarning === CardWarning.NoCard) {
+    if (cardDetailsWarning === CardStateWarning.NoCard) {
       return cardDetailsWarning;
     }
     return priorityTokenWarning || cardDetailsWarning;
@@ -224,7 +224,7 @@ const useLoadCardData = () => {
           fetchKYCStatus(),
         ]);
       } else {
-        await Promise.all([fetchPriorityToken()]);
+        await fetchPriorityToken();
       }
     },
     [
