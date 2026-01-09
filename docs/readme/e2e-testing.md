@@ -42,17 +42,12 @@ Ensure that following devices are set up:
 
 **Android:**
 
-1. Open Android Studio
-2. Go to **Tools** → **AVD Manager** (Device Manager)
+1. Complete the [Android environment setup](./environment.md#android) first
+2. Open Android Studio → **Tools** → **Device Manager**
 3. Click **Create Virtual Device**
 4. Select a Pixel device (or similar)
 5. Choose API level 34
 6. **Important**: Name the emulator exactly **Pixel_5_Pro_API_34** to match our configuration
-7. Set up **Android SDK path** by adding this to your shell profile (`.bashrc`, `.zshrc`, etc.):
-
-   ```bash
-   export ANDROID_SDK_ROOT="/Users/${USER}/Library/Android/sdk"
-   ```
 
 ### Environment files
 
