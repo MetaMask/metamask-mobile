@@ -697,6 +697,12 @@ const HomeTabs = () => {
       return null;
     }
 
+    // Hide tab bar when on Explore search screen
+    const isInExploreSearch = currentStackRouteName === Routes.EXPLORE_SEARCH;
+    if (isInExploreSearch) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
