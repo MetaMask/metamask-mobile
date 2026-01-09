@@ -1,8 +1,5 @@
 // Third party dependencies.
-import {
-  BottomTabBarOptions,
-  BottomTabBarProps,
-} from '@react-navigation/bottom-tabs';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import {
   BottomTabDescriptor,
   BottomTabNavigationOptions,
@@ -42,13 +39,13 @@ export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
   };
 }
 
-type TabBarOptions = BottomTabBarOptions & {
+/**
+ * TabBar component props.
+ * In React Navigation v7, BottomTabBarProps is no longer generic.
+ * We extend it with our custom descriptors type.
+ */
+export type TabBarProps = Omit<BottomTabBarProps, 'descriptors'> & {
   descriptors: {
     [key: string]: ExtendedBottomTabDescriptor;
   };
 };
-
-/**
- * TabBar component props.
- */
-export type TabBarProps = BottomTabBarProps<TabBarOptions>;

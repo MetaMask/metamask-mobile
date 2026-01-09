@@ -45,7 +45,7 @@ const OrderProcessing = () => {
     ) {
       navigation.navigate(Routes.DEPOSIT.BUILD_QUOTE);
     } else {
-      navigation.navigate(Routes.WALLET.HOME);
+      navigation.navigate(Routes.ONBOARDING.HOME_NAV);
     }
   }, [order?.state, navigation]);
 
@@ -70,7 +70,7 @@ const OrderProcessing = () => {
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
-      navigation.navigate(Routes.WALLET.HOME);
+      navigation.navigate(Routes.ONBOARDING.HOME_NAV);
     }
   }, [order?.state, navigation, orderId]);
 

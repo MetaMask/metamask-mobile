@@ -142,7 +142,7 @@ NotificationsSettings.navigationOptions = ({
       iconName={IconName.ArrowLeft}
       onPress={() =>
         !isNotificationEnabled
-          ? navigation.navigate(Routes.WALLET.HOME)
+          ? navigation.navigate(Routes.ONBOARDING.HOME_NAV)
           : navigation.goBack()
       }
       style={navigationOptionsStyles.headerLeft}

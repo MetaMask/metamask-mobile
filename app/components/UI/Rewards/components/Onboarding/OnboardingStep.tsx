@@ -73,7 +73,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
 
   const onClose = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV);
   }, [dispatch, navigation]);
 
   // Create PanResponder for swipe gestures

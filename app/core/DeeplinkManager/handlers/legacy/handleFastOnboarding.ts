@@ -18,7 +18,8 @@ function handleFastOnboarding(params: { onboardingPath: string }): boolean {
   const isExistingUser = ReduxService.store.getState().user.existingUser;
 
   if (isExistingUser) {
-    navigation.navigate(Routes.WALLET.HOME);
+    // Navigate to HomeNav (Main) which contains WalletTabHome
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV);
   } else {
     const resetRoute = {
       routes: [

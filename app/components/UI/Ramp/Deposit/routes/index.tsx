@@ -49,7 +49,7 @@ const clearStackNavigatorOptions = {
   cardStyle: {
     backgroundColor: 'transparent',
   },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
 const RootStack = createStackNavigator();
@@ -62,11 +62,11 @@ const getAnimationOptions = ({
   route: RouteProp<DepositParamList, string>;
 }): StackNavigationOptions => {
   const params = route.params;
-  const animationEnabled =
+  const shouldAnimate =
     params && 'animationEnabled' in params
       ? params.animationEnabled !== false
       : true;
-  return { animationEnabled };
+  return { animation: shouldAnimate ? 'default' : 'none' };
 };
 
 interface MainRoutesProps {
@@ -77,12 +77,12 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} screenOptions={{ headerShown: true }}>
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
         initialParams={parentParams}
-        options={{ animationEnabled: false }}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.BUILD_QUOTE}
@@ -140,8 +140,7 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
@@ -198,7 +197,7 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
       <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
       <RootStack.Screen

@@ -52,7 +52,7 @@ import TransactionReviewDetailsCard from '../TransactionReview/TransactionReview
 import AppConstants from '../../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../../constants/transaction';
 import { getBlockaidTransactionMetricsParams } from '../../../../../../util/blockaid';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,
@@ -1382,13 +1382,21 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
-export default connect(
+const ConnectedApproveTransactionReview = connect(
   mapStateToProps,
   mapDispatchToProps,
 )(
   withRampNavigation(
-    withNavigation(
-      withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
-    ),
+    withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
   ),
 );
+
+// Wrapper to inject navigation via hook (replaces withNavigation HOC)
+const ApproveTransactionReviewWithNavigation = (props) => {
+  const navigation = useNavigation();
+  return (
+    <ConnectedApproveTransactionReview {...props} navigation={navigation} />
+  );
+};
+
+export default ApproveTransactionReviewWithNavigation;

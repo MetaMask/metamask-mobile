@@ -34,7 +34,7 @@ interface TestDescriptors {
 jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
 
 // Mock the navigation object with proper typing
-const navigation: NavigationHelpers<ParamListBase> = {
+const navigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   reset: jest.fn(),
@@ -42,9 +42,21 @@ const navigation: NavigationHelpers<ParamListBase> = {
   dispatch: jest.fn(),
   isFocused: jest.fn(),
   canGoBack: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
   emit: jest.fn(),
+  getId: jest.fn(),
+  setOptions: jest.fn(),
+  addListener: jest.fn(),
+  removeListener: jest.fn(),
+} as unknown as NavigationHelpers<ParamListBase>;
+
+// Mock insets for SafeAreaView
+const mockInsets = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
 };
 
 const mockInitialState = {
@@ -118,6 +130,7 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
         navigation={navigation}
+        insets={mockInsets}
       />,
       { state: mockInitialState },
     );
@@ -130,6 +143,7 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
         navigation={navigation}
+        insets={mockInsets}
       />,
       { state: mockInitialState },
     );
@@ -186,6 +200,7 @@ describe('TabBar', () => {
           rewardsDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={mockInsets}
       />,
       { state: mockInitialState },
     );
@@ -217,6 +232,7 @@ describe('TabBar', () => {
           trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={mockInsets}
       />,
       { state: mockInitialState },
     );
@@ -248,6 +264,7 @@ describe('TabBar', () => {
           trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
         }
         navigation={navigation}
+        insets={mockInsets}
       />,
       { state: mockInitialState },
     );

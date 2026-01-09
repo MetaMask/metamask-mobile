@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,7 +85,7 @@ const PerpsGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME);
+    navigate(Routes.ONBOARDING.HOME_NAV);
   };
 
   const tryPerpsNow = async () => {
@@ -101,9 +102,13 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.PERPS.TUTORIAL, {
-      isFromGTMModal: true,
-    });
+    // Use CommonActions to navigate from modal context
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({
+        name: Routes.PERPS.TUTORIAL,
+        params: { isFromGTMModal: true },
+      }),
+    );
   };
 
   return (

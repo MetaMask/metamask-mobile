@@ -2,12 +2,12 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withNavigation } from '@react-navigation/compat';
 import {
   selectChainId,
   selectProviderConfig,
@@ -180,6 +180,14 @@ const mapStateToProps = (state) => ({
   selectedNetworkName: selectNetworkName(state),
 });
 
-export default withNavigation(
-  connect(mapStateToProps)(withMetricsAwareness(NavbarTitle)),
+const ConnectedNavbarTitle = connect(mapStateToProps)(
+  withMetricsAwareness(NavbarTitle),
 );
+
+// Wrapper to inject navigation via hook (replaces withNavigation HOC)
+const NavbarTitleWithNavigation = (props) => {
+  const navigation = useNavigation();
+  return <ConnectedNavbarTitle {...props} navigation={navigation} />;
+};
+
+export default NavbarTitleWithNavigation;

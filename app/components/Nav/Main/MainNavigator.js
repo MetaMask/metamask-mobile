@@ -156,15 +156,15 @@ const clearStackNavigatorOptions = {
       },
     }),
   },
-  animationEnabled: false,
+  animation: 'none',
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
-      options={{ headerShown: true, animationEnabled: false }}
+      options={{ headerShown: true, animation: 'none' }}
     />
   </Stack.Navigator>
 );
@@ -223,7 +223,7 @@ const WalletTabStackFlow = () => (
 );
 
 const WalletTabModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
     <Stack.Screen
       name={Routes.WALLET.TAB_STACK_FLOW}
       component={WalletTabStackFlow}
@@ -259,7 +259,7 @@ const TransactionsHome = () => (
 );
 
 const RewardsHome = () => (
-  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
@@ -285,9 +285,9 @@ const RewardsHome = () => (
 const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
-    mode={'modal'}
     screenOptions={{
       cardStyle: { backgroundColor: importedColors.transparent },
+      presentation: 'modal',
     }}
   >
     <Stack.Screen
@@ -298,7 +298,7 @@ const BrowserFlow = (props) => (
     <Stack.Screen
       name={Routes.BROWSER.ASSET_LOADER}
       component={AssetLoader}
-      options={{ headerShown: false, animationEnabled: false }}
+      options={{ headerShown: false, animation: 'none' }}
     />
     <Stack.Screen
       name={Routes.BROWSER.ASSET_VIEW}
@@ -309,7 +309,7 @@ const BrowserFlow = (props) => (
 );
 
 const ExploreHome = () => (
-  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
+  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} screenOptions={{ presentation: 'modal' }}>
     <Stack.Screen
       name={Routes.TRENDING_FEED}
       component={ExploreFeed}
@@ -320,7 +320,7 @@ const ExploreHome = () => (
       component={ExploreSearchScreen}
       options={{
         headerShown: false,
-        animationEnabled: true,
+        animation: 'default',
         cardStyleInterpolator: ({ current, layouts }) => ({
           cardStyle: {
             transform: [
@@ -340,7 +340,7 @@ const ExploreHome = () => (
       component={SitesFullView}
       options={{
         headerShown: false,
-        animationEnabled: true,
+        animation: 'default',
         cardStyleInterpolator: ({ current, layouts }) => ({
           cardStyle: {
             transform: [
@@ -385,7 +385,6 @@ const SnapsSettingsStack = () => (
 const NotificationsOptInStack = () => (
   <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
     <Stack.Screen
-      mode={'modal'}
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={{ headerShown: false }}
@@ -764,11 +763,10 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
     <Stack.Screen
       name="SimpleWebview"
       component={SimpleWebview}
-      mode={'modal'}
     />
   </Stack.Navigator>
 );
@@ -810,7 +808,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator headerMode="screen">
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
     <Stack.Screen
       name="SendTo"
       component={SendTo}
@@ -882,7 +880,6 @@ const NotificationsModeView = (props) => (
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
-      mode={'modal'}
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
@@ -966,8 +963,8 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        presentation: 'modal',
       }}
-      mode={'modal'}
       initialRouteName={'Home'}
     >
       <Stack.Screen
@@ -1025,7 +1022,7 @@ const MainNavigator = () => {
         component={SettingsFlow}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1044,7 +1041,7 @@ const MainNavigator = () => {
         name="Asset"
         component={AssetNavigator}
         options={{
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1063,7 +1060,7 @@ const MainNavigator = () => {
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
         options={{
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1104,7 +1101,7 @@ const MainNavigator = () => {
         name="NftDetails"
         component={NftDetailsModeView}
         options={{
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1123,7 +1120,7 @@ const MainNavigator = () => {
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
         options={{
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1166,7 +1163,7 @@ const MainNavigator = () => {
         component={StakeScreenStack}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [
@@ -1198,7 +1195,7 @@ const MainNavigator = () => {
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
-              animationEnabled: true,
+              animation: 'default',
               cardStyleInterpolator: ({ current, layouts }) => ({
                 cardStyle: {
                   transform: [
@@ -1261,7 +1258,7 @@ const MainNavigator = () => {
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
             options={{
-              animationEnabled: true,
+              animation: 'default',
               cardStyleInterpolator: ({ current, layouts }) => ({
                 cardStyle: {
                   transform: [
@@ -1329,7 +1326,7 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{
           headerShown: true,
-          animationEnabled: true,
+          animation: 'default',
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
               transform: [

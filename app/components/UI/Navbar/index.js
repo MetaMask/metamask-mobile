@@ -587,7 +587,7 @@ export function getSendFlowTitle({
         .build(),
     );
     resetTransaction();
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
   const leftAction = () => navigation.pop();
 
@@ -1449,7 +1449,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1494,7 +1494,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1623,7 +1623,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1703,7 +1703,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
 
   return {
@@ -1787,7 +1787,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Icon name={IconName.Close} size={IconSize.Lg} />
@@ -1956,7 +1956,7 @@ export function getDepositNavbarOptions(
             iconName={IconName.Close}
             size={ButtonIconSize.Lg}
             onPress={() => {
-              navigation.dangerouslyGetParent()?.pop();
+              navigation.getParent()?.pop();
               onClose?.();
             }}
             testID="deposit-close-navbar-button"

@@ -25,7 +25,7 @@ const ValidatingKYC = () => {
     useUserRegistrationStatus();
 
   const handleClose = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV);
   }, [navigation]);
 
   useEffect(() => {

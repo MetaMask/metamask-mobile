@@ -70,7 +70,7 @@ const PredictGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME);
+    navigate(Routes.ONBOARDING.HOME_NAV);
   };
 
   const handleGetStarted = async () => {
@@ -88,7 +88,7 @@ const PredictGTMModal = () => {
       emitEvent: false,
     });
 
-    navigate(Routes.WALLET.HOME);
+    navigate(Routes.ONBOARDING.HOME_NAV);
 
     navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,

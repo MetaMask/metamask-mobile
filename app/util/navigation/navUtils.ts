@@ -1,11 +1,26 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { useMemo } from 'react';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+  useNavigation as useNavigationNative,
+  useRoute,
+} from '@react-navigation/native';
 
 type NavigationParams = object | undefined;
 
 export type NavigationDetails<T extends NavigationParams = NavigationParams> =
   readonly [string, T];
+
+/**
+ * Custom useNavigation hook that returns a properly typed navigation object.
+ * This is needed for React Navigation v7 where useNavigation() requires
+ * explicit type parameters for navigate() to work.
+ */
+export const useNavigation = <
+  T extends ParamListBase = ParamListBase,
+>(): NavigationProp<T> => useNavigationNative<NavigationProp<T>>();
 
 export const createNavigationDetails =
   <T extends NavigationParams>(name: string, screen?: string) =>

@@ -8,5 +8,6 @@ export function navigateToHomeUrl(params: { homePath?: string }) {
     homePath?.includes('?') ? homePath.split('?')[1] : '',
   );
   setContentPreviewToken(urlParams.get('previewToken'));
-  NavigationService.navigation.navigate(Routes.WALLET.HOME);
+  // Navigate to HomeNav (Main) which contains WalletTabHome
+  NavigationService.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
 }

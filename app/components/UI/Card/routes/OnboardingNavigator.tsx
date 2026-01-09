@@ -53,7 +53,7 @@ export const PostEmailNavigationOptions = ({
         },
         {
           text: strings('card.card_onboarding.exit_confirmation.exit_button'),
-          onPress: () => navigation.navigate(Routes.WALLET.HOME),
+          onPress: () => navigation.navigate(Routes.ONBOARDING.HOME_NAV),
           style: 'destructive',
         },
       ],
@@ -91,7 +91,7 @@ export const KYCStatusNavigationOptions = ({
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
       testID="exit-onboarding-button"
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      onPress={() => navigation.navigate(Routes.ONBOARDING.HOME_NAV)}
     />
   ),
   gestureEnabled: false,

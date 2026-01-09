@@ -5,7 +5,7 @@ import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import overwriteRPCWith from './handleRpcOverwrite';
-import { NavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainerRef, CommonActions } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
@@ -115,7 +115,12 @@ export const handleCustomRpcCalls = async ({
       DevLogger.log(
         `[handleCustomRpcCalls] targetToken=${targetToken} amount=${targetAmount}`,
       );
-      navigation?.navigate(Routes.BRIDGE.ROOT);
+      // Use CommonActions to navigate to Bridge from any context
+      navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.BRIDGE.ROOT,
+        }),
+      );
     } else {
       navigation?.navigate(...createBuyNavigationDetails());
     }

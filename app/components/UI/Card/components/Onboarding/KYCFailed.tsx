@@ -38,7 +38,7 @@ const KYCFailed = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleClose = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV);
   }, [navigation]);
 
   const renderFormFields = () => (

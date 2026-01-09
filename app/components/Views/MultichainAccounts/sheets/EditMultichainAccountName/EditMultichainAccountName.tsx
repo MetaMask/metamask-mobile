@@ -101,7 +101,7 @@ export const EditMultichainAccountName = () => {
 
   const handleOnClose = useCallback(() => {
     // Close the entire modal stack by going back to the parent
-    navigation.dangerouslyGetParent()?.goBack();
+    navigation.getParent()?.goBack();
   }, [navigation]);
 
   const saveButtonProps: ButtonProps = {

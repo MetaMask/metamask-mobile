@@ -9,8 +9,8 @@ import {
   getEtherscanBaseUrl,
 } from '../../util/etherscan';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../locales/i18n';
+import { useNavigation } from '../../util/navigation/navUtils';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,

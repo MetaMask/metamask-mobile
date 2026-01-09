@@ -1,4 +1,5 @@
 import { isCaipChainId } from '@metamask/utils';
+import { CommonActions } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
@@ -79,10 +80,16 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
       bridgeViewMode: BridgeViewMode.Unified,
     };
 
-    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    // Use CommonActions to navigate to Bridge from any context
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({
+        name: Routes.BRIDGE.ROOT,
+        params: {
+          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          params,
+        },
+      }),
+    );
 
     return;
   }

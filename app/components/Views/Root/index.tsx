@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { store, persistor } from '../../../store';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -78,16 +79,18 @@ const Root = ({ foxCode }: RootProps) => {
           }
           <FeatureFlagOverrideProvider>
             <ThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </GestureHandlerRootView>
             </ThemeProvider>
           </FeatureFlagOverrideProvider>
         </PersistGate>

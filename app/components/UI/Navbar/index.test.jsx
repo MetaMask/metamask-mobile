@@ -914,7 +914,7 @@ describe('getSettingsNavigationOptions', () => {
 
 describe('getBridgeNavbar', () => {
   const mockNavigation = {
-    dangerouslyGetParent: jest.fn(() => ({
+    getParent: jest.fn(() => ({
       pop: jest.fn(),
     })),
   };
@@ -1006,7 +1006,7 @@ describe('getBridgeNavbar', () => {
   describe('getSendFlowTitle', () => {
     const mockNavigation = {
       pop: jest.fn(),
-      dangerouslyGetParent: jest.fn(() => ({
+      getParent: jest.fn(() => ({
         pop: jest.fn(),
       })),
     };
@@ -1173,7 +1173,7 @@ describe('getBridgeNavbar', () => {
       fireEvent.press(cancelButton);
 
       expect(mockResetTransaction).toHaveBeenCalled();
-      expect(mockNavigation.dangerouslyGetParent).toHaveBeenCalled();
+      expect(mockNavigation.getParent).toHaveBeenCalled();
     });
 
     it('should render Back button when not on send_to screen', () => {

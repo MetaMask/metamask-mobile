@@ -14,8 +14,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Text, { TextColor, TextVariant } from '../../Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '../../../../util/navigation/navUtils';
 import {
   MetaMetricsEvents,
   useMetrics,

@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
-      dangerouslyGetParent: mockDangerouslyGetParent,
+      getParent: mockDangerouslyGetParent,
     }),
   };
 });

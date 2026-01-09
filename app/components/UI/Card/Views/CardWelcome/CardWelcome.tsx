@@ -42,7 +42,7 @@ const CardWelcome = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleClose = useCallback(() => {
-    navigate(Routes.WALLET.HOME);
+    navigate(Routes.ONBOARDING.HOME_NAV);
   }, [navigate]);
 
   const handleButtonPress = useCallback(() => {

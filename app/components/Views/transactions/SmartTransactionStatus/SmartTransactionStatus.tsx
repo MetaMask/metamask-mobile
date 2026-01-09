@@ -15,7 +15,7 @@ import {
 } from '@metamask/smart-transactions-controller';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -299,7 +299,12 @@ const SmartTransactionStatus = ({
 
   const createNewSwap = () => {
     onConfirm();
-    navigation.navigate(Routes.BRIDGE.ROOT);
+    // Use CommonActions to navigate to Bridge from any context
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: Routes.BRIDGE.ROOT,
+      }),
+    );
   };
 
   const createNewSend = () => {

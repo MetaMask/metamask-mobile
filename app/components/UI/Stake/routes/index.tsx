@@ -22,7 +22,7 @@ const clearStackNavigatorOptions = {
   cardStyle: {
     backgroundColor: 'transparent',
   },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
 // Regular Stack for Screens
@@ -31,7 +31,7 @@ const StakeScreenStack = () => {
 
   return (
     <StakeSDKProvider>
-      <Stack.Navigator headerMode="screen">
+      <Stack.Navigator screenOptions={{ headerShown: true }}>
         <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}
@@ -64,8 +64,7 @@ const StakeScreenStack = () => {
 const StakeModalStack = () => (
   <StakeSDKProvider>
     <ModalStack.Navigator
-      mode={'modal'}
-      screenOptions={clearStackNavigatorOptions}
+      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
     >
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}

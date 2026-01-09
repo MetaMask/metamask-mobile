@@ -1,3 +1,4 @@
+import { CommonActions } from '@react-navigation/native';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsMarketData } from '../../../../components/UI/Perps/controllers/types';
@@ -98,7 +99,8 @@ const handleTabsNavigation = (tab?: string) => {
   DevLogger.log(
     '[handlePerpsUrl] Navigating to wallet home with perps tab selected',
   );
-  NavigationService.navigation.navigate(Routes.WALLET.HOME);
+  // Navigate to HomeNav (Main) which contains WalletTabHome
+  NavigationService.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
 
   // The timeout is REQUIRED - React Navigation needs time to:
   // 1. Complete the navigation transition
@@ -157,9 +159,12 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       DevLogger.log(
         '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
       );
-      NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
-      });
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.PERPS.TUTORIAL,
+          params: { isFromDeeplink: true },
+        }),
+      );
       return;
     }
 
