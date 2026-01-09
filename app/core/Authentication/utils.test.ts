@@ -10,14 +10,14 @@ import {
 
 // TODO: Organize this by where errors are derived from. Ex: Seedless onboarding related errors vs Keyring related errors.
 describe('handlePasswordSubmissionError', () => {
-  it('should throw error if seedless onboarding controller error is detected', () => {
+  it('throw error if seedless onboarding controller error is detected', () => {
     const error = new SeedlessOnboardingControllerError(
       SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
     );
     expect(() => handlePasswordSubmissionError(error)).toThrow(error);
   });
 
-  it('should throw error if wrong password error is detected', () => {
+  it('throw error if wrong password error is detected', () => {
     const error = new Error(PasswordSubmissionErrorType.WRONG_PASSWORD_ERROR);
     const expectedThrownError = new Error(
       `${UnlockErrorType.INVALID_PASSWORD}: ${error.message}`,
@@ -27,7 +27,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('should throw error if passcode not set error is detected', () => {
+  it('throw error if passcode not set error is detected', () => {
     const error = new Error(PasswordSubmissionErrorType.PASSCODE_NOT_SET_ERROR);
     const expectedThrownError = new Error(
       `${UnlockErrorType.PASSWORD_NOT_SET}: ${error.message}`,
@@ -37,7 +37,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('should throw error if deny pin error is detected', () => {
+  it('throw error if deny pin error is detected', () => {
     const error = new Error(PasswordSubmissionErrorType.DENY_PIN_ERROR_ANDROID);
     const expectedThrownError = new Error(
       `${UnlockErrorType.ANDROID_PIN_DENIED}: ${error.message}`,
@@ -47,7 +47,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('should throw error if vault corruption error is detected', () => {
+  it('throw error if vault corruption error is detected', () => {
     const error = new Error(PasswordSubmissionErrorType.VAULT_ERROR);
     const expectedThrownError = new Error(
       `${UnlockErrorType.VAULT_CORRUPTION}: ${error.message}`,
@@ -57,7 +57,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('should throw error if other password submission errors are detected', () => {
+  it('throw error if other password submission errors are detected', () => {
     const error = new Error('Unrecognized error!');
     const expectedThrownError = new Error(
       `${UnlockErrorType.UNRECOGNIZED_ERROR}: ${error.message}`,
@@ -69,17 +69,17 @@ describe('handlePasswordSubmissionError', () => {
 });
 
 describe('checkPasswordRequirement', () => {
-  it('should return true if password equals the minimum length requirement', () => {
+  it('return true if password equals the minimum length requirement', () => {
     const password = 'password';
     expect(checkPasswordRequirement(password)).toBe(true);
   });
 
-  it('should return true if password exceeds the minimum length requirement', () => {
+  it('return true if password exceeds the minimum length requirement', () => {
     const password = 'password';
     expect(checkPasswordRequirement(password)).toBe(true);
   });
 
-  it('should return false if password does not meet the minimum length requirement', () => {
+  it('return false if password does not meet the minimum length requirement', () => {
     const password = 'passwor';
     expect(checkPasswordRequirement(password)).toBe(false);
   });
