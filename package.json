@@ -260,7 +260,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^2.0.0",
     "@metamask/profile-sync-controller": "^27.0.0",
-    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@patch%3A@metamask/ramps-controller@npm%253A2.1.0%23~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch%3A%3Aversion=2.1.0&hash=b57661#~/.yarn/patches/@metamask-ramps-controller-patch-b26c8e57ce.patch",
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A2.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-2.1.0-55fa0b55a2.patch",
     "@metamask/react-native-acm": "^1.0.1",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
