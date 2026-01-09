@@ -1,4 +1,4 @@
-import { SmokeWalletUX } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -9,7 +9,7 @@ import TrendingView from '../../pages/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
 
-describe(SmokeWalletUX('Trending Search Smoke Test'), () => {
+describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     // Enable the trending feature flag
     await setupRemoteFeatureFlagsMock(mockServer, {
