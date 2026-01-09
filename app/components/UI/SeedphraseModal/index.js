@@ -71,7 +71,6 @@ const SeedphraseModal = () => {
         <HeaderCenter
           title={strings('account_backup_step_1.what_is_seedphrase_title')}
           onClose={hideWhatIsSeedphrase}
-          styl={{ backgroundColor: 'red' }}
         />
         <View style={styles.contentContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

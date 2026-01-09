@@ -24,6 +24,12 @@ const createStyles = (colors: Colors) =>
     buttonWrapper: {
       marginTop: 24,
     },
+    keyboardStickyView: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
   });
 
 export { createStyles };
