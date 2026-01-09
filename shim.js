@@ -18,6 +18,163 @@ import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection
 
 import './shimPerf';
 
+// E2E Animation Bypass - Disable all animations to prevent Detox synchronization hangs
+// This MUST run early before any components import animation libraries
+if (isE2E) {
+  // eslint-disable-next-line no-console
+  console.log('[E2E SHIM] Disabling animations for E2E testing...');
+
+  // 1. Disable React Native Animated API - makes all animations instant
+  const {
+    Animated,
+    LayoutAnimation,
+    UIManager,
+    Platform,
+  } = require('react-native');
+
+  // Make timing animations instant
+  Animated.timing = (value, config) => ({
+    start: (callback) => {
+      value.setValue(config.toValue);
+      callback?.({ finished: true });
+    },
+    stop: () => undefined,
+    reset: () => undefined,
+  });
+
+  // Make spring animations instant
+  Animated.spring = (value, config) => ({
+    start: (callback) => {
+      value.setValue(config.toValue);
+      callback?.({ finished: true });
+    },
+    stop: () => undefined,
+    reset: () => undefined,
+  });
+
+  // Make decay animations instant (decay to current value)
+  Animated.decay = (_value, _config) => ({
+    start: (callback) => {
+      callback?.({ finished: true });
+    },
+    stop: () => undefined,
+    reset: () => undefined,
+  });
+
+  // Make sequence run all animations instantly
+  Animated.sequence = (animations) => ({
+    start: (callback) => {
+      animations.forEach((anim) => anim.start?.());
+      callback?.({ finished: true });
+    },
+    stop: () => animations.forEach((anim) => anim.stop?.()),
+    reset: () => animations.forEach((anim) => anim.reset?.()),
+  });
+
+  // Make parallel run all animations instantly
+  Animated.parallel = (animations, _config) => ({
+    start: (callback) => {
+      animations.forEach((anim) => anim.start?.());
+      callback?.({ finished: true });
+    },
+    stop: () => animations.forEach((anim) => anim.stop?.()),
+    reset: () => animations.forEach((anim) => anim.reset?.()),
+  });
+
+  // Disable looping animations entirely (major source of Detox hangs)
+  Animated.loop = (animation, _config) => ({
+    start: (callback) => {
+      animation.start?.();
+      callback?.({ finished: true });
+    },
+    stop: () => animation.stop?.(),
+    reset: () => animation.reset?.(),
+  });
+
+  // 2. Disable LayoutAnimation completely
+  LayoutAnimation.configureNext = () => null;
+  LayoutAnimation.create = () => ({});
+  LayoutAnimation.easeInEaseOut = () => null;
+  LayoutAnimation.linear = () => null;
+  LayoutAnimation.spring = () => null;
+
+  // 3. Disable UIManager layout animations on Android
+  if (Platform.OS === 'android') {
+    UIManager.setLayoutAnimationEnabledExperimental?.(false);
+  }
+
+  // eslint-disable-next-line no-console
+  console.log('[E2E SHIM] React Native animations disabled');
+
+  // 4. Configure React Native Reanimated for E2E testing
+  // Reanimated runs on UI thread, so we configure it to use reduced motion
+  try {
+    const Reanimated = require('react-native-reanimated');
+
+    // Configure Reanimated to use reduced motion (instant animations)
+    if (Reanimated.ReduceMotion) {
+      // Set global reduced motion preference
+      Reanimated.ReduceMotion.System = Reanimated.ReduceMotion.Always;
+    }
+
+    // Override withTiming to make animations instant
+    if (Reanimated.withTiming) {
+      const originalWithTiming = Reanimated.withTiming;
+      // eslint-disable-next-line arrow-body-style
+      Reanimated.withTiming = (toValue, config, callback) => {
+        // Use 0 duration for instant completion
+        return originalWithTiming(
+          toValue,
+          { ...config, duration: 0 },
+          callback,
+        );
+      };
+    }
+
+    // Override withSpring to make animations instant
+    if (Reanimated.withSpring) {
+      const originalWithSpring = Reanimated.withSpring;
+      Reanimated.withSpring = (toValue, config, callback) => {
+        // Use withTiming with 0 duration instead of spring physics
+        if (Reanimated.withTiming) {
+          return Reanimated.withTiming(toValue, { duration: 0 }, callback);
+        }
+        return originalWithSpring(toValue, config, callback);
+      };
+    }
+
+    // Override withDecay to complete instantly
+    if (Reanimated.withDecay) {
+      Reanimated.withDecay = (config, callback) => {
+        callback?.({ finished: true, current: config?.velocity ?? 0 });
+        return config?.velocity ?? 0;
+      };
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('[E2E SHIM] React Native Reanimated configured for E2E');
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[E2E SHIM] Reanimated not available or already configured:',
+      e.message,
+    );
+  }
+
+  // 5. Disable react-native-animatable if present
+  try {
+    const Animatable = require('react-native-animatable');
+    if (Animatable.initializeRegistryWithDefinitions) {
+      // Override with empty animations
+      Animatable.initializeRegistryWithDefinitions({});
+    }
+    // eslint-disable-next-line no-console
+    console.log('[E2E SHIM] react-native-animatable configured for E2E');
+  } catch (e) {
+    // Module not available, that's fine
+  }
+}
+
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
 

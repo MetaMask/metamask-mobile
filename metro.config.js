@@ -113,6 +113,16 @@ module.exports = function (baseConfig) {
                   ),
                 };
               }
+              // Mock Lottie animations to prevent Detox sync hangs from looping animations
+              if (moduleName === 'lottie-react-native') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'e2e/module-mocking/lottie/react-native.tsx',
+                  ),
+                };
+              }
               return context.resolveRequest(context, moduleName, platform);
             }
           : defaultConfig.resolver.resolveRequest,
