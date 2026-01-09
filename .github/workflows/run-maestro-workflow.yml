@@ -103,12 +103,41 @@ jobs:
           echo "✅ Java version:"
           java -version
 
+      - name: Start Android Emulator
+        run: |
+          echo "🚀 Starting Android emulator..."
+          # List available AVDs
+          echo "Available AVDs:"
+          "$ANDROID_SDK_ROOT"/emulator/emulator -list-avds
+          
+          # Start emulator in background with no-window for CI
+          nohup "$ANDROID_SDK_ROOT"/emulator/emulator -avd emulator -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+          
+          echo "✅ Emulator starting in background..."
+
       - name: Wait for emulator to be ready
         run: |
           echo "⏳ Waiting for emulator to boot..."
-          # shellcheck disable=SC2016 # Single quotes intentional - command runs on device, not host
-          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
-          echo "✅ Emulator ready"
+          # Wait for device to come online
+          adb wait-for-device
+          
+          # Wait for boot to complete (with timeout)
+          TIMEOUT=300
+          ELAPSED=0
+          echo "Waiting for sys.boot_completed..."
+          while [ -z "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" ]; do
+            if [ $ELAPSED -ge $TIMEOUT ]; then
+              echo "❌ Emulator boot timed out after ${TIMEOUT}s"
+              adb devices
+              exit 1
+            fi
+            sleep 5
+            ELAPSED=$((ELAPSED + 5))
+            echo "  Still waiting... ${ELAPSED}s"
+          done
+          
+          echo "✅ Emulator ready after ${ELAPSED}s"
+          adb devices
 
       - name: Install APK on emulator
         run: |
