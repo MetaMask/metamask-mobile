@@ -127,7 +127,7 @@ describe('TrendingView', () => {
   const createMockSelectorImplementation =
     (
       overrides: {
-        browserTabs?: Array<{ id: number; url: string }>;
+        browserTabs?: { id: number; url: string }[];
         multichainEnabled?: boolean;
         basicFunctionalityEnabled?: boolean;
       } = {},
