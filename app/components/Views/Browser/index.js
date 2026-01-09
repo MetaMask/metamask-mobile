@@ -338,10 +338,33 @@ export const Browser = (props) => {
     setShouldShowTabs(true);
   }, [tabs, activeTabId, takeScreenshot]);
 
+  const navigateBackFromBrowser = useCallback(() => {
+    const fromPerps = route.params?.fromPerps;
+    const fromTrending = route.params?.fromTrending;
+
+    if (fromPerps) {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
+    } else if (fromTrending) {
+      navigation.navigate(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+      });
+    } else {
+      // Default: go back to Trending/Explore
+      navigation.navigate(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+      });
+    }
+  }, [navigation, route.params?.fromPerps, route.params?.fromTrending]);
+
   const closeAllTabs = () => {
     if (tabs.length) {
       triggerCloseAllTabs();
       setCurrentUrl(null);
+      setShouldShowTabs(false);
+      // Navigate back to the originating screen after closing all tabs
+      navigateBackFromBrowser();
     }
   };
 
@@ -372,6 +395,9 @@ export const Browser = (props) => {
   const closeTabsView = () => {
     if (tabs.length) {
       setShouldShowTabs(false);
+    } else {
+      // No tabs left, navigate back to the originating screen
+      navigateBackFromBrowser();
     }
   };
 
