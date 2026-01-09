@@ -77,14 +77,6 @@ interface FeedTab {
   label: string;
 }
 
-const TABS: FeedTab[] = [
-  { key: 'trending', label: strings('predict.category.trending') },
-  { key: 'new', label: strings('predict.category.new') },
-  { key: 'sports', label: strings('predict.category.sports') },
-  { key: 'crypto', label: strings('predict.category.crypto') },
-  { key: 'politics', label: strings('predict.category.politics') },
-];
-
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
   ref?: React.Ref<PredictFlashListRef>;
@@ -448,6 +440,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 };
 
 interface PredictFeedTabsProps {
+  tabs: FeedTab[];
   activeIndex: number;
   onPageChange: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
@@ -457,6 +450,7 @@ interface PredictFeedTabsProps {
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
+  tabs,
   activeIndex,
   onPageChange,
   scrollHandler,
@@ -486,7 +480,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       onPageSelected={handlePageSelected}
       testID="predict-feed-pager"
     >
-      {TABS.map((tab, index) => (
+      {tabs.map((tab, index) => (
         <View
           key={tab.key}
           style={tw.style('flex-1')}
@@ -637,6 +631,19 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
+  // This can't be a constant at the top of the file because it would not
+  // react to locale changes in the app.
+  const tabs: FeedTab[] = useMemo(
+    () => [
+      { key: 'trending', label: strings('predict.category.trending') },
+      { key: 'new', label: strings('predict.category.new') },
+      { key: 'sports', label: strings('predict.category.sports') },
+      { key: 'crypto', label: strings('predict.category.crypto') },
+      { key: 'politics', label: strings('predict.category.politics') },
+    ],
+    [],
+  );
+
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -689,23 +696,19 @@ const PredictFeed: React.FC = () => {
   const handleTabPress = useCallback(
     (index: number) => {
       setActiveIndex(index);
-      const category = TABS[index]?.key;
-      if (category) {
-        sessionManager.trackTabChange(category);
-      }
     },
-    [setActiveIndex, sessionManager],
+    [setActiveIndex],
   );
 
   const handlePageChange = useCallback(
     (index: number) => {
       setActiveIndex(index);
-      const category = TABS[index]?.key;
+      const category = tabs[index]?.key;
       if (category) {
         sessionManager.trackTabChange(category);
       }
     },
-    [setActiveIndex, sessionManager],
+    [setActiveIndex, sessionManager, tabs],
   );
 
   return (
@@ -729,13 +732,14 @@ const PredictFeed: React.FC = () => {
           headerHeight={headerHeight}
           headerRef={headerRef}
           tabBarRef={tabBarRef}
-          tabs={TABS}
+          tabs={tabs}
           activeIndex={activeIndex}
           onTabPress={handleTabPress}
         />
 
         {layoutReady && (
           <PredictFeedTabs
+            tabs={tabs}
             activeIndex={activeIndex}
             onPageChange={handlePageChange}
             scrollHandler={scrollHandler}

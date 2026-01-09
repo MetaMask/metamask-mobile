@@ -296,7 +296,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('tab-sports'));
 
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('sports');
+      expect(mockSessionManager.trackTabChange).not.toHaveBeenCalled();
     });
   });
 
