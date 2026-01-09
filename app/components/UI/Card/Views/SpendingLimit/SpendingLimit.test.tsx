@@ -7,6 +7,8 @@ const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
 const mockDispatch = jest.fn();
 const mockUseFocusEffect = jest.fn();
+const mockNavigationDispatch = jest.fn();
+const mockFetchSpendingLimitData = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -15,9 +17,19 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     addListener: mockAddListener,
     setParams: mockSetParams,
+    dispatch: mockNavigationDispatch,
   }),
   useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
+  StackActions: {
+    replace: jest.fn((routeName, params) => ({
+      type: 'REPLACE',
+      payload: { name: routeName, params },
+    })),
+  },
 }));
+
+// Mock useSpendingLimitData hook
+jest.mock('../../hooks/useSpendingLimitData', () => jest.fn());
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -137,9 +149,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Set a spending limit',
       'card.card_spending_limit.confirm_new_limit': 'Confirm',
       'card.card_spending_limit.cancel': 'Cancel',
+      'card.card_spending_limit.skip': 'Skip for now',
       'card.card_spending_limit.update_success': 'Spending limit updated',
       'card.card_spending_limit.update_error': 'Failed to update limit',
       'card.card_spending_limit.select_token': 'Select token',
+      'card.card_spending_limit.loading': 'Loading available tokens...',
+      'card.card_spending_limit.load_error':
+        'Unable to load tokens. Please try again.',
+      'card.card_spending_limit.retry': 'Try again',
     };
     return strings[key] || key;
   },
@@ -169,12 +186,14 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Logger from '../../../../../util/Logger';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
+import useSpendingLimitData from '../../hooks/useSpendingLimitData';
+import { StackActions } from '@react-navigation/native';
 
 jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
 interface MockRoute {
   params?: {
-    flow?: 'manage' | 'enable';
+    flow?: 'manage' | 'enable' | 'onboarding';
     selectedToken?: CardTokenAllowance;
     priorityToken?: CardTokenAllowance | null;
     allTokens?: CardTokenAllowance[];
@@ -194,6 +213,10 @@ interface MockRoute {
     returnedSelectedToken?: CardTokenAllowance;
   };
 }
+
+const mockUseSpendingLimitData = useSpendingLimitData as jest.MockedFunction<
+  typeof useSpendingLimitData
+>;
 
 const mockRoute: MockRoute = {
   params: {
@@ -253,6 +276,15 @@ describe('SpendingLimit Component', () => {
     (useCardDelegation as jest.Mock).mockReturnValue({
       submitDelegation: mockSubmitDelegation,
       isLoading: false,
+    });
+
+    // Reset useSpendingLimitData mock to default state
+    mockUseSpendingLimitData.mockReturnValue({
+      availableTokens: [mockPriorityToken, mockMUSDToken],
+      delegationSettings: null,
+      isLoading: false,
+      error: null,
+      fetchData: mockFetchSpendingLimitData,
     });
   });
 
@@ -1039,6 +1071,268 @@ describe('SpendingLimit Component', () => {
 
       const activityIndicator = screen.UNSAFE_queryByType(ActivityIndicator);
       expect(activityIndicator).toBeTruthy();
+    });
+  });
+
+  describe('Onboarding Flow', () => {
+    const onboardingRoute: MockRoute = {
+      params: {
+        flow: 'onboarding' as const,
+        selectedToken: undefined,
+        priorityToken: null,
+        allTokens: undefined,
+        delegationSettings: undefined,
+        externalWalletDetailsData: null,
+      },
+    };
+
+    it('fetches data on mount when flow is onboarding', () => {
+      render(onboardingRoute);
+
+      expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch data on mount when flow is manage', () => {
+      render();
+
+      expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+    });
+
+    it('displays loading state while fetching data in onboarding flow', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: true,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      expect(screen.getByText('Loading available tokens...')).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+    });
+
+    it('displays error state with retry and skip buttons when fetch fails', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      expect(
+        screen.getByText('Unable to load tokens. Please try again.'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Try again')).toBeOnTheScreen();
+      expect(screen.getByText('Skip for now')).toBeOnTheScreen();
+    });
+
+    it('calls fetchData when retry button is pressed on error state', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      const retryButton = screen.getByText('Try again');
+      fireEvent.press(retryButton);
+
+      // fetchData is called once on mount, and once when retry is pressed
+      expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(2);
+    });
+
+    it('navigates to Complete screen when skip is pressed on error state', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      const skipButton = screen.getByText('Skip for now');
+      fireEvent.press(skipButton);
+
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.ROOT,
+        { screen: Routes.CARD.ONBOARDING.COMPLETE },
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalled();
+    });
+
+    it('displays Skip for now button instead of Cancel in onboarding flow', () => {
+      render(onboardingRoute);
+
+      expect(screen.getByText('Skip for now')).toBeOnTheScreen();
+      expect(screen.queryByText('Cancel')).not.toBeOnTheScreen();
+    });
+
+    it('navigates to Complete screen when Skip for now is pressed', () => {
+      render(onboardingRoute);
+
+      const skipButton = screen.getByText('Skip for now');
+      fireEvent.press(skipButton);
+
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.ROOT,
+        { screen: Routes.CARD.ONBOARDING.COMPLETE },
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalled();
+    });
+
+    it('disables confirm button when no token is selected in onboarding', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockPriorityToken, mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      // Confirm button should be present but disabled
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
+      expect(screen.getByText('Select token')).toBeOnTheScreen();
+    });
+
+    it('uses tokens from hook data when route params are not provided', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      // Should show select token placeholder since no token is pre-selected
+      expect(screen.getByText('Select token')).toBeOnTheScreen();
+    });
+
+    it('navigates to Complete screen after successful delegation in onboarding', async () => {
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(
+        () => {
+          expect(StackActions.replace).toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.ROOT,
+            { screen: Routes.CARD.ONBOARDING.COMPLETE },
+          );
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it('does not call goBack in onboarding flow after delegation', async () => {
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(
+        () => {
+          expect(mockNavigationDispatch).toHaveBeenCalled();
+        },
+        { timeout: 5000 },
+      );
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not show success toast in onboarding flow after delegation', async () => {
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(
+        () => {
+          expect(mockNavigationDispatch).toHaveBeenCalled();
+        },
+        { timeout: 5000 },
+      );
+
+      // Success toast should not be shown in onboarding flow
+      expect(mockShowToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: IconName.Confirmation,
+        }),
+      );
+    });
+
+    it('does not show skip button during loading state', () => {
+      (useCardDelegation as jest.Mock).mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+      });
+
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      // Skip button should be disabled when loading
+      const skipButton = screen.getByText('Skip for now');
+      fireEvent.press(skipButton);
+
+      // Should not navigate when loading
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
     });
   });
 });

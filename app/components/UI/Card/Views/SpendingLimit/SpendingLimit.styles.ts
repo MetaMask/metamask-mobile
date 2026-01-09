@@ -146,6 +146,33 @@ const createStyles = (theme: Theme) =>
     disabledButton: {
       opacity: 0.5,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    loadingText: {
+      marginTop: 16,
+      color: theme.colors.text.alternative,
+      textAlign: 'center',
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    errorText: {
+      marginTop: 16,
+      marginBottom: 24,
+      color: theme.colors.text.alternative,
+      textAlign: 'center',
+    },
+    errorButtonsContainer: {
+      width: '100%',
+      gap: 12,
+    },
   });
 
 export default createStyles;

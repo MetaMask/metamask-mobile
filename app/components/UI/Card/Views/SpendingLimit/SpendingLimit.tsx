@@ -5,8 +5,17 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { TouchableOpacity, View, TextInput } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  TouchableOpacity,
+  View,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import {
+  StackActions,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import {
   useCardDelegation,
@@ -56,13 +65,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
+import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 
 const SpendingLimit = ({
   route,
 }: {
   route?: {
     params?: {
-      flow?: 'manage' | 'enable';
+      flow?: 'manage' | 'enable' | 'onboarding';
       selectedToken?: CardTokenAllowance;
       priorityToken?: CardTokenAllowance | null;
       allTokens?: CardTokenAllowance[];
@@ -90,10 +100,44 @@ const SpendingLimit = ({
   const { sdk } = useCardSDK();
 
   const flow = route?.params?.flow || 'manage';
+  const isOnboardingFlow = flow === 'onboarding';
+
+  // Use hook to fetch data when in onboarding flow (self-contained data fetching)
+  const {
+    availableTokens: hookAvailableTokens,
+    delegationSettings: hookDelegationSettings,
+    isLoading: isLoadingHookData,
+    error: hookError,
+    fetchData: fetchHookData,
+  } = useSpendingLimitData();
+
+  // Fetch data on mount for onboarding flow
+  useEffect(() => {
+    if (isOnboardingFlow) {
+      fetchHookData();
+    }
+  }, [isOnboardingFlow, fetchHookData]);
+
+  // Use route params if provided, otherwise fall back to hook data (for onboarding)
   const selectedTokenFromRoute = route?.params?.selectedToken;
-  const priorityToken = route?.params?.priorityToken;
-  const allTokens = route?.params?.allTokens;
-  const delegationSettings = route?.params?.delegationSettings ?? null;
+  const priorityToken = route?.params?.priorityToken ?? null;
+  const routeAllTokens = route?.params?.allTokens;
+  const routeDelegationSettings = route?.params?.delegationSettings;
+
+  // Memoize allTokens to prevent re-renders
+  const allTokens = useMemo(() => {
+    if (routeAllTokens) return routeAllTokens;
+    if (isOnboardingFlow) return hookAvailableTokens;
+    return [];
+  }, [routeAllTokens, isOnboardingFlow, hookAvailableTokens]);
+
+  // Memoize delegationSettings to prevent re-renders
+  const delegationSettings = useMemo(() => {
+    if (routeDelegationSettings !== undefined) return routeDelegationSettings;
+    if (isOnboardingFlow) return hookDelegationSettings;
+    return null;
+  }, [routeDelegationSettings, isOnboardingFlow, hookDelegationSettings]);
+
   const externalWalletDetailsData = route?.params?.externalWalletDetailsData;
   const [showOptions, setShowOptions] = useState(false);
   const [selectedToken, setSelectedToken] = useState<CardTokenAllowance | null>(
@@ -113,13 +157,16 @@ const SpendingLimit = ({
   const isLoading = isDelegationLoading || isProcessing;
 
   useEffect(() => {
+    let screen = CardScreens.SPENDING_LIMIT;
+    if (flow === 'enable') {
+      screen = CardScreens.ENABLE_TOKEN;
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          screen:
-            flow === 'enable'
-              ? CardScreens.ENABLE_TOKEN
-              : CardScreens.SPENDING_LIMIT,
+          screen,
+          flow,
         })
         .build(),
     );
@@ -296,29 +343,49 @@ const SpendingLimit = ({
         await new Promise((resolve) => setTimeout(resolve, 3000));
         dispatch(clearCacheData('card-external-wallet-details'));
 
-        // Show success toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            { label: strings('card.card_spending_limit.update_success') },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          backgroundColor: theme.colors.success.muted,
-          hasNoTimeout: false,
-        });
+        // Show success toast (skip for onboarding flow)
+        if (!isOnboardingFlow) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            labelOptions: [
+              { label: strings('card.card_spending_limit.update_success') },
+            ],
+            iconName: IconName.Confirmation,
+            iconColor: theme.colors.success.default,
+            backgroundColor: theme.colors.success.muted,
+            hasNoTimeout: false,
+          });
+        }
 
         setAllowNavigation(true);
         setIsProcessing(false);
         setShowOptions(false);
 
         setTimeout(() => {
-          navigation.goBack();
+          if (isOnboardingFlow) {
+            // Navigate to Complete screen after successful delegation in onboarding
+            navigation.dispatch(
+              StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
+                screen: Routes.CARD.ONBOARDING.COMPLETE,
+              }),
+            );
+          } else {
+            navigation.goBack();
+          }
         }, 0);
       } else {
         setIsProcessing(false);
         setShowOptions(false);
-        navigation.goBack();
+        if (isOnboardingFlow) {
+          // Navigate to Complete screen in onboarding flow
+          navigation.dispatch(
+            StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
+              screen: Routes.CARD.ONBOARDING.COMPLETE,
+            }),
+          );
+        } else {
+          navigation.goBack();
+        }
       }
     } catch (error) {
       setAllowNavigation(false);
@@ -368,6 +435,7 @@ const SpendingLimit = ({
     theme.colors.error.muted,
     dispatch,
     navigation,
+    isOnboardingFlow,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -390,6 +458,29 @@ const SpendingLimit = ({
       navigation.goBack();
     }
   }, [navigation, showOptions, trackEvent, createEventBuilder, isLoading]);
+
+  // Handle skip action for onboarding flow
+  const handleSkip = useCallback(() => {
+    if (isLoading) {
+      return;
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+          skipped: true,
+        })
+        .build(),
+    );
+
+    // Navigate to Complete screen when skipping in onboarding
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.COMPLETE,
+      }),
+    );
+  }, [navigation, trackEvent, createEventBuilder, isLoading]);
 
   const handleOpenAssetSelection = useCallback(() => {
     trackEvent(
@@ -468,6 +559,8 @@ const SpendingLimit = ({
     selectedToken?.caipChainId?.startsWith('solana:');
 
   const isConfirmDisabled = useMemo(() => {
+    // In onboarding flow, require a token to be selected
+    if (isOnboardingFlow && !selectedToken) return true;
     if (isSolanaSelected) return true;
     // For restricted mode, require a valid custom limit to be entered
     if (tempSelectedOption === 'restricted') {
@@ -476,7 +569,64 @@ const SpendingLimit = ({
       return customLimit === '' || isNaN(limitNum) || limitNum < 0;
     }
     return false;
-  }, [tempSelectedOption, isSolanaSelected, customLimit]);
+  }, [
+    tempSelectedOption,
+    isSolanaSelected,
+    customLimit,
+    isOnboardingFlow,
+    selectedToken,
+  ]);
+
+  // Show loading state when fetching hook data in onboarding flow
+  if (isOnboardingFlow && isLoadingHookData) {
+    return (
+      <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary.default}
+          />
+          <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
+            {strings('card.card_spending_limit.loading')}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state with retry option in onboarding flow
+  if (isOnboardingFlow && hookError && !delegationSettings) {
+    return (
+      <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
+        <View style={styles.errorContainer}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={theme.colors.error.default}
+          />
+          <Text variant={TextVariant.BodyMD} style={styles.errorText}>
+            {strings('card.card_spending_limit.load_error')}
+          </Text>
+          <View style={styles.errorButtonsContainer}>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('card.card_spending_limit.retry')}
+              size={ButtonSize.Md}
+              onPress={fetchHookData}
+              width={ButtonWidthTypes.Full}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings('card.card_spending_limit.skip')}
+              size={ButtonSize.Md}
+              onPress={handleSkip}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -646,9 +796,13 @@ const SpendingLimit = ({
           />
           <Button
             variant={ButtonVariants.Secondary}
-            label={strings('card.card_spending_limit.cancel')}
+            label={
+              isOnboardingFlow
+                ? strings('card.card_spending_limit.skip')
+                : strings('card.card_spending_limit.cancel')
+            }
             size={ButtonSize.Lg}
-            onPress={handleCancel}
+            onPress={isOnboardingFlow ? handleSkip : handleCancel}
             width={ButtonWidthTypes.Full}
             disabled={isLoading}
           />

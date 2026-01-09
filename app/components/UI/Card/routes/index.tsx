@@ -95,23 +95,31 @@ export const cardSpendingLimitNavigationOptions = ({
   route,
 }: {
   navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'manage' | 'enable' } };
+  route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
 }): StackNavigationOptions => {
   const flow = route.params?.flow || 'manage';
-  const titleKey =
-    flow === 'enable'
-      ? 'card.card_spending_limit.title_enable_token'
-      : 'card.card_spending_limit.title_change_token';
+  const isOnboardingFlow = flow === 'onboarding';
+
+  let titleKey = 'card.card_spending_limit.title_change_token';
+  if (flow === 'enable') {
+    titleKey = 'card.card_spending_limit.title_enable_token';
+  } else if (flow === 'onboarding') {
+    titleKey = 'card.card_spending_limit.title_onboarding';
+  }
 
   return {
-    headerLeft: () => (
-      <ButtonIcon
-        style={headerStyle.icon}
-        size={ButtonIconSize.Md}
-        iconName={IconName.ArrowLeft}
-        onPress={() => navigation.goBack()}
-      />
-    ),
+    headerLeft: () =>
+      isOnboardingFlow ? (
+        // No back button for onboarding - user must skip or complete
+        <View />
+      ) : (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSize.Md}
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+        />
+      ),
     headerTitle: () => (
       <Text
         variant={TextVariant.HeadingSM}
@@ -122,6 +130,7 @@ export const cardSpendingLimitNavigationOptions = ({
       </Text>
     ),
     headerRight: () => <View />,
+    gestureEnabled: !isOnboardingFlow, // Disable swipe back for onboarding
   };
 };
 
