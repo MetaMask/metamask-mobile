@@ -3373,7 +3373,7 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                ./scripts/upload-to-testflight.sh \
+                bash ./scripts/upload-to-testflight.sh \
                   "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
                   "${BITRISE_GIT_BRANCH:-Unknown}" \
                   "${BITRISE_APP_STORE_IPA_PATH:-}"
