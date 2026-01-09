@@ -820,10 +820,10 @@ describe('ManualBackupStep1', () => {
       });
     });
 
-    it('shows incorrect password warning on wrong password error', async () => {
+    it('shows incorrect password warning when error matches WRONG_PASSWORD_ERROR', async () => {
       const { wrapper } = await setupPasswordView();
 
-      mockExportSeedPhrase.mockRejectedValue('wrong password');
+      mockExportSeedPhrase.mockRejectedValue(new Error('Decrypt failed'));
 
       const passwordInput = wrapper.getByTestId(
         ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
@@ -850,10 +850,10 @@ describe('ManualBackupStep1', () => {
       });
     });
 
-    it('shows unknown error message for non-password errors', async () => {
+    it('shows unknown error message when error does not match WRONG_PASSWORD_ERROR', async () => {
       const { wrapper } = await setupPasswordView();
 
-      mockExportSeedPhrase.mockRejectedValue(new Error('Some other error'));
+      mockExportSeedPhrase.mockRejectedValue(new Error('Network error'));
 
       const passwordInput = wrapper.getByTestId(
         ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,

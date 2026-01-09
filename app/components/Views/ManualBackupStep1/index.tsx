@@ -248,10 +248,7 @@ const ManualBackupStep1 = () => {
       setReady(true);
     } catch (e) {
       let msg = strings('reveal_credential.warning_incorrect_password');
-      if (
-        e instanceof Error &&
-        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
-      ) {
+      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
         msg = strings('reveal_credential.unknown_error');
       }
       setWarningIncorrectPassword(msg);
