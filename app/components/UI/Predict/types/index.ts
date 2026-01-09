@@ -89,6 +89,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string;
   color: string;
+  alias: string;
 };
 
 export type PredictSportsLeague = 'nfl';

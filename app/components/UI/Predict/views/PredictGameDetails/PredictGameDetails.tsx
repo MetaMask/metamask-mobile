@@ -5,7 +5,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -30,41 +31,25 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import PredictDetailsChart, {
-  ChartSeries,
-} from '../../components/PredictDetailsChart/PredictDetailsChart';
+import PredictGameChart, {
+  GameChartSeries,
+} from '../../components/PredictGameChart';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import {
   PredictPriceHistoryInterval,
   PredictOutcomeToken,
   PredictMarketGame,
-  PredictSportTeam,
+  PredictPosition,
 } from '../../types';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import TeamHelmet from '../../components/TeamHelmet';
 
 const LIVE_POLLING_INTERVAL = 5000;
-
-const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
-  PredictPriceHistoryInterval.ONE_HOUR,
-  PredictPriceHistoryInterval.SIX_HOUR,
-  PredictPriceHistoryInterval.ONE_DAY,
-  PredictPriceHistoryInterval.ONE_WEEK,
-  PredictPriceHistoryInterval.ONE_MONTH,
-  PredictPriceHistoryInterval.MAX,
-];
-
-const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
-  Record<PredictPriceHistoryInterval, number>
-> = {
-  [PredictPriceHistoryInterval.ONE_HOUR]: 5,
-  [PredictPriceHistoryInterval.SIX_HOUR]: 15,
-  [PredictPriceHistoryInterval.ONE_DAY]: 60,
-  [PredictPriceHistoryInterval.ONE_WEEK]: 240,
-  [PredictPriceHistoryInterval.ONE_MONTH]: 720,
-  [PredictPriceHistoryInterval.MAX]: 1440,
-};
+const ONE_MONTH_FIDELITY = 720;
 
 const parseScore = (score: string): { away: string; home: string } => {
   if (!score) {
@@ -76,61 +61,182 @@ const parseScore = (score: string): { away: string; home: string } => {
 
 const formatGameTime = (startTime: string): string => {
   const date = new Date(startTime);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+
+  const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
+    date.getDay()
+  ];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+
+  return `${weekday}, ${month} ${day} @ ${hours}:${minutes} ${ampm}`;
 };
 
-interface TeamHeaderRowProps {
-  team: PredictSportTeam;
-  score: string;
-  showScore: boolean;
+const formatCurrency = (value: number): string => {
+  const absValue = Math.abs(value);
+  const formatted = absValue < 0.01 ? absValue.toFixed(3) : absValue.toFixed(2);
+  const prefix = value >= 0 ? '+$' : '-$';
+  return `${prefix}${formatted}`;
+};
+
+interface ScoreHeaderProps {
+  game: PredictMarketGame;
+  awayScore: string;
+  homeScore: string;
 }
 
-const TeamHeaderRow: React.FC<TeamHeaderRowProps> = ({
-  team,
-  score,
-  showScore,
+const ScoreHeader: React.FC<ScoreHeaderProps> = ({
+  game,
+  awayScore,
+  homeScore,
 }) => {
   const tw = useTailwind();
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-3 py-2"
-    >
-      <Box twClassName="w-12 h-12 rounded-lg overflow-hidden bg-muted">
-        {team.logo ? (
-          <Image
-            source={{ uri: team.logo }}
-            style={tw.style('w-full h-full')}
-            resizeMode="contain"
-          />
-        ) : (
-          <Box twClassName="w-full h-full bg-muted" />
-        )}
-      </Box>
-      <Text
-        variant={TextVariant.HeadingMd}
-        color={TextColor.TextDefault}
-        style={tw.style('flex-1 font-bold')}
-        numberOfLines={1}
+    <Box twClassName="px-2 py-4">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        justifyContent={BoxJustifyContent.Between}
       >
-        {team.name}
-      </Text>
-      {showScore && (
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          style={tw.style('font-bold min-w-12 text-right')}
-        >
-          {score}
-        </Text>
-      )}
+        <Box twClassName="items-start">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <TeamHelmet color={game.awayTeam.color} size={56} flipped />
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-bold')}
+            >
+              {awayScore}
+            </Text>
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-1"
+          >
+            {game.awayTeam.alias}
+          </Text>
+        </Box>
+
+        <Box twClassName="items-end">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-bold')}
+            >
+              {homeScore}
+            </Text>
+            <TeamHelmet color={game.homeTeam.color} size={56} />
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-1"
+          >
+            {game.homeTeam.name}
+          </Text>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+interface PercentageHeaderProps {
+  game: PredictMarketGame;
+  awayPercentage: number;
+  homePercentage: number;
+}
+
+const PercentageHeader: React.FC<PercentageHeaderProps> = ({
+  game,
+  awayPercentage,
+  homePercentage,
+}) => {
+  const tw = useTailwind();
+
+  return (
+    <Box twClassName="px-2 py-4">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        justifyContent={BoxJustifyContent.Between}
+      >
+        <Box twClassName="items-start">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <TeamHelmet color={game.awayTeam.color} size={56} flipped />
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-bold')}
+            >
+              {awayPercentage}%
+            </Text>
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-1"
+          >
+            {game.awayTeam.alias}
+          </Text>
+        </Box>
+
+        <Box twClassName="items-end">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-bold')}
+            >
+              {homePercentage}%
+            </Text>
+            <TeamHelmet color={game.homeTeam.color} size={56} />
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-1"
+          >
+            {game.homeTeam.alias}
+          </Text>
+        </Box>
+      </Box>
     </Box>
   );
 };
@@ -145,9 +251,9 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
   if (game.status === 'scheduled') {
     return (
       <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        style={tw.style('text-center')}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        style={tw.style('text-center font-bold')}
       >
         {formatGameTime(game.startTime)}
       </Text>
@@ -159,7 +265,7 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
       <Box twClassName="px-3 py-1 rounded-full bg-muted">
         <Text
           variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
+          color={TextColor.TextDefault}
           style={tw.style('font-medium')}
         >
           Final
@@ -187,6 +293,199 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
   );
 };
 
+interface PositionRowProps {
+  position: PredictPosition;
+  game: PredictMarketGame;
+}
+
+const PositionRow: React.FC<PositionRowProps> = ({ position, game }) => {
+  const tw = useTailwind();
+
+  const teamAbbr =
+    position.outcomeIndex === 0
+      ? game.awayTeam.abbreviation
+      : game.homeTeam.abbreviation;
+
+  const teamColor =
+    position.outcomeIndex === 0 ? game.awayTeam.color : game.homeTeam.color;
+
+  const isPnlPositive = position.cashPnl >= 0;
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="py-3"
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        <Box
+          twClassName="w-2 h-2 rounded-full"
+          style={{ backgroundColor: teamColor }}
+        />
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          ${position.initialValue.toFixed(2)} on {teamAbbr.toUpperCase()} to win
+        </Text>
+      </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={
+            isPnlPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
+          }
+          style={tw.style('font-medium')}
+        >
+          {formatCurrency(position.cashPnl)}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+        >
+          ${position.currentValue.toFixed(2)}
+        </Text>
+      </Box>
+    </Box>
+  );
+};
+
+const GameDetailsSkeleton: React.FC = () => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={['left', 'right', 'bottom']}
+    >
+      <Box twClassName="flex-1 px-3" style={{ paddingTop: insets.top + 12 }}>
+        <SkeletonPlaceholder
+          backgroundColor={colors.background.alternative}
+          highlightColor={colors.background.default}
+        >
+          <SkeletonPlaceholder.Item gap={16}>
+            <SkeletonPlaceholder.Item
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <SkeletonPlaceholder.Item
+                width={24}
+                height={24}
+                borderRadius={12}
+              />
+              <SkeletonPlaceholder.Item
+                width={180}
+                height={20}
+                borderRadius={4}
+              />
+              <SkeletonPlaceholder.Item
+                width={24}
+                height={24}
+                borderRadius={12}
+              />
+            </SkeletonPlaceholder.Item>
+
+            <SkeletonPlaceholder.Item
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
+              paddingVertical={16}
+            >
+              <SkeletonPlaceholder.Item
+                flexDirection="row"
+                alignItems="center"
+                gap={12}
+              >
+                <SkeletonPlaceholder.Item
+                  width={48}
+                  height={48}
+                  borderRadius={8}
+                />
+                <SkeletonPlaceholder.Item
+                  width={60}
+                  height={40}
+                  borderRadius={4}
+                />
+              </SkeletonPlaceholder.Item>
+              <SkeletonPlaceholder.Item
+                width={20}
+                height={24}
+                borderRadius={4}
+              />
+              <SkeletonPlaceholder.Item
+                flexDirection="row"
+                alignItems="center"
+                gap={12}
+              >
+                <SkeletonPlaceholder.Item
+                  width={60}
+                  height={40}
+                  borderRadius={4}
+                />
+                <SkeletonPlaceholder.Item
+                  width={48}
+                  height={48}
+                  borderRadius={8}
+                />
+              </SkeletonPlaceholder.Item>
+            </SkeletonPlaceholder.Item>
+
+            <SkeletonPlaceholder.Item
+              height={160}
+              borderRadius={8}
+              marginTop={24}
+            />
+
+            <SkeletonPlaceholder.Item
+              flexDirection="row"
+              justifyContent="space-between"
+              marginTop={24}
+            >
+              <SkeletonPlaceholder.Item
+                width={80}
+                height={16}
+                borderRadius={4}
+              />
+              <SkeletonPlaceholder.Item
+                width={100}
+                height={16}
+                borderRadius={4}
+              />
+            </SkeletonPlaceholder.Item>
+
+            <SkeletonPlaceholder.Item
+              flexDirection="row"
+              gap={12}
+              marginTop={12}
+            >
+              <SkeletonPlaceholder.Item
+                flex={1}
+                height={48}
+                borderRadius={12}
+              />
+              <SkeletonPlaceholder.Item
+                flex={1}
+                height={48}
+                borderRadius={12}
+              />
+            </SkeletonPlaceholder.Item>
+          </SkeletonPlaceholder.Item>
+        </SkeletonPlaceholder>
+      </Box>
+    </SafeAreaView>
+  );
+};
+
 const PredictGameDetails: React.FC = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -195,10 +494,6 @@ const PredictGameDetails: React.FC = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
-  const [selectedTimeframe, setSelectedTimeframe] =
-    useState<PredictPriceHistoryInterval>(
-      PredictPriceHistoryInterval.ONE_MONTH,
-    );
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const { marketId, entryPoint } = route.params || {};
@@ -240,60 +535,76 @@ const PredictGameDetails: React.FC = () => {
     return undefined;
   }, [pollingInterval, refetchMarket, market]);
 
+  const {
+    positions,
+    isLoading: isPositionsLoading,
+    loadPositions,
+  } = usePredictPositions({
+    marketId,
+    claimable: false,
+    loadOnMount: false,
+  });
+
+  useEffect(() => {
+    if (!isMarketFetching && marketId) {
+      loadPositions();
+    }
+  }, [isMarketFetching, marketId, loadPositions]);
+
   const outcome = market?.outcomes?.[0];
   const awayToken = outcome?.tokens?.[0];
   const homeToken = outcome?.tokens?.[1];
 
-  const chartOutcomeTokenId = awayToken?.id;
-
-  const selectedFidelity = useMemo(
-    () => DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe],
-    [selectedTimeframe],
-  );
+  const chartTokenIds = useMemo(() => {
+    const ids: string[] = [];
+    if (awayToken?.id) ids.push(awayToken.id);
+    if (homeToken?.id) ids.push(homeToken.id);
+    return ids;
+  }, [awayToken?.id, homeToken?.id]);
 
   const {
     priceHistories,
     isFetching: isPriceHistoryFetching,
-    errors,
     refetch: refetchPriceHistory,
   } = usePredictPriceHistory({
-    marketIds: chartOutcomeTokenId ? [chartOutcomeTokenId] : [],
-    interval: selectedTimeframe,
+    marketIds: chartTokenIds,
+    interval: PredictPriceHistoryInterval.ONE_MONTH,
     providerId,
-    fidelity: selectedFidelity,
-    enabled: Boolean(chartOutcomeTokenId),
+    fidelity: ONE_MONTH_FIDELITY,
+    enabled: chartTokenIds.length > 0,
   });
 
-  const chartData: ChartSeries[] = useMemo(() => {
-    if (!game || !priceHistories[0]) {
+  const chartData: GameChartSeries[] = useMemo(() => {
+    if (!game) {
       return [];
     }
 
-    return [
-      {
-        label: game.awayTeam.name,
+    const series: GameChartSeries[] = [];
+
+    if (priceHistories[0]?.length) {
+      series.push({
+        label: game.awayTeam.abbreviation.toUpperCase(),
         color: game.awayTeam.color || colors.primary.default,
-        data: (priceHistories[0] ?? []).map((point) => ({
+        data: priceHistories[0].map((point) => ({
           timestamp: point.timestamp,
           value: Number((point.price * 100).toFixed(2)),
         })),
-      },
-    ];
-  }, [game, priceHistories, colors.primary.default]);
-
-  const chartEmptyLabel = chartOutcomeTokenId
-    ? (errors.find(Boolean) ?? undefined)
-    : '';
-
-  const handleTimeframeChange = (timeframe: string) => {
-    if (
-      PRICE_HISTORY_TIMEFRAMES.includes(
-        timeframe as PredictPriceHistoryInterval,
-      )
-    ) {
-      setSelectedTimeframe(timeframe as PredictPriceHistoryInterval);
+      });
     }
-  };
+
+    if (priceHistories[1]?.length) {
+      series.push({
+        label: game.homeTeam.abbreviation.toUpperCase(),
+        color: game.homeTeam.color || colors.error.default,
+        data: priceHistories[1].map((point) => ({
+          timestamp: point.timestamp,
+          value: Number((point.price * 100).toFixed(2)),
+        })),
+      });
+    }
+
+    return series;
+  }, [game, priceHistories, colors.primary.default, colors.error.default]);
 
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
@@ -305,9 +616,13 @@ const PredictGameDetails: React.FC = () => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await Promise.allSettled([refetchMarket(), refetchPriceHistory()]);
+    await Promise.allSettled([
+      refetchMarket(),
+      refetchPriceHistory(),
+      loadPositions({ isRefresh: true }),
+    ]);
     setIsRefreshing(false);
-  }, [refetchMarket, refetchPriceHistory]);
+  }, [refetchMarket, refetchPriceHistory, loadPositions]);
 
   const handleBuyPress = (token: PredictOutcomeToken) => {
     if (!market || !outcome) return;
@@ -338,7 +653,7 @@ const PredictGameDetails: React.FC = () => {
     }
 
     const { away: awayScore, home: homeScore } = parseScore(game.score);
-    const showScore = game.status !== 'scheduled';
+    const isScheduled = game.status === 'scheduled';
 
     return (
       <Box twClassName="gap-2" style={{ paddingTop: insets.top + 12 }}>
@@ -365,17 +680,41 @@ const PredictGameDetails: React.FC = () => {
           <PredictShareButton marketId={market?.id} />
         </Box>
 
-        <Box twClassName="px-2">
-          <TeamHeaderRow
-            team={game.awayTeam}
-            score={awayScore}
-            showScore={showScore}
+        {isScheduled ? (
+          <PercentageHeader
+            game={game}
+            awayPercentage={getOddsPercentage(awayToken)}
+            homePercentage={getOddsPercentage(homeToken)}
           />
-          <TeamHeaderRow
-            team={game.homeTeam}
-            score={homeScore}
-            showScore={showScore}
+        ) : (
+          <ScoreHeader
+            game={game}
+            awayScore={awayScore}
+            homeScore={homeScore}
           />
+        )}
+      </Box>
+    );
+  };
+
+  const renderPositions = () => {
+    if (isPositionsLoading || positions.length === 0 || !game) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="mb-4">
+        <Text
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
+          twClassName="mb-2"
+        >
+          Your picks
+        </Text>
+        <Box twClassName="border-t border-muted">
+          {positions.map((position) => (
+            <PositionRow key={position.id} position={position} game={game} />
+          ))}
         </Box>
       </Box>
     );
@@ -390,156 +729,127 @@ const PredictGameDetails: React.FC = () => {
       return null;
     }
 
-    return (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
-        <Pressable
-          onPress={() => handleBuyPress(awayToken)}
-          style={({ pressed }) =>
-            tw.style(
-              'flex-1 py-3 rounded-xl items-center',
-              pressed && 'opacity-80',
-            )
-          }
-        >
-          <Box
-            twClassName="flex-1 w-full py-3 rounded-xl items-center"
-            style={{ backgroundColor: `${game.awayTeam.color}33` }}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('font-semibold')}
-            >
-              {game.awayTeam.abbreviation.toUpperCase()}{' '}
-              {getOddsPercentage(awayToken)}%
-            </Text>
-          </Box>
-        </Pressable>
-        <Pressable
-          onPress={() => handleBuyPress(homeToken)}
-          style={({ pressed }) =>
-            tw.style(
-              'flex-1 py-3 rounded-xl items-center',
-              pressed && 'opacity-80',
-            )
-          }
-        >
-          <Box
-            twClassName="flex-1 w-full py-3 rounded-xl items-center"
-            style={{ backgroundColor: `${game.homeTeam.color}33` }}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('font-semibold')}
-            >
-              {game.homeTeam.abbreviation.toUpperCase()}{' '}
-              {getOddsPercentage(homeToken)}%
-            </Text>
-          </Box>
-        </Pressable>
-      </Box>
-    );
-  };
+    const awayOdds = getOddsPercentage(awayToken);
+    const homeOdds = getOddsPercentage(homeToken);
 
-  const renderAboutSection = () => (
-    <Box twClassName="gap-6 mt-4">
-      <Box twClassName="gap-4">
+    return (
+      <Box twClassName="w-full">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
+          twClassName="mb-3"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-3"
-          >
-            <Icon
-              name={IconName.Chart}
-              size={IconSize.Md}
-              color={colors.text.muted}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="font-medium"
-              color={TextColor.TextDefault}
-            >
-              {strings('predict.market_details.volume')}
-            </Text>
-          </Box>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="font-medium"
-            color={TextColor.TextDefault}
-          >
-            ${formatVolume(market?.volume || 0)}
+          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+            Pick a winner
           </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+            ${formatVolume(market?.volume || 0)} Vol
+          </Text>
+        </Box>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+          <Pressable
+            onPress={() => handleBuyPress(awayToken)}
+            style={tw.style('flex-1')}
+          >
+            {({ pressed }) => (
+              <Box
+                twClassName="py-3 rounded-xl items-center justify-center"
+                style={{
+                  backgroundColor: game.awayTeam.color,
+                  opacity: pressed ? 0.8 : 1,
+                }}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={tw.style('font-bold text-white')}
+                >
+                  {game.awayTeam.abbreviation.toUpperCase()} {awayOdds}¢
+                </Text>
+              </Box>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => handleBuyPress(homeToken)}
+            style={tw.style('flex-1')}
+          >
+            {({ pressed }) => (
+              <Box
+                twClassName="py-3 rounded-xl items-center justify-center"
+                style={{
+                  backgroundColor: game.homeTeam.color,
+                  opacity: pressed ? 0.8 : 1,
+                }}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={tw.style('font-bold text-white')}
+                >
+                  {game.homeTeam.abbreviation.toUpperCase()} {homeOdds}¢
+                </Text>
+              </Box>
+            )}
+          </Pressable>
         </Box>
       </Box>
-      <Box twClassName="w-full border-t border-muted" />
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {market?.description}
-      </Text>
-      <Box twClassName="w-full border-t border-muted" />
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {strings('predict.market_details.disclaimer')}
-      </Text>
-    </Box>
-  );
-
-  if (!market || !game) {
-    return (
-      <SafeAreaView
-        style={tw.style('flex-1 bg-default')}
-        edges={['left', 'right', 'bottom']}
-      >
-        <Box twClassName="flex-1 items-center justify-center">
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            Loading...
-          </Text>
-        </Box>
-      </SafeAreaView>
     );
+  };
+
+  if (isMarketFetching && !market) {
+    return <GameDetailsSkeleton />;
   }
 
+  if (!market || !game) {
+    return <GameDetailsSkeleton />;
+  }
+
+  const gradientColors = [
+    `${game.awayTeam.color}40`,
+    `${game.homeTeam.color}20`,
+    colors.background.default,
+  ];
+
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
-      edges={['left', 'right', 'bottom']}
-    >
-      <Box twClassName="px-3">{renderHeader()}</Box>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+    <View style={tw.style('flex-1')}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0.5 }}
+        style={tw.style('absolute inset-0')}
+      />
+      <SafeAreaView
         style={tw.style('flex-1')}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary.default}
-            colors={[colors.primary.default]}
-          />
-        }
+        edges={['left', 'right', 'bottom']}
       >
-        <Box twClassName="px-3 gap-4 pt-4">
-          {chartData.length > 0 && (
-            <PredictDetailsChart
-              data={chartData}
-              timeframes={PRICE_HISTORY_TIMEFRAMES}
-              selectedTimeframe={selectedTimeframe}
-              onTimeframeChange={handleTimeframeChange}
-              isLoading={isPriceHistoryFetching}
-              emptyLabel={chartEmptyLabel}
-            />
-          )}
-          {renderAboutSection()}
-        </Box>
-      </ScrollView>
+        <Box twClassName="px-3">{renderHeader()}</Box>
 
-      <Box twClassName="px-3 py-4 bg-default border-t border-muted">
-        {renderActionButtons()}
-      </Box>
-    </SafeAreaView>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-grow')}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <Box twClassName="px-3 flex-1 justify-center mt-8">
+            <PredictGameChart
+              data={chartData}
+              isLoading={isPriceHistoryFetching}
+            />
+          </Box>
+        </ScrollView>
+
+        <Box twClassName="px-3 py-4">
+          {renderPositions()}
+          {renderActionButtons()}
+        </Box>
+      </SafeAreaView>
+    </View>
   );
 };
 

@@ -40,12 +40,21 @@ export function isNflGameEvent(event: PolymarketApiEvent): boolean {
   return hasNflTag && hasGamesTag && hasValidSlug;
 }
 
+const NOT_STARTED_PERIODS = ['NS', 'NOT_STARTED', 'PRE', 'PREGAME', ''];
+
 export function getGameStatus(event: PolymarketApiEvent): PredictGameStatus {
   if (event.closed) {
     return 'ended';
   }
 
-  if (event.score || event.elapsed || event.period) {
+  const period = (event.period ?? '').toUpperCase();
+  const isNotStartedPeriod = NOT_STARTED_PERIODS.includes(period);
+
+  const hasScore = event.score && event.score !== '0-0' && event.score !== '';
+  const hasElapsed = event.elapsed && event.elapsed !== '';
+  const hasActivePeriod = event.period && !isNotStartedPeriod;
+
+  if (hasScore || hasElapsed || hasActivePeriod) {
     return 'ongoing';
   }
 
@@ -61,6 +70,7 @@ export function mapApiTeamToPredictTeam(
     logo: apiTeam.logo,
     abbreviation: apiTeam.abbreviation,
     color: apiTeam.color,
+    alias: apiTeam.alias,
   };
 }
 

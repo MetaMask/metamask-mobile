@@ -134,9 +134,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const { marketId, entryPoint, title, image } = route.params || {};
+  const { marketId, entryPoint, title, image, isGame } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  if (isGame) {
+    return <PredictGameDetails />;
+  }
 
   const { executeGuardedAction } = usePredictActionGuard({
     providerId,
@@ -152,10 +156,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
-
-  if (market?.game) {
-    return <PredictGameDetails />;
-  }
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
@@ -700,6 +700,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       trackMarketDetailsOpened(tabKey);
     }
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
+
+  if (market?.game) {
+    return <PredictGameDetails />;
+  }
 
   const renderCustomTabBar = () => (
     <Box

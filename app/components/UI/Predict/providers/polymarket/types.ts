@@ -195,7 +195,7 @@ export interface PolymarketApiTeam {
   abbreviation: string; // lowercase (e.g., "car", "la")
   logo: string; // URL to team logo
   color: string; // Hex color (e.g., "#0085CA")
-  alias?: string; // Alternative abbreviation
+  alias: string; // Alternative nave (e.g., "Broncos", "Chiefs")
 }
 
 export interface PolymarketApiActivity {

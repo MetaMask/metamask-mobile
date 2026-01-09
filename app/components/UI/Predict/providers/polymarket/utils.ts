@@ -792,7 +792,7 @@ export const getParsedMarketsFromPolymarketApi = async (
   const categoryTagMap: Record<PredictCategory, string> = {
     trending: '&exclude_tag_id=100639&order=volume24hr',
     new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
-    sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+    sports: '&tag_slug=nfl&order=volume24hr',
     crypto: '&tag_slug=crypto&order=volume24hr',
     politics: '&tag_slug=politics&order=volume24hr',
   };
