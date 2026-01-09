@@ -31,6 +31,9 @@ export const PERPS_CONSTANTS = {
   ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
 
   RECENT_ACTIVITY_LIMIT: 3,
+
+  // Historical data fetching constants
+  FILLS_LOOKBACK_MS: 90 * 24 * 60 * 60 * 1000, // 3 months in milliseconds - limits REST API fills fetch
 } as const;
 
 /**
@@ -331,6 +334,9 @@ export const DECIMAL_PRECISION_CONFIG = {
   // Maximum decimal places for price input (matches Hyperliquid limit)
   // Used in TP/SL forms, limit price inputs, and price validation
   MAX_PRICE_DECIMALS: 6,
+  // Maximum significant figures allowed by HyperLiquid API
+  // Orders with more than 5 significant figures will be rejected
+  MAX_SIGNIFICANT_FIGURES: 5,
   // Defensive fallback for size decimals when market data fails to load
   // Real szDecimals should always come from market data API (varies by asset)
   // Using 6 as safe maximum to prevent crashes (covers most assets)

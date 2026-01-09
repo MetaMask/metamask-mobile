@@ -4,13 +4,15 @@
 
 import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
-import { smokeTags } from '../../../../tags';
+import { smokeTags, flaskTags } from '../../../../tags';
 
 /**
- * Derive AI config from E2EsmokeTags
- * Converts smokeTags object to array format for AI
+ * Derive AI config from smokeTags and flaskTags
+ * Converts tags objects to array format for AI
  */
-export const SELECT_TAGS_CONFIG = Object.values(smokeTags).map((config) => ({
+const allTags = { ...smokeTags, ...flaskTags };
+
+export const SELECT_TAGS_CONFIG = Object.values(allTags).map((config) => ({
   tag: config.tag.replace(':', ''), // Remove trailing colon for AI
   description: config.description,
 }));
