@@ -1,67 +1,141 @@
 import { RootState } from '../../reducers';
-import { RampsControllerState } from '@metamask/ramps-controller';
-import { selectRampsControllerState, selectGeolocation } from './index';
+import {
+  RampsControllerState,
+  RequestStatus,
+} from '@metamask/ramps-controller';
+import { selectGeolocation, selectGeolocationRequest } from './index';
+
+const createMockState = (
+  rampsController: Partial<RampsControllerState> = {},
+): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        RampsController: {
+          geolocation: null,
+          requests: {},
+          ...rampsController,
+        },
+      },
+    },
+  }) as unknown as RootState;
 
 describe('RampsController Selectors', () => {
-  describe('selectRampsControllerState', () => {
-    it('returns RampsController state from engine', () => {
-      const mockRampsControllerState: RampsControllerState = {
-        geolocation: 'US-CA',
-      };
+  describe('selectGeolocation', () => {
+    it('returns geolocation from state', () => {
+      const state = createMockState({ geolocation: 'US-CA' });
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: mockRampsControllerState,
-          },
-        },
-      } as unknown as RootState;
+      expect(selectGeolocation(state)).toBe('US-CA');
+    });
 
-      expect(selectRampsControllerState(mockState)).toEqual(
-        mockRampsControllerState,
-      );
+    it('returns null when geolocation is null', () => {
+      const state = createMockState({ geolocation: null });
+
+      expect(selectGeolocation(state)).toBeNull();
     });
   });
 
-  describe('selectGeolocation', () => {
-    it('returns geolocation from RampsController state', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: {
-              geolocation: 'US-NY',
-            },
+  describe('selectGeolocationRequest', () => {
+    it('returns data when request is successful', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBe('US-NY');
+      const result = selectGeolocationRequest(state);
+
+      expect(result.data).toBe('US-CA');
     });
 
-    it('returns null if geolocation is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: {
-              geolocation: null,
-            },
+    it('returns isFetching false when request is successful', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBeNull();
+      const result = selectGeolocationRequest(state);
+
+      expect(result.isFetching).toBe(false);
     });
 
-    it('returns null if RampsController state is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: undefined,
+    it('returns error null when request is successful', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBeNull();
+      const result = selectGeolocationRequest(state);
+
+      expect(result.error).toBe(null);
+    });
+
+    it('returns isFetching true when request is loading', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = selectGeolocationRequest(state);
+
+      expect(result.isFetching).toBe(true);
+    });
+
+    it('returns error when request failed', () => {
+      const state = createMockState({
+        requests: {
+          'updateGeolocation:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = selectGeolocationRequest(state);
+
+      expect(result.error).toBe('Network error');
+    });
+
+    it('returns default state when request does not exist', () => {
+      const state = createMockState();
+
+      const result = selectGeolocationRequest(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: null,
+      });
     });
   });
 });
