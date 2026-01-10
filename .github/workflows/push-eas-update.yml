@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-
+          
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
@@ -222,6 +222,26 @@ jobs:
         with:
           ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
+      - name: Verify downloaded artifacts
+        run: |
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
 
       - name: Display configuration
         run: |
