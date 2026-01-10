@@ -36,6 +36,20 @@ env:
   TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
+  setup-dependencies:
+    name: Setup Dependencies
+    needs:
+      - fingerprint-comparison
+      - approval
+    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: refs/pull/${{ inputs.pr_number }}/head
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-eas-update
+      artifact-retention-days: 1
+
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     runs-on: ubuntu-latest
@@ -63,10 +77,20 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Install dependencies (workflow branch)
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
+      - name: Verify downloaded artifacts
         run: |
-          echo "📦 Installing dependencies for current branch..."
-          yarn install --immutable
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
 
       - name: Generate fingerprint (workflow branch)
         id: branch_fingerprint
@@ -75,12 +99,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
-
-      - name: Install dependencies (base branch)
-        working-directory: main
-        run: |
-          echo "📦 Installing dependencies for base branch snapshot (${BASE_BRANCH_REF})..."
-          yarn install --immutable
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -141,20 +159,6 @@ jobs:
           team: mobile-platform
           pr-number: ${{ env.TARGET_PR_NUMBER }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
-
-  setup-dependencies:
-    name: Setup Dependencies
-    needs:
-      - fingerprint-comparison
-      - approval
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      ref: refs/pull/${{ inputs.pr_number }}/head
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-eas-update
-      artifact-retention-days: 1
 
   push-update:
     name: Push EAS Update
@@ -218,26 +222,6 @@ jobs:
         with:
           ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
-
-      - name: Verify downloaded artifacts
-        run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
 
       - name: Display configuration
         run: |
