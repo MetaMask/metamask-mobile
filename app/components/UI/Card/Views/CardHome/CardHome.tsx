@@ -140,7 +140,6 @@ const CardHome = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
 
-  // Use the orchestrator hook for card data
   const {
     priorityToken,
     cardDetails,
@@ -197,10 +196,6 @@ const CardHome = () => {
       priorityToken?.allowanceState === AllowanceState.Limited,
     [priorityToken, isAuthenticated],
   );
-
-  // Extract warnings from the combined warning
-  const priorityTokenWarning = warning;
-  const cardDetailsWarning = warning;
 
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
@@ -396,28 +391,26 @@ const CardHome = () => {
   }, [logoutFromProvider, navigation]);
 
   const needToEnableCard = useMemo(
-    () => cardDetailsWarning === CardStateWarning.NoCard,
-    [cardDetailsWarning],
+    () => warning === CardStateWarning.NoCard,
+    [warning],
   );
   const needToEnableAssets = useMemo(
-    () => priorityTokenWarning === CardStateWarning.NeedDelegation,
-    [priorityTokenWarning],
+    () => warning === CardStateWarning.NeedDelegation,
+    [warning],
   );
 
-  // Determine if card can be enabled based on KYC status
   const canEnableCard = useMemo(() => {
     if (!isAuthenticated || !isBaanxLoginEnabled) {
-      return true; // No KYC check for unauthenticated users
+      return true;
     }
 
     if (!kycStatus || isLoading) {
-      return false; // Wait for KYC status to load
+      return false;
     }
 
     return kycStatus.verificationState === 'VERIFIED';
   }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
 
-  // Check if KYC is pending or unverified (user cannot provision card yet)
   const isKYCPendingOrUnverified = useMemo(() => {
     if (!isAuthenticated || !isBaanxLoginEnabled || !kycStatus) {
       return false;
@@ -471,7 +464,6 @@ const CardHome = () => {
 
     if (isBaanxLoginEnabled) {
       if (needToEnableCard) {
-        // For PENDING/UNVERIFIED users without a delegated asset: show delegation button
         if (isKYCPendingOrUnverified && needToEnableAssets) {
           return (
             <Button
@@ -488,9 +480,6 @@ const CardHome = () => {
           );
         }
 
-        // For PENDING/UNVERIFIED users with a delegated asset: fall through to show normal buttons
-
-        // For VERIFIED users: auto-provisioning is in progress, show loading state
         if (!isKYCPendingOrUnverified) {
           return (
             <Button
@@ -587,15 +576,12 @@ const CardHome = () => {
     isKYCPendingOrUnverified,
   ]);
 
-  // Auto-provision card for VERIFIED users without a card
-  // This triggers automatically instead of requiring user to press "Enable Card"
   useEffect(() => {
-    // Only trigger for authenticated users with VERIFIED KYC who don't have a card
     if (
       !isAuthenticated ||
       !isBaanxLoginEnabled ||
       !needToEnableCard ||
-      !canEnableCard || // KYC must be VERIFIED
+      !canEnableCard ||
       isLoading ||
       isLoadingProvisionCard ||
       isLoadingPollCardStatusUntilProvisioned ||
@@ -604,7 +590,6 @@ const CardHome = () => {
       return;
     }
 
-    // Mark as triggered to prevent duplicate calls
     hasTriggeredAutoProvision.current = true;
     enableCardAction();
   }, [
@@ -625,7 +610,6 @@ const CardHome = () => {
     [],
   );
 
-  // Handle authentication errors (expired token, invalid credentials, etc.)
   useEffect(() => {
     const handleAuthenticationError = async () => {
       const isAuthError =
@@ -645,10 +629,6 @@ const CardHome = () => {
       hasHandledAuthErrorRef.current = true;
       setIsHandlingAuthError(true);
 
-      Logger.log(
-        'CardHome: Authentication error detected, clearing auth state and redirecting',
-      );
-
       try {
         await removeCardBaanxToken();
 
@@ -661,8 +641,6 @@ const CardHome = () => {
 
         navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
       } catch (error) {
-        Logger.log('CardHome: Failed to handle authentication error', error);
-
         if (!isComponentUnmountedRef.current) {
           navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
         }
@@ -676,12 +654,7 @@ const CardHome = () => {
     handleAuthenticationError();
   }, [cardError, dispatch, isAuthenticated, navigation]);
 
-  // Load Card Data once when CardHome opens
-  // This is the single orchestrator for data fetching - individual hooks don't auto-fetch
-  // to prevent duplicate API calls
-  // Wait for SDK to be ready before fetching to ensure all API calls can succeed
   useEffect(() => {
-    // Wait for SDK to be ready before fetching data
     if (isSDKLoading) {
       return;
     }
@@ -693,23 +666,16 @@ const CardHome = () => {
     }
   }, [fetchAllData, isAuthenticated, isSDKLoading]);
 
-  // Refetch data when screen comes back into focus and cache was cleared
-  // This handles the case when user updates priority token or delegation in another screen
   useFocusEffect(
     useCallback(() => {
-      // Skip if initial fetch hasn't completed yet
-      // This prevents duplicate calls on first mount
       if (!hasCompletedInitialFetchRef.current) {
         return;
       }
 
-      // Skip if not authenticated or SDK not ready
       if (isSDKLoading || !isAuthenticated) {
         return;
       }
 
-      // Check if cache was cleared and needs refresh
-      // When cache is cleared, externalWalletDetailsData becomes null
       if (!externalWalletDetailsData && !isLoading) {
         fetchAllData();
       }

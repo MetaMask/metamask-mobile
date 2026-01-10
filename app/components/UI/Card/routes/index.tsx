@@ -110,7 +110,6 @@ export const cardSpendingLimitNavigationOptions = ({
   return {
     headerLeft: () =>
       isOnboardingFlow ? (
-        // No back button for onboarding - user must skip or complete
         <View />
       ) : (
         <ButtonIcon
@@ -130,7 +129,7 @@ export const cardSpendingLimitNavigationOptions = ({
       </Text>
     ),
     headerRight: () => <View />,
-    gestureEnabled: !isOnboardingFlow, // Disable swipe back for onboarding
+    gestureEnabled: !isOnboardingFlow,
   };
 };
 

@@ -102,7 +102,6 @@ const SpendingLimit = ({
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
 
-  // Use hook to fetch data when in onboarding flow (self-contained data fetching)
   const {
     availableTokens: hookAvailableTokens,
     delegationSettings: hookDelegationSettings,
@@ -111,27 +110,23 @@ const SpendingLimit = ({
     fetchData: fetchHookData,
   } = useSpendingLimitData();
 
-  // Fetch data on mount for onboarding flow
   useEffect(() => {
     if (isOnboardingFlow) {
       fetchHookData();
     }
   }, [isOnboardingFlow, fetchHookData]);
 
-  // Use route params if provided, otherwise fall back to hook data (for onboarding)
   const selectedTokenFromRoute = route?.params?.selectedToken;
   const priorityToken = route?.params?.priorityToken ?? null;
   const routeAllTokens = route?.params?.allTokens;
   const routeDelegationSettings = route?.params?.delegationSettings;
 
-  // Memoize allTokens to prevent re-renders
   const allTokens = useMemo(() => {
     if (routeAllTokens) return routeAllTokens;
     if (isOnboardingFlow) return hookAvailableTokens;
     return [];
   }, [routeAllTokens, isOnboardingFlow, hookAvailableTokens]);
 
-  // Memoize delegationSettings to prevent re-renders
   const delegationSettings = useMemo(() => {
     if (routeDelegationSettings !== undefined) return routeDelegationSettings;
     if (isOnboardingFlow) return hookDelegationSettings;
@@ -153,7 +148,6 @@ const SpendingLimit = ({
     useCardDelegation(selectedToken);
   const dispatch = useDispatch();
 
-  // Aggregate loading states for cleaner usage throughout the component
   const isLoading = isDelegationLoading || isProcessing;
 
   useEffect(() => {
@@ -172,22 +166,18 @@ const SpendingLimit = ({
     );
   }, [trackEvent, createEventBuilder, flow]);
 
-  // Block back navigation while loading
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (!isLoading || allowNavigation) {
-        // If not loading or we're explicitly allowing navigation, allow it
         return;
       }
 
-      // Prevent default navigation behavior
       e.preventDefault();
     });
 
     return unsubscribe;
   }, [navigation, isLoading, allowNavigation]);
 
-  // Derive spending limit settings from priority token
   const spendingLimitSettings = useMemo(() => {
     if (!priorityToken) {
       return { isFullAccess: false, limitAmount: '0' };
@@ -209,21 +199,16 @@ const SpendingLimit = ({
   }, [priorityToken]);
 
   useEffect(() => {
-    // If a token was passed from AssetSelectionBottomSheet (any flow), use it
     if (selectedTokenFromRoute) {
       setSelectedToken(selectedTokenFromRoute);
       return;
     }
 
-    // For both flows, pre-select the priority token if no token is selected yet
-    // and no token was passed from the route
     if (!selectedToken && priorityToken) {
-      // Check if priority token is Solana
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
         priorityToken?.caipChainId?.startsWith('solana:');
 
-      // Only pre-select if it's NOT Solana (Solana delegation is not supported)
       if (!isPriorityTokenSolana) {
         // Spread the entire priorityToken to preserve all fields including delegationContract
         setSelectedToken(priorityToken);
@@ -231,10 +216,8 @@ const SpendingLimit = ({
     }
   }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
 
-  // Listen for token selection from AssetSelectionBottomSheet modal
   useFocusEffect(
     useCallback(() => {
-      // Check if we're returning from the asset selection modal with a selected token
       const params = route?.params as
         | {
             returnedSelectedToken?: CardTokenAllowance;
@@ -243,8 +226,6 @@ const SpendingLimit = ({
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
 
-        // Clear both the returned token and the original selectedToken from params
-        // to prevent the useEffect from overriding our selection
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,
@@ -256,7 +237,6 @@ const SpendingLimit = ({
   const handleOptionSelect = useCallback((option: 'full' | 'restricted') => {
     setTempSelectedOption(option);
 
-    // If switching to full access, return to initial view
     if (option === 'full') {
       setShowOptions(false);
     }
@@ -270,7 +250,6 @@ const SpendingLimit = ({
         })
         .build(),
     );
-    // When "Set a limit" is clicked, show both options and default to restricted
     setTempSelectedOption('restricted');
     setShowOptions(true);
   }, [trackEvent, createEventBuilder]);
@@ -287,7 +266,6 @@ const SpendingLimit = ({
     const isRestricted = tempSelectedOption === 'restricted';
 
     try {
-      // Check if SDK is available before proceeding
       if (!sdk) {
         Logger.error(
           new Error('SDK not available'),
@@ -316,13 +294,11 @@ const SpendingLimit = ({
 
       const isLimitChange = Math.abs(newLimit - currentLimit) > 0.01;
 
-      // Determine the amount to use based on selected option
       const delegationAmount = isFullAccess
         ? BAANX_MAX_LIMIT
         : customLimit || '0';
 
       if (isSwitchingFromFullAccess || isLimitChange || isRestricted) {
-        // Use selectedToken if available, otherwise fall back to priorityToken
         const tokenToUse = selectedToken || priorityToken;
         const currency = tokenToUse?.symbol;
         const network = tokenToUse?.caipChainId
@@ -339,11 +315,9 @@ const SpendingLimit = ({
           network,
         });
 
-        // Add delay to ensure the delegation is complete
         await new Promise((resolve) => setTimeout(resolve, 3000));
         dispatch(clearCacheData('card-external-wallet-details'));
 
-        // Show success toast (skip for onboarding flow)
         if (!isOnboardingFlow) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
@@ -363,7 +337,6 @@ const SpendingLimit = ({
 
         setTimeout(() => {
           if (isOnboardingFlow) {
-            // Navigate to Complete screen after successful delegation in onboarding
             navigation.dispatch(
               StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
                 screen: Routes.CARD.ONBOARDING.COMPLETE,
@@ -377,7 +350,6 @@ const SpendingLimit = ({
         setIsProcessing(false);
         setShowOptions(false);
         if (isOnboardingFlow) {
-          // Navigate to Complete screen in onboarding flow
           navigation.dispatch(
             StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
               screen: Routes.CARD.ONBOARDING.COMPLETE,
@@ -391,7 +363,6 @@ const SpendingLimit = ({
       setAllowNavigation(false);
       setIsProcessing(false);
 
-      // Don't show error toast if user cancelled the transaction
       if (error instanceof UserCancelledError) {
         Logger.log('User cancelled the delegation transaction');
         return;
@@ -399,7 +370,6 @@ const SpendingLimit = ({
 
       Logger.error(error as Error, 'Failed to save spending limit');
 
-      // Show error toast only for actual errors
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -439,7 +409,6 @@ const SpendingLimit = ({
   ]);
 
   const handleCancel = useCallback(() => {
-    // Don't allow cancel while loading
     if (isLoading) {
       return;
     }
@@ -459,7 +428,6 @@ const SpendingLimit = ({
     }
   }, [navigation, showOptions, trackEvent, createEventBuilder, isLoading]);
 
-  // Handle skip action for onboarding flow
   const handleSkip = useCallback(() => {
     if (isLoading) {
       return;
@@ -474,7 +442,6 @@ const SpendingLimit = ({
         .build(),
     );
 
-    // Navigate to Complete screen when skipping in onboarding
     navigation.dispatch(
       StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.COMPLETE,
@@ -553,19 +520,15 @@ const SpendingLimit = ({
     );
   };
 
-  // Check if selected token is Solana
   const isSolanaSelected =
     selectedToken?.caipChainId === SolScope.Mainnet ||
     selectedToken?.caipChainId?.startsWith('solana:');
 
   const isConfirmDisabled = useMemo(() => {
-    // In onboarding flow, require a token to be selected
     if (isOnboardingFlow && !selectedToken) return true;
     if (isSolanaSelected) return true;
-    // For restricted mode, require a valid custom limit to be entered
     if (tempSelectedOption === 'restricted') {
       const limitNum = parseFloat(customLimit);
-      // Allow 0 (to remove token) or any positive number
       return customLimit === '' || isNaN(limitNum) || limitNum < 0;
     }
     return false;
@@ -577,7 +540,6 @@ const SpendingLimit = ({
     selectedToken,
   ]);
 
-  // Show loading state when fetching hook data in onboarding flow
   if (isOnboardingFlow && isLoadingHookData) {
     return (
       <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -594,7 +556,6 @@ const SpendingLimit = ({
     );
   }
 
-  // Show error state with retry option in onboarding flow
   if (isOnboardingFlow && hookError && !delegationSettings) {
     return (
       <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -649,7 +610,6 @@ const SpendingLimit = ({
 
         <View style={styles.optionsContainer}>
           {!showOptions ? (
-            // Initial view - only show full access option without radio button
             <View style={styles.optionCard}>
               <Text
                 variant={TextVariant.BodyMDMedium}
@@ -673,7 +633,6 @@ const SpendingLimit = ({
               </TouchableOpacity>
             </View>
           ) : (
-            // Options view - show both options with radio buttons in a single container
             <View style={styles.optionCard}>
               <TouchableOpacity
                 style={styles.optionItem}
@@ -740,9 +699,7 @@ const SpendingLimit = ({
                       style={styles.limitInput}
                       value={customLimit}
                       onChangeText={(text) => {
-                        // Allow only numbers and decimal point
                         const sanitized = text.replace(/[^0-9.]/g, '');
-                        // Prevent multiple decimal points
                         const parts = sanitized.split('.');
                         const formatted =
                           parts.length > 2
