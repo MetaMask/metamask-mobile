@@ -51,7 +51,7 @@ import TeamHelmet from '../../components/TeamHelmet';
 import FootballIcon from '../../components/FootballIcon';
 import { formatPeriodDisplay } from '../../utils/gameParser';
 
-const ONE_MONTH_FIDELITY = 720;
+const ONE_WEEK_FIDELITY = 168;
 
 const parseScore = (score: string): { away: string; home: string } => {
   if (!score) {
@@ -562,9 +562,9 @@ const PredictGameDetails: React.FC = () => {
     refetch: refetchPriceHistory,
   } = usePredictPriceHistory({
     marketIds: chartTokenIds,
-    interval: PredictPriceHistoryInterval.ONE_MONTH,
+    interval: PredictPriceHistoryInterval.ONE_WEEK,
     providerId,
-    fidelity: ONE_MONTH_FIDELITY,
+    fidelity: ONE_WEEK_FIDELITY,
     enabled: chartTokenIds.length > 0,
   });
 

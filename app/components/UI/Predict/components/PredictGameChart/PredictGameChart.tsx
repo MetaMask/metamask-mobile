@@ -9,7 +9,7 @@ import type { Colors } from '../../../../../util/theme/models';
 import * as shape from 'd3-shape';
 
 const CHART_HEIGHT = 160;
-const CHART_CONTENT_INSET = { top: 20, bottom: 20, left: 0, right: 0 };
+const CHART_CONTENT_INSET = { top: 20, bottom: 20, left: 0, right: 20 };
 const LINE_CURVE = shape.curveMonotoneX;
 
 export interface GameChartSeries {

@@ -113,7 +113,7 @@ export const usePredictLiveMarket = (
 
       try {
         const data: SportsWebSocketEvent = JSON.parse(event.data);
-        // DevLogger.log('[usePredictLiveMarket] Received update for game:', {
+        // console.warn('[usePredictLiveMarket] Received update for game:', {
         //   gameId: data.gameId,
         //   score: data.score,
         //   period: data.period,
@@ -126,7 +126,7 @@ export const usePredictLiveMarket = (
           return;
         }
 
-        DevLogger.log('[usePredictLiveMarket] Received update for game:', {
+        console.warn('[usePredictLiveMarket] Received update for game:', {
           gameId: data.gameId,
           score: data.score,
           period: data.period,
@@ -154,7 +154,7 @@ export const usePredictLiveMarket = (
 
         setLastUpdate(Date.now());
       } catch (err) {
-        DevLogger.log('[usePredictLiveMarket] Failed to parse message:', err);
+        console.warn('[usePredictLiveMarket] Failed to parse message:', err);
       }
     },
     [gameId],
@@ -172,7 +172,7 @@ export const usePredictLiveMarket = (
 
     cleanup();
 
-    DevLogger.log('[usePredictLiveMarket] Connecting to:', SPORTS_WS_URL);
+    console.warn('[usePredictLiveMarket] Connecting to:', SPORTS_WS_URL);
 
     try {
       const ws = new WebSocket(SPORTS_WS_URL);
@@ -180,14 +180,14 @@ export const usePredictLiveMarket = (
 
       ws.onopen = () => {
         if (!isMountedRef.current) return;
-        DevLogger.log('[usePredictLiveMarket] Connected');
+        console.warn('[usePredictLiveMarket] Connected');
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
       };
 
       ws.onclose = () => {
         if (!isMountedRef.current) return;
-        DevLogger.log('[usePredictLiveMarket] Disconnected');
+        console.warn('[usePredictLiveMarket] Disconnected');
         setIsConnected(false);
 
         if (
@@ -196,7 +196,7 @@ export const usePredictLiveMarket = (
         ) {
           reconnectAttemptsRef.current += 1;
           const delay = RECONNECT_DELAY_MS * reconnectAttemptsRef.current;
-          DevLogger.log(
+          console.warn(
             `[usePredictLiveMarket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`,
           );
           reconnectTimeoutRef.current = setTimeout(() => {
@@ -208,12 +208,12 @@ export const usePredictLiveMarket = (
       };
 
       ws.onerror = (error) => {
-        DevLogger.log('[usePredictLiveMarket] WebSocket error:', error);
+        console.warn('[usePredictLiveMarket] WebSocket error:', error);
       };
 
       ws.onmessage = handleMessage;
     } catch (err) {
-      DevLogger.log('[usePredictLiveMarket] Failed to create WebSocket:', err);
+      console.warn('[usePredictLiveMarket] Failed to create WebSocket:', err);
     }
   }, [shouldConnect, cleanup, handleMessage]);
 
@@ -237,11 +237,11 @@ export const usePredictLiveMarket = (
       if (!isMountedRef.current) return;
 
       if (nextAppState === 'active' && shouldConnect) {
-        DevLogger.log('[usePredictLiveMarket] App became active, reconnecting');
+        console.warn('[usePredictLiveMarket] App became active, reconnecting');
         reconnectAttemptsRef.current = 0;
         connect();
       } else if (nextAppState === 'background') {
-        DevLogger.log(
+        console.warn(
           '[usePredictLiveMarket] App went to background, disconnecting',
         );
         cleanup();
