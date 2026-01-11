@@ -111,6 +111,10 @@ export function buildNflGameData(
   event: PolymarketApiEvent,
   teamLookup: TeamLookup,
 ): PredictMarketGame | null {
+  if (!event.gameId) {
+    return null;
+  }
+
   const parsedSlug = parseNflSlugTeams(event.slug);
   if (!parsedSlug) {
     return null;
@@ -126,7 +130,7 @@ export function buildNflGameData(
   const league: PredictSportsLeague = 'nfl';
 
   return {
-    id: event.id,
+    id: event.gameId,
     startTime:
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
     status: getGameStatus(event),

@@ -106,6 +106,7 @@ export type PredictMarketGame = {
   score: string;
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
+  turn?: string;
 };
 
 export type PredictMarket = {

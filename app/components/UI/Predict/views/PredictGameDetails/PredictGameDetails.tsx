@@ -35,6 +35,7 @@ import PredictGameChart, {
   GameChartSeries,
 } from '../../components/PredictGameChart';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
+import { usePredictLiveMarket } from '../../hooks/usePredictLiveMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import {
@@ -49,7 +50,6 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import TeamHelmet from '../../components/TeamHelmet';
 import { formatPeriodDisplay } from '../../utils/gameParser';
 
-const LIVE_POLLING_INTERVAL = 5000;
 const ONE_MONTH_FIDELITY = 720;
 
 const parseScore = (score: string): { away: string; home: string } => {
@@ -507,9 +507,6 @@ const PredictGameDetails: React.FC = () => {
     navigation,
   });
 
-  const isGameOngoing = (game?: PredictMarketGame) =>
-    game?.status === 'ongoing';
-
   const {
     market,
     isFetching: isMarketFetching,
@@ -518,25 +515,11 @@ const PredictGameDetails: React.FC = () => {
     id: marketId,
     providerId,
     enabled: Boolean(marketId),
-    pollingInterval: isGameOngoing(undefined)
-      ? LIVE_POLLING_INTERVAL
-      : undefined,
   });
 
-  const game = market?.game;
-  const pollingInterval = isGameOngoing(game)
-    ? LIVE_POLLING_INTERVAL
-    : undefined;
+  const { liveMarket } = usePredictLiveMarket(market);
 
-  useEffect(() => {
-    if (pollingInterval && market) {
-      const interval = setInterval(() => {
-        refetchMarket();
-      }, pollingInterval);
-      return () => clearInterval(interval);
-    }
-    return undefined;
-  }, [pollingInterval, refetchMarket, market]);
+  const game = liveMarket?.game;
 
   const {
     positions,
