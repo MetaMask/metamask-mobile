@@ -201,63 +201,116 @@ const ScheduledContent: React.FC<ScheduledContentProps> = ({
 
 interface OngoingContentProps {
   game: PredictMarketGameType;
+  awayToken: PredictOutcomeToken;
+  homeToken: PredictOutcomeToken;
+  onBuyAway: () => void;
+  onBuyHome: () => void;
 }
 
-const OngoingContent: React.FC<OngoingContentProps> = ({ game }) => {
+const OngoingContent: React.FC<OngoingContentProps> = ({
+  game,
+  awayToken,
+  homeToken,
+  onBuyAway,
+  onBuyHome,
+}) => {
   const tw = useTailwind();
   const { away: awayScore, home: homeScore } = parseScore(game.score);
+  const awayOdds = getOddsPercentage(awayToken);
+  const homeOdds = getOddsPercentage(homeToken);
 
   const periodDisplay = formatPeriodDisplay(game.period || '');
   const elapsedDisplay = game.elapsed || '';
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full py-3"
-    >
+    <>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="w-full py-3"
       >
-        <TeamHelmet color={game.awayTeam.color} size={48} flipped />
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          style={tw.style('font-bold')}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-3"
         >
-          {awayScore}
-        </Text>
+          <TeamHelmet color={game.awayTeam.color} size={48} flipped />
+          <Text
+            variant={TextVariant.DisplayMd}
+            color={TextColor.TextDefault}
+            style={tw.style('font-bold')}
+          >
+            {awayScore}
+          </Text>
+        </Box>
+
+        <Box twClassName="items-center">
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            style={tw.style('text-center font-medium')}
+          >
+            {periodDisplay}
+            {elapsedDisplay ? ` ${elapsedDisplay}` : ''}
+          </Text>
+        </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-3"
+        >
+          <Text
+            variant={TextVariant.DisplayMd}
+            color={TextColor.TextDefault}
+            style={tw.style('font-bold')}
+          >
+            {homeScore}
+          </Text>
+          <TeamHelmet color={game.homeTeam.color} size={48} />
+        </Box>
       </Box>
 
-      <Box twClassName="items-center">
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          style={tw.style('text-center font-medium')}
-        >
-          {periodDisplay}
-          {elapsedDisplay ? ` ${elapsedDisplay}` : ''}
-        </Text>
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-2">
+        <Pressable onPress={onBuyAway} style={tw.style('flex-1')}>
+          {({ pressed }) => (
+            <Box
+              twClassName="py-3 rounded-xl items-center justify-center"
+              style={{
+                backgroundColor: game.awayTeam.color,
+                opacity: pressed ? 0.8 : 1,
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('font-bold text-white')}
+              >
+                {game.awayTeam.abbreviation.toUpperCase()} {awayOdds}%
+              </Text>
+            </Box>
+          )}
+        </Pressable>
+        <Pressable onPress={onBuyHome} style={tw.style('flex-1')}>
+          {({ pressed }) => (
+            <Box
+              twClassName="py-3 rounded-xl items-center justify-center"
+              style={{
+                backgroundColor: game.homeTeam.color,
+                opacity: pressed ? 0.8 : 1,
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('font-bold text-white')}
+              >
+                {game.homeTeam.abbreviation.toUpperCase()} {homeOdds}%
+              </Text>
+            </Box>
+          )}
+        </Pressable>
       </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
-      >
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          style={tw.style('font-bold')}
-        >
-          {homeScore}
-        </Text>
-        <TeamHelmet color={game.homeTeam.color} size={48} />
-      </Box>
-    </Box>
+    </>
   );
 };
 
@@ -406,7 +459,15 @@ const PredictMarketGame: React.FC<PredictMarketGameProps> = ({
           />
         );
       case 'ongoing':
-        return <OngoingContent game={game} />;
+        return (
+          <OngoingContent
+            game={game}
+            awayToken={awayToken}
+            homeToken={homeToken}
+            onBuyAway={() => handleBuy(awayToken)}
+            onBuyHome={() => handleBuy(homeToken)}
+          />
+        );
       case 'ended':
         return <EndedContent game={game} />;
       default:
