@@ -558,7 +558,7 @@ const PredictGameDetails: React.FC = () => {
     }
   }, [isMarketFetching, marketId, loadPositions]);
 
-  const outcome = market?.outcomes?.[0];
+  const outcome = liveMarket?.outcomes?.[0];
   const awayToken = outcome?.tokens?.[0];
   const homeToken = outcome?.tokens?.[1];
 
@@ -632,12 +632,12 @@ const PredictGameDetails: React.FC = () => {
   }, [refetchMarket, refetchPriceHistory, loadPositions]);
 
   const handleBuyPress = (token: PredictOutcomeToken) => {
-    if (!market || !outcome) return;
+    if (!liveMarket || !outcome) return;
 
     executeGuardedAction(
       () => {
         navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-          market,
+          market: liveMarket,
           outcome,
           outcomeToken: token,
           entryPoint:
@@ -706,17 +706,17 @@ const PredictGameDetails: React.FC = () => {
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
-      if (!market) return;
+      if (!liveMarket) return;
 
       executeGuardedAction(
         () => {
-          const outcome = market.outcomes.find(
+          const positionOutcome = liveMarket.outcomes.find(
             (o) => o.id === position.outcomeId,
           );
           navigation.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
-            market,
+            market: liveMarket,
             position,
-            outcome,
+            outcome: positionOutcome,
             entryPoint:
               entryPoint ||
               PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
@@ -725,7 +725,7 @@ const PredictGameDetails: React.FC = () => {
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
       );
     },
-    [market, executeGuardedAction, navigation, entryPoint],
+    [liveMarket, executeGuardedAction, navigation, entryPoint],
   );
 
   const renderPositions = () => {
