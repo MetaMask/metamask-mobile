@@ -14,6 +14,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
+import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -156,6 +157,21 @@ const MainRoutes = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name={Routes.CARD.CHOOSE_YOUR_CARD}
+        component={ChooseYourCard}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.REVIEW_ORDER}
+        component={VerifyingRegistration}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ORDER_COMPLETED}
+        component={VerifyingRegistration}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
         options={cardDefaultNavigationOptions}
@@ -198,6 +214,10 @@ const CardModalsRoutes = () => (
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.CONFIRM_MODAL}
+      component={ConfirmModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.RECURRING_FEE}
       component={ConfirmModal}
     />
   </ModalsStack.Navigator>
