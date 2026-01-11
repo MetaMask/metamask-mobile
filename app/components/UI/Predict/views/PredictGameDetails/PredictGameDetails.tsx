@@ -307,9 +307,14 @@ const GameStatusBadge: React.FC<GameStatusBadgeProps> = ({ game }) => {
 interface PositionRowProps {
   position: PredictPosition;
   game: PredictMarketGame;
+  onPress: () => void;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({ position, game }) => {
+const PositionRow: React.FC<PositionRowProps> = ({
+  position,
+  game,
+  onPress,
+}) => {
   const tw = useTailwind();
 
   const teamAbbr =
@@ -323,48 +328,56 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, game }) => {
   const isPnlPositive = position.cashPnl >= 0;
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3"
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
-      >
+    <Pressable onPress={onPress}>
+      {({ pressed }) => (
         <Box
-          twClassName="w-2 h-2 rounded-full"
-          style={{ backgroundColor: teamColor }}
-        />
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          ${position.initialValue.toFixed(2)} on {teamAbbr.toUpperCase()} to win
-        </Text>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={
-            isPnlPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-          }
-          style={tw.style('font-medium')}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-3"
+          style={pressed ? tw.style('opacity-70') : undefined}
         >
-          {formatCurrency(position.cashPnl)}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          style={tw.style('font-medium')}
-        >
-          ${position.currentValue.toFixed(2)}
-        </Text>
-      </Box>
-    </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Box
+              twClassName="w-2 h-2 rounded-full"
+              style={{ backgroundColor: teamColor }}
+            />
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              ${position.initialValue.toFixed(2)} on {teamAbbr.toUpperCase()} to
+              win
+            </Text>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={
+                isPnlPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+              }
+              style={tw.style('font-medium')}
+            >
+              {formatCurrency(position.cashPnl)}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-medium')}
+            >
+              ${position.currentValue.toFixed(2)}
+            </Text>
+          </Box>
+        </Box>
+      )}
+    </Pressable>
   );
 };
 
@@ -691,6 +704,30 @@ const PredictGameDetails: React.FC = () => {
     );
   };
 
+  const handlePositionPress = useCallback(
+    (position: PredictPosition) => {
+      if (!market) return;
+
+      executeGuardedAction(
+        () => {
+          const outcome = market.outcomes.find(
+            (o) => o.id === position.outcomeId,
+          );
+          navigation.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
+            market,
+            position,
+            outcome,
+            entryPoint:
+              entryPoint ||
+              PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          });
+        },
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+      );
+    },
+    [market, executeGuardedAction, navigation, entryPoint],
+  );
+
   const renderPositions = () => {
     if (isPositionsLoading || positions.length === 0 || !game) {
       return null;
@@ -707,7 +744,12 @@ const PredictGameDetails: React.FC = () => {
         </Text>
         <Box twClassName="border-t border-muted">
           {positions.map((position) => (
-            <PositionRow key={position.id} position={position} game={game} />
+            <PositionRow
+              key={position.id}
+              position={position}
+              game={game}
+              onPress={() => handlePositionPress(position)}
+            />
           ))}
         </Box>
       </Box>
