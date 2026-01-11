@@ -48,6 +48,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import TeamHelmet from '../../components/TeamHelmet';
+import FootballIcon from '../../components/FootballIcon';
 import { formatPeriodDisplay } from '../../utils/gameParser';
 
 const ONE_MONTH_FIDELITY = 720;
@@ -111,6 +112,11 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
 }) => {
   const tw = useTailwind();
 
+  const awayHasPossession =
+    game.turn?.toLowerCase() === game.awayTeam.abbreviation.toLowerCase();
+  const homeHasPossession =
+    game.turn?.toLowerCase() === game.homeTeam.abbreviation.toLowerCase();
+
   return (
     <Box twClassName="px-2 py-4">
       <Box
@@ -132,6 +138,7 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
             >
               {awayScore}
             </Text>
+            {awayHasPossession && <FootballIcon size={20} />}
           </Box>
           <Text
             variant={TextVariant.BodySm}
@@ -148,6 +155,7 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="gap-3"
           >
+            {homeHasPossession && <FootballIcon size={20} />}
             <Text
               variant={TextVariant.DisplayMd}
               color={TextColor.TextDefault}

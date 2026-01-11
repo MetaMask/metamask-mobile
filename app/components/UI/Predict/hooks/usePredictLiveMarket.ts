@@ -113,14 +113,14 @@ export const usePredictLiveMarket = (
 
       try {
         const data: SportsWebSocketEvent = JSON.parse(event.data);
-        DevLogger.log('[usePredictLiveMarket] Received update for game:', {
-          gameId: data.gameId,
-          score: data.score,
-          period: data.period,
-          elapsed: data.elapsed,
-          live: data.live,
-          ended: data.ended,
-        });
+        // DevLogger.log('[usePredictLiveMarket] Received update for game:', {
+        //   gameId: data.gameId,
+        //   score: data.score,
+        //   period: data.period,
+        //   elapsed: data.elapsed,
+        //   live: data.live,
+        //   ended: data.ended,
+        // });
 
         if (String(data.gameId) !== String(gameId)) {
           return;
@@ -133,6 +133,7 @@ export const usePredictLiveMarket = (
           elapsed: data.elapsed,
           live: data.live,
           ended: data.ended,
+          turn: data.turn,
         });
 
         setLiveMarket((prevMarket) => {
