@@ -6,11 +6,16 @@ import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import {
   getModalNavigationOptions,
   getNavbar,
+  NavbarOverrides,
 } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
-const useNavbar = (title: string, addBackButton = true) => {
+const useNavbar = (
+  title: string,
+  addBackButton = true,
+  overrides?: NavbarOverrides,
+) => {
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { onReject } = useConfirmActions();
@@ -25,6 +30,7 @@ const useNavbar = (title: string, addBackButton = true) => {
           onReject,
           addBackButton,
           theme,
+          overrides,
         }),
       );
     }
@@ -33,6 +39,7 @@ const useNavbar = (title: string, addBackButton = true) => {
     isFullScreenConfirmation,
     navigation,
     onReject,
+    overrides,
     theme,
     title,
   ]);

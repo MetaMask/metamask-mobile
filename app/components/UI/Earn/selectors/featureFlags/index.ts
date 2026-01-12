@@ -4,12 +4,10 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { Hex } from '@metamask/utils';
-import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../../constants/musd';
 import {
-  areValidAllowedPaymentTokens,
-  convertSymbolAllowlistToAddresses,
-} from '../../utils/musd';
+  getWildcardTokenListFromConfig,
+  WildcardTokenList,
+} from '../../utils/wildcardTokenList';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -70,75 +68,95 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
+export const selectIsMusdCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the tokens to have conversion CTAs (spotlight) from remote config or local fallback.
+ * Returns a wildcard list mapping chain IDs (or "*") to token symbols (or ["*"]).
+ *
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: blocks all tokens on that chain
+ *
+ * Examples:
+ * - { "*": ["USDC"] }           - Have conversion CTAs for USDC on ALL chains
+ * - { "0x1": ["*"] }            - Have conversion CTAs for ALL tokens on Ethereum mainnet
+ * - { "0xa4b1": ["USDT", "DAI"] } - Have conversion CTAs for specific tokens on specific chain
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (no conversion CTAs).
+ */
+export const selectMusdConversionCTATokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConversionCtaTokens,
+      'earnMusdConversionCtaTokens',
+      process.env.MM_MUSD_CTA_TOKENS,
+      'MM_MUSD_CTA_TOKENS',
+    ),
+);
+
 /**
  * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
- * Returns a mapping of chain IDs to arrays of token addresses that users can pay with to convert to mUSD.
+ * Returns a wildcard allowlist mapping chain IDs (or "*") to token symbols (or ["*"]).
  *
- * The flag uses JSON format: { "hexChainId": ["tokenSymbol1", "tokenSymbol2"] }
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: allows all tokens on that chain
  *
- * Example: { "0x1": ["USDC", "USDT"], "0xa4b1": ["USDC", "DAI"] }
+ * Examples:
+ * - { "*": ["USDC"] }           - Allow USDC on ALL chains
+ * - { "0x1": ["*"] }            - Allow ALL tokens on Ethereum mainnet
+ * - { "0x1": ["USDC", "USDT", "DAI"], "0xe708": ["USDC", "USDT"] } - Allow specific tokens on specific chains
  *
- * If both remote and local are unavailable, allows all supported payment tokens.
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (empty allowlist = allow all tokens).
  */
 export const selectMusdConversionPaymentTokensAllowlist = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): Record<Hex, Hex[]> => {
-    let localAllowlist: Record<Hex, Hex[]> | null = null;
-    try {
-      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist,
+      'earnMusdConvertibleTokensAllowlist',
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST,
+      'MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
+    ),
+);
 
-      if (localEnvValue) {
-        const parsed = JSON.parse(localEnvValue);
-        const converted = convertSymbolAllowlistToAddresses(parsed);
-        if (areValidAllowedPaymentTokens(converted)) {
-          localAllowlist = converted;
-        } else {
-          console.warn(
-            'Local MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST produced invalid structure',
-          );
-        }
-      }
-    } catch (error) {
-      console.warn(
-        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST:',
-        error,
-      );
-    }
-
-    const remoteAllowlist =
-      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist;
-
-    if (remoteAllowlist) {
-      try {
-        const parsedRemote =
-          typeof remoteAllowlist === 'string'
-            ? JSON.parse(remoteAllowlist)
-            : remoteAllowlist;
-
-        if (
-          parsedRemote &&
-          typeof parsedRemote === 'object' &&
-          !Array.isArray(parsedRemote)
-        ) {
-          const converted = convertSymbolAllowlistToAddresses(
-            parsedRemote as Record<string, string[]>,
-          );
-          if (areValidAllowedPaymentTokens(converted)) {
-            return converted;
-          }
-          console.warn(
-            'Remote earnMusdConvertibleTokensAllowlist produced invalid structure',
-          );
-        }
-      } catch (error) {
-        console.warn(
-          'Failed to parse remote earnMusdConvertibleTokensAllowlist. ' +
-            'Expected JSON string format: {"0x1":["USDC","USDT"]}',
-          error,
-        );
-      }
-    }
-
-    return localAllowlist || CONVERTIBLE_STABLECOINS_BY_CHAIN;
-  },
+/**
+ * Selects the blocked payment tokens for mUSD conversion from remote config or local fallback.
+ * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
+ *
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: blocks all tokens on that chain
+ *
+ * Examples:
+ * - { "*": ["USDC"] }           - Block USDC on ALL chains
+ * - { "0x1": ["*"] }            - Block ALL tokens on Ethereum mainnet
+ * - { "0xa4b1": ["USDT", "DAI"] } - Block specific tokens on specific chain
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (no blocking).
+ */
+export const selectMusdConversionPaymentTokensBlocklist = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMusdConvertibleTokensBlocklist,
+      'earnMusdConvertibleTokensBlocklist',
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST,
+      'MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
+    ),
 );

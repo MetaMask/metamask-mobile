@@ -1,6 +1,6 @@
 import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { formatCurrency } from './currencyUtils';
+import { formatCurrency, formatMinimumReceived } from './currencyUtils';
 
 jest.mock('../../../../../locales/i18n', () => ({
   locale: 'en-US',
@@ -398,5 +398,59 @@ describe('formatCurrency', () => {
       // Reset locale
       (I18n as { locale: string }).locale = 'en-US';
     });
+  });
+});
+
+describe('formatMinimumReceived', () => {
+  const mockFormat = jest.fn();
+  const mockGetIntlNumberFormatter =
+    getIntlNumberFormatter as jest.MockedFunction<
+      typeof getIntlNumberFormatter
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetIntlNumberFormatter.mockReturnValue({
+      format: mockFormat,
+    } as unknown as Intl.NumberFormat);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('floors values down instead of rounding up', () => {
+    mockFormat.mockImplementation((val) => String(val));
+
+    formatMinimumReceived(0.012579999);
+
+    expect(mockFormat).toHaveBeenCalledWith(0.01257999);
+  });
+
+  it('parses string amounts', () => {
+    mockFormat.mockImplementation((val) => String(val));
+
+    formatMinimumReceived('1.2345');
+
+    expect(mockFormat).toHaveBeenCalledWith(1.2345);
+  });
+
+  it('returns "0" for invalid input', () => {
+    const result = formatMinimumReceived('not-a-number');
+
+    expect(result).toBe('0');
+  });
+
+  it('uses locale from I18n', () => {
+    mockFormat.mockImplementation((val) => String(val));
+    (I18n as { locale: string }).locale = 'de-DE';
+
+    formatMinimumReceived(1.234);
+
+    expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('de-DE', {
+      maximumSignificantDigits: 8,
+    });
+
+    (I18n as { locale: string }).locale = 'en-US';
   });
 });

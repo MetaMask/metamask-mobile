@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
@@ -33,12 +33,8 @@ const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
  * @param cardExternalWalletDetail - External wallet detail from API
  * @returns Mapped CardTokenAllowance or null if invalid
  */
-export const mapCardExternalWalletDetailToCardTokenAllowance = (
+const mapCardExternalWalletDetailToCardTokenAllowance = (
   cardExternalWalletsDetail: (CardExternalWalletDetail | undefined)[],
-  totalAllowances: {
-    address: string;
-    allowance: string | undefined;
-  }[],
 ): (CardTokenAllowance | null)[] =>
   cardExternalWalletsDetail.map((cardExternalWalletDetail) => {
     if (!cardExternalWalletDetail) {
@@ -53,16 +49,6 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
     const allowanceState = determineAllowanceState(allowanceFloat);
     const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
-    // Find totalAllowance by matching the token address
-    // Use stagingTokenAddress if available (for staging environment), otherwise use regular address
-    const tokenAddressToMatch =
-      cardExternalWalletDetail.stagingTokenAddress ||
-      cardExternalWalletDetail.tokenDetails.address;
-
-    const totalAllowance = totalAllowances.find(
-      (ta) => ta.address.toLowerCase() === tokenAddressToMatch?.toLowerCase(),
-    );
-
     return {
       address: cardExternalWalletDetail.tokenDetails.address ?? '',
       decimals: cardExternalWalletDetail.tokenDetails.decimals ?? 0,
@@ -71,7 +57,6 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       walletAddress: cardExternalWalletDetail.walletAddress,
       caipChainId: cardExternalWalletDetail.caipChainId,
       allowanceState,
-      totalAllowance: totalAllowance?.allowance,
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
       delegationContract: cardExternalWalletDetail.delegationContractAddress,
@@ -102,14 +87,22 @@ const useGetCardExternalWalletDetails = (
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
+  // Use a ref to always access the latest delegation settings value
+  // This avoids stale closure issues when fetchCardExternalWalletDetails is called
+  // after fetchDelegationSettings completes but before the next render
+  const delegationSettingsRef = useRef(delegationSettings);
+  delegationSettingsRef.current = delegationSettings;
+
   const fetchCardExternalWalletDetails = useCallback(async () => {
-    if (!sdk || !isAuthenticated || !delegationSettings) {
+    // Read from ref to get the latest value (avoids stale closure)
+    const currentDelegationSettings = delegationSettingsRef.current;
+    if (!sdk || !isAuthenticated || !currentDelegationSettings) {
       return null;
     }
 
     try {
       const cardExternalWalletDetails = await sdk.getCardExternalWalletDetails(
-        delegationSettings.networks,
+        currentDelegationSettings.networks,
       );
 
       if (!cardExternalWalletDetails?.length) {
@@ -141,12 +134,9 @@ const useGetCardExternalWalletDetails = (
         }
       }
 
-      // Map wallet details without totalAllowance
-      // totalAllowance will be fetched separately only for the priority token using logs
       const mappedWalletDetails =
         mapCardExternalWalletDetailToCardTokenAllowance(
           cardExternalWalletDetails,
-          [], // Empty array - totalAllowance will be populated later for priority token only
         ).filter(Boolean) as CardTokenAllowance[];
 
       // Get priority wallet detail
@@ -170,37 +160,20 @@ const useGetCardExternalWalletDetails = (
       );
       throw normalizedError;
     }
-  }, [sdk, isAuthenticated, delegationSettings]);
+    // Note: delegationSettings is accessed via ref, not closure, so it's not in dependencies
+  }, [sdk, isAuthenticated]);
 
-  const cacheResult = useWrapWithCache(
+  // Note: Auto-fetch is disabled to prevent duplicate API calls.
+  // CardHome orchestrates all data fetching via fetchAllData() to ensure
+  // a single source of truth for when data is loaded.
+  return useWrapWithCache(
     'card-external-wallet-details',
     fetchCardExternalWalletDetails,
     {
       cacheDuration: 60 * 1000, // 60 seconds cache (matches authenticated mode in useGetPriorityCardToken)
-      fetchOnMount: false, // Disable auto-fetch, we'll manually control it below
+      fetchOnMount: false,
     },
   );
-
-  const { data, isLoading, error, fetchData } = cacheResult;
-
-  // Manually trigger fetch when all prerequisites are ready
-  // This avoids the race condition where SDK isn't available on first render
-  useEffect(() => {
-    if (
-      sdk &&
-      isAuthenticated &&
-      delegationSettings &&
-      !isLoading &&
-      !error &&
-      !data
-    ) {
-      fetchData();
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk, isAuthenticated, delegationSettings, isLoading, error, data]);
-
-  return cacheResult;
 };
 
 export default useGetCardExternalWalletDetails;

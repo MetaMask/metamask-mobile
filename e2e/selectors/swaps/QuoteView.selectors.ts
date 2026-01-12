@@ -9,6 +9,8 @@ export const QuoteViewSelectorText = {
   SELECT_ALL: enContent.bridge.see_all,
   CANCEL: 'Cancel',
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
+  MAX: enContent.bridge.max,
+  INCLUDED: enContent.bridge.included,
 };
 
 export const QuoteViewSelectorIDs = {
@@ -16,6 +18,9 @@ export const QuoteViewSelectorIDs = {
   EXPAND_QUOTE_DETAILS: 'expand-quote-details',
   SOURCE_TOKEN_AREA: 'source-token-area',
   DESTINATION_TOKEN_AREA: 'dest-token-area',
+  SOURCE_TOKEN_INPUT: 'source-token-area-input',
+  DESTINATION_TOKEN_INPUT: 'dest-token-area-input',
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
+  BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
 };

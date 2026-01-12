@@ -20,8 +20,8 @@ export const convertPerpsAmountToUSD = (amount: string): string => {
     // If it's already a USD string (e.g., "$10.32"), extract numeric value
     if (amount.startsWith('$')) {
       const numericValue = parseFloat(amount.replace('$', ''));
-      const flooredValue = Math.floor(numericValue);
-      return formatPerpsFiat(flooredValue);
+      // Preserve decimals for USD amounts
+      return formatPerpsFiat(numericValue);
     }
 
     // Check if it's a hex value (starts with 0x) - treat as wei
@@ -34,16 +34,15 @@ export const convertPerpsAmountToUSD = (amount: string): string => {
       // In a real implementation, this should come from a price feed
       const ethPriceUSD = 2000; // TODO: Replace with actual ETH price from price feed
       const usdValue = ethValue * ethPriceUSD;
-      const flooredValue = Math.floor(usdValue);
-
-      return formatPerpsFiat(flooredValue);
+      // Preserve decimals for converted amounts
+      return formatPerpsFiat(usdValue);
     }
 
-    // Otherwise, treat as a direct USD amount (e.g., "1" = $1)
+    // Otherwise, treat as a direct USD amount (e.g., "1.30" = $1.30)
     const numericValue = parseFloat(amount);
     if (!isNaN(numericValue)) {
-      const flooredValue = Math.floor(numericValue);
-      return formatPerpsFiat(flooredValue);
+      // Preserve decimals for numeric USD amounts
+      return formatPerpsFiat(numericValue);
     }
 
     // Invalid input - return formatted zero

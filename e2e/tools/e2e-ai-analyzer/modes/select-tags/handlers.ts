@@ -4,16 +4,30 @@
 
 import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
-import { smokeTags } from '../../../../tags';
+import { smokeTags, flaskTags } from '../../../../tags';
 
 /**
- * Derive AI config from E2EsmokeTags
- * Converts smokeTags object to array format for AI
+ * Tags to exclude from AI selection (broken/disabled tests)
  */
-export const SELECT_TAGS_CONFIG = Object.values(smokeTags).map((config) => ({
-  tag: config.tag.replace(':', ''), // Remove trailing colon for AI
-  description: config.description,
-}));
+const EXCLUDED_TAGS = [
+  'SmokeSwaps',
+  'SmokeCard',
+  'SmokeRamps',
+  'SmokeMultiChainAPI',
+];
+
+/**
+ * Derive AI config from smokeTags and flaskTags
+ * Converts tags objects to array format for AI
+ */
+const allTags = { ...smokeTags, ...flaskTags };
+
+export const SELECT_TAGS_CONFIG = Object.values(allTags)
+  .map((config) => ({
+    tag: config.tag.replace(':', ''), // Remove trailing colon for AI
+    description: config.description,
+  }))
+  .filter((config) => !EXCLUDED_TAGS.includes(config.tag));
 
 /**
  * Safe minimum: When no work needed, return empty result

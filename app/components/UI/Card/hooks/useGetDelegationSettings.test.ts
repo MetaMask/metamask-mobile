@@ -136,6 +136,7 @@ describe('useGetDelegationSettings', () => {
         expect.any(Function),
         {
           cacheDuration: 600000, // 10 minutes in milliseconds
+          fetchOnMount: false,
         },
       );
     });
@@ -148,6 +149,7 @@ describe('useGetDelegationSettings', () => {
 
       expect(options).toEqual({
         cacheDuration: 10 * 60 * 1000,
+        fetchOnMount: false,
       });
     });
   });

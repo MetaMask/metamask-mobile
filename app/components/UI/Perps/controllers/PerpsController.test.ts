@@ -95,9 +95,19 @@ jest.mock('../../../../core/Engine', () => {
     }),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa',
+      },
+    ]),
+  };
+
   const mockEngineContext = {
     RewardsController: mockRewardsController,
     NetworkController: mockNetworkController,
+    AccountTreeController: mockAccountTreeController,
     TransactionController: {},
   };
 
@@ -473,9 +483,7 @@ describe('PerpsController', () => {
     it('initializes with default state', () => {
       // Constructor no longer auto-starts initialization (moved to Engine.ts)
       expect(controller.state.activeProvider).toBe('hyperliquid');
-      expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
-      expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
       expect(controller.state.initializationAttempts).toBe(0); // Not started yet
@@ -1470,18 +1478,6 @@ describe('PerpsController', () => {
       await controller.disconnect();
 
       expect(mockProvider.disconnect).toHaveBeenCalled();
-      expect(controller.state.connectionStatus).toBe('disconnected');
-    });
-
-    it('handles connection status from state', () => {
-      // Test that we can access connection status from controller state
-      expect(controller.state.connectionStatus).toBe('disconnected');
-
-      // Test that the state is accessible and has the expected default value
-      expect(typeof controller.state.connectionStatus).toBe('string');
-      expect(['connected', 'disconnected', 'connecting']).toContain(
-        controller.state.connectionStatus,
-      );
     });
   });
 
@@ -2513,6 +2509,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
             amount: '50',
             asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
             success: false,
             status: 'pending',
             source: 'hyperliquid',
@@ -2583,6 +2580,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '75',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2618,6 +2616,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '100',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2831,6 +2830,214 @@ describe('PerpsController', () => {
       const result = controller.getTradeConfiguration('BTC');
 
       expect(result?.leverage).toBe(10);
+    });
+  });
+
+  describe('pending trade configuration', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('saves pending trade configuration', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        stopLossPrice: '40000',
+        limitPrice: '45000',
+        orderType: 'limit' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toEqual(config);
+    });
+
+    it('returns undefined for non-existent pending configuration', () => {
+      const result = controller.getPendingTradeConfiguration('ETH');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for expired pending configuration (more than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes (more than 5 minutes)
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns configuration for valid pending configuration (less than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        orderType: 'market' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 4 minutes (less than 5 minutes)
+      jest.advanceTimersByTime(4 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toEqual(config);
+    });
+
+    it('clears expired pending configuration automatically', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      // First call should clear expired config
+      controller.getPendingTradeConfiguration('BTC');
+
+      // Second call should return undefined
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+
+      // Verify state was cleaned up
+      const network = controller.state.isTestnet ? 'testnet' : 'mainnet';
+      expect(
+        controller.state.tradeConfigurations[network]?.BTC?.pendingConfig,
+      ).toBeUndefined();
+    });
+
+    it('clears pending trade configuration explicitly', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(config);
+
+      controller.clearPendingTradeConfiguration('BTC');
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+    });
+
+    it('saves pending config per network (testnet vs mainnet)', () => {
+      const configMainnet = {
+        amount: '100',
+        leverage: 5,
+      };
+      const configTestnet = {
+        amount: '200',
+        leverage: 10,
+      };
+
+      // Save on mainnet (default is mainnet)
+      controller.savePendingTradeConfiguration('BTC', configMainnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+
+      // Switch to testnet using update method
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+      controller.savePendingTradeConfiguration('BTC', configTestnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configTestnet,
+      );
+
+      // Switch back to mainnet
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+    });
+
+    it('preserves existing leverage when saving pending config', () => {
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 10);
+
+      // Then save pending config
+      const pendingConfig = {
+        amount: '100',
+        leverage: 5,
+      };
+      controller.savePendingTradeConfiguration('BTC', pendingConfig);
+
+      // Leverage should still be saved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(10);
+
+      // Pending config should also be available
+      const pending = controller.getPendingTradeConfiguration('BTC');
+      expect(pending).toEqual(pendingConfig);
+    });
+  });
+
+  describe('order book grouping', () => {
+    it('saves order book grouping for mainnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      controller.saveOrderBookGrouping('BTC', 10);
+
+      const result = controller.getOrderBookGrouping('BTC');
+      expect(result).toBe(10);
+    });
+
+    it('saves order book grouping for testnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+
+      controller.saveOrderBookGrouping('ETH', 0.01);
+
+      const result = controller.getOrderBookGrouping('ETH');
+      expect(result).toBe(0.01);
+    });
+
+    it('returns undefined when no grouping is saved', () => {
+      const result = controller.getOrderBookGrouping('SOL');
+      expect(result).toBeUndefined();
+    });
+
+    it('preserves existing config when saving grouping', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 5);
+
+      // Then save grouping
+      controller.saveOrderBookGrouping('BTC', 100);
+
+      // Both should be preserved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(5);
+
+      const savedGrouping = controller.getOrderBookGrouping('BTC');
+      expect(savedGrouping).toBe(100);
     });
   });
 });

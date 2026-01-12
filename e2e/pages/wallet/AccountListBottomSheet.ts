@@ -134,7 +134,10 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapAddAccountButtonV2(options?: { srpIndex?: number }): Promise<void> {
+  async tapAddAccountButtonV2(options?: {
+    srpIndex?: number;
+    shouldWait?: boolean;
+  }): Promise<void> {
     const button = Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       options?.srpIndex ?? 0,
@@ -142,6 +145,7 @@ class AccountListBottomSheet {
 
     await Gestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',
+      delay: options?.shouldWait ? 1500 : 0,
     });
   }
 
@@ -217,12 +221,28 @@ class AccountListBottomSheet {
   }
 
   /**
+   * Get the ellipsis menu button for a specific account by index
+   * @param accountIndex - The index of the account (0-based)
+   * @returns The ellipsis menu element at the specified index
+   */
+  async getEllipsisMenuButtonAtIndex(
+    accountIndex: number,
+  ): Promise<Detox.IndexableNativeElement> {
+    const el = (await this.ellipsisMenuButton) as Detox.IndexableNativeElement;
+    return el.atIndex(accountIndex) as Detox.IndexableNativeElement;
+  }
+
+  /**
    * Tap the ellipsis menu button for a specific account in V2 multichain accounts
    * @param accountIndex - The index of the account to tap (0-based)
    */
-  async tapAccountEllipsisButtonV2(accountIndex: number): Promise<void> {
+  async tapAccountEllipsisButtonV2(
+    accountIndex: number,
+    { shouldWait = false }: { shouldWait: boolean } = { shouldWait: false },
+  ): Promise<void> {
     await Gestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
+      delay: shouldWait ? 1500 : 0,
     });
   }
 

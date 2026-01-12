@@ -1,4 +1,4 @@
-name: Push OTA Update (Test)
+name: Push OTA Update (EXP Build)
 
 on:
   workflow_dispatch:
@@ -11,6 +11,10 @@ on:
         description: 'Base branch ref to compare fingerprints against (e.g., main)'
         required: true
         type: string
+      message:
+        description: 'EAS update message'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,6 +23,7 @@ permissions:
 env:
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
+  UPDATE_MESSAGE: ${{ inputs.message }}
 
 jobs:
   fingerprint-comparison:
@@ -140,7 +145,7 @@ jobs:
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
-    environment: expo-update
+    environment: build-exp
     needs:
       - fingerprint-comparison
       - approval
@@ -149,7 +154,33 @@ jobs:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
-
+      GIT_BRANCH: ${{ github.ref_name }}
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+      MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }} #need to add to secrets
+      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }} #need to add to secrets
+      MM_CARD_BAANX_API_CLIENT_KEY_UAT: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY_UAT }} #need to add to secrets
+      WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }} #need to add to secrets
+      MM_FOX_CODE: ${{ secrets.MM_FOX_CODE_TEST }} #need to add to secrets
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -180,7 +211,7 @@ jobs:
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
-          echo "  Message: test eas update workflow"
+          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
           # Fingerprint comparison temporarily disabled
           echo ""
@@ -189,20 +220,9 @@ jobs:
           echo "  EXPO_PROJECT_ID (from secrets): $EXPO_PROJECT_ID"
           echo "  EXPO_TOKEN (from secrets): $EXPO_TOKEN"
 
-      - name: Prepare Expo update signing key
+      - name: Build & Push EAS Update via build.sh
         env:
           EXPO_KEY_PRIV: ${{ secrets.EXPO_KEY_PRIV }}
-        run: |
-          if [ -z "${EXPO_KEY_PRIV}" ]; then
-            echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-            exit 1
-          fi
-          mkdir -p keys
-          echo "Writing Expo private key to ./keys/private-key.pem"
-          printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
-
-      - name: Push EAS Update
-        env:
           # Skip linting during Metro transform in CI (linting already done separately)
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
@@ -210,33 +230,7 @@ jobs:
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
-          echo "🚀 Publishing EAS update..."
-
-          if [ -z "${EXPO_CHANNEL}" ]; then
-            echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
-            exit 1
-          fi
-
-          if [ ! -f keys/private-key.pem ]; then
-            echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
-            exit 1
-          fi
-
-          echo "ℹ️ Git head: $(git rev-parse HEAD)"
-          echo "ℹ️ Checking for eas script in package.json..."
-          if ! grep -q '"eas": "eas"' package.json; then
-            echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
-            exit 1
-          fi
-
-          echo "ℹ️ Available yarn scripts containing eas:"
-          yarn run --json | grep '"name":"eas"' || true
-
-          yarn run eas update \
-            --channel "${EXPO_CHANNEL}" \
-            --private-key-path "./keys/private-key.pem" \
-            --message "test eas update workflow" \
-            --non-interactive
+          yarn run build:expo-update:main:exp
 
       - name: Update summary
         if: success()
@@ -245,7 +239,7 @@ jobs:
             echo "### ✅ EAS Update Published Successfully"
             echo
             echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
-            echo "**Message:** test eas update workflow"
+            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
             echo
             echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
           } >> "$GITHUB_STEP_SUMMARY"

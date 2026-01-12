@@ -228,8 +228,8 @@ jest.mock('../../store', () => ({
 jest.mock('../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn(() => false),
-    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    isMwpDeeplink: jest.fn(() => false),
+    handleMwpDeeplink: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
   },
 }));
@@ -567,6 +567,50 @@ jest.mock('react-native-safe-area-context', () => ({
   ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
+
+jest.mock(
+  'react-native-keyboard-controller',
+  () => ({
+    KeyboardProvider: ({ children }) => children,
+    KeyboardAwareScrollView: require('react-native').ScrollView,
+    KeyboardGestureArea: require('react-native').View,
+    KeyboardStickyView: require('react-native').View,
+    KeyboardToolbar: require('react-native').View,
+    useKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useReanimatedKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useKeyboardHandler: () => {},
+    useGenericKeyboardHandler: () => {},
+    useKeyboardState: (selector) => {
+      const defaultState = {
+        isVisible: false,
+        height: 0,
+        duration: 0,
+        timestamp: 0,
+      };
+      return selector ? selector(defaultState) : defaultState;
+    },
+    KeyboardEvents: {
+      addListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
+    KeyboardController: {
+      setInputMode: jest.fn(),
+      setDefaultMode: jest.fn(),
+    },
+    AndroidSoftInputModes: {
+      SOFT_INPUT_ADJUST_NOTHING: 0,
+      SOFT_INPUT_ADJUST_PAN: 1,
+      SOFT_INPUT_ADJUST_RESIZE: 2,
+      SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+    },
+  }),
+  { virtual: true },
+);
 
 afterEach(() => {
   jest.restoreAllMocks();

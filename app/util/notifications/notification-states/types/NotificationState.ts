@@ -7,8 +7,14 @@ import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
 import { ExtractedNotification } from '../node-guard';
 
+type GuardFn<T extends INotification = INotification> = (
+  n: INotification,
+) => n is T;
+
 export interface NotificationState<T extends INotification = INotification> {
-  guardFn: (n: INotification) => n is T;
+  guardFn:
+    | GuardFn<T>
+    | [GuardFn<T>, validateOtherProperties?: (t: T) => boolean];
   createMenuItem: (n: T) => NotificationMenuItem;
   createModalDetails?: (n: T) => NotificationModalDetails;
 }

@@ -1,36 +1,36 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
-import { selectMusdConversionPaymentTokensAllowlist } from '../selectors/featureFlags';
-import { isMusdConversionPaymentToken } from '../utils/musd';
+import {
+  selectMusdConversionPaymentTokensAllowlist,
+  selectMusdConversionPaymentTokensBlocklist,
+} from '../selectors/featureFlags';
+import { isTokenAllowed, WildcardTokenList } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 
 jest.mock('react-redux');
 jest.mock('../selectors/featureFlags');
-jest.mock('../utils/musd');
+jest.mock('../utils/wildcardTokenList');
 jest.mock('../../../Views/confirmations/hooks/send/useAccountTokens');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockIsMusdConversionPaymentToken =
-  isMusdConversionPaymentToken as jest.MockedFunction<
-    typeof isMusdConversionPaymentToken
-  >;
+const mockIsTokenAllowed = isTokenAllowed as jest.MockedFunction<
+  typeof isTokenAllowed
+>;
 const mockUseAccountTokens = useAccountTokens as jest.MockedFunction<
   typeof useAccountTokens
 >;
 
 describe('useMusdConversionTokens', () => {
-  const mockAllowlist: Record<Hex, Hex[]> = {
-    '0x1': [
-      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-      '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-    ],
-    '0xe708': [
-      '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC on Linea
-    ],
+  const mockAllowlist: WildcardTokenList = {
+    '0x1': ['USDC', 'USDT'],
+    '0xe708': ['USDC'],
   };
+
+  const mockBlocklist: WildcardTokenList = {};
 
   const mockUsdcMainnet: AssetType = {
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -90,10 +90,13 @@ describe('useMusdConversionTokens', () => {
       if (selector === selectMusdConversionPaymentTokensAllowlist) {
         return mockAllowlist;
       }
+      if (selector === selectMusdConversionPaymentTokensBlocklist) {
+        return mockBlocklist;
+      }
       return undefined;
     });
     mockUseAccountTokens.mockReturnValue([]);
-    mockIsMusdConversionPaymentToken.mockReturnValue(false);
+    mockIsTokenAllowed.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -101,24 +104,31 @@ describe('useMusdConversionTokens', () => {
   });
 
   describe('hook structure', () => {
-    it('returns object with tokenFilter, isConversionToken, and tokens properties', () => {
+    it('returns object with filterAllowedTokens, isConversionToken, isMusdSupportedOnChain, and tokens properties', () => {
       const { result } = renderHook(() => useMusdConversionTokens());
 
-      expect(result.current).toHaveProperty('tokenFilter');
+      expect(result.current).toHaveProperty('filterAllowedTokens');
       expect(result.current).toHaveProperty('isConversionToken');
+      expect(result.current).toHaveProperty('isMusdSupportedOnChain');
       expect(result.current).toHaveProperty('tokens');
     });
 
-    it('returns tokenFilter as a function', () => {
+    it('returns filterAllowedTokens as a function', () => {
       const { result } = renderHook(() => useMusdConversionTokens());
 
-      expect(typeof result.current.tokenFilter).toBe('function');
+      expect(typeof result.current.filterAllowedTokens).toBe('function');
     });
 
     it('returns isConversionToken as a function', () => {
       const { result } = renderHook(() => useMusdConversionTokens());
 
       expect(typeof result.current.isConversionToken).toBe('function');
+    });
+
+    it('returns isMusdSupportedOnChain as a function', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(typeof result.current.isMusdSupportedOnChain).toBe('function');
     });
 
     it('returns tokens as an array', () => {
@@ -135,13 +145,15 @@ describe('useMusdConversionTokens', () => {
         mockUsdtMainnet,
         mockDaiMainnet,
       ]);
-      mockIsMusdConversionPaymentToken.mockImplementation(
-        (address, _allowlist, chainId) => {
+      mockIsTokenAllowed.mockImplementation(
+        (
+          symbol: string,
+          _allowlist?: WildcardTokenList,
+          _blocklist?: WildcardTokenList,
+          chainId?: string,
+        ) => {
           if (chainId === '0x1') {
-            return (
-              address.toLowerCase() === mockUsdcMainnet.address.toLowerCase() ||
-              address.toLowerCase() === mockUsdtMainnet.address.toLowerCase()
-            );
+            return symbol === 'USDC' || symbol === 'USDT';
           }
           return false;
         },
@@ -157,7 +169,7 @@ describe('useMusdConversionTokens', () => {
 
     it('returns empty array when no tokens match allowlist', () => {
       mockUseAccountTokens.mockReturnValue([mockDaiMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(false);
+      mockIsTokenAllowed.mockReturnValue(false);
 
       const { result } = renderHook(() => useMusdConversionTokens());
 
@@ -170,17 +182,18 @@ describe('useMusdConversionTokens', () => {
         mockUsdcLinea,
         mockDaiMainnet,
       ]);
-      mockIsMusdConversionPaymentToken.mockImplementation(
-        (address, _allowlist, chainId) => {
+      mockIsTokenAllowed.mockImplementation(
+        (
+          symbol: string,
+          _allowlist?: WildcardTokenList,
+          _blocklist?: WildcardTokenList,
+          chainId?: string,
+        ) => {
           if (chainId === '0x1') {
-            return (
-              address.toLowerCase() === mockUsdcMainnet.address.toLowerCase()
-            );
+            return symbol === 'USDC';
           }
           if (chainId === '0xe708') {
-            return (
-              address.toLowerCase() === mockUsdcLinea.address.toLowerCase()
-            );
+            return symbol === 'USDC';
           }
           return false;
         },
@@ -200,7 +213,7 @@ describe('useMusdConversionTokens', () => {
         address: mockUsdcMainnet.address.toUpperCase() as Hex,
       };
       mockUseAccountTokens.mockReturnValue([uppercaseUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
 
@@ -212,7 +225,7 @@ describe('useMusdConversionTokens', () => {
   describe('isConversionToken', () => {
     it('returns true for token in conversion tokens list with matching address and chainId', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
       const isConversion = result.current.isConversionToken(mockUsdcMainnet);
@@ -222,7 +235,7 @@ describe('useMusdConversionTokens', () => {
 
     it('returns false for token not in conversion tokens list', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
       const isConversion = result.current.isConversionToken(mockDaiMainnet);
@@ -232,7 +245,7 @@ describe('useMusdConversionTokens', () => {
 
     it('returns false when token is undefined', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
       const isConversion = result.current.isConversionToken(undefined);
@@ -246,7 +259,7 @@ describe('useMusdConversionTokens', () => {
         chainId: '0x89', // Polygon
       };
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
       const isConversion = result.current.isConversionToken(
@@ -262,7 +275,7 @@ describe('useMusdConversionTokens', () => {
         address: mockUsdcMainnet.address.toUpperCase() as Hex,
       };
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       const { result } = renderHook(() => useMusdConversionTokens());
       const isConversion =
@@ -272,22 +285,71 @@ describe('useMusdConversionTokens', () => {
     });
   });
 
-  describe('tokenFilter callback', () => {
+  describe('isMusdSupportedOnChain', () => {
+    it('returns true for Ethereum mainnet', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      const isSupported = result.current.isMusdSupportedOnChain(
+        CHAIN_IDS.MAINNET,
+      );
+
+      expect(isSupported).toBe(true);
+    });
+
+    it('returns true for Linea mainnet', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      const isSupported = result.current.isMusdSupportedOnChain(
+        CHAIN_IDS.LINEA_MAINNET,
+      );
+
+      expect(isSupported).toBe(true);
+    });
+
+    it('returns true for BSC', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      const isSupported = result.current.isMusdSupportedOnChain(CHAIN_IDS.BSC);
+
+      expect(isSupported).toBe(true);
+    });
+
+    it('returns false for unsupported chain', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      const isSupported = result.current.isMusdSupportedOnChain('0x89');
+
+      expect(isSupported).toBe(false);
+    });
+
+    it('returns false for empty string', () => {
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      const isSupported = result.current.isMusdSupportedOnChain('');
+
+      expect(isSupported).toBe(false);
+    });
+  });
+
+  describe('filterAllowedTokens callback', () => {
     it('filters array of tokens correctly', () => {
       mockUseAccountTokens.mockReturnValue([]);
-      mockIsMusdConversionPaymentToken.mockImplementation(
-        (address, _allowlist, chainId) => {
+      mockIsTokenAllowed.mockImplementation(
+        (
+          symbol: string,
+          _allowlist?: WildcardTokenList,
+          _blocklist?: WildcardTokenList,
+          chainId?: string,
+        ) => {
           if (chainId === '0x1') {
-            return (
-              address.toLowerCase() === mockUsdcMainnet.address.toLowerCase()
-            );
+            return symbol === 'USDC';
           }
           return false;
         },
       );
 
       const { result } = renderHook(() => useMusdConversionTokens());
-      const filtered = result.current.tokenFilter([
+      const filtered = result.current.filterAllowedTokens([
         mockUsdcMainnet,
         mockDaiMainnet,
       ]);
@@ -300,7 +362,7 @@ describe('useMusdConversionTokens', () => {
       mockUseAccountTokens.mockReturnValue([]);
 
       const { result } = renderHook(() => useMusdConversionTokens());
-      const filtered = result.current.tokenFilter([]);
+      const filtered = result.current.filterAllowedTokens([]);
 
       expect(filtered).toEqual([]);
     });
@@ -309,19 +371,19 @@ describe('useMusdConversionTokens', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
 
       const { result, rerender } = renderHook(() => useMusdConversionTokens());
-      const firstTokenFilter = result.current.tokenFilter;
+      const firstTokenFilter = result.current.filterAllowedTokens;
 
       rerender();
-      const secondTokenFilter = result.current.tokenFilter;
+      const secondTokenFilter = result.current.filterAllowedTokens;
 
       expect(firstTokenFilter).toBe(secondTokenFilter);
     });
 
-    it('creates new tokenFilter when allowlist changes', () => {
+    it('creates new filterAllowedTokens when allowlist changes', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
 
       const { result, rerender } = renderHook(() => useMusdConversionTokens());
-      const firstTokenFilter = result.current.tokenFilter;
+      const firstTokenFilter = result.current.filterAllowedTokens;
 
       const newAllowlist: Record<Hex, Hex[]> = {
         '0x1': ['0x6b175474e89094c44da98b954eedeac495271d0f'],
@@ -334,7 +396,7 @@ describe('useMusdConversionTokens', () => {
       });
 
       rerender();
-      const secondTokenFilter = result.current.tokenFilter;
+      const secondTokenFilter = result.current.filterAllowedTokens;
 
       expect(firstTokenFilter).not.toBe(secondTokenFilter);
     });
@@ -343,7 +405,7 @@ describe('useMusdConversionTokens', () => {
   describe('integration with dependencies', () => {
     it('uses allowlist from selector correctly', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       renderHook(() => useMusdConversionTokens());
 
@@ -361,15 +423,16 @@ describe('useMusdConversionTokens', () => {
       });
     });
 
-    it('calls isMusdConversionPaymentToken utility with correct parameters', () => {
+    it('calls isTokenAllowed utility with correct parameters', () => {
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(true);
+      mockIsTokenAllowed.mockReturnValue(true);
 
       renderHook(() => useMusdConversionTokens());
 
-      expect(mockIsMusdConversionPaymentToken).toHaveBeenCalledWith(
-        mockUsdcMainnet.address,
+      expect(mockIsTokenAllowed).toHaveBeenCalledWith(
+        mockUsdcMainnet.symbol,
         mockAllowlist,
+        mockBlocklist,
         mockUsdcMainnet.chainId,
       );
     });
@@ -385,7 +448,7 @@ describe('useMusdConversionTokens', () => {
         return undefined;
       });
       mockUseAccountTokens.mockReturnValue([mockUsdcMainnet]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(false);
+      mockIsTokenAllowed.mockReturnValue(false);
 
       const { result } = renderHook(() => useMusdConversionTokens());
 
@@ -406,8 +469,13 @@ describe('useMusdConversionTokens', () => {
         chainId: undefined,
       } as unknown as AssetType;
       mockUseAccountTokens.mockReturnValue([tokenWithoutChainId]);
-      mockIsMusdConversionPaymentToken.mockImplementation(
-        (_address, _allowlist, chainId) => {
+      mockIsTokenAllowed.mockImplementation(
+        (
+          _symbol: string,
+          _allowlist?: WildcardTokenList,
+          _blocklist?: WildcardTokenList,
+          chainId?: string,
+        ) => {
           if (!chainId) {
             return false;
           }
@@ -426,7 +494,7 @@ describe('useMusdConversionTokens', () => {
         address: '',
       } as AssetType;
       mockUseAccountTokens.mockReturnValue([tokenWithoutAddress]);
-      mockIsMusdConversionPaymentToken.mockReturnValue(false);
+      mockIsTokenAllowed.mockReturnValue(false);
 
       const { result } = renderHook(() => useMusdConversionTokens());
 

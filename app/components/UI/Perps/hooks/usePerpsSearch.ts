@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { PerpsMarketData } from '../controllers/types';
+import { filterMarketsByQuery } from '../utils/marketUtils';
 
 interface UsePerpsSearchParams {
   /**
@@ -87,13 +88,7 @@ export const usePerpsSearch = ({
       return markets;
     }
 
-    const lowerQuery = searchQuery.toLowerCase().trim();
-
-    return markets.filter(
-      (market) =>
-        market.symbol?.toLowerCase().includes(lowerQuery) ||
-        market.name?.toLowerCase().includes(lowerQuery),
-    );
+    return filterMarketsByQuery(markets, searchQuery);
   }, [markets, searchQuery, isSearchVisible]);
 
   return {

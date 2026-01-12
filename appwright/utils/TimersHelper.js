@@ -1,9 +1,52 @@
 import Timers from './Timers';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+
+const THRESHOLD_MARGIN = 0.1; // 10% margin
+
+/**
+ * @typedef {Object} PlatformThreshold
+ * @property {number} ios - Threshold for iOS in ms
+ * @property {number} android - Threshold for Android in ms
+ */
 
 class TimerHelper {
-  constructor(id) {
+  /**
+   * Creates a new timer with optional platform-specific thresholds
+   * @param {string} id - Timer description/identifier
+   * @param {PlatformThreshold} [threshold] - Platform-specific thresholds in ms (effective threshold = base + 10%)
+   * @param {import('appwright').Device} [device] - The device instance to determine platform
+   */
+  constructor(id, threshold, device) {
     this._id = id;
+    this._device = device;
+    this._thresholdConfig = threshold;
+    this._baseThreshold = this._resolveThreshold(threshold, device);
     Timers.createTimer(this.id);
+  }
+
+  /**
+   * Resolves the appropriate threshold based on platform
+   * @param {PlatformThreshold} [threshold] - Platform-specific thresholds
+   * @param {import('appwright').Device} [device] - The device instance
+   * @returns {number|null}
+   */
+  _resolveThreshold(threshold, device) {
+    if (!threshold) {
+      return null;
+    }
+
+    if (!device) {
+      console.warn(
+        'TimerHelper: device not provided, cannot determine platform for threshold',
+      );
+      return null;
+    }
+
+    if (AppwrightSelectors.isAndroid(device)) {
+      return threshold.android;
+    }
+
+    return threshold.ios;
   }
 
   start() {
@@ -32,39 +75,61 @@ class TimerHelper {
     return null;
   }
 
+  changeName(newName) {
+    const oldId = this._id;
+    Timers.renameTimer(oldId, newName);
+    this._id = newName;
+  }
+
   getDurationInSeconds() {
     const duration = this.getDuration();
     return duration ? duration / 1000 : 0;
   }
 
-  isRunning() {
-    const timer = Timers.getTimer(this.id);
-    return timer.start !== null && timer.duration === null;
+  /**
+   * Measures the execution time of an async action
+   * @param {Function} action - Async function to measure
+   * @returns {Promise<TimerHelper>} - Returns this for chaining
+   */
+  async measure(action) {
+    this.start();
+    try {
+      await action();
+    } finally {
+      this.stop();
+    }
+    return this;
   }
 
-  isCompleted() {
-    const timer = Timers.getTimer(this.id);
-    return timer.duration !== null;
+  /**
+   * Returns the base threshold (without margin)
+   * @returns {number|null}
+   */
+  get baseThreshold() {
+    return this._baseThreshold;
+  }
+
+  /**
+   * Returns the effective threshold (base + 10% margin)
+   * @returns {number|null}
+   */
+  get threshold() {
+    if (this._baseThreshold === null) {
+      return null;
+    }
+    return Math.round(this._baseThreshold * (1 + THRESHOLD_MARGIN));
+  }
+
+  /**
+   * Returns whether this timer has a threshold defined
+   * @returns {boolean}
+   */
+  hasThreshold() {
+    return this._baseThreshold !== null;
   }
 
   get id() {
     return this._id;
-  }
-
-  // Runs the provided async function while timing it, and automatically
-  // registers the timer with the given performanceTracker.
-  // Usage:
-  // await TimerHelper.withTimer(performanceTracker, 'Step name', async () => { /* ... */ });
-  static async withTimer(performanceTracker, id, fn) {
-    const timer = new TimerHelper(id);
-    timer.start();
-    try {
-      const result = await fn();
-      return result;
-    } finally {
-      timer.stop();
-      performanceTracker.addTimer(timer);
-    }
   }
 }
 

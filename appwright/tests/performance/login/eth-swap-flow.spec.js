@@ -28,27 +28,27 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   BridgeScreen.device = device;
-
   await login(device);
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
+    { ios: 2000, android: 2500 },
+    device,
   );
-  swapLoadTimer.start();
-  // await TabBarModal.tapActionButton();
+
   await WalletMainScreen.tapSwapButton();
-  swapLoadTimer.stop();
+  await swapLoadTimer.measure(() => BridgeScreen.isVisible());
+
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
+    { ios: 9000, android: 7000 },
+    device,
   );
   await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
   await BridgeScreen.enterSourceTokenAmount('1');
 
-  swapTimer.start();
-  await BridgeScreen.isQuoteDisplayed();
-  swapTimer.stop();
-  performanceTracker.addTimer(swapLoadTimer);
-  performanceTracker.addTimer(swapTimer);
+  await swapTimer.measure(() => BridgeScreen.isQuoteDisplayed());
+
+  performanceTracker.addTimers(swapLoadTimer, swapTimer);
   await performanceTracker.attachToTest(testInfo);
 });
