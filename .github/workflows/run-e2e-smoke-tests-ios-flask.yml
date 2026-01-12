@@ -30,11 +30,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup iOS Environment
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          platform: ios
+          setup-simulator: false
 
       - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
