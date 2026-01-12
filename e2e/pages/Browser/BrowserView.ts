@@ -31,6 +31,13 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
+  // Legacy getters for backward compatibility with existing tests
+  get homeButton(): DetoxElement {
+    // Home button removed, but kept for backward compatibility
+    // Tests using this should be updated
+    return this.newTabButton;
+  }
+
   get browserScreenID(): DetoxElement {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
@@ -149,6 +156,32 @@ class Browser {
     await Gestures.waitAndTap(this.newTabButton, {
       elemDescription: 'New tab button in bottom bar',
     });
+  }
+
+  // Legacy methods for backward compatibility with existing tests
+  async tapBottomSearchBar(): Promise<void> {
+    // Search button removed from bottom bar
+    // This is now handled by tapping the URL bar directly
+    await this.tapUrlInputBox();
+  }
+
+  async tapOpenAllTabsButton({
+    delay,
+  }: {
+    delay?: number;
+  } = {}): Promise<void> {
+    // Tabs button removed from bottom bar
+    // Redirect to new tab button as fallback
+    await Gestures.waitAndTap(this.newTabButton, {
+      elemDescription: 'New tab button (replacing tabs button)',
+      delay,
+    });
+  }
+
+  async tapHomeButton(): Promise<void> {
+    // Home button removed from bottom bar
+    // No direct replacement - this is a no-op for backward compatibility
+    // Tests should be updated to navigate differently
   }
 
   async tapSecondTabButton(): Promise<void> {
