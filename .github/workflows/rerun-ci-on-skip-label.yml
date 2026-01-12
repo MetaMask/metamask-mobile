@@ -35,13 +35,23 @@ jobs:
 
           echo "📋 Found CI run: $RUN_ID"
 
-          # Cancel if in progress
+          # Cancel if in progress and wait for completion
           RUN_STATUS=$(gh run view "$RUN_ID" --repo "$REPOSITORY" --json status --jq '.status')
           if [ "$RUN_STATUS" == "in_progress" ] || [ "$RUN_STATUS" == "queued" ]; then
             echo "🛑 Cancelling in-progress run..."
             gh run cancel "$RUN_ID" --repo "$REPOSITORY" || true
-            # Wait for cancellation
-            sleep 10
+
+            # Wait for cancellation to complete (poll until status changes)
+            echo "⏳ Waiting for cancellation to complete..."
+            for i in {1..30}; do
+              sleep 5
+              RUN_STATUS=$(gh run view "$RUN_ID" --repo "$REPOSITORY" --json status --jq '.status')
+              echo "   Status: $RUN_STATUS"
+              if [ "$RUN_STATUS" == "completed" ]; then
+                echo "✅ Run cancelled"
+                break
+              fi
+            done
           fi
 
           # Re-run the workflow (works for both forks and main repo)
