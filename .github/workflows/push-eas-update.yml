@@ -62,12 +62,25 @@ jobs:
           ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
           fetch-depth: 0
 
+      - name: Print PR ref and commit
+        run: |
+          echo "🔎 PR ref: refs/pull/${TARGET_PR_NUMBER}/head"
+          echo "🔎 PR HEAD branch: $(git rev-parse --abbrev-ref HEAD || echo 'detached HEAD')"
+          echo "🔎 PR HEAD commit: $(git rev-parse HEAD)"
+
       - name: Checkout base branch snapshot
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BASE_BRANCH_REF }}
           path: main
           fetch-depth: 0
+
+      - name: Print base branch ref and commit
+        working-directory: main
+        run: |
+          echo "🔎 Base branch ref: ${BASE_BRANCH_REF}"
+          echo "🔎 Base branch HEAD: $(git rev-parse --abbrev-ref HEAD || echo 'detached HEAD')"
+          echo "🔎 Base branch commit: $(git rev-parse HEAD)"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
