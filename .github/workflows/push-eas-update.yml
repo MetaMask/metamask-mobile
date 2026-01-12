@@ -181,8 +181,6 @@ jobs:
       MM_CARD_BAANX_API_CLIENT_KEY_UAT: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY_UAT }} #need to add to secrets
       WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }} #need to add to secrets
       MM_FOX_CODE: ${{ secrets.MM_FOX_CODE_TEST }} #need to add to secrets
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-      AWS_EXPO_SIGNING_CERT_SECRET_NAME: ${{ secrets.AWS_EXPO_SIGNING_CERT_SECRET_NAME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -199,7 +197,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-        aws-role-to-assume: "${AWS_ROLE_TO_ASSUME}"
+        aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         aws-region: 'us-east-2'
 
       - name: Fetch secret and export as environment variables
@@ -208,7 +206,7 @@ jobs:
           echo "🔐 Fetching secret from Secrets Manager..."
           secret_json=$(aws secretsmanager get-secret-value \
             --region 'us-east-2' \
-            --secret-id "${AWS_EXPO_SIGNING_CERT_SECRET_NAME}" \
+            --secret-id "${AWS_EXPO_UPDATE_SIGNING_CERT_SECRET_NAME}" \
             --query SecretString \
             --output text)
 
