@@ -77,7 +77,10 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} screenOptions={{ headerShown: true }}>
+    <Stack.Navigator
+      initialRouteName={Routes.DEPOSIT.ROOT}
+      screenOptions={{ headerShown: true }}
+    >
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
@@ -205,6 +208,7 @@ const DepositRoutes = () => (
         component={DepositModalsRoutes}
         options={{
           ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
           detachPreviousScreen: false,
         }}
       />

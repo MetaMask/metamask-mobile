@@ -110,7 +110,10 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: true }}>
+    <Stack.Navigator
+      initialRouteName={initialRouteName}
+      screenOptions={{ headerShown: true }}
+    >
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
@@ -169,13 +172,17 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
     <Stack.Screen
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}
       options={{
         ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
         detachPreviousScreen: false,
       }}
     />

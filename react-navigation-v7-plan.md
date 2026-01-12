@@ -88,6 +88,39 @@
   - The function pattern properly inherits theme colors
   - Fixed in: `getEditableOptions`, `getSettingsNavigationOptions`, `getEarnNavbar`, `getEmptyNavHeaderForConfirmations`
 
+**Transparent Modal Fixes (`presentation: 'transparentModal'`):**
+
+Bottom sheet modals need transparent backgrounds so the overlay can show through. Fixed in:
+
+- [x] **App.tsx:**
+  - `RootModalFlow` (Buy/Sell, WalletActions, TradeWalletActions, AccountSelector, NetworkSelector, etc.)
+  - `ModalConfirmationRequest`
+  - `ModalSwitchAccountType`
+  - `ModalSmartAccountOptIn`
+  - `PayWithModal`
+  - `MultichainAccountDetailsActions` (Share Address QR, Account Actions, Edit Account Name)
+
+- [x] **MainNavigator.js:**
+  - `BridgeModalStack`
+  - `EarnModalStack`
+  - `StakeModalStack`
+  - `PerpsModalStack`
+  - `PredictModalStack`
+  - `RewardsBottomSheetModal`, `RewardsClaimBottomSheetModal`, `RewardOptInAccountGroupModal`, `ReferralBottomSheetModal`
+
+- [x] **Feature Routes:**
+  - `Ramp/routes.tsx` - `TokenListModalsRoutes`
+  - `Ramp/Aggregator/routes/index.tsx` - `RampModalsRoutes`
+  - `Ramp/Deposit/routes/index.tsx` - `DepositModalsRoutes`
+  - `Card/routes/index.tsx` - `CardModalsRoutes`
+  - `Perps/routes/index.tsx` - `PerpsModalStack` and `PerpsClosePositionBottomSheetStack` (internal registrations)
+
+**Navigation Hook Fixes:**
+
+- [x] `useRampNavigation` - Changed from `useNavigation()` hook to `NavigationService`
+  - Fixes navigation from FundActionMenu bottom sheet callbacks
+  - Hook context becomes invalid after modal dismissal; NavigationService works globally
+
 **Other Fixes:**
 
 - [x] Added `headerShown: false` to HomeTabs Tab.Navigator
@@ -1052,6 +1085,12 @@ app/components/Views/confirmations/context/qr-hardware-context/qr-hardware-conte
 app/components/UI/QRHardware/QRSigningDetails.tsx
 ```
 
+### Navigation Hooks Updated (Use NavigationService)
+
+```
+app/components/UI/Ramp/hooks/useRampNavigation.ts
+```
+
 ### Files with Heavy `navigate` Usage (Watch During Testing)
 
 ```
@@ -1070,16 +1109,18 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 
 ### Common Fixes
 
-| v5 Code                       | v7 Code                                     |
-| ----------------------------- | ------------------------------------------- |
-| `mode="modal"`                | `screenOptions={{ presentation: 'modal' }}` |
-| `headerMode="none"`           | `screenOptions={{ headerShown: false }}`    |
-| `animationEnabled: false`     | `animation: 'none'`                         |
-| `navigation.navigate('Back')` | `navigation.popTo('Back')`                  |
-| `beforeRemove` listener       | `usePreventRemove` hook                     |
-| `dangerouslyGetState()`       | `getState()`                                |
-| `dangerouslyGetParent()`      | `getParent()`                               |
-| `headerTitle: <Component />`  | `headerTitle: () => <Component />`          |
+| v5 Code                                     | v7 Code                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `mode="modal"`                              | `screenOptions={{ presentation: 'modal' }}`                                       |
+| `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                          |
+| `animationEnabled: false`                   | `animation: 'none'`                                                               |
+| `navigation.navigate('Back')`               | `navigation.popTo('Back')`                                                        |
+| `beforeRemove` listener                     | `usePreventRemove` hook                                                           |
+| `dangerouslyGetState()`                     | `getState()`                                                                      |
+| `dangerouslyGetParent()`                    | `getParent()`                                                                     |
+| `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                |
+| `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }` |
+| `useNavigation()` in modal callbacks        | `NavigationService.navigation?.navigate()` (global ref)                           |
 
 ### Screen Presentation (iOS Sheet Modal Fix)
 
@@ -1145,6 +1186,48 @@ headerTitle: () => (
 ```
 
 When using the function pattern, you don't need to explicitly set `color` on text components - they will inherit the correct theme color automatically.
+
+### Transparent Modal Pattern
+
+Bottom sheet modals need transparent backgrounds so the overlay can show through:
+
+```jsx
+// For Stack.Screen registering a modal navigator
+<Stack.Screen
+  name="RootModalFlow"
+  component={RootModalFlow}
+  options={{
+    presentation: 'transparentModal',
+    cardStyle: { backgroundColor: 'transparent' },
+  }}
+/>
+
+// For internal modal navigators
+<Stack.Navigator
+  screenOptions={{
+    presentation: 'transparentModal',
+    cardStyle: { backgroundColor: 'transparent' },
+  }}
+>
+```
+
+### Navigation from Modal Callbacks
+
+When navigating after a modal is dismissed (e.g., from bottom sheet callbacks), use `NavigationService` instead of `useNavigation()` hook:
+
+```jsx
+// ❌ WRONG - Hook context invalid after modal dismissal
+const navigation = useNavigation();
+closeBottomSheet(() => {
+  navigation.navigate('SomeScreen'); // May fail!
+});
+
+// ✅ CORRECT - NavigationService works globally
+import NavigationService from '../core/NavigationService';
+closeBottomSheet(() => {
+  NavigationService.navigation?.navigate('SomeScreen');
+});
+```
 
 ### New Methods in v7
 

@@ -53,6 +53,7 @@ const TokenListRoutes = () => (
       component={TokenListModalsRoutes}
       options={{
         ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
         detachPreviousScreen: false,
       }}
     />

@@ -297,6 +297,7 @@ const PerpsScreenStack = () => (
               backgroundColor: 'transparent',
             },
             animation: 'none' as const,
+            presentation: 'transparentModal',
             // adding detachPreviousScreen to specific screen, rather than to the entire global stack
             detachPreviousScreen: false,
           }}
@@ -312,6 +313,7 @@ const PerpsScreenStack = () => (
               backgroundColor: 'transparent',
             },
             animation: 'none' as const,
+            presentation: 'transparentModal',
           }}
         />
 

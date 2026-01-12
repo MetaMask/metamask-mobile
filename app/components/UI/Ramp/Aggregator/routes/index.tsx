@@ -99,13 +99,17 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.ID} screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={Routes.RAMP.ID}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
       <Stack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}
         options={{
           ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
           detachPreviousScreen: false,
         }}
       />

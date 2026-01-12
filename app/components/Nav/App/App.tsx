@@ -1143,6 +1143,10 @@ const AppFlow = () => {
           name={Routes.MODAL.ROOT_MODAL_FLOW}
           // @ts-expect-error - Component has custom props, v7 migration
           component={RootModalFlow}
+          options={{
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
         />
         <Stack.Screen
           name="ImportPrivateKeyView"
@@ -1204,7 +1208,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}
-          options={{ presentation: 'card' }}
+          options={{
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -1267,20 +1274,36 @@ const AppFlow = () => {
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
-          options={emptyNavHeaderOptions}
+          options={{
+            ...emptyNavHeaderOptions,
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
           component={ModalConfirmationRequest}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
           component={ModalSwitchAccountType}
+          options={{
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
         />
         <Stack.Screen
           name={Routes.SMART_ACCOUNT_OPT_IN}
           component={ModalSmartAccountOptIn}
+          options={{
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_PAY_WITH_MODAL}
           component={PayWithModal}
+          options={{
+            presentation: 'transparentModal',
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
         />
       </Stack.Navigator>
       {/* Render navigation handler after navigator is mounted */}

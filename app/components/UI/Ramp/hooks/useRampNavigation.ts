@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   RampIntent,
@@ -15,6 +14,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import NavigationService from '../../../../core/NavigationService';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -31,9 +31,18 @@ enum RampMode {
  * - goToDeposit: deprecated Always navigates to deposit flow (bypasses smart routing)
  */
 export const useRampNavigation = () => {
-  const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+
+  // Use NavigationService for navigation since these functions are often called
+  // after modal dismissal (e.g., from FundActionMenu bottom sheet callbacks)
+  // where the useNavigation() hook's context may no longer be valid
+  const navigate = useCallback(
+    (...args: Parameters<typeof NavigationService.navigation.navigate>) => {
+      NavigationService.navigation?.navigate(...args);
+    },
+    [],
+  );
 
   const goToBuy = useCallback(
     (
@@ -48,34 +57,32 @@ export const useRampNavigation = () => {
 
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
+          navigate(...createEligibilityFailedModalNavigationDetails());
           return;
         }
 
         if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          navigate(...createRampUnsupportedModalNavigationDetails());
           return;
         }
 
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
-          navigation.navigate(...createTokenSelectionNavDetails());
+          navigate(...createTokenSelectionNavDetails());
           return;
         }
 
         // If routing decision hasn't been determined yet, route to TokenSelection
         if (rampRoutingDecision === null) {
-          navigation.navigate(...createTokenSelectionNavDetails());
+          navigate(...createTokenSelectionNavDetails());
           return;
         }
 
         // If assetId is provided, route based on rampRoutingDecision
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(...createDepositNavigationDetails(intent));
+          navigate(...createDepositNavigationDetails(intent));
         } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
-          navigation.navigate(
+          navigate(
             ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
           );
         }
@@ -84,14 +91,14 @@ export const useRampNavigation = () => {
 
       // When overriding unified routing or when v1 is disabled
       if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(...createDepositNavigationDetails(intent));
+        navigate(...createDepositNavigationDetails(intent));
       } else {
-        navigation.navigate(
+        navigate(
           ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
         );
       }
     },
-    [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
+    [isRampsUnifiedV1Enabled, rampRoutingDecision, navigate],
   );
 
   /**
@@ -110,11 +117,9 @@ export const useRampNavigation = () => {
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
-      );
+      navigate(...createRampNavigationDetails(AggregatorRampType.SELL, intent));
     },
-    [navigation],
+    [navigate],
   );
 
   /**

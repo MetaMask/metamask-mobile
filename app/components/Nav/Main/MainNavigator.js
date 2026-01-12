@@ -263,26 +263,39 @@ const TransactionsHome = () => (
 );
 
 const RewardsHome = () => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
-      options={{ headerShown: false }}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
   </Stack.Navigator>
 );
@@ -1208,7 +1221,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1239,12 +1255,18 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
+        }}
       />
       {isPerpsEnabled && (
         <>
@@ -1279,7 +1301,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1339,7 +1364,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
