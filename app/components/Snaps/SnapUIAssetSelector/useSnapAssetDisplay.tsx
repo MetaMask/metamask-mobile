@@ -13,13 +13,11 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import {
-  AllowedBridgeChainIds,
-  NETWORK_TO_SHORT_NETWORK_NAME_MAP,
-} from '../../../constants/bridge';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { RootState } from '../../../reducers';
 import { getNonEvmNetworkImageSourceByChainId } from '../../../util/networks/customNetworks';
+import { AllowedBridgeChainIds } from '@metamask/bridge-controller';
 
 /**
  * An asset for the SnapUIAssetSelector.
