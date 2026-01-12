@@ -85,27 +85,6 @@ jobs:
           echo "🔎 Base branch commit: $BASE_SHA"
           echo "sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Print diff between PR and base branch (fingerprint-related files)
-        run: |
-          echo "🔎 PR commit: $(git rev-parse HEAD)"
-          echo "🔎 Base commit: ${{ steps.base_branch_info.outputs.sha }}"
-          echo "🔎 Changed files affecting fingerprint:"
-          git diff --name-status ${{ steps.base_branch_info.outputs.sha }} HEAD -- \
-            package.json \
-            ota.config.js \
-            app.json \
-            eas.json \
-            ios \
-            android \
-            expo.* \
-            fingerprint.config.js \
-            .yarn/patches \
-            .github/workflows \
-            .github/scripts \
-            react-native.config.js \
-            scripts/build.sh \
-            scripts/setup.mjs || true
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
