@@ -183,6 +183,64 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       }
     });
 
+  // Mock HyperLiquid Exchange API GET requests through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('api.hyperliquid.xyz/exchange');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted HyperLiquid Exchange GET');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'ok' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
+  // Mock HyperLiquid Exchange API POST requests through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('api.hyperliquid.xyz/exchange');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'ok' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
+  // Mock Rewards API for perps fee discount through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return (
+        urlParam.includes('rewards') && urlParam.includes('perps-fee-discount')
+      );
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log(
+        '[Perps E2E Mock] Intercepted Rewards perps-fee-discount request',
+      );
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          discountPercentage: 0,
+          eligible: false,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
   // Mock HyperLiquid coin image requests through the mobile proxy
   await mockServer
     .forGet('/proxy')
@@ -272,6 +330,132 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
         statusCode: 200,
         body: JSON.stringify({ status: 'ok' }),
         headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
+  // Mock HyperLiquid coin image requests through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('price.api.cx.metamask.io/v2/chains/0xa4b1');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted Price API request');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          '0x0000000000000000000000000000000000000000': {
+            id: 'ethereum',
+            price: 0.999972651206969,
+            marketCap: 120787455.213762,
+            allTimeHigh: 1.65971963862127,
+            allTimeLow: 0.000145292455476714,
+            totalVolume: 9428228.34684131,
+            high1d: 1.06408228150965,
+            low1d: 0.998174024572987,
+            circulatingSupply: 120695108.243547,
+            dilutedMarketCap: 120787455.213762,
+            marketCapPercentChange1d: -3.65305,
+            priceChange1d: -113.150069710762,
+            pricePercentChange1h: -1.10669232294285,
+            pricePercentChange1d: -3.65812325301973,
+            pricePercentChange7d: -4.13635493022624,
+            pricePercentChange14d: 8.3078065082939,
+            pricePercentChange30d: -6.40996979150269,
+            pricePercentChange200d: 12.4178771617204,
+            pricePercentChange1y: -23.4708803114256,
+          },
+          '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8': {
+            id: 'usd-coin-ethereum-bridged',
+            price: 0.000335227092460614,
+            marketCap: 21157.8427362164,
+            allTimeHigh: 0.00040938889803337,
+            allTimeLow: 0.000301975989258871,
+            totalVolume: 18020.9748003926,
+            high1d: 0.000338249187883309,
+            low1d: 0.000327180587226235,
+            circulatingSupply: 63135587.501145,
+            dilutedMarketCap: 21157.8427362164,
+            marketCapPercentChange1d: -0.07227,
+            priceChange1d: -0.000314609931530985,
+            pricePercentChange1h: 0.315821469792684,
+            pricePercentChange1d: -0.0314827666724661,
+            pricePercentChange7d: -0.118860132989052,
+            pricePercentChange14d: 0.458309784944713,
+            pricePercentChange30d: -0.329602840383663,
+            pricePercentChange200d: 0.0819372345276349,
+            pricePercentChange1y: -0.155248818485504,
+          },
+          '0xaf88d065e77c8cc2239327c5edb3a432268e5831': {
+            id: 'usd-coin',
+            price: 0.000335558630355087,
+            marketCap: 26323870.6148644,
+            allTimeHigh: 0.000392610664507413,
+            allTimeLow: 0.000294507326387126,
+            totalVolume: 3835411.26953233,
+            high1d: 0.000335564670519156,
+            low1d: 0.000335358633811457,
+            circulatingSupply: 78452801620.0186,
+            dilutedMarketCap: 26327173.2440294,
+            marketCapPercentChange1d: 0.03968,
+            priceChange1d: 0.00004574,
+            pricePercentChange1h: 0.0119513851718319,
+            pricePercentChange1d: 0.00457461979403909,
+            pricePercentChange7d: 0.0172715843309844,
+            pricePercentChange14d: 0.0182646657767789,
+            pricePercentChange30d: 0.0172178802381209,
+            pricePercentChange200d: 0.0204803951277851,
+            pricePercentChange1y: 0.0285034972599191,
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      };
+    });
+
+  // Mock HyperLiquid coin image requests through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('price.api.cx.metamask.io/v2/chains/0x89');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted Price API request');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          '0x0000000000000000000000000000000000001010': {
+            id: 'polygon-ecosystem-token',
+            price: 0.113006,
+            marketCap: 1192507260,
+            allTimeHigh: 1.29,
+            allTimeLow: 0.113362,
+            totalVolume: 75356551,
+            high1d: 0.121302,
+            low1d: 0.112985,
+            circulatingSupply: 10556415953.6597,
+            dilutedMarketCap: 1192507260,
+            marketCapPercentChange1d: -4.20683,
+            priceChange1d: -0.00501858069982855,
+            pricePercentChange1h: -1.35595913652185,
+            pricePercentChange1d: -4.25215808442668,
+            pricePercentChange7d: -8.79747323054775,
+            pricePercentChange14d: -5.38334147678743,
+            pricePercentChange30d: -27.5942103216344,
+            pricePercentChange200d: -50.7418828223079,
+            pricePercentChange1y: -81.5387418720344,
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600',
+        },
       };
     });
 };

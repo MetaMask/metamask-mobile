@@ -1,7 +1,19 @@
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -35,6 +47,9 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -43,17 +58,20 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { usePerpsNavigation } from '../../hooks';
+import { usePerpsMarkets, usePerpsNavigation } from '../../hooks';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
+  calculateAggregationParams,
   calculateGroupingOptions,
   formatGroupingLabel,
-  aggregateOrderBookLevels,
+  MAX_ORDER_BOOK_LEVELS,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
 import styleSheet from './PerpsOrderBookView.styles';
@@ -69,6 +87,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol } = route.params || {};
+  const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
@@ -83,42 +102,55 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
 
+  // Get market data for the header
+  const { markets } = usePerpsMarkets();
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
+
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
 
+  // Persisted order book grouping per asset
+  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(
+    symbol || '',
+  );
+
   // Price grouping state (actual price value, e.g., 10 for $10 grouping)
-  const [selectedGrouping, setSelectedGrouping] = useState<number | null>(null);
+  // Initialize from saved grouping if available
+  const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
+    savedGrouping ?? null,
+  );
   const [isDepthBandSheetVisible, setIsDepthBandSheetVisible] = useState(false);
   const depthBandSheetRef = useRef<BottomSheetRef>(null);
 
-  // Subscribe to live order book data with finest granularity (nSigFigs: 5)
-  // We'll aggregate client-side based on selected grouping
-  const {
-    orderBook: rawOrderBook,
-    isLoading,
-    error,
-  } = usePerpsLiveOrderBook({
-    symbol: symbol || '',
-    levels: 50, // Request more levels for aggregation
-    nSigFigs: 5, // Always use finest granularity
-    throttleMs: 100,
-  });
+  // Tooltip state
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
 
-  // Calculate mid price from order book
-  const midPrice = useMemo(() => {
-    if (!rawOrderBook?.bids?.length || !rawOrderBook?.asks?.length) {
-      return null;
+  // Sync selectedGrouping when savedGrouping loads (on mount)
+  useEffect(() => {
+    if (savedGrouping !== undefined && selectedGrouping === null) {
+      setSelectedGrouping(savedGrouping);
     }
-    const bestBid = parseFloat(rawOrderBook.bids[0].price);
-    const bestAsk = parseFloat(rawOrderBook.asks[0].price);
-    return (bestBid + bestAsk) / 2;
-  }, [rawOrderBook]);
+  }, [savedGrouping, selectedGrouping]);
 
-  // Calculate dynamic grouping options based on mid price
+  // Get market price for grouping calculations (available immediately from markets data)
+  // market.price is formatted like '$90,000.00' so we need to parse it
+  const marketPrice = useMemo(() => {
+    if (!market?.price) return null;
+    // Remove $ and commas, then parse
+    const cleaned = market.price.replace(/[$,]/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? null : parsed;
+  }, [market]);
+
+  // Calculate dynamic grouping options based on market price
   const groupingOptions = useMemo(() => {
-    if (!midPrice) return [];
-    return calculateGroupingOptions(midPrice);
-  }, [midPrice]);
+    if (!marketPrice) return [];
+    return calculateGroupingOptions(marketPrice);
+  }, [marketPrice]);
 
   // Current grouping value (use selected or auto-select default)
   const currentGrouping = useMemo(() => {
@@ -134,45 +166,38 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return null;
   }, [selectedGrouping, groupingOptions]);
 
-  // Maximum levels to display per side
-  const MAX_DISPLAY_LEVELS = 15;
+  // Calculate aggregation params (nSigFigs + mantissa) based on grouping
+  const aggregationParams = useMemo(() => {
+    if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
+    return calculateAggregationParams(currentGrouping, marketPrice);
+  }, [currentGrouping, marketPrice]);
 
-  // Aggregate order book based on current grouping
+  // Subscribe to live order book data with dynamic nSigFigs and mantissa
+  // These parameters match Hyperliquid's API for consistent price aggregation
+  const {
+    orderBook: rawOrderBook,
+    isLoading,
+    error,
+  } = usePerpsLiveOrderBook({
+    symbol: symbol || '',
+    levels: MAX_ORDER_BOOK_LEVELS,
+    nSigFigs: aggregationParams.nSigFigs,
+    mantissa: aggregationParams.mantissa,
+    throttleMs: 100,
+  });
+
+  // Process order book data
+  // The API's nSigFigs parameter handles aggregation at the server level,
+  // so we don't need client-side aggregation. Just pass through the raw data.
   const orderBook = useMemo(() => {
-    if (!rawOrderBook || !currentGrouping) {
+    if (!rawOrderBook) {
       return rawOrderBook;
     }
 
-    const aggregatedBids = aggregateOrderBookLevels(
-      rawOrderBook.bids,
-      currentGrouping,
-      'bid',
-    ).slice(0, MAX_DISPLAY_LEVELS);
-
-    const aggregatedAsks = aggregateOrderBookLevels(
-      rawOrderBook.asks,
-      currentGrouping,
-      'ask',
-    ).slice(0, MAX_DISPLAY_LEVELS);
-
-    // Calculate new max total for depth bars
-    const maxBidTotal =
-      aggregatedBids.length > 0
-        ? parseFloat(aggregatedBids[aggregatedBids.length - 1].total)
-        : 0;
-    const maxAskTotal =
-      aggregatedAsks.length > 0
-        ? parseFloat(aggregatedAsks[aggregatedAsks.length - 1].total)
-        : 0;
-    const maxTotal = Math.max(maxBidTotal, maxAskTotal).toString();
-
-    return {
-      ...rawOrderBook,
-      bids: aggregatedBids,
-      asks: aggregatedAsks,
-      maxTotal,
-    };
-  }, [rawOrderBook, currentGrouping]);
+    // No client-side aggregation needed - API handles it via nSigFigs
+    // Just return the raw order book data directly
+    return rawOrderBook;
+  }, [rawOrderBook]);
 
   // Performance measurement
   usePerpsMeasurement({
@@ -217,6 +242,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const handleGroupingSelect = useCallback(
     (value: number) => {
       setSelectedGrouping(value);
+      saveGrouping(value); // Persist to controller
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -225,12 +251,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         [PerpsEventProperties.ASSET]: symbol || '',
       });
     },
-    [symbol, track],
+    [symbol, track, saveGrouping],
   );
 
   // Handle grouping sheet close
   const handleDepthBandSheetClose = useCallback(() => {
     setIsDepthBandSheetVisible(false);
+  }, []);
+
+  // Handle tooltip press
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  // Handle tooltip close
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
   }, []);
 
   // Handle unit toggle
@@ -301,20 +340,28 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   if (error) {
     return (
       <SafeAreaView style={styles.container} testID={testID}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Lg}
-            onPress={handleBack}
-            testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
+        {market ? (
+          <PerpsMarketHeader
+            market={market}
+            onBackPress={handleBack}
+            currentPrice={marketPrice ?? 0}
           />
-          <View style={styles.headerTitleContainer}>
-            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-              {strings('perps.order_book.title')}
-            </Text>
+        ) : (
+          <View style={styles.header}>
+            <ButtonIcon
+              iconName={IconName.ArrowLeft}
+              iconColor={IconColor.Default}
+              size={ButtonIconSizes.Lg}
+              onPress={handleBack}
+              testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
+            />
+            <View style={styles.headerTitleContainer}>
+              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+                {strings('perps.order_book.title')}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
             {strings('perps.order_book.error')}
@@ -326,21 +373,17 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   return (
     <SafeAreaView style={styles.container} testID={testID}>
-      {/* Header */}
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          iconColor={IconColor.Default}
-          size={ButtonIconSizes.Lg}
-          onPress={handleBack}
-          style={styles.headerBackButton}
-          testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
+      {/* Market Header */}
+      {market && (
+        <PerpsMarketHeader
+          market={market}
+          onBackPress={handleBack}
+          currentPrice={marketPrice ?? 0}
         />
-        <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.order_book.title')}
-          </Text>
-        </View>
+      )}
+
+      {/* Controls Row - Unit Toggle and Grouping */}
+      <View style={styles.controlsRow}>
         {/* Unit Toggle (BTC/USD) */}
         <View style={styles.headerUnitToggle}>
           <TouchableOpacity
@@ -357,7 +400,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 unitDisplay === 'base' ? TextColor.Inverse : TextColor.Default
               }
             >
-              {symbol}
+              {displaySymbol}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -378,6 +421,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
+
         {/* Price Grouping Dropdown */}
         <Pressable
           style={({ pressed }) => [
@@ -440,6 +484,17 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ({orderBook.spreadPercentage}%)
             </Text>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('spread')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              testID={PerpsOrderBookViewSelectorsIDs.SPREAD_INFO_BUTTON}
+            >
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
           </View>
         )}
 
@@ -530,6 +585,20 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             ))}
           </View>
         </BottomSheet>
+      )}
+
+      {/* Tooltip Bottom Sheet */}
+      {selectedTooltip && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={handleTooltipClose}
+              contentKey={selectedTooltip}
+              testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        </View>
       )}
     </SafeAreaView>
   );

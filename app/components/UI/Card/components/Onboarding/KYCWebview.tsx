@@ -23,7 +23,7 @@ const KYCWebview: React.FC = () => {
       )
     ) {
       navigation.dispatch(
-        StackActions.replace(Routes.CARD.ONBOARDING.VALIDATING_KYC),
+        StackActions.replace(Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC),
       );
     }
   };

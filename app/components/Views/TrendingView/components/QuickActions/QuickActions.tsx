@@ -10,22 +10,31 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_ARRAY } from '../../config/sections.config';
+import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
+
+interface QuickActionsProps {
+  /** Set of section IDs that have empty data and should be hidden */
+  emptySections: Set<SectionId>;
+}
 
 /**
  * A dynamic component that automatically generates action buttons based on the
  * centralized sections configuration. When a new section is added to SECTIONS_CONFIG,
  * a corresponding button will automatically appear here.
  */
-const QuickActions: React.FC = () => {
+const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+
+  const visibleSections = SECTIONS_ARRAY.filter(
+    (s) => !emptySections.has(s.id),
+  );
 
   return (
     <Box twClassName="mt-1 mb-4">
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <Box twClassName="flex-row gap-2">
-          {SECTIONS_ARRAY.map((section) => (
+          {visibleSections.map((section) => (
             <TouchableOpacity
               key={section.id}
               onPress={() => section.viewAllAction(navigation)}

@@ -433,33 +433,36 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -467,7 +470,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -477,13 +480,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -536,7 +533,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -641,7 +638,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -814,7 +811,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -830,7 +827,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1296,33 +1293,36 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -1330,7 +1330,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1340,13 +1340,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1399,7 +1393,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -1504,7 +1498,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1696,7 +1690,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1712,7 +1706,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1792,7 +1786,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1808,7 +1802,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1888,7 +1882,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1904,7 +1898,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2015,7 +2009,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2031,7 +2025,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2497,33 +2491,36 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -2531,7 +2528,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2541,13 +2538,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -2600,7 +2591,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -2705,7 +2696,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -2878,7 +2869,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2894,7 +2885,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3360,33 +3351,36 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -3394,7 +3388,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3404,13 +3398,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -3463,7 +3451,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -3568,7 +3556,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -3631,7 +3619,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4091,33 +4079,36 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -4125,7 +4116,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4135,13 +4126,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -4194,7 +4179,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -4299,7 +4284,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -4362,7 +4347,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4822,23 +4807,20 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -4879,10 +4861,16 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -4890,7 +4878,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4900,13 +4888,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 United States of America
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -4959,7 +4941,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -5064,7 +5046,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -5193,7 +5175,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5209,7 +5191,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5675,33 +5657,36 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -5709,7 +5694,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -5719,13 +5704,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -5778,7 +5757,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -5883,7 +5862,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -6075,7 +6054,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6091,7 +6070,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6171,7 +6150,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6187,7 +6166,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6267,7 +6246,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6283,7 +6262,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6394,7 +6373,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6410,7 +6389,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6876,33 +6855,36 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -6910,7 +6892,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -6920,13 +6902,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -6979,7 +6955,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -7084,7 +7060,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -7276,7 +7252,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7292,7 +7268,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7372,7 +7348,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7388,7 +7364,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7468,7 +7444,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7484,7 +7460,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7595,7 +7571,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7611,7 +7587,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8077,33 +8053,36 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -8111,7 +8090,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -8121,13 +8100,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -8180,7 +8153,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -8285,7 +8258,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -8478,7 +8451,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8494,7 +8467,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8513,7 +8486,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -8522,19 +8495,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -8601,7 +8562,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8617,7 +8578,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8697,7 +8658,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8713,7 +8674,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8824,7 +8785,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8840,7 +8801,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9306,33 +9267,36 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -9340,7 +9304,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -9350,13 +9314,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -9409,7 +9367,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -9514,7 +9472,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -9707,7 +9665,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9723,7 +9681,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9803,7 +9761,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9819,7 +9777,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9899,7 +9857,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9915,7 +9873,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9965,7 +9923,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -9974,19 +9932,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -10053,7 +9999,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10069,7 +10015,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10535,33 +10481,36 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
@@ -10569,7 +10518,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -10579,13 +10528,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                 Select your Region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -10638,7 +10581,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                               style={
                                 {
                                   "color": "#b7bbc8",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 12,
                                   "letterSpacing": 0.25,
                                   "lineHeight": 20,
@@ -10743,7 +10686,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -10847,7 +10790,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

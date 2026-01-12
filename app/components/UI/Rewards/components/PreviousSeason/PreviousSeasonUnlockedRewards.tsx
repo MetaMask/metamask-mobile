@@ -1,30 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
-import { Linking, Platform } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
-  TextButton,
   TextVariant,
   FontWeight,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  MM_APP_STORE_LINK,
-  MM_PLAY_STORE_LINK,
-} from '../../../../../constants/urls';
-import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
-import { RewardsMetricsButtons } from '../../utils';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
   selectUnlockedRewards,
   selectSeasonTiers,
-  selectSeasonShouldInstallNewVersion,
   selectUnlockedRewardLoading,
   selectUnlockedRewardError,
   selectCurrentTier,
@@ -33,6 +20,7 @@ import { useSelector } from 'react-redux';
 import {
   RewardDto,
   SeasonRewardDto,
+  SeasonRewardType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useUnlockedRewards } from '../../hooks/useUnlockedRewards';
 import RewardsSeasonEndedNoUnlockedRewardsImage from '../../../../../images/rewards/rewards-season-ended-no-unlocked-rewards.svg';
@@ -40,37 +28,34 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardItem from '../RewardItem/RewardItem';
+import { useTheme } from '../../../../../util/theme';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const PreviousSeasonUnlockedRewards = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation();
   const { fetchUnlockedRewards } = useUnlockedRewards();
   const tw = useTailwind();
+  const theme = useTheme();
   const unlockedRewards = useSelector(selectUnlockedRewards);
   const unlockedRewardsLoading = useSelector(selectUnlockedRewardLoading);
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
   const seasonTiers = useSelector(selectSeasonTiers);
   const currentTier = useSelector(selectCurrentTier);
-  const seasonShouldInstallNewVersion = useSelector(
-    selectSeasonShouldInstallNewVersion,
+  const handleRewardPress = useCallback(
+    (rewardId: string, seasonReward: SeasonRewardDto) => {
+      if (seasonReward.rewardType === SeasonRewardType.METAL_CARD) {
+        navigation.navigate(
+          Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET,
+          {
+            rewardId,
+            seasonRewardId: seasonReward.id,
+          },
+        );
+      }
+    },
+    [navigation],
   );
-  const openAppStore = useCallback(() => {
-    const storeUrl =
-      Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-          button_type: RewardsMetricsButtons.VISIT_APP_STORE,
-          store_url: storeUrl,
-        })
-        .build(),
-    );
-
-    Linking.openURL(storeUrl).catch((error) => {
-      console.warn('Error opening MetaMask store:', error);
-    });
-  }, [trackEvent, createEventBuilder]);
 
   const endOfSeasonRewards = useMemo(() => {
     if (unlockedRewards != null && unlockedRewards !== undefined) {
@@ -112,7 +97,7 @@ const PreviousSeasonUnlockedRewards = () => {
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-8">
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
@@ -137,62 +122,46 @@ const PreviousSeasonUnlockedRewards = () => {
                 flexDirection={BoxFlexDirection.Column}
                 twClassName="gap-4 w-full"
               >
-                <Box twClassName="flex-col gap-4">
-                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => (
-                    <RewardItem
-                      key={unlockedReward.id}
-                      reward={unlockedReward}
-                      seasonReward={
-                        seasonTiers
-                          ?.flatMap((tier) => tier.rewards)
-                          ?.find(
-                            (sr) => sr.id === unlockedReward.seasonRewardId,
-                          ) as SeasonRewardDto
-                      }
-                      canPressToNavigateToInfo={false}
-                      isLocked
-                      isLast={unlockedReward === endOfSeasonRewards.at(-1)}
-                      isEndOfSeasonReward
-                    />
-                  ))}
-                </Box>
-
-                <Box twClassName="flex-row justify-center w-full">
-                  <TextButton
-                    startIconName={IconName.Warning}
-                    onPress={openAppStore}
-                    startIconProps={{
-                      size: IconSize.Md,
-                      color: IconColor.PrimaryAlternative,
-                    }}
-                    textProps={{
-                      twClassName: 'text-alternative underline',
-                    }}
-                  >
-                    {seasonShouldInstallNewVersion
-                      ? strings(
-                          'rewards.previous_season_summary.update_metamask_version',
-                          {
-                            version: seasonShouldInstallNewVersion,
-                          },
-                        )
-                      : strings(
-                          'rewards.previous_season_summary.update_metamask',
-                        )}
-                  </TextButton>
+                <Box twClassName="flex-col">
+                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => {
+                    const seasonReward = seasonTiers
+                      ?.flatMap((tier) => tier.rewards)
+                      ?.find(
+                        (sr) => sr.id === unlockedReward.seasonRewardId,
+                      ) as SeasonRewardDto;
+                    const isClaimable =
+                      seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
+                    return (
+                      <RewardItem
+                        key={unlockedReward.id}
+                        reward={unlockedReward}
+                        seasonReward={seasonReward}
+                        isLast={unlockedReward === endOfSeasonRewards.at(-1)}
+                        isEndOfSeasonReward
+                        compact
+                        isLocked={!isClaimable}
+                        onPress={isClaimable ? handleRewardPress : undefined}
+                      />
+                    );
+                  })}
                 </Box>
               </Box>
             ) : (
               <>
                 <RewardsSeasonEndedNoUnlockedRewardsImage
                   name="RewardsSeasonEndedNoUnlockedRewardsImage"
-                  width={125}
-                  height={125}
+                  color={
+                    theme.themeAppearance === 'dark'
+                      ? theme.colors.background.default
+                      : theme.colors.text.muted
+                  }
+                  width={80}
+                  height={80}
                 />
 
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-alternative max-w-sm text-center"
+                  twClassName="text-alternative max-w-xs text-center"
                 >
                   {currentTier?.pointsNeeded
                     ? strings(

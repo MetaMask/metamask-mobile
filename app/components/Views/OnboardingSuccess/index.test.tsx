@@ -50,7 +50,7 @@ jest.mock('../../../core/Engine/Engine', () => ({
       refresh: jest.fn().mockResolvedValue(undefined),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn().mockResolvedValue(undefined),
+      updateExchangeRates: jest.fn().mockResolvedValue(undefined),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn().mockResolvedValue(undefined),

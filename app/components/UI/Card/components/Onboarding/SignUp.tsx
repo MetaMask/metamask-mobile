@@ -5,6 +5,9 @@ import {
   FontWeight,
   Text,
   TextVariant,
+  Icon,
+  IconSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -20,7 +23,6 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import SelectComponent from '../../../SelectComponent';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
@@ -34,17 +36,26 @@ import { validatePassword } from '../../util/validatePassword';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { TouchableOpacity } from 'react-native';
+import {
+  clearOnValueChange,
+  createRegionSelectorModalNavigationDetails,
+  Region,
+  setOnValueChange,
+} from './RegionSelectorModal';
+import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const SignUp = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordError, setIsPasswordError] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isConfirmPasswordError, setIsConfirmPasswordError] = useState(false);
+  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { data: registrationSettings } = useRegistrationSettings();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -71,7 +82,7 @@ const SignUp = () => {
   const debouncedPassword = useDebouncedValue(password, 1000);
   const debouncedConfirmPassword = useDebouncedValue(confirmPassword, 1000);
 
-  const selectOptions = useMemo(() => {
+  const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
       return [];
     }
@@ -80,8 +91,9 @@ const SignUp = () => {
       .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
-        value: country.iso3166alpha2,
-        label: country.name,
+        name: country.name,
+        emoji: countryCodeToFlag(country.iso3166alpha2),
+        areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
 
@@ -89,32 +101,31 @@ const SignUp = () => {
     if (!debouncedEmail) {
       return;
     }
-    setIsEmailError(!validateEmail(debouncedEmail));
+    const isValid = validateEmail(debouncedEmail);
+    setIsEmailError(!isValid);
+    setIsEmailValid(isValid);
   }, [debouncedEmail]);
 
   useEffect(() => {
     if (!debouncedPassword) {
       return;
     }
-    setIsPasswordError(!validatePassword(debouncedPassword));
+    const isValid = validatePassword(debouncedPassword);
+    setIsPasswordError(!isValid);
+    setIsPasswordValid(isValid);
   }, [debouncedPassword]);
 
   useEffect(() => {
     if (!debouncedConfirmPassword) {
       return;
     }
-    setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
+    const isValid = debouncedConfirmPassword === debouncedPassword;
+    setIsConfirmPasswordError(!isValid);
+    setIsConfirmPasswordValid(isValid);
   }, [debouncedConfirmPassword, debouncedPassword]);
 
-  const isDisabled = useMemo(() => {
-    // Check the actual values, not the debounced ones
-    const isEmailValid = email ? validateEmail(email) : false;
-    const isPasswordValid = password ? validatePassword(password) : false;
-    const isConfirmPasswordValid = confirmPassword
-      ? confirmPassword === password
-      : false;
-
-    return (
+  const isDisabled = useMemo(
+    () =>
       !email ||
       !password ||
       !confirmPassword ||
@@ -123,16 +134,19 @@ const SignUp = () => {
       !isPasswordValid ||
       !isConfirmPasswordValid ||
       emailVerificationIsError ||
-      emailVerificationIsLoading
-    );
-  }, [
-    email,
-    password,
-    confirmPassword,
-    selectedCountry,
-    emailVerificationIsError,
-    emailVerificationIsLoading,
-  ]);
+      emailVerificationIsLoading,
+    [
+      email,
+      password,
+      confirmPassword,
+      selectedCountry,
+      isEmailValid,
+      isPasswordValid,
+      isConfirmPasswordValid,
+      emailVerificationIsError,
+      emailVerificationIsLoading,
+    ],
+  );
 
   const handleEmailChange = useCallback(
     (emailText: string) => {
@@ -156,16 +170,19 @@ const SignUp = () => {
       return;
     }
 
-    // Validate current values before submitting
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
-    const isConfirmPasswordValid = confirmPassword === password;
+    const isCurrentEmailValid = validateEmail(email);
+    const isCurrentPasswordValid = validatePassword(password);
+    const isCurrentConfirmPasswordValid = confirmPassword === password;
 
-    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+    if (
+      !isCurrentEmailValid ||
+      !isCurrentPasswordValid ||
+      !isCurrentConfirmPasswordValid
+    ) {
       // Set error states
-      setIsEmailError(!isEmailValid);
-      setIsPasswordError(!isPasswordValid);
-      setIsConfirmPasswordError(!isConfirmPasswordValid);
+      setIsEmailError(!isCurrentEmailValid);
+      setIsPasswordError(!isCurrentPasswordValid);
+      setIsConfirmPasswordError(!isCurrentConfirmPasswordValid);
       return;
     }
 
@@ -194,27 +211,34 @@ const SignUp = () => {
       // Allow error message to display
     }
   }, [
-    confirmPassword,
     email,
     password,
-    dispatch,
-    navigation,
+    confirmPassword,
     selectedCountry,
-    sendEmailVerification,
     trackEvent,
     createEventBuilder,
+    sendEmailVerification,
+    dispatch,
+    navigation,
   ]);
 
-  const handleCountrySelect = useCallback(
-    (countryValue: string) => {
-      resetEmailVerificationSend();
-      dispatch(setSelectedCountry(countryValue));
+  const handleCountrySelect = useCallback(() => {
+    resetEmailVerificationSend();
+    setOnValueChange((region) => {
+      dispatch(setSelectedCountry(region));
       dispatch(
-        setUserCardLocation(countryValue === 'US' ? 'us' : 'international'),
+        setUserCardLocation(region.key === 'US' ? 'us' : 'international'),
       );
-    },
-    [dispatch, resetEmailVerificationSend],
-  );
+    });
+
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({
+        regions,
+      }),
+    );
+  }, [dispatch, navigation, regions, resetEmailVerificationSend]);
+
+  useEffect(() => () => clearOnValueChange(), []);
 
   const renderFormFields = () => (
     <>
@@ -222,10 +246,8 @@ const SignUp = () => {
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
           autoCapitalize={'none'}
+          autoComplete="email"
           onChangeText={handleEmailChange}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.email_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={email}
@@ -261,9 +283,6 @@ const SignUp = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={handlePasswordChange}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.password_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={password}
@@ -274,6 +293,15 @@ const SignUp = () => {
           )}
           isError={debouncedPassword.length > 0 && isPasswordError}
           testID="signup-password-input"
+          endAccessory={
+            isPasswordValid ? (
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Md}
+                twClassName="text-success-default"
+              />
+            ) : null
+          }
         />
         {debouncedPassword.length > 0 && isPasswordError ? (
           <Text
@@ -283,7 +311,14 @@ const SignUp = () => {
           >
             {strings('card.card_onboarding.sign_up.invalid_password')}
           </Text>
-        ) : null}
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative"
+          >
+            {strings('card.card_onboarding.sign_up.password_placeholder')}
+          </Text>
+        )}
       </Box>
 
       <Box>
@@ -293,9 +328,6 @@ const SignUp = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setConfirmPassword}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.password_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={confirmPassword}
@@ -308,6 +340,15 @@ const SignUp = () => {
             debouncedConfirmPassword.length > 0 && isConfirmPasswordError
           }
           testID="signup-confirm-password-input"
+          endAccessory={
+            isConfirmPasswordValid ? (
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Md}
+                twClassName="text-success-default"
+              />
+            ) : null
+          }
         />
         {debouncedConfirmPassword.length > 0 && isConfirmPasswordError && (
           <Text
@@ -323,16 +364,15 @@ const SignUp = () => {
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
         <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            options={selectOptions}
-            selectedValue={selectedCountry}
-            onValueChange={handleCountrySelect}
-            label={strings('card.card_onboarding.sign_up.country_label')}
-            defaultValue={strings(
-              'card.card_onboarding.sign_up.country_placeholder',
-            )}
+          <TouchableOpacity
+            onPress={handleCountrySelect}
             testID="signup-country-select"
-          />
+          >
+            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+              <Text variant={TextVariant.BodyMd}>{selectedCountry?.name}</Text>
+              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+            </Box>
+          </TouchableOpacity>
         </Box>
       </Box>
     </>
@@ -347,6 +387,7 @@ const SignUp = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={emailVerificationIsLoading}
         testID="signup-continue-button"
       />
       <TouchableOpacity

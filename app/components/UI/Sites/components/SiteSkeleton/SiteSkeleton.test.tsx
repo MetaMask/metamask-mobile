@@ -44,10 +44,10 @@ describe('SiteSkeleton', () => {
       const skeletons = getAllByTestId('skeleton');
       const logoSkeleton = skeletons[0];
 
-      expect(logoSkeleton.props.style).toContainEqual({
-        height: 40,
-        width: 40,
-      });
+      expect(logoSkeleton.props.style).toEqual([
+        { height: 40, width: 40 },
+        { borderRadius: 100 },
+      ]);
     });
 
     it('renders name skeleton with correct dimensions', () => {
@@ -68,10 +68,10 @@ describe('SiteSkeleton', () => {
       const skeletons = getAllByTestId('skeleton');
       const urlSkeleton = skeletons[2];
 
-      expect(urlSkeleton.props.style).toContainEqual({
-        height: 16,
-        width: '40%',
-      });
+      expect(urlSkeleton.props.style).toEqual([
+        { height: 18, width: '80%' },
+        { marginBottom: 0, marginTop: 2 },
+      ]);
     });
   });
 });

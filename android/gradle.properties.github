@@ -1,22 +1,21 @@
-# GitHub Actions-specific Gradle settings
-# Optimized for E2E builds on GitHub Actions runners
+# Gradle settings for GitHub Actions E2E builds (LG runner, 48GB RAM)
 
-# JVM configuration - balanced settings to avoid OOM while maintaining performance
-# Using 16GB heap to leave room for parallel workers and native memory
-org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# JVM: 8GB heap to leave room for Metro workers + Kotlin daemon
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 
-# Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=6
+# 4 workers to reduce concurrent memory pressure on 48GB runner
+org.gradle.workers.max=4
 org.gradle.vfs.watch=false
 
-# CI-specific optimizations - enabled for GitHub Actions
 kotlin.incremental=true
 kotlin.incremental.android=true
 kotlin.caching.enabled=true
+# Kotlin daemon: 2GB cap to prevent memory contention
+kotlin.daemon.jvmargs=-Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
 
 # File system optimizations
 org.gradle.vfs.verbose=false
@@ -54,4 +53,4 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false 
+expo.useLegacyPackaging=false

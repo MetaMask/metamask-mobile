@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
+import { SortTrendingBy } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
@@ -22,7 +22,8 @@ export const useTrendingSearch = (
     useSearchRequest({
       query: searchQuery || '',
       limit: 20,
-      chainIds: [],
+      chainIds: chainIds ?? undefined,
+      includeMarketData: true,
     });
 
   const {
@@ -35,19 +36,37 @@ export const useTrendingSearch = (
   });
 
   const data = useMemo(() => {
-    if (!searchQuery) {
+    if (!searchQuery?.trim()) {
       return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
     }
 
-    // Combine trending and search results, avoiding duplicates
-    const resultMap = new Map(
-      trendingResults.map((result) => [result.assetId, result]),
+    const query = searchQuery.toLowerCase().trim();
+
+    const filteredTrendingResults = trendingResults.filter(
+      (item) =>
+        item.symbol?.toLowerCase().includes(query) ||
+        item.name?.toLowerCase().includes(query),
     );
 
-    searchResults.forEach((result) => {
-      const asset = result as TrendingAsset;
+    // Combine trending and search results, avoiding duplicates
+    const resultMap = new Map(
+      filteredTrendingResults.map((result) => [result.assetId, result]),
+    );
+
+    searchResults.forEach((asset) => {
       if (!resultMap.has(asset.assetId)) {
-        resultMap.set(asset.assetId, asset);
+        resultMap.set(asset.assetId, {
+          assetId: asset.assetId,
+          symbol: asset.symbol,
+          name: asset.name,
+          decimals: asset.decimals,
+          price: asset.price,
+          aggregatedUsdVolume: asset.aggregatedUsdVolume,
+          marketCap: asset.marketCap,
+          priceChangePct: {
+            h24: asset.pricePercentChange1d,
+          },
+        });
       }
     });
 

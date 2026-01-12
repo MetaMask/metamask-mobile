@@ -7,7 +7,6 @@ import SDKConnect from '../../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../DeeplinkManager';
 import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
 import extractURLParams from '../../utils/extractURLParams';
 import handleRampUrl from './handleRampUrl';
@@ -16,14 +15,12 @@ import { RampType } from '../../../../reducers/fiatOrders/types';
 import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
 
 export function handleMetaMaskDeeplink({
-  instance,
   handled,
   wcURL,
   origin,
   params,
   url,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   wcURL: string;
   origin: string;
@@ -35,18 +32,6 @@ export function handleMetaMaskDeeplink({
   const channelId = params?.channelId;
   if (channelId && INTERNAL_ORIGINS.includes(channelId)) {
     throw new Error('External transactions cannot use internal origins');
-  }
-
-  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-    DevLogger.log(
-      `DeeplinkManager:: metamask launched via android sdk deeplink`,
-    );
-    SDKConnect.getInstance()
-      .bindAndroidSDK()
-      .catch((err) => {
-        Logger.error(err, 'DeepLinkManager failed to connect');
-      });
-    return;
   }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
@@ -161,7 +146,6 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
     handleRampUrl({
       rampPath,
-      navigation: instance.navigation,
       rampType: RampType.BUY,
     });
   } else if (
@@ -173,7 +157,6 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     handleRampUrl({
       rampPath,
-      navigation: instance.navigation,
       rampType: RampType.SELL,
     });
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
@@ -183,7 +166,6 @@ export function handleMetaMaskDeeplink({
     );
     handleDepositCashUrl({
       depositPath: depositCashPath,
-      navigation: instance.navigation,
     });
   }
 }

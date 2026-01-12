@@ -60,14 +60,14 @@ import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
-import TokenIcon from './components/TokenIcon';
+import TokenIcon from '../../Base/TokenIcon';
 import QuotesSummary from './components/QuotesSummary';
 import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
 import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
 import GasEditModal from './components/GasEditModal';
-import InfoModal from './components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';

@@ -1,329 +1,365 @@
 // Third party dependencies.
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { render, fireEvent } from '@testing-library/react-native';
 
 // External dependencies.
-import Text, { TextVariant, getFontFamily } from '../Texts/Text';
-import { useComponentSize } from '../../hooks';
+import { Text, IconName } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
 import {
-  HEADERBASE_VARIANT_TEXT_VARIANTS,
   HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
 } from './HeaderBase.constants';
 import { HeaderBaseVariant } from './HeaderBase.types';
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
-}));
-
-jest.mock('../../hooks', () => ({
-  ...jest.requireActual('../../hooks'),
-  useComponentSize: jest.fn(),
-}));
+const START_ACCESSORY_TEST_ID = 'start-accessory-wrapper';
+const END_ACCESSORY_TEST_ID = 'end-accessory-wrapper';
+const BUTTON_ICON_TEST_ID = 'button-icon';
+const CUSTOM_CONTENT_TEST_ID = 'custom-content';
+const START_CONTENT_TEST_ID = 'start-content';
+const END_CONTENT_TEST_ID = 'end-content';
 
 describe('HeaderBase', () => {
-  const mockInsets = { top: 20, bottom: 0, left: 0, right: 0 };
-  const mockUseComponentSize = useComponentSize as jest.Mock;
-
   beforeEach(() => {
-    (useSafeAreaInsets as jest.Mock).mockReturnValue(mockInsets);
-    mockUseComponentSize.mockReturnValue({
-      size: null,
-      onLayout: jest.fn(),
+    jest.clearAllMocks();
+  });
+
+  describe('rendering', () => {
+    it('renders string title as Text component', () => {
+      const { getByText } = render(<HeaderBase>Test Title</HeaderBase>);
+
+      expect(getByText('Test Title')).toBeOnTheScreen();
     });
-  });
 
-  it('should render snapshot correctly with Compact variant', () => {
-    const wrapper = render(
-      <HeaderBase variant={HeaderBaseVariant.Compact}>
-        Sample HeaderBase Title
-      </HeaderBase>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should render HeaderBase', () => {
-    const { queryByTestId } = render(
-      <HeaderBase>Sample HeaderBase Title</HeaderBase>,
-    );
-    expect(queryByTestId(HEADERBASE_TEST_ID)).not.toBe(null);
-  });
-
-  it('should render HeaderBase with default Compact variant when no variant is provided', () => {
-    const { getByTestId, getByRole } = render(
-      <HeaderBase>Default Variant Header</HeaderBase>,
-    );
-
-    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
-    const textElement = getByRole('text');
-    const fontFamily = getFontFamily(
-      HEADERBASE_VARIANT_TEXT_VARIANTS[HeaderBaseVariant.Compact],
-    );
-
-    // Should default to Compact variant (center aligned with HeadingSM text)
-    expect(titleElement.props.style.textAlign).toBe('center');
-    expect(textElement.props.style.fontFamily).toBe(fontFamily);
-  });
-
-  it('should render Header with the right text variant if typeof children === string', () => {
-    const { getByRole } = render(
-      <HeaderBase variant={HeaderBaseVariant.Compact}>
-        Sample HeaderBase Title
-      </HeaderBase>,
-    );
-    const fontFamily = getFontFamily(
-      HEADERBASE_VARIANT_TEXT_VARIANTS[HeaderBaseVariant.Compact],
-    );
-
-    expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
-  });
-
-  it('should render Header with the custom node if typeof children !== string', () => {
-    const testTextVariant = TextVariant.DisplayMD;
-    const { getByRole } = render(
-      <HeaderBase variant={HeaderBaseVariant.Compact}>
-        <Text variant={testTextVariant} testID={HEADERBASE_TITLE_TEST_ID}>
-          Sample HeaderBase Title
-        </Text>
-      </HeaderBase>,
-    );
-
-    const fontFamily = getFontFamily(testTextVariant);
-
-    expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
-  });
-
-  it('applies marginTop when includesTopInset is true', () => {
-    const { getByTestId } = render(
-      <HeaderBase variant={HeaderBaseVariant.Compact} includesTopInset>
-        Header Content
-      </HeaderBase>,
-    );
-
-    const headerBase = getByTestId(HEADERBASE_TEST_ID);
-    // Verify the marginTop is applied
-    expect(headerBase.props.style).toEqual(
-      expect.arrayContaining([{ marginTop: mockInsets.top }]),
-    );
-  });
-
-  it('does not apply marginTop when includesTopInset is false', () => {
-    const { getByTestId } = render(
-      <HeaderBase variant={HeaderBaseVariant.Compact} includesTopInset={false}>
-        Header Content
-      </HeaderBase>,
-    );
-
-    const headerBase = getByTestId(HEADERBASE_TEST_ID);
-    // Verify the marginTop is not applied
-    expect(headerBase.props.style).toEqual(
-      expect.not.arrayContaining([{ marginTop: mockInsets.top }]),
-    );
-  });
-
-  describe('variant functionality', () => {
-    it('applies Display variant correctly - left alignment and HeadingLG text', () => {
-      const { getByTestId, getByRole } = render(
-        <HeaderBase variant={HeaderBaseVariant.Display}>
-          Header Content
+    it('renders custom children when ReactNode is passed', () => {
+      const { getByTestId } = render(
+        <HeaderBase>
+          <Text testID={CUSTOM_CONTENT_TEST_ID}>Custom Content</Text>
         </HeaderBase>,
       );
 
-      const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
-      const textElement = getByRole('text');
-      const fontFamily = getFontFamily(
-        HEADERBASE_VARIANT_TEXT_VARIANTS[HeaderBaseVariant.Display],
-      );
-
-      // Check alignment
-      expect(titleElement.props.style.textAlign).toBe('left');
-      // Check text variant
-      expect(textElement.props.style.fontFamily).toBe(fontFamily);
+      expect(getByTestId(CUSTOM_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('applies Compact variant correctly - center alignment and HeadingSM text', () => {
-      const { getByTestId, getByRole } = render(
-        <HeaderBase variant={HeaderBaseVariant.Compact}>
-          Header Content
-        </HeaderBase>,
-      );
+    it('applies default testID to container', () => {
+      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
 
-      const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
-      const textElement = getByRole('text');
-      const fontFamily = getFontFamily(
-        HEADERBASE_VARIANT_TEXT_VARIANTS[HeaderBaseVariant.Compact],
-      );
-
-      // Check alignment
-      expect(titleElement.props.style.textAlign).toBe('center');
-      // Check text variant
-      expect(textElement.props.style.fontFamily).toBe(fontFamily);
+      expect(getByTestId(HEADERBASE_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders snapshot correctly with Display variant', () => {
-      const wrapper = render(
-        <HeaderBase variant={HeaderBaseVariant.Display}>
-          Display Variant Header
-        </HeaderBase>,
-      );
-      expect(wrapper).toMatchSnapshot();
+    it('applies title testID when string children is passed', () => {
+      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
+
+      expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders snapshot correctly with Compact variant', () => {
-      const wrapper = render(
-        <HeaderBase variant={HeaderBaseVariant.Compact}>
-          Compact Variant Header
-        </HeaderBase>,
+    it('accepts custom testID for container', () => {
+      const customTestId = 'custom-header';
+
+      const { getByTestId } = render(
+        <HeaderBase testID={customTestId}>Title</HeaderBase>,
       );
-      expect(wrapper).toMatchSnapshot();
+
+      expect(getByTestId(customTestId)).toBeOnTheScreen();
     });
   });
 
-  describe('variant functionality with accessories', () => {
-    const mockAccessoryComponent = <Text>Test Accessory</Text>;
+  describe('variant', () => {
+    it('uses Compact variant by default', () => {
+      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
 
-    describe('Display variant (left alignment)', () => {
-      it('only renders start accessory wrapper when start accessory exists', () => {
-        const startAccessoryTestId = 'start-accessory-wrapper';
-        const endAccessoryTestId = 'end-accessory-wrapper';
-
-        const { queryByTestId } = render(
-          <HeaderBase
-            variant={HeaderBaseVariant.Display}
-            startAccessory={mockAccessoryComponent}
-            startAccessoryWrapperProps={{ testID: startAccessoryTestId }}
-            endAccessoryWrapperProps={{ testID: endAccessoryTestId }}
-          >
-            Header Content
-          </HeaderBase>,
-        );
-
-        // Display variant acts like left alignment
-        expect(queryByTestId(startAccessoryTestId)).toBeTruthy();
-        expect(queryByTestId(endAccessoryTestId)).toBeFalsy();
-      });
-
-      it('renders both wrappers when both accessories exist', () => {
-        const startAccessoryTestId = 'start-accessory-wrapper';
-        const endAccessoryTestId = 'end-accessory-wrapper';
-
-        const { queryByTestId } = render(
-          <HeaderBase
-            variant={HeaderBaseVariant.Display}
-            startAccessory={mockAccessoryComponent}
-            endAccessory={mockAccessoryComponent}
-            startAccessoryWrapperProps={{ testID: startAccessoryTestId }}
-            endAccessoryWrapperProps={{ testID: endAccessoryTestId }}
-          >
-            Header Content
-          </HeaderBase>,
-        );
-
-        // Both wrappers should be rendered when both accessories exist
-        expect(queryByTestId(startAccessoryTestId)).toBeTruthy();
-        expect(queryByTestId(endAccessoryTestId)).toBeTruthy();
-      });
+      expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
-    describe('Compact variant (center alignment)', () => {
-      it('renders both accessory wrappers when any accessory exists', () => {
-        const startAccessoryTestId = 'start-accessory-wrapper';
-        const endAccessoryTestId = 'end-accessory-wrapper';
+    it('renders with Display variant when specified', () => {
+      const { getByTestId } = render(
+        <HeaderBase variant={HeaderBaseVariant.Display}>Title</HeaderBase>,
+      );
 
-        const { queryByTestId } = render(
-          <HeaderBase
-            variant={HeaderBaseVariant.Compact}
-            startAccessory={mockAccessoryComponent}
-            startAccessoryWrapperProps={{ testID: startAccessoryTestId }}
-            endAccessoryWrapperProps={{ testID: endAccessoryTestId }}
-          >
-            Header Content
-          </HeaderBase>,
-        );
-
-        // Compact variant acts like center alignment
-        expect(queryByTestId(startAccessoryTestId)).toBeTruthy();
-        expect(queryByTestId(endAccessoryTestId)).toBeTruthy();
-      });
-
-      it('does not render accessory wrappers when no accessories exist', () => {
-        const startAccessoryTestId = 'start-accessory-wrapper';
-        const endAccessoryTestId = 'end-accessory-wrapper';
-
-        const { queryByTestId } = render(
-          <HeaderBase
-            variant={HeaderBaseVariant.Compact}
-            startAccessoryWrapperProps={{ testID: startAccessoryTestId }}
-            endAccessoryWrapperProps={{ testID: endAccessoryTestId }}
-          >
-            Header Content
-          </HeaderBase>,
-        );
-
-        // No wrappers should be rendered when no accessories exist
-        expect(queryByTestId(startAccessoryTestId)).toBeFalsy();
-        expect(queryByTestId(endAccessoryTestId)).toBeFalsy();
-      });
+      expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
   });
 
-  describe('accessory width calculations', () => {
-    const mockAccessoryComponent = <Text>Test Accessory</Text>;
-
-    it('calculates accessoryWidth when both start and end accessories have sizes for Compact variant', () => {
-      // Mock useComponentSize to return different sizes for each call
-      mockUseComponentSize
-        .mockReturnValueOnce({
-          size: { width: 50, height: 30 },
-          onLayout: jest.fn(),
-        })
-        .mockReturnValueOnce({
-          size: { width: 40, height: 25 },
-          onLayout: jest.fn(),
-        });
-
+  describe('startAccessory', () => {
+    it('renders custom start accessory content', () => {
       const { getByTestId } = render(
         <HeaderBase
-          variant={HeaderBaseVariant.Compact}
-          startAccessory={mockAccessoryComponent}
-          endAccessory={mockAccessoryComponent}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
         >
-          Header Content
+          Title
         </HeaderBase>,
       );
 
-      const headerBase = getByTestId(HEADERBASE_TEST_ID);
-      // The accessoryWidth should be calculated and applied for center alignment
-      expect(headerBase).toBeTruthy();
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('does not calculate accessoryWidth for Display variant', () => {
-      mockUseComponentSize
-        .mockReturnValueOnce({
-          size: { width: 50, height: 30 },
-          onLayout: jest.fn(),
-        })
-        .mockReturnValueOnce({
-          size: { width: 40, height: 25 },
-          onLayout: jest.fn(),
-        });
+    it('does not render start accessory wrapper when startAccessory is not provided', () => {
+      const { queryByTestId } = render(
+        <HeaderBase
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
 
+      expect(queryByTestId(START_ACCESSORY_TEST_ID)).toBeNull();
+    });
+
+    it('passes startAccessoryWrapperProps to start accessory wrapper', () => {
       const { getByTestId } = render(
+        <HeaderBase
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          startAccessoryWrapperProps={{ testID: 'custom-start-wrapper' }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId('custom-start-wrapper')).toBeOnTheScreen();
+    });
+  });
+
+  describe('endAccessory', () => {
+    it('renders custom end accessory content', () => {
+      const { getByTestId } = render(
+        <HeaderBase
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('does not render end accessory wrapper when endAccessory is not provided', () => {
+      const { queryByTestId } = render(
+        <HeaderBase
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(queryByTestId(END_ACCESSORY_TEST_ID)).toBeNull();
+    });
+
+    it('passes endAccessoryWrapperProps to end accessory wrapper', () => {
+      const { getByTestId } = render(
+        <HeaderBase
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
+          endAccessoryWrapperProps={{ testID: 'custom-end-wrapper' }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId('custom-end-wrapper')).toBeOnTheScreen();
+    });
+  });
+
+  describe('startButtonIconProps', () => {
+    it('renders ButtonIcon when startButtonIconProps is provided', () => {
+      const onPressMock = jest.fn();
+      const { getByTestId } = render(
+        <HeaderBase
+          startButtonIconProps={{
+            iconName: IconName.ArrowLeft,
+            onPress: onPressMock,
+          }}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('calls onPress handler when start ButtonIcon is pressed', () => {
+      const onPressMock = jest.fn();
+      const { getByTestId } = render(
+        <HeaderBase
+          startButtonIconProps={{
+            iconName: IconName.ArrowLeft,
+            onPress: onPressMock,
+          }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      fireEvent.press(getByTestId(BUTTON_ICON_TEST_ID));
+
+      expect(onPressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('prioritizes startAccessory over startButtonIconProps', () => {
+      const { getByTestId, queryByTestId } = render(
+        <HeaderBase
+          startAccessory={
+            <Text testID={START_CONTENT_TEST_ID}>Custom Start</Text>
+          }
+          startButtonIconProps={{
+            iconName: IconName.ArrowLeft,
+            onPress: jest.fn(),
+          }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+    });
+  });
+
+  describe('endButtonIconProps', () => {
+    it('renders single ButtonIcon when one item is provided in array', () => {
+      const onPressMock = jest.fn();
+      const { getByTestId } = render(
+        <HeaderBase
+          endButtonIconProps={[
+            {
+              iconName: IconName.Close,
+              onPress: onPressMock,
+            },
+          ]}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders multiple ButtonIcons when multiple items are provided', () => {
+      const { getAllByTestId } = render(
+        <HeaderBase
+          endButtonIconProps={[
+            { iconName: IconName.Search, onPress: jest.fn() },
+            { iconName: IconName.Close, onPress: jest.fn() },
+          ]}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getAllByTestId(BUTTON_ICON_TEST_ID)).toHaveLength(2);
+    });
+
+    it('does not render ButtonIcons when endButtonIconProps is empty array', () => {
+      const { queryByTestId } = render(
+        <HeaderBase endButtonIconProps={[]}>Title</HeaderBase>,
+      );
+
+      expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+    });
+
+    it('prioritizes endAccessory over endButtonIconProps', () => {
+      const { getByTestId, queryByTestId } = render(
+        <HeaderBase
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>Custom End</Text>}
+          endButtonIconProps={[
+            { iconName: IconName.Close, onPress: jest.fn() },
+          ]}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+    });
+  });
+
+  describe('accessory wrapper rendering for centering', () => {
+    it('renders both accessory wrappers in Compact variant when only start accessory is provided', () => {
+      const { getByTestId } = render(
+        <HeaderBase
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders both accessory wrappers in Compact variant when only end accessory is provided', () => {
+      const { getByTestId } = render(
+        <HeaderBase
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders only start wrapper in Display variant when only start accessory is provided', () => {
+      const { getByTestId, queryByTestId } = render(
         <HeaderBase
           variant={HeaderBaseVariant.Display}
-          startAccessory={mockAccessoryComponent}
-          endAccessory={mockAccessoryComponent}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
-          Header Content
+          Title
         </HeaderBase>,
       );
 
-      const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
-      expect(titleElement.props.style.textAlign).toBe('left');
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(END_ACCESSORY_TEST_ID)).toBeNull();
+    });
+
+    it('renders only end wrapper in Display variant when only end accessory is provided', () => {
+      const { queryByTestId, getByTestId } = render(
+        <HeaderBase
+          variant={HeaderBaseVariant.Display}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(queryByTestId(START_ACCESSORY_TEST_ID)).toBeNull();
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders both accessory wrappers when both accessories are provided', () => {
+      const { getByTestId } = render(
+        <HeaderBase
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
+          Title
+        </HeaderBase>,
+      );
+
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
   });
 });

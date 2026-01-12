@@ -102,6 +102,16 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
 }));
 
+// Mock usePerpsMarketFills to avoid Redux selector issues
+jest.mock('../../hooks/usePerpsMarketFills', () => ({
+  usePerpsMarketFills: jest.fn(() => ({
+    fills: [],
+    isInitialLoading: false,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
+}));
+
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -182,13 +192,32 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Mock usePerpsConnection hook directly to ensure all hooks that import it get the mock
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: () => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
+  }),
+}));
+
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
 }));
 
@@ -283,12 +312,28 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsPrices', () => ({
+  usePerpsPrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
+  useIsPriceDeviatedAboveThreshold: jest.fn(() => ({
+    isDeviatedAboveThreshold: false,
+    isLoading: false,
+  })),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
   usePerpsOpenOrders: () => ({
     orders: [],

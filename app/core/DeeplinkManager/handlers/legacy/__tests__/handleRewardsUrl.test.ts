@@ -3,18 +3,22 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { store } from '../../../../../store';
+import ReduxService from '../../../../redux';
 import { setOnboardingReferralCode } from '../../../../../reducers/rewards';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../store', () => ({
-  store: {
-    dispatch: jest.fn(),
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      dispatch: jest.fn(),
+    },
   },
 }));
+
 jest.mock('../../../../../reducers/rewards', () => ({
   setOnboardingReferralCode: jest.fn((code: string | null) => ({
     type: 'SET_ONBOARDING_REFERRAL_CODE',
@@ -36,7 +40,7 @@ describe('handleRewardsUrl', () => {
     } as unknown as typeof NavigationService.navigation;
 
     // Setup store mock
-    mockDispatch = store.dispatch as jest.Mock;
+    mockDispatch = ReduxService.store.dispatch as jest.Mock;
 
     // Mock loggers
     (DevLogger.log as jest.Mock) = jest.fn();

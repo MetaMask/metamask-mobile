@@ -1,0 +1,85 @@
+import { createSelector } from 'reselect';
+import { selectRemoteFeatureFlags } from '..';
+import { hasProperty } from '@metamask/utils';
+import {
+  validatedVersionGatedFeatureFlag,
+  VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
+import { selectBasicFunctionalityEnabled } from '../../settings';
+
+const DEFAULT_REWARDS_ENABLED = false;
+export const REWARDS_ENABLED_FLAG_NAME = 'rewardsEnabled';
+
+export const MUSD_HOLDING_FLAG_NAME = 'rewardsEnableMusdHolding';
+const DEFAULT_MUSD_HOLDING_ENABLED = false;
+
+/**
+ * Selector for the raw rewards enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectRewardsEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, REWARDS_ENABLED_FLAG_NAME)) {
+      return DEFAULT_REWARDS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      REWARDS_ENABLED_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? DEFAULT_REWARDS_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the rewards enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, rewardsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return rewardsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw mUSD holding enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectMusdHoldingEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, MUSD_HOLDING_FLAG_NAME)) {
+      return DEFAULT_MUSD_HOLDING_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      MUSD_HOLDING_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_MUSD_HOLDING_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the mUSD holding enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectMusdHoldingEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectMusdHoldingEnabledRawFlag,
+  (isBasicFunctionalityEnabled, musdHoldingEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return musdHoldingEnabledRawFlag;
+  },
+);

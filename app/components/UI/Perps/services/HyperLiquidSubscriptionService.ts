@@ -1,16 +1,16 @@
 import {
-  type Subscription,
-  type WsAllMidsEvent,
-  type WsWebData2Event,
-  type WsWebData3Event,
-  type WsUserFillsEvent,
-  type WsActiveAssetCtxEvent,
-  type WsActiveSpotAssetCtxEvent,
+  type ISubscription,
+  type AllMidsWsEvent,
+  type WebData2WsEvent,
+  type WebData3WsEvent,
+  type UserFillsWsEvent,
+  type ActiveAssetCtxWsEvent,
+  type ActiveSpotAssetCtxWsEvent,
   type L2BookResponse,
-  type WsAssetCtxsEvent,
+  type AssetCtxsWsEvent,
   type FrontendOpenOrdersResponse,
-  type WsClearinghouseStateEvent,
-  type WsOpenOrdersEvent,
+  type ClearinghouseStateWsEvent,
+  type OpenOrdersWsEvent,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -101,20 +101,20 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Global singleton subscriptions
-  private globalAllMidsSubscription?: Subscription;
+  private globalAllMidsSubscription?: ISubscription;
   private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
   private readonly globalActiveAssetSubscriptions = new Map<
     string,
-    Subscription
+    ISubscription
   >();
-  private readonly globalL2BookSubscriptions = new Map<string, Subscription>();
+  private readonly globalL2BookSubscriptions = new Map<string, ISubscription>();
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
-  private readonly orderFillSubscriptions = new Map<string, Subscription>();
+  private readonly orderFillSubscriptions = new Map<string, ISubscription>();
   private readonly symbolSubscriberCounts = new Map<string, number>();
   private readonly dexSubscriberCounts = new Map<string, number>(); // Track subscribers per DEX for assetCtxs
 
   // Multi-DEX webData3 subscription for all user data (positions, orders, account, OI caps)
-  private readonly webData3Subscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
+  private readonly webData3Subscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
   private webData3SubscriptionPromise?: Promise<void>;
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
@@ -141,18 +141,18 @@ export class HyperLiquidSubscriptionService {
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
   // HIP-3: assetCtxs subscriptions for multi-DEX market data
-  private readonly assetCtxsSubscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
+  private readonly assetCtxsSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
   private readonly dexAssetCtxsCache = new Map<
     string,
-    WsAssetCtxsEvent['ctxs']
+    AssetCtxsWsEvent['ctxs']
   >(); // Per-DEX asset contexts
   private assetCtxsSubscriptionPromises = new Map<string, Promise<void>>(); // Track in-progress subscriptions
 
   private readonly clearinghouseStateSubscriptions = new Map<
     string,
-    Subscription
+    ISubscription
   >(); // Key: dex name ('' for main)
-  private readonly openOrdersSubscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
+  private readonly openOrdersSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
 
   // Meta cache per DEX - populated by metaAndAssetCtxs, used by createAssetCtxsSubscription
   // This avoids redundant meta() API calls since metaAndAssetCtxs already returns meta data
@@ -285,7 +285,7 @@ export class HyperLiquidSubscriptionService {
    */
   public setDexAssetCtxsCache(
     dex: string,
-    assetCtxs: WsAssetCtxsEvent['ctxs'],
+    assetCtxs: AssetCtxsWsEvent['ctxs'],
   ): void {
     this.dexAssetCtxsCache.set(dex, assetCtxs);
     DevLogger.log('[SubscriptionService] DEX assetCtxs cache populated', {
@@ -302,7 +302,7 @@ export class HyperLiquidSubscriptionService {
    */
   public getDexAssetCtxsCache(
     dex: string,
-  ): WsAssetCtxsEvent['ctxs'] | undefined {
+  ): AssetCtxsWsEvent['ctxs'] | undefined {
     return this.dexAssetCtxsCache.get(dex);
   }
 
@@ -855,45 +855,10 @@ export class HyperLiquidSubscriptionService {
       });
     }
 
-    // Cache funding rates from initial market data fetch if available (legacy fallback)
-    if (includeMarketData) {
-      // Get initial market data to cache funding rates
-      try {
-        // Get the provider through the clientService instead of Engine directly
-        const infoClient = this.clientService.getInfoClient();
-        const [perpsMeta, assetCtxs] = await Promise.all([
-          infoClient.meta(),
-          infoClient.metaAndAssetCtxs(),
-        ]);
-
-        if (perpsMeta?.universe && assetCtxs?.[1]) {
-          // Cache funding rates directly from assetCtxs and meta
-          perpsMeta.universe.forEach((asset, index) => {
-            const assetCtx = assetCtxs[1][index];
-            if (assetCtx && 'funding' in assetCtx) {
-              const existing = this.marketDataCache.get(asset.name) || {
-                lastUpdated: 0,
-              };
-              this.marketDataCache.set(asset.name, {
-                ...existing,
-                funding: parseFloat(assetCtx.funding),
-                lastUpdated: Date.now(),
-              });
-            }
-          });
-
-          DevLogger.log('Cached funding rates from initial market data:', {
-            cachedCount: perpsMeta.universe.filter((_asset, index) => {
-              const assetCtx = assetCtxs[1][index];
-              return assetCtx && 'funding' in assetCtx;
-            }).length,
-            totalMarkets: perpsMeta.universe.length,
-          });
-        }
-      } catch (error) {
-        DevLogger.log('Failed to cache initial funding rates:', error);
-      }
-    }
+    // Note: Funding rates are now cached via assetCtxs WebSocket subscription
+    // (ensureAssetCtxsSubscription above), eliminating the need for a separate
+    // metaAndAssetCtxs API call here. The WebSocket callback in createAssetCtxsSubscription
+    // populates marketDataCache with funding rates as they arrive.
 
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
@@ -1019,7 +984,7 @@ export class HyperLiquidSubscriptionService {
       if (!this.hip3Enabled) {
         // HIP-3 disabled: Use webData2 (main DEX only)
         subscriptionClient
-          .webData2({ user: userAddress }, (data: WsWebData2Event) => {
+          .webData2({ user: userAddress }, (data: WebData2WsEvent) => {
             try {
               // webData2 returns clearinghouseState for main DEX only
               const currentDexName = ''; // Main DEX
@@ -1164,7 +1129,7 @@ export class HyperLiquidSubscriptionService {
 
         // Also set up webData3 for OI caps only
         const webData3Promise = subscriptionClient
-          .webData3({ user: userAddress }, (data: WsWebData3Event) => {
+          .webData3({ user: userAddress }, (data: WebData3WsEvent) => {
             try {
               // webData3 is ONLY used for OI caps extraction
               // Positions, orders, and account data come from individual subscriptions
@@ -1286,7 +1251,7 @@ export class HyperLiquidSubscriptionService {
           user: userAddress,
           dex: dexName || undefined, // Empty string -> undefined for main DEX
         },
-        (data: WsClearinghouseStateEvent) => {
+        (data: ClearinghouseStateWsEvent) => {
           const cacheKey = data.dex || '';
 
           // Update caches and notify subscribers if we have positions/account subscribers
@@ -1379,7 +1344,7 @@ export class HyperLiquidSubscriptionService {
           user: userAddress,
           dex: dexName || undefined, // Empty string -> undefined for main DEX
         },
-        (data: WsOpenOrdersEvent) => {
+        (data: OpenOrdersWsEvent) => {
           const cacheKey = data.dex || '';
 
           // Update caches and notify subscribers if we have order subscribers
@@ -1513,7 +1478,7 @@ export class HyperLiquidSubscriptionService {
   /**
    * Clean up webData3 subscription when no longer needed
    */
-  private cleanupSharedWebData3Subscription(): void {
+  private cleanupSharedWebData3ISubscription(): void {
     const totalSubscribers =
       this.positionSubscriberCount +
       this.orderSubscriberCount +
@@ -1528,7 +1493,7 @@ export class HyperLiquidSubscriptionService {
             Logger.error(
               ensureError(error),
               this.getErrorContext(
-                'cleanupSharedWebData3Subscription.webData3',
+                'cleanupSharedWebData3ISubscription.webData3',
                 {
                   dex: dexName,
                 },
@@ -1548,7 +1513,7 @@ export class HyperLiquidSubscriptionService {
               Logger.error(
                 ensureError(error),
                 this.getErrorContext(
-                  'cleanupSharedWebData3Subscription.clearinghouseState',
+                  'cleanupSharedWebData3ISubscription.clearinghouseState',
                   {
                     dex: dexName,
                   },
@@ -1566,7 +1531,7 @@ export class HyperLiquidSubscriptionService {
             Logger.error(
               ensureError(error),
               this.getErrorContext(
-                'cleanupSharedWebData3Subscription.openOrders',
+                'cleanupSharedWebData3ISubscription.openOrders',
                 {
                   dex: dexName,
                 },
@@ -1639,7 +1604,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.positionSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1675,7 +1640,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.oiCapSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1702,7 +1667,7 @@ export class HyperLiquidSubscriptionService {
     );
 
     // Ensure subscription is established for this accountId
-    this.ensureOrderFillSubscription(accountId).catch((error) => {
+    this.ensureOrderFillISubscription(accountId).catch((error) => {
       Logger.error(
         ensureError(error),
         this.getErrorContext('subscribeToOrderFills'),
@@ -1734,7 +1699,7 @@ export class HyperLiquidSubscriptionService {
    * Ensure order fill subscription is active for the given accountId
    * Shares subscription across all callbacks for the same accountId
    */
-  private async ensureOrderFillSubscription(
+  private async ensureOrderFillISubscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
     // Normalize accountId: undefined -> 'default' for Map key
@@ -1754,16 +1719,16 @@ export class HyperLiquidSubscriptionService {
       if (!client) {
         throw new Error('SubscriptionClient not available');
       }
-      return this.ensureOrderFillSubscription(accountId);
+      return this.ensureOrderFillISubscription(accountId);
     }
 
     const userAddress =
       await this.walletService.getUserAddressWithDefault(accountId);
 
-    // userFills returns a Promise<Subscription>, need to await it
+    // userFills returns a Promise<ISubscription>, need to await it
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
-      (data: WsUserFillsEvent) => {
+      (data: UserFillsWsEvent) => {
         const orderFills: OrderFill[] = data.fills.map((fill) => ({
           orderId: fill.oid.toString(),
           symbol: fill.coin,
@@ -1828,7 +1793,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.orderSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1862,7 +1827,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.accountSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1993,7 +1958,7 @@ export class HyperLiquidSubscriptionService {
 
     // Store the promise immediately to prevent duplicate calls
     this.globalAllMidsPromise = subscriptionClient
-      .allMids((data: WsAllMidsEvent) => {
+      .allMids((data: AllMidsWsEvent) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
@@ -2086,14 +2051,14 @@ export class HyperLiquidSubscriptionService {
     subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
-        (data: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent) => {
+        (data: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent) => {
           subscriptionMetrics.messagesReceived++;
 
           if (data.coin === symbol && data.ctx) {
             // Type guard using SDK types: check if this is perps (has funding) or spot (no funding)
             const isPerpsContext = (
-              event: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent,
-            ): event is WsActiveAssetCtxEvent =>
+              event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
+            ): event is ActiveAssetCtxWsEvent =>
               'funding' in event.ctx &&
               'openInterest' in event.ctx &&
               'oraclePx' in event.ctx;
@@ -2225,7 +2190,8 @@ export class HyperLiquidSubscriptionService {
    * Create assetCtxs subscription for specific DEX
    * Provides real-time market data for all assets on the DEX
    *
-   * Performance: Fetches meta() ONCE during setup to avoid REST API spam on every WebSocket update
+   * Performance: Uses cached meta from dexMetaCache (populated by metaAndAssetCtxs)
+   * to avoid redundant meta() API calls during subscription setup
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
     this.clientService.ensureSubscriptionClient(
@@ -2238,31 +2204,41 @@ export class HyperLiquidSubscriptionService {
     }
 
     const dexKey = dex || '';
-
-    // Fetch meta ONCE during setup to cache symbol mapping
-    // This prevents REST API call on every WebSocket update (critical performance fix)
-    const infoClient = this.clientService.getInfoClient();
-    const perpsMeta = await infoClient.meta({ dex: dex || undefined });
-
     const dexIdentifier = dex ?? 'main DEX';
+
+    // Check cache first - populated by metaAndAssetCtxs in ensureAssetCtxsSubscription
+    let perpsMeta = this.dexMetaCache.get(dexKey);
+
+    if (!perpsMeta) {
+      // Fallback: fetch meta if not in cache (shouldn't happen in normal flow)
+      DevLogger.log(`Meta cache miss for ${dexIdentifier}, fetching from API`);
+      const infoClient = this.clientService.getInfoClient();
+      const fetchedMeta = await infoClient.meta({ dex: dex || undefined });
+      if (fetchedMeta?.universe) {
+        perpsMeta = fetchedMeta;
+        this.dexMetaCache.set(dexKey, fetchedMeta);
+      }
+    }
 
     if (!perpsMeta?.universe) {
       const errorMessage = `No universe data available for ${dexIdentifier}`;
       throw new Error(errorMessage);
     }
 
-    const metaLogMessage = `Cached meta for ${dexIdentifier}`;
-    DevLogger.log(metaLogMessage, {
-      dex,
-      universeCount: perpsMeta.universe.length,
-      firstAssetSample: perpsMeta.universe[0]?.name,
-    });
+    DevLogger.log(
+      `Using ${this.dexMetaCache.has(dexKey) ? 'cached' : 'fetched'} meta for ${dexIdentifier}`,
+      {
+        dex,
+        universeCount: perpsMeta.universe.length,
+        firstAssetSample: perpsMeta.universe[0]?.name,
+      },
+    );
 
     return new Promise<void>((resolve, reject) => {
       const subscriptionParams = dex ? { dex } : {};
 
       subscriptionClient
-        .assetCtxs(subscriptionParams, (data: WsAssetCtxsEvent) => {
+        .assetCtxs(subscriptionParams, (data: AssetCtxsWsEvent) => {
           // Cache asset contexts for this DEX
           this.dexAssetCtxsCache.set(dexKey, data.ctxs);
 
@@ -2436,7 +2412,14 @@ export class HyperLiquidSubscriptionService {
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
-    const { symbol, levels = 10, nSigFigs = 5, callback, onError } = params;
+    const {
+      symbol,
+      levels = 10,
+      nSigFigs = 5,
+      mantissa,
+      callback,
+      onError,
+    } = params;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -2452,11 +2435,11 @@ export class HyperLiquidSubscriptionService {
       };
     }
 
-    let subscription: Subscription | undefined;
+    let subscription: ISubscription | undefined;
     let cancelled = false;
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs }, (data: L2BookResponse) => {
+      .l2Book({ coin: symbol, nSigFigs, mantissa }, (data: L2BookResponse) => {
         if (cancelled || data?.coin !== symbol || !data?.levels) {
           return;
         }
@@ -2651,7 +2634,7 @@ export class HyperLiquidSubscriptionService {
             normalizedAccountId === 'default'
               ? undefined
               : (normalizedAccountId as CaipAccountId);
-          return this.ensureOrderFillSubscription(accountId).catch(() => {
+          return this.ensureOrderFillISubscription(accountId).catch(() => {
             // Ignore errors during order fill subscription restoration
           });
         }),

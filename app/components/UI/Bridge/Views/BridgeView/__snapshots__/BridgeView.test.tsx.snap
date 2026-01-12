@@ -414,7 +414,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
                                             "fontWeight": "400",
                                             "height": 50,
@@ -585,7 +585,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 24,
                                               "fontWeight": 500,
                                               "letterSpacing": 0,
@@ -640,7 +640,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -784,7 +784,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
                                             "fontWeight": "400",
                                             "height": 50,
@@ -825,7 +825,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         style={
                                           {
                                             "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -878,7 +878,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -969,7 +969,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1008,7 +1008,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1047,7 +1047,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1086,7 +1086,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1160,7 +1160,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1212,7 +1212,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1264,7 +1264,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1330,7 +1330,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1382,7 +1382,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1434,7 +1434,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1500,7 +1500,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1552,7 +1552,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1604,7 +1604,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1672,7 +1672,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1724,7 +1724,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -1803,7 +1803,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "backgroundColor": "#ffffff",
                                     "gap": 12,
                                     "justifyContent": "center",
-                                    "paddingBottom": 24,
                                     "paddingHorizontal": 16,
                                     "width": "100%",
                                   },
@@ -1815,7 +1814,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2255,7 +2254,7 @@ exports[`BridgeView renders 1`] = `
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
                                             "fontWeight": "400",
                                             "height": 50,
@@ -2426,7 +2425,7 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 24,
                                               "fontWeight": 500,
                                               "letterSpacing": 0,
@@ -2481,7 +2480,7 @@ exports[`BridgeView renders 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2625,7 +2624,7 @@ exports[`BridgeView renders 1`] = `
                                             "borderColor": "#4459ff",
                                             "borderWidth": 0,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 40,
                                             "fontWeight": "400",
                                             "height": 50,
@@ -2666,7 +2665,7 @@ exports[`BridgeView renders 1`] = `
                                         style={
                                           {
                                             "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2719,7 +2718,7 @@ exports[`BridgeView renders 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2810,7 +2809,7 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2849,7 +2848,7 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2888,7 +2887,7 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2927,7 +2926,7 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3001,7 +3000,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3053,7 +3052,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3105,7 +3104,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3171,7 +3170,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3223,7 +3222,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3275,7 +3274,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3341,7 +3340,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3393,7 +3392,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3445,7 +3444,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3513,7 +3512,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3565,7 +3564,7 @@ exports[`BridgeView renders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                     "fontSize": 32,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -3644,7 +3643,6 @@ exports[`BridgeView renders 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "gap": 12,
                                     "justifyContent": "center",
-                                    "paddingBottom": 24,
                                     "paddingHorizontal": 16,
                                     "width": "100%",
                                   },
@@ -3656,7 +3654,7 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

@@ -14,7 +14,6 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
-import FontLoadingGate from './FontLoadingGate';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -83,10 +82,8 @@ const Root = ({ foxCode }: RootProps) => {
                 <ControllersGate>
                   <ToastContextWrapper>
                     <ErrorBoundary view="Root">
-                      <FontLoadingGate>
-                        <ReducedMotionConfig mode={ReduceMotion.Never} />
-                        <App />
-                      </FontLoadingGate>
+                      <ReducedMotionConfig mode={ReduceMotion.Never} />
+                      <App />
                     </ErrorBoundary>
                   </ToastContextWrapper>
                 </ControllersGate>

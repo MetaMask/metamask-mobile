@@ -9,11 +9,13 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
+import PerpsHomeView from '../../pages/Perps/PerpsHomeView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
+import { TestSuiteParams } from '../../framework/types';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
-  it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -23,17 +25,24 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        useCommandQueueServer: true,
       },
-      async () => {
+      async ({ commandQueueServer }: TestSuiteParams) => {
+        if (!commandQueueServer) {
+          throw new Error('Command queue server not found');
+        }
         await loginToApp();
+
+        // This is needed due to disable animations
+        await device.disableSynchronization();
+
         await PerpsHelpers.navigateToPerpsTab();
 
         // Navigate to Perps from Actions
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        // Open ETH market and select Long
-        await device.disableSynchronization();
+        // Select ETH market and tap Long
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 
@@ -42,8 +51,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         await PerpsOrderView.selectLimitOrderType();
 
         // When Limit is selected without price, the limit price bottom sheet opens automatically.
-        // Press preset -10% for long (config LONG_PRESETS: [-1,-2,-5,-10])
-        await PerpsOrderView.setLimitPricePresetLong(-10);
+        await PerpsOrderView.setLimitPricePresetLong('Mid');
 
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();
@@ -51,19 +59,28 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         // Place order
         await PerpsView.tapPlaceOrderButton();
 
+        // Tap Turn on notifications on the Order placed modal
+        if (device.getPlatform() === 'ios') {
+          await PerpsOrderView.tapTurnOnNotificationsButton();
+        }
+
         // The view returns to Market Details. Change to Orders tab and verify open order card
         await PerpsMarketDetailsView.expectOpenOrderVisible();
 
         // Navigate back to main Perps screen to follow the same navigation pattern as other specs
         await PerpsView.tapBackButtonPositionSheet();
-        await PerpsView.tapBackButtonMarketList();
+        await PerpsHomeView.tapBackHomeButton();
 
         // Verify on the Perps tab main screen that the order is visible without entering the market
         await PerpsView.expectOpenOrdersOnTab();
 
         // Push the price -15% to ensure the order is executed
         // Default ETH price in mock is 2500.00, -15% => 2125.00
-        await PerpsE2EModifiers.updateMarketPrice('ETH', '2125.00');
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'ETH',
+          '2125.00',
+        );
 
         // Navigate to ETH again to verify order is gone and position is present
         await TabBarComponent.tapActions();

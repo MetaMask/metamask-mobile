@@ -1,7 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TouchableOpacity, View } from 'react-native';
+import {
+  Text,
+  TextVariant,
+  Icon,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
@@ -9,36 +14,28 @@ import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { strings } from '../../../../locales/i18n';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
-import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
-import {
-  createProviderConfig,
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import {
-  findBlockExplorerForNonEvmChainId,
-  getDecimalChainId,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
-import { RootState } from '../../../reducers';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { appendURLParams } from '../../../util/browser';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
 import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
 import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import useBlockExplorer from '../../hooks/useBlockExplorer';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -98,24 +95,18 @@ const AssetOptions = (props: Props) => {
     chainId: networkId,
     asset,
   } = props.route.params;
-  const { styles } = useStyles(styleSheet, {});
-  const safeAreaInsets = useSafeAreaInsets();
+  const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
-  const modalRef = useRef<ReusableModalRef>(null);
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
+  const modalRef = useRef<BottomSheetRef>(null);
   const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   // Get the selected account for the current network (works for all non-EVM chains)
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Check if token exists in state
@@ -138,38 +129,11 @@ const AssetOptions = (props: Props) => {
     );
   }, [assets, networkId, address]);
 
-  // Memoize the provider config for the token explorer
-  const { providerConfigTokenExplorer } = useMemo(() => {
-    if (isNonEvmChainId(networkId)) {
-      return {
-        providerConfigTokenExplorer: null,
-      };
-    }
-    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
-    const tokenRpcEndpoint =
-      tokenNetworkConfig?.rpcEndpoints?.[
-        tokenNetworkConfig?.defaultRpcEndpointIndex
-      ];
-    const providerConfigToken = createProviderConfig(
-      tokenNetworkConfig,
-      tokenRpcEndpoint,
-    );
-
-    const providerConfigTokenExplorerToken = providerConfigToken;
-
-    return {
-      providerConfigTokenExplorer: providerConfigTokenExplorerToken,
-    };
-  }, [networkId, networkConfigurations]);
-
-  const explorer = useBlockExplorer(
-    networkConfigurations,
-    providerConfigTokenExplorer,
-  );
-  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+  const explorer = useBlockExplorer(asset.chainId ?? networkId);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
-    modalRef.current?.dismissModal(() => {
+    modalRef.current?.onCloseBottomSheet(() => {
       (async () => {
         if (await InAppBrowser.isAvailable()) {
           await InAppBrowser.open(url);
@@ -187,45 +151,28 @@ const AssetOptions = (props: Props) => {
   };
 
   const openOnBlockExplorer = () => {
-    let explorerToUse = explorer;
-    if (isNonEvmChainId(networkId)) {
-      const solanaExplorer = findBlockExplorerForNonEvmChainId(networkId);
-      explorerToUse = {
-        baseUrl: solanaExplorer,
-        token: (tokenAddress: string) =>
-          `${solanaExplorer}/token/${tokenAddress}`,
-        account: (accountAddress: string) =>
-          `${solanaExplorer}/account/${accountAddress}`,
-        tx: (hash: string) => `${solanaExplorer}/tx/${hash}`,
-        name: 'Block Explorer',
-        value: null,
-        isValid: true,
-        isRPC: false,
-      };
-    }
-    let url = '';
-    const title = new URL(explorerToUse.baseUrl).hostname;
+    // Extract actual token address from CAIP format for non-EVM chains
+    const tokenAddress = isNonEvmChainId(networkId)
+      ? extractTokenAddressFromCaip(address)
+      : address;
 
     // Check if this is a native currency or wrapped native token (like wSOL)
     const isNativeToken =
       isNativeCurrency || isNativeTokenAddress(address, networkId);
 
-    if (isNativeToken) {
-      // Go to block explorer base URL for native tokens
-      url = explorerToUse.baseUrl;
-    } else {
-      // Extract the actual token address from CAIP format only for non-EVM chains
-      const tokenAddress = isNonEvmChainId(networkId)
-        ? extractTokenAddressFromCaip(address)
-        : address;
-      // Go to token on block explorer
-      url = explorerToUse.token(tokenAddress);
+    // For native currencies, go to the base block explorer URL
+    // For tokens, go to the address/account page
+    const url = isNativeToken
+      ? explorer.getBlockExplorerBaseUrl(networkId)
+      : explorer.getBlockExplorerUrl(tokenAddress, networkId);
+
+    if (url) {
+      goToBrowserUrl(url, explorer.getBlockExplorerName(networkId));
     }
-    goToBrowserUrl(url, title);
   };
 
   const openTokenDetails = () => {
-    modalRef.current?.dismissModal(() => {
+    modalRef.current?.onCloseBottomSheet(() => {
       // Extract the actual token address from CAIP format only for non-EVM chains
       const tokenAddress = isNonEvmChainId(networkId)
         ? extractTokenAddressFromCaip(address)
@@ -248,13 +195,9 @@ const AssetOptions = (props: Props) => {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      const analyticsEnabled = isEnabled();
-
-      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-        metamaskEntry: 'mobile',
-        metricsEnabled: analyticsEnabled,
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      });
+      const portfolioUrl = buildPortfolioUrlWithMetrics(
+        AppConstants.PORTFOLIO.URL,
+      );
 
       newTabUrl = portfolioUrl.href;
     }
@@ -351,7 +294,7 @@ const AssetOptions = (props: Props) => {
         onPress: openPortfolio,
         icon: IconName.Export,
       });
-    Boolean(explorer.baseUrl) &&
+    Boolean(explorer.getBlockExplorerName(networkId)) &&
       options.push({
         label: strings('asset_details.options.view_on_block'),
         onPress: openOnBlockExplorer,
@@ -378,8 +321,8 @@ const AssetOptions = (props: Props) => {
           return (
             <View key={label}>
               <TouchableOpacity style={styles.optionButton} onPress={onPress}>
-                <Icon name={icon} style={styles.icon} />
-                <Text style={styles.optionLabel}>{label}</Text>
+                <Icon name={icon} />
+                <Text>{label}</Text>
               </TouchableOpacity>
             </View>
           );
@@ -389,12 +332,14 @@ const AssetOptions = (props: Props) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
-        {renderOptions()}
-      </View>
-    </ReusableModal>
+    <BottomSheet ref={modalRef}>
+      <BottomSheetHeader onClose={() => modalRef.current?.onCloseBottomSheet()}>
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('asset_details.options.title')}
+        </Text>
+      </BottomSheetHeader>
+      <View>{renderOptions()}</View>
+    </BottomSheet>
   );
 };
 

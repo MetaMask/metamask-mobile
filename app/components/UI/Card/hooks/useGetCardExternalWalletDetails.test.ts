@@ -1,19 +1,14 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import useGetCardExternalWalletDetails, {
-  mapCardExternalWalletDetailToCardTokenAllowance,
-} from './useGetCardExternalWalletDetails';
+import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import { useCardSDK } from '../sdk';
 import { useWrapWithCache } from './useWrapWithCache';
 import Logger from '../../../../util/Logger';
 import {
   CardExternalWalletDetail,
-  AllowanceState,
-  CardTokenAllowance,
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
 } from '../types';
-import { ARBITRARY_ALLOWANCE } from '../constants';
 import { CaipChainId } from '@metamask/utils';
 
 // Mock dependencies
@@ -39,257 +34,6 @@ const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
   typeof useWrapWithCache
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
-
-describe('mapCardExternalWalletDetailToCardTokenAllowance', () => {
-  const mockTotalAllowances = [
-    { address: '0xtoken1', allowance: '1000' },
-    { address: '0xtoken2', allowance: '2000' },
-  ];
-
-  const createMockWalletDetail = (
-    overrides?: Partial<CardExternalWalletDetail>,
-  ): CardExternalWalletDetail => ({
-    id: 1,
-    walletAddress: '0xwallet',
-    currency: 'USDC',
-    balance: '500',
-    allowance: '100',
-    priority: 1,
-    tokenDetails: {
-      address: '0xtoken1',
-      decimals: 6,
-      symbol: 'USDC',
-      name: 'USD Coin',
-    },
-    caipChainId: 'eip155:59144' as CaipChainId,
-    network: 'linea',
-    ...overrides,
-  });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  describe('Allowance State Mapping', () => {
-    it('maps NotEnabled state when allowance is zero', () => {
-      const walletDetail = createMockWalletDetail({ allowance: '0' });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.allowanceState).toBe(AllowanceState.NotEnabled);
-    });
-
-    it('maps Limited state when allowance is below arbitrary threshold', () => {
-      const allowance = (ARBITRARY_ALLOWANCE - 1).toString();
-      const walletDetail = createMockWalletDetail({ allowance });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.allowanceState).toBe(AllowanceState.Limited);
-    });
-
-    it('maps Enabled state when allowance is at or above arbitrary threshold', () => {
-      const allowance = ARBITRARY_ALLOWANCE.toString();
-      const walletDetail = createMockWalletDetail({ allowance });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.allowanceState).toBe(AllowanceState.Enabled);
-    });
-  });
-
-  describe('Available Balance Calculation', () => {
-    it('uses balance when balance is less than allowance', () => {
-      const walletDetail = createMockWalletDetail({
-        balance: '50',
-        allowance: '100',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.availableBalance).toBe('50');
-    });
-
-    it('uses allowance when allowance is less than balance', () => {
-      const walletDetail = createMockWalletDetail({
-        balance: '200',
-        allowance: '100',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.availableBalance).toBe('100');
-    });
-
-    it('uses same value when balance equals allowance', () => {
-      const walletDetail = createMockWalletDetail({
-        balance: '100',
-        allowance: '100',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.availableBalance).toBe('100');
-    });
-  });
-
-  describe('Total Allowance Matching', () => {
-    it('matches total allowance by token address case-insensitively', () => {
-      const walletDetail = createMockWalletDetail({
-        tokenDetails: {
-          address: '0xTOKEN1',
-          decimals: 6,
-          symbol: 'USDC',
-          name: 'USD Coin',
-        },
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.totalAllowance).toBe('1000');
-    });
-
-    it('uses staging token address for matching when available', () => {
-      const walletDetail = createMockWalletDetail({
-        tokenDetails: {
-          address: '0xtoken1',
-          decimals: 6,
-          symbol: 'USDC',
-          name: 'USD Coin',
-        },
-        stagingTokenAddress: '0xtoken2',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.totalAllowance).toBe('2000');
-    });
-
-    it('returns undefined total allowance when no match found', () => {
-      const walletDetail = createMockWalletDetail({
-        tokenDetails: {
-          address: '0xtoken999',
-          decimals: 6,
-          symbol: 'USDC',
-          name: 'USD Coin',
-        },
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.totalAllowance).toBeUndefined();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('returns null for undefined wallet detail', () => {
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [undefined],
-        mockTotalAllowances,
-      );
-
-      expect(result).toEqual([null]);
-    });
-
-    it('handles missing allowance by defaulting to zero', () => {
-      const walletDetail = createMockWalletDetail({
-        allowance: '',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.allowance).toBe('0');
-      expect(result[0]?.allowanceState).toBe(AllowanceState.NotEnabled);
-    });
-
-    it('handles missing balance by defaulting to zero', () => {
-      const walletDetail = createMockWalletDetail({
-        balance: '',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]?.availableBalance).toBe('0');
-    });
-
-    it('preserves all required fields from wallet detail', () => {
-      const walletDetail = createMockWalletDetail({
-        walletAddress: '0xwallet123',
-        priority: 5,
-        delegationContractAddress: '0xdelegation',
-        stagingTokenAddress: '0xstaging',
-      });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail],
-        mockTotalAllowances,
-      );
-
-      expect(result[0]).toMatchObject({
-        address: '0xtoken1',
-        decimals: 6,
-        symbol: 'USDC',
-        name: 'USD Coin',
-        walletAddress: '0xwallet123',
-        caipChainId: 'eip155:59144',
-        priority: 5,
-        delegationContract: '0xdelegation',
-        stagingTokenAddress: '0xstaging',
-      });
-    });
-
-    it('handles multiple wallet details', () => {
-      const walletDetail1 = createMockWalletDetail({ id: 1, currency: 'USDC' });
-      const walletDetail2 = createMockWalletDetail({ id: 2, currency: 'USDT' });
-
-      const result = mapCardExternalWalletDetailToCardTokenAllowance(
-        [walletDetail1, walletDetail2],
-        mockTotalAllowances,
-      );
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).not.toBeNull();
-      expect(result[1]).not.toBeNull();
-    });
-  });
-});
 
 describe('useGetCardExternalWalletDetails', () => {
   const mockGetCardExternalWalletDetails = jest.fn();
@@ -617,7 +361,7 @@ describe('useGetCardExternalWalletDetails', () => {
   });
 
   describe('Auto-fetch Behavior', () => {
-    it('triggers fetch when all prerequisites are ready and no data exists', () => {
+    it('does not auto-fetch when all prerequisites are ready and no data exists', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
@@ -627,100 +371,11 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      expect(mockFetchData).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not trigger fetch when SDK is not available', () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
+      // Auto-fetch is intentionally disabled (fetchOnMount: false)
       expect(mockFetchData).not.toHaveBeenCalled();
     });
 
-    it('does not trigger fetch when not authenticated', () => {
-      mockUseSelector.mockReturnValue(false);
-
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when delegation settings are null', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(null));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when already loading', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: true,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when data already exists', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: {
-          walletDetails: [mockWalletDetail1],
-          mappedWalletDetails: [] as CardTokenAllowance[],
-          priorityWalletDetail: null,
-        },
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when error exists', () => {
-      const mockError = new Error('Previous fetch failed');
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: mockError,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('re-triggers fetch when prerequisites change from unavailable to available', () => {
+    it('does not auto-fetch when prerequisites change from unavailable to available', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
@@ -738,8 +393,6 @@ describe('useGetCardExternalWalletDetails', () => {
         useGetCardExternalWalletDetails(mockDelegationSettings),
       );
 
-      expect(mockFetchData).not.toHaveBeenCalled();
-
       // SDK becomes available
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
@@ -748,7 +401,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       rerender();
 
-      expect(mockFetchData).toHaveBeenCalledTimes(1);
+      // Auto-fetch is intentionally disabled (fetchOnMount: false)
+      expect(mockFetchData).not.toHaveBeenCalled();
     });
   });
 
