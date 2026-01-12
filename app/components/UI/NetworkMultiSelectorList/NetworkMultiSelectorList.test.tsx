@@ -9,7 +9,10 @@ import { debounce, type DebouncedFunc } from 'lodash';
 import { useStyles } from '../../../component-library/hooks/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import { selectEvmChainId } from '../../../selectors/networkController';
-import { selectSelectedNonEvmNetworkChainId , selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectSelectedNonEvmNetworkChainId,
+  selectIsEvmNetworkSelected,
+} from '../../../selectors/multichainNetworkController';
 import NetworkMultiSelectorList from './NetworkMultiSelectorList';
 import {
   NetworkMultiSelectorListProps,
