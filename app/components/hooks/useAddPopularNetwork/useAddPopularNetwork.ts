@@ -11,11 +11,8 @@ import { useMetrics } from '../useMetrics';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-} from '../useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../useNetworkSelection/useNetworkSelection';
+import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 interface UseAddPopularNetworkResult {
   /**
@@ -44,12 +41,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-  const { selectNetwork } = useNetworkSelection({
-    networks,
-  });
+  const { enableNetwork } = useNetworkEnablement();
 
   const addPopularNetwork = useCallback(
     async (
@@ -126,8 +118,8 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
             ?.networkClientId;
       }
 
-      // Update network filter to include this network
-      selectNetwork(hexChainId);
+      // Update network filter to include this network (without switching - we handle that below)
+      enableNetwork(formatChainIdToCaip(hexChainId));
 
       if (shouldSwitchNetwork && networkClientId) {
         // Switch to the network
@@ -140,7 +132,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
       trackEvent,
       createEventBuilder,
       addTraitsToUser,
-      selectNetwork,
+      enableNetwork,
       dispatch,
     ],
   );

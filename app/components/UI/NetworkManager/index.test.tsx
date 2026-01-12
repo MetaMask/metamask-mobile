@@ -817,7 +817,7 @@ describe('NetworkManager Component', () => {
         expect(
           getByTestId('account-action-transaction.edit'),
         ).toBeOnTheScreen();
-        expect(queryByTestId('account_action-app_settings.delete')).toBeNull();
+        expect(queryByTestId('account-action-app_settings.delete')).toBeNull();
       });
     });
 

@@ -3,8 +3,7 @@ import { useAddPopularNetwork } from './useAddPopularNetwork';
 import Engine from '../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMetrics } from '../useMetrics';
-import { useNetworksByNamespace } from '../useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../useNetworkSelection/useNetworkSelection';
+import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
@@ -19,13 +18,8 @@ jest.mock('../useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
 
-jest.mock('../useNetworksByNamespace/useNetworksByNamespace', () => ({
-  useNetworksByNamespace: jest.fn(),
-  NetworkType: { Popular: 'popular' },
-}));
-
-jest.mock('../useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: jest.fn(),
+jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -64,7 +58,7 @@ describe('useAddPopularNetwork', () => {
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockAddTraitsToUser = jest.fn();
-  const mockSelectNetwork = jest.fn();
+  const mockEnableNetwork = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -80,11 +74,8 @@ describe('useAddPopularNetwork', () => {
       }),
       addTraitsToUser: mockAddTraitsToUser,
     });
-    (useNetworksByNamespace as jest.Mock).mockReturnValue({
-      networks: [],
-    });
-    (useNetworkSelection as jest.Mock).mockReturnValue({
-      selectNetwork: mockSelectNetwork,
+    (useNetworkEnablement as jest.Mock).mockReturnValue({
+      enableNetwork: mockEnableNetwork,
     });
 
     (
@@ -213,7 +204,8 @@ describe('useAddPopularNetwork', () => {
       await result.current.addPopularNetwork(mockNetwork);
     });
 
-    expect(mockSelectNetwork).toHaveBeenCalledWith('0x89');
+    // enableNetwork is called with CAIP chain ID format (eip155:137 for 0x89)
+    expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
   });
 
   it('adds user traits when adding a new network', async () => {
