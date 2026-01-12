@@ -106,13 +106,15 @@ const CustomNetwork = ({
     : supportedNetworkList.filter((n) => !n.isAdded);
 
   const handleNetworkPress = useCallback(
-    (networkConfiguration: Network & { isAdded: boolean }) => {
+    async (networkConfiguration: Network & { isAdded: boolean }) => {
       // When skipConfirmation is true and we have onNetworkAdd callback,
       // add the network directly without showing the confirmation modal
       if (skipConfirmation && onNetworkAdd) {
-        onNetworkAdd(networkConfiguration).catch((error) => {
+        try {
+          await onNetworkAdd(networkConfiguration);
+        } catch (error) {
           console.error('Failed to add network:', error);
-        });
+        }
       } else {
         // Fallback to showing the modal for confirmation
         showNetworkModal(networkConfiguration);
