@@ -43,9 +43,13 @@ export const useEarnLendingTransactionStatus = () => {
   // Use refs to avoid stale closures in event handlers
   const trackEventRef = useRef(trackEvent);
   const createEventBuilderRef = useRef(createEventBuilder);
+  const getEarnTokenRef = useRef(getEarnToken);
+  const getOutputTokenRef = useRef(getOutputToken);
 
   trackEventRef.current = trackEvent;
   createEventBuilderRef.current = createEventBuilder;
+  getEarnTokenRef.current = getEarnToken;
+  getOutputTokenRef.current = getOutputToken;
 
   useEffect(() => {
     /**
@@ -92,7 +96,7 @@ export const useEarnLendingTransactionStatus = () => {
       earnToken: EarnTokenDetails | undefined,
       outputToken: EarnTokenDetails | undefined,
     ) => {
-      const chainId = transactionMeta.chainId as Hex;
+      const chainId = transactionMeta.chainId;
       const isDeposit = lendingInfo.type === TransactionType.lendingDeposit;
 
       if (isDeposit) {
@@ -137,7 +141,7 @@ export const useEarnLendingTransactionStatus = () => {
       earnToken: EarnTokenDetails | undefined,
       outputToken: EarnTokenDetails | undefined,
     ) => {
-      const chainId = transactionMeta.chainId as Hex;
+      const chainId = transactionMeta.chainId;
       const isDeposit = lendingInfo.type === TransactionType.lendingDeposit;
 
       try {
@@ -261,7 +265,7 @@ export const useEarnLendingTransactionStatus = () => {
       let earnToken: EarnTokenDetails | undefined;
       let outputToken: EarnTokenDetails | undefined;
 
-      const chainId = transactionMeta.chainId as Hex;
+      const chainId = transactionMeta.chainId;
 
       // Look up network name for analytics
       const networkConfig =
@@ -276,14 +280,20 @@ export const useEarnLendingTransactionStatus = () => {
           chainId,
           decodedData.tokenAddress,
         );
-        earnToken = getEarnToken({
-          chainId,
-          address: tokenPair.earnToken as Hex,
-        } as TokenI);
-        outputToken = getOutputToken({
-          chainId,
-          address: tokenPair.outputToken as Hex,
-        } as TokenI);
+
+        // Only look up tokens if addresses exist (market may not be in EarnController yet)
+        if (tokenPair.earnToken) {
+          earnToken = getEarnTokenRef.current({
+            chainId,
+            address: tokenPair.earnToken as Hex,
+          } as TokenI);
+        }
+        if (tokenPair.outputToken) {
+          outputToken = getOutputTokenRef.current({
+            chainId,
+            address: tokenPair.outputToken as Hex,
+          } as TokenI);
+        }
       }
 
       // Track analytics

@@ -658,6 +658,32 @@ describe('useEarnLendingTransactionStatus', () => {
       expect(() => handler(transactionMeta)).not.toThrow();
       expect(mockAddToken).not.toHaveBeenCalled();
     });
+
+    it('handles missing market data gracefully when token pair addresses are undefined', () => {
+      // Mock getEarnTokenPairAddressesFromState to return undefined addresses
+      // (simulates a token not yet in EarnController's markets list)
+      jest
+        .requireMock('../utils/token-snapshot')
+        .getEarnTokenPairAddressesFromState.mockReturnValueOnce({
+          earnToken: undefined,
+          outputToken: undefined,
+        });
+
+      renderHook(() => useEarnLendingTransactionStatus());
+
+      const handler = getHandler('TransactionController:transactionConfirmed');
+      const depositData = createLendingDepositData();
+      const transactionMeta = createTransactionMeta(
+        TransactionType.lendingDeposit,
+        'test-missing-market',
+        depositData,
+      );
+
+      // Previously would throw: TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+      expect(() => handler(transactionMeta)).not.toThrow();
+      // Analytics should still be tracked even without token details
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('deduplication', () => {
