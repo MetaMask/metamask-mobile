@@ -268,6 +268,7 @@ export const PerpsEventValues = {
     CONNECTION_ERROR: 'connection_error',
     PERPS_HERO_CARD: 'perps_hero_card',
     PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
+    PERPS_HOME: 'perps_home',
     PERPS_MARKET_DETAILS: 'perps_market_details',
     PERPS_ORDER: 'perps_order',
   },

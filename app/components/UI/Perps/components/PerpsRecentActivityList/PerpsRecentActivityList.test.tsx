@@ -97,6 +97,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock(
+  '../PerpsFillTag',
+  () =>
+    function MockPerpsFillTag() {
+      return null;
+    },
+);
+
 describe('PerpsRecentActivityList', () => {
   const mockNavigate = jest.fn();
 
