@@ -200,6 +200,23 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       };
     });
 
+  // Mock HyperLiquid Exchange API POST requests through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('api.hyperliquid.xyz/exchange');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'ok' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
   // Mock Rewards API for perps fee discount through the mobile proxy
   await mockServer
     .forGet('/proxy')

@@ -43,9 +43,13 @@ const styleSheet = (params: { theme: Theme }) => {
     tradeInfo: {
       flex: 1,
     },
-    tradeType: {
+    tradeTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       marginBottom: 2,
     },
+    tradeType: {},
     rightSection: {
       alignItems: 'flex-end',
     },

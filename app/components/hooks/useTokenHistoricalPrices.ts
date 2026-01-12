@@ -119,11 +119,13 @@ const useTokenHistoricalPrices = ({
 
           setPrices(transformedResult);
         } else {
-          const baseUri = 'https://price.api.cx.metamask.io/v1';
+          const baseUri = 'https://price.api.cx.metamask.io/v3';
+          const decimalChainId = getDecimalChainId(chainId);
+          const caipChainId = `eip155:${decimalChainId}`;
+          // CAIP-19 format: eip155:{chainId}/erc20:{address}
+          const assetIdentifier = `erc20:${address}`;
           const uri = new URL(
-            `${baseUri}/chains/${getDecimalChainId(
-              chainId,
-            )}/historical-prices/${address}`,
+            `${baseUri}/historical-prices/${caipChainId}/${assetIdentifier}`,
           );
           uri.searchParams.set(
             'timePeriod',
