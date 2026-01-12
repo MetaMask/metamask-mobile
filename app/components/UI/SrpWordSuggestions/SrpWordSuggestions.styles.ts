@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Colors } from '../../../util/theme/models';
 
 /**
@@ -9,7 +9,11 @@ export const createStyles = (colors: Colors) =>
   StyleSheet.create({
     suggestionContainer: {
       paddingVertical: 10,
-      paddingHorizontal: 48,
+      paddingLeft: Platform.select({
+        ios: 48,
+        android: 20,
+        default: 48,
+      }),
       backgroundColor: colors.background.section,
     },
     suggestionListContent: {
