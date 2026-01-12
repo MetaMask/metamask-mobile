@@ -347,7 +347,7 @@ const EarnWithdrawInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         receiptTokenToUse,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -359,6 +359,7 @@ const EarnWithdrawInputView = () => {
     isLending,
     tokenLabel,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     receiptTokenToUse,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF

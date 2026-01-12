@@ -380,6 +380,8 @@ export const NETWORK_CHAIN_ID: {
   readonly CRONOS: '0x19';
   readonly HYPE: '0x3e7';
   readonly X_LAYER: '0xc4';
+  readonly ETHERLINK: '0xa729';
+  readonly MSU: '0x10b3e';
   readonly BOB: '0xed88';
   readonly ROOTSTOCK: '0x1e';
   readonly ROOTSTOCK_TESTNET: '0x1f';
@@ -419,6 +421,8 @@ export const NETWORK_CHAIN_ID: {
   CRONOS: '0x19',
   HYPE: '0x3e7',
   X_LAYER: '0xc4',
+  ETHERLINK: '0xa729',
+  MSU: '0x10b3e',
   BOB: '0xed88',
   ROOTSTOCK: '0x1e',
   ROOTSTOCK_TESTNET: '0x1f',
@@ -464,6 +468,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
   [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
   [NETWORK_CHAIN_ID.X_LAYER]: require('../../images/x-layer.png'),
+  [NETWORK_CHAIN_ID.ETHERLINK]: require('../../images/etherlink.png'),
+  [NETWORK_CHAIN_ID.MSU]: require('../../images/msu.png'),
   [NETWORK_CHAIN_ID.BOB]: require('../../images/bob.png'),
   [NETWORK_CHAIN_ID.ROOTSTOCK]: require('../../images/rootstock.png'),
   [NETWORK_CHAIN_ID.ROOTSTOCK_TESTNET]: require('../../images/rootstock.png'),
