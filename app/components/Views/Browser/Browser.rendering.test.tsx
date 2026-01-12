@@ -5,7 +5,7 @@
 // 2. if tabs.length <= 4, create a new tab
 
 import React from 'react';
-import { Browser } from './index';
+import { Browser as BrowserComponent } from './index';
 import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -26,6 +26,10 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+
+const Browser = BrowserComponent as React.ComponentType<
+  Record<string, unknown>
+>;
 
 jest.useFakeTimers();
 
