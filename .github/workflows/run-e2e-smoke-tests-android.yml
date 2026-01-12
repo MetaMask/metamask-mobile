@@ -185,7 +185,7 @@ jobs:
     if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
     needs:
       - trade-android-smoke
-      # - perps-android-smoke
+      - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
       - accounts-android-smoke

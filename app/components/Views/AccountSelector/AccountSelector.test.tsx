@@ -349,7 +349,7 @@ describe('AccountSelector', () => {
       const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-      expect(addButton).toBeDefined();
+      expect(addButton).toBeOnTheScreen();
       expect(addButton.props.children).toBeDefined();
     });
 
@@ -371,7 +371,7 @@ describe('AccountSelector', () => {
       const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-      expect(addButton).toBeDefined();
+      expect(addButton).toBeOnTheScreen();
 
       // When multichain feature flag is enabled, button text should be "Add wallet"
       expect(addButton).toHaveTextContent('Add wallet');
@@ -529,7 +529,7 @@ describe('AccountSelector', () => {
       const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-      expect(addButton).toBeDefined();
+      expect(addButton).toBeOnTheScreen();
       expect(addButton).toHaveTextContent('Syncing...');
 
       // Restore fake timers for other tests
@@ -669,6 +669,108 @@ describe('AccountSelector', () => {
     });
   });
 
+  describe('disableAddAccountButton prop', () => {
+    it('displays add account button when disableAddAccountButton is false', () => {
+      const routeWithDisableButton = {
+        params: {
+          ...mockRoute.params,
+          disableAddAccountButton: false,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisableButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeOnTheScreen();
+    });
+
+    it('hides add account button when disableAddAccountButton is true', () => {
+      const routeWithDisableButton = {
+        params: {
+          ...mockRoute.params,
+          disableAddAccountButton: true,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisableButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const addButton = screen.queryByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeNull();
+    });
+
+    it('hides add account button in multichain mode when disableAddAccountButton is true', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const routeWithDisableButton = {
+        params: {
+          ...mockRoute.params,
+          disableAddAccountButton: true,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisableButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const addButton = screen.queryByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeNull();
+    });
+
+    it('displays add account button in multichain mode when disableAddAccountButton is false', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const routeWithDisableButton = {
+        params: {
+          ...mockRoute.params,
+          disableAddAccountButton: false,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisableButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeOnTheScreen();
+    });
+  });
+
   describe('Feature Flag: Full-Page Account List', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -749,7 +851,7 @@ describe('AccountSelector', () => {
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       // Act: Render in full-page mode
-      renderScreen(
+      const { unmount: unmount2 } = renderScreen(
         AccountSelectorWrapper,
         {
           name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -767,6 +869,7 @@ describe('AccountSelector', () => {
         ),
       ).toBeDefined();
 
+      unmount2();
       jest.useFakeTimers();
     });
 

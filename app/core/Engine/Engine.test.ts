@@ -270,6 +270,10 @@ describe('Engine', () => {
         initializationError: null,
         initializationAttempts: 0,
       },
+      RampsController: {
+        ...backgroundState.RampsController,
+        eligibility: null,
+      },
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);
