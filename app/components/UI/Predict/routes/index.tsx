@@ -24,7 +24,7 @@ const PredictModalStack = () => (
       cardStyle: {
         backgroundColor: 'transparent',
       },
-      presentation: 'modal',
+      presentation: 'transparentModal',
     }}
   >
     <ModalStack.Screen

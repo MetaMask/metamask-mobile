@@ -47,7 +47,12 @@ const EarnScreenStack = () => {
 };
 
 const EarnModalStack = () => (
-  <ModalStack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}>
+  <ModalStack.Navigator
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
+  >
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}
       component={EarnLendingMaxWithdrawalModal}

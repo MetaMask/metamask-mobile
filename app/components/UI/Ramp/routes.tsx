@@ -30,7 +30,10 @@ const MainRoutes = () => (
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}

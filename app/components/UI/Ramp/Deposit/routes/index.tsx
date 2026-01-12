@@ -143,7 +143,10 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}

@@ -513,7 +513,7 @@ const MainFlow = () => (
     initialRouteName={'Main'}
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
+      presentation: 'card',
     }}
   >
     <Stack.Screen name={'Main'} component={ConnectedMain} />

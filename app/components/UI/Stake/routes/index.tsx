@@ -64,7 +64,10 @@ const StakeScreenStack = () => {
 const StakeModalStack = () => (
   <StakeSDKProvider>
     <ModalStack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+      screenOptions={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     >
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}

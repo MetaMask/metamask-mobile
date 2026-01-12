@@ -150,7 +150,10 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}

@@ -161,7 +161,7 @@ const clearStackNavigatorOptions = {
 
 const WalletModalFlow = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
   >
     <Stack.Screen
       name={'Wallet'}
@@ -226,7 +226,7 @@ const WalletTabStackFlow = () => (
 
 const WalletTabModalFlow = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
   >
     <Stack.Screen
       name={Routes.WALLET.TAB_STACK_FLOW}
@@ -306,7 +306,7 @@ const BrowserFlow = (props) => (
     initialRouteName={Routes.BROWSER.VIEW}
     screenOptions={{
       cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
+      presentation: 'card',
     }}
   >
     <Stack.Screen
@@ -330,7 +330,7 @@ const BrowserFlow = (props) => (
 const ExploreHome = () => (
   <Stack.Navigator
     initialRouteName={Routes.TRENDING_FEED}
-    screenOptions={{ presentation: 'modal' }}
+    screenOptions={{ presentation: 'card' }}
   >
     <Stack.Screen
       name={Routes.TRENDING_FEED}
@@ -789,7 +789,7 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
+  <Stack.Navigator screenOptions={{ presentation: 'card' }}>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -986,7 +986,7 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        presentation: 'modal',
+        presentation: 'card',
       }}
       initialRouteName={'Home'}
     >

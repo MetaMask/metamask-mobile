@@ -304,7 +304,7 @@ const OnboardingNav = () => (
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator screenOptions={{ presentation: 'modal' }}>
+  <Stack.Navigator screenOptions={{ presentation: 'card' }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -312,7 +312,7 @@ const SimpleWebviewScreen = () => (
 const OnboardingRootNav = () => (
   <Stack.Navigator
     initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false, presentation: 'modal' }}
+    screenOptions={{ headerShown: false, presentation: 'card' }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
@@ -356,7 +356,7 @@ const AddNetworkFlow = () => {
 
 const DetectedTokensFlow = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
     initialRouteName={'DetectedTokens'}
   >
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
@@ -375,7 +375,10 @@ interface RootModalFlowProps {
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -654,7 +657,7 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
+      presentation: 'card',
     }}
   >
     <Stack.Screen
@@ -862,7 +865,7 @@ const MultichainAddressList = () => {
       screenOptions={{
         headerShown: false,
         animation: 'default',
-        presentation: 'modal',
+        presentation: 'card',
       }}
     >
       <Stack.Screen
@@ -879,7 +882,7 @@ const MultichainPrivateKeyList = () => {
 
   return (
     <Stack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
@@ -895,7 +898,7 @@ const ModalConfirmationRequest = () => (
     screenOptions={{
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -910,7 +913,7 @@ const ModalSwitchAccountType = () => (
     screenOptions={{
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -925,7 +928,7 @@ const ModalSmartAccountOptIn = () => (
     screenOptions={{
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -1093,7 +1096,7 @@ const AppFlow = () => {
           headerShown: false,
           cardStyle: { backgroundColor: importedColors.transparent },
           animation: 'none',
-          presentation: 'modal',
+          presentation: 'card',
         }}
       >
         {userLoggedIn && (

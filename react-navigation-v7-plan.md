@@ -11,7 +11,7 @@
 - [x] Updated packages to v7 (`@react-navigation/native`, `@react-navigation/stack`, `@react-navigation/bottom-tabs`, `@react-navigation/elements`)
 - [x] Removed `@react-navigation/compat` package
 - [x] Migrated `withNavigation` HOC usages to `useNavigation` hook
-- [x] Fixed `mode="modal"` → `presentation: 'modal'`
+- [x] Fixed `mode="modal"` → `presentation: 'card'` (default) or `presentation: 'transparentModal'` (bottom sheets)
 - [x] Fixed `headerMode` → `screenOptions.headerShown`
 - [x] Fixed `animationEnabled` → `animation: 'none'/'default'`
 - [x] Updated `NavigationContainerRef` with `ParamListBase` type
@@ -120,6 +120,37 @@ Bottom sheet modals need transparent backgrounds so the overlay can show through
 - [x] `useRampNavigation` - Changed from `useNavigation()` hook to `NavigationService`
   - Fixes navigation from FundActionMenu bottom sheet callbacks
   - Hook context becomes invalid after modal dismissal; NavigationService works globally
+
+**Navigator Default Presentation Fixes (`presentation: 'card'`):**
+
+Changed all navigators from `presentation: 'modal'` (iOS sheet modal with shrinking background) to `presentation: 'card'` (standard slide transition):
+
+- [x] **MainNavigator.js:**
+  - MainNavigator (main stack) - default changed to `presentation: 'card'`
+  - WalletModalFlow, WalletTabModalFlow - internal flows
+  - BrowserFlow, ExploreHome - tab internal navigators
+  - Webview - simple webview stack
+
+- [x] **App.tsx:**
+  - AppFlow (main app navigator) - default changed to `presentation: 'card'`
+  - SimpleWebviewScreen, OnboardingRootNav, DetectedTokensFlow
+  - ImportSRPView, MultichainAddressList, MultichainPrivateKeyList
+
+- [x] **Nav/Main/index.js:**
+  - MainFlow - wrapper around Main component
+
+**Internal Modal Stacks → `presentation: 'transparentModal'`:**
+
+Bottom sheet modal stacks within features now use transparent modals:
+
+- [x] App.tsx: `RootModalFlow`, `ModalConfirmationRequest`, `ModalSwitchAccountType`, `ModalSmartAccountOptIn`
+- [x] Ramp: `DepositModalsRoutes`, `RampModalsRoutes`, `TokenListModalsRoutes`
+- [x] Card: `CardModalsRoutes`
+- [x] Perps: `PerpsModalStack`, `PerpsClosePositionBottomSheetStack`
+- [x] Predict: `PredictModalStack`
+- [x] Stake: `StakeModalStack`
+- [x] Earn: `EarnModalStack`
+- [x] Bridge: `BridgeModalStack`
 
 **Other Fixes:**
 
@@ -1109,40 +1140,45 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 
 ### Common Fixes
 
-| v5 Code                                     | v7 Code                                                                           |
-| ------------------------------------------- | --------------------------------------------------------------------------------- |
-| `mode="modal"`                              | `screenOptions={{ presentation: 'modal' }}`                                       |
-| `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                          |
-| `animationEnabled: false`                   | `animation: 'none'`                                                               |
-| `navigation.navigate('Back')`               | `navigation.popTo('Back')`                                                        |
-| `beforeRemove` listener                     | `usePreventRemove` hook                                                           |
-| `dangerouslyGetState()`                     | `getState()`                                                                      |
-| `dangerouslyGetParent()`                    | `getParent()`                                                                     |
-| `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                |
-| `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }` |
-| `useNavigation()` in modal callbacks        | `NavigationService.navigation?.navigate()` (global ref)                           |
+| v5 Code                                     | v7 Code                                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `mode="modal"`                              | `screenOptions={{ presentation: 'card' }}` (default) or `'transparentModal'` (bottom sheets) |
+| `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                                     |
+| `animationEnabled: false`                   | `animation: 'none'`                                                                          |
+| `navigation.navigate('Back')`               | `navigation.popTo('Back')`                                                                   |
+| `beforeRemove` listener                     | `usePreventRemove` hook                                                                      |
+| `dangerouslyGetState()`                     | `getState()`                                                                                 |
+| `dangerouslyGetParent()`                    | `getParent()`                                                                                |
+| `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                           |
+| `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }`            |
+| `useNavigation()` in modal callbacks        | `NavigationService.navigation?.navigate()` (global ref)                                      |
 
 ### Screen Presentation (iOS Sheet Modal Fix)
 
-In v7, screens in a modal navigator appear as iOS sheet modals by default. To make them full-screen:
+In v7, screens in a modal navigator appear as iOS sheet modals by default (background shrinks, new screen slides up). This caused weird animations when navigating between normal screens.
+
+**Solution:** All navigators now default to `presentation: 'card'` for standard slide transitions. Bottom sheet modals use `presentation: 'transparentModal'`.
 
 ```jsx
-// Add to individual screens
-<Stack.Screen
-  name="MyScreen"
-  component={MyScreen}
-  options={{ presentation: 'card' }}
-/>
-
-// Or set as navigator default and override for modals
+// Main navigators - use 'card' as default
 <Stack.Navigator screenOptions={{ presentation: 'card' }}>
   <Stack.Screen name="FullScreen" component={FullScreen} />
-  <Stack.Screen
-    name="Modal"
-    component={Modal}
-    options={{ presentation: 'modal' }}
-  />
 </Stack.Navigator>
+
+// Bottom sheet modals - use 'transparentModal'
+<Stack.Navigator screenOptions={{ presentation: 'transparentModal' }}>
+  <Stack.Screen name="BottomSheet" component={BottomSheet} />
+</Stack.Navigator>
+
+// When registering a modal stack as a screen
+<Stack.Screen
+  name="RootModalFlow"
+  component={RootModalFlow}
+  options={{
+    presentation: 'transparentModal',
+    cardStyle: { backgroundColor: 'transparent' },
+  }}
+/>
 ```
 
 ### Modal Navigation Pattern

@@ -48,7 +48,7 @@ const PerpsModalStack = () => (
               opacity: 0,
             },
           }),
-          presentation: 'modal',
+          presentation: 'transparentModal',
         }}
       >
         <ModalStack.Screen
@@ -121,7 +121,7 @@ const PerpsClosePositionBottomSheetStack = () => (
               opacity: 0,
             },
           }),
-          presentation: 'modal',
+          presentation: 'transparentModal',
         }}
       >
         <ModalStack.Screen

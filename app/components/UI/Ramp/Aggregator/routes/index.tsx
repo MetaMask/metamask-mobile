@@ -63,7 +63,10 @@ const MainRoutes = () => (
 
 const RampModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
