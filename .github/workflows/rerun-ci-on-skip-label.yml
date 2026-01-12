@@ -11,30 +11,41 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Cancel current CI and start fresh
+      - name: Cancel current CI and restart
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_REF: ${{ github.head_ref }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          echo "🔄 skip-smart-e2e-selection label added, restarting CI..."
+          echo "🔄 skip-smart-e2e-selection label changed, restarting CI..."
 
-          # Cancel any in-progress CI runs for this branch
-          gh run list \
+          # Get the latest CI run for this branch
+          RUN_ID=$(gh run list \
             --repo "$REPOSITORY" \
             --branch "$HEAD_REF" \
             --workflow ci.yml \
-            --status in_progress \
-            --json databaseId \
-            --jq '.[].databaseId' | while read -r RUN_ID; do
-              if [ -n "$RUN_ID" ]; then
-                echo "🛑 Cancelling run: $RUN_ID"
-                gh run cancel "$RUN_ID" --repo "$REPOSITORY" || true
-              fi
-            done
+            --limit 1 \
+            --json databaseId,status \
+            --jq '.[0].databaseId')
 
-          # Trigger a fresh CI run on the PR branch
-          echo "🚀 Starting fresh CI run..."
-          gh workflow run ci.yml --repo "$REPOSITORY" --ref "$HEAD_REF"
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" == "null" ]; then
+            echo "⚠️ No CI run found"
+            exit 0
+          fi
+
+          echo "📋 Found CI run: $RUN_ID"
+
+          # Cancel if in progress
+          RUN_STATUS=$(gh run view "$RUN_ID" --repo "$REPOSITORY" --json status --jq '.status')
+          if [ "$RUN_STATUS" == "in_progress" ] || [ "$RUN_STATUS" == "queued" ]; then
+            echo "🛑 Cancelling in-progress run..."
+            gh run cancel "$RUN_ID" --repo "$REPOSITORY" || true
+            # Wait for cancellation
+            sleep 10
+          fi
+
+          # Re-run the workflow (works for both forks and main repo)
+          echo "🚀 Re-running CI..."
+          gh run rerun "$RUN_ID" --repo "$REPOSITORY"
 
           echo "✅ CI restart triggered"
