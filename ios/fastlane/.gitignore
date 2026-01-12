@@ -1,0 +1,25 @@
+# Fastlane specific files
+*.ipa
+*.dSYM.zip
+report.xml
+*.html
+*.junit
+
+# App Store Connect API Key
+*.p8
+AuthKey_*.p8
+
+# Sensitive data - Environment variables with API keys
+.env
+.env.local
+.env.*.local
+# Note: env.local.example is safe to commit (it's a template)
+
+# Xcode
+*.xcuserstate
+*.xcuserdatad
+
+# Build artifacts
+build/
+output/
+
