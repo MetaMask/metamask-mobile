@@ -50,9 +50,13 @@ const styleSheet = (params: { theme: Theme }) => {
     activityInfo: {
       flex: 1,
     },
-    activityType: {
+    activityTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       marginBottom: 4,
     },
+    activityType: {},
     activityAmount: {
       color: colors.text.alternative,
     },
