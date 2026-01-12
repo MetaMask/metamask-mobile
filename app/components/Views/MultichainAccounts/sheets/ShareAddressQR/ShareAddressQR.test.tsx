@@ -44,11 +44,17 @@ jest.mock('../../../QRAccountDisplay', () => {
         typeof label === 'string' ? label : 'Test Account',
       ),
       typeof description !== 'undefined' &&
-        actualReact.createElement(
-          Text,
-          { testID: 'account-description' },
-          typeof description === 'string' ? description : 'Test Description',
-        ),
+        (typeof description === 'string'
+          ? actualReact.createElement(
+              Text,
+              { testID: 'account-description' },
+              description,
+            )
+          : actualReact.createElement(
+              View,
+              { testID: 'account-description' },
+              description,
+            )),
       actualReact.createElement(
         Text,
         { testID: 'account-address' },
@@ -297,6 +303,33 @@ describe('ShareAddressQR', () => {
     // Assert
     expect(descriptionElement).toBeOnTheScreen();
     expect(descriptionElement.props.children).toBeTruthy();
+  });
+
+  it('renders description with correct copy for receiving assets', () => {
+    // Arrange
+    const networkName = 'Ethereum Mainnet';
+
+    // Act
+    const { getByText } = render(internalAccount1, networkName);
+
+    // Assert
+    // Verify the new copy is rendered
+    expect(getByText(/Use this to receive assets on/i)).toBeOnTheScreen();
+
+    // Verify network name is included
+    expect(getByText(networkName)).toBeOnTheScreen();
+  });
+
+  it('renders description with correct copy for different networks', () => {
+    // Arrange - Test with Polygon
+    const polygonNetwork = 'Polygon Mainnet';
+
+    // Act
+    const { getByText } = render(internalAccount1, polygonNetwork);
+
+    // Assert
+    expect(getByText(/Use this to receive assets on/i)).toBeOnTheScreen();
+    expect(getByText(polygonNetwork)).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {

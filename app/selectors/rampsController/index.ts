@@ -1,8 +1,9 @@
 import { createSelector } from 'reselect';
+import { createRequestSelector } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
 /**
- * Returns the RampsController state from the engine.
+ * Selects the RampsController state from Redux.
  */
 export const selectRampsControllerState = createSelector(
   (state: RootState) => state.engine.backgroundState.RampsController,
@@ -10,9 +11,17 @@ export const selectRampsControllerState = createSelector(
 );
 
 /**
- * Returns the user's geolocation from the RampsController state.
+ * Selects the user's geolocation from state.
  */
 export const selectGeolocation = createSelector(
   selectRampsControllerState,
   (rampsControllerState) => rampsControllerState?.geolocation ?? null,
 );
+
+/**
+ * Selects the geolocation request state
+ */
+export const selectGeolocationRequest = createRequestSelector<
+  RootState,
+  string
+>(selectRampsControllerState, 'updateGeolocation', []);
