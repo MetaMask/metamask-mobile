@@ -106,9 +106,7 @@ export async function handleIntentTransaction(
   selectedAccountAddress: string | undefined,
 ) {
   const signatureControllerMessenger = getSignatureControllerMessenger(
-    // TODO: fix this type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Engine.controllerMessenger as any,
+    Engine.controllerMessenger,
   );
 
   const intent = quoteResponse.quote.intent;
@@ -155,7 +153,7 @@ export async function handleIntentTransaction(
       },
     };
 
-    const txResult = await Engine.context.BridgeStatusController.submitIntent({
+    return Engine.context.BridgeStatusController.submitIntent({
       // TypeScript struggles with complex intersection types when modifying nested properties
       // The runtime structure is correct - we're adding the required appDataHash field
       quoteResponse: normalizedQuoteResponse as unknown as Parameters<
@@ -164,9 +162,7 @@ export async function handleIntentTransaction(
       signature,
       accountAddress,
     });
-    return txResult;
   }
 
-  // if not cowswap, throw error
   throw new Error('Intent transaction is not supported');
 }

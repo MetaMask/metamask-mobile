@@ -245,11 +245,12 @@ const UnifiedTransactionsView = ({
 
         const alreadyConfirmed = allConfirmedFiltered.find(
           (confirmedTx) =>
+            nonce &&
+            confirmedTx.txParams?.nonce === nonce &&
             selectedAccountGroupInternalAccountsAddresses.some((addr) =>
               areAddressesEqual(confirmedTx.txParams?.from, addr),
             ) &&
-            confirmedTx.chainId === _chainId &&
-            confirmedTx.txParams?.nonce === nonce,
+            confirmedTx.chainId === _chainId,
         );
 
         if (alreadyConfirmed) {
