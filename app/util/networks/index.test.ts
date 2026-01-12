@@ -990,7 +990,10 @@ describe('network-utils', () => {
         { chainId: ChainId.mainnet, networkName: 'Mainnet' },
         { chainId: ChainId['linea-mainnet'], networkName: 'Linea Mainnet' },
         { chainId: ChainId['megaeth-testnet'], networkName: 'Mega Testnet' },
-        { chainId: ChainId['megaeth-testnet-v2'], networkName: 'MegaETH Testnet' },
+        {
+          chainId: ChainId['megaeth-testnet-v2'],
+          networkName: 'MegaETH Testnet',
+        },
         { chainId: ChainId['monad-testnet'], networkName: 'Monad Testnet' },
         { chainId: NETWORKS_CHAIN_ID.SEI, networkName: 'Sei Mainnet' },
         { chainId: NETWORKS_CHAIN_ID.HYPER_EVM, networkName: 'HyperEVM' },
