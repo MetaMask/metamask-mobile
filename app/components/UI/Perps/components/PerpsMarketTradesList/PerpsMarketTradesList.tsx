@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
@@ -17,6 +18,7 @@ import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -102,13 +104,19 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
               />
             </View>
             <View style={styles.tradeInfo}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.tradeType}
-              >
-                {item.title}
-              </Text>
+              <View style={styles.tradeTitleRow}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.tradeType}
+                >
+                  {item.title}
+                </Text>
+                <PerpsFillTag
+                  transaction={item}
+                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS}
+                />
+              </View>
               {!!item.subtitle && (
                 <Text
                   variant={TextVariant.BodySM}

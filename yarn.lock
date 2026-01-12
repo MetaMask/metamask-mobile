@@ -5529,13 +5529,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@henrygd/semaphore@npm:0.1.0":
-  version: 0.1.0
-  resolution: "@henrygd/semaphore@npm:0.1.0"
-  checksum: 10/bbc8832162be81d1c6d5782f635b53dd916bcc86dd366f161ad1f0216110f7a490a1a4579af16b3759563f11c517e73328412efec07fa1443d370df98c0cbd25
-  languageName: node
-  linkType: hard
-
 "@httptoolkit/httpolyglot@npm:^2.2.1":
   version: 2.2.1
   resolution: "@httptoolkit/httpolyglot@npm:2.2.1"
@@ -9741,25 +9734,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nktkas/hyperliquid@npm:^0.27.1":
-  version: 0.27.1
-  resolution: "@nktkas/hyperliquid@npm:0.27.1"
+"@nktkas/hyperliquid@npm:^0.30.2":
+  version: 0.30.2
+  resolution: "@nktkas/hyperliquid@npm:0.30.2"
   dependencies:
-    "@henrygd/semaphore": "npm:0.1.0"
-    "@nktkas/rews": "npm:^1.2.1"
+    "@nktkas/rews": "npm:^1.2.3"
     "@noble/hashes": "npm:^2.0.1"
-    "@noble/secp256k1": "npm:^3.0.0"
+    micro-eth-signer: "npm:^0.18.1"
     valibot: "npm:1.2.0"
   bin:
     hyperliquid: esm/bin/cli.js
-  checksum: 10/362e312d571053eabcd841ffdd8bc4798d8d0a9c9a27f080962fb6646d3c8903a183f0355c24f32f09f6d90c2aa9746934cd67712a9dd047950790999ea9fde8
+  checksum: 10/dd26b562d45d051192548f1c9f542b120e3a6db21a0a8a5f93d16e9f75c2bcefa297e2a12ee56828b9e1e87a373d6c18548c2388467d22ba8981a32c16486aab
   languageName: node
   linkType: hard
 
-"@nktkas/rews@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@nktkas/rews@npm:1.2.1"
-  checksum: 10/b24a5fabf3bbb3607d780bebfb309278babf71aa1bc594b5e966f6b7cf81cd0a364132e54e681a4281669838224b132f45765e24a0b9e7daae752607e9028902
+"@nktkas/rews@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "@nktkas/rews@npm:1.2.3"
+  checksum: 10/032d7373ba976167d6f8f24746e9f2ebf20768811943ce8d33ffbb28fab0ad6259800177bd9964449f8fd67c5ef7e781fcee9f1d9bbbffd55f133e4a4c6d9fce
   languageName: node
   linkType: hard
 
@@ -9831,6 +9823,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/curves@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@noble/curves@npm:2.0.1"
+  dependencies:
+    "@noble/hashes": "npm:2.0.1"
+  checksum: 10/e826af523f40a671601a6d07f98df16c3afe1cbd0349c3ba4d7b31f6dba7dc743822719f260bd291716b6b42b8dc327f94a76b4852359aa85f79df461eb22bfc
+  languageName: node
+  linkType: hard
+
 "@noble/hashes@npm:1.4.0, @noble/hashes@npm:~1.4.0":
   version: 1.4.0
   resolution: "@noble/hashes@npm:1.4.0"
@@ -9859,7 +9860,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:^2.0.1":
+"@noble/hashes@npm:2.0.1, @noble/hashes@npm:^2.0.0, @noble/hashes@npm:^2.0.1":
   version: 2.0.1
   resolution: "@noble/hashes@npm:2.0.1"
   checksum: 10/f4d00e7564eb4ff4e6d16be151dd0e404aede35f91e4372b0a8a6ec888379c1dd1e02c721b480af8e7853bea9637185b5cb9533970c5b77d60c254ead0cfd8f7
@@ -9877,13 +9878,6 @@ __metadata:
   version: 1.7.2
   resolution: "@noble/hashes@npm:1.7.2"
   checksum: 10/b5af9e4b91543dcc46a811b5b2c57bfdeb41728361979a19d6110a743e2cb0459872553f68d3a46326d21959964db2776b8c8b4db85ac1d9f63ebcaddf7d59b6
-  languageName: node
-  linkType: hard
-
-"@noble/secp256k1@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@noble/secp256k1@npm:3.0.0"
-  checksum: 10/8f3f90ca9cad5e4fc0d85613dee508fa9e4590ea7275e3b44ca52e164b316e88a03b9520c11882b8133c8bd4c8024f2135bee44060e84e180f281b85aad0b933
   languageName: node
   linkType: hard
 
@@ -12432,6 +12426,13 @@ __metadata:
   version: 4.41.0
   resolution: "@rollup/rollup-linux-x64-gnu@npm:4.41.0"
   conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@scure/base@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@scure/base@npm:2.0.0"
+  checksum: 10/8fb86024f22e9c532d513b8df8a672252e58bd5695920ce646162287f0accd38e89cab58722a738b3d247b5dcf7760362ae2d82d502be7e62a555f5d98f8a110
   languageName: node
   linkType: hard
 
@@ -34260,7 +34261,7 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^1.19.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.27.1"
+    "@nktkas/hyperliquid": "npm:^0.30.2"
     "@noble/curves": "npm:1.9.6"
     "@noble/hashes": "npm:1.8.0"
     "@notifee/react-native": "npm:^9.0.0"
@@ -34889,10 +34890,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"micro-eth-signer@npm:^0.18.1":
+  version: 0.18.1
+  resolution: "micro-eth-signer@npm:0.18.1"
+  dependencies:
+    "@noble/curves": "npm:^2.0.0"
+    "@noble/hashes": "npm:^2.0.0"
+    micro-packed: "npm:^0.8.0"
+  checksum: 10/daa1127b0f4bffa1ffbe0c0d0f0d5bab98636697e1936a0fa552e0bb3b853b3f6733198219d2791323160feb30c12622b366dffd18ad794ec68a0a8fbaa255f1
+  languageName: node
+  linkType: hard
+
 "micro-ftch@npm:^0.3.1":
   version: 0.3.1
   resolution: "micro-ftch@npm:0.3.1"
   checksum: 10/a7ab07d25e28ec4ae492ce4542ea9b06eee85538742b3b1263b247366ee8872f2c5ce9c8651138b2f1d22c8212f691a7b8b5384fe86ead5aff1852e211f1c035
+  languageName: node
+  linkType: hard
+
+"micro-packed@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "micro-packed@npm:0.8.0"
+  dependencies:
+    "@scure/base": "npm:2.0.0"
+  checksum: 10/94bc96387be56d95ca758fcaddbeacdd8095344c3cc51b813637587f4b013853088f046d9a2e81354d583f384ec44c35aa008683aa13397d700ddf7b70aff77e
   languageName: node
   linkType: hard
 
