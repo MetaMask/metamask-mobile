@@ -803,8 +803,10 @@ describe('RevealPrivateCredential', () => {
     it('enables clipboard for supported Android API levels', async () => {
       (Device.isAndroid as jest.Mock).mockReturnValue(true);
       (Device.getDeviceAPILevel as jest.Mock).mockResolvedValue(30);
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      renderWithProviders(
+      const { queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -812,8 +814,22 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      // Wait for auto-reveal via biometrics to unlock component
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
       await waitFor(() => {
         expect(Device.getDeviceAPILevel).toHaveBeenCalled();
+      });
+
+      // Copy button should be visible when unlocked on supported Android API level
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+          ),
+        ).not.toBeNull();
       });
     });
   });
