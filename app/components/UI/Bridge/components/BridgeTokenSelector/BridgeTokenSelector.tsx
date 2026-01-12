@@ -54,7 +54,6 @@ import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import Routes from '../../../../../constants/navigation/Routes';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
@@ -333,13 +332,7 @@ export const BridgeTokenSelector: React.FC = () => {
     (item: BridgeToken) => {
       const networkName = getNetworkName(item.chainId, networkConfigurations);
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TOKEN_INSIGHTS,
-        params: {
-          token: item,
-          networkName,
-        },
-      });
+      navigation.navigate('Asset', { ...item });
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
