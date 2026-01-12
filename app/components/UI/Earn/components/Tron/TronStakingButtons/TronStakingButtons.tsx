@@ -6,6 +6,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import styleSheet from './TronStakingButtons.styles';
@@ -27,7 +28,8 @@ const TronStakingButtons = ({
   showUnstake = false,
   hasStakedPositions = false,
 }: TronStakingButtonsProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
