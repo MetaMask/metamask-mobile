@@ -60,7 +60,6 @@ import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -86,6 +85,7 @@ const NetworkManager = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
+  const initialTabIndexRef = useRef<number | null>(null);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -95,16 +95,7 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
-    networkType: NetworkType.Custom,
-  });
-  const { disableNetwork, enableNetwork, enabledNetworksByNamespace } =
-    useNetworkEnablement();
-  const { networksToUse } = useNetworksToUse({
-    networks,
-    networkType: NetworkType.Custom,
-    areAllNetworksSelected,
-  });
+  const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -314,24 +305,19 @@ const NetworkManager = () => {
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
-      const otherNetwork = networksToUse.find(
-        (network) => network.caipChainId !== caipChainId,
-      );
 
-      // Remove the network from controller and disable it
+      // Remove the network from controller and disable it in the filter
+      // Note: We only allow deleting non-active networks, so no need to switch
       NetworkController.removeNetwork(chainId);
-
-      if (otherNetwork?.caipChainId) {
-        enableNetwork(otherNetwork.caipChainId);
-      }
       disableNetwork(showConfirmDeleteModal.caipChainId);
+
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork, networksToUse, enableNetwork]);
+  }, [showConfirmDeleteModal, disableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -367,6 +353,12 @@ const NetworkManager = () => {
     return selectedCount > 0 ? 0 : 1;
   }, [selectedCount, isMultichainAccountsState2Enabled, enabledNetworks]);
 
+  // Capture the initial tab index only once on first render
+  // This prevents tab switching when networks are added/deleted
+  if (initialTabIndexRef.current === null) {
+    initialTabIndexRef.current = defaultTabIndex;
+  }
+
   const dismissModal = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -391,7 +383,7 @@ const NetworkManager = () => {
             <ScrollableTabView
               renderTabBar={renderTabBar}
               onChangeTab={onChangeTab}
-              initialPage={defaultTabIndex}
+              initialPage={initialTabIndexRef.current ?? 0}
             >
               <NetworkMultiSelector
                 {...defaultTabProps}

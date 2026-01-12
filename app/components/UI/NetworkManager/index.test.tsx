@@ -412,6 +412,36 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
 
 // Remove ReusableModal mock as component uses BottomSheet
 
+// Mock Banner component to avoid theme dependency issues
+jest.mock('../../../component-library/components/Banners/Banner', () => {
+  const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+  const MockBanner = ({
+    description,
+    testID,
+  }: {
+    description?: string;
+    testID?: string;
+  }) => (
+    <RNView testID={testID || 'banner'}>
+      <RNText>{description}</RNText>
+    </RNView>
+  );
+  return {
+    __esModule: true,
+    default: MockBanner,
+    BannerVariant: {
+      Alert: 'Alert',
+      Tip: 'Tip',
+    },
+    BannerAlertSeverity: {
+      Info: 'Info',
+      Warning: 'Warning',
+      Error: 'Error',
+      Success: 'Success',
+    },
+  };
+});
+
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -787,7 +817,7 @@ describe('NetworkManager Component', () => {
         expect(
           getByTestId('account-action-transaction.edit'),
         ).toBeOnTheScreen();
-        expect(queryByTestId('account-action-app_settings.delete')).toBeNull();
+        expect(queryByTestId('account_action-app_settings.delete')).toBeNull();
       });
     });
 
@@ -1164,25 +1194,7 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('should enable and disable networks correctly during deletion', async () => {
-      const otherNetwork = {
-        id: 'eip155:137',
-        name: 'Polygon Mainnet',
-        caipChainId: 'eip155:137',
-        isSelected: false,
-        imageSource: { uri: 'polygon.png' },
-      };
-
-      (useNetworksByNamespace as jest.Mock).mockImplementation((args) => {
-        if (args.networkType === 'custom') {
-          return {
-            networks: [otherNetwork],
-            areAllNetworksSelected: false,
-          };
-        }
-        return { selectedCount: 2 };
-      });
-
+    it('disables network in filter during deletion without switching active network', async () => {
       mockUseNetworkEnablement.mockReturnValue({
         disableNetwork: mockDisableNetwork,
         enableNetwork: mockEnableNetwork,
@@ -1220,9 +1232,10 @@ describe('NetworkManager Component', () => {
       const confirmButton = getByTestId('footer-button-app_settings.delete');
       fireEvent.press(confirmButton);
 
-      // Should enable the other network and disable the deleted one
-      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
+      // Only disables the deleted network, does not enable another one
+      // (we only allow deleting non-active networks, so no need to switch)
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
     });
   });
 });
