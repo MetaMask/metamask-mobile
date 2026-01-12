@@ -420,6 +420,158 @@ describe('UnifiedTransactionsView', () => {
     expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
   });
 
+  describe('nonce check in alreadyConfirmed filtering', () => {
+    it('includes submitted transaction with undefined nonce', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc' }, // nonce is undefined
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear even though there's a confirmed tx with nonce '0x1'
+      // because the submitted tx has undefined nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
+    });
+
+    it('includes submitted transaction with null nonce', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: null },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear even though there's a confirmed tx with nonce '0x1'
+      // because the submitted tx has null nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
+    });
+
+    it('filters out submitted transaction with matching nonce to confirmed transaction', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should be filtered out because it matches the confirmed tx by nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(1);
+    });
+
+    it('includes submitted transaction with nonce that does not match confirmed transaction', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: '0x2' },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear because nonce '0x2' does not match confirmed tx nonce '0x1'
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
+    });
+  });
+
   it('pull-to-refresh calls updateIncomingTransactions', async () => {
     const { UNSAFE_getAllByType } = render(<UnifiedTransactionsView />);
 
