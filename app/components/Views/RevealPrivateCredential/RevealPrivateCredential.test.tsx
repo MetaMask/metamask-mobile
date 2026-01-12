@@ -170,7 +170,7 @@ jest.mock('../../../store/storage-wrapper', () => ({
 // Simple QRCode mock - we don't need to test the QR library itself
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
-// Simplified ScrollableTabView mock - render children and expose onChangeTab
+// Simplified ScrollableTabView mock - just needs to render children
 jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () => 'ScrollableTabView',
