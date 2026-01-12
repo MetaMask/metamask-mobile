@@ -241,7 +241,9 @@ export function getNavigationOptionsTitle(
 
   return {
     title,
-    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+    ),
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
@@ -1981,7 +1983,11 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   });
 
   return {
-    headerTitle: <Text>{strings('account_actions.edit_name')}</Text>,
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>
+        {strings('account_actions.edit_name')}
+      </MorphText>
+    ),
     headerLeft: null,
     headerRight: () => (
       <ButtonIcon

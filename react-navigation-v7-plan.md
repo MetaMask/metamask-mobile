@@ -1,10 +1,13 @@
 # React Navigation v7 Migration Plan
 
-## Migration Status: IN PROGRESS
+## Migration Status: IN PROGRESS (Runtime Fixes Complete)
 
-**Last Updated:** January 2026
+**Last Updated:** January 12, 2026
 
 ### Completed ✅
+
+**Package & API Updates:**
+
 - [x] Updated packages to v7 (`@react-navigation/native`, `@react-navigation/stack`, `@react-navigation/bottom-tabs`, `@react-navigation/elements`)
 - [x] Removed `@react-navigation/compat` package
 - [x] Migrated `withNavigation` HOC usages to `useNavigation` hook
@@ -17,18 +20,94 @@
 - [x] Added global `ReactNavigation.RootParamList` type augmentation
 - [x] Fixed `TabBar.test.tsx` to include `insets` prop
 - [x] Fixed `dangerouslyGetParent` → `getParent`
+- [x] Fixed `dangerouslyGetState` → `getState` (BackupAlert, ProtectWalletMandatoryModal)
+
+**Navigation Theme & Container:**
+
+- [x] Added complete navigation theme with font definitions to `NavigationContainer`
+- [x] Added `GestureHandlerRootView` wrapper in Root component
+- [x] Fixed `onNavigationReady` dispatch timing (moved to useEffect on mount)
+
+**Screen Presentation Fixes (`presentation: 'card'`):**
+
+- [x] MainNavigator.js - All full-screen screens now use `presentation: 'card'`:
+  - CollectiblesDetails, DeprecatedNetworkDetails
+  - TokensFullView, AddAsset, ConfirmAddAsset, SettingsFlow, Asset
+  - TrendingTokensFullView, Webview, SendView, Send, SendFlowView
+  - AddBookmarkView, OfflineModeView, NotificationsModeView
+  - QRTabSwitcher, NftDetails, NftDetailsFullImage, NftFullView
+  - PaymentRequestView, RampRoutes, DepositRoutes
+  - BridgeScreenStack, StakeScreenStack, EarnScreenStack
+  - PerpsScreenStack, PerpsTutorial, PerpsTransactionViews
+  - PredictScreenStack, SetPasswordFlow, GeneralSettings
+  - FeatureFlagOverride, NotificationsOptInStack, TurnOnBackupAndSync
+  - DeFiProtocolPositionDetails, SampleFeatureFlow, CardRoutes
+- [x] App.tsx - All full-screen screens now use `presentation: 'card'`:
+  - HOME_NAV (Main), FOX_LOADER, LOGIN, Rehydrate
+  - OnboardingRootNav, SUCCESS_FLOW, VaultRecoveryFlow
+  - ImportPrivateKeyView, ImportSRPView
+  - ConnectQRHardwareFlow, LedgerConnectFlow, ConnectHardwareWalletFlow
+  - MultichainAccountDetails, MultichainAccountGroupDetails
+  - MultichainAccountActions (ACCOUNT_CELL_ACTIONS)
+  - MULTICHAIN_ACCOUNT_DETAIL_ACTIONS (for ShareAddress/ShareAddressQR)
+  - ADDRESS_LIST, PRIVATE_KEY_LIST
+  - EDIT_ACCOUNT_NAME, ADD_NETWORK, EDIT_NETWORK, LOCK_SCREEN
+
+**Modal Navigation Fixes (using `StackActions.popToTop()` + `CommonActions.navigate()`):**
+
+- [x] Predict GTM Modal - "Not Now" button
+- [x] Perps GTM Modal - "Not Now" button
+- [x] Ramp UnsupportedStateModal - close button
+- [x] Ramp UnsupportedRegionModal - close button
+- [x] Deposit UnsupportedStateModal - close button
+- [x] Deposit UnsupportedRegionModal - close button
+- [x] Deposit OrderProcessing - navigation after completion
+- [x] Rewards OnboardingStep - close button
+- [x] DeepLinkModal - navigation to HomeNav
+- [x] Bridge RecipientSelectorModal - close button
+
+**Card Flow Navigation Fixes:**
+
+- [x] CardWelcome - "Not Now" button uses `StackActions.popToTop()`
+- [x] OnboardingNavigator (PostEmailNavigationOptions) - exit confirmation uses `popToTop()`
+- [x] OnboardingNavigator (KYCStatusNavigationOptions) - close button uses `popToTop()`
+- [x] ValidatingKYC - close button uses `popToTop()`
+- [x] KYCFailed - close button uses `popToTop()`
+
+**Deeplink Handler Fixes:**
+
+- [x] handlePerpsUrl - navigation to HomeNav with nested params
+- [x] handleHomeUrl - navigation to HomeNav
+- [x] handleFastOnboarding - navigation to HomeNav
+
+**Header Title Fixes:**
+
+- [x] Fixed `headerTitle` to use function pattern `() => (...)` instead of direct JSX
+  - `getAccountNameEditNavigationOptions` - was JSX, now function
+- [x] Removed unnecessary `color={TextColor.Default}` from MorphText in headers
+  - The function pattern properly inherits theme colors
+  - Fixed in: `getEditableOptions`, `getSettingsNavigationOptions`, `getEarnNavbar`, `getEmptyNavHeaderForConfirmations`
+
+**Other Fixes:**
+
+- [x] Added `headerShown: false` to HomeTabs Tab.Navigator
+- [x] Added `NavigationService.popToTop()` helper method
+- [x] Fixed Notifications view close button to navigate to HomeNav
 
 ### In Progress 🔄
-- [ ] Fix remaining TypeScript errors (~179 errors)
+
+- [ ] Fix remaining TypeScript errors
   - `createNavigationDetails` return types
   - `ScreenComponentType` mismatches in feature routes
   - Navigation prop type mismatches
 
 ### Pending Testing 🧪
-- [ ] Manual testing of all navigation flows
+
+- [x] Initial manual testing - basic navigation works
+- [ ] Comprehensive manual testing of all navigation flows
 - [ ] E2E testing for regressions
 - [ ] Deep linking verification
-- [ ] Modal dismissal behavior
+- [ ] Modal dismissal behavior edge cases
 
 ---
 
@@ -103,19 +182,47 @@ This approach is faster and results in cleaner code that follows v7 best practic
    - Updated `TabBarProps` type for v7 compatibility
    - Fixed deprecated `dangerouslyGetParent`/`dangerouslyGetState` in tests
 
+8. **Screen Presentation Fixes**
+   - Added `presentation: 'card'` to 40+ screens in MainNavigator.js and App.tsx
+   - This prevents screens from appearing as iOS sheet modals (v7 default behavior)
+   - Screens that should be modals retain `presentation: 'modal'`
+
+9. **Modal Navigation Pattern**
+   - Established pattern for navigating from modals: `StackActions.popToTop()` followed by `CommonActions.navigate()`
+   - This properly dismisses modal stacks before navigating to new destinations
+   - Applied to GTM modals (Predict, Perps), Ramp/Deposit modals, Rewards, Card, Bridge, etc.
+
+10. **Navigation Route Updates**
+    - Updated navigation calls from `Routes.WALLET.HOME` to `Routes.ONBOARDING.HOME_NAV`
+    - `HOME_NAV` is the correct top-level route containing the Main navigator
+    - Applied to deeplink handlers, Card flow, Rewards, Notifications, etc.
+
+11. **NavigationService Enhancements**
+    - Added `popToTop()` helper method for convenience
+    - Service now properly typed with `ParamListBase`
+
+12. **Navigation Theme**
+    - Added complete theme object with font definitions to `NavigationContainer`
+    - React Navigation v7 requires fonts in theme (uses `DefaultTheme`/`DarkTheme` as base)
+
 ### 🔄 Remaining Work
 
 1. **TypeScript Errors** - Several type errors need resolution:
-   - `navigation.navigate()` calls returning `never` due to stricter types
+   - `createNavigationDetails` return types
    - Screen component type mismatches with `ScreenComponentType`
-   - Need to define proper navigation param types
+   - Navigation prop type mismatches in some components
 
-2. **Testing** - Comprehensive manual and E2E testing needed to identify:
-   - Navigation flows that push duplicate screens (need `popTo`)
-   - Modal dismiss behaviors
-   - Deep link navigation
+2. **Testing** - Comprehensive testing needed:
+   - Full E2E test suite run
+   - Edge cases for modal dismiss behaviors
+   - All deep link types verification
+   - Feature team sign-off on their flows
 
 3. **Snapshot Updates** - `MainNavigator.test.tsx.snap` needs regeneration
+
+4. **Test File Updates** - Some test files may need updates:
+   - Tests expecting `Routes.WALLET.HOME` should use `Routes.ONBOARDING.HOME_NAV`
+   - Tests using mock navigation may need `popToTop` dispatch expectations
 
 ---
 
@@ -128,12 +235,14 @@ All decisions have been made. This section documents the rationale.
 **Decision:** Keep using `@react-navigation/stack` (JS-based), do NOT switch to `@react-navigation/native-stack`.
 
 **Rationale:**
+
 - The codebase uses `cardStyleInterpolator` for custom animations in 5 files
 - `native-stack` doesn't support custom JS-based interpolators
 - Switching would require rewriting all custom transition animations
 - Performance difference is minimal for most use cases
 
 **Files using cardStyleInterpolator (would break with native-stack):**
+
 - `app/components/Nav/Main/MainNavigator.js`
 - `app/components/Nav/App/App.tsx`
 - `app/components/UI/Perps/routes/index.tsx`
@@ -148,11 +257,13 @@ All decisions have been made. This section documents the rationale.
 **Decision:** Remove the package and replace `withNavigation` HOC with `useNavigation` hook.
 
 **Rationale:**
+
 - `@react-navigation/compat` is v5-specific and won't work with v7
 - Only 5 files use `withNavigation` from compat
 - All are class components that can be updated to use hooks or wrapped
 
 **Files to update (5 files using `withNavigation`):**
+
 ```
 app/components/Views/confirmations/legacy/components/ApproveTransactionReview/index.js
 app/components/Views/TransactionsView/index.js
@@ -210,12 +321,14 @@ export default function MyComponent(props) {
 **Decision:** Add types incrementally as needed, don't create comprehensive types upfront.
 
 **Rationale:**
+
 - Creating full types for all 50+ navigators would delay migration by 1+ week
 - Most existing code doesn't use strict navigation types anyway
 - TypeScript errors can be fixed with `as any` temporarily
 - Types can be improved in follow-up PRs
 
 **Approach:**
+
 1. Fix type errors as they appear during migration
 2. Use `ParamListBase` as a generic type where needed
 3. Create specific types only for new code or when refactoring
@@ -227,6 +340,7 @@ export default function MyComponent(props) {
 **Decision:** Keep all existing navigators using dynamic API. Do not adopt static API.
 
 **Rationale:**
+
 - Static API is optional and primarily for new projects
 - Converting existing navigators provides no immediate benefit
 - Would significantly increase migration scope
@@ -242,11 +356,11 @@ export default function MyComponent(props) {
 
 **Verified compatibility:**
 
-| Package | Current | Required | Status |
-|---------|---------|----------|--------|
-| `react-native-screens` | `3.37.0` | `^3.x` for stack | ✅ Compatible |
-| `react-native-safe-area-context` | `5.4.0` | `^4.x` | ✅ Compatible |
-| `react-native-gesture-handler` | `2.25.0` | `^2.x` | ✅ Compatible |
+| Package                          | Current  | Required         | Status        |
+| -------------------------------- | -------- | ---------------- | ------------- |
+| `react-native-screens`           | `3.37.0` | `^3.x` for stack | ✅ Compatible |
+| `react-native-safe-area-context` | `5.4.0`  | `^4.x`           | ✅ Compatible |
+| `react-native-gesture-handler`   | `2.25.0` | `^2.x`           | ✅ Compatible |
 
 **Note:** If switching to `@react-navigation/native-stack` in the future, `react-native-screens` must be updated to `^4.0.0`.
 
@@ -257,12 +371,14 @@ export default function MyComponent(props) {
 **Decision:** No changes needed to deep linking configuration.
 
 **Rationale:**
+
 - MetaMask handles deep links through `DeeplinkManager`, Branch SDK, and React Native `Linking` API
 - Deep links are processed imperatively via `NavigationService.navigation.navigate()`
 - React Navigation's `linking` prop on `NavigationContainer` is NOT used
 - The `navigate` behavior change in v7 could affect deep link handling - will verify during testing
 
 **Deep link handling flow:**
+
 ```
 Linking.getInitialURL() → DeeplinkManager.parse() → NavigationService.navigation.navigate()
 Branch.subscribe() → handleDeeplink() → NavigationService.navigation.navigate()
@@ -275,17 +391,20 @@ Branch.subscribe() → handleDeeplink() → NavigationService.navigation.navigat
 ### 7. Testing Scope: E2E + Manual QA ✅
 
 **Decision:** Migration is complete when:
+
 1. All E2E tests pass
 2. Manual QA approves critical flows
 3. No duplicate screen warnings in debug logging
 
 **Testing bar:**
+
 - [ ] E2E test suite passes on iOS and Android
 - [ ] Manual testing of critical flows (see Testing Strategy section)
 - [ ] No `⚠️ DUPLICATE SCREENS` warnings in debug console
 - [ ] Feature team leads verify their flows work correctly
 
 **Feature teams to involve:**
+
 - Wallet/Core team (main navigation, tabs)
 - Confirmations team (send flows, approvals)
 - Ramp team (buy/sell flows)
@@ -300,6 +419,7 @@ Branch.subscribe() → handleDeeplink() → NavigationService.navigation.navigat
 **Decision:** Merge directly to `main` after QA approval. No feature flag or staged rollout.
 
 **Rationale:**
+
 - Navigation changes can't be easily feature-flagged
 - Either the app uses v5 or v7, not both
 - The migration affects the entire app uniformly
@@ -311,25 +431,25 @@ Branch.subscribe() → handleDeeplink() → NavigationService.navigation.navigat
 
 ### Key Statistics
 
-| Metric | Count |
-|--------|-------|
-| Files using `@react-navigation` | ~1,072 |
-| `navigation.navigate()` calls | ~135+ in 50 files |
-| `navigation.goBack()`/`pop()`/`reset()` calls | ~98 in 50 files |
-| `useNavigation` hook usages | ~247+ across 100+ files |
-| Files using `mode="modal"` | 13 files |
-| Files using `headerMode` | 8 files |
-| Files using `animationEnabled` | 17 files |
-| Files using `beforeRemove` event | 4 files |
+| Metric                                        | Count                   |
+| --------------------------------------------- | ----------------------- |
+| Files using `@react-navigation`               | ~1,072                  |
+| `navigation.navigate()` calls                 | ~135+ in 50 files       |
+| `navigation.goBack()`/`pop()`/`reset()` calls | ~98 in 50 files         |
+| `useNavigation` hook usages                   | ~247+ across 100+ files |
+| Files using `mode="modal"`                    | 13 files                |
+| Files using `headerMode`                      | 8 files                 |
+| Files using `animationEnabled`                | 17 files                |
+| Files using `beforeRemove` event              | 4 files                 |
 
 ### Timeline Estimate
 
-| Phase | Duration | Description |
-|-------|----------|-------------|
-| Preparation | 2-3 days | Remove compat, check peer deps |
-| Code Changes | 1 week | Fix all breaking changes |
-| Testing & Fixes | 1-2 weeks | E2E + manual QA, fix navigation bugs |
-| **Total** | **2-3 weeks** | |
+| Phase           | Duration      | Description                          |
+| --------------- | ------------- | ------------------------------------ |
+| Preparation     | 2-3 days      | Remove compat, check peer deps       |
+| Code Changes    | 1 week        | Fix all breaking changes             |
+| Testing & Fixes | 1-2 weeks     | E2E + manual QA, fix navigation bugs |
+| **Total**       | **2-3 weeks** |                                      |
 
 ---
 
@@ -337,21 +457,21 @@ Branch.subscribe() → handleDeeplink() → NavigationService.navigation.navigat
 
 ### Package Versions (Current → Target)
 
-| Package | Current | Target |
-|---------|---------|--------|
-| `@react-navigation/native` | `^5.9.4` | `^7.x` |
-| `@react-navigation/stack` | `^5.14.5` | `^7.x` |
-| `@react-navigation/bottom-tabs` | `^5.11.11` | `^7.x` |
-| `@react-navigation/compat` | `^5.3.20` | **Remove** |
-| `@react-navigation/elements` | - | `^2.x` (new) |
+| Package                         | Current    | Target       |
+| ------------------------------- | ---------- | ------------ |
+| `@react-navigation/native`      | `^5.9.4`   | `^7.x`       |
+| `@react-navigation/stack`       | `^5.14.5`  | `^7.x`       |
+| `@react-navigation/bottom-tabs` | `^5.11.11` | `^7.x`       |
+| `@react-navigation/compat`      | `^5.3.20`  | **Remove**   |
+| `@react-navigation/elements`    | -          | `^2.x` (new) |
 
 ### Peer Dependencies (Current)
 
 ```json
 {
-  "react-native-screens": "3.37.0",           // ✓ Compatible
-  "react-native-safe-area-context": "5.4.0",  // ✓ Compatible  
-  "react-native-gesture-handler": "2.25.0"    // ✓ Compatible
+  "react-native-screens": "3.37.0", // ✓ Compatible
+  "react-native-safe-area-context": "5.4.0", // ✓ Compatible
+  "react-native-gesture-handler": "2.25.0" // ✓ Compatible
 }
 ```
 
@@ -379,18 +499,18 @@ Root
 
 ### Why Direct v5 → v7?
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **v5 → v6 → v7** | Smaller steps, easier debugging | 2x the work, 2x the PRs |
-| **v5 → v7 (chosen)** | Single migration, cleaner result | More changes at once |
+| Approach             | Pros                             | Cons                    |
+| -------------------- | -------------------------------- | ----------------------- |
+| **v5 → v6 → v7**     | Smaller steps, easier debugging  | 2x the work, 2x the PRs |
+| **v5 → v7 (chosen)** | Single migration, cleaner result | More changes at once    |
 
 ### Why "Upgrade and Test" vs Wrappers?
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **`navigateDeprecated`** | Quick, preserves behavior | Deprecated, removed in v8 |
-| **Helper with `pop: true`** | Centralized control | Extra abstraction, delays proper fix |
-| **"Upgrade and Test" (chosen)** | Clean code, proper v7 patterns | Requires thorough testing |
+| Approach                        | Pros                           | Cons                                 |
+| ------------------------------- | ------------------------------ | ------------------------------------ |
+| **`navigateDeprecated`**        | Quick, preserves behavior      | Deprecated, removed in v8            |
+| **Helper with `pop: true`**     | Centralized control            | Extra abstraction, delays proper fix |
+| **"Upgrade and Test" (chosen)** | Clean code, proper v7 patterns | Requires thorough testing            |
 
 ### The `navigate` Behavior Change
 
@@ -415,25 +535,25 @@ navigation.popTo('Wallet'); // Pops back to existing Wallet
 
 ### Must Fix Before App Compiles
 
-| Change | Files | Fix |
-|--------|-------|-----|
-| `mode="modal"` removed | 13 | Use `presentation: 'modal'` per-screen |
-| `headerMode` changed | 8 | Use `screenOptions={{ headerShown: false }}` |
-| `animationEnabled` removed | 17 | Use `animation: 'none'` |
+| Change                     | Files | Fix                                          |
+| -------------------------- | ----- | -------------------------------------------- |
+| `mode="modal"` removed     | 13    | Use `presentation: 'modal'` per-screen       |
+| `headerMode` changed       | 8     | Use `screenOptions={{ headerShown: false }}` |
+| `animationEnabled` removed | 17    | Use `animation: 'none'`                      |
 
 ### Must Fix During Testing
 
-| Change | Files | Fix |
-|--------|-------|-----|
+| Change                         | Files   | Fix                               |
+| ------------------------------ | ------- | --------------------------------- |
 | `navigate` no longer goes back | Unknown | Replace with `popTo` where needed |
-| `beforeRemove` deprecated | 4 | Use `usePreventRemove` hook |
+| `beforeRemove` deprecated      | 4       | Use `usePreventRemove` hook       |
 
 ### Type Changes
 
-| Change | Files | Fix |
-|--------|-------|-----|
-| `NavigationContainerRef` needs generic | 2 | Add `<ParamListBase>` |
-| `gestureResponseDistance` is number | Snapshots | Update from object to number |
+| Change                                 | Files     | Fix                          |
+| -------------------------------------- | --------- | ---------------------------- |
+| `NavigationContainerRef` needs generic | 2         | Add `<ParamListBase>`        |
+| `gestureResponseDistance` is number    | Snapshots | Update from object to number |
 
 ---
 
@@ -455,13 +575,13 @@ yarn remove @react-navigation/compat
 
 **5 files need to be updated** to remove `withNavigation` usage:
 
-| File | Component Type | Migration |
-|------|---------------|-----------|
-| `app/components/Views/confirmations/legacy/components/ApproveTransactionReview/index.js` | Class | Wrap with hook |
-| `app/components/Views/TransactionsView/index.js` | Class | Wrap with hook |
-| `app/components/Views/confirmations/legacy/components/TransactionReview/index.js` | Class | Wrap with hook |
-| `app/components/UI/TransactionElement/TransactionDetails/index.js` | Class | Wrap with hook |
-| `app/components/UI/NavbarTitle/index.js` | Class | Wrap with hook |
+| File                                                                                     | Component Type | Migration      |
+| ---------------------------------------------------------------------------------------- | -------------- | -------------- |
+| `app/components/Views/confirmations/legacy/components/ApproveTransactionReview/index.js` | Class          | Wrap with hook |
+| `app/components/Views/TransactionsView/index.js`                                         | Class          | Wrap with hook |
+| `app/components/Views/confirmations/legacy/components/TransactionReview/index.js`        | Class          | Wrap with hook |
+| `app/components/UI/TransactionElement/TransactionDetails/index.js`                       | Class          | Wrap with hook |
+| `app/components/UI/NavbarTitle/index.js`                                                 | Class          | Wrap with hook |
 
 **Migration pattern:**
 
@@ -496,6 +616,7 @@ yarn add @react-navigation/native@^7.0.0 \
 #### 2.1 Replace `mode="modal"`
 
 **Files to update (13):**
+
 - `app/components/Nav/Main/MainNavigator.js`
 - `app/components/Nav/Main/index.js`
 - `app/components/Nav/App/App.tsx`
@@ -510,6 +631,7 @@ yarn add @react-navigation/native@^7.0.0 \
 - `app/components/UI/Bridge/routes.tsx`
 
 **Before:**
+
 ```jsx
 <Stack.Navigator mode="modal">
   <Stack.Screen name="Screen1" component={Screen1} />
@@ -518,14 +640,12 @@ yarn add @react-navigation/native@^7.0.0 \
 ```
 
 **After:**
+
 ```jsx
 <Stack.Navigator>
-  <Stack.Screen 
-    name="Screen1" 
-    component={Screen1} 
-  />
-  <Stack.Screen 
-    name="Screen2" 
+  <Stack.Screen name="Screen1" component={Screen1} />
+  <Stack.Screen
+    name="Screen2"
     component={Screen2}
     options={{ presentation: 'modal' }}
   />
@@ -533,8 +653,9 @@ yarn add @react-navigation/native@^7.0.0 \
 ```
 
 **Or apply to all screens:**
+
 ```jsx
-<Stack.Navigator 
+<Stack.Navigator
   screenOptions={{ presentation: 'modal' }}
 >
 ```
@@ -542,6 +663,7 @@ yarn add @react-navigation/native@^7.0.0 \
 #### 2.2 Replace `headerMode`
 
 **Files to update (8):**
+
 - `app/components/Nav/Main/MainNavigator.js`
 - `app/components/UI/Earn/routes/index.tsx`
 - `app/components/UI/Card/routes/index.tsx`
@@ -552,11 +674,13 @@ yarn add @react-navigation/native@^7.0.0 \
 - `app/components/UI/Stake/routes/index.tsx`
 
 **Before:**
+
 ```jsx
 <Stack.Navigator headerMode="none">
 ```
 
 **After:**
+
 ```jsx
 <Stack.Navigator screenOptions={{ headerShown: false }}>
 ```
@@ -566,16 +690,19 @@ yarn add @react-navigation/native@^7.0.0 \
 **Files to update (17):**
 
 **Before:**
+
 ```jsx
 options={{ animationEnabled: false }}
 ```
 
 **After:**
+
 ```jsx
 options={{ animation: 'none' }}
 ```
 
 **Animation options available:**
+
 - `'default'`
 - `'fade'`
 - `'fade_from_bottom'`
@@ -591,6 +718,7 @@ options={{ animation: 'none' }}
 **File:** `app/core/NavigationService/NavigationService.ts`
 
 **Before:**
+
 ```typescript
 import { NavigationContainerRef } from '@react-navigation/native';
 
@@ -600,8 +728,12 @@ class NavigationService {
 ```
 
 **After:**
+
 ```typescript
-import { NavigationContainerRef, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 
 class NavigationService {
   static #navigation: NavigationContainerRef<ParamListBase>;
@@ -615,11 +747,13 @@ Update the ref type similarly.
 #### 2.5 Replace `beforeRemove` with `usePreventRemove`
 
 **Files to update (4):**
+
 - `app/components/UI/Card/Views/SpendingLimit/SpendingLimit.tsx`
 - `app/components/Views/confirmations/context/qr-hardware-context/qr-hardware-context.tsx`
 - `app/components/UI/QRHardware/QRSigningDetails.tsx`
 
 **Before:**
+
 ```jsx
 useEffect(() => {
   const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -636,6 +770,7 @@ useEffect(() => {
 ```
 
 **After:**
+
 ```jsx
 import { usePreventRemove } from '@react-navigation/native';
 
@@ -652,11 +787,13 @@ usePreventRemove(hasUnsavedChanges, ({ data }) => {
 If used anywhere (check snapshots):
 
 **Before:**
+
 ```jsx
 options={{ gestureResponseDistance: { horizontal: 50 } }}
 ```
 
 **After:**
+
 ```jsx
 options={{ gestureResponseDistance: 50 }}
 ```
@@ -676,7 +813,7 @@ Add to `NavigationProvider.tsx` during testing:
       const routes = state?.routes || [];
       const routeNames = routes.map(r => r.name);
       console.log('📍 Nav Stack:', routeNames.join(' → '));
-      
+
       // Detect duplicate screens (likely broken navigation)
       const duplicates = routeNames.filter((name, i) => routeNames.indexOf(name) !== i);
       if (duplicates.length > 0) {
@@ -734,18 +871,21 @@ yarn test:e2e:android:debug:run
 When you find a broken navigation (duplicate screen, wrong back behavior):
 
 **Identify the issue:**
+
 ```
 Console: ⚠️ DUPLICATE SCREENS: ['Wallet']
 Stack: Home → Send → Confirm → Wallet (should be just: Home)
 ```
 
 **Find the code:**
+
 ```javascript
 // Somewhere in Confirm screen:
 navigation.navigate('Wallet'); // This is pushing new Wallet!
 ```
 
 **Fix with `popTo`:**
+
 ```javascript
 navigation.popTo('Wallet');
 // or
@@ -753,6 +893,7 @@ navigation.popTo('Home'); // If wallet is nested in Home
 ```
 
 **Alternative - use `goBack` for simple cases:**
+
 ```javascript
 navigation.goBack(); // Go back one screen
 // or
@@ -796,34 +937,36 @@ yarn test:e2e:android:debug:run
 
 ### Automated Tests
 
-| Type | Command | Purpose |
-|------|---------|---------|
-| Unit | `yarn test:unit` | Component tests, snapshots |
-| E2E iOS | `yarn test:e2e:ios:debug:run` | Full flow testing |
-| E2E Android | `yarn test:e2e:android:debug:run` | Full flow testing |
+| Type        | Command                           | Purpose                    |
+| ----------- | --------------------------------- | -------------------------- |
+| Unit        | `yarn test:unit`                  | Component tests, snapshots |
+| E2E iOS     | `yarn test:e2e:ios:debug:run`     | Full flow testing          |
+| E2E Android | `yarn test:e2e:android:debug:run` | Full flow testing          |
 
 ### High-Risk Flows to Test
 
-| Flow | Risk Level | What Could Break |
-|------|------------|------------------|
-| Onboarding completion | 🔴 High | Duplicate wallet screens |
-| Transaction completion | 🔴 High | Not returning to wallet |
-| Modal dismiss | 🟡 Medium | Wrong screen after dismiss |
-| Deep link handling | 🔴 High | Duplicate screens |
-| Settings navigation | 🟡 Medium | Back button issues |
-| Tab switching | 🟢 Low | Usually works fine |
+| Flow                   | Risk Level | What Could Break           |
+| ---------------------- | ---------- | -------------------------- |
+| Onboarding completion  | 🔴 High    | Duplicate wallet screens   |
+| Transaction completion | 🔴 High    | Not returning to wallet    |
+| Modal dismiss          | 🟡 Medium  | Wrong screen after dismiss |
+| Deep link handling     | 🔴 High    | Duplicate screens          |
+| Settings navigation    | 🟡 Medium  | Back button issues         |
+| Tab switching          | 🟢 Low     | Usually works fine         |
 
 ### How to Identify `navigate` → `popTo` Issues
 
 **Symptoms:**
+
 1. Back button appears where it shouldn't
 2. Pressing back goes to unexpected screen
 3. Same screen appears multiple times in stack
 4. Console warning about duplicate screens
 
 **Debug command:**
+
 ```javascript
-console.log(navigation.getState().routes.map(r => r.name));
+console.log(navigation.getState().routes.map((r) => r.name));
 ```
 
 ---
@@ -832,26 +975,26 @@ console.log(navigation.getState().routes.map(r => r.name));
 
 ### High Risk
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Broken back navigation | Medium | High | Thorough testing + debug logging |
-| Deep link issues | Medium | High | Test all deep link types |
-| Modal presentation changes | Low | Medium | Visual regression testing |
+| Risk                       | Likelihood | Impact | Mitigation                       |
+| -------------------------- | ---------- | ------ | -------------------------------- |
+| Broken back navigation     | Medium     | High   | Thorough testing + debug logging |
+| Deep link issues           | Medium     | High   | Test all deep link types         |
+| Modal presentation changes | Low        | Medium | Visual regression testing        |
 
 ### Medium Risk
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Type errors | Medium | Low | Fix during development |
-| Snapshot failures | High | Low | Bulk update snapshots |
-| Animation differences | Low | Low | Visual review |
+| Risk                  | Likelihood | Impact | Mitigation             |
+| --------------------- | ---------- | ------ | ---------------------- |
+| Type errors           | Medium     | Low    | Fix during development |
+| Snapshot failures     | High       | Low    | Bulk update snapshots  |
+| Animation differences | Low        | Low    | Visual review          |
 
 ### Low Risk
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Tab navigation | Low | Low | Already works differently |
-| Gesture handling | Low | Low | Test on both platforms |
+| Risk             | Likelihood | Impact | Mitigation                |
+| ---------------- | ---------- | ------ | ------------------------- |
+| Tab navigation   | Low        | Low    | Already works differently |
+| Gesture handling | Low        | Low    | Test on both platforms    |
 
 ---
 
@@ -927,13 +1070,81 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 
 ### Common Fixes
 
-| v5 Code | v7 Code |
-|---------|---------|
-| `mode="modal"` | `screenOptions={{ presentation: 'modal' }}` |
-| `headerMode="none"` | `screenOptions={{ headerShown: false }}` |
-| `animationEnabled: false` | `animation: 'none'` |
-| `navigation.navigate('Back')` | `navigation.popTo('Back')` |
-| `beforeRemove` listener | `usePreventRemove` hook |
+| v5 Code                       | v7 Code                                     |
+| ----------------------------- | ------------------------------------------- |
+| `mode="modal"`                | `screenOptions={{ presentation: 'modal' }}` |
+| `headerMode="none"`           | `screenOptions={{ headerShown: false }}`    |
+| `animationEnabled: false`     | `animation: 'none'`                         |
+| `navigation.navigate('Back')` | `navigation.popTo('Back')`                  |
+| `beforeRemove` listener       | `usePreventRemove` hook                     |
+| `dangerouslyGetState()`       | `getState()`                                |
+| `dangerouslyGetParent()`      | `getParent()`                               |
+| `headerTitle: <Component />`  | `headerTitle: () => <Component />`          |
+
+### Screen Presentation (iOS Sheet Modal Fix)
+
+In v7, screens in a modal navigator appear as iOS sheet modals by default. To make them full-screen:
+
+```jsx
+// Add to individual screens
+<Stack.Screen
+  name="MyScreen"
+  component={MyScreen}
+  options={{ presentation: 'card' }}
+/>
+
+// Or set as navigator default and override for modals
+<Stack.Navigator screenOptions={{ presentation: 'card' }}>
+  <Stack.Screen name="FullScreen" component={FullScreen} />
+  <Stack.Screen
+    name="Modal"
+    component={Modal}
+    options={{ presentation: 'modal' }}
+  />
+</Stack.Navigator>
+```
+
+### Modal Navigation Pattern
+
+When navigating from a modal to another screen, use this pattern:
+
+```jsx
+import { CommonActions, StackActions } from '@react-navigation/native';
+import NavigationService from '../core/NavigationService';
+
+const handleClose = () => {
+  // First, dismiss the modal stack
+  NavigationService.navigation.dispatch(StackActions.popToTop());
+  // Then navigate to the destination
+  NavigationService.navigation.dispatch(
+    CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+  );
+};
+```
+
+For simpler cases within the same stack:
+
+```jsx
+const handleClose = () => {
+  navigation.dispatch(StackActions.popToTop());
+};
+```
+
+### Header Title Pattern
+
+In React Navigation v7, `headerTitle` must be a **function** to properly inherit theme context:
+
+```jsx
+// ❌ WRONG - Direct JSX (may have styling issues)
+headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>;
+
+// ✅ CORRECT - Function returning JSX
+headerTitle: () => (
+  <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+);
+```
+
+When using the function pattern, you don't need to explicitly set `color` on text components - they will inherit the correct theme color automatically.
 
 ### New Methods in v7
 
@@ -957,13 +1168,13 @@ options={{
 
 ## Decision Summary Table
 
-| Question | Decision | Rationale |
-|----------|----------|-----------|
-| Stack vs Native Stack | **Keep `stack`** | `cardStyleInterpolator` used in 5 files |
-| `@react-navigation/compat` | **Remove, migrate** | Only 5 files use `withNavigation` |
-| TypeScript types | **Incremental** | Fix as needed, don't delay migration |
-| Static API | **Not now** | Optional, can adopt later for new features |
-| Peer dependencies | **No changes** | Current versions compatible |
-| Deep linking | **No changes** | Uses imperative `NavigationService`, not linking prop |
-| Testing scope | **E2E + Manual QA** | All E2E pass + feature team sign-off |
-| Rollout | **Direct merge** | Can't feature flag, strong test coverage |
+| Question                   | Decision            | Rationale                                             |
+| -------------------------- | ------------------- | ----------------------------------------------------- |
+| Stack vs Native Stack      | **Keep `stack`**    | `cardStyleInterpolator` used in 5 files               |
+| `@react-navigation/compat` | **Remove, migrate** | Only 5 files use `withNavigation`                     |
+| TypeScript types           | **Incremental**     | Fix as needed, don't delay migration                  |
+| Static API                 | **Not now**         | Optional, can adopt later for new features            |
+| Peer dependencies          | **No changes**      | Current versions compatible                           |
+| Deep linking               | **No changes**      | Uses imperative `NavigationService`, not linking prop |
+| Testing scope              | **E2E + Manual QA** | All E2E pass + feature team sign-off                  |
+| Rollout                    | **Direct merge**    | Can't feature flag, strong test coverage              |
