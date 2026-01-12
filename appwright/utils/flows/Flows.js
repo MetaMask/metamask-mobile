@@ -236,6 +236,9 @@ export async function dismissMultichainAccountsIntroModal(
 
 export async function dismissAddAccountModal(device) {
   // Fix this for iOS
+  if (!device || !AppwrightSelectors.isAndroid(device)) {
+    return;
+  }
   const cancelButton = await AppwrightSelectors.getElementByXpath(
     device,
     '//android.widget.Button[@content-desc="Cancel"]',
