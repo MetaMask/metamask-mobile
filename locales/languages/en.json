@@ -1808,6 +1808,9 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time"
     },
+    "market_type": {
+      "filter_by": "Filter by"
+    },
     "perps_markets": "Perps markets",
     "volume": "Volume",
     "price_24h_change": "Price / 24h change",
