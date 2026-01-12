@@ -1,404 +1,371 @@
-/* eslint-disable react/jsx-no-bind */
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+import BrowserBottomBar from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import BrowserBottomBar from './';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
-import { fireEvent, screen } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { removeBookmark } from '../../../actions/bookmarks';
+import { Platform } from 'react-native';
 
-// Mock the useMetrics hook
-jest.mock('../../../components/hooks/useMetrics');
+// Mock dependencies
+jest.mock('../../../actions/bookmarks');
+jest.mock('../../../util/device', () => ({
+  isIos: jest.fn(() => false),
+  isAndroid: jest.fn(() => true),
+}));
+jest.mock('@metamask/react-native-search-api', () => ({
+  indexSpotlightItem: jest.fn(),
+}));
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn(() => ({ build: jest.fn(() => 'mockEvent') })),
-  build: jest.fn(() => 'mockEvent'),
+const mockNavigation = {
+  push: jest.fn(),
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
 }));
 
 describe('BrowserBottomBar', () => {
+  const mockGoBack = jest.fn();
+  const mockGoForward = jest.fn();
+  const mockReload = jest.fn();
+  const mockOpenNewTab = jest.fn();
+  const mockGetMaskedUrl = jest.fn((_url: string) => _url);
+
+  const defaultProps = {
+    canGoBack: true,
+    canGoForward: true,
+    goBack: mockGoBack,
+    goForward: mockGoForward,
+    reload: mockReload,
+    openNewTab: mockOpenNewTab,
+    activeUrl: 'https://example.com',
+    getMaskedUrl: mockGetMaskedUrl,
+    title: 'Example Site',
+    sessionENSNames: {},
+    favicon: { uri: 'https://example.com/favicon.ico' },
+    icon: { uri: 'https://example.com/icon.png' },
+  };
+
+  const initialState = {
+    bookmarks: [],
+    engine: {
+      backgroundState: {},
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
-  });
-  it('should render correctly', () => {
-    const fn = () => null;
-
-    renderWithProvider(
-      <BrowserBottomBar
-        canGoBack
-        canGoForward={false}
-        showTabs={fn}
-        toggleOptions={fn}
-        showUrlModal={fn}
-        toggleFullscreen={fn}
-        isFullscreen={false}
-        goBack={fn}
-        goForward={fn}
-        goHome={fn}
-      />,
-    );
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('should render disabled elements correctly', () => {
-    renderWithProvider(
-      <BrowserBottomBar canGoBack={false} canGoForward={false} />,
-    );
-
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON).props
-        .disabled,
-    ).toBe(true);
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  it('should call the callbacks when buttons are pressed', () => {
-    const goBack = jest.fn();
-    const goForward = jest.fn();
-    const goHome = jest.fn();
-    const showTabs = jest.fn();
-    const toggleOptions = jest.fn();
-    const showUrlModal = jest.fn();
-    const toggleFullscreen = jest.fn();
-
-    const { getByTestId } = renderWithProvider(
-      <BrowserBottomBar
-        canGoBack
-        canGoForward={false}
-        showTabs={showTabs}
-        toggleOptions={toggleOptions}
-        showUrlModal={showUrlModal}
-        goBack={goBack}
-        goForward={goForward}
-        goHome={goHome}
-        toggleFullscreen={toggleFullscreen}
-        isFullscreen={false}
-      />,
-    );
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON));
-    expect(goBack).toHaveBeenCalled();
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON));
-    expect(goForward).toHaveBeenCalled();
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON));
-    expect(goHome).toHaveBeenCalled();
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.TABS_BUTTON));
-    expect(showTabs).toHaveBeenCalled();
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON));
-    expect(toggleOptions).toHaveBeenCalled();
-
-    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
-    expect(showUrlModal).toHaveBeenCalled();
-
-    fireEvent.press(
-      getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON),
-    );
-    expect(toggleFullscreen).toHaveBeenCalled();
-  });
-
-  describe('Analytics tracking', () => {
-    it('should track search event when search button is pressed', () => {
-      const showUrlModal = jest.fn();
+  describe('Navigation Controls', () => {
+    it('calls goBack when back button is pressed', () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar showUrlModal={showUrlModal} />,
-      );
-
-      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_SEARCH_USED,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(showUrlModal).toHaveBeenCalled();
-    });
-
-    it('should track navigation event when back button is pressed', () => {
-      const goBack = jest.fn();
-      const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar canGoBack goBack={goBack} />,
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
       );
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_NAVIGATION,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(goBack).toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should track navigation event when forward button is pressed', () => {
-      const goForward = jest.fn();
+    it('calls goForward when forward button is pressed', () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar canGoForward goForward={goForward} />,
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
       );
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_NAVIGATION,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(goForward).toHaveBeenCalled();
+      expect(mockGoForward).toHaveBeenCalledTimes(1);
     });
 
-    it('should track navigation event when home button is pressed', () => {
-      const goHome = jest.fn();
+    it('calls reload when reload button is pressed', () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar goHome={goHome} />,
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
       );
 
-      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON));
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.RELOAD_BUTTON));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_NAVIGATION,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(goHome).toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalledTimes(1);
     });
 
-    it('should track fullscreen opened event when entering fullscreen', () => {
-      const toggleFullscreen = jest.fn();
+    it('disables back button when canGoBack is false', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} canGoBack={false} />,
+        { state: initialState },
+      );
+
+      const backButton = getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON);
+
+      expect(backButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('disables forward button when canGoForward is false', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} canGoForward={false} />,
+        { state: initialState },
+      );
+
+      const forwardButton = getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON);
+
+      expect(forwardButton.props.accessibilityState.disabled).toBe(true);
+    });
+  });
+
+  describe('New Tab Functionality', () => {
+    it('calls openNewTab when new tab button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.NEW_TAB_BUTTON));
+
+      expect(mockOpenNewTab).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Bookmark Functionality', () => {
+    it('navigates to AddBookmarkView when bookmark button is pressed for non-bookmarked page', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalledWith('AddBookmarkView', {
+        screen: 'AddBookmark',
+        params: expect.objectContaining({
+          title: 'Example Site',
+          url: 'https://example.com',
+          onAddBookmark: expect.any(Function),
+        }),
+      });
+    });
+
+    it('removes bookmark when bookmark button is pressed for bookmarked page', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: stateWithBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(removeBookmark).toHaveBeenCalledWith({
+        name: 'Example Site',
+        url: 'https://example.com',
+      });
+    });
+
+    it('does not remove bookmark when URL does not match', () => {
+      const stateWithDifferentBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Other Site', url: 'https://other.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: stateWithDifferentBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(removeBookmark).not.toHaveBeenCalled();
+      expect(mockNavigation.push).toHaveBeenCalled();
+    });
+  });
+
+  describe('Visual States', () => {
+    it('renders filled star icon when page is bookmarked', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: stateWithBookmark },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.iconName).toBe('StarFilled');
+    });
+
+    it('renders outline star icon when page is not bookmarked', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.iconName).toBe('Star');
+    });
+  });
+
+  describe('URL Masking', () => {
+    it('uses getMaskedUrl for bookmark operations', () => {
+      const customGetMaskedUrl = jest.fn((_url: string) => `masked-${_url}`);
+
       const { getByTestId } = renderWithProvider(
         <BrowserBottomBar
-          toggleFullscreen={toggleFullscreen}
-          isFullscreen={false}
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
         />,
+        { state: initialState },
       );
 
-      fireEvent.press(
-        getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON),
-      );
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_OPENED_FULLSCREEN,
+      expect(customGetMaskedUrl).toHaveBeenCalledWith(
+        'https://example.com',
+        {},
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(toggleFullscreen).toHaveBeenCalled();
     });
 
-    it('should track fullscreen closed event when exiting fullscreen', () => {
-      const toggleFullscreen = jest.fn();
+    it('checks bookmarks using masked URL', () => {
+      const customGetMaskedUrl = jest.fn((_url: string) => 'masked-url');
+      const stateWithMaskedBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Site', url: 'masked-url' }],
+      };
+
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar toggleFullscreen={toggleFullscreen} isFullscreen />,
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
+        />,
+        { state: stateWithMaskedBookmark },
       );
 
-      fireEvent.press(
-        getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON),
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
       );
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.BROWSER_CLOSED_FULLSCREEN,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(toggleFullscreen).toHaveBeenCalled();
+      expect(bookmarkButton.props.iconName).toBe('StarFilled');
     });
   });
 
-  describe('Fullscreen behavior', () => {
-    it('should display fullscreen icon when not in fullscreen mode', () => {
-      renderWithProvider(
-        <BrowserBottomBar isFullscreen={false} toggleFullscreen={jest.fn} />,
+  describe('Edge Cases', () => {
+    it('handles missing goBack function gracefully', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} goBack={undefined} />,
+        { state: initialState },
       );
 
-      const component = screen.toJSON();
-      expect(component).toMatchSnapshot();
-    });
-
-    it('should display fullscreen-exit icon when in fullscreen mode', () => {
-      renderWithProvider(
-        <BrowserBottomBar isFullscreen toggleFullscreen={jest.fn} />,
-      );
-
-      const component = screen.toJSON();
-      expect(component).toMatchSnapshot();
-    });
-
-    it('should apply bottom inset padding when in fullscreen mode', () => {
-      // Mock useSafeAreaInsets
-      const mockUseSafeAreaInsets = jest.fn(() => ({ bottom: 20 }));
-      jest.doMock('react-native-safe-area-context', () => ({
-        useSafeAreaInsets: mockUseSafeAreaInsets,
-      }));
-
-      renderWithProvider(
-        <BrowserBottomBar isFullscreen toggleFullscreen={jest.fn} />,
-      );
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('Button states and interactions', () => {
-    it('should handle missing callback functions gracefully', () => {
-      const { getByTestId } = renderWithProvider(<BrowserBottomBar />);
-
-      // These should not crash when pressed without callbacks
       expect(() => {
         fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON));
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON));
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON));
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.TABS_BUTTON));
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON));
-        fireEvent.press(
-          getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON),
-        );
       }).not.toThrow();
     });
 
-    it('should apply disabled styles when buttons are disabled', () => {
-      renderWithProvider(
-        <BrowserBottomBar
-          canGoBack={false}
-          canGoForward={false}
-          // No goHome function provided - should be disabled
-          // No toggleOptions function provided - should be disabled
-          // No toggleFullscreen function provided - should be disabled
-        />,
-      );
-
-      const component = screen.toJSON();
-      expect(component).toMatchSnapshot();
-    });
-
-    it('should enable buttons when props are provided correctly', () => {
-      const mockFn = jest.fn();
-      renderWithProvider(
-        <BrowserBottomBar
-          canGoBack
-          canGoForward
-          goBack={mockFn}
-          goForward={mockFn}
-          goHome={mockFn}
-          toggleOptions={mockFn}
-          toggleFullscreen={mockFn}
-          showTabs={mockFn}
-          showUrlModal={mockFn}
-        />,
-      );
-
-      expect(
-        screen.getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON).props.disabled,
-      ).toBe(false);
-      expect(
-        screen.getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON).props
-          .disabled,
-      ).toBe(false);
-      expect(
-        screen.getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON).props.disabled,
-      ).toBe(false);
-      expect(
-        screen.getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON).props
-          .disabled,
-      ).toBe(false);
-      expect(
-        screen.getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON)
-          .props.disabled,
-      ).toBe(false);
-    });
-  });
-
-  describe('Edge cases and error handling', () => {
-    it('should render without crashing when no props are provided', () => {
-      expect(() => {
-        renderWithProvider(<BrowserBottomBar />);
-      }).not.toThrow();
-
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
-
-    it('should handle undefined callback functions in event handlers', () => {
+    it('handles missing goForward function gracefully', () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar
-          canGoBack
-          canGoForward
-          // All callbacks intentionally undefined
-        />,
+        <BrowserBottomBar {...defaultProps} goForward={undefined} />,
+        { state: initialState },
       );
-
-      // Should not crash when pressing buttons with undefined callbacks
-      expect(() => {
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON));
-      }).not.toThrow();
 
       expect(() => {
         fireEvent.press(getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON));
       }).not.toThrow();
+    });
+
+    it('handles missing reload function gracefully', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} reload={undefined} />,
+        { state: initialState },
+      );
 
       expect(() => {
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON));
-      }).not.toThrow();
-
-      expect(() => {
-        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
+        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.RELOAD_BUTTON));
       }).not.toThrow();
     });
 
-    it('should memoize component to prevent unnecessary re-renders', () => {
-      const BrowserBottomBarMemo = BrowserBottomBar;
-      expect(BrowserBottomBarMemo.$$typeof.toString()).toContain('react.memo');
+    it('handles missing openNewTab function gracefully', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} openNewTab={undefined} />,
+        { state: initialState },
+      );
+
+      expect(() => {
+        fireEvent.press(getByTestId(BrowserViewSelectorsIDs.NEW_TAB_BUTTON));
+      }).not.toThrow();
+    });
+
+    it('handles empty title when adding bookmark', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} title="" />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalledWith(
+        'AddBookmarkView',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            title: '',
+          }),
+        }),
+      );
+    });
+
+    it('handles undefined icon when adding bookmark', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} icon={undefined} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalled();
     });
   });
 
-  describe('Component snapshots', () => {
-    it('should match snapshot with all props enabled', () => {
-      const mockFn = jest.fn();
-      renderWithProvider(
-        <BrowserBottomBar
-          canGoBack
-          canGoForward
-          goBack={mockFn}
-          goForward={mockFn}
-          goHome={mockFn}
-          showTabs={mockFn}
-          showUrlModal={mockFn}
-          toggleOptions={mockFn}
-          toggleFullscreen={mockFn}
-          isFullscreen={false}
-        />,
+  describe('Platform-specific Behavior', () => {
+    it('renders on Android platform', () => {
+      Platform.OS = 'android';
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
       );
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON)).toBeTruthy();
     });
 
-    it('should match snapshot with mixed enabled/disabled states', () => {
-      const mockFn = jest.fn();
-      renderWithProvider(
-        <BrowserBottomBar
-          canGoBack
-          canGoForward={false}
-          goBack={mockFn}
-          goForward={mockFn}
-          goHome={mockFn}
-          showTabs={mockFn}
-          showUrlModal={mockFn}
-          // toggleOptions intentionally missing - should be disabled
-          toggleFullscreen={mockFn}
-          isFullscreen
-        />,
+    it('renders on iOS platform', () => {
+      Platform.OS = 'ios';
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
       );
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON)).toBeTruthy();
     });
   });
 });
