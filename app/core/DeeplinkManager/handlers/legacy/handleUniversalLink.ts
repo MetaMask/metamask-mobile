@@ -312,10 +312,16 @@ async function handleUniversalLink({
       return;
     }
     case SUPPORTED_ACTIONS.PERPS:
-    case SUPPORTED_ACTIONS.PERPS_MARKETS:
-    case SUPPORTED_ACTIONS.PERPS_ASSET: {
+    case SUPPORTED_ACTIONS.PERPS_MARKETS: {
       handlePerpsUrl({
         perpsPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.PERPS_ASSET: {
+      // perps-asset URLs need screen=asset injected since actionBasedRampPath is just '?symbol=X'
+      handlePerpsUrl({
+        perpsPath: `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`,
       });
       break;
     }
