@@ -11,14 +11,14 @@ import {
 
 // TODO: Organize this by where errors are derived from. Ex: Seedless onboarding related errors vs Keyring related errors.
 describe('handlePasswordSubmissionError', () => {
-  it('throw error if seedless onboarding controller error is detected', () => {
+  it('throws error if seedless onboarding controller error is detected', () => {
     const error = new SeedlessOnboardingControllerError(
       SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
     );
     expect(() => handlePasswordSubmissionError(error)).toThrow(error);
   });
 
-  it('throw error if wrong password error is detected', () => {
+  it('throws error if wrong password error is detected', () => {
     const error = new Error(UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD);
     const expectedThrownError = new Error(
       `${UnlockWalletErrorType.INVALID_PASSWORD}: ${error.message}`,
@@ -28,7 +28,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('throw error if passcode not set error is detected', () => {
+  it('throws error if passcode not set error is detected', () => {
     const error = new Error(UNLOCK_WALLET_ERROR_MESSAGES.PASSCODE_NOT_SET);
     const expectedThrownError = new Error(
       `${UnlockWalletErrorType.PASSWORD_NOT_SET}: ${error.message}`,
@@ -38,7 +38,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('throw error if deny pin error is detected', () => {
+  it('throws error if deny pin error is detected', () => {
     const error = new Error(UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED);
     const expectedThrownError = new Error(
       `${UnlockWalletErrorType.ANDROID_PIN_DENIED}: ${error.message}`,
@@ -48,7 +48,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('throw error if user cancelled biometrics error is detected', () => {
+  it('throws error if user cancelled biometrics error is detected', () => {
     const error = new Error(
       UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
     );
@@ -60,7 +60,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('throw error if vault corruption error is detected', () => {
+  it('throws error if vault corruption error is detected', () => {
     const error = new Error(
       UNLOCK_WALLET_ERROR_MESSAGES.PREVIOUS_VAULT_NOT_FOUND,
     );
@@ -72,7 +72,7 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
-  it('throw error if other password submission errors are detected', () => {
+  it('throws error if other password submission errors are detected', () => {
     const error = new Error('Unrecognized error!');
     const expectedThrownError = new Error(
       `${UnlockWalletErrorType.UNRECOGNIZED_ERROR}: ${error.message}`,
