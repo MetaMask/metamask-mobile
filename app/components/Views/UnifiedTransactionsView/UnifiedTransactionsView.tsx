@@ -245,7 +245,8 @@ const UnifiedTransactionsView = ({
 
         const alreadyConfirmed = allConfirmedFiltered.find(
           (confirmedTx) =>
-            nonce &&
+            nonce !== undefined &&
+            nonce !== null &&
             confirmedTx.txParams?.nonce === nonce &&
             selectedAccountGroupInternalAccountsAddresses.some((addr) =>
               areAddressesEqual(confirmedTx.txParams?.from, addr),
