@@ -12,6 +12,7 @@ import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
+import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
 
 let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
@@ -137,6 +138,8 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     mockSubmitTx.mockResolvedValueOnce({
@@ -151,7 +154,7 @@ describe('useSubmitBridgeTx', () => {
     } as TransactionMeta);
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -182,6 +185,8 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     mockSubmitTx.mockResolvedValueOnce({
@@ -196,7 +201,7 @@ describe('useSubmitBridgeTx', () => {
     } as TransactionMeta);
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -227,6 +232,8 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     const error = new Error('Approval failed');
@@ -234,7 +241,7 @@ describe('useSubmitBridgeTx', () => {
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
       }),
     ).rejects.toThrow('Approval failed');
   });
@@ -247,6 +254,8 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     const error = new Error('Bridge transaction failed');
@@ -254,7 +263,7 @@ describe('useSubmitBridgeTx', () => {
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
       }),
     ).rejects.toThrow('Bridge transaction failed');
   });
@@ -268,6 +277,8 @@ describe('useSubmitBridgeTx', () => {
     const invalidQuoteResponse = {
       ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
       sentAmount: {
         amount: 'NaN', // This will cause serialization to fail
         valueInCurrency: '0',
@@ -279,7 +290,7 @@ describe('useSubmitBridgeTx', () => {
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: invalidQuoteResponse as BridgeQuoteResponse,
       }),
     ).rejects.toThrow('Serialization failed');
   });
@@ -295,11 +306,13 @@ describe('useSubmitBridgeTx', () => {
     const mockQuoteResponse = {
       ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
       ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
     };
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
       }),
     ).rejects.toThrow('Wallet address is not set');
   });
