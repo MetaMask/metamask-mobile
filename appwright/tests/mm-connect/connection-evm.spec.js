@@ -227,6 +227,8 @@ test.skip('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async (
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
+      // Validate that responses for requests other than the initial connection request
+      // can be received by the dapp still
       await MultiChainEvmTestDapp.assertRequestResponseValue(
         'User rejected the request.',
       );
