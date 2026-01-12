@@ -5,6 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -21,12 +25,14 @@ interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
   showUnstake?: boolean;
   hasStakedPositions?: boolean;
+  aprText?: string;
 }
 
 const TronStakingButtons = ({
   asset,
   showUnstake = false,
   hasStakedPositions = false,
+  aprText,
 }: TronStakingButtonsProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
@@ -79,26 +85,40 @@ const TronStakingButtons = ({
 
   return (
     <View style={styles.balanceButtonsContainer}>
-      {showUnstake ? (
+      {!hasStakedPositions && aprText && (
+        <View style={styles.ctaContent}>
+          <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
+            {strings('stake.stake_your_trx_cta.title')}
+          </Text>
+          <Text style={styles.ctaText}>
+            {strings('stake.stake_your_trx_cta.description_start')}
+            <Text color={TextColor.Success}>{aprText}</Text>
+            {strings('stake.stake_your_trx_cta.description_end')}
+          </Text>
+        </View>
+      )}
+      <View style={styles.buttonsRow}>
+        {showUnstake ? (
+          <Button
+            testID={'unstake-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariants.Secondary}
+            label={strings('stake.unstake')}
+            onPress={onUnstakePress}
+          />
+        ) : null}
         <Button
-          testID={'unstake-button'}
+          testID={'stake-more-button'}
           style={styles.balanceActionButton}
           variant={ButtonVariants.Secondary}
-          label={strings('stake.unstake')}
-          onPress={onUnstakePress}
+          label={
+            hasStakedPositions
+              ? strings('stake.stake_more')
+              : strings('stake.stake_your_trx_cta.earn_button')
+          }
+          onPress={onStakePress}
         />
-      ) : null}
-      <Button
-        testID={'stake-more-button'}
-        style={styles.balanceActionButton}
-        variant={ButtonVariants.Secondary}
-        label={
-          hasStakedPositions
-            ? strings('stake.stake_more')
-            : strings('stake.stake_your_trx_cta.earn_button')
-        }
-        onPress={onStakePress}
-      />
+      </View>
     </View>
   );
 };

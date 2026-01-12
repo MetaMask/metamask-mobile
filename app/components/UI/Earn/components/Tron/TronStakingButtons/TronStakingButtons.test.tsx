@@ -29,6 +29,10 @@ jest.mock('../../../../../../component-library/hooks', () => ({
     styles: {
       balanceButtonsContainer: {},
       balanceActionButton: {},
+      ctaContent: {},
+      ctaTitle: {},
+      ctaText: {},
+      buttonsRow: {},
     },
   }),
 }));
