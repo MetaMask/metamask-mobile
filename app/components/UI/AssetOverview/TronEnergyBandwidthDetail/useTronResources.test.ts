@@ -76,14 +76,14 @@ describe('useTronResources', () => {
     expect(result.current.energy).toEqual({
       type: 'energy',
       current: 0,
-      max: 1,
+      max: 0,
       percentage: 0,
     });
 
     expect(result.current.bandwidth).toEqual({
       type: 'bandwidth',
       current: 0,
-      max: 1,
+      max: 0,
       percentage: 0,
     });
   });

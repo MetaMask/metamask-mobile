@@ -6169,7 +6169,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
@@ -6442,7 +6442,7 @@
       "title": "{{networkName}} address",
       "copy_address": "Copy address",
       "description": "Use this address to receive tokens and collectibles on",
-      "description_prefix": "Use this address to receive tokens and collectibles on"
+      "description_prefix": "Use this to receive assets on"
     },
     "export_credentials": {
       "export_private_key": "Private key",
@@ -6900,6 +6900,16 @@
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
+    },
+    "metal_card_claim": {
+      "title": "Claim your reward",
+      "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
+      "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
+      "email_label": "Email",
+      "email_validation_error": "Please enter a valid email address",
+      "telegram_label": "Telegram handle",
+      "telegram_placeholder": "Optional",
+      "submit_button": "Claim"
     },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
