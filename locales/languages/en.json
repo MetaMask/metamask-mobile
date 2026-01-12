@@ -3225,7 +3225,7 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert": "Convert",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",

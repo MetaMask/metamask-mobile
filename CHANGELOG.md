@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.61.6]
+
+### Fixed
+
+- fix: fix apr issue display value cp-7.61.6 ([#24382](https://github.com/MetaMask/metamask-mobile/pull/24382))
+- chore: bump @metamask/tron-wallet-snap to version 1.19.0 cp-7.61.6 ([#24378](https://github.com/MetaMask/metamask-mobile/pull/24378))
+- fix(tron): max energy and bandwidth incorrectly set to 1 instead of 0 cp-7.61.6 ([#24376](https://github.com/MetaMask/metamask-mobile/pull/24376))
+- fix: include hip3 dexes when building position map on init ([#24300](https://github.com/MetaMask/metamask-mobile/pull/24300))
+- chore(perps): Refactor HL subscription service (#24015) ([#24274](https://github.com/MetaMask/metamask-mobile/pull/24274))
+- chore: fix apr issue with znon-zero values cp-7.61.6 ([#24261](https://github.com/MetaMask/metamask-mobile/pull/24261))
+
 ## [7.61.5]
 
 ### Fixed
@@ -9675,7 +9686,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.5...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.6...HEAD
+[7.61.6]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.5...v7.61.6
 [7.61.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.4...v7.61.5
 [7.61.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.3...v7.61.4
 [7.61.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.61.2...v7.61.3
