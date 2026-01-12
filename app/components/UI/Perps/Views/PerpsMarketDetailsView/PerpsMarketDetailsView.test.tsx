@@ -102,6 +102,16 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
 }));
 
+// Mock usePerpsMarketFills to avoid Redux selector issues
+jest.mock('../../hooks/usePerpsMarketFills', () => ({
+  usePerpsMarketFills: jest.fn(() => ({
+    fills: [],
+    isInitialLoading: false,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
+}));
+
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

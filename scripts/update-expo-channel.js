@@ -12,16 +12,55 @@ const fs = require('fs');
 const path = require('path');
 const { RUNTIME_VERSION, UPDATE_URL } = require('../ota.config.js');
 
-const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev', 'production'];
+const VALID_ENVIRONMENTS = [
+  'beta',
+  'rc',
+  'exp',
+  'test',
+  'e2e',
+  'dev',
+  'production',
+];
 
-const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
+const ANDROID_MANIFEST_PATH = path.join(
+  __dirname,
+  '..',
+  'android',
+  'app',
+  'src',
+  'main',
+  'AndroidManifest.xml',
+);
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
-const CERTIFICATE_PATH = path.join(__dirname, '..', 'certs', 'certificate.pem');
-const CODE_SIGNING_KEY_ID = 'main';
 const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
-//TODO: add production channel when it's ready
+// Match the OTA environment selection logic from app.config.js:
+// - "production" and "rc" use their own certificates
+// - all other environments (exp, dev, test, e2e, beta, etc.) fall back to "exp"
+function getOtaEnvironment(environment) {
+  return environment === 'production' || environment === 'rc'
+    ? environment
+    : 'exp';
+}
+
+const CODE_SIGNING_CERTS = {
+  production: path.join(
+    __dirname,
+    '..',
+    'certs',
+    'production.certificate.pem',
+  ),
+  exp: path.join(__dirname, '..', 'certs', 'exp.certificate.pem'),
+  rc: path.join(__dirname, '..', 'certs', 'rc.certificate.pem'),
+};
+
+const CODE_SIGNING_KEYIDS = {
+  production: 'production',
+  exp: 'exp',
+  rc: 'rc',
+};
+
 const CONFIG_MAP = {
   exp: {
     channel: 'exp',
@@ -33,6 +72,14 @@ const CONFIG_MAP = {
   },
   rc: {
     channel: 'rc',
+    runtimeVersion: RUNTIME_VERSION,
+    updatesEnabled: true,
+    updateUrl: UPDATE_URL,
+    checkAutomatically: 'NEVER',
+    fallbackToCacheTimeout: 0,
+  },
+  production: {
+    channel: 'production',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
@@ -82,6 +129,7 @@ const EXPO_CONFIG_MAP = {
  * Loads the code signing certificate and generates Expo-compatible payloads
  * for Android and iOS configuration files.
  *
+ * @param {string} environment
  * @returns {null | {
  *   certificatePath: string,
  *   androidCertificateValue: string,
@@ -90,16 +138,28 @@ const EXPO_CONFIG_MAP = {
  *   androidMetadataValue: string,
  * }} Configuration object or null when certificate is missing
  */
-function loadCodeSigningConfiguration() {
-  if (!fs.existsSync(CERTIFICATE_PATH)) {
+function loadCodeSigningConfiguration(environment) {
+  const otaEnv = getOtaEnvironment(environment);
+  const certificatePath = CODE_SIGNING_CERTS[otaEnv];
+  const keyId = CODE_SIGNING_KEYIDS[otaEnv];
+
+  if (!certificatePath || !keyId) {
     console.warn(
-      `⚠️  Code signing certificate not found at ${CERTIFICATE_PATH}. ` +
+      `⚠️  No code signing configuration found for environment "${environment}" (OTA env "${otaEnv}"). ` +
         'Skipping code signing configuration updates.',
     );
     return null;
   }
 
-  const certificateContent = fs.readFileSync(CERTIFICATE_PATH, 'utf8');
+  if (!fs.existsSync(certificatePath)) {
+    console.warn(
+      `⚠️  Code signing certificate not found at ${certificatePath}. ` +
+        'Skipping code signing configuration updates.',
+    );
+    return null;
+  }
+
+  const certificateContent = fs.readFileSync(certificatePath, 'utf8');
 
   const androidCertificateValue = certificateContent
     .replace(/\r/g, '&#xD;')
@@ -108,7 +168,7 @@ function loadCodeSigningConfiguration() {
   const iosCertificateValue = certificateContent.replace(/\r/g, '&#xD;');
 
   const metadata = {
-    keyid: CODE_SIGNING_KEY_ID,
+    keyid: keyId,
     alg: CODE_SIGNING_ALGORITHM,
   };
 
@@ -118,7 +178,7 @@ function loadCodeSigningConfiguration() {
   );
 
   return {
-    certificatePath: CERTIFICATE_PATH,
+    certificatePath,
     androidCertificateValue,
     iosCertificateValue,
     metadata,
@@ -445,7 +505,6 @@ function updatePlistFile(
  */
 function main() {
   const environment = process.env.METAMASK_ENVIRONMENT;
-  const codeSigningConfig = loadCodeSigningConfiguration();
 
   console.log('======================================');
   console.log('  Updating Expo Updates Configuration');
@@ -467,11 +526,16 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
-  // only enable expo updates for exp and rc builds
-  if (!(environment === 'exp' || environment === 'rc')) {
+  // Only apply configuration for environments that have a CONFIG_MAP entry
+  // (currently: exp, rc, production)
+  const config = getConfigForEnvironment(environment);
+
+  if (!config) {
     console.log('✓ No configuration changes made');
     return;
   }
+
+  const codeSigningConfig = loadCodeSigningConfiguration(environment);
 
   // Get configuration for this environment
   const {
@@ -481,7 +545,7 @@ function main() {
     updateUrl,
     checkAutomatically,
     fallbackToCacheTimeout,
-  } = getConfigForEnvironment(environment);
+  } = config;
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
