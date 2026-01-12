@@ -129,9 +129,11 @@ const mockGetTokenSnapshotFromState = jest.fn(() => ({
 }));
 
 jest.mock('../utils/token-snapshot', () => ({
-  fetchTokenSnapshot: (...args: unknown[]) => mockFetchTokenSnapshot(...args),
-  getTokenSnapshotFromState: (...args: unknown[]) =>
-    mockGetTokenSnapshotFromState(...args),
+  fetchTokenSnapshot: (...args: Parameters<typeof mockFetchTokenSnapshot>) =>
+    mockFetchTokenSnapshot(...args),
+  getTokenSnapshotFromState: (
+    ...args: Parameters<typeof mockGetTokenSnapshotFromState>
+  ) => mockGetTokenSnapshotFromState(...args),
   getEarnTokenPairAddressesFromState: jest.fn(() => ({
     earnToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     outputToken: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
@@ -501,10 +503,10 @@ describe('useEarnLendingTransactionStatus', () => {
       handler({ transactionMeta });
 
       // Should track both EARN_TRANSACTION_SUBMITTED and EARN_TRANSACTION_INITIATED
-      const eventBuilderCalls = mockCreateEventBuilder.mock.calls;
+      const eventBuilderCalls = mockCreateEventBuilder.mock
+        .calls as unknown as [{ name: string }][];
       const initiatedCall = eventBuilderCalls.find(
-        ([event]: [{ name: string }]) =>
-          event.name === 'Earn Transaction Initiated',
+        ([event]) => event.name === 'Earn Transaction Initiated',
       );
       expect(initiatedCall).toBeDefined();
     });
