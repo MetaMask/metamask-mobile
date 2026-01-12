@@ -23,6 +23,7 @@ export const useTrendingSearch = (
       query: searchQuery || '',
       limit: 20,
       chainIds: chainIds ?? undefined,
+      includeMarketData: true,
     });
 
   const {
