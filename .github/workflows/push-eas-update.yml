@@ -95,6 +95,7 @@ jobs:
         run: |
           echo "🧬 Generating fingerprint for current branch..."
           FINGERPRINT=$(yarn fingerprint:generate)
+          echo "test"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
 
