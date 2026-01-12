@@ -97,7 +97,14 @@ jobs:
             eas.json \
             ios \
             android \
-            expo.* || true
+            expo.* \
+            fingerprint.config.js \
+            .yarn/patches \
+            .github/workflows \
+            .github/scripts \
+            react-native.config.js \
+            scripts/build.sh \
+            scripts/setup.mjs || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
