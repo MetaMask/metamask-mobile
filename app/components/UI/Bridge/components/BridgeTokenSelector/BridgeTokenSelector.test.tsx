@@ -568,9 +568,14 @@ describe('BridgeTokenSelector', () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RootModalFlow',
+        'Asset',
         expect.objectContaining({
-          screen: 'TokenInsights',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+          chainId: 'eip155:1',
+          decimals: 18,
+          image: 'https://example.com/token.png',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();

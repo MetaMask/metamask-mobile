@@ -1780,6 +1780,7 @@ export function getBridgeTokenSelectorNavbar(navigation) {
   const leftAction = () => navigation.goBack();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         title={strings('bridge.select_token')}
