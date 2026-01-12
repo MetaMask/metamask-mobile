@@ -182,17 +182,17 @@ jobs:
       WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }} #need to add to secrets
       MM_FOX_CODE: ${{ secrets.MM_FOX_CODE_TEST }} #need to add to secrets
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
-          fetch-depth: 0
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+      #     fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #     cache: 'yarn'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
