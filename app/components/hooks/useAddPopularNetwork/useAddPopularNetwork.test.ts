@@ -261,4 +261,237 @@ describe('useAddPopularNetwork', () => {
       }),
     );
   });
+
+  it('does not switch network when networkClientId is undefined from addNetwork', async () => {
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: undefined }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not switch network when networkClientId is undefined from updateNetwork', async () => {
+    const existingNetwork = {
+      chainId: '0x89',
+      name: 'Polygon',
+      rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: undefined }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not pass replacementSelectedRpcEndpointIndex when chainIds differ', async () => {
+    const existingNetwork = {
+      chainId: '0x1', // Different from the network being added (0x89)
+      name: 'Ethereum',
+      rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'updated-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork);
+    });
+
+    expect(Engine.context.NetworkController.updateNetwork).toHaveBeenCalledWith(
+      '0x1',
+      existingNetwork,
+      undefined,
+    );
+  });
+
+  it('switches network by default when shouldSwitchNetwork is not provided', async () => {
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('test-client-id');
+    expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('does not add user traits when updating existing network', async () => {
+    const existingNetwork = {
+      chainId: '0x89',
+      name: 'Polygon',
+      rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'updated-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork);
+    });
+
+    expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+  });
+
+  it('handles addNetwork returning undefined', async () => {
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('handles updateNetwork returning undefined', async () => {
+    const existingNetwork = {
+      chainId: '0x89',
+      name: 'Polygon',
+      rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('handles network with empty rpcEndpoints array from addNetwork', async () => {
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('switches to updated network after updating existing network', async () => {
+    const existingNetwork = {
+      chainId: '0x89',
+      name: 'Polygon',
+      rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'updated-client-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('updated-client-id');
+    expect(mockDispatch).toHaveBeenCalledWith(
+      networkSwitched({
+        networkUrl: 'https://polygon-rpc.com',
+        networkStatus: true,
+      }),
+    );
+  });
 });
