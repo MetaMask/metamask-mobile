@@ -15,6 +15,7 @@ import Text, {
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
+import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -28,6 +29,7 @@ import { colors } from '../../../../styles/common';
 import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
+import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -163,7 +165,7 @@ const MainRoutes = () => {
       />
       <Stack.Screen
         name={Routes.CARD.REVIEW_ORDER}
-        component={VerifyingRegistration}
+        component={ReviewOrder}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
@@ -218,7 +220,7 @@ const CardModalsRoutes = () => (
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.RECURRING_FEE}
-      component={ConfirmModal}
+      component={RecurringFeeModal}
     />
   </ModalsStack.Navigator>
 );

@@ -1,0 +1,263 @@
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
+import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
+
+interface ShippingAddress {
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  zip: string;
+}
+
+interface OrderItem {
+  label: string;
+  value: string;
+  onPress?: () => void;
+}
+
+const ReviewOrder = () => {
+  const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const tw = useTailwind();
+
+  const handleRenewsPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.REVIEW_ORDER_RENEWS_PRESSED,
+          screen: CardScreens.REVIEW_ORDER,
+        })
+        .build(),
+    );
+
+    navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.RECURRING_FEE,
+    });
+  }, [navigate, trackEvent, createEventBuilder]);
+
+  // TODO: Get shipping address from SDK/API
+  const shippingAddress: ShippingAddress = useMemo(
+    () => ({
+      line1: '456 Elmwood Avenue, Apt 3B',
+      city: 'Chicago',
+      state: 'IL',
+      zip: '60614',
+    }),
+    [],
+  );
+
+  const orderItems: OrderItem[] = useMemo(
+    () => [
+      {
+        label: strings('card.review_order.metal_card_quantity'),
+        value: strings('card.review_order.metal_card_price'),
+      },
+      {
+        label: strings('card.review_order.fees'),
+        value: strings('card.review_order.fees_free'),
+        onPress: () => {
+          // TODO: Open fees modal
+        },
+      },
+      {
+        label: strings('card.review_order.renews'),
+        value: strings('card.review_order.renews_annually'),
+        onPress: handleRenewsPress,
+      },
+      {
+        label: strings('card.review_order.total'),
+        value: strings('card.review_order.metal_card_total'),
+      },
+    ],
+    [handleRenewsPress],
+  );
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.REVIEW_ORDER,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
+  const handlePayWithCrypto = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.REVIEW_ORDER_PAY_CRYPTO,
+        })
+        .build(),
+    );
+
+    navigate(Routes.CARD.ORDER_COMPLETED, {
+      paymentMethod: 'crypto',
+    });
+  }, [navigate, trackEvent, createEventBuilder]);
+
+  const handlePayWithCard = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.REVIEW_ORDER_PAY_CARD,
+        })
+        .build(),
+    );
+
+    navigate(Routes.CARD.ORDER_COMPLETED, {
+      paymentMethod: 'card',
+    });
+  }, [navigate, trackEvent, createEventBuilder]);
+
+  const renderOrderItem = useCallback((item: OrderItem, index: number) => {
+    const isTotal = item.label === strings('card.review_order.total');
+    const isRenews = item.label === strings('card.review_order.renews');
+
+    const content = (
+      <Box
+        twClassName="flex-row justify-between items-center py-3"
+        testID={`${ReviewOrderSelectors.ORDER_ITEM}-${index}`}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
+          twClassName={
+            isRenews
+              ? 'text-alternative underline decoration-dotted'
+              : 'text-alternative'
+          }
+        >
+          {item.label}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
+          twClassName={isTotal ? 'text-default' : 'text-alternative'}
+        >
+          {item.value}
+        </Text>
+      </Box>
+    );
+
+    if (item.onPress) {
+      return (
+        <TouchableOpacity
+          key={`order-item-${index}`}
+          onPress={item.onPress}
+          testID={`${ReviewOrderSelectors.ORDER_ITEM_PRESSABLE}-${index}`}
+        >
+          {content}
+        </TouchableOpacity>
+      );
+    }
+
+    return <Box key={`order-item-${index}`}>{content}</Box>;
+  }, []);
+
+  return (
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['bottom']}
+      testID={ReviewOrderSelectors.CONTAINER}
+    >
+      <Box twClassName="flex-1 px-4">
+        <Box twClassName="py-2">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-default"
+            testID={ReviewOrderSelectors.TITLE}
+          >
+            {strings('card.review_order.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-alternative mt-2"
+            fontWeight={FontWeight.Regular}
+            testID={ReviewOrderSelectors.SUBTITLE}
+          >
+            {strings('card.review_order.subtitle')}
+          </Text>
+        </Box>
+
+        <Box
+          twClassName="bg-background-muted rounded-xl p-4 mt-4"
+          testID={ReviewOrderSelectors.SHIPPING_ADDRESS_CARD}
+        >
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-default mb-1"
+          >
+            {strings('card.review_order.shipping_address')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-alternative"
+            testID={ReviewOrderSelectors.ADDRESS_LINE_1}
+          >
+            {shippingAddress.line1}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-alternative"
+            testID={ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP}
+          >
+            {`${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}`}
+          </Text>
+        </Box>
+
+        <Box twClassName="mt-6" testID={ReviewOrderSelectors.ORDER_SUMMARY}>
+          {orderItems.map((item, index) => renderOrderItem(item, index))}
+        </Box>
+
+        <Box twClassName="flex-1" />
+
+        <Box twClassName="pb-4 gap-3">
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('card.review_order.pay_with_crypto')}
+            size={ButtonSize.Lg}
+            onPress={handlePayWithCrypto}
+            width={ButtonWidthTypes.Full}
+            startIconName={IconName.Coin}
+            testID={ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('card.review_order.pay_with_card')}
+            size={ButtonSize.Lg}
+            onPress={handlePayWithCard}
+            width={ButtonWidthTypes.Full}
+            startIconName={IconName.Card}
+            testID={ReviewOrderSelectors.PAY_WITH_CARD_BUTTON}
+          />
+        </Box>
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+export default ReviewOrder;

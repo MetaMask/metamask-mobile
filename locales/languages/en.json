@@ -6529,6 +6529,27 @@
         "feature_3": "No foreign transaction fees"
       }
     },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay_with_crypto": "Pay with crypto",
+      "pay_with_card": "Pay with card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
     "card_onboarding": {
       "title": "Spend\nand\nEarn",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto like cash and earn rewards.",
