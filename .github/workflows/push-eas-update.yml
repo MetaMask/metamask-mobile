@@ -146,9 +146,9 @@ jobs:
     name: Push EAS Update
     runs-on: ubuntu-latest
     environment: build-exp
-    needs:
-      - fingerprint-comparison
-      - approval
+    # needs:
+    #   - fingerprint-comparison
+    #   - approval
     # if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
