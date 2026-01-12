@@ -6,6 +6,9 @@ const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
+  CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
+  CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
+  BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
 };
 
 const MUSD_CTA_TYPES = {
@@ -15,8 +18,12 @@ const MUSD_CTA_TYPES = {
 };
 
 const ACTION_TYPES = {
-  MUSD_CONVERSION: 'musd_conversion',
-  MUSD_BUY: 'musd_buy',
+  BUTTON_CLICKED: 'button_clicked',
+};
+
+const BUTTON_TYPES = {
+  PRIMARY: 'primary',
+  SECONDARY: 'secondary',
 };
 
 export const MUSD_EVENTS_CONSTANTS = {
@@ -24,4 +31,5 @@ export const MUSD_EVENTS_CONSTANTS = {
   EVENT_LOCATIONS,
   MUSD_CTA_TYPES,
   ACTION_TYPES,
+  BUTTON_TYPES,
 };

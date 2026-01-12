@@ -41,7 +41,8 @@ const MusdConversionAssetOverviewCta = ({
 
   const networkName = useNetworkName(asset.chainId as Hex);
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
 
   const { getMusdOutputChainId } = useMusdConversionTokens();
 
@@ -52,11 +53,17 @@ const MusdConversionAssetOverviewCta = ({
 
     const ctaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
 
+    const getRedirectLocation = () =>
+      hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-          action_type: ACTION_TYPES.MUSD_CONVERSION,
+          action_type: ACTION_TYPES.BUTTON_CLICKED,
+          redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.TERTIARY,
           cta_text: ctaText,
           network_chain_id: asset.chainId,

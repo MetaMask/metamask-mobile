@@ -47,7 +47,8 @@ const MusdConversionAssetListCta = () => {
 
   const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
@@ -78,11 +79,20 @@ const MusdConversionAssetListCta = () => {
     const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
       MUSD_EVENTS_CONSTANTS;
 
+    const getRedirectLocation = () => {
+      if (!canConvert) {
+        return EVENT_LOCATIONS.BUY_SCREEN;
+      }
+
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    };
+
     const eventProperties = {
       location: EVENT_LOCATIONS.HOME_SCREEN,
-      action_type: canConvert
-        ? ACTION_TYPES.MUSD_CONVERSION
-        : ACTION_TYPES.MUSD_BUY,
+      action_type: ACTION_TYPES.BUTTON_CLICKED,
+      redirects_to: getRedirectLocation(),
       cta_type: MUSD_CTA_TYPES.PRIMARY,
       cta_text: ctaText,
       network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,

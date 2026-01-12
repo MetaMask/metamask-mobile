@@ -120,7 +120,8 @@ export const TokenListItem = React.memo(
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { getMusdOutputChainId } = useMusdConversionTokens();
-    const { initiateConversion } = useMusdConversion();
+    const { initiateConversion, hasSeenConversionEducationScreen } =
+      useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
       () => shouldShowTokenListItemCta(asset),
@@ -135,11 +136,17 @@ export const TokenListItem = React.memo(
         const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
           MUSD_EVENTS_CONSTANTS;
 
+        const getRedirectLocation = () =>
+          hasSeenConversionEducationScreen
+            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
             .addProperties({
               location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-              action_type: ACTION_TYPES.MUSD_CONVERSION,
+              action_type: ACTION_TYPES.BUTTON_CLICKED,
+              redirects_to: getRedirectLocation(),
               cta_type: MUSD_CTA_TYPES.SECONDARY,
               cta_text: strings('earn.musd_conversion.convert_to_musd'),
               network_chain_id: chainId,
@@ -183,6 +190,7 @@ export const TokenListItem = React.memo(
       chainId,
       createEventBuilder,
       getMusdOutputChainId,
+      hasSeenConversionEducationScreen,
       initiateConversion,
       networkName,
       trackEvent,

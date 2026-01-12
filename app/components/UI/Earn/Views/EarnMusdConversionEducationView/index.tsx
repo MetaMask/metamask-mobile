@@ -25,7 +25,7 @@ import {
   ButtonVariant as DesignSystemButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
@@ -45,6 +45,7 @@ interface EarnMusdConversionEducationViewRouteParams {
  * Displays educational content before user's first mUSD conversion.
  * Once completed, marks the education as seen and proceeds to conversion flow.
  */
+// TOOD: Add event when screen is displayed
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
@@ -69,15 +70,55 @@ const EarnMusdConversionEducationView = () => {
     [colorScheme],
   );
 
-  const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
-    MUSD_EVENTS_CONSTANTS;
+  const { ACTION_TYPES, BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-  const submitContinueEvent = () => {};
+  // TODO: Add tests
+  const submitContinuePressedEvent = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+      )
+        .addProperties({
+          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          action_type: ACTION_TYPES.BUTTON_CLICKED,
+          button_type: BUTTON_TYPES.PRIMARY,
+          button_text: strings('earn.musd_conversion.education.primary_button'),
+          redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN, // Redirects to custom amount screen.
+          timestamp: Date.now(),
+        })
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+    ACTION_TYPES.BUTTON_CLICKED,
+    BUTTON_TYPES.PRIMARY,
+  ]);
 
-  const submitGoBackEvent = () => {};
+  // TOOD: Add tests
+  const submitGoBackPressedEvent = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+      )
+        .addProperties({
+          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          action_type: ACTION_TYPES.BUTTON_CLICKED,
+          button_type: BUTTON_TYPES.SECONDARY,
+          button_text: strings(
+            'earn.musd_conversion.education.secondary_button',
+          ),
+          timestamp: Date.now(),
+        })
+        .build(),
+    );
+  };
 
   const handleContinue = useCallback(async () => {
     try {
+      submitContinuePressedEvent();
       // Mark education as seen so it won't show again
       dispatch(setMusdConversionEducationSeen(true));
 
@@ -101,9 +142,16 @@ const EarnMusdConversionEducationView = () => {
         '[mUSD Conversion Education] Failed to initiate conversion',
       );
     }
-  }, [dispatch, initiateConversion, outputChainId, preferredPaymentToken]);
+  }, [
+    dispatch,
+    initiateConversion,
+    outputChainId,
+    preferredPaymentToken,
+    submitContinuePressedEvent,
+  ]);
 
   const handleGoBack = () => {
+    submitGoBackPressedEvent();
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
