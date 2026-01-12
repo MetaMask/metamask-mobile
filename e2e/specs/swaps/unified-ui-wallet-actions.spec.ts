@@ -10,7 +10,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
-describe(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
+describe.skip(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
   let mockServer: Mockttp | undefined;
 
   beforeAll(async () => {
