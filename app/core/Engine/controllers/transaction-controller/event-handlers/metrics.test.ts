@@ -52,7 +52,6 @@ jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
-// Mock AnalyticsEventBuilder (used by metrics.ts to create analytics events)
 jest.mock('../../../../../util/analytics/AnalyticsEventBuilder');
 
 jest.mock('../../../Engine', () => ({
@@ -76,12 +75,14 @@ describe('Transaction Metric Event Handlers', () => {
   const mockSmartTransactionsController = jest.fn();
 
   // Mock variables for selectors
-  const mockSelectShouldUseSmartTransaction =
-    selectShouldUseSmartTransaction as jest.Mock;
-  const mockGetSmartTransactionMetricsProperties =
-    getSmartTransactionMetricsProperties as jest.Mock;
-  const mockSelectIsPna25FlagEnabled = selectIsPna25FlagEnabled as jest.Mock;
-  const mockSelectIsPna25Acknowledged = selectIsPna25Acknowledged as jest.Mock;
+  const mockSelectShouldUseSmartTransaction = jest.mocked(
+    selectShouldUseSmartTransaction,
+  );
+  const mockGetSmartTransactionMetricsProperties = jest.mocked(
+    getSmartTransactionMetricsProperties,
+  );
+  const mockSelectIsPna25FlagEnabled = jest.mocked(selectIsPna25FlagEnabled);
+  const mockSelectIsPna25Acknowledged = jest.mocked(selectIsPna25Acknowledged);
 
   const mockTransactionMeta = {
     id: 'test-id',
