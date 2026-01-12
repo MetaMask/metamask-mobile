@@ -11,15 +11,6 @@ on:
   push:
     branches:
       - 'release/*'
-      # testing branch.
-      # remove before merge
-      - 'rc-builds-gh-workflow'
-
-      # trigger new rc builds
-#remove before merge.
-#test auto-build on specific release branch
-env:
-  GH_REF_NAME: 'release/7.61.6'
 
 jobs:
   validate-and-check-label:
@@ -40,10 +31,7 @@ jobs:
       - name: Extract semver from branch name
         id: extract-version
         run: |
-          #remove before merge.
-          #test auto-build on specific release branch
-          BRANCH_NAME="${{ env.GH_REF_NAME }}"
-          #BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
@@ -61,10 +49,7 @@ jobs:
       - name: Find PR and check for auto-rc-builds label
         id: check-label
         run: |
-          #remove before merge.
-          #test auto-build on specific release branch
-          BRANCH_NAME="${{ env.GH_REF_NAME }}"
-          #BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${{ github.ref_name }}"
           echo "Looking for PR with head branch: $BRANCH_NAME"
 
           # Find PRs where the head branch matches our release branch
@@ -95,10 +80,7 @@ jobs:
     needs: validate-and-check-label
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     with:
-      #remove before merge.
-      #test auto-build on specific release branch
-      # base-branch: ${{ github.ref_name }}
-      base-branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
+      base-branch: ${{ github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
     permissions:
@@ -120,13 +102,10 @@ jobs:
       - name: Trigger RC Build
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          # GH_REF_NAME: ${{ github.ref_name }}
-          #remove before merge.
-          #test auto-build on specific release branch
-          GH_REF_NAME: ${{ env.GH_REF_NAME }}
+          GH_REF_NAME: ${{ github.ref_name }}
           COMMIT_HASH: ${{ needs.bump-version.outputs.commit-hash }}
           BUILD_NUMBER: ${{ needs.bump-version.outputs.build-version }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
-        run: ./scripts/rc-builds.sh
+        run: ./.github/scripts/rc-builds.sh
