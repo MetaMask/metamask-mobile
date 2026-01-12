@@ -1633,6 +1633,7 @@ export class NetworkSettings extends PureComponent {
         showNetworkModal={this.showNetworkModal}
         switchTab={this.tabView}
         shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
+        showActionLabels
       />
     ) : (
       <SafeAreaView
@@ -2262,6 +2263,7 @@ export class NetworkSettings extends PureComponent {
                   shouldNetworkSwitchPopToWallet={
                     shouldNetworkSwitchPopToWallet
                   }
+                  showActionLabels
                 />
               </View>
 
