@@ -17,6 +17,8 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
+jest.mock('uuid', () => ({ v4: () => 'mock-uuid' }));
+
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
@@ -603,7 +605,10 @@ describe(`migration #${migrationVersion}`, () => {
                     url: 'https://rpc.com',
                     type: 'custom',
                   },
-                  ...MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints,
+                  {
+                    ...MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0],
+                    networkClientId: 'mock-uuid',
+                  },
                 ],
                 defaultRpcEndpointIndex: 1,
                 defaultBlockExplorerUrlIndex: 1,

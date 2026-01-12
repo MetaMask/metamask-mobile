@@ -7,6 +7,7 @@ import {
   isObject,
   KnownCaipNamespace,
 } from '@metamask/utils';
+import { v4 as uuidV4 } from 'uuid';
 
 import { ensureValidState, ValidState } from './util';
 import { cloneDeep } from 'lodash';
@@ -117,8 +118,7 @@ export default function migrate(versionedState: unknown) {
       if (!isEndpointExist) {
         megaethTestnetV2Configuration.rpcEndpoints.push({
           failoverUrls: [],
-          networkClientId:
-            MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].networkClientId,
+          networkClientId: uuidV4(),
           type: 'custom',
           url: MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0].url,
         });
