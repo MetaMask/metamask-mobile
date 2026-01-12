@@ -7,6 +7,9 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -245,13 +248,17 @@ const DaimoPayModal: React.FC = () => {
     setError(strings('card.daimo_pay_modal.load_error'));
   }, []);
 
+  const handleRetry = useCallback(() => {
+    setError(null);
+  }, []);
+
   if (error) {
     return (
       <View
-        style={[baseStyles.absoluteFill, tw.style('bg-transparent')]}
+        style={[baseStyles.absoluteFill, tw.style('bg-default')]}
         testID={DaimoPayModalSelectors.CONTAINER}
       >
-        <View style={tw.style('flex-1 justify-center items-center p-4')}>
+        <View style={tw.style('flex-1 justify-center items-center p-4 gap-4')}>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
@@ -260,6 +267,24 @@ const DaimoPayModal: React.FC = () => {
           >
             {error}
           </Text>
+          <View style={tw.style('flex-row gap-3')}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              onPress={handleClose}
+              testID={DaimoPayModalSelectors.CLOSE_BUTTON}
+            >
+              {strings('card.daimo_pay_modal.close')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Md}
+              onPress={handleRetry}
+              testID={DaimoPayModalSelectors.RETRY_BUTTON}
+            >
+              {strings('card.daimo_pay_modal.try_again')}
+            </Button>
+          </View>
         </View>
       </View>
     );

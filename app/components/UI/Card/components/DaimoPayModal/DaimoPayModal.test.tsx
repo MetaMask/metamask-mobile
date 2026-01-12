@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
+import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
@@ -75,6 +75,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Payment verification timed out. Please check your transaction status.',
       'card.daimo_pay_modal.payment_bounced_error':
         'Payment failed. Please try again with a different payment method.',
+      'card.daimo_pay_modal.close': 'Close',
+      'card.daimo_pay_modal.try_again': 'Try again',
     };
     return map[key] || key;
   },
@@ -90,7 +92,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
-  const { Text: RNText } = jest.requireActual('react-native');
+  const { Text: RNText, TouchableOpacity } = jest.requireActual('react-native');
 
   return {
     Text: ({
@@ -98,11 +100,32 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      testID,
+      ...props
+    }: React.PropsWithChildren<{
+      onPress?: () => void;
+      testID?: string;
+    }>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, testID, ...props },
+        children,
+      ),
     TextVariant: {
       BodyMd: 'BodyMd',
     },
     FontWeight: {
       Regular: 'Regular',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Md: 'Md',
     },
   };
 });
@@ -174,6 +197,65 @@ describe('DaimoPayModal', () => {
 
       await waitFor(() => {
         expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+
+    it('displays close and retry buttons when error occurs', async () => {
+      const { getByTestId } = render(<DaimoPayModal />);
+
+      await act(async () => {
+        if (mockOnError) {
+          mockOnError();
+        }
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.CLOSE_BUTTON)).toBeTruthy();
+        expect(getByTestId(DaimoPayModalSelectors.RETRY_BUTTON)).toBeTruthy();
+      });
+    });
+
+    it('closes modal when close button is pressed in error state', async () => {
+      const { getByTestId } = render(<DaimoPayModal />);
+
+      await act(async () => {
+        if (mockOnError) {
+          mockOnError();
+        }
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.CLOSE_BUTTON)).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(DaimoPayModalSelectors.CLOSE_BUTTON));
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('retries loading WebView when retry button is pressed', async () => {
+      const { getByTestId, queryByTestId } = render(<DaimoPayModal />);
+
+      await act(async () => {
+        if (mockOnError) {
+          mockOnError();
+        }
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.RETRY_BUTTON)).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(DaimoPayModalSelectors.RETRY_BUTTON));
+      });
+
+      // After retry, error should be cleared and WebView should be shown
+      await waitFor(() => {
+        expect(queryByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeNull();
+        expect(getByTestId(DaimoPayModalSelectors.WEBVIEW)).toBeTruthy();
       });
     });
   });

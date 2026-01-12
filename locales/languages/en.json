@@ -6554,7 +6554,9 @@
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",
       "timeout_error": "Payment verification timed out. Please check your transaction status.",
-      "payment_bounced_error": "Payment failed. Please try again with a different payment method."
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
     },
     "card_onboarding": {
       "title": "Spend\nand\nEarn",

@@ -36,7 +36,7 @@ ZSHh9W0s7WdN9dwSUNfbLw2MpLodFqoB47St9mOHTo+l/+qZOssFmm5vYwn/yhiQ&#xD;
 EnmoQT0YNA==&#xD;
 -----END CERTIFICATE-----&#xD;
 </string>
-	<key>EXUpdatesCodeSigningMetadata</key>
+		<key>EXUpdatesCodeSigningMetadata</key>
 	<dict>
 		<key>keyid</key>
 		<string>exp</string>

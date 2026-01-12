@@ -130,6 +130,7 @@ const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
       intent: config.intent,
       paymentValue: config.amount,
       currency: config.currency,
+      paymentOptions: ['MetaMask'],
     },
     destination: {
       // Demo destination - these values are for testing only
