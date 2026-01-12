@@ -195,6 +195,7 @@ const QuoteDetailsCard: React.FC = () => {
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{

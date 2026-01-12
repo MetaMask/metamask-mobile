@@ -21,6 +21,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
+import { isEmpty } from 'lodash';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -267,6 +268,10 @@ describe('Engine', () => {
         initializationState: InitializationState.UNINITIALIZED,
         initializationError: null,
         initializationAttempts: 0,
+      },
+      RampsController: {
+        ...backgroundState.RampsController,
+        eligibility: null,
       },
     };
 
@@ -1238,6 +1243,30 @@ describe('Engine', () => {
 
       expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
       expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Engine.state', () => {
+    it('throws error when accessing state before Engine exists', () => {
+      expect(() => Engine.state).toThrow('Engine does not exist');
+    });
+
+    it('returns state from all controllers with state', () => {
+      Engine.init({});
+      const controllersWithState = Object.entries(Engine.context)
+        .filter(
+          ([_, controller]) =>
+            'state' in controller &&
+            Boolean(controller.state) &&
+            !isEmpty(controller.state),
+        )
+        .map(([controllerName]) => controllerName);
+
+      const state = Engine.state;
+
+      const sortedControllersInState = Object.keys(state).sort();
+      const sortedExpectedControllers = controllersWithState.sort();
+      expect(sortedControllersInState).toEqual(sortedExpectedControllers);
     });
   });
 });
