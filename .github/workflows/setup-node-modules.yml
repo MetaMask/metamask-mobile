@@ -111,6 +111,64 @@ jobs:
           fi
           echo "✅ Setup verification passed"
 
+      - name: Verify artifact contents before upload
+        if: inputs.upload-artifact
+        run: |
+          echo "🔍 Verifying what will be uploaded to artifact..."
+          echo ""
+          echo "📦 Checking node_modules..."
+          if [ -d "node_modules" ]; then
+            echo "✅ node_modules exists ($(du -sh node_modules | cut -f1))"
+          else
+            echo "❌ node_modules not found"
+          fi
+
+          echo ""
+          echo "📦 Checking .yarn directory structure..."
+          if [ -d ".yarn" ]; then
+            echo "✅ .yarn directory exists"
+            echo "📋 Contents of .yarn:"
+            ls -la .yarn/ || echo "Could not list .yarn"
+
+            if [ -d ".yarn/cache" ]; then
+              echo "✅ .yarn/cache exists ($(du -sh .yarn/cache | cut -f1))"
+              echo "📋 Sample of .yarn/cache contents (first 10 items):"
+              ls -la .yarn/cache/ | head -10 || echo "Could not list .yarn/cache"
+            else
+              echo "❌ .yarn/cache not found"
+            fi
+
+            if [ -f ".yarn/install-state.gz" ]; then
+              echo "✅ .yarn/install-state.gz exists ($(du -h .yarn/install-state.gz | cut -f1))"
+            else
+              echo "❌ .yarn/install-state.gz not found"
+            fi
+          else
+            echo "❌ .yarn directory not found"
+          fi
+
+          echo ""
+          echo "📦 Checking other artifact paths..."
+          if [ -f "app/util/termsOfUse/termsOfUseContent.ts" ]; then
+            echo "✅ app/util/termsOfUse/termsOfUseContent.ts exists"
+          else
+            echo "❌ app/util/termsOfUse/termsOfUseContent.ts not found"
+          fi
+
+          if [ -d "scripts/inpage-bridge/dist" ]; then
+            echo "✅ scripts/inpage-bridge/dist exists"
+          else
+            echo "⚠️  scripts/inpage-bridge/dist not found (may be optional)"
+          fi
+
+          echo ""
+          echo "📋 Summary of paths that will be uploaded:"
+          echo "  - node_modules"
+          echo "  - .yarn/cache"
+          echo "  - .yarn/install-state.gz"
+          echo "  - app/util/termsOfUse/termsOfUseContent.ts"
+          echo "  - scripts/inpage-bridge/dist"
+
       - name: Upload node_modules artifact
         if: inputs.upload-artifact
         uses: actions/upload-artifact@v4
