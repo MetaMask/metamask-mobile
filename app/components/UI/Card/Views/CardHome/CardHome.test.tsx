@@ -115,7 +115,8 @@ const mockSelectedInternalAccount = {
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockFetchCardDetails = jest.fn();
-const mockFetchAllData = jest.fn();
+const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
+const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockPollCardStatusUntilProvisioned = jest.fn().mockResolvedValue(true);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
@@ -529,6 +530,7 @@ function setupLoadCardDataMock(
     fetchPriorityToken: mockFetchPriorityToken,
     fetchCardDetails: mockFetchCardDetails,
     fetchAllData: mockFetchAllData,
+    refetchAllData: mockRefetchAllData,
     pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned: false,
   });
@@ -614,6 +616,7 @@ describe('CardHome Component', () => {
       fetchPriorityToken: mockFetchPriorityToken,
       fetchCardDetails: mockFetchCardDetails,
       fetchAllData: mockFetchAllData,
+      refetchAllData: mockRefetchAllData,
       pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
       isLoadingPollCardStatusUntilProvisioned: false,
     });
@@ -1955,6 +1958,7 @@ describe('CardHome Component', () => {
         fetchPriorityToken: mockFetchPriorityToken,
         fetchCardDetails: mockFetchCardDetails,
         fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: true,
       });

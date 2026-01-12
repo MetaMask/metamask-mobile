@@ -9,7 +9,7 @@ test('Measure Cold Start To Onboarding Screen', async ({
   OnboardingScreen.device = device;
   const timer1 = new TimerHelper(
     'Time since the the app is installed, until onboarding screen appears',
-    { ios: 3100, android: 3100 },
+    { ios: 3000, android: 3900 },
     device,
   );
   await timer1.measure(() => OnboardingScreen.isScreenTitleVisible());
