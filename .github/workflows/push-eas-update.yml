@@ -94,14 +94,20 @@ jobs:
         id: branch_fingerprint
         run: |
           echo "🧬 Generating fingerprint for current branch..."
-          echo "test"
+          set -x
+          FINGERPRINT=$(yarn fingerprint:generate)
+          set +x
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Target PR fingerprint: ${FINGERPRINT}"
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
         working-directory: main
         run: |
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
+          set -x
           FINGERPRINT=$(yarn fingerprint:generate)
+          set +x
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: ${FINGERPRINT}"
 
