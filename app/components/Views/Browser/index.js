@@ -22,10 +22,6 @@ import {
   setActiveTab,
   updateTab,
 } from '../../../actions/browser';
-import {
-  selectBrowserTabs,
-  selectBrowserActiveTabId,
-} from '../../../reducers/browser/selectors';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
   ToastContext,
@@ -76,9 +72,9 @@ export const Browser = React.memo((props) => {
     closeTab: triggerCloseTab,
     setActiveTab,
     updateTab,
+    activeTab: activeTabId,
+    tabs,
   } = props;
-  const tabs = useSelector(selectBrowserTabs);
-  const activeTabId = useSelector(selectBrowserActiveTabId);
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
@@ -488,7 +484,10 @@ export const Browser = React.memo((props) => {
 
 Browser.displayName = 'Browser';
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state) => ({
+  tabs: state.browser.tabs,
+  activeTab: state.browser.activeTab,
+});
 
 const mapDispatchToProps = (dispatch) => ({
   createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
@@ -524,6 +523,14 @@ Browser.propTypes = {
    */
   updateTab: PropTypes.func,
   /**
+   * Array of tabs
+   */
+  tabs: PropTypes.array,
+  /**
+   * ID of the active tab
+   */
+  activeTab: PropTypes.number,
+  /**
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
@@ -531,7 +538,10 @@ Browser.propTypes = {
 
 export { default as createBrowserNavDetails } from './Browser.types';
 
-const ConnectedBrowser = connect(mapStateToProps, mapDispatchToProps)(Browser);
+export const ConnectedBrowser = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Browser);
 ConnectedBrowser.displayName = 'ConnectedBrowser';
 
 const MemoConnectedBrowser = ({ route, ...props }) => {

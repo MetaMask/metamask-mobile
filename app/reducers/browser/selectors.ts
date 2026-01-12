@@ -9,8 +9,3 @@ export const selectBrowserHistory = (state: RootState) => state.browser.history;
  */
 export const selectSearchEngine = (state: RootState) =>
   state.settings.searchEngine;
-
-export const selectBrowserTabs = (state: RootState) => state.browser.tabs;
-
-export const selectBrowserActiveTabId = (state: RootState) =>
-  state.browser.activeTab;
