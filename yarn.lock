@@ -7012,7 +7012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/devices@npm:8.4.6, @ledgerhq/devices@npm:^8.4.5":
+"@ledgerhq/devices@npm:8.4.6":
   version: 8.4.6
   resolution: "@ledgerhq/devices@npm:8.4.6"
   dependencies:
@@ -7024,7 +7024,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/devices@npm:8.8.0":
+"@ledgerhq/devices@npm:8.8.0, @ledgerhq/devices@npm:^8.4.5":
   version: 8.8.0
   resolution: "@ledgerhq/devices@npm:8.8.0"
   dependencies:
@@ -7051,14 +7051,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0":
-  version: 6.21.0
-  resolution: "@ledgerhq/errors@npm:6.21.0"
-  checksum: 10/c30e6723db95f8cad8740b6e9a83280088d192098aa7f5f3d7a05dc3326413e155ea55b9c8405a9ad85c26287f604046c5b05c598b157e5cd54270d4eb0b186c
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/errors@npm:^6.28.0":
+"@ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0, @ledgerhq/errors@npm:^6.28.0":
   version: 6.28.0
   resolution: "@ledgerhq/errors@npm:6.28.0"
   checksum: 10/5a9497c5dc092ecba369cf60ef576c4d1efdaa7862e31e8d53fa3587d479b2aa79756b5df6ab64316c98bfc2dcc383e8a7f6ff7082a08ff65018a0671d5ae62a
@@ -7124,7 +7117,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/hw-transport@npm:6.31.15":
+"@ledgerhq/hw-transport@npm:6.31.15, @ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
   version: 6.31.15
   resolution: "@ledgerhq/hw-transport@npm:6.31.15"
   dependencies:
@@ -7133,18 +7126,6 @@ __metadata:
     "@ledgerhq/logs": "npm:^6.13.0"
     events: "npm:^3.3.0"
   checksum: 10/2a38ff10082f8a55114bff4d95e581f0356345446e625f6da5fd3c988552ac8ff0772cf4e381186dd29b864d5e15cb3b48f96ea0e1bc691f1855dae4b3c67b72
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
-  version: 6.31.6
-  resolution: "@ledgerhq/hw-transport@npm:6.31.6"
-  dependencies:
-    "@ledgerhq/devices": "npm:8.4.6"
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/logs": "npm:^6.13.0"
-    events: "npm:^3.3.0"
-  checksum: 10/e05514de4de8933e90a1494c0b5e5ae1de523df21ab6fe78558122f41ee67817489b776c8c38ff31ec676991a8cdfb1800f8bb1de59c100e349b599c05dfe6eb
   languageName: node
   linkType: hard
 
@@ -41522,21 +41503,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.2":
+"rxjs@npm:7.8.2, rxjs@npm:>= 6, rxjs@npm:^7.8.1":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
     tslib: "npm:^2.1.0"
   checksum: 10/03dff09191356b2b87d94fbc1e97c4e9eb3c09d4452399dddd451b09c2f1ba8d56925a40af114282d7bc0c6fe7514a2236ca09f903cf70e4bbf156650dddb49d
-  languageName: node
-  linkType: hard
-
-"rxjs@npm:>= 6, rxjs@npm:^7.8.1":
-  version: 7.8.1
-  resolution: "rxjs@npm:7.8.1"
-  dependencies:
-    tslib: "npm:^2.1.0"
-  checksum: 10/b10cac1a5258f885e9dd1b70d23c34daeb21b61222ee735d2ec40a8685bdca40429000703a44f0e638c27a684ac139e1c37e835d2a0dc16f6fc061a138ae3abb
   languageName: node
   linkType: hard
 
