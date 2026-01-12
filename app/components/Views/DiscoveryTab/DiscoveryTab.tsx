@@ -29,7 +29,6 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
  */
 export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   id: tabId,
-  showTabs,
   updateTabInfo,
 }) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
@@ -109,20 +108,20 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
   /**
    * Render the bottom (navigation/options) bar
+   * Note: DiscoveryTab uses minimal browser bar functionality
    */
   const renderBottomBar = () =>
     isTabActive && !isUrlBarFocused ? (
       <BrowserBottomBar
         canGoBack={false}
         canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
+        activeUrl=""
+        getMaskedUrl={(url) => url}
+        title=""
+        sessionENSNames={{}}
+        favicon={{ uri: '' }}
       />
     ) : null;
 

@@ -12,27 +12,23 @@ import {
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Utilities, Gestures, Matchers } from '../../framework';
+import { Gestures, Matchers } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
 class Browser {
-  get searchButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
+  get reloadButton(): DetoxElement {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
 
-  get optionsButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.OPTIONS_BUTTON);
+  get bookmarkButton(): DetoxElement {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
   }
 
-  get tabsButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_BUTTON);
-  }
-
-  get homeButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.HOME_BUTTON);
+  get newTabButton(): DetoxElement {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
   get browserScreenID(): DetoxElement {
@@ -137,40 +133,22 @@ class Browser {
     });
   }
 
-  async tapBottomSearchBar(): Promise<void> {
-    await Gestures.waitAndTap(this.searchButton, {
-      elemDescription: 'Bottom search bar',
+  async tapReloadButton(): Promise<void> {
+    await Gestures.waitAndTap(this.reloadButton, {
+      elemDescription: 'Reload button',
     });
   }
 
-  async tapOptionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.optionsButton, {
-      elemDescription: 'Options button',
+  async tapBookmarkButton(): Promise<void> {
+    await Gestures.waitAndTap(this.bookmarkButton, {
+      elemDescription: 'Bookmark button',
     });
   }
 
-  async tapOpenAllTabsButton({
-    delay,
-  }: {
-    delay?: number;
-  } = {}): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(this.tabsButton, {
-          elemDescription: 'Open all tabs button',
-          delay,
-        });
-
-        await Assertions.expectElementToBeVisible(this.closeAllTabsButton, {
-          timeout: 2000,
-        });
-      },
-      {
-        timeout: 30000,
-        description: 'tap open all tabs button and verify navigation',
-        elemDescription: 'Open All Tabs Button',
-      },
-    );
+  async tapNewTabButtonBottomBar(): Promise<void> {
+    await Gestures.waitAndTap(this.newTabButton, {
+      elemDescription: 'New tab button in bottom bar',
+    });
   }
 
   async tapSecondTabButton(): Promise<void> {
@@ -233,12 +211,6 @@ class Browser {
   async tapAddBookmarksButton(): Promise<void> {
     await Gestures.waitAndTap(this.addBookmarkButton, {
       elemDescription: 'Add bookmarks button',
-    });
-  }
-
-  async tapHomeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.homeButton, {
-      elemDescription: 'Home button',
     });
   }
 
