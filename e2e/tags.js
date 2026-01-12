@@ -41,9 +41,7 @@ const smokeTags = {
     tag: 'SmokeAssets:',
     description: 'Asset management and display, NFTs, token details, etc',
   },
-  smokeSwaps: { tag: 'SmokeSwaps:', description: 'Token swap functionality' },
   smokeStake: { tag: 'SmokeStake:', description: 'Staking features' },
-  smokeCard: { tag: 'SmokeCard:', description: 'Card-related features' },
   smokeNotifications: {
     tag: 'SmokeNotifications:',
     description: 'Notification system',
@@ -53,19 +51,11 @@ const smokeTags = {
     description: 'Rewards and incentive features',
   },
   smokePerps: { tag: 'SmokePerps:', description: 'Perpetuals trading' },
-  smokeRamps: {
-    tag: 'SmokeRamps:',
-    description: 'On/off ramp features, buy/sell',
-  },
   smokeMultiChainPermissions: {
     tag: 'SmokeMultiChainPermissions:',
     description: 'Multi-chain permissions, permission management',
   },
   smokeAnalytics: { tag: 'SmokeAnalytics:', description: 'Analytics' },
-  smokeMultiChainAPI: {
-    tag: 'SmokeMultiChainAPI:',
-    description: 'Multi-chain API',
-  },
   smokePredictions: {
     tag: 'SmokePredictions:',
     description: 'Predictions features, prediction market',
@@ -115,20 +105,15 @@ const SmokeWalletPlatform = (testName) =>
 const SmokeWalletUX = (testName) =>
   `${smokeTags.smokeWalletUX.tag} ${testName}`;
 const SmokeAssets = (testName) => `${smokeTags.smokeAssets.tag} ${testName}`;
-const SmokeSwaps = (testName) => `${smokeTags.smokeSwaps.tag} ${testName}`;
 const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
-const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
 const SmokeNotifications = (testName) =>
   `${smokeTags.smokeNotifications.tag} ${testName}`;
 const SmokeRewards = (testName) => `${smokeTags.smokeRewards.tag} ${testName}`;
 const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
-const SmokeRamps = (testName) => `${smokeTags.smokeRamps.tag} ${testName}`;
 const SmokeMultiChainPermissions = (testName) =>
   `${smokeTags.smokeMultiChainPermissions.tag} ${testName}`;
 const SmokeAnalytics = (testName) =>
   `${smokeTags.smokeAnalytics.tag} ${testName}`;
-const SmokeMultiChainAPI = (testName) =>
-  `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
 const SmokePredictions = (testName) =>
   `${smokeTags.smokePredictions.tag} ${testName}`;
 // Other test tags functions.
@@ -171,16 +156,12 @@ export {
   SmokeWalletPlatform,
   SmokeWalletUX,
   SmokeAssets,
-  SmokeSwaps,
   SmokeStake,
-  SmokeCard,
   SmokeNotifications,
   SmokeRewards,
   SmokePerps,
-  SmokeRamps,
   SmokeMultiChainPermissions,
   SmokeAnalytics,
-  SmokeMultiChainAPI,
   SmokePredictions,
   RegressionAccounts,
   RegressionConfirmations,
