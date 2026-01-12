@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -43,6 +43,13 @@ const ReviewOrder = () => {
 
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Reset loading state when screen regains focus (e.g., returning from DaimoPayModal)
+  useFocusEffect(
+    useCallback(() => {
+      setIsCreatingPayment(false);
+    }, []),
+  );
 
   const handleRenewsPress = useCallback(() => {
     trackEvent(
@@ -120,6 +127,7 @@ const ReviewOrder = () => {
       const response = await DaimoPayService.createPayment();
 
       // Navigate to the Daimo Pay modal with the payment ID
+      // Keep loading state - it will be reset by useFocusEffect when user returns
       navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
         params: { payId: response.payId },
@@ -130,7 +138,6 @@ const ReviewOrder = () => {
         'ReviewOrder: Failed to create Daimo payment',
       );
       setPaymentError(strings('card.review_order.payment_creation_error'));
-    } finally {
       setIsCreatingPayment(false);
     }
   }, [navigate, trackEvent, createEventBuilder]);
@@ -138,6 +145,7 @@ const ReviewOrder = () => {
   const renderOrderItem = useCallback((item: OrderItem, index: number) => {
     const isTotal = item.label === strings('card.review_order.total');
     const isRenews = item.label === strings('card.review_order.renews');
+    const isFees = item.label === strings('card.review_order.fees');
 
     const content = (
       <Box
@@ -158,7 +166,13 @@ const ReviewOrder = () => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName={isTotal ? 'text-default' : 'text-alternative'}
+          twClassName={
+            isTotal
+              ? 'text-default'
+              : isFees
+                ? 'text-success-default'
+                : 'text-alternative'
+          }
         >
           {item.value}
         </Text>

@@ -22,6 +22,8 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    // Mock as no-op to avoid infinite re-renders in tests
+    useFocusEffect: jest.fn(),
   };
 });
 
