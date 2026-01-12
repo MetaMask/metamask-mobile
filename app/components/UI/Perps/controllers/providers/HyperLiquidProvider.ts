@@ -3901,10 +3901,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      const rawFills = await infoClient.userFills({
-        user: userAddress,
-        aggregateByTime: params?.aggregateByTime || false,
-      });
+      // Use userFillsByTime when startTime is provided for time-filtered queries,
+      // otherwise use userFills for backward compatibility
+      const rawFills = params?.startTime
+        ? await infoClient.userFillsByTime({
+            user: userAddress,
+            startTime: params.startTime,
+            endTime: params.endTime,
+            aggregateByTime: params?.aggregateByTime || false,
+          })
+        : await infoClient.userFills({
+            user: userAddress,
+            aggregateByTime: params?.aggregateByTime || false,
+          });
 
       DevLogger.log('User fills received:', rawFills);
 

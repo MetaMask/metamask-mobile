@@ -1,0 +1,106 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+default_platform(:ios)
+
+platform :ios do
+  # Upload existing IPA to TestFlight (for use in CI/CD)
+  desc "Upload existing IPA to TestFlight for MetaMask main app"
+  lane :upload_to_testflight_only do |options|
+    ipa_path = options[:ipa_path]
+    # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
+    groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
+    groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
+    notify_external_testers = true
+    
+    if ipa_path.nil? || ipa_path.empty?
+      UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
+    end
+    
+    unless File.exist?(ipa_path)
+      UI.user_error!("IPA file not found at: #{ipa_path}")
+    end
+    
+    UI.message("Uploading IPA to TestFlight: #{ipa_path}")
+    
+    # Get API key from environment variables
+    api_key_issuer_id = ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID']
+    api_key_key_id = ENV['APP_STORE_CONNECT_API_KEY_KEY_ID']
+    api_key_key_filepath = ENV['APP_STORE_CONNECT_API_KEY_KEY_FILEPATH']
+    
+    # Validate each variable individually without exposing values
+    missing_vars = []
+    
+    if api_key_issuer_id.nil? || api_key_issuer_id.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_ISSUER_ID is set (length: #{api_key_issuer_id.length})")
+    end
+    
+    if api_key_key_id.nil? || api_key_key_id.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_KEY_ID"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_KEY_ID is set (length: #{api_key_key_id.length})")
+    end
+    
+    if api_key_key_filepath.nil? || api_key_key_filepath.to_s.strip.empty?
+      missing_vars << "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"
+    else
+      UI.message("✓ APP_STORE_CONNECT_API_KEY_KEY_FILEPATH is set (length: #{api_key_key_filepath.length})")
+      UI.message("  Path value: #{api_key_key_filepath}")
+      
+      # Convert to absolute path if relative
+      unless api_key_key_filepath.start_with?('/')
+        api_key_key_filepath = File.expand_path(api_key_key_filepath)
+        UI.message("  Resolved to absolute path: #{api_key_key_filepath}")
+      end
+      
+      # Check if file exists
+      unless File.exist?(api_key_key_filepath)
+        UI.user_error!("API key file not found at: #{api_key_key_filepath}")
+      end
+      
+      # Check if file is readable
+      unless File.readable?(api_key_key_filepath)
+        UI.user_error!("API key file is not readable at: #{api_key_key_filepath}")
+      end
+      
+      UI.message("  File exists and is readable")
+    end
+    
+    # Report all missing variables at once
+    unless missing_vars.empty?
+      UI.user_error!("Missing required environment variables: #{missing_vars.join(', ')}")
+    end
+    
+    # Build changelog message from options or environment variables
+    changelog_message = options[:changelog] || "No changelog provided"
+    
+    # Generate API key hash using app_store_connect_api_key action
+    api_key = app_store_connect_api_key(
+      key_id: api_key_key_id,
+      issuer_id: api_key_issuer_id,
+      key_filepath: api_key_key_filepath,
+    )
+    
+    # Upload to TestFlight with API key from app_store_connect_api_key action
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ipa_path,
+      distribute_external: true,
+      groups: groups,
+      notify_external_testers: notify_external_testers,
+      changelog: changelog_message
+    )
+  end
+end
+
