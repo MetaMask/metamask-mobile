@@ -97,7 +97,7 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "test"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Target PR fingerprint: $FINGERPRINT"
+          echo "Target PR fingerprint: ${FINGERPRINT}"
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -106,7 +106,7 @@ jobs:
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Base branch fingerprint: $FINGERPRINT"
+          echo "Base branch fingerprint: ${FINGERPRINT}"
 
       - name: Compare fingerprints
         id: compare
