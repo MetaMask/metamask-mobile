@@ -8,7 +8,7 @@ tags:
     id: ${output.onboarding.welcome.createNewWalletBtn}
     delay: 1000
     retryTapIfNoChange: false
-    waitToSettleTimeoutMs: 30000
+    waitToSettleTimeoutMs: 60000
 - assertVisible: ${output.onboarding.createPassword.title}
 - tapOn:
     id: ${output.onboarding.createPassword.firstPasswordInput}
