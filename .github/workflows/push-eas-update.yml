@@ -90,7 +90,7 @@ jobs:
           echo "🔎 PR commit: $(git rev-parse HEAD)"
           echo "🔎 Base commit: ${{ steps.base_branch_info.outputs.sha }}"
           echo "🔎 Changed files affecting fingerprint:"
-          git diff --name-status ${{ steps.base_branch_info.outputs.sha }}...HEAD -- \
+          git diff --name-status ${{ steps.base_branch_info.outputs.sha }} HEAD -- \
             package.json \
             ota.config.js \
             app.json \
