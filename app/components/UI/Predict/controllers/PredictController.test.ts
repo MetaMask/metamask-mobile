@@ -13,6 +13,7 @@ import {
 } from '@metamask/transaction-controller';
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -2599,7 +2600,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: mockTransactions,
         chainId: mockChainId,
-        gasFeeToken: MATIC_CONTRACTS.collateral,
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
       });
 
       (addTransactionBatch as jest.Mock).mockResolvedValue({
