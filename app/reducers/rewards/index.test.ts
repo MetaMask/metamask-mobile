@@ -24,6 +24,12 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  bulkLinkStarted,
+  bulkLinkAccountResult,
+  bulkLinkCompleted,
+  bulkLinkCancelled,
+  bulkLinkReset,
+  BULK_LINK_CANCEL,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -85,6 +91,14 @@ describe('rewardsReducer', () => {
     unlockedRewards: null,
     unlockedRewardLoading: false,
     unlockedRewardError: false,
+
+    // Bulk link initial state
+    bulkLink: {
+      isRunning: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+    },
   };
 
   it('should return the initial state', () => {
@@ -3464,5 +3478,471 @@ describe('setPointsEvents', () => {
     expect(state.pointsEvents?.[3]?.type).toBe('SIGN_UP_BONUS');
     expect(state.pointsEvents?.[4]?.type).toBe('LOYALTY_BONUS');
     expect(state.pointsEvents?.[5]?.type).toBe('ONE_TIME_BONUS');
+  });
+});
+
+describe('bulkLinkStarted', () => {
+  it('should set bulk link state to running with total accounts', () => {
+    // Arrange
+    const action = bulkLinkStarted({ totalAccounts: 10 });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('should reset linked and failed accounts when starting', () => {
+    // Arrange
+    const stateWithProgress = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkStarted({ totalAccounts: 8 });
+
+    // Act
+    const state = rewardsReducer(stateWithProgress, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST123',
+      balanceTotal: 1000,
+    };
+    const action = bulkLinkStarted({ totalAccounts: 5 });
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(5);
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST123');
+    expect(state.balanceTotal).toBe(1000);
+  });
+});
+
+describe('bulkLinkAccountResult', () => {
+  it('should increment linkedAccounts when success is true', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: true });
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.linkedAccounts).toBe(4);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+  });
+
+  it('should increment failedAccounts when success is false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: false });
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.failedAccounts).toBe(2);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+  });
+
+  it('should handle multiple account results', () => {
+    // Arrange
+    let currentState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 0,
+        failedAccounts: 0,
+      },
+    };
+
+    // Act & Assert - First account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(1);
+    expect(currentState.bulkLink.failedAccounts).toBe(0);
+
+    // Act & Assert - Second account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(2);
+    expect(currentState.bulkLink.failedAccounts).toBe(0);
+
+    // Act & Assert - Third account fails
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: false }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(2);
+    expect(currentState.bulkLink.failedAccounts).toBe(1);
+
+    // Act & Assert - Fourth account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(3);
+    expect(currentState.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'levels' as const,
+      referralCode: 'TEST456',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: true });
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.activeTab).toBe('levels');
+    expect(state.referralCode).toBe('TEST456');
+  });
+});
+
+describe('bulkLinkCompleted', () => {
+  it('should set isRunning to false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 8,
+        failedAccounts: 2,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(8);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('should preserve progress when completing', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(5);
+    expect(state.bulkLink.linkedAccounts).toBe(4);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'overview' as const,
+      balanceTotal: 500,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 3,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.activeTab).toBe('overview');
+    expect(state.balanceTotal).toBe(500);
+  });
+});
+
+describe('bulkLinkCancelled', () => {
+  it('should set isRunning to false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('should preserve progress when cancelling', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 8,
+        linkedAccounts: 3,
+        failedAccounts: 2,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'CANCEL_TEST',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 4,
+        linkedAccounts: 1,
+        failedAccounts: 0,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.referralCode).toBe('CANCEL_TEST');
+  });
+});
+
+describe('bulkLinkReset', () => {
+  it('should reset bulk link state to initial values', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 7,
+        failedAccounts: 2,
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(0);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('should reset even when not running', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(0);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      balanceTotal: 2000,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 6,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink).toEqual({
+      isRunning: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+    });
+    expect(state.activeTab).toBe('activity');
+    expect(state.balanceTotal).toBe(2000);
+  });
+});
+
+describe('BULK_LINK_CANCEL extraReducer', () => {
+  it('should set isRunning to false when BULK_LINK_CANCEL action is dispatched', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('should preserve progress when cancelling via BULK_LINK_CANCEL', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 8,
+        linkedAccounts: 3,
+        failedAccounts: 2,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'CANCEL_EXTRA_TEST',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 4,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithData, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.referralCode).toBe('CANCEL_EXTRA_TEST');
   });
 });
