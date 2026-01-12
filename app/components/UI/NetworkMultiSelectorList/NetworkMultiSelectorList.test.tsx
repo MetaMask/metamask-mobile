@@ -466,6 +466,38 @@ describe('NetworkMultiSelectorList', () => {
       expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
       expect(mockToHex).toHaveBeenCalledWith('1');
     });
+
+    it('falls back to EVM chain ID when non-EVM chain ID is undefined', () => {
+      // When isEvmSelected is false but nonEvmChainId is undefined,
+      // selectedChainIdCaip should fall back to EVM chain ID to prevent
+      // displayEdit from incorrectly evaluating to true for all networks
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectEvmChainId) {
+          return '0x1';
+        }
+        if (selector === mockSelectSelectedNonEvmNetworkChainId) {
+          return undefined; // Simulate undefined non-EVM chain ID
+        }
+        if (selector === mockSelectIsEvmNetworkSelected) {
+          return false; // Non-EVM is selected, but chain ID is undefined
+        }
+        return undefined;
+      });
+
+      const ethereumNetwork: Network = {
+        id: 'eip155:1',
+        name: 'Ethereum Mainnet',
+        isSelected: false,
+        imageSource: { uri: 'ethereum.png' },
+        caipChainId: 'eip155:1' as CaipChainId,
+      };
+
+      const props = { ...defaultProps, networks: [ethereumNetwork] };
+      render(<NetworkMultiSelectorList {...props} />);
+
+      // formatChainIdToCaip should be called with EVM chain ID as fallback
+      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith('0x1');
+    });
   });
 
   describe('RPC Selection', () => {

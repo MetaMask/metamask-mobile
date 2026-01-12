@@ -110,7 +110,9 @@ const CustomNetwork = ({
       // When skipConfirmation is true and we have onNetworkAdd callback,
       // add the network directly without showing the confirmation modal
       if (skipConfirmation && onNetworkAdd) {
-        onNetworkAdd(networkConfiguration);
+        onNetworkAdd(networkConfiguration).catch((error) => {
+          console.error('Failed to add network:', error);
+        });
       } else {
         // Fallback to showing the modal for confirmation
         showNetworkModal(networkConfiguration);
