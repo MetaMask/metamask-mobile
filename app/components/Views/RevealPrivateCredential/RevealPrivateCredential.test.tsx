@@ -311,7 +311,7 @@ describe('RevealPrivateCredential', () => {
     it('displays warning message on incorrect password', async () => {
       mockReauthenticate.mockRejectedValue(new Error(WRONG_PASSWORD_ERROR));
 
-      const { getByTestId } = renderWithProviders(
+      const { getByTestId, getByText } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -338,6 +338,9 @@ describe('RevealPrivateCredential', () => {
         );
         expect(warningText.props.children).toBeTruthy();
       });
+
+      // Validate specific warning message for incorrect password
+      expect(getByText('Incorrect password')).toBeTruthy();
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
@@ -423,7 +426,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test' });
       mockRevealSRP.mockRejectedValue(new Error('Some unknown error'));
 
-      const { getByTestId } = renderWithProviders(
+      const { getByTestId, getByText } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -439,6 +442,11 @@ describe('RevealPrivateCredential', () => {
         // Should show warning message for unknown error
         expect(warningText.props.children).toBeTruthy();
       });
+
+      // Validate specific unknown error message
+      expect(
+        getByText("Couldn't unlock your account. Please try again."),
+      ).toBeTruthy();
     });
 
     it('uses keyringId parameter when provided', async () => {
