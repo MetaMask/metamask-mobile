@@ -2106,6 +2106,12 @@ describe('rewardsReducer', () => {
         unlockedRewardError: false,
         referralDetailsError: false,
         optinAllowedForGeoError: false,
+        bulkLink: {
+          isRunning: false,
+          totalAccounts: 0,
+          linkedAccounts: 0,
+          failedAccounts: 0,
+        },
       };
       const action = resetRewardsState();
 
@@ -2197,6 +2203,12 @@ describe('rewardsReducer', () => {
         unlockedRewardError: false,
         referralDetailsError: false,
         optinAllowedForGeoError: false,
+        bulkLink: {
+          isRunning: false,
+          totalAccounts: 0,
+          linkedAccounts: 0,
+          failedAccounts: 0,
+        },
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
