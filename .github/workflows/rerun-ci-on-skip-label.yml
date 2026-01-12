@@ -1,0 +1,38 @@
+name: Re-run CI on skip-smart-e2e-selection label
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  rerun-ci:
+    if: github.event.label.name == 'skip-smart-e2e-selection'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel current CI and start fresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🔄 skip-smart-e2e-selection label added, restarting CI..."
+
+          # Cancel any in-progress CI runs for this branch
+          gh run list \
+            --repo ${{ github.repository }} \
+            --branch ${{ github.head_ref }} \
+            --workflow ci.yml \
+            --status in_progress \
+            --json databaseId \
+            --jq '.[].databaseId' | while read -r RUN_ID; do
+              if [ -n "$RUN_ID" ]; then
+                echo "🛑 Cancelling run: $RUN_ID"
+                gh run cancel "$RUN_ID" --repo ${{ github.repository }} || true
+              fi
+            done
+
+          # Trigger a fresh CI run on the PR branch
+          echo "🚀 Starting fresh CI run..."
+          gh workflow run ci.yml --repo ${{ github.repository }} --ref ${{ github.head_ref }}
+
+          echo "✅ CI restart triggered"
