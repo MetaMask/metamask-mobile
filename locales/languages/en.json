@@ -5599,6 +5599,7 @@
   },
   "earn": {
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
+    "bonus": "Bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",

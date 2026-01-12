@@ -1,10 +1,10 @@
-import React, { ReactNode, memo, useCallback, useMemo, useState } from 'react';
+import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
-import { EarningPercentageRow } from '../../rows/earning-percentage-row';
+import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -77,7 +77,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     preferredToken,
     overrideContent,
   }) => {
-    const transactionMetadata = useTransactionMetadataRequest();
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -110,14 +109,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
     });
-
-    const showEarningPercentageRow = useMemo(
-      () =>
-        hasTransactionType(transactionMetadata, [
-          TransactionType.musdConversion,
-        ]),
-      [transactionMetadata],
-    );
 
     const handleDone = useCallback(() => {
       updateTokenAmount();
@@ -161,7 +152,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <BridgeFeeRow />
               <BridgeTimeRow />
               <TotalRow />
-              {showEarningPercentageRow && <EarningPercentageRow />}
+              <PercentageRow />
             </Box>
           )}
           {isKeyboardVisible && hasTokens && (
