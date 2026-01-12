@@ -37,7 +37,7 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
   }
 
   return (
-    <TouchableOpacity onPress={onSmartAccountPress} testID="smart-account-link">
+    <TouchableOpacity onPress={onSmartAccountPress} testID={SwitchAccountModalSelectorIDs.SMART_ACCOUNT_LINK}>
       <Box
         style={styles.container}
         flexDirection={FlexDirection.Row}
