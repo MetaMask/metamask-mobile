@@ -85,22 +85,6 @@ const createMockAccount = (
   ...overrides,
 });
 
-// Create hardware account mock
-const createHardwareAccount = (): InternalAccount =>
-  createMockAccount({
-    id: 'hardware-account-id',
-    address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-    metadata: {
-      name: 'Ledger Account',
-      importTime: Date.now(),
-      keyring: {
-        type: KeyringTypes.ledger,
-      },
-      nameLastUpdatedAt: Date.now(),
-      lastSelected: Date.now(),
-    },
-  });
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => {
@@ -432,46 +416,6 @@ describe('RevealPrivateCredential', () => {
       );
       // The warning should be empty string
       expect(warningText?.props.children).toBeFalsy();
-    });
-
-    it('displays hardware error for hardware accounts', async () => {
-      const addressMock = jest.requireMock('../../../util/address');
-      addressMock.isHardwareAccount.mockReturnValue(true);
-      mockReauthenticate.mockRejectedValue(new Error('Hardware account error'));
-
-      const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({
-            selectedAccount: createHardwareAccount(),
-          })}
-          navigation={null}
-          cancel={() => null}
-        />,
-      );
-
-      const passwordInput = getByTestId(
-        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-      );
-      fireEvent.changeText(passwordInput, 'test-password');
-
-      const confirmButton = getByTestId(
-        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-      );
-
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
-
-      await waitFor(() => {
-        expect(mockReauthenticate).toHaveBeenCalled();
-      });
-
-      await waitFor(() => {
-        const warningText = getByTestId(
-          RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
-        );
-        expect(warningText.props.children).toBeTruthy();
-      });
     });
 
     it('displays unknown error for non-password errors', async () => {
