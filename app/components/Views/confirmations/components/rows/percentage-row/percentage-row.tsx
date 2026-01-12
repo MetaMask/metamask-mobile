@@ -9,36 +9,44 @@ import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPay
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionType } from '@metamask/transaction-controller';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+
+const TX_TYPE_ROW_CONFIG: Partial<
+  Record<TransactionType, { label: string; tooltip: string }>
+> = {
+  [TransactionType.musdConversion]: {
+    label: strings('earn.bonus'),
+    tooltip: strings('earn.bonus_tooltip'),
+  },
+} as const;
 
 export function PercentageRow() {
   const transactionMetadata = useTransactionMetadataRequest();
 
   const isLoading = useIsTransactionPayLoading();
 
-  const label = (() => {
-    if (
-      hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
-    ) {
-      return strings('earn.bonus');
-    }
-
-    return strings('earn.earning');
-  })();
-
-  if (
-    !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
-  ) {
-    return null;
-  }
+  const transactionType = transactionMetadata?.type;
+  const rowConfig = transactionType
+    ? TX_TYPE_ROW_CONFIG[transactionType]
+    : undefined;
 
   if (isLoading) {
     return <InfoRowSkeleton testId="percentage-row-skeleton" />;
   }
 
+  if (!rowConfig) {
+    return null;
+  }
+
+  const { label, tooltip } = rowConfig;
+
   return (
-    <InfoRow label={label}>
+    <InfoRow
+      label={label}
+      tooltip={tooltip}
+      tooltipColor={IconColor.Alternative}
+    >
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%
       </Text>

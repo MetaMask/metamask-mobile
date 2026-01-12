@@ -31,17 +31,28 @@ describe('PercentageRow', () => {
     } as never);
   });
 
-  it('renders bonus label and APY when not loading', () => {
-    const { getByText } = render();
+  it('renders label, tooltip and APY when not loading', () => {
+    const { getByText, getByTestId } = render();
 
     expect(getByText(strings('earn.bonus'))).toBeOnTheScreen();
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
     expect(getByText(`${MUSD_CONVERSION_APY}%`)).toBeOnTheScreen();
   });
 
-  it('renders nothing when tx type is not musdConversion', () => {
+  it('renders nothing when tx type is not supported', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
     } as never);
+
+    const { queryByText, queryByTestId } = render();
+
+    expect(queryByTestId('percentage-row-skeleton')).toBeNull();
+    expect(queryByText(strings('earn.bonus'))).toBeNull();
+    expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
+  });
+
+  it('renders nothing when transaction metadata is undefined', () => {
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
 
     const { queryByText, queryByTestId } = render();
 
