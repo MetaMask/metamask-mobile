@@ -197,8 +197,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-        aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-        aws-region: 'us-east-2'
+          aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: 'us-east-2'
 
       - name: Fetch secret and export as environment variables
         shell: bash
