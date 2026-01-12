@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -8,10 +8,6 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -107,11 +103,11 @@ const ReviewOrder = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handlePayWithCrypto = useCallback(async () => {
+  const handlePay = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.REVIEW_ORDER_PAY_CRYPTO,
+          action: CardActions.REVIEW_ORDER_PAY,
         })
         .build(),
     );
@@ -137,20 +133,6 @@ const ReviewOrder = () => {
     } finally {
       setIsCreatingPayment(false);
     }
-  }, [navigate, trackEvent, createEventBuilder]);
-
-  const handlePayWithCard = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.REVIEW_ORDER_PAY_CARD,
-        })
-        .build(),
-    );
-
-    navigate(Routes.CARD.ORDER_COMPLETED, {
-      paymentMethod: 'card',
-    });
   }, [navigate, trackEvent, createEventBuilder]);
 
   const renderOrderItem = useCallback((item: OrderItem, index: number) => {
@@ -270,59 +252,12 @@ const ReviewOrder = () => {
           )}
           <Button
             variant={ButtonVariants.Primary}
-            label={
-              <Box twClassName="flex-row items-center gap-2">
-                {isCreatingPayment ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={tw.color('primary-inverse')}
-                    testID={ReviewOrderSelectors.PAY_WITH_CRYPTO_LOADING}
-                  />
-                ) : (
-                  <Icon
-                    name={IconName.Coin}
-                    size={IconSize.Sm}
-                    color={IconColor.PrimaryInverse}
-                  />
-                )}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary-inverse"
-                >
-                  {strings('card.review_order.pay_with_crypto')}
-                </Text>
-              </Box>
-            }
+            label={strings('card.review_order.pay')}
             size={ButtonSize.Lg}
-            onPress={handlePayWithCrypto}
+            onPress={handlePay}
             width={ButtonWidthTypes.Full}
-            isDisabled={isCreatingPayment}
-            testID={ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON}
-          />
-          <Button
-            variant={ButtonVariants.Primary}
-            label={
-              <Box twClassName="flex-row items-center gap-2">
-                <Icon
-                  name={IconName.Card}
-                  size={IconSize.Sm}
-                  color={IconColor.PrimaryInverse}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary-inverse"
-                >
-                  {strings('card.review_order.pay_with_card')}
-                </Text>
-              </Box>
-            }
-            size={ButtonSize.Lg}
-            onPress={handlePayWithCard}
-            width={ButtonWidthTypes.Full}
-            isDisabled={isCreatingPayment}
-            testID={ReviewOrderSelectors.PAY_WITH_CARD_BUTTON}
+            loading={isCreatingPayment}
+            testID={ReviewOrderSelectors.PAY_BUTTON}
           />
         </Box>
       </Box>

@@ -31,6 +31,7 @@ import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
+import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -171,7 +172,7 @@ const MainRoutes = () => {
       />
       <Stack.Screen
         name={Routes.CARD.ORDER_COMPLETED}
-        component={VerifyingRegistration}
+        component={OrderCompleted}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen

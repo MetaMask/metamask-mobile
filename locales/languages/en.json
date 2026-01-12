@@ -6541,9 +6541,14 @@
       "renews": "Renews",
       "renews_annually": "Annually",
       "total": "Total",
-      "pay_with_crypto": "Pay with crypto",
-      "pay_with_card": "Pay with card",
+      "pay": "Pay",
       "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card"
     },
     "recurring_fee_modal": {
       "title": "Recurring fee",

@@ -43,7 +43,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.review_order.subtitle':
         'We can only ship to residential addresses.',
       'card.review_order.shipping_address': 'Shipping address',
-      'card.review_order.edit': 'Edit',
       'card.review_order.metal_card_quantity': '1 Metal Card',
       'card.review_order.metal_card_price': '$199',
       'card.review_order.metal_card_total': '$199 per year',
@@ -52,8 +51,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.review_order.renews': 'Renews',
       'card.review_order.renews_annually': 'Annually',
       'card.review_order.total': 'Total',
-      'card.review_order.pay_with_crypto': 'Pay with crypto',
-      'card.review_order.pay_with_card': 'Pay with card',
+      'card.review_order.pay': 'Pay',
     };
     return map[key] || key;
   },
@@ -95,8 +93,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
-    Icon: ({ name, ...props }: { name: string } & Record<string, unknown>) =>
-      React.createElement(View, { ...props, testID: `icon-${name}` }),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       HeadingSm: 'HeadingSm',
@@ -107,17 +103,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
-    },
-    IconName: {
-      Coin: 'Coin',
-      Card: 'Card',
-    },
-    IconSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-    },
-    IconColor: {
-      PrimaryInverse: 'PrimaryInverse',
     },
   };
 });
@@ -145,12 +130,7 @@ describe('ReviewOrder', () => {
         getByTestId(ReviewOrderSelectors.SHIPPING_ADDRESS_CARD),
       ).toBeTruthy();
       expect(getByTestId(ReviewOrderSelectors.ORDER_SUMMARY)).toBeTruthy();
-      expect(
-        getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON),
-      ).toBeTruthy();
-      expect(
-        getByTestId(ReviewOrderSelectors.PAY_WITH_CARD_BUTTON),
-      ).toBeTruthy();
+      expect(getByTestId(ReviewOrderSelectors.PAY_BUTTON)).toBeTruthy();
     });
 
     it('displays correct title and subtitle', () => {
@@ -219,60 +199,33 @@ describe('ReviewOrder', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks pay with crypto button click', async () => {
+    it('tracks pay button click', async () => {
       const { getByTestId } = render(<ReviewOrder />);
 
       await act(async () => {
-        fireEvent.press(
-          getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON),
-        );
+        fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_BUTTON));
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.REVIEW_ORDER_PAY_CRYPTO,
-      });
-    });
-
-    it('tracks pay with card button click', () => {
-      const { getByTestId } = render(<ReviewOrder />);
-
-      fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_WITH_CARD_BUTTON));
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action: CardActions.REVIEW_ORDER_PAY_CARD,
+        action: CardActions.REVIEW_ORDER_PAY,
       });
     });
   });
 
   describe('Navigation', () => {
-    it('navigates to Daimo Pay modal when pay with crypto is pressed', async () => {
+    it('navigates to Daimo Pay modal when pay button is pressed', async () => {
       const { getByTestId } = render(<ReviewOrder />);
 
       await act(async () => {
-        fireEvent.press(
-          getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON),
-        );
+        fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_BUTTON));
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
         params: { payId: 'test-pay-id' },
-      });
-    });
-
-    it('navigates to order completed with card payment method', () => {
-      const { getByTestId } = render(<ReviewOrder />);
-
-      fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_WITH_CARD_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ORDER_COMPLETED, {
-        paymentMethod: 'card',
       });
     });
   });
