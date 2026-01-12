@@ -72,7 +72,6 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
