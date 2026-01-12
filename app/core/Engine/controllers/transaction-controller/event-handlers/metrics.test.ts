@@ -18,9 +18,7 @@ import {
 } from '../data-helpers';
 
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import {
-  selectShouldUseSmartTransaction,
-} from '../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 
@@ -82,10 +80,8 @@ describe('Transaction Metric Event Handlers', () => {
     selectShouldUseSmartTransaction as jest.Mock;
   const mockGetSmartTransactionMetricsProperties =
     getSmartTransactionMetricsProperties as jest.Mock;
-  const mockSelectIsPna25FlagEnabled =
-    selectIsPna25FlagEnabled as jest.Mock;
-  const mockSelectIsPna25Acknowledged =
-    selectIsPna25Acknowledged as jest.Mock;
+  const mockSelectIsPna25FlagEnabled = selectIsPna25FlagEnabled as jest.Mock;
+  const mockSelectIsPna25Acknowledged = selectIsPna25Acknowledged as jest.Mock;
 
   const mockTransactionMeta = {
     id: 'test-id',
