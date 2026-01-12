@@ -43,7 +43,7 @@ jobs:
 
             # Wait for cancellation to complete (poll until status changes)
             echo "⏳ Waiting for cancellation to complete..."
-            for i in {1..30}; do
+            for _ in {1..30}; do
               sleep 5
               RUN_STATUS=$(gh run view "$RUN_ID" --repo "$REPOSITORY" --json status --jq '.status')
               echo "   Status: $RUN_STATUS"
