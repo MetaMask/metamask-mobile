@@ -195,22 +195,6 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  core-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeCore')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: core-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeCore'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   swaps-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSwaps')
     strategy:
@@ -275,7 +259,6 @@ jobs:
       - prediction-market-android-smoke
       - rewards-android-smoke
       - card-android-smoke
-      - core-android-smoke
       - swaps-android-smoke
       - ramps-android-smoke
       - multichain-api-android-smoke
