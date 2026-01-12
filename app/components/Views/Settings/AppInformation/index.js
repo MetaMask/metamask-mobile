@@ -270,6 +270,7 @@ class AppInformation extends PureComponent {
               </>
             )}
           </View>
+          <Text style={styles.title}>Adding a new line for OTA v1</Text>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
