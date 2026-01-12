@@ -107,6 +107,37 @@ import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { BridgeToken } from '../Bridge/types';
+
+/**
+ * Determines the source and destination tokens for swap/bridge navigation.
+ *
+ * When coming from the trending tokens list, the user likely wants to BUY the token,
+ * so we configure the swap with the native token as source and the asset as destination.
+ * Otherwise, we assume they want to SELL, so the asset is the source.
+ *
+ * @param asset - The token asset being viewed
+ * @param bridgeToken - The bridge-formatted token
+ * @returns Object containing sourceToken and destToken for swap navigation
+ */
+export const getSwapTokens = (
+  asset: TokenI,
+  bridgeToken: BridgeToken,
+): { sourceToken: BridgeToken; destToken: BridgeToken | undefined } => {
+  const wantsToBuyToken = isAssetFromTrending(asset);
+
+  if (wantsToBuyToken) {
+    return {
+      sourceToken: getNativeSourceToken(bridgeToken.chainId),
+      destToken: bridgeToken,
+    };
+  }
+
+  return {
+    sourceToken: bridgeToken,
+    destToken: undefined,
+  };
+};
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -201,7 +232,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   // Build bridge token from asset
-  const bridgeToken = useMemo(
+  const bridgeToken: BridgeToken = useMemo(
     () => ({
       ...asset,
       address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
@@ -214,14 +245,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     [asset],
   );
 
-  // If coming from trending tokens list (explore page), user likely wants to BUY the token
-  // so we place it in the destination position with native token of same chain as source.
-  // Otherwise, they likely want to SELL.
-  const wantsToBuyToken = isAssetFromTrending(asset);
-  const sourceToken = wantsToBuyToken
-    ? getNativeSourceToken(bridgeToken.chainId)
-    : bridgeToken;
-  const destToken = wantsToBuyToken ? bridgeToken : undefined;
+  const { sourceToken, destToken } = getSwapTokens(asset, bridgeToken);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,

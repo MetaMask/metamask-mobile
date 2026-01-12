@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
 import { NetworkController } from '@metamask/network-controller';
-import AssetOverview from './AssetOverview';
+import AssetOverview, { getSwapTokens } from './AssetOverview';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -1791,5 +1791,74 @@ describe('AssetOverview', () => {
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
     });
+  });
+});
+
+describe('getSwapTokens', () => {
+  const mockBridgeToken = {
+    address: '0x123',
+    chainId: '0x1' as const,
+    decimals: 18,
+    symbol: 'TEST',
+    name: 'Test Token',
+    image: 'https://example.com/test.png',
+  };
+
+  it('returns native token as source and bridgeToken as dest when asset is from trending', () => {
+    const trendingAsset = {
+      ...asset,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAsset, mockBridgeToken);
+
+    expect(result.sourceToken).toEqual(
+      expect.objectContaining({
+        symbol: 'ETH',
+        chainId: '0x1',
+      }),
+    );
+    expect(result.destToken).toEqual(mockBridgeToken);
+  });
+
+  it('returns bridgeToken as source and undefined dest when asset is not from trending', () => {
+    const regularAsset = {
+      ...asset,
+      isFromTrending: false,
+    };
+
+    const result = getSwapTokens(regularAsset, mockBridgeToken);
+
+    expect(result.sourceToken).toEqual(mockBridgeToken);
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns bridgeToken as source when asset has no isFromTrending property', () => {
+    const result = getSwapTokens(asset, mockBridgeToken);
+
+    expect(result.sourceToken).toEqual(mockBridgeToken);
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native token for the correct chain when asset is from trending on different chain', () => {
+    const polygonBridgeToken = {
+      ...mockBridgeToken,
+      chainId: '0x89' as const,
+      symbol: 'USDC',
+    };
+    const trendingAssetOnPolygon = {
+      ...asset,
+      chainId: '0x89',
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAssetOnPolygon, polygonBridgeToken);
+
+    expect(result.sourceToken).toEqual(
+      expect.objectContaining({
+        chainId: '0x89',
+      }),
+    );
+    expect(result.destToken).toEqual(polygonBridgeToken);
   });
 });
