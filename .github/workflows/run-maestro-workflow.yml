@@ -156,8 +156,9 @@ jobs:
           echo "📍 Branch: ${{ inputs.branch }}"
           
           # Use maestro record --local to capture video locally (no external API)
+          # Syntax: maestro record --local <flowFile> [<outputFile>]
           # Recording will be saved even if test fails
-          if maestro record --local --output maestro-recordings/test-recording.mp4 ${{ inputs.test-file }}; then
+          if maestro record --local ${{ inputs.test-file }} maestro-recordings/test-recording.mp4; then
             echo "✅ Maestro test passed"
             echo "TEST_RESULT=success" >> "$GITHUB_ENV"
           else
