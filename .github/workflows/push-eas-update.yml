@@ -127,6 +127,7 @@ jobs:
           echo "✅ @expo/fingerprint found"
           echo "🔍 Running fingerprint generation..."
           set +e
+          yarn install
           FINGERPRINT=$(yarn fingerprint:generate 2>&1)
           EXIT_CODE=$?
           set -e
@@ -169,6 +170,8 @@ jobs:
           echo "✅ @expo/fingerprint found"
           echo "🔍 Running fingerprint generation..."
           set +e
+
+          yarn install
           FINGERPRINT=$(yarn fingerprint:generate 2>&1)
           EXIT_CODE=$?
           set -e
