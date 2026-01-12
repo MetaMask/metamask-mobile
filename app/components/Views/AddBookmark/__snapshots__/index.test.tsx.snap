@@ -142,7 +142,7 @@ exports[`AddBookmark should render correctly 1`] = `
                 }
               }
             >
-              Url
+              URL
             </Text>
             <TextInput
               keyboardAppearance="light"

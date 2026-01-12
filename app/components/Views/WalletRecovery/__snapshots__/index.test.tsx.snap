@@ -140,7 +140,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
               }
             }
           >
-            Use your Google login and MetaMask password to recover your account and secret recovery phrases.
+            Use your Google login and MetaMask password to recover your account and Secret Recovery Phrases.
           </Text>
         </View>
         <View

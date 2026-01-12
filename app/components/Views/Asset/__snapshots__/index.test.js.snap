@@ -3127,7 +3127,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -4869,7 +4869,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -6573,7 +6573,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -8277,7 +8277,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -10019,7 +10019,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -11723,7 +11723,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -13993,7 +13993,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>
@@ -15697,7 +15697,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                       ]
                                     }
                                   >
-                                    You have no transactions!
+                                    You have no transactions
                                   </Text>
                                 </View>
                               </View>

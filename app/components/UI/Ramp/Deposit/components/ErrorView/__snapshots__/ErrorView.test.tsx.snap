@@ -871,7 +871,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                               }
                             }
                           >
-                            There was an error processing your deposit. Please contact support if the problem persists.
+                            There was an error processing your deposit. Please contact support if the problem continues.
                           </Text>
                         </View>
                       </View>

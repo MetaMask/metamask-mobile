@@ -662,7 +662,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -1196,7 +1196,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                       >
-                                        Add activation key
+                                        Add Activation Key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
@@ -1881,7 +1881,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -1973,7 +1973,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           }
                                         }
                                       >
-                                        Add activation key
+                                        Add Activation Key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
@@ -4552,7 +4552,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -5082,7 +5082,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                       >
-                                        Add activation key
+                                        Add Activation Key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
