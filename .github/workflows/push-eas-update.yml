@@ -1,4 +1,4 @@
-name: Push OTA Update (EXP Build)
+name: Push OTA Update
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
         run: |
           echo "🧬 Generating fingerprint for current branch..."
           set -x
-          FINGERPRINT=$(yarn fingerprint:generate)
+          FINGERPRINT=$(node scripts/generate-fingerprint.js)
           set +x
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: ${FINGERPRINT}"
@@ -106,7 +106,7 @@ jobs:
         run: |
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
           set -x
-          FINGERPRINT=$(yarn fingerprint:generate)
+          FINGERPRINT=$(node scripts/generate-fingerprint.js)
           set +x
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: ${FINGERPRINT}"
