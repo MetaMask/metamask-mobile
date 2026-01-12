@@ -2599,6 +2599,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: mockTransactions,
         chainId: mockChainId,
+        gasFeeToken: MATIC_CONTRACTS.collateral,
       });
 
       (addTransactionBatch as jest.Mock).mockResolvedValue({
