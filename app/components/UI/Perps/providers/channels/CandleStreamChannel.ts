@@ -463,7 +463,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     );
 
     // Disconnect all WebSocket subscriptions (they're dead after reconnection)
-    this.disconnectAll();
+    // Using disconnect() without args to call disconnectAll() internally
+    this.disconnect();
 
     // Re-establish connections for each active cache key
     activeCacheKeys.forEach((cacheKey) => {
