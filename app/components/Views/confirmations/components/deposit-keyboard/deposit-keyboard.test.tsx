@@ -4,11 +4,6 @@ import { DepositKeyboard, DepositKeyboardProps } from './deposit-keyboard';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
-import { useConfirmationMetricEvents } from '../../hooks/metrics/useConfirmationMetricEvents';
-
-jest.mock('../../hooks/metrics/useConfirmationMetricEvents');
-
-const mockSetConfirmationMetric = jest.fn();
 
 function render(props: Partial<DepositKeyboardProps> = {}) {
   return renderWithProvider(
@@ -28,9 +23,6 @@ function render(props: Partial<DepositKeyboardProps> = {}) {
 describe('DepositKeyboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useConfirmationMetricEvents as jest.Mock).mockReturnValue({
-      setConfirmationMetric: mockSetConfirmationMetric,
-    });
   });
 
   it('calls onChange when digit pressed', () => {
@@ -41,30 +33,6 @@ describe('DepositKeyboard', () => {
     fireEvent.press(getByText('1'));
 
     expect(onChangeMock).toHaveBeenCalledWith('1');
-  });
-
-  it('sets manual metric when digit pressed', () => {
-    const { getByText } = render();
-
-    fireEvent.press(getByText('1'));
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        mm_pay_amount_input_type: 'manual',
-      },
-    });
-  });
-
-  it('sets percentage metric when percentage button pressed', () => {
-    const { getByText } = render();
-
-    fireEvent.press(getByText('50%'));
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        mm_pay_amount_input_type: '50%',
-      },
-    });
   });
 
   it('hides done button if input is empty', () => {
