@@ -86,6 +86,11 @@ describe('HyperLiquidClientService', () => {
     jest.clearAllMocks();
     mockInfoClientCallCount = 0; // Reset InfoClient call counter
 
+    // Restore default mock for transport ready
+    mockWsTransportReady.mockResolvedValue(undefined);
+    // Restore default mock for transport close
+    mockWsTransport.close.mockResolvedValue(undefined);
+
     mockWallet = {
       request: jest.fn().mockResolvedValue('0x123'),
     };
@@ -167,13 +172,13 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should handle initialization errors', () => {
+    it('should handle initialization errors', async () => {
       const { ExchangeClient } = require('@nktkas/hyperliquid');
       ExchangeClient.mockImplementationOnce(() => {
         throw new Error('Client initialization failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow(
+      await expect(service.initialize(mockWallet)).rejects.toThrow(
         'Client initialization failed',
       );
     });
@@ -386,18 +391,18 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle transport creation errors', () => {
+    it('should handle transport creation errors', async () => {
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
       WebSocketTransport.mockImplementationOnce(() => {
         throw new Error('Transport creation failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow(
+      await expect(service.initialize(mockWallet)).rejects.toThrow(
         'Transport creation failed',
       );
     });
 
-    it('should maintain network state through errors', () => {
+    it('should maintain network state through errors', async () => {
       service.setTestnetMode(true);
 
       try {
@@ -405,7 +410,7 @@ describe('HyperLiquidClientService', () => {
         ExchangeClient.mockImplementationOnce(() => {
           throw new Error('Initialization failed');
         });
-        service.initialize(mockWallet);
+        await service.initialize(mockWallet);
       } catch {
         // Expected error
       }
@@ -416,12 +421,12 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Logging and Debugging', () => {
-    it('should log initialization events', () => {
+    it('should log initialization events', async () => {
       const {
         DevLogger,
       } = require('../../../../core/SDKConnect/utils/DevLogger');
 
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         'HyperLiquid SDK clients initialized',
@@ -437,7 +442,7 @@ describe('HyperLiquidClientService', () => {
       const {
         DevLogger,
       } = require('../../../../core/SDKConnect/utils/DevLogger');
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       await service.disconnect();
 
@@ -468,8 +473,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('fetchHistoricalCandles', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
     it('should fetch historical candles successfully', async () => {
@@ -657,8 +662,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('subscribeToCandles', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
       jest.clearAllMocks();
     });
 
@@ -1163,6 +1168,12 @@ describe('HyperLiquidClientService', () => {
 
     afterEach(() => {
       jest.useRealTimers();
+      // Restore default mock implementations that may have been changed by tests
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
     });
 
     it('sets reconnection callback', () => {
@@ -1227,15 +1238,8 @@ describe('HyperLiquidClientService', () => {
       // Make health check fail (simulate connection drop)
       mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-
-      // Wait for the promise to resolve
-      await Promise.resolve();
-
-      // Fast-forward a bit more to allow async operations
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Advance timers to trigger health check (async version handles promises properly)
+      await jest.advanceTimersByTimeAsync(5000);
 
       // Verify reconnection callback was called
       expect(reconnectCallback).toHaveBeenCalled();
@@ -1258,13 +1262,8 @@ describe('HyperLiquidClientService', () => {
       // Make health check fail
       mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-
-      // Fast-forward a bit more to allow reconnection
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Advance timers to trigger health check (async version handles promises properly)
+      await jest.advanceTimersByTimeAsync(5000);
 
       // Verify new transport and subscription client were created
       expect(WebSocketTransport).toHaveBeenCalledTimes(2); // Initial + reconnection
@@ -1277,27 +1276,44 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
       service.setOnReconnectCallback(reconnectCallback);
 
-      // Make health check fail
-      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
-
-      // Make transport recreation fail
+      // Store initial transport creation count
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
-      (WebSocketTransport as jest.Mock).mockImplementationOnce(() => {
+      const initialTransportCalls = (WebSocketTransport as jest.Mock).mock.calls
+        .length;
+
+      // Make health check fail persistently
+      mockWsTransportReady.mockRejectedValue(new Error('Connection lost'));
+
+      // Make all transport recreation attempts fail
+      (WebSocketTransport as jest.Mock).mockImplementation(() => {
         throw new Error('Failed to recreate transport');
       });
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
+      // Advance timers to trigger first health check
+      await jest.advanceTimersByTimeAsync(5000);
 
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Verify transport recreation was attempted
+      expect(
+        (WebSocketTransport as jest.Mock).mock.calls.length,
+      ).toBeGreaterThan(initialTransportCalls);
 
-      // Health check monitoring should be stopped
-      // Verify no more health checks are scheduled
-      jest.advanceTimersByTime(10000);
-      expect(mockWsTransportReady).toHaveBeenCalledTimes(1); // Only the initial failed check
+      // Advance more time - reconnection retries should happen but state eventually becomes DISCONNECTED
+      // After MAX_RECONNECTION_ATTEMPTS (10), the service gives up
+      // Each retry is 5 seconds, so we need at least 10 * 5000ms = 50000ms
+      await jest.advanceTimersByTimeAsync(60000);
+
+      // After all retries are exhausted, no more transport recreation attempts should happen
+      // (the service should be in DISCONNECTED state)
+      const finalCallCount = (WebSocketTransport as jest.Mock).mock.calls
+        .length;
+
+      // Advance more time - if health check stopped, no more calls
+      await jest.advanceTimersByTimeAsync(20000);
+
+      // Verify no additional transport creation attempts after exhausting retries
+      expect((WebSocketTransport as jest.Mock).mock.calls.length).toBe(
+        finalCallCount,
+      );
     });
 
     it('handles connection drop when already connecting', async () => {
@@ -1307,13 +1323,8 @@ describe('HyperLiquidClientService', () => {
       // Make health check fail
       mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-
-      // Immediately trigger another connection drop (should be ignored)
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Advance timers to trigger health check (async version handles promises properly)
+      await jest.advanceTimersByTimeAsync(5000);
 
       // Should only attempt reconnection once
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
@@ -1324,13 +1335,8 @@ describe('HyperLiquidClientService', () => {
     it('updates last successful health check timestamp on success', async () => {
       service.initialize(mockWallet);
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Advance timers to trigger health check (async version handles promises properly)
+      await jest.advanceTimersByTimeAsync(5000);
 
       // Health check should succeed (transport.ready resolves)
       expect(mockWsTransportReady).toHaveBeenCalled();
@@ -1342,13 +1348,8 @@ describe('HyperLiquidClientService', () => {
       // Make health check resolve quickly
       mockWsTransportReady.mockResolvedValueOnce(undefined);
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Advance timers to trigger health check (async version handles promises properly)
+      await jest.advanceTimersByTimeAsync(5000);
 
       // Timeout should be cleared (no errors thrown)
       expect(mockWsTransportReady).toHaveBeenCalled();
