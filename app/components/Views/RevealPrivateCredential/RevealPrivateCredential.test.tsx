@@ -12,6 +12,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
@@ -608,7 +609,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           expect.objectContaining({
-            category: 'Clicks Next on Reveal Secret Recovery Phrase',
+            category: MetaMetricsEvents.NEXT_REVEAL_SRP_CTA.category,
           }),
         );
       });
@@ -669,7 +670,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          category: 'Reveal SRP Cancelled',
+          category: MetaMetricsEvents.REVEAL_SRP_CANCELLED.category,
         }),
       );
     });
@@ -928,7 +929,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          category: 'Views Reveal Secret Recovery Phrase',
+          category: MetaMetricsEvents.REVEAL_SRP_SCREEN.category,
         }),
       );
     });
@@ -959,7 +960,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          category: 'Clicks Cancel on Reveal Secret Recovery Phrase Page',
+          category: MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA.category,
         }),
       );
     });
@@ -1000,7 +1001,7 @@ describe('RevealPrivateCredential', () => {
       expect(mockCancel).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          category: 'Clicks Done with SRP',
+          category: MetaMetricsEvents.SRP_DONE_CTA.category,
         }),
       );
     });
