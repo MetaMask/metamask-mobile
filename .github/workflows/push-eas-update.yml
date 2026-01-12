@@ -206,7 +206,7 @@ jobs:
           echo "🔐 Fetching secret from Secrets Manager..."
           secret_json=$(aws secretsmanager get-secret-value \
             --region 'us-east-2' \
-            --secret-id "${AWS_EXPO_SIGNING_CERT_SECRET_NAME_TEST}" \
+            --secret-id ${{ secrets.AWS_EXPO_SIGNING_CERT_SECRET_NAME_TEST }} \
             --query SecretString \
             --output text)
 
