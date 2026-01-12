@@ -13,6 +13,7 @@ import {
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
+import { useBulkLinkState } from './useBulkLinkState';
 import { AccountGroupId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -83,6 +84,10 @@ jest.mock('./useLinkAccountGroup', () => ({
   useLinkAccountGroup: jest.fn(),
 }));
 
+jest.mock('./useBulkLinkState', () => ({
+  useBulkLinkState: jest.fn(),
+}));
+
 describe('useOptIn', () => {
   const mockDispatch = jest.fn();
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -119,6 +124,7 @@ describe('useOptIn', () => {
     selectSelectedInternalAccount,
   );
   const mockUseLinkAccountGroup = jest.mocked(useLinkAccountGroup);
+  const mockUseBulkLinkState = jest.mocked(useBulkLinkState);
 
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn().mockReturnValue({
@@ -187,6 +193,8 @@ describe('useOptIn', () => {
   ];
 
   const mockLinkAccountGroup = jest.fn();
+  const mockStartBulkLink = jest.fn();
+  const mockCancelBulkLink = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -237,6 +245,22 @@ describe('useOptIn', () => {
       isLoading: false,
       isError: false,
     } as never);
+
+    // Setup useBulkLinkState mock
+    mockUseBulkLinkState.mockReturnValue({
+      startBulkLink: mockStartBulkLink,
+      cancelBulkLink: mockCancelBulkLink,
+      resetBulkLink: jest.fn(),
+      isRunning: false,
+      isCompleted: false,
+      hasFailures: false,
+      isFullySuccessful: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+      accountProgress: 0,
+      processedAccounts: 0,
+    });
 
     // Setup default Engine call response
     mockEngineCall.mockResolvedValue('subscription-123');
@@ -840,6 +864,7 @@ describe('useOptIn', () => {
         referred: true,
         referral_code_used: 'REF123',
         referral_code_input_type: 'manual',
+        bulk_link: undefined,
       });
     });
 
@@ -855,7 +880,153 @@ describe('useOptIn', () => {
         referred: false,
         referral_code_used: undefined,
         referral_code_input_type: 'manual',
+        bulk_link: undefined,
       });
+    });
+
+    it('should track metrics with bulk_link property when bulkLink is true', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          bulkLink: true,
+        });
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: false,
+        referral_code_used: undefined,
+        referral_code_input_type: 'manual',
+        bulk_link: true,
+      });
+    });
+
+    it('should track metrics with bulk_link property when bulkLink is false', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          bulkLink: false,
+        });
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: false,
+        referral_code_used: undefined,
+        referral_code_input_type: 'manual',
+        bulk_link: false,
+      });
+    });
+  });
+
+  describe('Bulk Link Integration', () => {
+    it('should cancel bulk link before opt-in', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should cancel bulk link before opt-in
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+      // Verify cancelBulkLink was called (order is verified by checking it's called)
+      expect(mockCancelBulkLink).toHaveBeenCalled();
+      expect(mockEngineCall).toHaveBeenCalled();
+    });
+
+    it('should start bulk link when bulkLink is true', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          bulkLink: true,
+        });
+      });
+
+      // Should start bulk link after successful opt-in
+      expect(mockStartBulkLink).toHaveBeenCalledTimes(1);
+      // Should not call linkAccountGroup when bulkLink is true
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+      // Verify both were called
+      expect(mockEngineCall).toHaveBeenCalled();
+      expect(mockStartBulkLink).toHaveBeenCalled();
+    });
+
+    it('should not start bulk link when bulkLink is false', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          bulkLink: false,
+        });
+      });
+
+      // Should not start bulk link
+      expect(mockStartBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('should not start bulk link when bulkLink is undefined', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should not start bulk link
+      expect(mockStartBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('should cancel bulk link even when opt-in fails', async () => {
+      const error = new Error('Network error');
+      mockEngineCall.mockRejectedValue(error);
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should still cancel bulk link even on failure
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+      // Should not start bulk link on failure
+      expect(mockStartBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('should not start bulk link when subscriptionId is null', async () => {
+      mockEngineCall.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          bulkLink: true,
+        });
+      });
+
+      // Should cancel bulk link
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+      // Should not start bulk link when opt-in fails
+      expect(mockStartBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('should cancel bulk link and start bulk link with referral code', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          referralCode: 'ABC123',
+          bulkLink: true,
+        });
+      });
+
+      // Should cancel bulk link before opt-in
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+      // Should start bulk link after successful opt-in
+      expect(mockStartBulkLink).toHaveBeenCalledTimes(1);
+      // Should not call linkAccountGroup when bulkLink is true
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
     });
   });
 

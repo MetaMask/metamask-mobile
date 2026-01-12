@@ -15,6 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useBulkLinkState } from './useBulkLinkState';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -107,6 +108,10 @@ jest.mock('./useRewardDashboardModals', () => ({
   }),
 }));
 
+jest.mock('./useBulkLinkState', () => ({
+  useBulkLinkState: jest.fn(),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
@@ -137,6 +142,11 @@ describe('useOptout', () => {
   const mockResetRewardsState = resetRewardsState as jest.MockedFunction<
     typeof resetRewardsState
   >;
+  const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
+    typeof useBulkLinkState
+  >;
+
+  const mockCancelBulkLink = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -166,6 +176,22 @@ describe('useOptout', () => {
     });
     mockTrackEvent.mockClear();
     mockAddTraitsToUser.mockClear();
+
+    // Setup useBulkLinkState mock
+    mockUseBulkLinkState.mockReturnValue({
+      startBulkLink: jest.fn(),
+      cancelBulkLink: mockCancelBulkLink,
+      resetBulkLink: jest.fn(),
+      isRunning: false,
+      isCompleted: false,
+      hasFailures: false,
+      isFullySuccessful: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+      accountProgress: 0,
+      processedAccounts: 0,
+    });
   });
 
   describe('initial state', () => {
@@ -224,6 +250,9 @@ describe('useOptout', () => {
 
       // Navigation should not happen in the optout function itself
       expect(result.current.isLoading).toBe(false);
+
+      // Verify bulk link was cancelled before opt-out
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
     });
 
     it('should handle opt-out failure from controller', async () => {
@@ -316,6 +345,9 @@ describe('useOptout', () => {
         mockResetAllSessionTrackingForRewardsDashboardModals,
       ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
+
+      // Verify bulk link was cancelled before opt-out even on exception
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
     });
 
     it('should not proceed if already loading', async () => {
@@ -368,6 +400,75 @@ describe('useOptout', () => {
         mockResetAllSessionTrackingForRewardsDashboardModals,
       ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
+
+      // Should not cancel bulk link when no subscription ID
+      expect(mockCancelBulkLink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Bulk Link Integration', () => {
+    it('should cancel bulk link before opt-out', async () => {
+      mockEngineCall.mockResolvedValueOnce(true);
+
+      const { result } = renderHook(() => useOptout());
+
+      await act(async () => {
+        await result.current.optout();
+      });
+
+      // Should cancel bulk link before opt-out
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+      expect(mockCancelBulkLink).toHaveBeenCalled();
+      expect(mockEngineCall).toHaveBeenCalled();
+    });
+
+    it('should cancel bulk link even when opt-out fails', async () => {
+      mockEngineCall.mockResolvedValueOnce(false);
+
+      const { result } = renderHook(() => useOptout());
+
+      await act(async () => {
+        await result.current.optout();
+      });
+
+      // Should still cancel bulk link even on failure
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cancel bulk link even when opt-out throws exception', async () => {
+      const testError = new Error('Test error message');
+      mockEngineCall.mockRejectedValueOnce(testError);
+
+      const { result } = renderHook(() => useOptout());
+
+      await act(async () => {
+        await result.current.optout();
+      });
+
+      // Should still cancel bulk link even on exception
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cancel bulk link when opt-out is called from modal', async () => {
+      mockEngineCall.mockResolvedValueOnce(true);
+      const { result } = renderHook(() => useOptout());
+
+      // Act - Show the modal
+      act(() => {
+        result.current.showOptoutBottomSheet();
+      });
+
+      // Get the confirmAction onPress function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1];
+      const handleOptoutConfirm = modalParams.confirmAction.onPress;
+
+      // Act - Trigger confirm action
+      await act(async () => {
+        await handleOptoutConfirm();
+      });
+
+      // Should cancel bulk link before opt-out
+      expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
     });
   });
 

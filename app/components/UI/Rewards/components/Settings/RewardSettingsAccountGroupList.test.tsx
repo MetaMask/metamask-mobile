@@ -8,6 +8,7 @@ import {
 } from '../../hooks/useRewardOptinSummary';
 import { useOptout } from '../../hooks/useOptout';
 import { useMetrics } from '../../../../hooks/useMetrics';
+import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
@@ -38,37 +39,36 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
 
+jest.mock('../../hooks/useBulkLinkState', () => ({
+  useBulkLinkState: jest.fn(),
+}));
+
 const mockSelectInternalAccountsByGroupId = jest.fn();
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectInternalAccountsByGroupId: mockSelectInternalAccountsByGroupId,
+}));
+
+const mockSelectBulkLinkIsRunning = jest.fn();
+jest.mock('../../../../../reducers/rewards/selectors', () => ({
+  selectBulkLinkIsRunning: mockSelectBulkLinkIsRunning,
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn((callback) => callback()),
-}));
-
-// Mock ReferredByCodeSection component
-jest.mock('./ReferredByCodeSection', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return ReactActual.forwardRef(
-    (
-      props: {
-        testID?: string;
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      primary: {
+        default: '#037DD6',
       },
-      ref: React.Ref<unknown>,
-    ) =>
-      ReactActual.createElement(View, {
-        testID: props.testID || 'referred-by-code-section',
-        ref,
-      }),
-  );
-});
+      background: {
+        alternative: '#F7F9FA',
+      },
+    },
+  })),
+}));
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -223,7 +223,55 @@ jest.mock('@metamask/design-system-react-native', () => {
       Medium: 'medium',
     },
     ButtonVariants: {
+      Primary: 'primary',
       Secondary: 'secondary',
+    },
+    ButtonBase: ({
+      children,
+      onPress,
+      testID,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          onPress,
+          testID,
+          ...props,
+        },
+        children,
+      ),
+    Icon: ({
+      name,
+      size,
+      color,
+      testID,
+      ...props
+    }: {
+      name: string;
+      size?: string;
+      color?: string;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(View, {
+        testID: testID || `icon-${name}`,
+        ...props,
+      }),
+    IconName: {
+      ArrowUp: 'arrow-up',
+      ArrowDown: 'arrow-down',
+    },
+    IconSize: {
+      Xs: 'xs',
+    },
+    IconColor: {
+      IconAlternative: 'icon-alternative',
     },
   };
 });
@@ -314,6 +362,9 @@ const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
 >;
 const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
+  typeof useBulkLinkState
+>;
 
 describe('RewardSettingsAccountGroupList', () => {
   const mockWalletData = [
@@ -399,6 +450,7 @@ describe('RewardSettingsAccountGroupList', () => {
     removeProperties: jest.fn().mockReturnThis(),
   })) as unknown as jest.MockedFunction<(event: unknown) => unknown>;
   const mockFetchOptInStatus = jest.fn();
+  const mockStartBulkLink = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -422,30 +474,6 @@ describe('RewardSettingsAccountGroupList', () => {
         return () => mockAccounts[groupId] || [];
       },
     );
-
-    // Mock useSelector calls
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      // Mock selectAvatarAccountType selector
-      if (selector === selectAvatarAccountType) {
-        return 'default';
-      }
-
-      // For the allAddresses selector, it will call selectInternalAccountsByGroupId
-      // for each group and build the addresses object
-      // We need to handle this by executing the selector with a mock state
-      if (typeof selector === 'function') {
-        try {
-          const mockState = {} as never;
-          return (selector as (state: never) => unknown)(mockState);
-        } catch {
-          // If selector fails, return empty object
-          return {};
-        }
-      }
-
-      // Fallback for unknown selector types
-      return undefined;
-    });
 
     // Mock useRewardOptinSummary hook
     mockUseRewardOptinSummary.mockReturnValue({
@@ -478,6 +506,51 @@ describe('RewardSettingsAccountGroupList', () => {
       getDataDeletionTaskId: jest.fn(),
       getDataDeletionTaskUrl: jest.fn(),
     } as never);
+
+    // Mock useBulkLinkState hook
+    mockUseBulkLinkState.mockReturnValue({
+      startBulkLink: mockStartBulkLink,
+      cancelBulkLink: jest.fn(),
+      resetBulkLink: jest.fn(),
+      isRunning: false,
+      isCompleted: false,
+      hasFailures: false,
+      isFullySuccessful: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+      accountProgress: 0,
+      processedAccounts: 0,
+    });
+
+    // Mock selectBulkLinkIsRunning selector
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      // Mock selectAvatarAccountType selector
+      if (selector === selectAvatarAccountType) {
+        return 'default';
+      }
+
+      // Mock selectBulkLinkIsRunning selector
+      if (selector === mockSelectBulkLinkIsRunning) {
+        return false;
+      }
+
+      // For the allAddresses selector, it will call selectInternalAccountsByGroupId
+      // for each group and build the addresses object
+      // We need to handle this by executing the selector with a mock state
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {} as never;
+          return (selector as (state: never) => unknown)(mockState);
+        } catch {
+          // If selector fails, return empty object
+          return {};
+        }
+      }
+
+      // Fallback for unknown selector types
+      return undefined;
+    });
   });
 
   describe('Loading State', () => {
@@ -861,6 +934,397 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
       expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Expand/Collapse Functionality', () => {
+    it('should initially show only 2 account groups per wallet', () => {
+      const walletDataWithManyGroups = [
+        {
+          wallet: {
+            id: 'keyring:wallet-1',
+            type: AccountWalletType.Keyring as unknown as AccountWalletType,
+            status: 'unlocked',
+            metadata: {
+              name: 'Test Wallet 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            groups: {},
+          },
+          groups: [
+            {
+              id: 'group-1',
+              name: 'Account Group 1',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-2',
+              name: 'Account Group 2',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-3',
+              name: 'Account Group 3',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-4',
+              name: 'Account Group 4',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+          ],
+        },
+      ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: walletDataWithManyGroups,
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
+
+      // Should show first 2 groups
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-2')).toBeOnTheScreen();
+
+      // Should not show groups 3 and 4 initially
+      expect(queryByTestId('account-group-group-3')).toBeNull();
+      expect(queryByTestId('account-group-group-4')).toBeNull();
+
+      // Should show "Show more" button
+      expect(getByTestId('show-more-button-wallet-1')).toBeOnTheScreen();
+    });
+
+    it('should expand to show all groups when "Show more" is pressed', () => {
+      const walletDataWithManyGroups = [
+        {
+          wallet: {
+            id: 'keyring:wallet-1',
+            type: AccountWalletType.Keyring as unknown as AccountWalletType,
+            status: 'unlocked',
+            metadata: {
+              name: 'Test Wallet 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            groups: {},
+          },
+          groups: [
+            {
+              id: 'group-1',
+              name: 'Account Group 1',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-2',
+              name: 'Account Group 2',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-3',
+              name: 'Account Group 3',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+          ],
+        },
+      ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: walletDataWithManyGroups,
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Click "Show more" button
+      const showMoreButton = getByTestId('show-more-button-wallet-1');
+      fireEvent.press(showMoreButton);
+
+      // All groups should now be visible
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-2')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
+    });
+
+    it('should collapse to show only 2 groups when "Show less" is pressed', () => {
+      const walletDataWithManyGroups = [
+        {
+          wallet: {
+            id: 'keyring:wallet-1',
+            type: AccountWalletType.Keyring as unknown as AccountWalletType,
+            status: 'unlocked',
+            metadata: {
+              name: 'Test Wallet 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            groups: {},
+          },
+          groups: [
+            {
+              id: 'group-1',
+              name: 'Account Group 1',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-2',
+              name: 'Account Group 2',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-3',
+              name: 'Account Group 3',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+          ],
+        },
+      ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: walletDataWithManyGroups,
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
+
+      // Expand first
+      const showMoreButton = getByTestId('show-more-button-wallet-1');
+      fireEvent.press(showMoreButton);
+
+      // Verify expanded
+      expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
+
+      // Collapse
+      const showLessButton = getByTestId('show-more-button-wallet-1');
+      fireEvent.press(showLessButton);
+
+      // Should be collapsed again
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-2')).toBeOnTheScreen();
+      expect(queryByTestId('account-group-group-3')).toBeNull();
+    });
+
+    it('should not show "Show more" button when there are 2 or fewer groups', () => {
+      const walletDataWithFewGroups = [
+        {
+          wallet: {
+            id: 'keyring:wallet-1',
+            type: AccountWalletType.Keyring as unknown as AccountWalletType,
+            status: 'unlocked',
+            metadata: {
+              name: 'Test Wallet 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            groups: {},
+          },
+          groups: [
+            {
+              id: 'group-1',
+              name: 'Account Group 1',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+            {
+              id: 'group-2',
+              name: 'Account Group 2',
+              optedInAccounts: [],
+              optedOutAccounts: [],
+              unsupportedAccounts: [],
+            },
+          ],
+        },
+      ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: walletDataWithFewGroups,
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+
+      const { queryByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Should not show "Show more" button
+      expect(queryByTestId('show-more-button-wallet-1')).toBeNull();
+    });
+  });
+
+  describe('Bulk Link State', () => {
+    it('should show bulk link progress when bulk link is running', () => {
+      mockUseBulkLinkState.mockReturnValue({
+        startBulkLink: mockStartBulkLink,
+        cancelBulkLink: jest.fn(),
+        resetBulkLink: jest.fn(),
+        isRunning: true,
+        isCompleted: false,
+        hasFailures: false,
+        isFullySuccessful: false,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 0,
+        accountProgress: 0.5,
+        processedAccounts: 5,
+      });
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === mockSelectBulkLinkIsRunning) {
+          return true;
+        }
+        if (typeof selector === 'function') {
+          try {
+            const mockState = {} as never;
+            return (selector as (state: never) => unknown)(mockState);
+          } catch {
+            return {};
+          }
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Should show progress section
+      expect(
+        getByTestId('rewards-settings-bulk-link-progress'),
+      ).toBeOnTheScreen();
+    });
+
+    it('should show "Add all accounts" button when not all accounts are linked', () => {
+      mockUseBulkLinkState.mockReturnValue({
+        startBulkLink: mockStartBulkLink,
+        cancelBulkLink: jest.fn(),
+        resetBulkLink: jest.fn(),
+        isRunning: false,
+        isCompleted: false,
+        hasFailures: false,
+        isFullySuccessful: false,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 0,
+        accountProgress: 0.5,
+        processedAccounts: 5,
+      });
+
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Should show "Add all accounts" button
+      expect(getByTestId('rewards-settings-add-all-button')).toBeOnTheScreen();
+    });
+
+    it('should call startBulkLink when "Add all accounts" button is pressed', () => {
+      mockUseBulkLinkState.mockReturnValue({
+        startBulkLink: mockStartBulkLink,
+        cancelBulkLink: jest.fn(),
+        resetBulkLink: jest.fn(),
+        isRunning: false,
+        isCompleted: false,
+        hasFailures: false,
+        isFullySuccessful: false,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 0,
+        accountProgress: 0.5,
+        processedAccounts: 5,
+      });
+
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      const addAllButton = getByTestId('rewards-settings-add-all-button');
+      fireEvent.press(addAllButton);
+
+      expect(mockStartBulkLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not show "Add all accounts" button when bulk link is running', () => {
+      mockUseBulkLinkState.mockReturnValue({
+        startBulkLink: mockStartBulkLink,
+        cancelBulkLink: jest.fn(),
+        resetBulkLink: jest.fn(),
+        isRunning: true,
+        isCompleted: false,
+        hasFailures: false,
+        isFullySuccessful: false,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 0,
+        accountProgress: 0.5,
+        processedAccounts: 5,
+      });
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === mockSelectBulkLinkIsRunning) {
+          return true;
+        }
+        if (typeof selector === 'function') {
+          try {
+            const mockState = {} as never;
+            return (selector as (state: never) => unknown)(mockState);
+          } catch {
+            return {};
+          }
+        }
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Should not show "Add all accounts" button when running
+      expect(queryByTestId('rewards-settings-add-all-button')).toBeNull();
     });
   });
 });
