@@ -22,7 +22,7 @@ import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -140,8 +140,8 @@ const AddFundsBottomSheet: React.FC = () => {
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
       enabled:
-        AppConstants.SWAPS.ACTIVE &&
-        isSwapsAllowed(
+        AppConstants.BRIDGE.ACTIVE &&
+        isBridgeAllowed(
           safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
         ),
     },
