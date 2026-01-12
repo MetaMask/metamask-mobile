@@ -68,6 +68,41 @@ describe('HeaderCenter', () => {
       expect(getByText('Children Text')).toBeOnTheScreen();
       expect(queryByText('Title Text')).not.toBeOnTheScreen();
     });
+
+    it('renders subtitle when provided', () => {
+      const { getByText } = render(
+        <HeaderCenter title="Test Title" subtitle="Test Subtitle" />,
+      );
+
+      expect(getByText('Test Subtitle')).toBeOnTheScreen();
+    });
+
+    it('does not render subtitle when not provided', () => {
+      const { queryByText } = render(<HeaderCenter title="Test Title" />);
+
+      expect(queryByText('Test Subtitle')).not.toBeOnTheScreen();
+    });
+
+    it('renders subtitle with testID when provided via subtitleProps', () => {
+      const { getByTestId } = render(
+        <HeaderCenter
+          title="Test Title"
+          subtitle="Test Subtitle"
+          subtitleProps={{ testID: 'subtitle-test-id' }}
+        />,
+      );
+
+      expect(getByTestId('subtitle-test-id')).toBeOnTheScreen();
+    });
+
+    it('renders both title and subtitle together', () => {
+      const { getByText } = render(
+        <HeaderCenter title="Main Title" subtitle="Supporting Text" />,
+      );
+
+      expect(getByText('Main Title')).toBeOnTheScreen();
+      expect(getByText('Supporting Text')).toBeOnTheScreen();
+    });
   });
 
   describe('back button', () => {

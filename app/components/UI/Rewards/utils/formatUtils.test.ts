@@ -11,6 +11,7 @@ import {
   formatUTCDate,
   formatRewardsMusdDepositPayloadDate,
   resolveTemplate,
+  validateEmail,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -247,7 +248,7 @@ describe('formatUtils', () => {
       expect(result).toBe('1m');
     });
 
-    it('returns hours and minutes when days are zero', () => {
+    it('returns hours and minutes with double-digit values when days are zero', () => {
       // Given: 0 days, 12 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -260,7 +261,7 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return hours and minutes format
+      // Then: returns hours and minutes format
       expect(result).toBe('12h 30m');
     });
 
@@ -1178,6 +1179,24 @@ describe('formatUtils', () => {
       expect(resolveTemplate(template, values)).toBe(
         'Static string with no tokens',
       );
+    });
+  });
+
+  describe('validateEmail', () => {
+    it('returns true for valid email with standard format', () => {
+      const email = 'user@example.com';
+
+      const result = validateEmail(email);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for email missing domain after @', () => {
+      const email = 'user@';
+
+      const result = validateEmail(email);
+
+      expect(result).toBe(false);
     });
   });
 });

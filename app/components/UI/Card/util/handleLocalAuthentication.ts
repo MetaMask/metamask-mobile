@@ -69,7 +69,20 @@ export const handleLocalAuthentication = async ({
       return { isAuthenticated: false };
     }
 
-    // If refresh token is still valid, retrieve a new accessToken and store it
+    // Check if access token is still fresh enough to skip refresh
+    // Skip if access token has more than 5 minutes of validity remaining
+    if (Date.now() + 5 * 60 * 1000 < accessTokenExpiresAt) {
+      Logger.log(
+        'handleLocalAuthentication: Access token still fresh, skipping refresh',
+      );
+      return {
+        isAuthenticated: true,
+        userCardLocation: location,
+      };
+    }
+
+    // If refresh token is still valid but access token is about to expire,
+    // retrieve a new accessToken and store it
     try {
       const newTokens = await refreshCardToken(refreshToken, location);
 

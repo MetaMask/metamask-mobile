@@ -51,6 +51,11 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
     trackAlertRendered: jest.fn(),
   }),
 }));
+jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: () => ({
+    setConfirmationMetric: jest.fn(),
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 
