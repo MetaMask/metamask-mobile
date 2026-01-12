@@ -70,6 +70,7 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1738,19 +1739,6 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 }
 
 export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
@@ -1761,39 +1749,11 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    // Render an empty left header action that matches the dimensions of the close button.
-    // This allows us to center align the title on Android devices.
-    headerLeft: Device.isAndroid()
-      ? () => (
-          <View style={[styles.closeButton, styles.hidden]}>
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Lg}
-              color={IconColor.Muted}
-            />
-          </View>
-        )
-      : null,
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Icon name={IconName.Close} size={IconSize.Lg} />
-      </TouchableOpacity>
-    ),
-    headerStyle: innerStyles.headerStyle,
-  };
+  return getHeaderCenterNavbarOptions({
+    title,
+    onClose: () => navigation.dangerouslyGetParent()?.pop(),
+    includesTopInset: true,
+  });
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
