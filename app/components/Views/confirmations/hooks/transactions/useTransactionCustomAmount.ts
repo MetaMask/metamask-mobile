@@ -17,6 +17,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -30,6 +31,7 @@ export function useTransactionCustomAmount({
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const maxPercentage = useMaxPercentage();
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -69,19 +71,27 @@ export function useTransactionCustomAmount({
     );
   }, [amountHumanDebounced]);
 
-  const updatePendingAmount = useCallback((value: string) => {
-    let newAmount = value.replace(/^0+/, '') || '0';
+  const updatePendingAmount = useCallback(
+    (value: string) => {
+      let newAmount = value.replace(/^0+/, '') || '0';
 
-    if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
-      newAmount = '0' + newAmount;
-    }
+      if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
+        newAmount = '0' + newAmount;
+      }
 
-    if (newAmount.length >= MAX_LENGTH) {
-      return;
-    }
+      if (newAmount.length >= MAX_LENGTH) {
+        return;
+      }
 
-    setAmountFiat(newAmount);
-  }, []);
+      setConfirmationMetric({
+        properties: {
+          mm_pay_amount_input_type: 'manual',
+        },
+      });
+      setAmountFiat(newAmount);
+    },
+    [setConfirmationMetric],
+  );
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
@@ -97,9 +107,14 @@ export function useTransactionCustomAmount({
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
+      setConfirmationMetric({
+        properties: {
+          mm_pay_amount_input_type: `${percentage}%`,
+        },
+      });
       setAmountFiat(newAmount);
     },
-    [balanceUsd, maxPercentage],
+    [balanceUsd, maxPercentage, setConfirmationMetric],
   );
 
   const updateTokenAmount = useCallback(() => {

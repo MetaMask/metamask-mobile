@@ -3,110 +3,235 @@ import React from 'react';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import PredictFeed from './PredictFeed';
 
-/**
- * Mock Strategy:
- * - Only mock child components with complex dependencies and external services
- * - Do NOT mock: Design system, theme utilities, SafeAreaView, Reanimated
- * - Child components are mocked because they have their own test coverage
- * and we're testing the parent's state management and component orchestration
- */
-
-// Mock child components - have their own test coverage
-jest.mock('../../components/PredictFeedHeader', () => {
-  const { View, Pressable } = jest.requireActual('react-native');
+jest.mock('react-native-pager-view', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(
-      ({ isSearchVisible, onSearchToggle, onSearchCancel, onSearch }) => (
-        <View testID="predict-feed-header-mock">
-          <Pressable testID="mock-search-toggle" onPress={onSearchToggle} />
-          <Pressable testID="mock-search-cancel" onPress={onSearchCancel} />
-          <Pressable
-            testID="mock-search-input"
-            onPress={() => onSearch('test query')}
-          />
-          {isSearchVisible && <View testID="search-visible-indicator" />}
-        </View>
-      ),
-    ),
+    default: jest.fn(({ children, onPageSelected }) => (
+      <View testID="pager-view-mock">
+        {MockReact.Children.map(
+          children,
+          (child: React.ReactElement, index: number) =>
+            MockReact.cloneElement(child, {
+              testID: `pager-page-${index}`,
+              onTouchEnd: () =>
+                onPageSelected?.({ nativeEvent: { position: index } }),
+            }),
+        )}
+      </View>
+    )),
   };
 });
 
 jest.mock('../../components/PredictBalance', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
-    PredictBalance: jest.fn(({ onLayout }) => (
-      <View testID="predict-balance-mock" onLayout={() => onLayout?.(100)}>
+    PredictBalance: jest.fn(() => (
+      <View testID="predict-balance-mock">
         <Text>Balance Component</Text>
       </View>
     )),
   };
 });
 
-jest.mock('../../components/PredictMarketList', () => {
+jest.mock('../../hooks/usePredictMarketData', () => ({
+  usePredictMarketData: jest.fn(),
+}));
+
+import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+
+const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
+
+jest.mock('../../hooks/useFeedScrollManager', () => ({
+  useFeedScrollManager: jest.fn(),
+}));
+
+import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
+
+const mockUseFeedScrollManager = useFeedScrollManager as jest.Mock;
+
+jest.mock('../../components/PredictMarket', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ isSearchVisible, searchQuery }) => (
-      <View testID="predict-market-list-mock">
-        <Text>Market List</Text>
-        {isSearchVisible && (
-          <Text testID="market-list-search-mode">Searching</Text>
-        )}
-        {searchQuery && <Text testID="market-list-query">{searchQuery}</Text>}
+    default: jest.fn(({ testID }) => (
+      <View testID={testID}>
+        <Text>Market Card</Text>
       </View>
     )),
   };
 });
 
-// Mock navigation hooks
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useRoute: jest.fn(() => ({
-    params: {
-      entryPoint: 'homepage_new_prediction',
-    },
-  })),
-  useFocusEffect: jest.fn((callback) => callback()),
-}));
-
-// Mock session manager - external analytics service
-jest.mock('../../services/PredictFeedSessionManager', () => {
-  const mockInstance = {
-    startSession: jest.fn(),
-    endSession: jest.fn(),
-    trackPageView: jest.fn(),
-    trackTabChange: jest.fn(),
-    enableAppStateListener: jest.fn(),
-    disableAppStateListener: jest.fn(),
-  };
-
+jest.mock('../../components/PredictMarketSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: {
-      getInstance: jest.fn(() => mockInstance),
-    },
+    default: jest.fn(({ testID }) => <View testID={testID} />),
   };
 });
 
-// Mock shared scroll coordinator - complex shared state management
-jest.mock('../../hooks/useSharedScrollCoordinator', () => ({
-  useSharedScrollCoordinator: jest.fn(() => ({
-    balanceCardOffset: { value: 0 },
-    balanceCardHeight: { value: 0 },
-    setBalanceCardHeight: jest.fn(),
-    setCurrentCategory: jest.fn(),
-    getTabScrollPosition: jest.fn(() => 0),
-    setTabScrollPosition: jest.fn(),
-    getScrollHandler: jest.fn(),
-    isBalanceCardHidden: jest.fn(() => false),
-    updateBalanceCardHiddenState: jest.fn(),
-  })),
+jest.mock('../../components/PredictOffline', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(() => <View testID="predict-offline-mock" />),
+  };
+});
+
+jest.mock('@shopify/flash-list', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, ScrollView } = jest.requireActual('react-native');
+  const MockFlashList = MockReact.forwardRef(
+    (
+      {
+        data,
+        renderItem,
+        keyExtractor,
+        testID,
+        ListFooterComponent,
+      }: {
+        data: { id: string }[];
+        renderItem: (info: {
+          item: { id: string };
+          index: number;
+        }) => React.ReactNode;
+        keyExtractor: (item: { id: string }) => string;
+        testID?: string;
+        ListFooterComponent?: React.ComponentType | React.ReactElement | null;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({}));
+      return (
+        <ScrollView testID={testID}>
+          {data?.map((item, index) => (
+            <View key={keyExtractor?.(item) ?? item.id}>
+              {renderItem({ item, index })}
+            </View>
+          ))}
+          {ListFooterComponent &&
+            (typeof ListFooterComponent === 'function' ? (
+              <ListFooterComponent />
+            ) : (
+              ListFooterComponent
+            ))}
+        </ScrollView>
+      );
+    },
+  );
+  return {
+    FlashList: MockFlashList,
+    FlashListRef: {},
+    FlashListProps: {},
+  };
+});
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(),
+    useRoute: jest.fn(),
+    useFocusEffect: jest.fn(),
+  };
+});
+
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
+
+const mockUseNavigation = useNavigation as jest.Mock;
+const mockUseRoute = useRoute as jest.Mock;
+const mockUseFocusEffect = useFocusEffect as jest.Mock;
+
+const mockNavigation = {
+  canGoBack: jest.fn(() => true),
+  goBack: jest.fn(),
+  navigate: jest.fn(),
+};
+
+jest.mock('../../services/PredictFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn(),
+  },
 }));
+
+import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
+
+const mockGetInstance = PredictFeedSessionManager.getInstance as jest.Mock;
+
+const mockSessionManager = {
+  startSession: jest.fn(),
+  endSession: jest.fn(),
+  trackPageView: jest.fn(),
+  trackTabChange: jest.fn(),
+  enableAppStateListener: jest.fn(),
+  disableAppStateListener: jest.fn(),
+};
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: jest.fn(),
+}));
+
+jest.mock('../../../../../component-library/components-temp/Tabs', () => {
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  return {
+    TabsBar: jest.fn(({ tabs, activeIndex, onTabPress, testID }) => (
+      <View testID={testID}>
+        {tabs.map((tab: { key: string; label: string }, index: number) => (
+          <Pressable
+            key={tab.key}
+            testID={`tab-${tab.key}`}
+            onPress={() => onTabPress(index)}
+          >
+            <Text>{tab.label}</Text>
+          </Pressable>
+        ))}
+        <View testID={`active-tab-${activeIndex}`} />
+      </View>
+    )),
+    TabItem: {},
+  };
+});
 
 describe('PredictFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseNavigation.mockReturnValue(mockNavigation);
+    mockUseRoute.mockReturnValue({
+      params: {
+        entryPoint: 'homepage_new_prediction',
+      },
+    });
+    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    mockGetInstance.mockReturnValue(mockSessionManager);
+    mockUseFeedScrollManager.mockReturnValue({
+      headerTranslateY: { value: 0 },
+      headerHidden: false,
+      headerHeight: 100,
+      tabBarHeight: 48,
+      layoutReady: true,
+      activeIndex: 0,
+      setActiveIndex: jest.fn(),
+      scrollHandler: jest.fn(),
+    });
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: [
+        { id: '1', title: 'Test Market 1' },
+        { id: '2', title: 'Test Market 2' },
+      ],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -114,121 +239,366 @@ describe('PredictFeed', () => {
   });
 
   describe('initial render', () => {
-    it('displays container with feed header, balance, and market list', () => {
+    it('renders container with top nav, balance, tabs, and market list', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(
         getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
-      expect(getByTestId('predict-feed-header-mock')).toBeOnTheScreen();
+      expect(
+        getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByTestId('predict-search-button')).toBeOnTheScreen();
       expect(getByTestId('predict-balance-mock')).toBeOnTheScreen();
-      expect(getByTestId('predict-market-list-mock')).toBeOnTheScreen();
+      expect(getByTestId('predict-feed-tabs')).toBeOnTheScreen();
+      expect(getByTestId('pager-view-mock')).toBeOnTheScreen();
     });
 
-    it('starts with search hidden and empty query', () => {
+    it('hides search overlay on initial render', () => {
       const { queryByTestId } = render(<PredictFeed />);
 
-      expect(queryByTestId('search-visible-indicator')).toBeNull();
-      expect(queryByTestId('market-list-query')).toBeNull();
-    });
-  });
-
-  describe('search toggle functionality', () => {
-    it('shows search and hides balance when toggle pressed', () => {
-      const { getByTestId, queryByTestId } = render(<PredictFeed />);
-      const toggleButton = getByTestId('mock-search-toggle');
-
-      fireEvent.press(toggleButton);
-
-      expect(getByTestId('search-visible-indicator')).toBeOnTheScreen();
-      expect(queryByTestId('predict-balance-mock')).toBeNull();
-      expect(getByTestId('market-list-search-mode')).toBeOnTheScreen();
-    });
-  });
-
-  describe('search cancel functionality', () => {
-    it('hides search, shows balance, and clears query when cancel pressed', () => {
-      const { getByTestId, queryByTestId } = render(<PredictFeed />);
-      const toggleButton = getByTestId('mock-search-toggle');
-      const searchInput = getByTestId('mock-search-input');
-      fireEvent.press(toggleButton);
-      fireEvent.press(searchInput);
-      expect(getByTestId('search-visible-indicator')).toBeOnTheScreen();
-      expect(getByTestId('market-list-query')).toBeOnTheScreen();
-
-      const cancelButton = getByTestId('mock-search-cancel');
-      fireEvent.press(cancelButton);
-
-      expect(queryByTestId('search-visible-indicator')).toBeNull();
-      expect(getByTestId('predict-balance-mock')).toBeOnTheScreen();
-      expect(queryByTestId('market-list-query')).toBeNull();
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 
   describe('search functionality', () => {
-    it('updates and displays search query in market list', () => {
-      const { getByTestId, getByText } = render(<PredictFeed />);
-      const searchInput = getByTestId('mock-search-input');
+    it('opens search overlay when search button pressed', () => {
+      const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(searchInput);
+      fireEvent.press(getByTestId('predict-search-button'));
 
-      expect(getByText('test query')).toBeOnTheScreen();
-      expect(getByTestId('market-list-query')).toBeOnTheScreen();
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+    });
+
+    it('closes search overlay when cancel button pressed', () => {
+      const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      fireEvent.press(getByText('Cancel'));
+
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 
-  describe('complete search workflow', () => {
-    it('executes full search cycle from toggle to cancel with all state changes', () => {
-      const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
-      const toggleButton = getByTestId('mock-search-toggle');
-      const searchInput = getByTestId('mock-search-input');
-      const cancelButton = getByTestId('mock-search-cancel');
-
-      fireEvent.press(toggleButton);
-      expect(getByTestId('search-visible-indicator')).toBeOnTheScreen();
-      expect(queryByTestId('predict-balance-mock')).toBeNull();
-
-      fireEvent.press(searchInput);
-      expect(getByText('test query')).toBeOnTheScreen();
-
-      fireEvent.press(cancelButton);
-      expect(queryByTestId('search-visible-indicator')).toBeNull();
-      expect(getByTestId('predict-balance-mock')).toBeOnTheScreen();
-      expect(queryByTestId('market-list-query')).toBeNull();
-    });
-
-    it('keeps market list visible throughout entire search workflow', () => {
+  describe('tab navigation', () => {
+    it('renders all five category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
-      const marketList = getByTestId('predict-market-list-mock');
 
-      expect(marketList).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('mock-search-toggle'));
-      expect(marketList).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('mock-search-input'));
-      expect(marketList).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('mock-search-cancel'));
-      expect(marketList).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-new')).toBeOnTheScreen();
+      expect(getByTestId('tab-sports')).toBeOnTheScreen();
+      expect(getByTestId('tab-crypto')).toBeOnTheScreen();
+      expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('toggles search visibility multiple times independently of query state', () => {
-      const { getByTestId, queryByTestId } = render(<PredictFeed />);
-      const toggleButton = getByTestId('mock-search-toggle');
-      const cancelButton = getByTestId('mock-search-cancel');
+    it('does not track analytics when tab pressed', () => {
+      const { getByTestId } = render(<PredictFeed />);
 
-      fireEvent.press(toggleButton);
-      expect(getByTestId('search-visible-indicator')).toBeOnTheScreen();
+      fireEvent.press(getByTestId('tab-sports'));
 
-      fireEvent.press(cancelButton);
-      expect(queryByTestId('search-visible-indicator')).toBeNull();
+      expect(mockSessionManager.trackTabChange).not.toHaveBeenCalled();
+    });
+  });
 
-      fireEvent.press(toggleButton);
-      expect(getByTestId('search-visible-indicator')).toBeOnTheScreen();
+  describe('session management', () => {
+    it('starts session and enables app state listener on mount', () => {
+      render(<PredictFeed />);
 
-      fireEvent.press(cancelButton);
-      expect(queryByTestId('search-visible-indicator')).toBeNull();
+      expect(mockSessionManager.enableAppStateListener).toHaveBeenCalled();
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'trending',
+      );
+    });
+
+    it('ends session and disables app state listener on unmount', () => {
+      const { unmount } = render(<PredictFeed />);
+
+      unmount();
+
+      expect(mockSessionManager.endSession).toHaveBeenCalled();
+      expect(mockSessionManager.disableAppStateListener).toHaveBeenCalled();
+    });
+
+    it('tracks page view on screen focus', () => {
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.trackPageView).toHaveBeenCalled();
+    });
+  });
+
+  describe('navigation', () => {
+    it('calls goBack when back button pressed and navigation can go back', () => {
+      const { getByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('navigates to wallet home when back button pressed and navigation cannot go back', () => {
+      mockNavigation.canGoBack.mockReturnValue(false);
+      const { getByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+  });
+
+  describe('loading states', () => {
+    it('renders skeleton loaders when fetching initial data', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('skeleton-loading-trending-1')).toBeOnTheScreen();
+      expect(getByTestId('skeleton-loading-trending-2')).toBeOnTheScreen();
+    });
+  });
+
+  describe('error states', () => {
+    it('renders offline component when fetch error occurs', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: new Error('Network error'),
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('predict-offline-mock')).toBeOnTheScreen();
+    });
+  });
+
+  describe('empty states', () => {
+    it('renders empty state message when no markets available', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('predict-empty-state-trending')).toBeOnTheScreen();
+    });
+  });
+
+  describe('search overlay interactions', () => {
+    it('displays search results when query is entered', () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+      expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton loaders while search is fetching', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+    });
+
+    it('clears search query when clear button is pressed', () => {
+      const { getByTestId, getByPlaceholderText, queryByTestId } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test query');
+      fireEvent.press(getByTestId('clear-button'));
+
+      expect(queryByTestId('predict-search-result-0')).toBeNull();
+    });
+  });
+
+  describe('pager view interactions', () => {
+    it('updates active index and tracks analytics when page changes via swipe', () => {
+      const mockSetActiveIndex = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        activeIndex: 0,
+        setActiveIndex: mockSetActiveIndex,
+        scrollHandler: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+      const page1 = getByTestId('pager-page-1');
+
+      fireEvent(page1, 'onTouchEnd');
+
+      expect(mockSetActiveIndex).toHaveBeenCalledWith(1);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+    });
+  });
+
+  describe('layout states', () => {
+    it('hides pager view when layout is not ready', () => {
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: false,
+        activeIndex: 0,
+        setActiveIndex: jest.fn(),
+        scrollHandler: jest.fn(),
+      });
+
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('pager-view-mock')).toBeNull();
+    });
+  });
+
+  describe('market list rendering', () => {
+    it('renders market cards with correct testIDs using 1-based indexing', () => {
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(
+        getByTestId('predict-market-list-trending-card-1'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('predict-market-list-trending-card-2'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('search empty states', () => {
+    it('displays no results message when search returns empty', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText, getByText } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'nonexistent');
+
+      expect(getByText(/No results found/i)).toBeOnTheScreen();
+    });
+
+    it('displays error state in search when fetch fails', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: new Error('Search error'),
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText, getAllByTestId } = render(
+        <PredictFeed />,
+      );
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test');
+
+      const offlineElements = getAllByTestId('predict-offline-mock');
+      expect(offlineElements.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('pagination', () => {
+    it('renders footer skeleton when fetching more data', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Test Market 1' },
+          { id: '2', title: 'Test Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: true,
+        error: null,
+        hasMore: true,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('skeleton-footer-trending-1')).toBeOnTheScreen();
+      expect(getByTestId('skeleton-footer-trending-2')).toBeOnTheScreen();
+    });
+  });
+
+  describe('route params', () => {
+    it('starts session with entry point from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'wallet_action_button',
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'wallet_action_button',
+        'trending',
+      );
+    });
+
+    it('starts session with undefined entry point when not provided', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        undefined,
+        'trending',
+      );
     });
   });
 });
