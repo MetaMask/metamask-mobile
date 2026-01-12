@@ -204,6 +204,20 @@ export const useWithdrawalRequests = (
   // to prevent duplicate updateWithdrawalStatus calls
   const updatedWithdrawalIdsRef = useRef<Set<string>>(new Set());
 
+  // Clear the updated withdrawal IDs ref when account changes to prevent stale data
+  // This handles the edge case where withdrawal IDs might not be globally unique
+  // across accounts (e.g., sequential IDs), ensuring the new account's withdrawals
+  // are properly processed
+  useEffect(() => {
+    if (selectedAddress) {
+      updatedWithdrawalIdsRef.current.clear();
+      DevLogger.log(
+        'useWithdrawalRequests: Cleared updatedWithdrawalIdsRef on account change',
+        { selectedAddress },
+      );
+    }
+  }, [selectedAddress]);
+
   // Combine pending and completed withdrawals (pure data transformation, no side effects)
   const allWithdrawals = useMemo(() => {
     // Build a list that merges pending withdrawals with their completed counterparts
