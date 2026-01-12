@@ -25,7 +25,8 @@ import {
   ButtonVariant as DesignSystemButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * The payment token to preselect in the confirmation screen
@@ -58,6 +59,8 @@ const EarnMusdConversionEducationView = () => {
 
   const colorScheme = useColorScheme();
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const backgroundImage = useMemo(
     () =>
       colorScheme === 'dark'
@@ -65,6 +68,13 @@ const EarnMusdConversionEducationView = () => {
         : musdEducationBackgroundV2Light,
     [colorScheme],
   );
+
+  const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
+    MUSD_EVENTS_CONSTANTS;
+
+  const submitContinueEvent = () => {};
+
+  const submitGoBackEvent = () => {};
 
   const handleContinue = useCallback(async () => {
     try {

@@ -20,7 +20,10 @@ import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
-
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+import { Hex } from '@metamask/utils';
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
@@ -34,15 +37,45 @@ const MusdConversionAssetOverviewCta = ({
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const networkName = useNetworkName(asset.chainId as Hex);
+
   const { initiateConversion } = useMusdConversion();
 
   const { getMusdOutputChainId } = useMusdConversionTokens();
+
+  // TODO: Add tests.
+  const submitCtaPressedEvent = () => {
+    const { EVENT_LOCATIONS, ACTION_TYPES, MUSD_CTA_TYPES } =
+      MUSD_EVENTS_CONSTANTS;
+
+    const ctaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+          action_type: ACTION_TYPES.MUSD_CONVERSION,
+          cta_type: MUSD_CTA_TYPES.TERTIARY,
+          cta_text: ctaText,
+          network_chain_id: asset.chainId,
+          network_name: networkName,
+          timestamp: Date.now(),
+          asset_name: asset.name,
+          asset_symbol: asset.symbol,
+        })
+        .build(),
+    );
+  };
 
   const handlePress = async () => {
     try {
       if (!asset?.address || !asset?.chainId) {
         throw new Error('Asset address or chain ID is not set');
       }
+
+      submitCtaPressedEvent();
 
       await initiateConversion({
         preferredPaymentToken: {
