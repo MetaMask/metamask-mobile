@@ -179,7 +179,15 @@ describe('OtpCode Screen', () => {
     mockSendUserOtp.mockRejectedValue(new Error('Failed to resend'));
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
-    fireEvent.press(resendButton);
+
+    await act(async () => {
+      fireEvent.press(resendButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Error resending code.')).toBeOnTheScreen();
+    });
+
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
