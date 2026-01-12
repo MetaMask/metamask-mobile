@@ -4,7 +4,7 @@ import { fontStyles, colors as importedColors } from '../../../styles/common';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, isKeyboardVisible = false) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -238,11 +238,7 @@ const createStyles = (colors: any) =>
     stickyButtonContainer: {
       paddingHorizontal: 16,
       paddingTop: 12,
-      paddingBottom: Platform.select({
-        ios: 32,
-        android: 32,
-        default: 32,
-      }),
+      paddingBottom: isKeyboardVisible ? 6 : 32,
       backgroundColor: colors.background.default,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border.muted,

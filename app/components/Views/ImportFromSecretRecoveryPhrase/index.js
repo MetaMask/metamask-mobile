@@ -111,7 +111,8 @@ const ImportFromSecretRecoveryPhrase = ({
   route,
 }) => {
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+  const styles = createStyles(colors, isKeyboardVisible);
 
   const confirmPasswordInput = useRef();
 
@@ -137,8 +138,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const isSrpWordSuggestionsEnabled = useSelector(
     selectImportSrpWordSuggestionEnabledFlag,
   );
-
-  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
