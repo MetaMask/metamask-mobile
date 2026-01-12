@@ -145,29 +145,55 @@ jobs:
           adb install ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           echo "✅ APK installed"
 
-      - name: Run Maestro Test
-        id: maestro-test
-        run: |
-          echo "🎭 Running Maestro test: ${{ inputs.test-file }}"
-          echo "📍 Branch: ${{ inputs.branch }}"
-          maestro test ${{ inputs.test-file }}
+      - name: Setup recordings directory
+        run: mkdir -p maestro-recordings
 
-      - name: Upload Maestro test results
-        if: always()
+      - name: Run Maestro Test with Recording
+        id: maestro-test
+        continue-on-error: true
+        run: |
+          echo "🎭 Running Maestro test with recording: ${{ inputs.test-file }}"
+          echo "📍 Branch: ${{ inputs.branch }}"
+          
+          # Use maestro record --local to capture video locally (no external API)
+          # Recording will be saved even if test fails
+          if maestro record --local --output maestro-recordings/test-recording.mp4 ${{ inputs.test-file }}; then
+            echo "✅ Maestro test passed"
+            echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+          else
+            echo "❌ Maestro test failed"
+            echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+          fi
+
+      - name: Zip recordings on failure
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "📦 Zipping test recordings..."
+          cd maestro-recordings
+          zip -r ../maestro-recordings.zip . || echo "No recordings to zip"
+          cd ..
+          ls -la maestro-recordings.zip || echo "Zip file not created"
+
+      - name: Upload recording on failure
+        if: env.TEST_RESULT == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-${{ inputs.test-suite-name }}-results
-          path: |
-            ~/.maestro/tests/**/*
-            **/maestro_*.mp4
+          name: maestro-${{ inputs.test-suite-name }}-recording
+          path: maestro-recordings.zip
           retention-days: 7
           if-no-files-found: warn
 
       - name: Upload screenshots on failure
-        if: failure()
+        if: env.TEST_RESULT == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: maestro-${{ inputs.test-suite-name }}-screenshots
           path: ~/.maestro/tests/**/screenshot_*.png
           retention-days: 7
           if-no-files-found: warn
+
+      - name: Fail job if test failed
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "❌ Maestro test failed - see uploaded recording and screenshots for details"
+          exit 1
