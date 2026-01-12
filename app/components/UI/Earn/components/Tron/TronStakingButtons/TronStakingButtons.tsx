@@ -85,14 +85,14 @@ const TronStakingButtons = ({
 
   return (
     <View style={styles.balanceButtonsContainer}>
-      {!hasStakedPositions && aprText && (
+      {!hasStakedPositions && (
         <View style={styles.ctaContent}>
           <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
             {strings('stake.stake_your_trx_cta.title')}
           </Text>
           <Text style={styles.ctaText}>
             {strings('stake.stake_your_trx_cta.description_start')}
-            <Text color={TextColor.Success}>{aprText}</Text>
+            {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
             {strings('stake.stake_your_trx_cta.description_end')}
           </Text>
         </View>
