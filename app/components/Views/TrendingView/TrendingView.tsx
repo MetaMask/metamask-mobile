@@ -139,6 +139,7 @@ export const ExploreFeed: React.FC = () => {
         screen: Routes.BROWSER.VIEW,
         params: {
           showTabsView: true,
+          timestamp: Date.now(),
           fromTrending: true,
         },
       });
