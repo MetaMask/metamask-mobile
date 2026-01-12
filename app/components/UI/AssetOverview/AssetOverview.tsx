@@ -218,14 +218,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   // so we place it in the destination position with native token of same chain as source.
   // Otherwise, they likely want to SELL.
   const wantsToBuyToken = isAssetFromTrending(asset);
+  const sourceToken = wantsToBuyToken
+    ? getNativeSourceToken(bridgeToken.chainId)
+    : bridgeToken;
+  const destToken = wantsToBuyToken ? bridgeToken : undefined;
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    sourceToken: wantsToBuyToken
-      ? getNativeSourceToken(bridgeToken.chainId)
-      : bridgeToken,
-    destToken: wantsToBuyToken ? bridgeToken : undefined,
+    sourceToken,
+    destToken,
   });
 
   // Hook for handling non-EVM asset sending
