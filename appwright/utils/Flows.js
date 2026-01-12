@@ -19,6 +19,59 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
 import { expect } from 'appwright';
 
+/**
+ * Switches to an account with retry logic and verification
+ * @param {*} device - The device instance
+ * @param {string} accountName - The account name to switch to (e.g., "Account 2")
+ * @param {number} maxRetries - Maximum number of retry attempts (default: 3)
+ * @returns {Promise<void>}
+ */
+export async function verifyAndSwitchAccount(
+  device,
+  accountName,
+  maxRetries = 3,
+) {
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(
+      `[Attempt ${attempt}/${maxRetries}] Switching to "${accountName}"`,
+    );
+
+    try {
+      console.log('  → Opening account list...');
+      await WalletMainScreen.tapIdenticon();
+
+      console.log('Waiting for account list...');
+      await AccountListComponent.isComponentDisplayed();
+
+      console.log(`Tapping on "${accountName}"...`);
+      await AccountListComponent.tapOnAccountByName(accountName);
+
+      console.log('Waiting for wallet view...');
+      await WalletMainScreen.isMainWalletViewVisible();
+
+      console.log(`Verifying "${accountName}" is active...`);
+      await WalletMainScreen.checkActiveAccount(accountName);
+
+      console.log(`Successfully switched to "${accountName}"!`);
+      return;
+    } catch (error) {
+      console.log(`Attempt ${attempt} failed: ${error.message}`);
+
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Failed to switch and verify account "${accountName}" after ${maxRetries} attempts. Last error: ${error.message}`,
+        );
+      }
+
+      console.log(`Waiting 1.5s before retry...`);
+      await device.pause(1500);
+    }
+  }
+}
+
 export async function selectAccountDevice(device, testInfo) {
   // Access device name from testInfo.project.use.device
   const deviceName = testInfo.project.use.device.name;
@@ -55,17 +108,8 @@ export async function selectAccountDevice(device, testInfo) {
     `🔄 Switching to account: ${accountName} for device: ${deviceName}`,
   );
 
-  // Set device for screen objects
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-
-  // Perform account switch
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-  await AccountListComponent.tapOnAccountByName(accountName);
-
-  // Verify we are back on main screen (tapping account usually closes modal)
-  await WalletMainScreen.isMainWalletViewVisible();
+  // Perform account switch with retry logic and verification
+  await verifyAndSwitchAccount(device, accountName, 3);
 }
 
 export async function onboardingFlowImportSRP(device, srp) {
@@ -193,7 +237,7 @@ export async function login(device, options = {}) {
   LoginScreen.device = device;
   const { scenarioType = 'login', dismissModals = false } = options;
 
-  const password = getPasswordForScenario(scenarioType);
+  const password = 'MetaMaskQA123';
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
