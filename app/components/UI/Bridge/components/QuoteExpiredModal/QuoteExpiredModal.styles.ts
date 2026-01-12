@@ -6,8 +6,9 @@ const createStyles = () =>
       paddingHorizontal: 16,
     },
     footer: {
-      paddingVertical: 20,
       paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 16,
     },
   });
 

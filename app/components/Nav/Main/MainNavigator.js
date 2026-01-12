@@ -126,6 +126,7 @@ import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSh
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
+import MetalCardClaimBottomSheet from '../../UI/Rewards/components/MetalCardClaimBottomSheet/MetalCardClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
@@ -277,6 +278,10 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET}
+      component={MetalCardClaimBottomSheet}
     />
   </Stack.Navigator>
 );

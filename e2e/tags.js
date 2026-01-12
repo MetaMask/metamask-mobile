@@ -72,6 +72,15 @@ const smokeTags = {
   },
 };
 
+// Flask tests (AI-selectable, Android only)
+const flaskTags = {
+  flaskBuildTests: {
+    tag: 'FlaskBuildTests:',
+    description:
+      'MetaMask Snaps functionality tests (Android only) - covers snap permissions, state management, ethereum provider, and snap UI components',
+  },
+};
+
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
@@ -85,7 +94,6 @@ const otherTags = {
   regressionWalletUX: 'RegressionWalletUX:',
   regressionTrade: 'RegressionTrade:',
   regressionSampleFeature: 'RegressionSampleFeature:',
-  flaskBuildTests: 'FlaskBuildTests:',
   performance: 'Performance:',
 };
 
@@ -147,11 +155,12 @@ const RegressionTrade = (testName) =>
 const RegressionSampleFeature = (testName) =>
   `${otherTags.regressionSampleFeature} ${testName}`;
 const FlaskBuildTests = (testName) =>
-  `${otherTags.flaskBuildTests} ${testName}`;
+  `${flaskTags.flaskBuildTests.tag} ${testName}`;
 const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 
 export {
   smokeTags,
+  flaskTags,
   SmokeAccounts,
   SmokeCore,
   SmokeConfirmationsRedesigned,
