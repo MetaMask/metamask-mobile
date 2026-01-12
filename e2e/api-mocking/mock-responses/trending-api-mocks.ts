@@ -123,7 +123,7 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       urlEndpoint: /https:\/\/dapp-scanning\.api\.cx\.metamask\.io\/v2\/scan.*/,
       responseCode: 200,
       response: {
-        isMalicious: false,
+        recommendedAction: 'NONE',
       },
       priority: 1000,
     },
