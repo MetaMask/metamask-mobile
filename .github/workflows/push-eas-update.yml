@@ -110,18 +110,84 @@ jobs:
         id: branch_fingerprint
         run: |
           echo "🧬 Generating fingerprint for current branch..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Target PR fingerprint: ${FINGERPRINT}"
+          echo "📂 Current directory: $(pwd)"
+          echo "📦 Checking node_modules..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found in current directory"
+            exit 1
+          fi
+          echo "✅ node_modules exists"
+          echo "📦 Checking @expo/fingerprint installation..."
+          if [ ! -d "node_modules/@expo/fingerprint" ]; then
+            echo "❌ @expo/fingerprint not found in node_modules"
+            echo "📋 Listing node_modules/@expo directory:"
+            ls -la node_modules/@expo/ 2>&1 || echo "node_modules/@expo does not exist"
+            exit 1
+          fi
+          echo "✅ @expo/fingerprint found"
+          echo "🔍 Running fingerprint generation..."
+          set +e
+          FINGERPRINT=$(yarn fingerprint:generate 2>&1)
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code: $EXIT_CODE"
+            echo "📋 Error output:"
+            echo "$FINGERPRINT"
+            exit $EXIT_CODE
+          fi
+          # Extract only the hash (last line, in case there's any debug output)
+          HASH=$(echo "$FINGERPRINT" | tail -n 1 | tr -d '\n\r ')
+          if [ -z "$HASH" ]; then
+            echo "❌ Empty fingerprint hash received"
+            echo "📋 Full output:"
+            echo "$FINGERPRINT"
+            exit 1
+          fi
+          echo "fingerprint=$HASH" >> "$GITHUB_OUTPUT"
+          echo "✅ Target PR fingerprint: ${HASH}"
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
         working-directory: main
         run: |
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Base branch fingerprint: ${FINGERPRINT}"
+          echo "📂 Current directory: $(pwd)"
+          echo "📦 Checking node_modules..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found in current directory"
+            exit 1
+          fi
+          echo "✅ node_modules exists"
+          echo "📦 Checking @expo/fingerprint installation..."
+          if [ ! -d "node_modules/@expo/fingerprint" ]; then
+            echo "❌ @expo/fingerprint not found in node_modules"
+            echo "📋 Listing node_modules/@expo directory:"
+            ls -la node_modules/@expo/ 2>&1 || echo "node_modules/@expo does not exist"
+            exit 1
+          fi
+          echo "✅ @expo/fingerprint found"
+          echo "🔍 Running fingerprint generation..."
+          set +e
+          FINGERPRINT=$(yarn fingerprint:generate 2>&1)
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code: $EXIT_CODE"
+            echo "📋 Error output:"
+            echo "$FINGERPRINT"
+            exit $EXIT_CODE
+          fi
+          # Extract only the hash (last line, in case there's any debug output)
+          HASH=$(echo "$FINGERPRINT" | tail -n 1 | tr -d '\n\r ')
+          if [ -z "$HASH" ]; then
+            echo "❌ Empty fingerprint hash received"
+            echo "📋 Full output:"
+            echo "$FINGERPRINT"
+            exit 1
+          fi
+          echo "fingerprint=$HASH" >> "$GITHUB_OUTPUT"
+          echo "✅ Base branch fingerprint: ${HASH}"
 
       - name: Compare fingerprints
         id: compare
