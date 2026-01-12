@@ -76,11 +76,28 @@ jobs:
           fetch-depth: 0
 
       - name: Print base branch ref and commit
+        id: base_branch_info
         working-directory: main
         run: |
           echo "🔎 Base branch ref: ${BASE_BRANCH_REF}"
           echo "🔎 Base branch HEAD: $(git rev-parse --abbrev-ref HEAD || echo 'detached HEAD')"
-          echo "🔎 Base branch commit: $(git rev-parse HEAD)"
+          BASE_SHA=$(git rev-parse HEAD)
+          echo "🔎 Base branch commit: $BASE_SHA"
+          echo "sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Print diff between PR and base branch (fingerprint-related files)
+        run: |
+          echo "🔎 PR commit: $(git rev-parse HEAD)"
+          echo "🔎 Base commit: ${{ steps.base_branch_info.outputs.sha }}"
+          echo "🔎 Changed files affecting fingerprint:"
+          git diff --name-status ${{ steps.base_branch_info.outputs.sha }}...HEAD -- \
+            package.json \
+            ota.config.js \
+            app.json \
+            eas.json \
+            ios \
+            android \
+            expo.* || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
