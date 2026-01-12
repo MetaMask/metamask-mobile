@@ -414,6 +414,7 @@ const Routes = {
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
+      DAIMO_PAY: 'CardDaimoPayModal',
     },
   },
   SEND: {

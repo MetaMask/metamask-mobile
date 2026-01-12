@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import ReviewOrder from './ReviewOrder';
 import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -95,17 +95,39 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Icon: ({ name, ...props }: { name: string } & Record<string, unknown>) =>
+      React.createElement(View, { ...props, testID: `icon-${name}` }),
     TextVariant: {
       HeadingLg: 'HeadingLg',
+      HeadingSm: 'HeadingSm',
       BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
     },
     FontWeight: {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
     },
+    IconName: {
+      Coin: 'Coin',
+      Card: 'Card',
+    },
+    IconSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+    },
+    IconColor: {
+      PrimaryInverse: 'PrimaryInverse',
+    },
   };
 });
+
+jest.mock('../../services/DaimoPayService', () => ({
+  __esModule: true,
+  default: {
+    createPayment: jest.fn().mockResolvedValue({ payId: 'test-pay-id' }),
+  },
+}));
 
 describe('ReviewOrder', () => {
   beforeEach(() => {
@@ -197,10 +219,14 @@ describe('ReviewOrder', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks pay with crypto button click', () => {
+    it('tracks pay with crypto button click', async () => {
       const { getByTestId } = render(<ReviewOrder />);
 
-      fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON));
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON),
+        );
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
@@ -225,13 +251,18 @@ describe('ReviewOrder', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to order completed with crypto payment method', () => {
+    it('navigates to Daimo Pay modal when pay with crypto is pressed', async () => {
       const { getByTestId } = render(<ReviewOrder />);
 
-      fireEvent.press(getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON));
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON),
+        );
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ORDER_COMPLETED, {
-        paymentMethod: 'crypto',
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.DAIMO_PAY,
+        params: { payId: 'test-pay-id' },
       });
     });
 

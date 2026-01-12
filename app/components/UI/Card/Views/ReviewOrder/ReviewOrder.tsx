@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -8,6 +8,10 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -15,11 +19,12 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
+import DaimoPayService from '../../services/DaimoPayService';
+import Logger from '../../../../../util/Logger';
 
 interface ShippingAddress {
   line1: string;
@@ -39,6 +44,9 @@ const ReviewOrder = () => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const tw = useTailwind();
+
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const handleRenewsPress = useCallback(() => {
     trackEvent(
@@ -75,9 +83,6 @@ const ReviewOrder = () => {
       {
         label: strings('card.review_order.fees'),
         value: strings('card.review_order.fees_free'),
-        onPress: () => {
-          // TODO: Open fees modal
-        },
       },
       {
         label: strings('card.review_order.renews'),
@@ -102,7 +107,7 @@ const ReviewOrder = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handlePayWithCrypto = useCallback(() => {
+  const handlePayWithCrypto = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -111,9 +116,27 @@ const ReviewOrder = () => {
         .build(),
     );
 
-    navigate(Routes.CARD.ORDER_COMPLETED, {
-      paymentMethod: 'crypto',
-    });
+    setIsCreatingPayment(true);
+    setPaymentError(null);
+
+    try {
+      // Create a Daimo payment session
+      const response = await DaimoPayService.createPayment();
+
+      // Navigate to the Daimo Pay modal with the payment ID
+      navigate(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.DAIMO_PAY,
+        params: { payId: response.payId },
+      });
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'ReviewOrder: Failed to create Daimo payment',
+      );
+      setPaymentError(strings('card.review_order.payment_creation_error'));
+    } finally {
+      setIsCreatingPayment(false);
+    }
   }, [navigate, trackEvent, createEventBuilder]);
 
   const handlePayWithCard = useCallback(() => {
@@ -236,22 +259,69 @@ const ReviewOrder = () => {
         <Box twClassName="flex-1" />
 
         <Box twClassName="pb-4 gap-3">
+          {paymentError && (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default text-center mb-2"
+              testID={ReviewOrderSelectors.PAYMENT_ERROR}
+            >
+              {paymentError}
+            </Text>
+          )}
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('card.review_order.pay_with_crypto')}
+            label={
+              <Box twClassName="flex-row items-center gap-2">
+                {isCreatingPayment ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={tw.color('primary-inverse')}
+                    testID={ReviewOrderSelectors.PAY_WITH_CRYPTO_LOADING}
+                  />
+                ) : (
+                  <Icon
+                    name={IconName.Coin}
+                    size={IconSize.Sm}
+                    color={IconColor.PrimaryInverse}
+                  />
+                )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-primary-inverse"
+                >
+                  {strings('card.review_order.pay_with_crypto')}
+                </Text>
+              </Box>
+            }
             size={ButtonSize.Lg}
             onPress={handlePayWithCrypto}
             width={ButtonWidthTypes.Full}
-            startIconName={IconName.Coin}
+            isDisabled={isCreatingPayment}
             testID={ReviewOrderSelectors.PAY_WITH_CRYPTO_BUTTON}
           />
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('card.review_order.pay_with_card')}
+            label={
+              <Box twClassName="flex-row items-center gap-2">
+                <Icon
+                  name={IconName.Card}
+                  size={IconSize.Sm}
+                  color={IconColor.PrimaryInverse}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-primary-inverse"
+                >
+                  {strings('card.review_order.pay_with_card')}
+                </Text>
+              </Box>
+            }
             size={ButtonSize.Lg}
             onPress={handlePayWithCard}
             width={ButtonWidthTypes.Full}
-            startIconName={IconName.Card}
+            isDisabled={isCreatingPayment}
             testID={ReviewOrderSelectors.PAY_WITH_CARD_BUTTON}
           />
         </Box>

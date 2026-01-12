@@ -30,6 +30,7 @@ import VerifyingRegistration from '../components/Onboarding/VerifyingRegistratio
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
+import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -221,6 +222,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.RECURRING_FEE}
       component={RecurringFeeModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.DAIMO_PAY}
+      component={DaimoPayModal}
     />
   </ModalsStack.Navigator>
 );

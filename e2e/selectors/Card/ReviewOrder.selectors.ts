@@ -10,4 +10,6 @@ export const ReviewOrderSelectors = {
   ORDER_ITEM_PRESSABLE: 'review-order-item-pressable',
   PAY_WITH_CRYPTO_BUTTON: 'review-order-pay-with-crypto-button',
   PAY_WITH_CARD_BUTTON: 'review-order-pay-with-card-button',
+  PAYMENT_ERROR: 'review-order-payment-error',
+  PAY_WITH_CRYPTO_LOADING: 'review-order-pay-with-crypto-loading',
 };

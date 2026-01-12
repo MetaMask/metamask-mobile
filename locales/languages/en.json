@@ -6542,13 +6542,19 @@
       "renews_annually": "Annually",
       "total": "Total",
       "pay_with_crypto": "Pay with crypto",
-      "pay_with_card": "Pay with card"
+      "pay_with_card": "Pay with card",
+      "payment_creation_error": "Failed to create payment. Please try again."
     },
     "recurring_fee_modal": {
       "title": "Recurring fee",
       "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
       "learn_more": "Learn more",
       "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method."
     },
     "card_onboarding": {
       "title": "Spend\nand\nEarn",
