@@ -2,6 +2,21 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
+    outputs:
+      app-uploaded:
+        description: 'Whether the app was successfully uploaded'
+        value: ${{ jobs.build-ios-apps.outputs.app-uploaded }}
+    inputs:
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'qa'
+        type: string
 
 permissions:
   contents: read
@@ -20,8 +35,8 @@ jobs:
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
       PLATFORM: ios
-      METAMASK_ENVIRONMENT: qa
-      METAMASK_BUILD_TYPE: main
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       IS_TEST: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -226,7 +241,7 @@ jobs:
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: MetaMask.app
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
@@ -239,7 +254,7 @@ jobs:
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: index.js.map
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
           if-no-files-found: error
