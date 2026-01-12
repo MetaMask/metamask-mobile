@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -31,8 +31,8 @@ jest.mock('../../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../Swaps/utils', () => ({
-  isSwapsAllowed: jest.fn(),
+jest.mock('../../../Bridge/utils', () => ({
+  isBridgeAllowed: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({
@@ -169,7 +169,7 @@ describe('AddFundsBottomSheet', () => {
       isDepositEnabled: true,
     });
 
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
 
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -198,7 +198,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = setupComponent();
 
@@ -209,7 +209,7 @@ describe('AddFundsBottomSheet', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = setupComponent();
 
@@ -271,7 +271,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('does not render swap option when priority token is null', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     const { queryByTestId } = setupComponent(undefined);
 
     const swapOption = queryByTestId(
