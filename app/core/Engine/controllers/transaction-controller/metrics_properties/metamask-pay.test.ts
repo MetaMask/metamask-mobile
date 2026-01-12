@@ -3,12 +3,13 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { getMetaMaskPayProperties } from './metamask-pay';
-import { TransactionMetricsBuilder } from '../types';
+import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../../reducers';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 
 const BATCH_ID_MOCK = '0x1234' as Hex;
 
@@ -53,6 +54,7 @@ describe('Metamask Pay Metrics', () => {
     jest.resetAllMocks();
 
     request = {
+      eventType: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
       transactionMeta: {
         id: 'child-1',
         txParams: { nonce: '0x1' },
@@ -60,6 +62,8 @@ describe('Metamask Pay Metrics', () => {
       allTransactions: [],
       getUIMetrics: getUIMetricsMock,
       getState: getStateMock,
+      initMessenger: {} as never,
+      smartTransactionsController: {} as never,
     };
   });
 
@@ -331,7 +335,7 @@ describe('Metamask Pay Metrics', () => {
       }) as unknown as RootState,
     );
 
-    const result = getMetaMaskPayProperties(request);
+    const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
     expect(result.properties.mm_pay_dust_usd).toBeUndefined();
   });

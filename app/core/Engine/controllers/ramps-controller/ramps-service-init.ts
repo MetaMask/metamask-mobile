@@ -4,6 +4,7 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
+import Device from '../../../../util/device';
 
 export function getRampsEnvironment(): RampsEnvironment {
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
@@ -33,9 +34,11 @@ export const rampsServiceInit: ControllerInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {
+  const context = Device.isIos() ? 'mobile-ios' : 'mobile-android';
   const service = new RampsService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
+    context,
     fetch,
   });
 
