@@ -4,7 +4,6 @@ import { merge } from 'lodash';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -14,10 +13,14 @@ import {
 } from './metrics';
 import { TransactionEventHandlerRequest } from '../types';
 import {
-  disabledSmartTransactionsState,
   enabledSmartTransactionsState,
+  disabledSmartTransactionsState,
 } from '../data-helpers';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
+import {
+  selectShouldUseSmartTransaction,
+} from '../../../../../selectors/smartTransactionsController';
 import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 
@@ -25,23 +28,23 @@ jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
   return {
     ...actual,
-    getSmartTransactionMetricsProperties: jest.fn(),
+    getSmartTransactionMetricsProperties: jest.fn().mockResolvedValue({}),
   };
 });
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(true),
+  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock(
   '../../../../../selectors/featureFlagController/legalNotices',
   () => ({
-    selectIsPna25FlagEnabled: jest.fn(),
+    selectIsPna25FlagEnabled: jest.fn().mockReturnValue(false),
   }),
 );
 
 jest.mock('../../../../../selectors/legalNotices', () => ({
-  selectIsPna25Acknowledged: jest.fn(),
+  selectIsPna25Acknowledged: jest.fn().mockReturnValue(false),
 }));
 
 // Mock MetricsEventBuilder (used by generateEvent in utils.ts)
@@ -58,7 +61,7 @@ jest.mock('../../../Engine', () => ({
   context: {},
 }));
 
-jest.mock('../event_properties/metamask-pay', () => ({
+jest.mock('../metrics_properties/metamask-pay', () => ({
   getMetaMaskPayProperties: jest.fn().mockReturnValue({
     properties: {
       builder_test: true,
@@ -70,17 +73,19 @@ jest.mock('../event_properties/metamask-pay', () => ({
 }));
 
 describe('Transaction Metric Event Handlers', () => {
-  const mockGetSmartTransactionMetricsProperties = jest.mocked(
-    getSmartTransactionMetricsProperties,
-  );
   const mockGetState = jest.fn();
   const mockInitMessengerCall = jest.fn();
   const mockSmartTransactionsController = jest.fn();
-  const mockSelectShouldUseSmartTransaction = jest.mocked(
-    selectShouldUseSmartTransaction,
-  );
-  const mockSelectIsPna25FlagEnabled = jest.mocked(selectIsPna25FlagEnabled);
-  const mockSelectIsPna25Acknowledged = jest.mocked(selectIsPna25Acknowledged);
+
+  // Mock variables for selectors
+  const mockSelectShouldUseSmartTransaction =
+    selectShouldUseSmartTransaction as jest.Mock;
+  const mockGetSmartTransactionMetricsProperties =
+    getSmartTransactionMetricsProperties as jest.Mock;
+  const mockSelectIsPna25FlagEnabled =
+    selectIsPna25FlagEnabled as jest.Mock;
+  const mockSelectIsPna25Acknowledged =
+    selectIsPna25Acknowledged as jest.Mock;
 
   const mockTransactionMeta = {
     id: 'test-id',
@@ -91,12 +96,6 @@ describe('Transaction Metric Event Handlers', () => {
     time: 1234567890,
     txParams: {},
   } as unknown as TransactionMeta;
-
-  const mockSmartTransactionMetricsProperties = {
-    smart_transaction_timed_out: false,
-    smart_transaction_proxied: false,
-    is_smart_transaction: true,
-  };
 
   const mockTransactionMetricRequest = {
     getState: mockGetState,
@@ -140,10 +139,6 @@ describe('Transaction Metric Event Handlers', () => {
       mockAnalyticsEventBuilder,
     );
 
-    mockGetSmartTransactionMetricsProperties.mockResolvedValue(
-      mockSmartTransactionMetricsProperties,
-    );
-
     mockGetState.mockReturnValue(
       merge({}, enabledSmartTransactionsState, {
         confirmationMetrics: {
@@ -156,9 +151,6 @@ describe('Transaction Metric Event Handlers', () => {
         },
       }),
     );
-
-    mockSelectIsPna25FlagEnabled.mockReturnValue(false);
-    mockSelectIsPna25Acknowledged.mockReturnValue(false);
   });
 
   const handlerTestCases = [
@@ -190,7 +182,7 @@ describe('Transaction Metric Event Handlers', () => {
   ];
 
   it.each(handlerTestCases)(
-    '$handlerName should generate and track event with correct properties',
+    '$handlerName generates and tracks event with correct properties',
     async ({ handler, event }) => {
       await handler(mockTransactionMeta, mockTransactionMetricRequest);
 
@@ -222,7 +214,7 @@ describe('Transaction Metric Event Handlers', () => {
     expect(mockMetricsEventBuilder.addSensitiveProperties).toHaveBeenCalled();
   });
 
-  it('handles undefined transaction metrics', () => {
+  it('does not throw for undefined transaction metrics', () => {
     mockGetState.mockReturnValueOnce({
       confirmationMetrics: {
         metricsById: {},
@@ -237,7 +229,7 @@ describe('Transaction Metric Event Handlers', () => {
     }).not.toThrow();
   });
 
-  it('includes builder metrics', async () => {
+  it('includes builder metrics in tracked event', async () => {
     await handleTransactionSubmittedEventForMetrics(
       mockTransactionMeta,
       mockTransactionMetricRequest,
@@ -310,7 +302,11 @@ describe('Transaction Metric Event Handlers', () => {
 
       expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalled();
       expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
-        expect.objectContaining(mockSmartTransactionMetricsProperties),
+        expect.objectContaining({
+          smart_transaction_timed_out: false,
+          smart_transaction_proxied: false,
+          is_smart_transaction: true,
+        }),
       );
     });
 

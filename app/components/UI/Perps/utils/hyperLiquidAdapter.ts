@@ -171,7 +171,8 @@ export function adaptOrderFromSDK(
   // TODO: We assume that there can only be 1 TP and 1 SL as children but there can be several TPSLs as children
   // We need to handle this properly in the future
   if (rawOrder.children && rawOrder.children.length > 0) {
-    rawOrder.children.forEach((child: FrontendOrder) => {
+    rawOrder.children.forEach((childUnknown) => {
+      const child = childUnknown as FrontendOrder;
       if (child.isTrigger && child.orderType) {
         if (child.orderType.includes('Take Profit')) {
           takeProfitPrice = child.triggerPx || child.limitPx;
