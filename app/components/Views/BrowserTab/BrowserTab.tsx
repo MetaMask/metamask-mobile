@@ -134,6 +134,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     id: tabId,
     isIpfsGatewayEnabled,
     addToWhitelist: triggerAddToWhitelist,
+    showTabs,
     linkType,
     updateTabInfo,
     addToBrowserHistory,
@@ -477,6 +478,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       },
       [dismissTextSelectionIfNeeded, newTab],
     );
+
+    /**
+     * Show the tabs view
+     */
+    const showTabsView = useCallback(() => {
+      dismissTextSelectionIfNeeded();
+      showTabs();
+    }, [dismissTextSelectionIfNeeded, showTabs]);
 
     /**
      * Handle when the drawer (app menu) is opened
@@ -1231,7 +1240,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
-    const handleBackPress = useCallback(() => {
+    const handleClosePress = useCallback(() => {
       if (fromPerps) {
         // If opened from Perps, navigate back to PerpsHome
         navigation.navigate(Routes.PERPS.ROOT, {
@@ -1240,13 +1249,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
-      } else {
-        // By default go to trending
+      } else if (isAssetsTrendingTokensEnabled) {
+        // If trending is enabled, go to trending view
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
+      } else {
+        // If trending is disabled, go back to wallet home
+        navigation.navigate(Routes.WALLET.HOME);
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromTrending, fromPerps, isAssetsTrendingTokensEnabled]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1255,8 +1267,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
-
-    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1382,15 +1392,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
             >
-              {showBackButton && (
-                <ButtonIcon
-                  iconName={IconName.ArrowLeft}
-                  size={ButtonIconSize.Lg}
-                  onPress={handleBackPress}
-                  testID="browser-tab-back-button"
-                />
-              )}
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSize.Lg}
+                onPress={handleClosePress}
+                testID="browser-tab-close-button"
+              />
               <Box twClassName="flex-1">
                 <BrowserUrlBar
                   ref={urlBarRef}
@@ -1407,6 +1416,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   showCloseButton={
                     fromTrending && isAssetsTrendingTokensEnabled
                   }
+                  showTabs={showTabsView}
                 />
               </Box>
             </Box>
