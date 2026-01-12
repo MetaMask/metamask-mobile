@@ -5,6 +5,7 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
+  workflow_dispatch:
   schedule:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
