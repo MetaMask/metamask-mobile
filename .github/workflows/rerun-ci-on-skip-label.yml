@@ -2,7 +2,7 @@ name: Re-run CI on skip-smart-e2e-selection label
 
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, unlabeled]
 
 jobs:
   rerun-ci:
