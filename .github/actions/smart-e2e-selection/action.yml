@@ -130,8 +130,8 @@ runs:
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables
-          node .github/scripts/e2e-smart-selection.mjs
+          # The script will generate the GH output variables - don't fail if script errors
+          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
         fi
 
     - name: Set final outputs with fallback
