@@ -424,10 +424,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     opacity: backdropOpacity.value,
   }));
 
-  if (
-    isFullPageAccountList &&
-    screen === AccountSelectorScreens.AccountSelector
-  ) {
+  if (isFullPageAccountList) {
     return (
       <>
         <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -450,9 +447,27 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               title={strings('accounts.accounts_title')}
               onBack={closeModal}
             />
-            {renderAccountScreens()}
+            {renderAccountSelector()}
           </Animated.View>
         </KeyboardAvoidingView>
+
+        {/* Add Wallet bottom sheet overlay */}
+        {screen === AccountSelectorScreens.AddAccountActions && (
+          <BottomSheet onClose={handleBackToSelector}>
+            <BottomSheetHeader onBack={handleBackToSelector}>
+              {strings('account_actions.add_account')}
+            </BottomSheetHeader>
+            {renderAddAccountActions()}
+          </BottomSheet>
+        )}
+        {screen === AccountSelectorScreens.MultichainAddWalletActions && (
+          <BottomSheet onClose={handleBackToSelector}>
+            <BottomSheetHeader onBack={handleBackToSelector}>
+              {strings('multichain_accounts.add_wallet')}
+            </BottomSheetHeader>
+            {renderMultichainAddWalletActions()}
+          </BottomSheet>
+        )}
       </>
     );
   }
