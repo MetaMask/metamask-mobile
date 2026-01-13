@@ -34,39 +34,37 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
     return wordlist.filter((word) => word.startsWith(trimmedWord)).slice(0, 5);
   }, [currentInputWord]);
 
-  if (suggestions.length === 0) {
-    return null;
-  }
-
   return (
     <View
       style={styles.suggestionContainer}
       onTouchStart={onPressIn}
       testID="srp-word-suggestions"
     >
-      <FlatList
-        horizontal
-        data={suggestions}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [
-              styles.suggestionButton,
-              pressed && styles.suggestionPressed,
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPressIn={onPressIn}
-            onPress={() => onSuggestionSelect(item)}
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {item}
-            </Text>
-          </Pressable>
-        )}
-        keyExtractor={(item) => item}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.suggestionListContent}
-        keyboardShouldPersistTaps="always"
-      />
+      {suggestions.length > 0 && (
+        <FlatList
+          horizontal
+          data={suggestions}
+          renderItem={({ item }) => (
+            <Pressable
+              style={({ pressed }) => [
+                styles.suggestionButton,
+                pressed && styles.suggestionPressed,
+              ]}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPressIn={onPressIn}
+              onPress={() => onSuggestionSelect(item)}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {item}
+              </Text>
+            </Pressable>
+          )}
+          keyExtractor={(item) => item}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.suggestionListContent}
+          keyboardShouldPersistTaps="always"
+        />
+      )}
     </View>
   );
 };
