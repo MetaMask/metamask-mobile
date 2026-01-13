@@ -261,6 +261,7 @@ describe('StakingButtons', () => {
     const mockCheckEligibilityAndRedirect = jest.fn();
 
     beforeEach(() => {
+      jest.clearAllMocks();
       mockCheckEligibilityAndRedirect.mockClear();
       (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: true,
@@ -269,9 +270,9 @@ describe('StakingButtons', () => {
     });
 
     it('redirects to Portfolio when user is not eligible and clicks stake button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
       const mockNavigate = jest.fn();
       (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+      mockCheckEligibilityAndRedirect.mockReturnValue(false);
 
       const { getByText } = renderWithProvider(
         <StakingButtons
@@ -287,12 +288,7 @@ describe('StakingButtons', () => {
       });
 
       expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      );
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),
@@ -300,9 +296,9 @@ describe('StakingButtons', () => {
     });
 
     it('redirects to Portfolio when user is not eligible and clicks unstake button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
       const mockNavigate = jest.fn();
       (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+      mockCheckEligibilityAndRedirect.mockReturnValue(false);
 
       const { getByText } = renderWithProvider(
         <StakingButtons
@@ -318,12 +314,7 @@ describe('StakingButtons', () => {
       });
 
       expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      );
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),

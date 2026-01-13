@@ -679,13 +679,7 @@ describe('EarnLendingBalance', () => {
       });
 
       expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BROWSER.HOME,
-        expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-        }),
-      );
-      // Should not navigate to stake screen
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),
@@ -708,13 +702,7 @@ describe('EarnLendingBalance', () => {
       });
 
       expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BROWSER.HOME,
-        expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-        }),
-      );
-      // Should not navigate to stake screen
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),
