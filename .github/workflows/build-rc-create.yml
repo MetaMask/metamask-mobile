@@ -14,7 +14,34 @@ on:
         description: 'release version'
         required: true
 jobs:
+  validate-input:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate semver input
+        env:
+          SEMVER: ${{ inputs.semver }}
+        run: |
+          set -euo pipefail
+
+          echo "Provided semver input: ${SEMVER}"
+          # Validate semver format (X.Y.Z where X, Y, Z are digits)
+          if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: semver must be numeric X.Y.Z format, got: ${SEMVER:-<empty>}" >&2
+            exit 1
+          fi
+
+          # Validate branch name doesn't contain dangerous characters
+          BRANCH_NAME="release/${SEMVER}"
+          if [[ "$BRANCH_NAME" =~ [^a-zA-Z0-9._/-] ]]; then
+            echo "Error: semver contains invalid characters for branch name" >&2
+            exit 1
+          fi
+
+          echo "✅ Semver validation passed: ${SEMVER}"
+          echo "Branch name: ${BRANCH_NAME}"
+
   bump-version:
+    needs: validate-input
     uses: ./.github/workflows/update-latest-build-version.yml
     with:
       base-branch: release/${{ inputs.semver }}
@@ -27,6 +54,7 @@ jobs:
   trigger-rc-build:
     runs-on: ubuntu-latest
     needs:
+      - validate-input
       - bump-version
     steps:
       - name: Checkout repository

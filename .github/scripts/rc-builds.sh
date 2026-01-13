@@ -10,24 +10,40 @@ set -euo pipefail
 : "${BITRISE_API_TOKEN:?BITRISE_API_TOKEN environment variable must be set}"
 : "${COMMIT_HASH:?COMMIT_HASH environment variable must be set}"
 : "${GH_REF_NAME:?GH_REF_NAME environment variable must be set}"
+
+# Additional validation for semver format (defense in depth)
+if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Error: SEMVER must be numeric X.Y.Z format, got: ${SEMVER:-<empty>}" >&2
+  exit 1
+fi
+
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
+
+# Use jq to safely construct JSON payload to prevent injection attacks
+JSON_PAYLOAD=$(jq -n \
+  --arg branch "$GH_REF_NAME" \
+  --arg pipeline_id "$METAMASK_WORKFLOW" \
+  --arg commit_message "RC build ${SEMVER}(${BUILD_NUMBER})" \
+  --arg commit_hash "$COMMIT_HASH" \
+  --arg build_trigger_token "$BITRISE_BUILD_TRIGGER_TOKEN" \
+  '{
+    "build_params": {
+      "branch": $branch,
+      "pipeline_id": $pipeline_id,
+      "commit_message": $commit_message,
+      "commit_hash": $commit_hash
+    },
+    "hook_info": {
+      "type": "bitrise",
+      "build_trigger_token": $build_trigger_token
+    },
+    "triggered_by": "GitHub Actions RC Build"
+  }')
 
 BUILD_RESPONSE=$(curl -s -X POST \
   "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
   -H "Content-Type: application/json" \
-  -d '{
-    "build_params": {
-      "branch": "'$GH_REF_NAME'",
-      "pipeline_id": "'$METAMASK_WORKFLOW'",
-      "commit_message": "RC build '${SEMVER}'('${BUILD_NUMBER}')",
-      "commit_hash": "'$COMMIT_HASH'"
-    },
-    "hook_info": {
-      "type": "bitrise",
-      "build_trigger_token": "'$BITRISE_BUILD_TRIGGER_TOKEN'"
-    },
-    "triggered_by": "GitHub Actions RC Build"
-  }')
+  -d "$JSON_PAYLOAD")
 
 echo "Build response: $BUILD_RESPONSE"
 BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
