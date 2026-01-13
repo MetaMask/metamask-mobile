@@ -250,7 +250,7 @@ describe('WebSocketManager', () => {
       expect(callback2).toHaveBeenCalled();
     });
 
-    it('unsubscribes correctly', () => {
+    it('does not call callback after unsubscribe is invoked', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
