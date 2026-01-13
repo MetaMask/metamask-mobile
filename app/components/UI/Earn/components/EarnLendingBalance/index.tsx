@@ -177,7 +177,10 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     </View>
   );
 
-  const shouldShowMusdConversionCta = shouldShowAssetOverviewCta(asset);
+  const shouldShowMusdConversionCta = useMemo(
+    () => shouldShowAssetOverviewCta(asset),
+    [asset, shouldShowAssetOverviewCta],
+  );
 
   if (!isStablecoinLendingEnabled) {
     if (shouldShowMusdConversionCta) {

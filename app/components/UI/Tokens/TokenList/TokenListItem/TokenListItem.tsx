@@ -118,7 +118,10 @@ export const TokenListItem = React.memo(
     const { getMusdOutputChainId } = useMusdConversionTokens();
     const { initiateConversion } = useMusdConversion();
 
-    const shouldShowConvertToMusdCta = shouldShowTokenListItemCta(asset);
+    const shouldShowConvertToMusdCta = useMemo(
+      () => shouldShowTokenListItemCta(asset),
+      [asset, shouldShowTokenListItemCta],
+    );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
