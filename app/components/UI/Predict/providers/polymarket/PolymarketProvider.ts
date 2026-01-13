@@ -14,10 +14,7 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import {
-  isLiveSportsEnabled,
-  LIVE_SPORTS_LEAGUES,
-} from '../../constants/sports';
+import { SUPPORTED_SPORTS_LEAGUES } from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -177,8 +174,10 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarketDetails({
     marketId,
+    liveSportsLeagues = [],
   }: {
     marketId: string;
+    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
@@ -189,15 +188,17 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const liveSportsEnabled = isLiveSportsEnabled();
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
       }
 
       const teamLookup = liveSportsEnabled
         ? (
-            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
             abbreviation: string,
           ) => TeamsCache.getInstance().getTeam(league, abbreviation)
         : undefined;
@@ -258,15 +259,18 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const liveSportsEnabled = isLiveSportsEnabled();
+      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
       }
 
       const teamLookup = liveSportsEnabled
         ? (
-            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
             abbreviation: string,
           ) => TeamsCache.getInstance().getTeam(league, abbreviation)
         : undefined;
