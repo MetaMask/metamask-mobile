@@ -376,7 +376,11 @@ const NetworkManager = () => {
           <ScrollableTabView
             renderTabBar={renderTabBar}
             onChangeTab={onChangeTab}
+<<<<<<< HEAD
             initialPage={initialTabIndexRef.current ?? 0}
+=======
+            initialPage={defaultTabIndex}
+>>>>>>> ee28089539 (chore: removing unused styles)
           >
             <NetworkMultiSelector
               {...defaultTabProps}

@@ -22,9 +22,6 @@ const createStyles = (params: { theme: Theme }) => {
   const textAlternative = colors.text.alternative;
 
   return StyleSheet.create({
-    scrollableTabView: {
-      flex: 1,
-    },
     // tab
     tabUnderlineStyle: {
       height: UNDERLINE_HEIGHT,
