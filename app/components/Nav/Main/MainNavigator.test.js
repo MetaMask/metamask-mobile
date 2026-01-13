@@ -216,4 +216,29 @@ describe('MainNavigator', () => {
     // Then component should match fullscreen snapshot (returns null)
     expect(component.toJSON()).toMatchSnapshot();
   });
+
+  it('shows Activity tab in tab bar', () => {
+    const { getByTestId } = render(<MainNavigator />);
+
+    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
+  });
+
+  it('shows all core tabs when no feature flags are enabled', () => {
+    selectAssetsTrendingTokensEnabled.mockReturnValue(false);
+    selectBrowserFullscreen.mockReturnValue(false);
+
+    const { getByTestId } = render(<MainNavigator />);
+
+    expect(getByTestId('tab-bar-item-Wallet')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Browser')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Trade')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Activity')).toBeOnTheScreen();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeOnTheScreen();
+  });
+
+  it('renders main-navigator container', () => {
+    const { getByTestId } = render(<MainNavigator />);
+
+    expect(getByTestId('main-navigator')).toBeOnTheScreen();
+  });
 });

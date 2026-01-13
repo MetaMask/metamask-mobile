@@ -151,11 +151,12 @@ const AccountActions = () => {
         ).build(),
       );
 
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        credentialName: 'private_key',
-        shouldUpdateNav: true,
-        selectedAccount,
-      });
+      navigate(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+        {
+          account: selectedAccount,
+        },
+      );
     });
   };
 

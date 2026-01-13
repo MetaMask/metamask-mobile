@@ -115,7 +115,8 @@ const mockSelectedInternalAccount = {
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockFetchCardDetails = jest.fn();
-const mockFetchAllData = jest.fn();
+const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
+const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockPollCardStatusUntilProvisioned = jest.fn().mockResolvedValue(true);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
@@ -392,16 +393,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.kyc_status.pending.title': 'Verification in Progress',
       'card.card_home.kyc_status.pending.description':
         'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
-      'card.card_home.kyc_status.rejected.title': 'Verification Not Approved',
+      'card.card_home.kyc_status.rejected.title': 'Verification not approved',
       'card.card_home.kyc_status.rejected.description':
         'We were unable to verify your identity. Please contact support for assistance.',
       'card.card_home.kyc_status.rejected.support_description':
         "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
-      'card.card_home.kyc_status.unverified.title': 'Verification Required',
+      'card.card_home.kyc_status.unverified.title': 'Verification required',
       'card.card_home.kyc_status.unverified.description':
         'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
       'card.card_home.kyc_status.error.title':
-        'Verification Status Unavailable',
+        'Verification status unavailable',
       'card.card_home.kyc_status.error.description':
         "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
       'card.card_home.kyc_status.ok_button': 'OK',
@@ -529,6 +530,7 @@ function setupLoadCardDataMock(
     fetchPriorityToken: mockFetchPriorityToken,
     fetchCardDetails: mockFetchCardDetails,
     fetchAllData: mockFetchAllData,
+    refetchAllData: mockRefetchAllData,
     pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned: false,
   });
@@ -614,6 +616,7 @@ describe('CardHome Component', () => {
       fetchPriorityToken: mockFetchPriorityToken,
       fetchCardDetails: mockFetchCardDetails,
       fetchAllData: mockFetchAllData,
+      refetchAllData: mockRefetchAllData,
       pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
       isLoadingPollCardStatusUntilProvisioned: false,
     });
@@ -1955,6 +1958,7 @@ describe('CardHome Component', () => {
         fetchPriorityToken: mockFetchPriorityToken,
         fetchCardDetails: mockFetchCardDetails,
         fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: true,
       });
@@ -2981,7 +2985,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Not Approved',
+            'Verification not approved',
             "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
             [{ text: 'OK', style: 'default' }],
           );
@@ -3002,7 +3006,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Required',
+            'Verification required',
             'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
             [{ text: 'OK', style: 'default' }],
           );
@@ -3111,7 +3115,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
             [{ text: 'OK', style: 'default' }],
           );
@@ -3133,7 +3137,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             expect.any(String),
             expect.any(Array),
           );
@@ -3155,7 +3159,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification Status Unavailable',
+            'Verification status unavailable',
             expect.any(String),
             expect.any(Array),
           );
@@ -3217,7 +3221,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Not Approved'),
+            expect.stringContaining('Verification not approved'),
             expect.stringContaining('contact our support team'),
             expect.any(Array),
           );
@@ -3238,7 +3242,7 @@ describe('CardHome Component', () => {
 
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Required'),
+            expect.stringContaining('Verification required'),
             expect.stringContaining('complete identity verification'),
             expect.any(Array),
           );

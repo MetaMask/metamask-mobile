@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -52,6 +53,7 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -150,6 +152,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <BridgeFeeRow />
               <BridgeTimeRow />
               <TotalRow />
+              <PercentageRow />
             </Box>
           )}
           {isKeyboardVisible && hasTokens && (
@@ -262,6 +265,7 @@ function ConfirmButton({
       width={ButtonWidthTypes.Full}
       disabled={disabled}
       onPress={onConfirm}
+      testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     />
   );
 }
@@ -298,7 +302,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert_to_musd');
+    return strings('earn.musd_conversion.convert');
   }
 
   return strings('confirm.deposit_edit_amount_done');

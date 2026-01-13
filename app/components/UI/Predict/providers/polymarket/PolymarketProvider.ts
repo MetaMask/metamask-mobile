@@ -96,6 +96,7 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
+import { GameCache } from './GameCache';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -188,7 +189,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return parsedMarket;
+      return GameCache.getInstance().overlayOnMarket(parsedMarket);
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -234,7 +235,7 @@ export class PolymarketProvider implements PredictProvider {
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
       const markets = await getParsedMarketsFromPolymarketApi(params);
-      return markets;
+      return GameCache.getInstance().overlayOnMarkets(markets);
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
@@ -1419,9 +1420,15 @@ export class PolymarketProvider implements PredictProvider {
       type: TransactionType.predictDeposit,
     });
 
+    const chainId = CHAIN_IDS.POLYGON;
+    const isPolygonChain =
+      chainId.toLowerCase() ===
+      numberToHex(POLYGON_MAINNET_CHAIN_ID).toLowerCase();
+
     return {
-      chainId: CHAIN_IDS.POLYGON,
+      chainId,
       transactions,
+      gasFeeToken: isPolygonChain ? (collateral as Hex) : undefined,
     };
   }
 

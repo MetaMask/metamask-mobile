@@ -9,6 +9,7 @@ import { Text as MockText } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { isHardwareAccount } from '../../../../../../util/address';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -17,6 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../../../../util/address');
+jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 
 jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
@@ -40,9 +42,17 @@ function render() {
 describe('PayWithRow', () => {
   const navigateMock = jest.fn();
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+  const useConfirmationMetricEventsMock = jest.mocked(
+    useConfirmationMetricEvents,
+  );
+  const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useConfirmationMetricEventsMock.mockReturnValue({
+      setConfirmationMetric: mockSetConfirmationMetric,
+    } as never);
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
@@ -103,5 +113,21 @@ describe('PayWithRow', () => {
     });
 
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  describe('metrics', () => {
+    it('sets mm_pay_token_list_opened when pay with row pressed', async () => {
+      const { getByText } = render();
+
+      await act(() => {
+        fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
+      });
+
+      expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_token_list_opened: true,
+        },
+      });
+    });
   });
 });

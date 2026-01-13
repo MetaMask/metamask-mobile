@@ -46,12 +46,10 @@ export class E2EControllerOverrides {
 
     // Update Redux state to reflect the new position/balance
     const mockAccount = this.mockService.getMockAccountState();
-    const mockPositions = this.mockService.getMockPositions();
 
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
         state.accountState = mockAccount;
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -120,7 +118,6 @@ export class E2EControllerOverrides {
     // Update Redux state
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -141,12 +138,10 @@ export class E2EControllerOverrides {
 
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();
-    const mockPositions = this.mockService.getMockPositions();
 
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
         state.accountState = mockAccount;
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -169,11 +164,9 @@ export class E2EControllerOverrides {
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
     const result = this.mockService.mockUpdatePositionTPSL(params);
-    // Refresh Redux positions after TP/SL changes
-    const mockPositions = this.mockService.getMockPositions();
+    // Refresh Redux timestamp after TP/SL changes
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -350,10 +343,8 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
 
   (controller as ControllerWithUpdate).update((state: PerpsControllerState) => {
     state.accountState = mockAccount;
-    state.positions = mockPositions;
     state.lastUpdateTimestamp = Date.now();
     state.lastError = null;
-    state.connectionStatus = 'connected';
     state.isEligible = true;
   });
 
@@ -447,6 +438,34 @@ export function createE2EMockStreamManager(): unknown {
     fills: {
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
         setTimeout(() => params.callback(mockService.getMockOrderFills()), 0);
+        return () => undefined;
+      },
+    },
+    oiCaps: {
+      subscribe: (params: { callback: (data: string[]) => void }) => {
+        // Return empty array - no markets at OI cap in E2E tests by default
+        setTimeout(() => params.callback([]), 0);
+        return () => undefined;
+      },
+    },
+    topOfBook: {
+      subscribeToSymbol: (params: {
+        symbol: string;
+        callback: (
+          data:
+            | { bestBid?: string; bestAsk?: string; spread?: string }
+            | undefined,
+        ) => void;
+      }) => {
+        // Return undefined - no top of book data in E2E tests by default
+        setTimeout(() => params.callback(undefined), 0);
+        return () => undefined;
+      },
+    },
+    candles: {
+      subscribe: (params: { callback: (data: unknown[]) => void }) => {
+        // Return empty array - no candle data in E2E tests by default
+        setTimeout(() => params.callback([]), 0);
         return () => undefined;
       },
     },

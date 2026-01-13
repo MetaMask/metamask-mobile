@@ -41,17 +41,13 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   );
 
   await WalletMainScreen.tapIdenticon();
-  screen1Timer.start();
-  await AccountListComponent.isComponentDisplayed();
-  screen1Timer.stop();
+  await screen1Timer.measure(() => AccountListComponent.isComponentDisplayed());
+
   await AccountListComponent.tapCreateAccountButton();
-  screen3Timer.start();
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
-  screen3Timer.stop();
+  await screen3Timer.measure(async () => {
+    await WalletMainScreen.isTokenVisible('SOL');
+  });
 
-  performanceTracker.addTimer(screen1Timer);
-  performanceTracker.addTimer(screen3Timer);
-
+  performanceTracker.addTimers(screen1Timer, screen3Timer);
   await performanceTracker.attachToTest(testInfo);
 });

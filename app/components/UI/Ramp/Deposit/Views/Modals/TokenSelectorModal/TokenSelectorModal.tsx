@@ -14,7 +14,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -173,13 +173,14 @@ function TokenSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD}>
-          {isEditingNetworkFilter
+      <HeaderCenter
+        title={
+          isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')
-            : strings('deposit.token_modal.select_token')}
-        </Text>
-      </BottomSheetHeader>
+            : strings('deposit.token_modal.select_token')
+        }
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
       {isEditingNetworkFilter ? (
         <NetworksFilterSelector
           networks={uniqueNetworks}

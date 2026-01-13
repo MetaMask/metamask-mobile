@@ -485,6 +485,7 @@ describe('PhysicalAddress Component', () => {
 
     // Mock useCardSDK
     mockUseCardSDK.mockReturnValue({
+      isReturningSession: false,
       sdk: null,
       isLoading: false,
       user: {
@@ -663,6 +664,7 @@ describe('PhysicalAddress Component', () => {
     it('enables continue button when all required fields are filled', async () => {
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -700,6 +702,7 @@ describe('PhysicalAddress Component', () => {
     it('requires state for US users', () => {
       // User has no usState set
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -728,7 +731,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VALIDATING_KYC when registration is complete', async () => {
+    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
@@ -767,6 +770,7 @@ describe('PhysicalAddress Component', () => {
 
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -819,7 +823,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
@@ -867,6 +871,7 @@ describe('PhysicalAddress Component', () => {
 
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -955,6 +960,7 @@ describe('PhysicalAddress Component', () => {
 
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -1048,6 +1054,7 @@ describe('PhysicalAddress Component', () => {
 
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -1097,7 +1104,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
@@ -1367,6 +1374,7 @@ describe('PhysicalAddress Component', () => {
     it('disables continue button when checkbox is unchecked', () => {
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {
@@ -1397,6 +1405,7 @@ describe('PhysicalAddress Component', () => {
     it('enables continue button when checkbox is checked and all fields filled', async () => {
       // Mock useCardSDK with user data that includes usState
       mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
         sdk: null,
         isLoading: false,
         user: {

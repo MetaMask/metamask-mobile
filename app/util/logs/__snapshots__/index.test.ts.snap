@@ -482,7 +482,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -506,7 +505,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
@@ -573,8 +571,14 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "initialEnqueueCompleted": false,
         "syncQueue": {},
       },
+      "RampsController": {
+        "geolocation": null,
+        "requests": {},
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -662,6 +666,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -673,6 +678,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
@@ -1253,7 +1259,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "connectionStatus": "disconnected",
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1277,7 +1282,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
         "perpsBalances": {},
-        "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
@@ -1344,8 +1348,14 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "initialEnqueueCompleted": false,
         "syncQueue": {},
       },
+      "RampsController": {
+        "geolocation": null,
+        "requests": {},
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
+        "localOverrides": {},
+        "rawRemoteFeatureFlags": {},
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
@@ -1416,6 +1426,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
       },
       "SnapController": {
+        "isReady": false,
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
@@ -1427,6 +1438,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
+        "signature": null,
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},

@@ -7,10 +7,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { StyleSheet, View } from 'react-native';
 import Text, {
@@ -30,6 +26,12 @@ import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/A
 import { colors } from '../../../../styles/common';
 import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
+import ConfirmModal from '../components/Onboarding/ConfirmModal';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -54,7 +56,7 @@ export const cardDefaultNavigationOptions = ({
   headerLeft: () => (
     <ButtonIcon
       style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
+      size={ButtonIconSize.Md}
       iconName={IconName.ArrowLeft}
       onPress={() => navigation.goBack()}
     />
@@ -62,6 +64,31 @@ export const cardDefaultNavigationOptions = ({
   headerTitle: () => <View />,
   headerRight: () => <View />,
 });
+
+export const cardCloseOnlyNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => {
+  const innerStyles = StyleSheet.create({
+    accessories: {
+      marginHorizontal: 8,
+    },
+  });
+
+  return {
+    headerLeft: () => <View />,
+    headerTitle: () => <View />,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={() => navigation?.goBack()}
+        style={innerStyles.accessories}
+      />
+    ),
+  };
+};
 
 export const cardSpendingLimitNavigationOptions = ({
   navigation,
@@ -80,7 +107,7 @@ export const cardSpendingLimitNavigationOptions = ({
     headerLeft: () => (
       <ButtonIcon
         style={headerStyle.icon}
-        size={ButtonIconSizes.Md}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         onPress={() => navigation.goBack()}
       />
@@ -113,7 +140,7 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
-        options={cardDefaultNavigationOptions}
+        options={cardCloseOnlyNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.WELCOME}
@@ -160,6 +187,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.REGION_SELECTION}
       component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CONFIRM_MODAL}
+      component={ConfirmModal}
     />
   </ModalsStack.Navigator>
 );
