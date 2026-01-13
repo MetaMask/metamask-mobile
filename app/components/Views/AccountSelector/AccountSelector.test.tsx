@@ -873,7 +873,7 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('switches between multichain screens in full-page mode', () => {
+    it('opens Add Wallet bottom sheet overlay in full-page mode', () => {
       // Arrange
       jest.useRealTimers();
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
@@ -897,8 +897,13 @@ describe('AccountSelector', () => {
       // Act
       fireEvent.press(addButton);
 
-      // Assert: MultichainAddWalletActions screen is displayed
-      expect(screen.getByText('Add wallet')).toBeDefined();
+      // Assert: MultichainAddWalletActions bottom sheet is displayed on top
+      // There should be two "Add wallet" texts - button and header
+      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
+      // Import SRP button should be visible in the overlay
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeDefined();
 
       jest.useFakeTimers();
     });
