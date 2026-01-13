@@ -29,6 +29,10 @@ jest.mock('../../../../../../component-library/hooks', () => ({
     styles: {
       balanceButtonsContainer: {},
       balanceActionButton: {},
+      ctaContent: {},
+      ctaTitle: {},
+      ctaText: {},
+      buttonsRow: {},
     },
   }),
 }));
@@ -59,7 +63,17 @@ jest.mock('../../../../../../util/trace', () => ({
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) => {
+    const map: Record<string, string> = {
+      'stake.stake_your_trx_cta.title': 'Stake your TRX',
+      'stake.stake_your_trx_cta.description_start': 'Earn up to ',
+      'stake.stake_your_trx_cta.description_end': ' annually',
+      'stake.stake_your_trx_cta.earn_button': 'Stake',
+      'stake.stake_more': 'Stake more',
+      'stake.unstake': 'Unstake',
+    };
+    return map[key] ?? key;
+  },
 }));
 
 describe('TronStakingButtons', () => {
@@ -84,7 +98,7 @@ describe('TronStakingButtons', () => {
       <TronStakingButtons asset={baseAsset} showUnstake={false} />,
     );
 
-    expect(getByText('stake.stake_your_trx_cta.earn_button')).toBeOnTheScreen();
+    expect(getByText('Stake')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('stake-more-button'));
 
@@ -137,6 +151,43 @@ describe('TronStakingButtons', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: { token: baseAsset },
+    });
+  });
+
+  describe('CTA section', () => {
+    it('renders CTA title and description without aprText when hasStakedPositions is false', () => {
+      const { getByText } = render(
+        <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
+      );
+
+      expect(getByText('Stake your TRX')).toBeOnTheScreen();
+      expect(getByText(/Earn up to/)).toBeOnTheScreen();
+      expect(getByText(/annually/)).toBeOnTheScreen();
+    });
+
+    it('renders CTA with APR value when aprText is provided', () => {
+      const { getByText } = render(
+        <TronStakingButtons
+          asset={baseAsset}
+          hasStakedPositions={false}
+          aprText="4.5%"
+        />,
+      );
+
+      expect(getByText('Stake your TRX')).toBeOnTheScreen();
+      expect(getByText('4.5%')).toBeOnTheScreen();
+    });
+
+    it('does not render CTA section when hasStakedPositions is true', () => {
+      const { queryByText } = render(
+        <TronStakingButtons
+          asset={baseAsset}
+          hasStakedPositions
+          aprText="4.5%"
+        />,
+      );
+
+      expect(queryByText('Stake your TRX')).toBeNull();
     });
   });
 });
