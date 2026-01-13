@@ -32,6 +32,8 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  ConnectionStatus,
+  GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
@@ -45,6 +47,7 @@ import {
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -96,6 +99,8 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
+import { GameCache } from './GameCache';
+import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -188,7 +193,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return parsedMarket;
+      return GameCache.getInstance().overlayOnMarket(parsedMarket);
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -234,7 +239,7 @@ export class PolymarketProvider implements PredictProvider {
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
       const markets = await getParsedMarketsFromPolymarketApi(params);
-      return markets;
+      return GameCache.getInstance().overlayOnMarkets(markets);
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
@@ -1419,9 +1424,15 @@ export class PolymarketProvider implements PredictProvider {
       type: TransactionType.predictDeposit,
     });
 
+    const chainId = CHAIN_IDS.POLYGON;
+    const isPolygonChain =
+      chainId.toLowerCase() ===
+      numberToHex(POLYGON_MAINNET_CHAIN_ID).toLowerCase();
+
     return {
-      chainId: CHAIN_IDS.POLYGON,
+      chainId,
       transactions,
+      gasFeeToken: isPolygonChain ? (collateral as Hex) : undefined,
     };
   }
 
@@ -1556,6 +1567,31 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedCallData,
       amount,
+    };
+  }
+
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToGame(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToMarketPrices(
+      tokenIds,
+      callback,
+    );
+  }
+
+  public getConnectionStatus(): ConnectionStatus {
+    const status = WebSocketManager.getInstance().getConnectionStatus();
+    return {
+      sportsConnected: status.sportsConnected,
+      marketConnected: status.marketConnected,
     };
   }
 }

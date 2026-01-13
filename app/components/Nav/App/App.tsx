@@ -104,7 +104,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -573,10 +572,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
-      name={Routes.SHEET.TOKEN_INSIGHTS}
-      component={TokenInsightsSheet}
-    />
-    <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
     />
@@ -740,6 +735,14 @@ const MultichainAccountGroupDetails = () => {
           animationEnabled: true,
         }}
       />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -768,12 +771,6 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
         component={MultichainAccountActions}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />

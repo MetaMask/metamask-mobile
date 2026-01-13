@@ -13,8 +13,13 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -129,7 +134,6 @@ export type PerpsControllerState = {
   // Active provider
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Initialization state machine
   initializationState: InitializationState;
@@ -138,9 +142,6 @@ export type PerpsControllerState = {
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
-
-  // Current positions
-  positions: Position[];
 
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
@@ -279,12 +280,10 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  connectionStatus: 'disconnected',
   initializationState: InitializationState.UNINITIALIZED,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositResult: null,
@@ -331,12 +330,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  positions: {
-    includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
@@ -352,12 +345,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  connectionStatus: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -1398,6 +1385,14 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
@@ -1406,6 +1401,7 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
+          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -1900,7 +1896,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
       });
 
       const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -1951,7 +1946,6 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
     });
 
     return { success: true, providerId };

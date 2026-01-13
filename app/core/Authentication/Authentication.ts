@@ -744,9 +744,9 @@ class AuthenticationService {
       authPreference: undefined,
     },
   ) => {
+    let passwordToUse: string | undefined;
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
-      let passwordToUse;
 
       if (existingUser) {
         // User exists. Attempt to unlock wallet.
@@ -812,6 +812,7 @@ class AuthenticationService {
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
+      passwordToUse = this.wipeSensitiveData();
     }
   };
 

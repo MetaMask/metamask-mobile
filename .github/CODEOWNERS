@@ -6,6 +6,7 @@ app/component-library/               @MetaMask/design-system-engineers
 tailwind.config.js                   @MetaMask/design-system-engineers
 
 # Platform Team
+.github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
@@ -45,6 +46,9 @@ scripts/build.sh                                            @MetaMask/mobile-pla
 fingerprint.config.js                                       @MetaMask/mobile-platform
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
+ios/fastlane/                                               @MetaMask/mobile-admins
+scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
+scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform

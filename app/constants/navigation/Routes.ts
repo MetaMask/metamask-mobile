@@ -115,6 +115,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
+    REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET: 'MetalCardClaimBottomSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -196,7 +197,6 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
-    TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',

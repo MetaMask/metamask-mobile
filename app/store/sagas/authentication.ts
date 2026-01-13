@@ -1,4 +1,5 @@
 // TODO: Use this file to hold authentication sagas.
+// NOTE: This file is not used in the current implementation and will be connected in a follow up PR.
 
 // import { fork, take, cancel, call } from 'redux-saga/effects';
 // import NavigationService from '../../core/NavigationService';
