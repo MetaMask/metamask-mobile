@@ -14,6 +14,7 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import { LIVE_SPORTS_LEAGUES } from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -100,6 +101,7 @@ import {
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
 import { GameCache } from './GameCache';
+import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
@@ -184,10 +186,17 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const [parsedMarket] = parsePolymarketEvents(
-        [event],
-        PolymarketProvider.FALLBACK_CATEGORY,
-      );
+      await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+
+      const teamLookup = (
+        league: (typeof LIVE_SPORTS_LEAGUES)[number],
+        abbreviation: string,
+      ) => TeamsCache.getInstance().getTeam(league, abbreviation);
+
+      const [parsedMarket] = parsePolymarketEvents([event], {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
@@ -238,12 +247,21 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getParsedMarketsFromPolymarketApi(params);
+      await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+
+      const teamLookup = (
+        league: (typeof LIVE_SPORTS_LEAGUES)[number],
+        abbreviation: string,
+      ) => TeamsCache.getInstance().getTeam(league, abbreviation);
+
+      const markets = await getParsedMarketsFromPolymarketApi({
+        ...params,
+        teamLookup,
+      });
       return GameCache.getInstance().overlayOnMarkets(markets);
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {

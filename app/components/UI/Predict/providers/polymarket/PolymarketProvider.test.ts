@@ -141,6 +141,23 @@ jest.mock('./GameCache', () => ({
   },
 }));
 
+const mockTeamsCacheInstance = {
+  ensureLeagueLoaded: jest.fn().mockResolvedValue(undefined),
+  ensureLeaguesLoaded: jest.fn().mockResolvedValue(undefined),
+  getTeam: jest.fn(),
+  getNflTeam: jest.fn(),
+  isLeagueLoaded: jest.fn().mockReturnValue(true),
+  clear: jest.fn(),
+  getTeamCount: jest.fn().mockReturnValue(0),
+};
+
+jest.mock('./TeamsCache', () => ({
+  TeamsCache: {
+    getInstance: jest.fn(() => mockTeamsCacheInstance),
+    resetInstance: jest.fn(),
+  },
+}));
+
 const mockWebSocketManagerInstance = {
   subscribeToGame: jest.fn(),
   subscribeToMarketPrices: jest.fn(),
@@ -258,21 +275,22 @@ describe('PolymarketProvider', () => {
     expect(Array.isArray(markets)).toBe(true);
     expect(markets.length).toBeGreaterThan(0);
     expect(markets.length).toBe(2);
-    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(undefined);
+    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
+      expect.objectContaining({ teamLookup: expect.any(Function) }),
+    );
   });
 
   it('getMarkets returns empty array when API fails', async () => {
-    // Arrange
     const provider = createProvider();
     const apiError = new Error('API request failed');
     mockGetMarketsFromPolymarketApi.mockRejectedValue(apiError);
 
-    // Act
     const result = await provider.getMarkets();
 
-    // Assert
     expect(result).toEqual([]);
-    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(undefined);
+    expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
+      expect.objectContaining({ teamLookup: expect.any(Function) }),
+    );
   });
 
   it('getMarkets returns empty array when non-Error exception is thrown', async () => {
@@ -2409,7 +2427,10 @@ describe('PolymarketProvider', () => {
       });
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
         [mockEvent],
-        'trending',
+        expect.objectContaining({
+          category: 'trending',
+          teamLookup: expect.any(Function),
+        }),
       );
     });
 
