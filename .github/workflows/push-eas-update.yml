@@ -210,19 +210,27 @@ jobs:
             --query SecretString \
             --output text)
 
-          echo "Fetching secret from Secrets Manager..."
-
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
-            echo "$value" | base64 --decode > "$EXPO_KEY_PRIV"
-            echo "✅ Set secret for key EXPO_KEY_PRIV: $key"
+            echo "$key=$(printf '%s' "$value")" >> "$EXPO_KEY_PRIV"
+            echo "✅ Set secret for key: $key"
           done
 
-      - name: Use Key Test
+      - name: Use the exported secrets
         run: |
-          echo "EXPO_KEY_PRIV: ${EXPO_KEY_PRIV:0:3}..."
+          # If the key in the JSON was "EXPO_KEY_PRIV", access it directly:
+          echo "First 3 chars: ${EXPO_KEY_PRIV:0:3}..."
+          
+          # Or decode it to a variable:
+          DECODED_KEY=$(echo "$EXPO_KEY_PRIV" | base64 --decode)
+          echo "First 3 chars: ${DECODED_KEY:0:3}..."
+
+      # - name: Install dependencies
+      #   run: |
+      #     echo "📦 Installing dependencies..."
+      #     yarn install --immutable
 
       # - name: Setup project
       #   run: |
