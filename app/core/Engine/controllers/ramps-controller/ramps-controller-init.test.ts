@@ -66,7 +66,7 @@ describe('ramps controller init', () => {
     const initialRampsControllerState: RampsControllerState = {
       userRegion: 'US-CA',
       eligibility: null,
-      cryptoCurrencies: null,
+      tokens: null,
       requests: {},
     };
 
