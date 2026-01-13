@@ -141,6 +141,12 @@ jest.mock('./GameCache', () => ({
   },
 }));
 
+const mockIsLiveSportsEnabled = jest.fn().mockReturnValue(true);
+jest.mock('../../constants/sports', () => ({
+  LIVE_SPORTS_LEAGUES: ['nfl'],
+  isLiveSportsEnabled: () => mockIsLiveSportsEnabled(),
+}));
+
 const mockTeamsCacheInstance = {
   ensureLeagueLoaded: jest.fn().mockResolvedValue(undefined),
   ensureLeaguesLoaded: jest.fn().mockResolvedValue(undefined),
@@ -6650,6 +6656,98 @@ describe('PolymarketProvider', () => {
           'sportsConnected',
           'marketConnected',
         ]);
+      });
+    });
+  });
+
+  describe('Live sports disabled', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockIsLiveSportsEnabled.mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      mockIsLiveSportsEnabled.mockReturnValue(true);
+    });
+
+    describe('getMarkets', () => {
+      it('skips TeamsCache loading when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        mockGetMarketsFromPolymarketApi.mockResolvedValue([]);
+
+        await provider.getMarkets();
+
+        expect(
+          mockTeamsCacheInstance.ensureLeaguesLoaded,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('skips GameCache overlay when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        const mockMarkets = [{ id: 'market-1', title: 'Test Market' }];
+        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+
+        const result = await provider.getMarkets();
+
+        expect(mockGameCacheInstance.overlayOnMarkets).not.toHaveBeenCalled();
+        expect(result).toEqual(mockMarkets);
+      });
+
+      it('does not pass teamLookup when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        mockGetMarketsFromPolymarketApi.mockResolvedValue([]);
+
+        await provider.getMarkets({ category: 'sports' });
+
+        expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(
+          expect.objectContaining({ teamLookup: undefined }),
+        );
+      });
+    });
+
+    describe('getMarketDetails', () => {
+      it('skips TeamsCache loading when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        const mockEvent = { id: 'market-1', question: 'Test?' };
+        const parsedMarket = { id: 'market-1', title: 'Test' };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        await provider.getMarketDetails({ marketId: 'market-1' });
+
+        expect(
+          mockTeamsCacheInstance.ensureLeaguesLoaded,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('skips GameCache overlay when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        const mockEvent = { id: 'market-1', question: 'Test?' };
+        const parsedMarket = { id: 'market-1', title: 'Test' };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        const result = await provider.getMarketDetails({
+          marketId: 'market-1',
+        });
+
+        expect(mockGameCacheInstance.overlayOnMarket).not.toHaveBeenCalled();
+        expect(result).toEqual(parsedMarket);
+      });
+
+      it('does not pass teamLookup when live sports disabled', async () => {
+        const provider = new PolymarketProvider();
+        const mockEvent = { id: 'market-1', question: 'Test?' };
+        const parsedMarket = { id: 'market-1', title: 'Test' };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        await provider.getMarketDetails({ marketId: 'market-1' });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          [mockEvent],
+          expect.objectContaining({ teamLookup: undefined }),
+        );
       });
     });
   });

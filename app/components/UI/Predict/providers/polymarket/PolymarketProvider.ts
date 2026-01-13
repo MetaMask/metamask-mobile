@@ -14,7 +14,10 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { LIVE_SPORTS_LEAGUES } from '../../constants/sports';
+import {
+  isLiveSportsEnabled,
+  LIVE_SPORTS_LEAGUES,
+} from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -186,12 +189,18 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      const liveSportsEnabled = isLiveSportsEnabled();
 
-      const teamLookup = (
-        league: (typeof LIVE_SPORTS_LEAGUES)[number],
-        abbreviation: string,
-      ) => TeamsCache.getInstance().getTeam(league, abbreviation);
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
 
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
@@ -202,7 +211,9 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return GameCache.getInstance().overlayOnMarket(parsedMarket);
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarket(parsedMarket)
+        : parsedMarket;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -247,18 +258,27 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      const liveSportsEnabled = isLiveSportsEnabled();
 
-      const teamLookup = (
-        league: (typeof LIVE_SPORTS_LEAGUES)[number],
-        abbreviation: string,
-      ) => TeamsCache.getInstance().getTeam(league, abbreviation);
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
 
       const markets = await getParsedMarketsFromPolymarketApi({
         ...params,
         teamLookup,
       });
-      return GameCache.getInstance().overlayOnMarkets(markets);
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(markets)
+        : markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
