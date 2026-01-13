@@ -256,20 +256,6 @@ jobs:
             echo "✅ Set secret for key: $key"
           done
 
-      - name: Decode and Export EXPO Key
-        shell: bash
-        run: |
-          echo "📦 Configuring EXPO key..."
-          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
-            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
-            exit 1
-          fi
-
-          # Decode the key
-          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
-          echo "$EXPO_KEY_PRIV" >> "$GITHUB_ENV"
-          echo "✅ Expo key decoded and exported"
-
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
@@ -304,6 +290,16 @@ jobs:
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
+          echo "📦 Configuring EXPO key..."
+          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
+            exit 1
+          fi
+
+          # Decode the key
+          export EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          echo "✅ Expo key decoded and exported"
+
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
           case "${TARGET_CHANNEL}" in
             exp)
