@@ -382,11 +382,19 @@ describe('StakeButton', () => {
       isETH: false,
     };
 
-    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
+    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience and user is eligible', async () => {
       mockIsTronChainId.mockReturnValue(true);
       selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
         EARN_EXPERIENCES.POOLED_STAKING,
       );
+      (useStakingEligibility as jest.Mock).mockReturnValue({
+        isEligible: true,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest
+          .fn()
+          .mockResolvedValue({ isEligible: true }),
+        error: false,
+      });
 
       const { getByTestId } = renderWithProvider(
         <StakeButton asset={MOCK_TRX_ASSET} />,
@@ -403,6 +411,40 @@ describe('StakeButton', () => {
           params: {
             token: MOCK_TRX_ASSET,
           },
+        });
+      });
+    });
+
+    it('navigates to Web view when TRX earn button is pressed and user is not eligible', async () => {
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.POOLED_STAKING,
+      );
+      (useStakingEligibility as jest.Mock).mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest
+          .fn()
+          .mockResolvedValue({ isEligible: false }),
+        error: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+          params: {
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
+            timestamp: expect.any(Number),
+          },
+          screen: Routes.BROWSER.VIEW,
         });
       });
     });

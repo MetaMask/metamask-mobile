@@ -88,16 +88,47 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
+  const navigateToStakeScreen = () => {
+    trace({ name: TraceName.EarnDepositScreen });
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
+  };
+
+  const navigateToPortfolio = () => {
+    const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
+      tab.url.includes(AppConstants.STAKE.URL),
+    );
+    let existingTabId;
+    let newTabUrl;
+    if (existingStakeTab) {
+      existingTabId = existingStakeTab.id;
+    } else {
+      const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
+      newTabUrl = stakeUrl.href;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+  };
+
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
+      if (isEligible) {
+        navigateToStakeScreen();
+      } else {
+        navigateToPortfolio();
+      }
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
@@ -121,36 +152,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         'mainnet',
       );
     }
+
     if (isEligible) {
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
+      navigateToStakeScreen();
     } else {
-      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(AppConstants.STAKE.URL),
-      );
-      let existingTabId;
-      let newTabUrl;
-      if (existingStakeTab) {
-        existingTabId = existingStakeTab.id;
-      } else {
-        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
-        newTabUrl = stakeUrl.href;
-      }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
+      navigateToPortfolio();
     }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
