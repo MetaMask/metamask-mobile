@@ -4,28 +4,15 @@ import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 
+// Given shared mocks and helpers
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
-jest.mock('../../../styles/common', () => ({ baseStyles: { flexGrow: {} } }));
-jest.mock('../../../../locales/i18n', () => ({ strings: (k: string) => k }));
-jest.mock('../../../selectors/bridgeStatusController', () => ({
-  selectBridgeHistoryForAccount: () => ({}),
-}));
 
-const makeTextMock =
-  (id: string, text: string) =>
-  // eslint-disable-next-line react/display-name
-  (props: any) => {
-    const { Text } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.createElement(
-      Text,
-      { testID: typeof id === 'function' ? id(props) : id },
-      text,
-    );
-  };
+jest.mock('../../../styles/common', () => ({
+  baseStyles: { flexGrow: {} },
+}));
 
 jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   const ReactActual = jest.requireActual('react');
@@ -37,20 +24,55 @@ jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
       children,
   };
 });
-jest.mock('../../UI/TransactionElement', () => ({
-  __esModule: true,
-  default: makeTextMock((p: any) => `evm-transaction-item-${p.i}`, 'evm'),
-}));
-jest.mock('../../UI/MultichainTransactionListItem', () => ({
-  __esModule: true,
-  default: makeTextMock((p: any) => `non-evm-item-${p.index}`, 'non-evm'),
-}));
-jest.mock('../../UI/MultichainBridgeTransactionListItem', () => ({
-  __esModule: true,
-  default: makeTextMock((p: any) => `bridge-item-${p.index}`, 'bridge'),
+
+jest.mock('../../UI/MultichainTransactionListItem', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ index }: { index: number }) =>
+      ReactActual.createElement(
+        Text,
+        { testID: `non-evm-item-${index}` },
+        'non-evm',
+      ),
+  };
+});
+
+jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ index }: { index: number }) =>
+      ReactActual.createElement(
+        Text,
+        { testID: `bridge-item-${index}` },
+        'bridge',
+      ),
+  };
+});
+
+// Mock TransactionElement to avoid deep Redux/contexts
+jest.mock('../../UI/TransactionElement', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ i }: { i: number }) =>
+      ReactActual.createElement(
+        Text,
+        { testID: `evm-transaction-item-${i}` },
+        'evm',
+      ),
+  };
+});
+
+// Mock selectors used by the component
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../../selectors/transactionController', () => ({
   selectSortedEVMTransactionsForSelectedAccountGroup: jest.fn(),
 }));
@@ -84,21 +106,23 @@ jest.mock('../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+// Mock utilities used in memo pipeline
 jest.mock('../../../util/activity', () => ({
   filterByAddress: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => true),
-  sortTransactions: jest.fn((a: unknown[]) => a),
+  sortTransactions: jest.fn((arr: unknown[]) => arr),
 }));
 jest.mock('../../../util/transactions', () => ({
   addAccountTimeFlagFilter: jest.fn(() => false),
 }));
-jest.mock('../../UI/Transactions/utils', () => ({
-  filterDuplicateOutgoingTransactions: jest.fn((a: unknown[]) => a),
-}));
+
 jest.mock('../../../util/networks', () => ({
   __esModule: true,
   findBlockExplorerForRpc: jest.fn(() => 'https://explorer.example'),
   getBlockExplorerAddressUrl: jest.fn(),
+}));
+jest.mock('../../UI/Transactions/utils', () => ({
+  filterDuplicateOutgoingTransactions: jest.fn((arr: unknown[]) => arr),
 }));
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -119,6 +143,10 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   }),
 }));
 
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  selectBridgeHistoryForAccount: () => ({}),
+}));
+
 const mockGetBlockExplorerUrl = jest.fn(() => undefined);
 const mockGetBlockExplorerName = jest.fn(() => 'Explorer');
 jest.mock('../../hooks/useBlockExplorer', () => ({
@@ -129,38 +157,60 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
   }),
 }));
 
-const mockTransactionsFooter = jest.fn();
+const mockTransactionsFooter = jest.fn((props: unknown) => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ReactActual.createElement(
+    Text,
+    { testID: 'transactions-footer' },
+    JSON.stringify(props),
+  );
+});
+
 jest.mock('../../UI/Transactions/TransactionsFooter', () => ({
   __esModule: true,
-  default: (p: unknown) => {
-    mockTransactionsFooter(p);
-    return makeTextMock('transactions-footer', 'footer')(p);
-  },
+  default: (props: unknown) => mockTransactionsFooter(props),
 }));
-const mockMultichainTransactionsFooter = jest.fn();
+
+const mockMultichainTransactionsFooter = jest.fn((props: unknown) => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ReactActual.createElement(
+    Text,
+    { testID: 'multichain-transactions-footer' },
+    JSON.stringify(props),
+  );
+});
+
 jest.mock('../MultichainTransactionsView/MultichainTransactionsFooter', () => ({
   __esModule: true,
-  default: (p: unknown) => {
-    mockMultichainTransactionsFooter(p);
-    return makeTextMock('multichain-transactions-footer', 'footer')(p);
-  },
+  default: (props: unknown) => mockMultichainTransactionsFooter(props),
 }));
 
 const mockGetAddressUrl = jest.fn(
   (_address?: string, _chainId?: string) => 'https://solscan.io/account/0xabc',
 );
+
 jest.mock('../../../core/Multichain/utils', () => ({
   __esModule: true,
-  getAddressUrl: (a: string, c: string) => mockGetAddressUrl(a, c),
-  isNonEvmChainId: jest.fn((c: string) => c.includes(':')),
+  getAddressUrl: (address: string, chainId: string) =>
+    mockGetAddressUrl(address, chainId),
+  isNonEvmChainId: jest.fn((chainId: string) => chainId.includes(':')),
 }));
 
+// Mock refresh util
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock i18n strings to echo keys
+jest.mock('../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+// Mock the actions hook to allow per-test overrides
 jest.mock('./useUnifiedTxActions', () => {
-  const d = {
+  const defaultState = {
     retryIsOpen: false,
     retryErrorMsg: undefined,
     speedUpIsOpen: false,
@@ -186,36 +236,53 @@ jest.mock('./useUnifiedTxActions', () => {
   };
   return {
     useUnifiedTxActions: () =>
-      (global as { __actionsState?: Partial<typeof d> }).__actionsState || d,
+      (global as { __actionsState?: Partial<typeof defaultState> })
+        .__actionsState || defaultState,
   };
 });
 
-jest.mock('../../UI/TransactionActionModal', () => ({
-  __esModule: true,
-  default: ({
-    isVisible,
-    titleText,
-  }: {
-    isVisible: boolean;
-    titleText?: string;
-  }) =>
-    isVisible
-      ? makeTextMock(
-          titleText?.includes('speedup') ? 'speedup-modal' : 'cancel-modal',
-          'modal',
-        )({})
-      : null,
-}));
-jest.mock('../confirmations/legacy/components/UpdateEIP1559Tx', () => ({
-  __esModule: true,
-  default: makeTextMock('eip1559-modal', 'eip1559'),
-}));
-jest.mock('../../UI/Transactions/RetryModal', () => ({
-  __esModule: true,
-  default: ({ retryIsOpen }: { retryIsOpen: boolean }) =>
-    retryIsOpen ? makeTextMock('retry-modal', 'retry')({}) : null,
-}));
+// Mock modals to expose testIDs when visible
+jest.mock('../../UI/TransactionActionModal', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: { isVisible: boolean; titleText?: string }) =>
+      props.isVisible
+        ? ReactActual.createElement(
+            Text,
+            {
+              testID: props.titleText?.includes('speedup')
+                ? 'speedup-modal'
+                : 'cancel-modal',
+            },
+            'modal',
+          )
+        : null,
+  };
+});
+jest.mock('../confirmations/legacy/components/UpdateEIP1559Tx', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(Text, { testID: 'eip1559-modal' }, 'eip1559'),
+  };
+});
+jest.mock('../../UI/Transactions/RetryModal', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ retryIsOpen }: { retryIsOpen: boolean }) =>
+      retryIsOpen
+        ? ReactActual.createElement(Text, { testID: 'retry-modal' }, 'retry')
+        : null,
+  };
+});
 
+// Local helpers
 const { selectSortedEVMTransactionsForSelectedAccountGroup } = jest.requireMock(
   '../../../selectors/transactionController',
 );
@@ -248,80 +315,99 @@ const { updateIncomingTransactions } = jest.requireMock(
 );
 const networksMock = jest.requireMock('../../../util/networks');
 
-type Overrides = Array<[unknown, unknown]>;
-const ACC_EVM = { address: '0xabc', type: 'eip155:eoa' };
-const ACC_SOL = {
-  address: 'SoLAddreSS11111111111111111111111',
-  type: 'solana:data-account',
-};
-const DEFAULTS: Overrides = [
-  [selectSortedEVMTransactionsForSelectedAccountGroup, []],
-  [selectNonEvmTransactionsForSelectedAccountGroup, { transactions: [] }],
-  [
-    selectSelectedInternalAccount,
-    { address: '0xabc', metadata: { importTime: 0 } },
-  ],
-  [selectSelectedAccountGroupInternalAccounts, [ACC_EVM, ACC_SOL]],
-  [selectTokens, []],
-  [
-    selectEvmNetworkConfigurationsByChainId,
-    {
-      '0x1': {
-        blockExplorerUrls: ['https://explorer.example'],
-        defaultBlockExplorerUrlIndex: 0,
-      },
-    },
-  ],
-  [selectNetworkConfigurations, {}],
-  [selectProviderType, 'rpc'],
-  [selectRpcUrl, 'https://rpc.example'],
-  [selectProviderConfig, { type: 'rpc', rpcUrl: 'https://rpc.example' }],
-  [selectEVMEnabledNetworks, ['0x1']],
-  [selectNonEVMEnabledNetworks, ['solana:mainnet']],
-  [selectCurrentCurrency, 'USD'],
-];
+// Helper function to create selector mock implementation with defaults
+// Accepts an array of [selector, value] tuples for overrides
+const createSelectorMock = (overrides: [unknown, unknown][] = []) => {
+  const overrideMap = new Map(overrides);
 
-const withSelectors = (overrides: Overrides = []) => {
-  const map = new Map([...DEFAULTS, ...overrides]);
-  (useSelector as unknown as jest.Mock).mockImplementation((s: unknown) =>
-    map.get(s),
-  );
+  return (selector: unknown) => {
+    // Check for overrides first
+    if (overrideMap.has(selector)) {
+      return overrideMap.get(selector);
+    }
+
+    // Default implementations
+    if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+      return { transactions: [] };
+    if (selector === selectSelectedAccountGroupInternalAccounts)
+      return [{ address: '0xabc', type: 'eip155:eoa' }];
+    if (selector === selectSelectedInternalAccount)
+      return { address: '0xabc', metadata: { importTime: 0 } };
+    if (selector === selectTokens) return [];
+    if (selector === selectEVMEnabledNetworks) return ['0x1'];
+    if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+    if (selector === selectCurrentCurrency) return 'USD';
+
+    return undefined;
+  };
 };
 
 describe('UnifiedTransactionsView', () => {
+  const mockUseSelector = useSelector as unknown as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockTransactionsFooter.mockClear();
     mockMultichainTransactionsFooter.mockClear();
     mockGetAddressUrl.mockClear();
     mockGetBlockExplorerUrl.mockClear();
-    mockGetBlockExplorerName.mockClear();
     mockGetBlockExplorerUrl.mockReturnValue(undefined);
+    mockGetBlockExplorerName.mockClear();
     mockGetBlockExplorerName.mockReturnValue('Explorer');
     mockGetAddressUrl.mockImplementation(
-      (a?: string) => `https://solscan.io/account/${a}`,
+      (address?: string) => `https://solscan.io/account/${address}`,
     );
     networksMock.getBlockExplorerAddressUrl.mockClear();
     networksMock.getBlockExplorerAddressUrl.mockImplementation(() => ({
       url: 'https://explorer.example/address/0xabc',
       title: 'explorer.example',
     }));
-    (global as any).__actionsState = undefined;
-    (global as any).__bridgeMap = {};
-    withSelectors();
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return { transactions: [] };
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectTokens) return [];
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return {
+          '0x1': {
+            blockExplorerUrls: ['https://explorer.example'],
+            defaultBlockExplorerUrlIndex: 0,
+          },
+        };
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
   });
 
   it('renders empty state when there are no transactions', () => {
-    expect(
-      render(<UnifiedTransactionsView />).getByText('wallet.no_transactions'),
-    ).toBeTruthy();
+    const { getByText } = render(<UnifiedTransactionsView />);
+    expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
   it('renders EVM transactions via TransactionElement list items', () => {
-    withSelectors([
-      [
-        selectSortedEVMTransactionsForSelectedAccountGroup,
-        [
+    // Arrange: two EVM transactions, one submitted and one confirmed
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [
           {
             id: 'a',
             status: 'submitted',
@@ -336,193 +422,403 @@ describe('UnifiedTransactionsView', () => {
             chainId: '0x1',
             time: 1,
           },
-        ],
-      ],
-    ]);
-    expect(
-      render(<UnifiedTransactionsView />).queryAllByTestId(
-        /evm-transaction-item-/,
-      ).length,
-    ).toBe(2);
+        ];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return { transactions: [] };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+    // Expect two items rendered (pending + confirmed)
+    expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
   });
 
   describe('nonce check in alreadyConfirmed filtering', () => {
-    const base = (submittedNonce: any, confirmedNonce: any) =>
-      [
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
-          [
+    it('includes submitted transaction with undefined nonce', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
             {
               id: 'a',
               status: 'submitted',
-              txParams: { from: '0xabc', nonce: submittedNonce },
+              txParams: { from: '0xabc' }, // nonce is undefined
               chainId: '0x1',
               time: 2,
             },
             {
               id: 'b',
               status: 'confirmed',
-              txParams: { from: '0xabc', nonce: confirmedNonce },
+              txParams: { from: '0xabc', nonce: '0x1' },
               chainId: '0x1',
               time: 1,
             },
-          ],
-        ],
-        [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-      ] as Overrides;
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
 
-    it.each([
-      ['includes undefined nonce', undefined, '0x1', 2],
-      ['includes null nonce', null, '0x1', 2],
-      ['filters matching nonce', '0x1', '0x1', 1],
-      ['includes non-matching nonce', '0x2', '0x1', 2],
-    ])('%s', (_label, sub, conf, count) => {
-      withSelectors(base(sub, conf));
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(count);
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear even though there's a confirmed tx with nonce '0x1'
+      // because the submitted tx has undefined nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
+    });
+
+    it('includes submitted transaction with null nonce', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: null },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear even though there's a confirmed tx with nonce '0x1'
+      // because the submitted tx has null nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
+    });
+
+    it('filters out submitted transaction with matching nonce to confirmed transaction', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should be filtered out because it matches the confirmed tx by nonce
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(1);
+    });
+
+    it('includes submitted transaction with nonce that does not match confirmed transaction', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'a',
+              status: 'submitted',
+              txParams: { from: '0xabc', nonce: '0x2' },
+              chainId: '0x1',
+              time: 2,
+            },
+            {
+              id: 'b',
+              status: 'confirmed',
+              txParams: { from: '0xabc', nonce: '0x1' },
+              chainId: '0x1',
+              time: 1,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Submitted tx should appear because nonce '0x2' does not match confirmed tx nonce '0x1'
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
     });
   });
 
   describe('dedupeKey logic with actionId', () => {
     it('includes multiple transactions with different actionIds when nonce is undefined', () => {
-      withSelectors([
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
+      mockUseSelector.mockImplementation(
+        createSelectorMock([
           [
-            {
-              id: 'a',
-              status: 'submitted',
-              txParams: { from: '0xabc', actionId: 'action-123' },
-              chainId: '0x1',
-              time: 2,
-            },
-            {
-              id: 'b',
-              status: 'submitted',
-              txParams: { from: '0xabc', actionId: 'action-456' },
-              chainId: '0x1',
-              time: 1,
-            },
+            selectSortedEVMTransactionsForSelectedAccountGroup,
+            [
+              {
+                id: 'a',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  actionId: 'action-123',
+                  // nonce is undefined
+                },
+                chainId: '0x1',
+                time: 2,
+              },
+              {
+                id: 'b',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  actionId: 'action-456',
+                  // nonce is undefined, different actionId
+                },
+                chainId: '0x1',
+                time: 1,
+              },
+            ],
           ],
-        ],
-      ]);
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(2);
+        ]),
+      );
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Both transactions have different actionIds, so both should appear
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
     });
 
     it('uses nonce for deduplication when nonce is defined', () => {
-      withSelectors([
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
+      mockUseSelector.mockImplementation(
+        createSelectorMock([
           [
-            {
-              id: 'a',
-              status: 'submitted',
-              txParams: { from: '0xabc', nonce: '0x1', actionId: 'action-123' },
-              chainId: '0x1',
-              time: 2,
-            },
-            {
-              id: 'b',
-              status: 'submitted',
-              txParams: { from: '0xabc', nonce: '0x1', actionId: 'action-456' },
-              chainId: '0x1',
-              time: 1,
-            },
+            selectSortedEVMTransactionsForSelectedAccountGroup,
+            [
+              {
+                id: 'a',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  nonce: '0x1',
+                  actionId: 'action-123',
+                },
+                chainId: '0x1',
+                time: 2,
+              },
+              {
+                id: 'b',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  nonce: '0x1',
+                  actionId: 'action-456',
+                  // Same nonce but different actionId
+                },
+                chainId: '0x1',
+                time: 1,
+              },
+            ],
           ],
-        ],
-      ]);
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(1);
+        ]),
+      );
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Both transactions have same nonce, so only one should appear (deduplicated by nonce)
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(1);
     });
 
     it('uses actionId when nonce is null', () => {
-      withSelectors([
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
+      mockUseSelector.mockImplementation(
+        createSelectorMock([
           [
-            {
-              id: 'a',
-              status: 'submitted',
-              txParams: { from: '0xabc', nonce: null, actionId: 'action-123' },
-              chainId: '0x1',
-              time: 2,
-            },
-            {
-              id: 'b',
-              status: 'submitted',
-              txParams: { from: '0xabc', nonce: null, actionId: 'action-456' },
-              chainId: '0x1',
-              time: 1,
-            },
+            selectSortedEVMTransactionsForSelectedAccountGroup,
+            [
+              {
+                id: 'a',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  nonce: null,
+                  actionId: 'action-123',
+                },
+                chainId: '0x1',
+                time: 2,
+              },
+              {
+                id: 'b',
+                status: 'submitted',
+                txParams: {
+                  from: '0xabc',
+                  nonce: null,
+                  actionId: 'action-456',
+                  // Different actionId (actionIds are unique), nonce is null
+                },
+                chainId: '0x1',
+                time: 1,
+              },
+            ],
           ],
-        ],
-      ]);
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(2);
+        ]),
+      );
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      // Both transactions have null nonce and different actionIds (actionIds are unique), so both should appear
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(2);
     });
   });
 
   it('pull-to-refresh calls updateIncomingTransactions', async () => {
     const { UNSAFE_getAllByType } = render(<UnifiedTransactionsView />);
+
     const [rc] = UNSAFE_getAllByType(RefreshControl);
     await rc.props.onRefresh();
+
     expect(updateIncomingTransactions).toHaveBeenCalled();
   });
 
   it('renders non-EVM transactions', () => {
-    withSelectors([
-      [selectSortedEVMTransactionsForSelectedAccountGroup, []],
-      [
-        selectNonEvmTransactionsForSelectedAccountGroup,
-        {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
           transactions: [
             { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
             { id: 'n2', timestamp: 2000, chain: 'solana:mainnet' },
           ],
-        },
-      ],
-    ]);
-    expect(
-      render(<UnifiedTransactionsView />).queryAllByTestId(/non-evm-item-/)
-        .length,
-    ).toBe(2);
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+    expect(queryAllByTestId(/non-evm-item-/).length).toBe(2);
   });
 
   it('renders TransactionsFooter when only EVM networks are enabled', () => {
-    withSelectors([[selectNonEVMEnabledNetworks, []]]);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return { transactions: [] };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return {
+          '0x1': {
+            blockExplorerUrls: ['https://explorer.example'],
+            defaultBlockExplorerUrlIndex: 0,
+          },
+        };
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return [];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
     render(<UnifiedTransactionsView />);
+
     expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
     expect(mockMultichainTransactionsFooter).not.toHaveBeenCalled();
-    const p = mockTransactionsFooter.mock.calls[0][0] as {
+    const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
       chainId?: string;
       providerType?: string;
       rpcBlockExplorer?: string;
     };
-    expect(p.chainId).toBe('0x1');
-    expect(p.providerType).toBe('rpc');
-    expect(p.rpcBlockExplorer).toBe('https://explorer.example');
+    expect(footerProps.chainId).toBe('0x1');
+    expect(footerProps.providerType).toBe('rpc');
+    expect(footerProps.rpcBlockExplorer).toBe('https://explorer.example');
   });
 
   describe('block explorer url', () => {
     it('uses selected chain block explorer when a single chain is enabled', () => {
-      withSelectors([
-        [selectNonEVMEnabledNetworks, []],
-        [
-          selectEvmNetworkConfigurationsByChainId,
-          {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEvmNetworkConfigurationsByChainId)
+          return {
             '0x5': {
               blockExplorerUrls: [
                 'https://explorer0.example',
@@ -530,31 +826,47 @@ describe('UnifiedTransactionsView', () => {
               ],
               defaultBlockExplorerUrlIndex: 1,
             },
-          },
-        ],
-        [selectEVMEnabledNetworks, ['0x5']],
-        [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-      ]);
+          };
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectProviderType) return 'rpc';
+        if (selector === selectRpcUrl) return 'https://rpc.example';
+        if (selector === selectEVMEnabledNetworks) return ['0x5'];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
       render(<UnifiedTransactionsView />);
-      const p = mockTransactionsFooter.mock.calls[0][0] as {
+
+      expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
+      const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
         rpcBlockExplorer?: string;
         onViewBlockExplorer?: () => void;
       };
-      expect(p.rpcBlockExplorer).toBe('https://explorer1.example');
-      p.onViewBlockExplorer?.();
+      expect(footerProps.rpcBlockExplorer).toBe('https://explorer1.example');
+
+      footerProps.onViewBlockExplorer?.();
       expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledWith(
         'rpc',
         '0xabc',
         'https://explorer1.example',
       );
+      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
     });
 
     it('omits block explorer when multiple EVM chains are selected', () => {
-      withSelectors([
-        [selectNonEVMEnabledNetworks, []],
-        [
-          selectEvmNetworkConfigurationsByChainId,
-          {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEvmNetworkConfigurationsByChainId)
+          return {
             '0x1': {
               blockExplorerUrls: ['https://explorer0.example'],
               defaultBlockExplorerUrlIndex: 0,
@@ -563,62 +875,88 @@ describe('UnifiedTransactionsView', () => {
               blockExplorerUrls: ['https://explorer1.example'],
               defaultBlockExplorerUrlIndex: 0,
             },
-          },
-        ],
-        [selectEVMEnabledNetworks, ['0x1', '0x5']],
-        [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-      ]);
+          };
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectProviderType) return 'rpc';
+        if (selector === selectRpcUrl) return 'https://rpc.example';
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+        if (selector === selectEVMEnabledNetworks) return ['0x1', '0x5'];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
       render(<UnifiedTransactionsView />);
-      const p = mockTransactionsFooter.mock.calls[0][0] as {
+
+      expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
+      const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
         rpcBlockExplorer?: string;
+        onViewBlockExplorer?: () => void;
       };
-      expect(p.rpcBlockExplorer).toBeUndefined();
+
+      // When multiple chains are selected, block explorer should be omitted
+      expect(footerProps.rpcBlockExplorer).toBeUndefined();
+
+      // Block explorer address URL should not be called since no single chain is selected
       expect(networksMock.getBlockExplorerAddressUrl).not.toHaveBeenCalled();
     });
   });
 
   it('renders MultichainTransactionsFooter with explorer link for Solana-only selection', () => {
-    withSelectors([
-      [selectEVMEnabledNetworks, []],
-      [selectNonEVMEnabledNetworks, ['solana:mainnet']],
-      [
-        selectNonEvmTransactionsForSelectedAccountGroup,
-        {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
           transactions: [
             { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
           ],
-        },
-      ],
-    ]);
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+      if (selector === selectEVMEnabledNetworks) return [];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
     render(<UnifiedTransactionsView />);
+
     expect(mockMultichainTransactionsFooter).toHaveBeenCalledTimes(1);
-    const p = mockMultichainTransactionsFooter.mock.calls[0][0] as {
+    const footerProps = mockMultichainTransactionsFooter.mock.calls[0][0] as {
       showExplorerLink?: boolean;
       hasTransactions?: boolean;
       url?: string;
     };
-    expect(p.showExplorerLink).toBe(true);
-    expect(p.hasTransactions).toBe(true);
-    expect(p.url).toContain('solscan.io');
-    expect(p.url).toContain(ACC_SOL.address);
+    expect(footerProps.showExplorerLink).toBe(true);
+    expect(footerProps.hasTransactions).toBe(true);
+    expect(footerProps.url).toContain('solscan.io');
+    expect(footerProps.url).toContain('SoLAddreSS11111111111111111111111');
     expect(mockTransactionsFooter).not.toHaveBeenCalled();
   });
 
   it('hides explorer link when enabled non-EVM chains are not all Solana', () => {
     mockGetAddressUrl.mockImplementation(() => '');
-    withSelectors([
-      [selectEVMEnabledNetworks, []],
-      [
-        selectNonEVMEnabledNetworks,
-        ['bip122:000000000019d6689c085ae165831e93'],
-      ],
-      [
-        selectSelectedAccountGroupInternalAccounts,
-        [{ address: 'bc1abcd', type: 'bip122:p2wpkh' }],
-      ],
-      [
-        selectNonEvmTransactionsForSelectedAccountGroup,
-        {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
           transactions: [
             {
               id: 'n1',
@@ -626,128 +964,239 @@ describe('UnifiedTransactionsView', () => {
               chain: 'bip122:000000000019d6689c085ae165831e93',
             },
           ],
-        },
-      ],
-    ]);
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [{ address: 'bc1abcd', type: 'bip122:p2wpkh' }];
+      if (selector === selectSelectedInternalAccount)
+        return { address: 'bc1abcd', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+      if (selector === selectEVMEnabledNetworks) return [];
+      if (selector === selectNonEVMEnabledNetworks)
+        return ['bip122:000000000019d6689c085ae165831e93'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
     render(<UnifiedTransactionsView />);
-    const p = mockMultichainTransactionsFooter.mock.calls[0][0] as {
+
+    expect(mockMultichainTransactionsFooter).toHaveBeenCalledTimes(1);
+    const footerProps = mockMultichainTransactionsFooter.mock.calls[0][0] as {
       showExplorerLink?: boolean;
       url?: string;
     };
-    expect(p.showExplorerLink).toBe(false);
-    expect(p.url).toBe('');
+    expect(footerProps.showExplorerLink).toBe(false);
+    expect(footerProps.url).toBe('');
   });
 
   describe('nonEvmExplorerChainId resolution', () => {
     it('uses prop chainId when no non-EVM networks are enabled and chainId is CAIP', () => {
-      withSelectors([
-        [selectEVMEnabledNetworks, []],
-        [selectNonEVMEnabledNetworks, []],
-      ]);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
       render(<UnifiedTransactionsView chainId="solana:mainnet" />);
+
+      // nonEvmExplorerUrl should be computed using getAddressUrl with the CAIP chain id
       expect(mockGetAddressUrl).toHaveBeenCalledWith(
-        ACC_SOL.address,
+        'SoLAddreSS11111111111111111111111',
         'solana:mainnet',
       );
     });
 
-    it('returns undefined when no non-EVM networks and prop chainId is not CAIP', () => {
-      withSelectors([
-        [selectEVMEnabledNetworks, []],
-        [selectNonEVMEnabledNetworks, []],
-      ]);
+    it('returns undefined (no address URL) when no non-EVM networks and prop chainId is not CAIP', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
       render(<UnifiedTransactionsView chainId="0x1" />);
+
+      // Since the chainId is not CAIP and there are no enabled non-EVM networks,
+      // nonEvmExplorerChainId is undefined and getAddressUrl should not be called
       expect(mockGetAddressUrl).not.toHaveBeenCalled();
     });
   });
 
-  describe('non-TransactionMeta EVM transactions status handling', () => {
+  describe('non-TransactionMeta EVM transactions (smart tx) status handling', () => {
     it.each([
       'submitted',
       'signed',
       'unapproved',
       'approved',
       'pending',
-    ] as const)('includes non-meta EVM tx with status %s', (status) => {
-      withSelectors([
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
-          [
-            {
-              id: 'smart-1',
-              status,
-              txParams: { from: '0xabc', nonce: '0x1' },
-              time: 10,
-            },
-          ],
-        ],
-        [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-      ]);
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(1);
-    });
+    ] as const)(
+      'includes non-meta EVM tx with status %s as submitted (renders in list)',
+      (status) => {
+        // Arrange: a non-TransactionMeta-like tx (no chainId string) that should be treated as submitted
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+            return [
+              {
+                id: 'smart-1',
+                status,
+                // Intentionally omit chainId to ensure !isTransactionMetaLike(tx)
+                txParams: { from: '0xabc', nonce: '0x1' },
+                time: 10,
+              },
+            ];
+          if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+            return { transactions: [] };
+          if (selector === selectSelectedAccountGroupInternalAccounts)
+            return [{ address: '0xabc', type: 'eip155:eoa' }];
+          if (selector === selectSelectedInternalAccount)
+            return { address: '0xabc', metadata: { importTime: 0 } };
+          if (selector === selectTokens) return [];
+          if (selector === selectEVMEnabledNetworks) return ['0x1'];
+          if (selector === selectNonEVMEnabledNetworks)
+            return ['solana:mainnet'];
+          if (selector === selectCurrentCurrency) return 'USD';
+          return undefined;
+        });
 
-    it('excludes non-meta EVM tx when status is not allowlisted', () => {
-      withSelectors([
-        [
-          selectSortedEVMTransactionsForSelectedAccountGroup,
-          [
+        // Act
+        const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+
+        // Assert: one EVM list item rendered (pending/submitted bucket)
+        expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(1);
+      },
+    );
+
+    it('excludes non-meta EVM tx when status is not allowlisted (e.g., failed)', () => {
+      // Arrange: a non-TransactionMeta-like tx with a status not in the allowlist
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
             {
               id: 'smart-2',
               status: 'failed',
+              // Intentionally omit chainId to ensure !isTransactionMetaLike(tx)
               txParams: { from: '0xabc', nonce: '0x1' },
               time: 10,
             },
-          ],
-        ],
-        [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-      ]);
-      expect(
-        render(<UnifiedTransactionsView />).queryAllByTestId(
-          /evm-transaction-item-/,
-        ).length,
-      ).toBe(0);
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      // Act
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+
+      // Assert: no EVM list items rendered (tx excluded entirely)
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(0);
     });
   });
 
   it('renders bridge non-EVM item when bridge history exists', () => {
-    (global as any).__bridgeMap = { n1: { some: 'bridge' } };
-    withSelectors([
-      [
-        selectNonEvmTransactionsForSelectedAccountGroup,
-        {
+    (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap = {
+      n1: { some: 'bridge' },
+    };
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
           transactions: [
             { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
             { id: 'n2', timestamp: 2000, chain: 'solana:mainnet' },
           ],
-        },
-      ],
-      [selectSelectedAccountGroupInternalAccounts, [ACC_EVM]],
-    ]);
-    const r = render(<UnifiedTransactionsView />);
-    expect(r.queryAllByTestId(/bridge-item-/).length).toBe(1);
-    expect(r.queryAllByTestId(/non-evm-item-/).length).toBe(1);
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [{ address: '0xabc', type: 'eip155:eoa' }];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+    expect(queryAllByTestId(/bridge-item-/).length).toBe(1);
+    expect(queryAllByTestId(/non-evm-item-/).length).toBe(1);
+    (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap = {};
   });
 
   it('shows legacy speedup and cancel modals when open', () => {
-    (global as any).__actionsState = {
+    (
+      global as {
+        __actionsState?: { speedUpIsOpen?: boolean; cancelIsOpen?: boolean };
+      }
+    ).__actionsState = {
       speedUpIsOpen: true,
       cancelIsOpen: true,
     };
-    const r = render(<UnifiedTransactionsView />);
-    expect(r.getByTestId('speedup-modal')).toBeTruthy();
-    expect(r.getByTestId('cancel-modal')).toBeTruthy();
+    const { getByTestId } = render(<UnifiedTransactionsView />);
+    expect(getByTestId('speedup-modal')).toBeTruthy();
+    expect(getByTestId('cancel-modal')).toBeTruthy();
+    (global as { __actionsState?: unknown }).__actionsState = undefined;
   });
 
   it('shows EIP-1559 modal when speedUp1559IsOpen or cancel1559IsOpen is true', () => {
-    (global as any).__actionsState = { speedUp1559IsOpen: true };
-    const r = render(<UnifiedTransactionsView />);
-    expect(r.getByTestId('eip1559-modal')).toBeTruthy();
-    (global as any).__actionsState = { cancel1559IsOpen: true };
-    r.rerender(<UnifiedTransactionsView />);
-    expect(r.getByTestId('eip1559-modal')).toBeTruthy();
+    (
+      global as { __actionsState?: { speedUp1559IsOpen?: boolean } }
+    ).__actionsState = { speedUp1559IsOpen: true };
+    const { getByTestId, rerender } = render(<UnifiedTransactionsView />);
+    expect(getByTestId('eip1559-modal')).toBeTruthy();
+
+    (
+      global as { __actionsState?: { cancel1559IsOpen?: boolean } }
+    ).__actionsState = { cancel1559IsOpen: true };
+    rerender(<UnifiedTransactionsView />);
+    expect(getByTestId('eip1559-modal')).toBeTruthy();
+    (global as { __actionsState?: unknown }).__actionsState = undefined;
   });
 });
