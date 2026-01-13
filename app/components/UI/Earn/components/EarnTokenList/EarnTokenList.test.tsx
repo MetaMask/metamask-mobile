@@ -95,6 +95,16 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn().mockReturnValue(10),
 }));
 
+jest.mock('../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    apyDecimal: null,
+    apyPercent: null,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 const initialState = {
   ...initialRootState,
   engine: {
@@ -195,11 +205,11 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.3% APR').length).toBe(1);
+    expect(getAllByText('2.29% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getByText('4.0% APR')).toBeDefined();
+    expect(getByText('4% APR')).toBeDefined();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();

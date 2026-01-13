@@ -50,8 +50,13 @@ import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
-import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
+import {
+  sortByHighestBalance,
+  sortByHighestRewards,
+  truncateNumber,
+} from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -109,6 +114,8 @@ const EarnTokenList = () => {
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const { isEligible } = useStakingEligibility();
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
+
+  const { apyDecimal: tronApyDecimal } = useTronStakeApy();
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
     useEarnTokens();
@@ -224,14 +231,29 @@ const EarnTokenList = () => {
     [earnTokens],
   );
 
+  // Helper to get the APR for a token, using real Tron APY when available
+  const getTokenApr = useCallback(
+    (token: EarnTokenDetails): number => {
+      const isTronNative =
+        Boolean(token.isNative) && isTronChainId(String(token.chainId));
+
+      if (isTronNative && tronApyDecimal) {
+        return parseFloat(tronApyDecimal);
+      }
+
+      return parseFloat(token?.experience?.apr || '0');
+    },
+    [tronApyDecimal],
+  );
+
   const highestAvailableApr = useMemo(
     () =>
       earnTokens?.reduce((highestApr, token) => {
-        const parsedApr = parseFloat(token?.experience?.apr);
+        const parsedApr = getTokenApr(token);
 
         return parsedApr > highestApr ? parsedApr : highestApr;
       }, 0),
-    [earnTokens],
+    [earnTokens, getTokenApr],
   );
 
   /**
@@ -303,6 +325,9 @@ const EarnTokenList = () => {
 
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
+    const tokenApr = getTokenApr(item);
+    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+
     return (
       <View style={styles.listItemContainer}>
         {onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW ? (
@@ -315,7 +340,7 @@ const EarnTokenList = () => {
             token={item}
             onPress={handleRedirectToInputScreen}
             primaryText={{
-              value: `${item?.experience?.apr || 0}% APR`,
+              value: `${formattedApr}% APR`,
               color: TextColor.Success,
             }}
             {...(!isEmptyBalance(item) && {
