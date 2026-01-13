@@ -14,8 +14,8 @@ import { PredictGameChartProps } from './PredictGameChart.types';
 import TimeframeSelector from './TimeframeSelector';
 import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
+import { CHART_HEIGHT } from './PredictGameChart.constants';
 
-const CHART_HEIGHT = 200;
 const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 10, right: 80 };
 const LINE_CURVE = curveStepAfter;
 

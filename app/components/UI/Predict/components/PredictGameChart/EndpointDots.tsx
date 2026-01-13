@@ -1,11 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Circle, G, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '../../../../../util/theme';
 import { EndpointDotsProps } from './PredictGameChart.types';
-
-const LABEL_OFFSET_X = 12;
-const FONT_SIZE_LABEL = 12;
-const FONT_SIZE_VALUE = 24;
+import {
+  LABEL_OFFSET_X,
+  FONT_SIZE_LABEL,
+  FONT_SIZE_VALUE,
+  LABEL_HEIGHT,
+  MIN_LABEL_GAP,
+  DOT_RADIUS,
+  GLOW_RADIUS,
+  GLOW_OPACITY,
+  LABEL_TEXT_OFFSET_Y,
+  VALUE_TEXT_OFFSET_Y,
+} from './PredictGameChart.constants';
 
 const EndpointDots: React.FC<EndpointDotsProps> = ({
   x,
@@ -14,39 +22,93 @@ const EndpointDots: React.FC<EndpointDotsProps> = ({
 }) => {
   const { colors } = useTheme();
 
-  if (!x || !y) return null;
+  const dotPositions = useMemo(() => {
+    if (!x || !y) return [];
 
-  return (
-    <G>
-      {nonEmptySeries.map((series, seriesIndex) => {
+    return nonEmptySeries
+      .map((series) => {
         const lastIndex = series.data.length - 1;
         const lastPoint = series.data[lastIndex];
         if (!lastPoint) return null;
 
-        const dotX = x(lastIndex);
-        const dotY = y(lastPoint.value);
-        const labelX = dotX + LABEL_OFFSET_X;
+        return {
+          dotX: x(lastIndex),
+          dotY: y(lastPoint.value),
+          value: lastPoint.value,
+          color: series.color,
+          label: series.label,
+        };
+      })
+      .filter(Boolean) as {
+      dotX: number;
+      dotY: number;
+      value: number;
+      color: string;
+      label: string;
+    }[];
+  }, [x, y, nonEmptySeries]);
+
+  const adjustedLabelYPositions = useMemo(() => {
+    if (dotPositions.length < 2) {
+      return dotPositions.map((pos) => pos.dotY);
+    }
+
+    const [first, second] = dotPositions;
+    const gap = Math.abs(first.dotY - second.dotY);
+
+    if (gap >= LABEL_HEIGHT + MIN_LABEL_GAP) {
+      return [first.dotY, second.dotY];
+    }
+
+    const midPoint = (first.dotY + second.dotY) / 2;
+    const offset = (LABEL_HEIGHT + MIN_LABEL_GAP) / 2;
+
+    if (first.dotY < second.dotY) {
+      return [midPoint - offset, midPoint + offset];
+    }
+    return [midPoint + offset, midPoint - offset];
+  }, [dotPositions]);
+
+  if (!x || !y) return null;
+
+  return (
+    <G>
+      {dotPositions.map((pos, index) => {
+        const labelX = pos.dotX + LABEL_OFFSET_X;
+        const labelY = adjustedLabelYPositions[index];
 
         return (
-          <G key={`endpoint-${seriesIndex}`}>
-            <Circle cx={dotX} cy={dotY} r={6} fill={series.color} />
+          <G key={`endpoint-${index}`}>
+            <Circle
+              cx={pos.dotX}
+              cy={pos.dotY}
+              r={GLOW_RADIUS}
+              fill={pos.color}
+              opacity={GLOW_OPACITY}
+            />
+            <Circle
+              cx={pos.dotX}
+              cy={pos.dotY}
+              r={DOT_RADIUS}
+              fill={pos.color}
+            />
             <SvgText
               x={labelX}
-              y={dotY - 8}
+              y={labelY - LABEL_TEXT_OFFSET_Y}
               fill={colors.text.alternative}
               fontSize={FONT_SIZE_LABEL}
               fontWeight="500"
             >
-              {series.label}
+              {pos.label}
             </SvgText>
             <SvgText
               x={labelX}
-              y={dotY + 16}
+              y={labelY + VALUE_TEXT_OFFSET_Y}
               fill={colors.text.default}
               fontSize={FONT_SIZE_VALUE}
               fontWeight="700"
             >
-              {`${lastPoint.value.toFixed(0)}%`}
+              {`${pos.value.toFixed(0)}%`}
             </SvgText>
           </G>
         );
