@@ -259,6 +259,7 @@ describe('EarnBalance', () => {
       const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
       expect(props.asset).toBe(strx);
       expect(props.showUnstake).toBe(true);
+      expect(props.showStake).toBe(true);
       expect(props.hasStakedPositions).toBe(true);
     });
 
@@ -284,6 +285,40 @@ describe('EarnBalance', () => {
 
       expect(TronStakingCta).not.toHaveBeenCalled();
       expect(TronStakingButtons).not.toHaveBeenCalled();
+    });
+
+    it('renders unstake button for sTRX when user is not eligible but has staked positions', () => {
+      const strx: Partial<TokenI> = {
+        chainId: 'tron:728126428',
+        ticker: 'sTRX',
+        symbol: 'sTRX',
+        isStaked: true,
+      };
+
+      mockFlag.mockReturnValue(true);
+      mockTronResources.mockReturnValue([
+        { symbol: 'strx-energy', balance: '1' },
+        { symbol: 'strx-bandwidth', balance: '2' },
+      ]);
+      mockUseStakingEligibility.mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+          isEligible: false,
+        }),
+        error: null,
+      });
+
+      renderWithProvider(<EarnBalance asset={strx as TokenI} />);
+
+      // Unstake button should render but stake button should be hidden
+      expect(TronStakingCta).not.toHaveBeenCalled();
+      expect(TronStakingButtons).toHaveBeenCalled();
+      const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
+      expect(props.asset).toBe(strx);
+      expect(props.showUnstake).toBe(true);
+      expect(props.showStake).toBe(false);
+      expect(props.hasStakedPositions).toBe(true);
     });
   });
 });

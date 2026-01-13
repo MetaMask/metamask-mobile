@@ -54,15 +54,21 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   const { isEligible } = useStakingEligibility();
 
-  if (isTron && isTrxStakingEnabled && isEligible) {
+  if (isTron && isTrxStakingEnabled) {
     if (hasStakedTrxPositions && isStakedTrxAsset) {
-      // sTRX row: show Unstake + Stake more
+      // sTRX row: show Unstake (always) + Stake more (only if eligible)
       return (
-        <TronStakingButtons asset={asset} showUnstake hasStakedPositions />
+        <TronStakingButtons
+          asset={asset}
+          showUnstake
+          showStake={isEligible}
+          hasStakedPositions
+        />
       );
     }
 
-    if (!hasStakedTrxPositions && !isStakedTrxAsset) {
+    // Only show CTA and stake button for new staking if user is eligible
+    if (!hasStakedTrxPositions && !isStakedTrxAsset && isEligible) {
       // TRX native row: show CTA + single Stake button
       return (
         <>

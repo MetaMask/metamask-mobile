@@ -19,12 +19,14 @@ import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
   showUnstake?: boolean;
+  showStake?: boolean;
   hasStakedPositions?: boolean;
 }
 
 const TronStakingButtons = ({
   asset,
   showUnstake = false,
+  showStake = true,
   hasStakedPositions = false,
 }: TronStakingButtonsProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -86,17 +88,19 @@ const TronStakingButtons = ({
           onPress={onUnstakePress}
         />
       ) : null}
-      <Button
-        testID={'stake-more-button'}
-        style={styles.balanceActionButton}
-        variant={ButtonVariants.Secondary}
-        label={
-          hasStakedPositions
-            ? strings('stake.stake_more')
-            : strings('stake.stake_your_trx_cta.earn_button')
-        }
-        onPress={onStakePress}
-      />
+      {showStake ? (
+        <Button
+          testID={'stake-more-button'}
+          style={styles.balanceActionButton}
+          variant={ButtonVariants.Secondary}
+          label={
+            hasStakedPositions
+              ? strings('stake.stake_more')
+              : strings('stake.stake_your_trx_cta.earn_button')
+          }
+          onPress={onStakePress}
+        />
+      ) : null}
     </View>
   );
 };
