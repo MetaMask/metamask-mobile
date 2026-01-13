@@ -1,6 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { GameUpdate, PriceUpdate, PredictGameStatus } from '../../types';
 import { GameCache } from './GameCache';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -59,9 +60,7 @@ export class WebSocketManager {
   }
 
   static getInstance(): WebSocketManager {
-    if (!WebSocketManager.instance) {
-      WebSocketManager.instance = new WebSocketManager();
-    }
+    WebSocketManager.instance ??= new WebSocketManager();
     return WebSocketManager.instance;
   }
 
@@ -144,7 +143,10 @@ export class WebSocketManager {
       };
 
       this.sportsWs.onmessage = this.handleSportsMessage;
-    } catch {
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to connect to sports WebSocket', {
+        error,
+      });
       this.scheduleSportsReconnect();
     }
   }
@@ -169,8 +171,10 @@ export class WebSocketManager {
       if (callbacks && callbacks.size > 0) {
         callbacks.forEach((callback) => callback(update));
       }
-    } catch {
-      // Ignore parse errors
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to parse sports message', {
+        error,
+      });
     }
   };
 
@@ -249,7 +253,9 @@ export class WebSocketManager {
     tokenIds: string[],
     callback: PriceUpdateCallback,
   ): () => void {
-    const subscriptionKey = tokenIds.sort().join(',');
+    const subscriptionKey = [...tokenIds]
+      .sort((a, b) => a.localeCompare(b))
+      .join(',');
 
     let callbacks = this.priceSubscriptions.get(subscriptionKey);
     if (!callbacks) {
@@ -310,7 +316,10 @@ export class WebSocketManager {
       };
 
       this.marketWs.onmessage = this.handleMarketMessage;
-    } catch {
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to connect to market WebSocket', {
+        error,
+      });
       this.scheduleMarketReconnect();
     }
   }
@@ -325,7 +334,7 @@ export class WebSocketManager {
 
       const updates: PriceUpdate[] = data.price_changes.map((change) => ({
         tokenId: change.asset_id,
-        price: parseFloat(change.best_ask) || 0,
+        price: parseFloat(change.price) || 0,
         bestBid: parseFloat(change.best_bid) || 0,
         bestAsk: parseFloat(change.best_ask) || 0,
       }));
@@ -340,8 +349,10 @@ export class WebSocketManager {
           callbacks.forEach((callback) => callback(relevantUpdates));
         }
       });
-    } catch {
-      // Ignore parse errors
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to parse market message', {
+        error,
+      });
     }
   };
 

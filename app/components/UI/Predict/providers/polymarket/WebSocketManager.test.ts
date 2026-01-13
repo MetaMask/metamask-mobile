@@ -402,6 +402,36 @@ describe('WebSocketManager', () => {
       ]);
     });
 
+    it('maps price from price field not best_ask', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.50',
+            best_bid: '0.48',
+            best_ask: '0.52',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        {
+          tokenId: 'token1',
+          price: 0.5,
+          bestBid: 0.48,
+          bestAsk: 0.52,
+        },
+      ]);
+    });
+
     it('ignores non-price_change events', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();

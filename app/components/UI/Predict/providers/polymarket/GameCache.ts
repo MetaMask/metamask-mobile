@@ -18,9 +18,7 @@ export class GameCache {
   }
 
   static getInstance(): GameCache {
-    if (!GameCache.instance) {
-      GameCache.instance = new GameCache();
-    }
+    GameCache.instance ??= new GameCache();
     return GameCache.instance;
   }
 
