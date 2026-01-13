@@ -178,7 +178,7 @@ const PerpsHomeView = () => {
     conditions: [!isAnyLoading],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+        PerpsEventValues.SCREEN_TYPE.PERPS_HOME,
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(buttonClicked && {
@@ -241,6 +241,18 @@ const PerpsHomeView = () => {
         title: strings(SUPPORT_CONFIG.TITLE_KEY),
       },
     });
+    // Track contact support interaction for Perps analytics
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.CONTACT_SUPPORT,
+          [PerpsEventProperties.LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
+    // Also track the general navigation event
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );

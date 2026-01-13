@@ -1435,7 +1435,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...eventProperties,
             [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+              PerpsEventValues.INTERACTION_TYPE.LEVERAGE_CHANGED,
             [PerpsEventProperties.SETTING_TYPE]:
               PerpsEventValues.SETTING_TYPE.LEVERAGE,
           });

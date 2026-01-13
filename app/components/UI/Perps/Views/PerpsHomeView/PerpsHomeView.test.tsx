@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -15,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button',
+      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
 }));
@@ -203,11 +204,14 @@ jest.mock('../../constants/eventNames', () => ({
     BUTTON_CLICKED: 'button_clicked',
     BUTTON_LOCATION: 'button_location',
     INTERACTION_TYPE: 'interaction_type',
+    LOCATION: 'location',
   },
   PerpsEventValues: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
       HOMESCREEN: 'homescreen',
+      PERPS_HOME: 'perps_home',
+      WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
     },
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
@@ -225,6 +229,7 @@ jest.mock('../../constants/eventNames', () => ({
     },
     INTERACTION_TYPE: {
       BUTTON_CLICKED: 'button_clicked',
+      CONTACT_SUPPORT: 'contact_support',
     },
   },
 }));
@@ -498,7 +503,7 @@ describe('PerpsHomeView', () => {
     // Assert - Should navigate to MarketListView with search enabled
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultSearchVisible: true,
-      source: 'homescreen_tab',
+      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',

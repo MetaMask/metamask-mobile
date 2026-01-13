@@ -190,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: 'homescreen',
+      source: PerpsEventValues.SOURCE.PERPS_HOME,
     });
   }, [navigation]);
 

@@ -350,9 +350,10 @@ const PerpsHeroCardView: React.FC = () => {
     const imageSelected = CARD_IMAGES[currentTab].name;
 
     const sharedEventProperties = {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
       [PerpsEventProperties.SCREEN_NAME]:
         PerpsEventValues.SCREEN_NAME.PERPS_HERO_CARD,
-      [PerpsEventProperties.ACTION]: PerpsEventValues.ACTION.SHARE,
       [PerpsEventProperties.ASSET]: data.asset,
       [PerpsEventProperties.DIRECTION]: data.direction,
       [PerpsEventProperties.LEVERAGE]: data.leverage,
@@ -366,7 +367,7 @@ const PerpsHeroCardView: React.FC = () => {
     try {
       const imageUri = await captureCard();
       if (imageUri) {
-        track(MetaMetricsEvents.SHARE_ACTION, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           ...sharedEventProperties,
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
         });
@@ -390,7 +391,7 @@ const PerpsHeroCardView: React.FC = () => {
         });
 
         if (result?.success) {
-          track(MetaMetricsEvents.SHARE_ACTION, {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...sharedEventProperties,
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
           });
@@ -401,7 +402,7 @@ const PerpsHeroCardView: React.FC = () => {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      track(MetaMetricsEvents.SHARE_ACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         ...sharedEventProperties,
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
