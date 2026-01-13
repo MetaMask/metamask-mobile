@@ -873,7 +873,7 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('opens Add Wallet bottom sheet overlay in full-page mode', () => {
+    it('opens Add Wallet bottom sheet overlay in full-page mode (multichain)', () => {
       // Arrange
       jest.useRealTimers();
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
@@ -903,6 +903,53 @@ describe('AccountSelector', () => {
       // Import SRP button should be visible in the overlay
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeDefined();
+      // Account list should still be visible in background
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
+
+      jest.useFakeTimers();
+    });
+
+    it('opens Add Account bottom sheet overlay in full-page mode (non-multichain)', () => {
+      // Arrange
+      jest.useRealTimers();
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+
+      // Act
+      fireEvent.press(addButton);
+
+      // Assert: AddAccountActions bottom sheet is displayed on top
+      // There should be two "Create a new account" texts - one in the overlay header and one in the actions
+      expect(
+        screen.getAllByText('Create a new account').length,
+      ).toBeGreaterThanOrEqual(1);
+      // Add Ethereum account button should be visible in the overlay
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeDefined();
+      // Account list should still be visible in background
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeDefined();
 
       jest.useFakeTimers();
