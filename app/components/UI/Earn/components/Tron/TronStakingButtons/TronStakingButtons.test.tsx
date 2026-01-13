@@ -62,6 +62,13 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {

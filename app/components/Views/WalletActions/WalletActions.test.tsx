@@ -135,6 +135,13 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 const mockGoToSwaps = jest.fn();
 jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({
@@ -602,5 +609,57 @@ describe('WalletActions', () => {
     // Since buttons are disabled, none of the mock functions should be called
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoToSwaps).not.toHaveBeenCalled();
+  });
+
+  describe('eligibility guard', () => {
+    const { useStakingEligibilityGuard } = jest.requireMock(
+      '../../UI/Stake/hooks/useStakingEligibilityGuard',
+    );
+    const mockCheckEligibilityAndRedirect = jest.fn();
+
+    beforeEach(() => {
+      mockCheckEligibilityAndRedirect.mockClear();
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: true,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+    });
+
+    it('redirects to Portfolio when user is not eligible and clicks earn button', () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<WalletActions />, {
+        state: mockInitialState,
+      });
+
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+      );
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      // Should navigate to Portfolio, not to StakeModals
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeModals',
+        expect.any(Object),
+      );
+    });
+
+    it('navigates to earn token list when user is eligible and clicks earn button', () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<WalletActions />, {
+        state: mockInitialState,
+      });
+
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+      );
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+        screen: expect.any(String),
+        params: expect.any(Object),
+      });
+    });
   });
 });
