@@ -76,6 +76,11 @@ export interface HeaderBaseProps extends ViewProps {
    */
   testID?: string;
   /**
+   * Optional test ID for the title text element.
+   * Only applies when children is a string.
+   */
+  titleTestID?: string;
+  /**
    * Optional Tailwind class names for the header container.
    */
   twClassName?: string;

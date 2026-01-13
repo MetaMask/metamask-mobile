@@ -36,6 +36,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   startAccessoryWrapperProps,
   endAccessoryWrapperProps,
   testID = HEADERBASE_TEST_ID,
+  titleTestID = HEADERBASE_TITLE_TEST_ID,
   twClassName,
   ...viewProps
 }) => {
@@ -161,7 +162,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
         {typeof children === 'string' ? (
           <Text
             variant={textVariant}
-            testID={HEADERBASE_TITLE_TEST_ID}
+            testID={titleTestID}
             style={isLeftAligned ? undefined : tw.style('text-center')}
           >
             {children}
