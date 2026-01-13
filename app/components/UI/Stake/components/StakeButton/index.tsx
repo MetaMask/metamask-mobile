@@ -13,7 +13,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -26,10 +25,10 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { BrowserTab, TokenI } from '../../../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { useStakingEligibilityGuard } from '../../hooks/useStakingEligibilityGuard';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -57,11 +56,8 @@ interface StakeButtonProps {
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
-
-  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
-  const { isEligible } = useStakingEligibility();
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
   const { isStakingSupportedChain } = useStakingChain();
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
@@ -91,6 +87,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
+      if (!checkEligibilityAndRedirect()) {
+        return;
+      }
       trace({ name: TraceName.EarnDepositScreen });
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -121,36 +120,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         'mainnet',
       );
     }
-    if (isEligible) {
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
-    } else {
-      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(AppConstants.STAKE.URL),
-      );
-      let existingTabId;
-      let newTabUrl;
-      if (existingStakeTab) {
-        existingTabId = existingStakeTab.id;
-      } else {
-        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
-        newTabUrl = stakeUrl.href;
-      }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
+    if (!checkEligibilityAndRedirect()) {
+      return;
     }
+    trace({ name: TraceName.EarnDepositScreen });
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({

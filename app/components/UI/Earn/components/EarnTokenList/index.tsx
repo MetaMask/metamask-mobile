@@ -51,6 +51,7 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
 import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
+import { useStakingEligibilityGuard } from '../../../Stake/hooks/useStakingEligibilityGuard';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -107,6 +108,7 @@ const EarnTokenList = () => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
     useEarnTokens();
@@ -190,6 +192,10 @@ const EarnTokenList = () => {
   };
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
+    if (!checkEligibilityAndRedirect()) {
+      return;
+    }
+
     const isReady = await prepareNetworkForToken(token);
     if (!isReady) return;
 

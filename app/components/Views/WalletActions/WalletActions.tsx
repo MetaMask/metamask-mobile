@@ -42,6 +42,7 @@ import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { useStakingEligibilityGuard } from '../../UI/Stake/hooks/useStakingEligibilityGuard';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -67,6 +68,7 @@ const WalletActions = () => {
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -76,6 +78,10 @@ const WalletActions = () => {
   );
 
   const onEarn = useCallback(async () => {
+    if (!checkEligibilityAndRedirect()) {
+      return;
+    }
+
     closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
@@ -106,6 +112,7 @@ const WalletActions = () => {
     chainId,
     createEventBuilder,
     trackEvent,
+    checkEligibilityAndRedirect,
   ]);
 
   const goToSwaps = useCallback(() => {
