@@ -3,7 +3,6 @@ import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
   Text,
-  TextVariant,
   Icon,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -35,7 +34,7 @@ import useBlockExplorer from '../../hooks/useBlockExplorer';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -333,11 +332,10 @@ const AssetOptions = (props: Props) => {
 
   return (
     <BottomSheet ref={modalRef}>
-      <BottomSheetHeader onClose={() => modalRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('asset_details.options.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('asset_details.options.title')}
+        onClose={() => modalRef.current?.onCloseBottomSheet()}
+      />
       <View>{renderOptions()}</View>
     </BottomSheet>
   );

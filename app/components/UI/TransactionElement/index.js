@@ -89,8 +89,8 @@ const createStyles = (colors, typography) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     },
     summaryWrapper: {
       padding: 15,
@@ -120,24 +120,29 @@ const createStyles = (colors, typography) =>
       marginTop: 0,
       paddingTop: 0,
     },
+    listItemIcon: {
+      marginRight: 20,
+    },
     listItemTitle: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
       marginTop: 0,
     },
     listItemStatus: {
-      ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
+      ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
+      marginTop: 0,
     },
     listItemFiatAmount: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
       marginTop: 0,
     },
     listItemAmount: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
       color: colors.text.alternative,
+      marginTop: 0,
     },
   });
 
@@ -489,7 +494,7 @@ class TransactionElement extends PureComponent {
           {this.renderTxTime()}
         </ListItem.Date>
         <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>
+          <ListItem.Icon style={styles.listItemIcon}>
             {this.renderTxElementIcon(transactionElement, tx)}
           </ListItem.Icon>
           <ListItem.Body>

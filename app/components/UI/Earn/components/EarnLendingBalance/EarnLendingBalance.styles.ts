@@ -16,10 +16,7 @@ const styleSheet = (params: {
       gap: 16,
     },
     buttonsContainer: {
-      marginTop: 16,
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: theme.colors.background.section,
+      marginTop: 4,
     },
     button: {
       flex: 1,
@@ -41,7 +38,6 @@ const styleSheet = (params: {
       paddingTop: 16,
     },
     earnings: {
-      paddingHorizontal: 16,
       paddingTop: 16,
     },
   });

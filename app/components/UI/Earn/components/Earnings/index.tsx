@@ -98,7 +98,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
           <View style={styles.keyValuePrimaryTextWrapper}>
             <Text
               variant={TextVariant.BodyMDMedium}
-              style={styles.keyValuePrimaryText}
+              color={TextColor.Alternative}
             >
               {strings('stake.annual_rate')}
             </Text>
@@ -138,12 +138,12 @@ const EarningsContent = ({ asset }: EarningsProps) => {
         {experienceType === EARN_EXPERIENCES.POOLED_STAKING && (
           <View style={styles.keyValueRow}>
             <View style={styles.keyValuePrimaryTextWrapperCentered}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                style={styles.keyValuePrimaryText}
-              >
-                {strings('stake.lifetime_rewards')}
-              </Text>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('stake.lifetime_rewards')}
+            </Text>
             </View>
             <View style={styles.keyValueSecondaryText}>
               {isLoadingEarningsData ? (
@@ -166,7 +166,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
                     {lifetimeRewardsFiat}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySMMedium}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                   >
                     {lifetimeRewards}

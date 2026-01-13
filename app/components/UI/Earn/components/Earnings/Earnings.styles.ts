@@ -21,7 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
     keyValueRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingVertical: 8,
+      paddingVertical: 4,
     },
     keyValuePrimaryTextWrapper: {
       flexDirection: 'row',

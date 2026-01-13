@@ -251,7 +251,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             />
           </BadgeWrapper>
           <View style={styles.balances}>
-            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
+            <Text variant={TextVariant.BodyMDMedium} testID="staked-ethereum-label">
               {strings('stake.staked_ethereum')}
             </Text>
             <Text>

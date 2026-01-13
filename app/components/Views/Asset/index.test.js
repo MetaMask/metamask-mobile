@@ -216,6 +216,48 @@ const createMockStateWithAccount = (accountType = EthAccountType.Eoa) => ({
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
+// Mock the HeaderWithTitleLeftScrollable component and hook
+jest.mock(
+  '../../../component-library/components-temp/HeaderWithTitleLeftScrollable',
+  () => ({
+    HeaderWithTitleLeftScrollable: ({ title, subtitle, children }) => {
+      const { View, Text } = require('react-native');
+      return (
+        <View testID="header-with-title-left-scrollable">
+          <Text testID="header-title">{title}</Text>
+          {subtitle && <Text testID="header-subtitle">{subtitle}</Text>}
+          {children}
+        </View>
+      );
+    },
+    useHeaderWithTitleLeftScrollable: () => ({
+      onScroll: jest.fn(),
+      scrollY: { value: 0 },
+      expandedHeight: 140,
+      setExpandedHeight: jest.fn(),
+    }),
+  }),
+);
+
+// Mock useTokenHistoricalPrices hook
+jest.mock('../../hooks/useTokenHistoricalPrices', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+// Mock calculateAssetPrice
+jest.mock('../../UI/AssetOverview/utils/calculateAssetPrice', () => ({
+  calculateAssetPrice: jest.fn(() => ({
+    currentPrice: 3111.32,
+    priceDiff: -44.45,
+    comparePrice: 3155.77,
+  })),
+}));
+
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
   getBuildNumber: jest.fn().mockReturnValue(1),
@@ -1164,6 +1206,73 @@ describe('Asset', () => {
       // Selector was called with correct chainId, even though address was null
       expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledTimes(1);
       expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
+    });
+  });
+
+  describe('HeaderWithTitleLeftScrollable Integration', () => {
+    it('renders with token symbol as title', () => {
+      const { getByTestId } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn(), pop: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              name: 'Ethereum',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('header-title')).toBeDefined();
+    });
+
+    it('renders HeaderWithTitleLeftScrollable component', () => {
+      const { getByTestId } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn(), pop: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              address: 'something',
+              isETH: false,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('header-with-title-left-scrollable')).toBeDefined();
+    });
+
+    it('passes hidePrice prop to AssetOverview', () => {
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn(), pop: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

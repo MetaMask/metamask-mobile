@@ -65,7 +65,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
               style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
-              <Text variant={TextVariant.BodySM}>
+              <Text variant={TextVariant.BodyMD}>
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon name={DesignSystemIconName.Copy} size={IconSize.Sm} />

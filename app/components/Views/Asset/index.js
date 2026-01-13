@@ -1,13 +1,16 @@
 import PropTypes from 'prop-types';
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useMemo, useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { connect } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { connect, useSelector } from 'react-redux';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
-  ButtonIcon,
-  ButtonIconSize,
+  Text as DSText,
+  TextVariant as DSTextVariant,
+  TextColor as DSTextColor,
+  FontWeight,
   IconName,
-  IconColor,
+  AvatarSize,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
@@ -27,10 +30,11 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
+  selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import { isHexAddress } from '@metamask/utils';
+import { Hex, isHexAddress } from '@metamask/utils';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -40,7 +44,7 @@ import {
   findBlockExplorerForRpc,
   isMainnetByChainId,
 } from '../../../util/networks';
-import { mockTheme, ThemeContext } from '../../../util/theme';
+import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
@@ -60,6 +64,7 @@ import Device from '../../../util/device';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import {
   selectSelectedInternalAccount,
@@ -75,14 +80,31 @@ import {
   selectTransactions,
 } from '../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
+import {
+  selectSupportedSwapTokenAddressesForChainId,
+  selectTokenDisplayData,
+  isAssetFromSearch,
+} from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
+import {
+  selectNonEvmTransactionsForSelectedAccountGroup,
+  selectMultichainAssetsRates,
+} from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
+import HeaderWithTitleLeftScrollable, {
+  useHeaderWithTitleLeftScrollable,
+} from '../../../component-library/components-temp/HeaderWithTitleLeftScrollable';
+import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
+import { calculateAssetPrice } from '../../UI/AssetOverview/utils/calculateAssetPrice';
+import { addCurrencySymbol } from '../../../util/number';
+import { strings } from '../../../../locales/i18n';
+import NetworkAssetLogo from '../../UI/NetworkAssetLogo';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -137,90 +159,74 @@ const createStyles = (colors) =>
     },
   });
 
-// Styles for inline header
-const inlineHeaderStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-    gap: 16,
-  },
-  leftButton: {
-    marginLeft: 16,
-  },
-  titleWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rightButton: {
-    marginRight: 16,
-  },
-  rightPlaceholder: {
-    marginRight: 16,
-    width: 24,
-  },
-});
-
 /**
- * Inline header component for instant rendering during transitions
+ * PriceDiffText component displays the price difference with dynamic colors
  */
-const AssetInlineHeader = ({
-  title,
-  networkName,
-  onBackPress,
-  onOptionsPress,
-  colors,
-}) => {
-  const insets = useSafeAreaInsets();
+const PriceDiffText = ({ diff, comparePrice, currentCurrency, date }) => {
+  const color =
+    diff > 0
+      ? DSTextColor.SuccessDefault
+      : diff < 0
+        ? DSTextColor.ErrorDefault
+        : DSTextColor.TextAlternative;
+
+  const percentage =
+    comparePrice !== 0 ? ((diff / comparePrice) * 100).toFixed(2) : '0';
+
+  const formattedDiff = `${diff > 0 ? '+' : ''}${addCurrencySymbol(diff, currentCurrency, true)} (${diff > 0 ? '+' : ''}${percentage}%)`;
+
   return (
-    <View
-      style={[
-        inlineHeaderStyles.container,
-        { marginTop: insets.top, backgroundColor: colors.background.default },
-      ]}
-    >
-      <ButtonIcon
-        style={inlineHeaderStyles.leftButton}
-        onPress={onBackPress}
-        size={ButtonIconSize.Lg}
-        iconName={IconName.ArrowLeft}
-        iconColor={IconColor.Default}
-      />
-      <View style={inlineHeaderStyles.titleWrapper}>
-        <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
-          {title}
-        </Text>
-        {networkName ? (
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            numberOfLines={1}
-          >
-            {networkName}
-          </Text>
-        ) : null}
-      </View>
-      {onOptionsPress ? (
-        <ButtonIcon
-          style={inlineHeaderStyles.rightButton}
-          onPress={onOptionsPress}
-          size={ButtonIconSize.Lg}
-          iconName={IconName.MoreVertical}
-          iconColor={IconColor.Default}
-        />
-      ) : (
-        <View style={inlineHeaderStyles.rightPlaceholder} />
-      )}
-    </View>
+    <DSText variant={DSTextVariant.BodySm} fontWeight={FontWeight.Medium}>
+      <DSText
+        variant={DSTextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={color}
+      >
+        {formattedDiff}
+      </DSText>
+      <DSText
+        variant={DSTextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={DSTextColor.TextAlternative}
+      >
+        {' '}
+        {date}
+      </DSText>
+    </DSText>
   );
 };
 
-AssetInlineHeader.propTypes = {
-  title: PropTypes.string,
-  networkName: PropTypes.string,
-  onBackPress: PropTypes.func,
-  onOptionsPress: PropTypes.func,
-  colors: PropTypes.object,
+PriceDiffText.propTypes = {
+  diff: PropTypes.number,
+  comparePrice: PropTypes.number,
+  currentCurrency: PropTypes.string,
+  date: PropTypes.string,
+};
+
+/**
+ * TokenAvatar component renders the appropriate avatar based on asset type
+ */
+const TokenAvatar = ({ asset }) => {
+  if (asset.isNative || asset.isETH) {
+    return (
+      <NetworkAssetLogo
+        chainId={asset.chainId}
+        ticker={asset.ticker ?? asset.symbol}
+        big
+      />
+    );
+  }
+  return (
+    <AvatarToken
+      name={asset.symbol}
+      imageSource={{ uri: asset.image }}
+      size={AvatarSize.Xl}
+    />
+  );
+};
+
+TokenAvatar.propTypes = {
+  asset: PropTypes.object.isRequired,
 };
 
 /**
@@ -283,6 +289,14 @@ class Asset extends PureComponent {
      * Boolean that indicates if deposit functionality is enabled
      */
     isDepositEnabled: PropTypes.bool,
+    /**
+     * Callback for scroll events from the scrollable header
+     */
+    onScrollEvent: PropTypes.func,
+    /**
+     * Expanded height of the header for content padding
+     */
+    expandedHeight: PropTypes.number,
   };
 
   state = {
@@ -307,9 +321,10 @@ class Asset extends PureComponent {
     ? safeToChecksumAddress(this.props.selectedAddressForAsset)
     : this.props.selectedAddressForAsset;
 
-  // No-op: inline header doesn't need scroll updates
-  onScrollThroughContent = () => {
-    // Intentionally empty - inline header doesn't respond to scroll
+  onScrollThroughContent = (event) => {
+    if (this.props.onScrollEvent) {
+      this.props.onScrollEvent(event);
+    }
   };
 
   componentDidMount() {
@@ -644,24 +659,17 @@ class Asset extends PureComponent {
       });
     };
 
+    const { expandedHeight = 0 } = this.props;
+
     return (
       <View style={styles.wrapper}>
-        <AssetInlineHeader
-          title={params?.symbol ?? ''}
-          networkName={currentNetworkName}
-          onBackPress={() => navigation.pop()}
-          onOptionsPress={
-            shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
-          }
-          colors={colors}
-        />
         {loading ? (
           this.renderLoader()
         ) : isNonEvmAsset ? (
           // For non-EVM assets, render multichain transactions
           <MultichainTransactionsView
             header={
-              <>
+              <View style={{ paddingTop: expandedHeight }}>
                 <AssetOverview
                   asset={asset}
                   displayBuyButton={displayBuyButton}
@@ -669,9 +677,10 @@ class Asset extends PureComponent {
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
+                  hidePrice
                 />
                 <ActivityHeader asset={asset} />
-              </>
+              </View>
             }
             transactions={transactions}
             navigation={navigation}
@@ -685,7 +694,7 @@ class Asset extends PureComponent {
           // For EVM assets, use the existing Transactions component
           <Transactions
             header={
-              <>
+              <View style={{ paddingTop: expandedHeight }}>
                 <AssetOverview
                   asset={asset}
                   displayBuyButton={displayBuyButton}
@@ -693,9 +702,10 @@ class Asset extends PureComponent {
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
+                  hidePrice
                 />
                 <ActivityHeader asset={asset} />
-              </>
+              </View>
             }
             assetSymbol={asset.symbol}
             navigation={navigation}
@@ -880,4 +890,199 @@ const mapStateToProps = (state, { route }) => {
   };
 };
 
-export default connect(mapStateToProps)(withMetricsAwareness(Asset));
+const ConnectedAsset = connect(mapStateToProps)(withMetricsAwareness(Asset));
+
+/**
+ * Wrapper component that provides the collapsible header functionality
+ */
+const AssetWithScrollableHeader = (props) => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { colors } = useTheme();
+  const asset = route.params;
+  const chainId = asset?.chainId;
+
+  // Get network configurations
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const currentNetworkName = networkConfigurations[chainId]?.name;
+
+  // Price data hooks and selectors
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRateByTicker = useSelector(selectCurrencyRates);
+  const allTokenMarketData = useSelector(selectTokenMarketData);
+  const nativeCurrency = useSelector((state) =>
+    selectNativeCurrencyByChainId(state, chainId),
+  );
+  const tokenResult = useSelector((state) =>
+    selectTokenDisplayData(state, chainId, asset?.address),
+  );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const multichainAssetRates = multichainAssetsRates?.[asset?.address];
+  ///: END:ONLY_INCLUDE_IF
+
+  const resultChainId = formatChainIdToCaip(chainId);
+  const isNonEvmAsset = resultChainId === chainId;
+
+  // Fetch historical prices
+  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
+    asset,
+    address: asset?.address,
+    chainId,
+    timePeriod: '1d',
+    vsCurrency: currentCurrency,
+  });
+
+  // Calculate price data
+  const itemAddress = !isNonEvmAsset
+    ? safeToChecksumAddress(asset?.address)
+    : asset?.address;
+  const marketDataRate = allTokenMarketData?.[chainId]?.[itemAddress]?.price;
+
+  const convertedMultichainAssetRates = useMemo(() => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (isNonEvmAsset && multichainAssetRates) {
+      return {
+        rate: Number(multichainAssetRates.rate),
+        marketData: undefined,
+      };
+    }
+    ///: END:ONLY_INCLUDE_IF
+    return undefined;
+  }, [
+    isNonEvmAsset,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    multichainAssetRates,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
+  const priceData = useMemo(() => {
+    if (isAssetFromSearch(asset) && tokenResult?.found) {
+      return {
+        currentPrice: tokenResult.price?.price || 0,
+        priceDiff: 0,
+        comparePrice: 0,
+      };
+    }
+
+    return calculateAssetPrice({
+      _asset: asset,
+      isEvmAssetSelected: !isNonEvmAsset,
+      exchangeRate: marketDataRate,
+      tickerConversionRate:
+        conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
+      prices,
+      multichainAssetRates: convertedMultichainAssetRates,
+      timePeriod: '1d',
+    });
+  }, [
+    asset,
+    isNonEvmAsset,
+    marketDataRate,
+    conversionRateByTicker,
+    nativeCurrency,
+    prices,
+    convertedMultichainAssetRates,
+    tokenResult,
+  ]);
+
+  const { currentPrice, priceDiff, comparePrice } = priceData;
+
+  // Scrollable header hook
+  const { onScroll, scrollY, expandedHeight, setExpandedHeight } =
+    useHeaderWithTitleLeftScrollable();
+
+  // Header configuration
+  const rpcUrl = useSelector(selectRpcUrl);
+  const isNativeToken = asset?.isNative ?? asset?.isETH;
+  const isMainnet = isMainnetByChainId(chainId);
+  const blockExplorer = isNonEvmChainId(chainId)
+    ? findBlockExplorerForNonEvmChainId(chainId)
+    : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
+  const shouldShowMoreOptionsInNavBar =
+    isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
+
+  const openAssetOptions = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'AssetOptions',
+      params: {
+        isNativeCurrency: isNativeToken,
+        address: asset?.address,
+        chainId: asset?.chainId || '0x1',
+        asset,
+      },
+    });
+  }, [navigation, isNativeToken, asset]);
+
+  const handleBack = useCallback(() => {
+    navigation.pop();
+  }, [navigation]);
+
+  // Build header props
+  const endButtonIconProps = useMemo(() => {
+    if (!shouldShowMoreOptionsInNavBar) return undefined;
+    return [
+      {
+        iconName: IconName.MoreVertical,
+        onPress: openAssetOptions,
+      },
+    ];
+  }, [shouldShowMoreOptionsInNavBar, openAssetOptions]);
+
+  const ticker = asset?.ticker || asset?.symbol;
+  const topLabel = asset?.name ? `${asset.name} (${ticker})` : ticker;
+
+  const titleLeftProps = useMemo(
+    () => ({
+      topLabel,
+      title: !isNaN(currentPrice)
+        ? addCurrencySymbol(currentPrice, currentCurrency, true)
+        : '',
+      bottomAccessory:
+        prices.length > 0 ? (
+          <PriceDiffText
+            diff={priceDiff}
+            comparePrice={comparePrice}
+            currentCurrency={currentCurrency}
+            date={strings('asset_overview.chart_time_period.1d')}
+          />
+        ) : null,
+      endAccessory: asset ? <TokenAvatar asset={asset} /> : null,
+    }),
+    [
+      topLabel,
+      currentPrice,
+      currentCurrency,
+      prices,
+      priceDiff,
+      comparePrice,
+      asset,
+    ],
+  );
+
+  const wrapperStyles = createStyles(colors);
+
+  return (
+    <SafeAreaView style={wrapperStyles.wrapper} edges={['top']}>
+      <HeaderWithTitleLeftScrollable
+        title={asset?.symbol ?? ''}
+        subtitle={currentNetworkName}
+        onBack={handleBack}
+        endButtonIconProps={endButtonIconProps}
+        titleLeftProps={titleLeftProps}
+        scrollY={scrollY}
+        onExpandedHeightChange={setExpandedHeight}
+        isInsideSafeAreaView
+        twClassName="bg-default"
+      />
+      <ConnectedAsset
+        {...props}
+        onScrollEvent={onScroll}
+        expandedHeight={expandedHeight}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default AssetWithScrollableHeader;

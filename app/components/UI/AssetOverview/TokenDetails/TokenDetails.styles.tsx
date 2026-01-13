@@ -10,7 +10,7 @@ const styleSheet = () =>
       paddingVertical: 8,
     } as TextStyle,
     listWrapper: {
-      paddingTop: 8,
+      paddingTop: 4,
       paddingBottom: 8,
     },
     listItem: {

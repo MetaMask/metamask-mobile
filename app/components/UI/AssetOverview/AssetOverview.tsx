@@ -48,6 +48,8 @@ import useTokenHistoricalPrices, {
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
+import PriceChart from './PriceChart';
+import { distributeDataPoints } from './PriceChart/utils';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import Routes from '../../../constants/navigation/Routes';
@@ -111,6 +113,7 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   networkName?: string;
+  hidePrice?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -118,6 +121,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   networkName,
+  hidePrice = false,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
@@ -651,19 +655,35 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         renderWarning()
       ) : (
         <View>
-          <Price
-            asset={asset}
-            prices={prices}
-            priceDiff={priceDiff}
-            currentCurrency={currentCurrency}
-            currentPrice={currentPrice}
-            comparePrice={comparePrice}
-            isLoading={isLoading}
-            timePeriod={timePeriod}
-          />
-          <View style={styles.chartNavigationWrapper}>
-            {renderChartNavigationButton()}
-          </View>
+          {hidePrice ? (
+            <>
+              <PriceChart
+                prices={distributeDataPoints(prices)}
+                priceDiff={priceDiff}
+                isLoading={isLoading}
+                onChartIndexChange={() => {}}
+              />
+              <View style={styles.chartNavigationWrapper}>
+                {renderChartNavigationButton()}
+              </View>
+            </>
+          ) : (
+            <>
+              <Price
+                asset={asset}
+                prices={prices}
+                priceDiff={priceDiff}
+                currentCurrency={currentCurrency}
+                currentPrice={currentPrice}
+                comparePrice={comparePrice}
+                isLoading={isLoading}
+                timePeriod={timePeriod}
+              />
+              <View style={styles.chartNavigationWrapper}>
+                {renderChartNavigationButton()}
+              </View>
+            </>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}

@@ -19,13 +19,13 @@ const styleSheet = (params: { theme: Theme }) =>
     balances: {
       flex: 1,
       justifyContent: 'center',
-      marginLeft: 16,
+      marginLeft: 20,
       alignSelf: 'center',
     },
     ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
     },
     bannerStyles: {

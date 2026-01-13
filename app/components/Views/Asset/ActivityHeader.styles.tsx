@@ -6,7 +6,8 @@ const styleSheet = () =>
       paddingHorizontal: 16,
     },
     title: {
-      paddingVertical: 8,
+      paddingTop: 8,
+      paddingBottom: 4,
     } as TextStyle,
   });
 

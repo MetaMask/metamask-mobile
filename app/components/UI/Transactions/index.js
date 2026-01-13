@@ -498,11 +498,9 @@ class Transactions extends PureComponent {
   };
 
   onScroll = (event) => {
-    const { nativeEvent } = event;
-    const { contentOffset } = nativeEvent;
-    // 16 is the top padding of the list
     if (this.props.onScrollThroughContent) {
-      this.props.onScrollThroughContent(contentOffset.y);
+      // Pass the full event for HeaderWithTitleLeftScrollable compatibility
+      this.props.onScrollThroughContent(event);
     }
   };
 
@@ -812,7 +810,7 @@ class Transactions extends PureComponent {
               }
               contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
-              scrollIndicatorInsets={{ right: 1 }}
+              showsVerticalScrollIndicator={false}
               onScroll={this.onScroll}
               scrollEnabled={!isChartBeingTouched}
             />
