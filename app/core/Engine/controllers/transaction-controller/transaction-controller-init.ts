@@ -290,17 +290,30 @@ function publishBatchSmartTransactionHook({
   approvalController: ApprovalController;
   transactions: PublishBatchHookTransaction[];
 }): Promise<PublishBatchHookResult> {
-  // Get transactionMeta based on the last transaction ID
-  const lastTransaction = transactions[transactions.length - 1];
+  // Find the first non-approval transaction in the batch
+  const approvalTypes = [
+    TransactionType.tokenMethodApprove,
+    TransactionType.tokenMethodIncreaseAllowance,
+    TransactionType.tokenMethodSetApprovalForAll,
+    TransactionType.swapApproval,
+    TransactionType.bridgeApproval,
+  ];
+  const firstNonApprovalTransaction = transactions.find((tx) => {
+    const txMeta = getTransactionById(tx.id ?? '', transactionController);
+    return txMeta && !approvalTypes.includes(txMeta.type as TransactionType);
+  });
+
+  // Fallback to the last transaction if all are approvals
+  const targetTransaction = firstNonApprovalTransaction ?? transactions[transactions.length - 1];
   const transactionMeta = getTransactionById(
-    lastTransaction.id ?? '',
+    targetTransaction.id ?? '',
     transactionController,
   );
   const state = getState();
 
   if (!transactionMeta) {
     throw new Error(
-      `publishBatchSmartTransactionHook: Could not find transaction with id ${lastTransaction.id}`,
+      `publishBatchSmartTransactionHook: Could not find transaction with id ${targetTransaction.id}`,
     );
   }
 
