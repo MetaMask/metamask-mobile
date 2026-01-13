@@ -1743,7 +1743,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId } = depositPreparation;
+      const { transactions, chainId, gasFeeToken } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1776,6 +1776,7 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
+        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {
@@ -2156,6 +2157,10 @@ export class PredictController extends BaseController<
         transaction.txParams.data = callData;
         transaction.txParams.to = this.state.withdrawTransaction
           ?.predictAddress as Hex;
+        transaction.assetsFiatValues = {
+          ...transaction.assetsFiatValues,
+          receiving: String(amount),
+        };
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;

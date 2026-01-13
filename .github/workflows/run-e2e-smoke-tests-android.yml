@@ -182,10 +182,10 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
+    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - trade-android-smoke
-      # - perps-android-smoke
+      - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
       - accounts-android-smoke
