@@ -98,6 +98,7 @@ export type PredictMarket = {
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
+  game?: PredictMarketGame;
 };
 
 export type PredictSeries = {
@@ -110,6 +111,53 @@ export type PredictCategory =
   | 'sports'
   | 'crypto'
   | 'politics';
+
+// Sports league types
+export type PredictSportsLeague = 'nfl';
+
+// Game status
+export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
+
+// Team data
+export interface PredictSportTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string; // e.g., "SEA", "DEN"
+  color: string; // Team primary color (hex)
+  alias: string; // Team alias (e.g., "Seahawks")
+}
+
+// Game data attached to market
+export interface PredictMarketGame {
+  id: string;
+  startTime: string;
+  status: PredictGameStatus;
+  league: PredictSportsLeague;
+  elapsed: string; // Game clock
+  period: string; // Current period (Q1, Q2, HT, Q3, Q4, OT, FT)
+  score: string; // "away-home" format (e.g., "21-14")
+  homeTeam: PredictSportTeam;
+  awayTeam: PredictSportTeam;
+  turn?: string; // Team abbreviation with possession
+}
+
+// Live update types for WebSocket data
+export interface GameUpdate {
+  gameId: string;
+  score: string;
+  elapsed: string;
+  period: string;
+  status: PredictGameStatus;
+  turn?: string;
+}
+
+export interface PriceUpdate {
+  tokenId: string;
+  price: number;
+  bestBid: number;
+  bestAsk: number;
+}
 
 export type PredictOutcome = {
   id: string;

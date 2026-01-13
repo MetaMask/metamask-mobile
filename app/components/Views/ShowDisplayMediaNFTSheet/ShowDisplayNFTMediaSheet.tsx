@@ -5,12 +5,20 @@ import React, { useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import SheetActionView from '../../../components/UI/SheetActionView';
 
 // Internal dependencies
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
@@ -39,27 +47,45 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <SheetHeader
+      <HeaderCenter
         title={strings('show_display_nft_media.show_display_nft_media_title')}
+        onClose={onCancel}
       />
-      <Text style={styles.textContent}>
+      <Text style={styles.textContent} color={TextColor.Alternative}>
         {strings('show_display_nft_media.show_display_nft_media_content_1')}{' '}
         {
-          <Text variant={TextVariant.BodyMDBold}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
             {strings('show_display_nft_media.show_display_nft_media_content_2')}
           </Text>
         }{' '}
         {strings('show_display_nft_media.show_display_nft_media_content_3')}
         {'\n'}
         {'\n'}
-        <Text>
+        <Text color={TextColor.Alternative}>
           {strings('show_display_nft_media.show_display_nft_media_content_4')}{' '}
-          <Text variant={TextVariant.BodyMDBold}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
             {strings('show_display_nft_media.show_display_nft_media_content_5')}
           </Text>
         </Text>
       </Text>
-      <SheetActionView onCancel={onCancel} onConfirm={onConfirm} />
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: onCancel,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+          },
+          {
+            onPress: onConfirm,
+            label: strings('confirmation_modal.confirm_cta'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        style={styles.footerContainer}
+      />
     </BottomSheet>
   );
 };
