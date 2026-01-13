@@ -20,6 +20,7 @@ export const wallet_watchAsset = async ({
   res,
   hostname,
   checkTabActive,
+  pageMeta: _pageMeta,
 }: {
   req: JsonRpcRequest<{
     options: {
@@ -35,6 +36,16 @@ export const wallet_watchAsset = async ({
   res: PendingJsonRpcResponse<any>;
   hostname: string;
   checkTabActive: () => true | undefined;
+  pageMeta?: {
+    url?: string;
+    title?: string;
+    icon?: unknown;
+    channelId?: string;
+    analytics?: {
+      request_source?: string;
+      request_platform?: string | boolean;
+    };
+  };
 }) => {
   const { AssetsContractController } = Engine.context;
   if (!req.params) {
@@ -53,6 +64,7 @@ export const wallet_watchAsset = async ({
   const networkClientId = selectNetworkClientId(state);
 
   checkTabActive();
+  const requestOrigin = _pageMeta?.url ?? hostname;
 
   const isValidTokenAddress = isValidAddress(address);
 
@@ -104,6 +116,12 @@ export const wallet_watchAsset = async ({
     type,
     interactingAddress,
     networkClientId,
+    origin: requestOrigin,
+    pageMeta: _pageMeta,
+    requestMetadata: {
+      origin: requestOrigin,
+      pageMeta: _pageMeta,
+    },
   });
 
   res.result = true;
