@@ -29,20 +29,7 @@ jest.mock('../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-// Mock mnemonic utility
-jest.mock('../../../util/mnemonic', () => ({
-  uint8ArrayToMnemonic: jest.fn(
-    (_uint8Array) =>
-      'test test test test test test test test test test test junk',
-  ),
-}));
-
-// Mock key-tree utility
-jest.mock('@metamask/key-tree', () => ({
-  mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
-}));
-
-import ChoosePassword from './index.tsx';
+import ChoosePassword from './';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   TraceName,
@@ -57,33 +44,11 @@ const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
 >;
 
-OAuthLoginService.updateMarketingOptInStatus = jest
-  .fn()
-  .mockResolvedValue({ is_opt_in: true });
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       createNewVaultAndKeychain: jest.fn().mockResolvedValue(true),
-      createNewVaultAndRestore: jest.fn().mockResolvedValue({
-        getAccounts: jest.fn().mockResolvedValue(['0x123']),
-      }),
-      exportSeedPhrase: jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
-      getKeyringsByType: jest.fn().mockResolvedValue([
-        {
-          getAccounts: jest.fn().mockResolvedValue(['0x123']),
-        },
-      ]),
-      importAccountWithStrategy: jest.fn().mockResolvedValue('0x123'),
-    },
-    PreferencesController: {
-      setSelectedAddress: jest.fn(),
-    },
-    SelectedNetworkController: {
-      setProviderType: jest.fn(),
-    },
-    AccountTrackerController: {
-      refresh: jest.fn().mockResolvedValue(undefined),
+      exportSeedPhrase: jest.fn().mockResolvedValue('test seed phrase'),
     },
   },
 }));
@@ -115,10 +80,7 @@ jest.mock('../../../core/Authentication', () => ({
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
-  resetPassword: jest.fn().mockResolvedValue(undefined),
 }));
-
-jest.mock('../../../core/OAuthService/OAuthService');
 
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
@@ -140,6 +102,8 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
     enable: mockEnable,
   }),
 }));
+
+const mockSetDataCollectionForMarketing = jest.fn();
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -169,11 +133,32 @@ const initialState = {
   security: {
     allowLoginWithRememberMe: true,
   },
-  onboarding: {
-    events: [],
-  },
 };
 const store = mockStore(initialState);
+
+interface ChoosePasswordProps {
+  route: {
+    params: {
+      [ONBOARDING]?: boolean;
+      [PROTECT]?: boolean;
+      [PREVIOUS_SCREEN]?: string;
+      oauthLoginSuccess?: boolean;
+      onboardingTraceCtx?: unknown;
+    };
+  };
+  navigation?: {
+    setOptions: jest.Mock;
+    goBack: jest.Mock;
+    navigate: jest.Mock;
+    push: jest.Mock;
+    replace: jest.Mock;
+    reset?: jest.Mock;
+  };
+  metrics: {
+    isEnabled: jest.Mock;
+  };
+  setDataCollectionForMarketing: jest.Mock;
+}
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -185,51 +170,6 @@ const mockNavigation = {
   reset: jest.fn(),
 };
 
-const mockRoute: {
-  params: {
-    [key: string]: unknown;
-  };
-} = {
-  params: {
-    [PREVIOUS_SCREEN]: ONBOARDING,
-  },
-};
-
-const mockMetrics = {
-  isEnabled: mockMetricsIsEnabled,
-  trackEvent: mockTrackEvent,
-  enable: mockEnable,
-  addTraitsToUser: jest.fn(),
-  createEventBuilder: jest.fn(() => ({
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn(),
-  })),
-  getMetaMetricsId: jest.fn(),
-};
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => mockNavigation,
-    useRoute: () => mockRoute,
-  };
-});
-
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => mockMetrics,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withMetricsAwareness: (Component: any) => Component,
-  MetaMetricsEvents: {
-    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
-    WALLET_SETUP_FAILURE: 'Wallet Setup Failure',
-    WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
-    WALLET_CREATED: 'Wallet Created',
-    WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
-    EXTERNAL_LINK_CLICKED: 'External Link Clicked',
-  },
-}));
-
 const renderWithProviders = (ui: React.ReactElement) =>
   render(
     <Provider store={store}>
@@ -237,18 +177,28 @@ const renderWithProviders = (ui: React.ReactElement) =>
     </Provider>,
   );
 
+const defaultProps: ChoosePasswordProps = {
+  route: {
+    params: {
+      [ONBOARDING]: true,
+      [PROTECT]: true,
+    },
+  },
+  navigation: mockNavigation,
+  metrics: {
+    isEnabled: mockMetricsIsEnabled,
+  },
+  setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
+};
+
 describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
-    mockRoute.params = {
-      [ONBOARDING]: true,
-      [PROTECT]: true,
-    };
   });
 
   it('render matches snapshot', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -266,7 +216,7 @@ describe('ChoosePassword', () => {
 
     spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -313,7 +263,7 @@ describe('ChoosePassword', () => {
   });
 
   it('renders FoxRiveLoaderAnimation component with correct props in loading state', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -351,7 +301,7 @@ describe('ChoosePassword', () => {
   });
 
   it('applies loadingWrapper styles when in loading state', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -406,7 +356,7 @@ describe('ChoosePassword', () => {
 
     mockNewWalletAndKeychain.mockReturnValue(walletCreationPromise);
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -457,7 +407,7 @@ describe('ChoosePassword', () => {
   });
 
   it('error message is shown when passwords do not match', async () => {
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -504,7 +454,7 @@ describe('ChoosePassword', () => {
   });
 
   it('render header left button on press, navigates to previous screen', async () => {
-    renderWithProviders(<ChoosePassword />);
+    renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -554,7 +504,7 @@ describe('ChoosePassword', () => {
       return Promise.resolve(null);
     });
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     // Wait for componentDidMount to complete
     await act(async () => {
@@ -599,7 +549,7 @@ describe('ChoosePassword', () => {
       return Promise.resolve(null);
     });
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     // Wait for componentDidMount to complete
     await act(async () => {
@@ -632,11 +582,17 @@ describe('ChoosePassword', () => {
       () => new Promise((resolve) => setTimeout(resolve, 50)),
     );
 
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        },
+      },
     };
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     // Wait for initial render and componentDidMount
     await act(async () => {
@@ -708,9 +664,16 @@ describe('ChoosePassword', () => {
   });
 
   it('confirm password input is cleared when password input is cleared', async () => {
-    mockRoute.params = { [ONBOARDING]: true };
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+      metrics: {
+        isEnabled: jest.fn(),
+      },
+      setDataCollectionForMarketing: jest.fn(),
+    };
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -752,7 +715,7 @@ describe('ChoosePassword', () => {
   it('should track failure when password requirements are not met', async () => {
     mockTrackOnboarding.mockClear();
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -800,7 +763,7 @@ describe('ChoosePassword', () => {
   it('should track failure and return when passwords do not match on submit', async () => {
     mockTrackOnboarding.mockClear();
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -857,11 +820,17 @@ describe('ChoosePassword', () => {
       .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
       .mockResolvedValueOnce(undefined);
 
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        },
+      },
     };
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -910,7 +879,7 @@ describe('ChoosePassword', () => {
       new Error('Passcode not set.'),
     );
 
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -970,12 +939,19 @@ describe('ChoosePassword', () => {
 
     spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
 
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-      oauthLoginSuccess: true,
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
     };
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     const passwordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1030,12 +1006,19 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockResolvedValue(undefined);
     mockMetricsIsEnabled.mockReturnValueOnce(true);
 
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-      oauthLoginSuccess: true,
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
     };
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1088,12 +1071,19 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to support article when learn more link is pressed when oauth2Login is false', async () => {
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-      oauthLoginSuccess: false,
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: false,
+        },
+      },
+      navigation: mockNavigation,
     };
-    const component = renderWithProviders(<ChoosePassword />);
+    const component = renderWithProviders(<ChoosePassword {...props} />);
 
     const learnMoreLink = component.getByTestId(
       ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
@@ -1128,12 +1118,18 @@ describe('ChoosePassword', () => {
         )
         .mockResolvedValueOnce(undefined);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
       };
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1189,10 +1185,16 @@ describe('ChoosePassword', () => {
       );
       mockNewWalletAndKeychain.mockResolvedValue(undefined);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
       };
       const spyUpdateMarketingOptInStatus = jest.spyOn(
         OAuthLoginService,
@@ -1201,7 +1203,9 @@ describe('ChoosePassword', () => {
 
       spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
 
-      const { getByTestId } = renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
@@ -1242,10 +1246,16 @@ describe('ChoosePassword', () => {
       );
       mockNewWalletAndKeychain.mockResolvedValue(undefined);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
       };
       const spyUpdateMarketingOptInStatus = jest.spyOn(
         OAuthLoginService,
@@ -1254,7 +1264,9 @@ describe('ChoosePassword', () => {
 
       spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
 
-      const { getByTestId } = renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
@@ -1300,12 +1312,18 @@ describe('ChoosePassword', () => {
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
       };
 
-      const { unmount } = renderWithProviders(<ChoosePassword />);
+      const { unmount } = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => Promise.resolve());
 
@@ -1323,12 +1341,18 @@ describe('ChoosePassword', () => {
     });
 
     it('should not start or end tracing on component unmount when onboardingTraceCtx is not provided', async () => {
-      mockRoute.params = {
-        ...mockRoute.params,
-        // No onboardingTraceCtx provided,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            // No onboardingTraceCtx provided
+          },
+        },
       };
 
-      const { unmount } = renderWithProviders(<ChoosePassword />);
+      const { unmount } = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1355,13 +1379,19 @@ describe('ChoosePassword', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
       };
 
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => Promise.resolve());
 
@@ -1416,13 +1446,19 @@ describe('ChoosePassword', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        // No onboardingTraceCtx provided,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            // No onboardingTraceCtx provided
+          },
+        },
       };
 
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1490,13 +1526,19 @@ describe('ChoosePassword', () => {
       );
       mockNewWalletAndKeychain.mockResolvedValueOnce(undefined);
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
       };
 
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1550,13 +1592,19 @@ describe('ChoosePassword', () => {
       });
 
       it('should allow OAuth users to submit without marketing opt-in checkbox', async () => {
-        mockRoute.params = {
-          ...mockRoute.params,
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+            },
+          },
         };
 
-        const component = renderWithProviders(<ChoosePassword />);
+        const component = renderWithProviders(<ChoosePassword {...props} />);
 
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1584,13 +1632,19 @@ describe('ChoosePassword', () => {
       });
 
       it('should require marketing opt-in checkbox for non-OAuth users', async () => {
-        mockRoute.params = {
-          ...mockRoute.params,
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: false,
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: false,
+            },
+          },
         };
 
-        const component = renderWithProviders(<ChoosePassword />);
+        const component = renderWithProviders(<ChoosePassword {...props} />);
 
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1618,12 +1672,18 @@ describe('ChoosePassword', () => {
       });
 
       it('should handle edge case where oauthLoginSuccess is undefined', async () => {
-        mockRoute.params = {
-          ...mockRoute.params,
-          [PREVIOUS_SCREEN]: ONBOARDING,
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+            },
+          },
         };
 
-        const component = renderWithProviders(<ChoosePassword />);
+        const component = renderWithProviders(<ChoosePassword {...props} />);
 
         await act(async () => {
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1661,13 +1721,19 @@ describe('ChoosePassword', () => {
         value: 'ios',
       });
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
       };
 
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1692,13 +1758,19 @@ describe('ChoosePassword', () => {
         value: 'android',
       });
 
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
       };
 
-      const component = renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword {...props} />);
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
