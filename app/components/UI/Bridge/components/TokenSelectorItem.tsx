@@ -234,7 +234,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
-              numberOfLines={3}
+              numberOfLines={2}
               ellipsizeMode="tail"
             >
               {token.name}
