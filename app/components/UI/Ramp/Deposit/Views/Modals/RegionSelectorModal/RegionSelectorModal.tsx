@@ -10,7 +10,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -226,9 +226,10 @@ function RegionSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('deposit.region_modal.select_a_region')}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('deposit.region_modal.select_a_region')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
       <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}

@@ -39,6 +39,7 @@ interface MetalCardClaimBottomSheetProps {
     params: {
       rewardId: string;
       seasonRewardId: string;
+      title: string;
     };
   };
 }
@@ -62,8 +63,7 @@ const MetalCardClaimBottomSheet = ({
   const [telegram, setTelegram] = useState('');
   const [emailValidationError, setEmailValidationError] = useState(false);
 
-  const { rewardId, seasonRewardId } = route.params;
-  const title = strings('rewards.metal_card_claim.title');
+  const { rewardId, seasonRewardId, title } = route.params;
   const hasTrackedRewardViewed = useRef(false);
 
   const handleEmailChange = useCallback((text: string) => {
@@ -78,11 +78,10 @@ const MetalCardClaimBottomSheet = ({
   const showToast = useCallback(() => {
     showRewardsToast(
       RewardsToastOptions.success(
-        strings('rewards.unlocked_rewards.reward_claimed'),
-        title,
+        strings('rewards.claim_reward_redeem.success_title'),
       ),
     );
-  }, [RewardsToastOptions, showRewardsToast, title]);
+  }, [RewardsToastOptions, showRewardsToast]);
 
   useEffect(() => {
     if (!hasTrackedRewardViewed.current) {
@@ -150,7 +149,7 @@ const MetalCardClaimBottomSheet = ({
 
   const confirmAction = useMemo(
     () => ({
-      label: strings('rewards.metal_card_claim.submit_button'),
+      label: strings('rewards.claim_reward_redeem.button_label'),
       onPress: handleClaimReward,
       variant: ButtonVariant.Primary,
       loading: isClaimingReward,
@@ -164,8 +163,10 @@ const MetalCardClaimBottomSheet = ({
       return (
         <Box twClassName="w-full mb-4">
           <RewardsErrorBanner
-            title={strings('rewards.claim_reward_error.title')}
-            description={claimRewardError}
+            title={strings('rewards.claim_reward_redeem.failure_title')}
+            description={strings(
+              'rewards.claim_reward_redeem.failure_description',
+            )}
           />
         </Box>
       );

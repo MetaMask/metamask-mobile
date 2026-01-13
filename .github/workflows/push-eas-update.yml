@@ -15,6 +15,15 @@ on:
         description: 'EAS update message'
         required: true
         type: string
+      channel:
+        description: 'OTA channel to push update to (exp, rc, production)'
+        required: true
+        type: choice
+        options:
+          - exp
+          - rc
+          - production
+        default: exp
 
 permissions:
   contents: read
@@ -24,6 +33,7 @@ env:
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
+  TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
   fingerprint-comparison:
@@ -65,8 +75,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to fingerprint-pr.json"
-          npx @expo/fingerprint ./ > fingerprint-pr.json
 
       - name: Install dependencies (base branch)
         working-directory: main
@@ -82,8 +90,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to ../fingerprint-base.json"
-          npx @expo/fingerprint ./ > ../fingerprint-base.json
 
       - name: Compare fingerprints
         id: compare
@@ -96,22 +102,16 @@ jobs:
             exit 1
           fi
 
-          echo "Target PR fingerprint: $BRANCH_FP"
-          echo "Base branch fingerprint: $MAIN_FP"
-
           if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
             echo "✅ Fingerprints match. No native changes detected."
             echo "equal=true" >> "$GITHUB_OUTPUT"
           else
             echo "⚠️ Fingerprints differ. Native changes detected."
             echo "equal=false" >> "$GITHUB_OUTPUT"
-            if [ -f fingerprint-base.json ] && [ -f fingerprint-pr.json ]; then
-              echo "Fingerprint differences:"
-              npx @expo/fingerprint ./ fingerprint-base.json fingerprint-pr.json || true
-            else
-              echo "Detailed fingerprint files not found; skipping diff."
-            fi
           fi
+
+          echo "Target PR fingerprint: $BRANCH_FP"
+          echo "Base branch fingerprint: $MAIN_FP"
 
       - name: Record fingerprint summary
         env:
@@ -145,7 +145,7 @@ jobs:
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
-    environment: build-exp
+    environment: ${{ inputs.channel == 'exp' && 'build-exp' || inputs.channel == 'rc' && 'build-rc' || 'build-production' }}
     needs:
       - fingerprint-comparison
       - approval
@@ -163,24 +163,40 @@ jobs:
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-      MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }} #need to add to secrets
+      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+      SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+      SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+      SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+      MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+      IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+      IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+      ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+      ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-      MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }} #need to add to secrets
-      MM_CARD_BAANX_API_CLIENT_KEY_UAT: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY_UAT }} #need to add to secrets
-      WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }} #need to add to secrets
-      MM_FOX_CODE: ${{ secrets.MM_FOX_CODE_TEST }} #need to add to secrets
+      MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+      MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+      MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+      WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+      MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+      FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+      FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+      FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+      FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+      FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+      FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+      FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+      QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+      QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+      QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+      QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+      QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+      QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+      QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+      QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -265,7 +281,22 @@ jobs:
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
-          yarn run build:expo-update:main:exp
+          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
+          case "${TARGET_CHANNEL}" in
+            exp)
+              yarn run build:expo-update:main:exp
+              ;;
+            rc)
+              yarn run build:expo-update:main:rc
+              ;;
+            production)
+              yarn run build:expo-update:main:prod
+              ;;
+            *)
+              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Update summary
         if: success()
