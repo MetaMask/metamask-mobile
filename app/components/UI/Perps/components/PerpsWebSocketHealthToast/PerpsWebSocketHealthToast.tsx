@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useMemo } from 'react';
+import React, { memo, useEffect, useRef, useMemo, useState } from 'react';
 import { Animated, TouchableOpacity, View, StyleSheet } from 'react-native';
 import {
   IconColor as ReactNativeDsIconColor,
@@ -45,6 +45,10 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   const { state, hide, onRetry } = useWebSocketHealthToastContext();
   const { isVisible, connectionState, reconnectionAttempt } = state;
 
+  // Track whether the component should be rendered (separate from isVisible)
+  // This allows the exit animation to complete before unmounting
+  const [shouldRender, setShouldRender] = useState(false);
+
   // Animation value for slide-in/out effect (negative = slide from top)
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -89,7 +93,8 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   // Handle visibility animation
   useEffect(() => {
     if (isVisible) {
-      // Slide in
+      // Show the component immediately, then animate in
+      setShouldRender(true);
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
@@ -102,8 +107,8 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
-      // Slide out (back to top)
+    } else if (shouldRender) {
+      // Animate out first, then unmount after animation completes
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: -100,
@@ -115,9 +120,14 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           duration: ANIMATION_DURATION_MS,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(({ finished }) => {
+        // Only unmount after animation finishes
+        if (finished) {
+          setShouldRender(false);
+        }
+      });
     }
-  }, [isVisible, slideAnim, opacityAnim]);
+  }, [isVisible, slideAnim, opacityAnim, shouldRender]);
 
   // Auto-hide for success state
   useEffect(() => {
@@ -141,8 +151,9 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
     };
   }, [isVisible, connectionState, hide]);
 
-  // Don't render if no valid config (e.g., DISCONNECTING state) or not visible
-  if (!toastConfig || !isVisible) {
+  // Don't render if no valid config (e.g., DISCONNECTING state) or not rendering
+  // Note: We use shouldRender (not isVisible) to allow exit animation to complete
+  if (!toastConfig || !shouldRender) {
     return null;
   }
 
