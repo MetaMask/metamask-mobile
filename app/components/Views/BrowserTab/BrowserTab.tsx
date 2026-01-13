@@ -824,10 +824,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Sets loading bar progress
      */
     const onLoadProgress = useCallback(
-      ({
-        nativeEvent: { progress: onLoadProgressProgress },
-      }: WebViewProgressEvent) => {
-        setProgress(onLoadProgressProgress);
+      ({ nativeEvent }: WebViewProgressEvent) => {
+        const { url, progress, title, canGoBack, canGoForward } = nativeEvent;
+        setProgress(progress);
+        if (progress === 1) {
+          // keep url bar state in sync with webview navigation state
+          handleSuccessfulPageResolution({
+            title,
+            url,
+            icon: favicon,
+            canGoBack,
+            canGoForward,
+          });
+        }
       },
       [setProgress],
     );
@@ -1193,9 +1202,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
           return onSubmitEditingRef.current(handledEnsUrl);
         }
+        const safeUrl = sanitizeUrlInput(processedUrl);
+        // show the user the resource's origin they just entered
+        resolvedUrlRef.current = new URLParse(safeUrl).origin;
         // Directly update url in webview
         webviewRef.current?.injectJavaScript(`
-      window.location.href = '${sanitizeUrlInput(processedUrl)}';
+      window.location.href = '${safeUrl}';
       true;  // Required for iOS
     `);
       },
