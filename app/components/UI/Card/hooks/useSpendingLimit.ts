@@ -165,7 +165,7 @@ const useSpendingLimit = ({
     [selectedToken],
   );
 
-  // Initialize selected token from initial or priority token
+  // Initialize selected token from initial or priority token, fallback to mUSD
   useEffect(() => {
     if (initialToken) {
       setSelectedToken(initialToken);
@@ -179,9 +179,19 @@ const useSpendingLimit = ({
 
       if (!isPriorityTokenSolana) {
         setSelectedToken(priorityToken);
+        return;
       }
     }
-  }, [initialToken, priorityToken, selectedToken]);
+
+    if (!selectedToken && quickSelectTokens.length > 0) {
+      const musdToken = quickSelectTokens.find(
+        (qt) => qt.symbol.toUpperCase() === 'MUSD',
+      )?.token;
+      if (musdToken) {
+        setSelectedToken(musdToken);
+      }
+    }
+  }, [initialToken, priorityToken, selectedToken, quickSelectTokens]);
 
   // Handle returned token from AssetSelectionBottomSheet
   useFocusEffect(
