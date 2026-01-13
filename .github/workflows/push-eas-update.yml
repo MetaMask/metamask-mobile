@@ -214,14 +214,13 @@ jobs:
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            echo "✅ Set secret for key: $key"
+            echo "$value" | base64 --decode > "$EXPO_KEY_PRIV"
+            echo "✅ Set secret for key EXPO_KEY_PRIV: $key"
           done
 
-      # - name: Install dependencies
-      #   run: |
-      #     echo "📦 Installing dependencies..."
-      #     yarn install --immutable
+      - name: Use Key Test
+        run: |
+          echo "EXPO_KEY_PRIV: ${EXPO_KEY_PRIV:0:3}..."
 
       # - name: Setup project
       #   run: |
