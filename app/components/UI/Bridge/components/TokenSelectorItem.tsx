@@ -18,7 +18,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../../Base/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { useStyles } from '../../../../component-library/hooks';
@@ -102,10 +101,6 @@ const createStyles = ({
     noFeeBadge: {
       marginLeft: 8,
       paddingHorizontal: 6,
-    },
-    nativeTokenIcon: {
-      width: 32,
-      height: 32,
     },
     childrenWrapper: {
       marginLeft: 12,
@@ -200,21 +195,16 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               />
             }
           >
-            {isNative ? (
-              <TokenIcon
-                symbol={token.symbol}
-                icon={token.image}
-                medium
-                style={styles.nativeTokenIcon}
-                testID={`network-logo-${token.symbol}`}
-              />
-            ) : (
-              <AvatarToken
-                name={token.symbol}
-                imageSource={token.image ? { uri: token.image } : undefined}
-                size={AvatarSize.Md}
-              />
-            )}
+            <AvatarToken
+              name={token.symbol}
+              imageSource={token.image ? { uri: token.image } : undefined}
+              size={AvatarSize.Md}
+              testID={
+                isNative
+                  ? `network-logo-${token.symbol}`
+                  : `token-logo-${token.symbol}`
+              }
+            />
           </BadgeWrapper>
 
           {/* Token symbol and name */}
