@@ -1,4 +1,6 @@
 import React, { useCallback } from 'react';
+
+import { SwitchAccountModalSelectorIDs } from '../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -37,7 +39,10 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
   }
 
   return (
-    <TouchableOpacity onPress={onSmartAccountPress}>
+    <TouchableOpacity
+      onPress={onSmartAccountPress}
+      testID={SwitchAccountModalSelectorIDs.SMART_ACCOUNT_LINK}
+    >
       <Box
         style={styles.container}
         flexDirection={FlexDirection.Row}
