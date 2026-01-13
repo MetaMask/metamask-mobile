@@ -559,9 +559,12 @@ class AuthenticationService {
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
-      availableBiometryType &&
-      biometryChoice &&
-      passcodePreviouslyDisabled === TRUE
+      [
+        BIOMETRY_TYPE.FINGERPRINT,
+        BIOMETRY_TYPE.TOUCH_ID,
+        BIOMETRY_TYPE.FACE_ID,
+      ].includes(availableBiometryType) &&
+      biometryChoice
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
