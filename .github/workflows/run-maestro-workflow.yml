@@ -37,6 +37,7 @@ jobs:
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       PLATFORM: android
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: "60000"  # 60 seconds for CI emulator startup
 
     steps:
       - name: Checkout repo
