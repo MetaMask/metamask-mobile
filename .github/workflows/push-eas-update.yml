@@ -214,18 +214,23 @@ jobs:
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$EXPO_KEY_PRIV"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+            
+            if [ "$key" = "EXPO_KEY_PRIV_B64" ]; then
+              DECODED_KEY=$(echo "$value" | base64 --decode)
+              echo "::add-mask::$DECODED_KEY"
+              echo "EXPO_KEY_PRIV=$DECODED_KEY" >> "$GITHUB_ENV"
+              echo "✅ Decoded and set EXPO_KEY_PRIV from $key"
+            fi
+            
             echo "✅ Set secret for key: $key"
           done
 
       - name: Use the exported secrets
         run: |
           # If the key in the JSON was "EXPO_KEY_PRIV", access it directly:
-          echo "First 3 chars: ${EXPO_KEY_PRIV:0:3}..."
-          
-          # Or decode it to a variable:
-          DECODED_KEY=$(echo "$EXPO_KEY_PRIV" | base64 --decode)
           echo "First 3 chars: ${DECODED_KEY:0:3}..."
+        
 
       # - name: Install dependencies
       #   run: |
