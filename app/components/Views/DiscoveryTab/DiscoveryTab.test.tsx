@@ -90,14 +90,15 @@ describe('DiscoveryTab', () => {
       expect(toJSON()).toBeTruthy();
     });
 
-    it('renders with minimal required props', () => {
-      const minimalProps = {
+    it('renders with all required props', () => {
+      const requiredProps = {
         id: 1,
+        showTabs: mockShowTabs,
         updateTabInfo: mockUpdateTabInfo,
       };
 
       const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...minimalProps} />,
+        <DiscoveryTab {...requiredProps} />,
         { state: initialState },
       );
 
@@ -106,20 +107,6 @@ describe('DiscoveryTab', () => {
   });
 
   describe('Edge Cases', () => {
-    it('does not crash when showTabs is undefined', () => {
-      const propsWithoutShowTabs = {
-        id: 1,
-        updateTabInfo: mockUpdateTabInfo,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...propsWithoutShowTabs} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toBeTruthy();
-    });
-
     it('renders when tab ID does not match active tab', () => {
       const differentTabState = {
         ...initialState,

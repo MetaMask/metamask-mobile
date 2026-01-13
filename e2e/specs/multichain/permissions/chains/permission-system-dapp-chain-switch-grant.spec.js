@@ -49,7 +49,8 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
           await ConnectBottomSheet.tapConnectButton();
-          await TabBarComponent.tapBrowser();
+          // Verify browser is still visible after modal closes
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID);
           // Grant permission and switch to new chain
           await TestDApp.switchChainFromTestDapp();
           await ConnectBottomSheet.tapConnectButton();
