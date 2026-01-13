@@ -231,7 +231,12 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 </TagBase>
               )}
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              numberOfLines={3}
+              ellipsizeMode="tail"
+            >
               {token.name}
             </Text>
           </Box>
