@@ -11,8 +11,6 @@ on:
   push:
     branches:
       - 'release/*'
-      # test updates
-      - 'rc-builds-gh-workflow'
 
 
 jobs:
@@ -45,10 +43,8 @@ jobs:
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
-            # test updates
-            #echo "semver=" >> "$GITHUB_OUTPUT"
-            #exit 1
-            echo "semver=7.61.99" >> "$GITHUB_OUTPUT"
+            echo "semver=" >> "$GITHUB_OUTPUT"
+            exit 1
           fi
 
       - name: Find PR and check for auto-rc-builds label
