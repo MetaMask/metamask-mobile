@@ -13,6 +13,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
+import { useRampTokens, RampsToken } from './useRampTokens';
 
 jest.mock('@react-navigation/native');
 jest.mock('@react-navigation/compat', () => ({
@@ -36,6 +37,7 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
   getRampRoutingDecision: jest.fn(),
 }));
+jest.mock('./useRampTokens');
 
 const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -59,6 +61,27 @@ const mockCreateTokenSelectionNavigationDetails =
   >;
 const mockGetRampRoutingDecision =
   getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
+const mockUseRampTokens = useRampTokens as jest.MockedFunction<
+  typeof useRampTokens
+>;
+
+// Helper to create mock tokens
+const createMockToken = (overrides: Partial<RampsToken> = {}): RampsToken => ({
+  assetId: 'eip155:1/erc20:0x123',
+  chainId: 'eip155:1',
+  name: 'Test Token',
+  symbol: 'TEST',
+  decimals: 18,
+  iconUrl: 'https://example.com/icon.png',
+  tokenSupported: true,
+  ...overrides,
+});
+
+// Mock deposit tokens for Mainnet
+const mockDepositTokens: RampsToken[] = [
+  createMockToken({ assetId: 'eip155:1/erc20:0x123', chainId: 'eip155:1' }),
+  createMockToken({ assetId: 'eip155:1/slip44:60', chainId: 'eip155:1' }),
+];
 
 describe('useRampNavigation', () => {
   beforeEach(() => {
@@ -71,6 +94,13 @@ describe('useRampNavigation', () => {
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
 
     mockGetRampRoutingDecision.mockReturnValue(null);
+
+    mockUseRampTokens.mockReturnValue({
+      allTokens: mockDepositTokens,
+      topTokens: mockDepositTokens,
+      isLoading: false,
+      error: null,
+    });
 
     mockCreateRampNavigationDetails.mockReturnValue([
       Routes.RAMP.BUY,
@@ -240,7 +270,12 @@ describe('useRampNavigation', () => {
       });
 
       describe('smart routing based on routing decision', () => {
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
+        // This assetId is in the mockDepositTokens list
+        const depositSupportedIntent = { assetId: 'eip155:1/erc20:0x123' };
+        // This assetId is NOT in the mockDepositTokens list (Base chain)
+        const depositUnsupportedIntent = {
+          assetId: 'eip155:8453/erc20:0xabcdef',
+        };
 
         it('navigates to TokenSelection when routing decision is null', () => {
           mockGetRampRoutingDecision.mockReturnValue(null);
@@ -254,7 +289,7 @@ describe('useRampNavigation', () => {
 
           const { result } = renderHookWithProvider(() => useRampNavigation());
 
-          result.current.goToBuy(intent);
+          result.current.goToBuy(depositSupportedIntent);
 
           expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -262,7 +297,7 @@ describe('useRampNavigation', () => {
           expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
         });
 
-        it('navigates to deposit when routing decision is DEPOSIT', () => {
+        it('navigates to deposit when routing decision is DEPOSIT and token is in deposit token list', () => {
           mockGetRampRoutingDecision.mockReturnValue(
             UnifiedRampRoutingType.DEPOSIT,
           );
@@ -271,13 +306,57 @@ describe('useRampNavigation', () => {
 
           const { result } = renderHookWithProvider(() => useRampNavigation());
 
-          result.current.goToBuy(intent);
+          result.current.goToBuy(depositSupportedIntent);
 
           expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
-            intent,
+            depositSupportedIntent,
           );
           expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
           expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+        });
+
+        it('navigates to aggregator when routing decision is DEPOSIT but token is NOT in deposit token list', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.DEPOSIT,
+          );
+          const mockNavDetails = [Routes.RAMP.BUY] as const;
+          mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(depositUnsupportedIntent);
+
+          expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
+            AggregatorRampType.BUY,
+            depositUnsupportedIntent,
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+        });
+
+        it('navigates to deposit when routing decision is DEPOSIT and deposit token list is empty', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.DEPOSIT,
+          );
+          mockUseRampTokens.mockReturnValue({
+            allTokens: [],
+            topTokens: [],
+            isLoading: false,
+            error: null,
+          });
+          const mockNavDetails = [Routes.RAMP.BUY] as const;
+          mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(depositSupportedIntent);
+
+          // When token list is empty, token is not found, so falls back to aggregator
+          expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
+            AggregatorRampType.BUY,
+            depositSupportedIntent,
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         });
 
         it('navigates to aggregator when routing decision is AGGREGATOR', () => {
@@ -289,14 +368,35 @@ describe('useRampNavigation', () => {
 
           const { result } = renderHookWithProvider(() => useRampNavigation());
 
-          result.current.goToBuy(intent);
+          result.current.goToBuy(depositSupportedIntent);
 
           expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
             AggregatorRampType.BUY,
-            intent,
+            depositSupportedIntent,
           );
           expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
           expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+        });
+
+        it('matches token case-insensitively (uppercase assetId)', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.DEPOSIT,
+          );
+          const mockNavDetails = [Routes.DEPOSIT.ID] as const;
+          mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
+          // Intent with uppercase address
+          const uppercaseIntent = {
+            assetId: 'eip155:1/erc20:0x123'.toUpperCase(),
+          };
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(uppercaseIntent);
+
+          expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
+            uppercaseIntent,
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         });
       });
     });

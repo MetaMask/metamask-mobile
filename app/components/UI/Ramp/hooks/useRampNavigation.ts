@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -15,6 +15,27 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import { useRampTokens, RampsToken } from './useRampTokens';
+
+/**
+ * Check if the assetId is in the list of supported ramp tokens
+ * @param assetId - CAIP-19 asset ID (e.g., 'eip155:8453/erc20:0x...')
+ * @param tokens - List of supported tokens from the API
+ * @returns true if the token is found in the list, false otherwise
+ */
+const isAssetInTokenList = (
+  assetId: string,
+  tokens: RampsToken[] | null,
+): boolean => {
+  if (!tokens || tokens.length === 0) return false;
+
+  // Normalize the assetId for case-insensitive comparison
+  const normalizedAssetId = assetId.toLowerCase();
+
+  return tokens.some(
+    (token) => token.assetId.toLowerCase() === normalizedAssetId,
+  );
+};
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -34,6 +55,13 @@ export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const { allTokens: depositTokens } = useRampTokens();
+
+  // Memoized check for whether an asset is supported by the deposit flow
+  const isDepositSupportedAsset = useMemo(
+    () => (assetId: string) => isAssetInTokenList(assetId, depositTokens),
+    [depositTokens],
+  );
 
   const goToBuy = useCallback(
     (
@@ -72,8 +100,17 @@ export const useRampNavigation = () => {
         }
 
         // If assetId is provided, route based on rampRoutingDecision
+        // But first check if the asset is in the deposit token list
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(...createDepositNavigationDetails(intent));
+          // Only route to deposit if the token is supported by the deposit flow
+          // Otherwise, fall back to aggregator for unsupported tokens/chains
+          if (intent.assetId && !isDepositSupportedAsset(intent.assetId)) {
+            navigation.navigate(
+              ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+            );
+          } else {
+            navigation.navigate(...createDepositNavigationDetails(intent));
+          }
         } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
           navigation.navigate(
             ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
@@ -91,7 +128,12 @@ export const useRampNavigation = () => {
         );
       }
     },
-    [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
+    [
+      navigation,
+      isRampsUnifiedV1Enabled,
+      rampRoutingDecision,
+      isDepositSupportedAsset,
+    ],
   );
 
   /**
