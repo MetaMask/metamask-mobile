@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import { useRampsUserRegion } from './useRampsGeolocation';
+import { useRampsUserRegion } from './useRampsUserRegion';
 import { RequestStatus } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 

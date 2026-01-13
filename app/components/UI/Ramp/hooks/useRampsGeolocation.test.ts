@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateGeolocation: jest.fn().mockResolvedValue('US'),
+      updateUserRegion: jest.fn().mockResolvedValue('US'),
     },
   },
 }));
@@ -101,7 +101,7 @@ describe('useRampsGeolocation', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -123,7 +123,7 @@ describe('useRampsGeolocation', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -142,7 +142,7 @@ describe('useRampsGeolocation', () => {
   });
 
   describe('fetchGeolocation', () => {
-    it('calls updateGeolocation without options when called with no arguments', async () => {
+    it('calls updateUserRegion without options when called with no arguments', async () => {
       const store = createMockStore();
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -152,11 +152,11 @@ describe('useRampsGeolocation', () => {
       await result.current.fetchGeolocation();
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith(undefined);
     });
 
-    it('calls updateGeolocation with forceRefresh true when specified', async () => {
+    it('calls updateUserRegion with forceRefresh true when specified', async () => {
       const store = createMockStore();
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -166,13 +166,13 @@ describe('useRampsGeolocation', () => {
       await result.current.fetchGeolocation({ forceRefresh: true });
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
         forceRefresh: true,
       });
     });
 
-    it('calls updateGeolocation with forceRefresh false when specified', async () => {
+    it('calls updateUserRegion with forceRefresh false when specified', async () => {
       const store = createMockStore();
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -182,18 +182,18 @@ describe('useRampsGeolocation', () => {
       await result.current.fetchGeolocation({ forceRefresh: false });
 
       expect(
-        Engine.context.RampsController.updateGeolocation,
+        Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
         forceRefresh: false,
       });
     });
 
-    it('rejects with error when updateGeolocation fails', async () => {
+    it('rejects with error when updateUserRegion fails', async () => {
       const store = createMockStore();
-      const mockUpdateGeolocation = Engine.context.RampsController
-        .updateGeolocation as jest.Mock;
-      mockUpdateGeolocation.mockReset();
-      mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockReset();
+      mockUpdateUserRegion.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
@@ -206,19 +206,19 @@ describe('useRampsGeolocation', () => {
   });
 
   describe('useEffect error handling', () => {
-    it('returns default state when updateGeolocation rejects in useEffect', async () => {
+    it('returns default state when updateUserRegion rejects in useEffect', async () => {
       const store = createMockStore();
-      const mockUpdateGeolocation = Engine.context.RampsController
-        .updateGeolocation as jest.Mock;
-      mockUpdateGeolocation.mockReset();
-      mockUpdateGeolocation.mockRejectedValue(new Error('Fetch failed'));
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockReset();
+      mockUpdateUserRegion.mockRejectedValue(new Error('Fetch failed'));
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
 
       await waitFor(() => {
-        expect(mockUpdateGeolocation).toHaveBeenCalled();
+        expect(mockUpdateUserRegion).toHaveBeenCalled();
       });
 
       expect(result.current).toMatchObject({

@@ -26,3 +26,13 @@ export const selectUserRegionRequest = createRequestSelector<RootState, string>(
   'updateUserRegion',
   [],
 );
+
+/**
+ * Selects the user's geolocation (alias for userRegion).
+ */
+export const selectGeolocation = selectUserRegion;
+
+/**
+ * Selects the geolocation request state (alias for userRegionRequest).
+ */
+export const selectGeolocationRequest = selectUserRegionRequest;
