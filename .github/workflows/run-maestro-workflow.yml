@@ -26,6 +26,11 @@ on:
         required: false
         type: string
         default: 'main'
+      enable-recording:
+        description: 'Enable video recording for tests (increases execution time)'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   test-maestro:
@@ -151,22 +156,36 @@ jobs:
           # Create artifacts directory similar to Detox's e2e/artifacts/
           mkdir -p maestro-artifacts
 
-      - name: Run Maestro Test with Recording
+      - name: Run Maestro Test
         id: maestro-test
         continue-on-error: true
         run: |
-          echo "🎭 Running Maestro test with recording: ${{ inputs.test-file }}"
+          echo "🎭 Running Maestro test: ${{ inputs.test-file }}"
           echo "📍 Branch: ${{ inputs.branch }}"
+          echo "🎥 Recording enabled: ${{ inputs.enable-recording }}"
           
-          # Use maestro record --local to capture video locally (no external API)
           # --debug-output captures screenshots, logs, and command metadata on failure
-          # Syntax: maestro record --local [options] <flowFile> [<outputFile>]
-          if maestro record --local --debug-output maestro-artifacts ${{ inputs.test-file }} maestro-artifacts/test-recording.mp4; then
-            echo "✅ Maestro test passed"
-            echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+          if [[ "${{ inputs.enable-recording }}" == "true" ]]; then
+            # Use maestro record --local to capture video locally (no external API)
+            # Syntax: maestro record --local [options] <flowFile> [<outputFile>]
+            echo "📹 Running with video recording..."
+            if maestro record --local --debug-output maestro-artifacts ${{ inputs.test-file }} maestro-artifacts/test-recording.mp4; then
+              echo "✅ Maestro test passed"
+              echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+            else
+              echo "❌ Maestro test failed"
+              echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+            fi
           else
-            echo "❌ Maestro test failed"
-            echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+            # Use maestro test (no video recording, faster execution)
+            echo "⚡ Running without video recording (faster)..."
+            if maestro test --debug-output maestro-artifacts ${{ inputs.test-file }}; then
+              echo "✅ Maestro test passed"
+              echo "TEST_RESULT=success" >> "$GITHUB_ENV"
+            else
+              echo "❌ Maestro test failed"
+              echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
+            fi
           fi
           
           # List artifacts for debugging
