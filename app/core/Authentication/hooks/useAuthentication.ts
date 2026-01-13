@@ -10,6 +10,8 @@ export function useAuthentication() {
     reauthenticate: Authentication.reauthenticate,
     revealSRP: Authentication.revealSRP,
     revealPrivateKey: Authentication.revealPrivateKey,
+    getAuthType: Authentication.getType,
+    componentAuthenticationType: Authentication.componentAuthenticationType,
   };
 }
 
