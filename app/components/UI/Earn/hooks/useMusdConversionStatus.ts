@@ -8,12 +8,8 @@ import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
-import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import useEarnToasts from './useEarnToasts';
-
-const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -22,7 +18,7 @@ const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
  * 1. Subscribes to TransactionController:transactionStatusUpdated events
  * 2. Filters for mUSD conversion transactions (type === 'musdConversion')
  * 3. Shows toasts based on transaction status:
- * - approved → in-progress toast with token icon and ETA (fires immediately after confirm)
+ * - approved → in-progress toast with token symbol (fires immediately after confirm)
  * - confirmed → success toast
  * - failed → failed toast
  * 4. Tracks shown toasts to prevent duplicates
@@ -33,13 +29,10 @@ const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
-  const transactionPayData = useSelector(selectTransactionPayTransactionData);
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);
-  const transactionPayDataRef = useRef(transactionPayData);
   tokensCacheRef.current = tokensChainsCache;
-  transactionPayDataRef.current = transactionPayData;
 
   useEffect(() => {
     const getTokenData = (
@@ -87,22 +80,10 @@ export const useMusdConversionStatus = () => {
             ? getTokenData(payChainId as Hex, payTokenAddress)
             : { symbol: '' };
           const tokenSymbol = tokenData.symbol;
-          // Use cached icon if available, fallback to static URL
-          const tokenIcon = payTokenAddress
-            ? tokenData.iconUrl ||
-              getAssetImageUrl(payTokenAddress.toLowerCase(), payChainId as Hex)
-            : undefined;
-
-          // Get estimated duration from transaction pay data
-          const estimatedTimeSeconds =
-            transactionPayDataRef.current?.[transactionId]?.totals
-              ?.estimatedDuration ?? DEFAULT_ESTIMATED_TIME_SECONDS;
 
           showToast(
             EarnToastOptions.mUsdConversion.inProgress({
               tokenSymbol: tokenSymbol || 'Token',
-              tokenIcon,
-              estimatedTimeSeconds,
             }),
           );
           shownToastsRef.current.add(toastKey);
