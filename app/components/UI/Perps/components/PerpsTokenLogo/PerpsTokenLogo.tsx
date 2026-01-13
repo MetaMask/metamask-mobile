@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
-import React, { memo, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ImageStyle, View, ViewStyle } from 'react-native';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+import { useTokenLogo } from '../../../../hooks/useTokenLogo';
 import {
-  getAssetIconUrl,
+  getAssetIconUrls,
   getPerpsDisplaySymbol,
 } from '../../utils/marketUtils';
 import {
@@ -23,103 +23,69 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   testID,
   recyclingKey,
 }) => {
-  const { colors, themeAppearance } = useTheme();
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // Track if we should use fallback URL (after primary fails)
+  const [useFallbackUrl, setUseFallbackUrl] = useState(false);
 
-  // Reset state when symbol changes (for recycling)
-  useEffect(() => {
-    setIsLoading(false);
-    setHasError(false);
-  }, [symbol]);
-
-  // Memoize the background checks to prevent recalculation
-  const { needsLightBg, needsDarkBg } = useMemo(() => {
-    const upperSymbol = symbol?.toUpperCase();
-    return {
-      needsLightBg: ASSETS_REQUIRING_LIGHT_BG.has(upperSymbol),
-      needsDarkBg: ASSETS_REQUIRING_DARK_BG.has(upperSymbol),
-    };
-  }, [symbol]);
-
-  const containerStyle: ViewStyle = useMemo(
-    () => ({
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      backgroundColor: (() => {
-        if (themeAppearance === 'dark' && needsLightBg) {
-          return 'white'; // White in dark mode
-        }
-        if (themeAppearance === 'light' && needsDarkBg) {
-          return colors.icon.default; // Black in light mode
-        }
-        return colors.background.default;
-      })(),
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      overflow: 'hidden' as const,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    }),
-    [size, colors, themeAppearance, needsLightBg, needsDarkBg],
-  );
-
-  const loadingContainerStyle: ViewStyle = useMemo(
-    () => ({
-      position: 'absolute' as const,
-      width: size,
-      height: size,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-    }),
-    [size],
-  );
-
-  const imageStyle: ImageStyle = useMemo(
-    () => ({
-      width: size,
-      height: size,
-    }),
-    [size],
-  );
-
-  const fallbackTextStyle = useMemo(
-    () => ({
-      fontSize: Math.round(size * 0.4),
-      fontWeight: '600' as const,
-      color: colors.text.default,
-    }),
-    [size, colors.text.default],
-  );
-
-  // SVG URL - expo-image handles SVG rendering properly
-  const imageUri = useMemo(() => {
+  // Get both primary (MetaMask) and fallback (HyperLiquid) URLs
+  const iconUrls = useMemo(() => {
     if (!symbol) return null;
-    return getAssetIconUrl(symbol, K_PREFIX_ASSETS);
+    return getAssetIconUrls(symbol, K_PREFIX_ASSETS);
   }, [symbol]);
 
-  const handleLoadStart = () => {
-    setIsLoading(true);
-    setHasError(false);
-  };
+  // Reset fallback state when symbol changes
+  useEffect(() => {
+    setUseFallbackUrl(false);
+  }, [symbol]);
 
-  const handleLoadEnd = () => {
-    setIsLoading(false);
-  };
+  // Select current image URL based on fallback state
+  const imageUri = iconUrls
+    ? useFallbackUrl
+      ? iconUrls.fallback
+      : iconUrls.primary
+    : null;
 
-  const handleError = () => {
-    setIsLoading(false);
-    setHasError(true);
-  };
+  // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
+  const fallbackText = useMemo(() => {
+    const displaySymbol = getPerpsDisplaySymbol(symbol || '');
+    // Get first 2 letters, uppercase
+    return displaySymbol.substring(0, 2).toUpperCase();
+  }, [symbol]);
+
+  const {
+    isLoading,
+    hasError,
+    containerStyle,
+    loadingContainerStyle,
+    imageStyle,
+    fallbackTextStyle,
+    handleLoadStart,
+    handleLoadEnd,
+    handleError,
+  } = useTokenLogo({
+    symbol: symbol || '',
+    size,
+    assetsRequiringLightBg: ASSETS_REQUIRING_LIGHT_BG,
+    assetsRequiringDarkBg: ASSETS_REQUIRING_DARK_BG,
+  });
+
+  // Handle image error with fallback logic:
+  // 1. If primary URL fails, try fallback URL
+  // 2. If fallback URL also fails, show text fallback
+  const handleImageError = useCallback(() => {
+    if (!useFallbackUrl && iconUrls?.fallback) {
+      // Primary failed - try fallback URL
+      setUseFallbackUrl(true);
+    } else {
+      // Both URLs failed - show text fallback
+      handleError();
+    }
+  }, [useFallbackUrl, iconUrls?.fallback, handleError]);
+
+  // Image key includes fallback state for proper re-render when switching URLs
+  const imageKey = `${recyclingKey || symbol}-${useFallbackUrl ? 'fallback' : 'primary'}`;
 
   // Show custom two-letter fallback if no symbol or error
   if (!symbol || !imageUri || hasError) {
-    // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
-    const displaySymbol = getPerpsDisplaySymbol(symbol || '');
-    // Get first 2 letters, uppercase
-    const fallbackText = displaySymbol.substring(0, 2).toUpperCase();
-
     return (
       <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
@@ -137,15 +103,15 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
         </View>
       )}
       <Image
-        key={recyclingKey || symbol} // Use recyclingKey for proper recycling
+        key={imageKey}
         source={{ uri: imageUri }}
         style={imageStyle}
         onLoadStart={handleLoadStart}
         onLoadEnd={handleLoadEnd}
-        onError={handleError}
+        onError={handleImageError}
         contentFit="contain"
         cachePolicy="memory-disk" // Persistent caching across app sessions
-        recyclingKey={recyclingKey || symbol} // For FlashList optimization
+        recyclingKey={imageKey} // For FlashList optimization
         transition={0} // Disable transition for faster rendering
         priority="high" // High priority loading
         placeholder={null} // No placeholder for cleaner loading

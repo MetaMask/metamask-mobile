@@ -134,7 +134,6 @@ jest.mock('../../../reducers/swaps', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
-  selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
@@ -509,6 +508,7 @@ describe('TradeWalletActions', () => {
     ).toBeDefined();
   });
 
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('should navigate to Predict markets when user presses Predict button', async () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
@@ -627,7 +627,7 @@ describe('TradeWalletActions', () => {
     expect(mockOnDismiss).not.toHaveBeenCalled();
   });
 
-  it('should not show Predict button on non-EVM networks', () => {
+  it('should show Predict button on non-EVM networks', () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
         typeof selectPredictEnabledFlag
@@ -643,7 +643,7 @@ describe('TradeWalletActions', () => {
       ...mockInitialState,
     };
 
-    const { queryByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -654,7 +654,7 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
-    ).toBeNull();
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

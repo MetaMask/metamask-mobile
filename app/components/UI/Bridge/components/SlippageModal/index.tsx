@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
@@ -16,7 +17,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import createStyles from './SlippageModal.styles';
 import { SlippageOption } from './SlippageModal.types';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SegmentedControl from '../../../../../component-library/components-temp/SegmentedControl';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,8 +44,7 @@ export const SlippageModal = () => {
   const slippage = useSelector(selectSlippage);
   const slippageOptions = getSlippageOptions(slippage);
   const [selectedValue, setSelectedValue] = useState(slippage || 'auto');
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -64,13 +64,9 @@ export const SlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('bridge.slippage')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter title={strings('bridge.slippage')} onClose={handleClose} />
       <View style={styles.container}>
-        <Text style={styles.description}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('bridge.slippage_info')}
         </Text>
 
@@ -98,6 +94,7 @@ export const SlippageModal = () => {
               size: ButtonSize.Lg,
             },
           ]}
+          style={styles.footer}
         />
       </View>
     </BottomSheet>

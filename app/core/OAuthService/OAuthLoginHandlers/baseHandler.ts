@@ -38,7 +38,7 @@ export async function getAuthTokens(
   });
 
   if (res.status === 200 || res.status === 201) {
-    const data = (await res.json()) satisfies AuthResponse;
+    const data: AuthResponse = (await res.json()) satisfies AuthResponse;
     return data;
   }
 
@@ -138,78 +138,6 @@ export abstract class BaseLoginHandler {
         OAuthErrorType.InvalidOauthStateError,
       );
     }
-  }
-
-  /**
-   * Refresh the JWT Token using the refresh token.
-   *
-   * @param refreshToken - The refresh token from the Web3Auth Authentication Server.
-   * @returns The JWT Token from the Web3Auth Authentication Server and new refresh token.
-   */
-  async refreshAuthToken(refreshToken: string): Promise<AuthResponse> {
-    const { web3AuthNetwork } = this.options;
-    const requestData = {
-      client_id: this.options.clientId,
-      login_provider: this.authConnection,
-      network: web3AuthNetwork,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token', // specify refresh token flow
-    };
-    const res = await this.requestAuthToken(JSON.stringify(requestData));
-    return res;
-  }
-
-  /**
-   * Revoke the refresh token.
-   *
-   * @param revokeToken - The revoke token from the Web3Auth Authentication Server.
-   */
-  async revokeRefreshToken(revokeToken: string): Promise<{
-    refresh_token: string;
-    revoke_token: string;
-  }> {
-    const requestData = {
-      revoke_token: revokeToken,
-    };
-
-    const res = await fetch(
-      `${this.options.authServerUrl}${this.AUTH_SERVER_REVOKE_PATH}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      },
-    );
-
-    const data = await res.json();
-    return {
-      refresh_token: data.new_refresh_token,
-      revoke_token: data.new_revoke_token,
-    };
-  }
-
-  /**
-   * Make a request to the Web3Auth Authentication Server to get the JWT Token.
-   *
-   * @param requestData - The request data for the Web3Auth Authentication Server.
-   * @returns The JWT Token from the Web3Auth Authentication Server.
-   */
-  protected async requestAuthToken(requestData: string): Promise<AuthResponse> {
-    const res = await fetch(
-      `${this.options.authServerUrl}${this.AUTH_SERVER_TOKEN_PATH}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: requestData,
-      },
-    );
-
-    const data = await res.json();
-    return data;
   }
 
   /**

@@ -8,7 +8,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { ScrollView } from 'react-native';
 
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,8 +21,9 @@ import { NftList } from '../../nft-list';
 import { AssetType } from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export interface AssetProps {
   hideNfts?: boolean;
@@ -40,7 +40,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     tokenFilter,
   } = props;
 
-  const originalTokens = useAccountTokens({ includeNoBalance });
+  const originalTokens = useSendTokens({ includeNoBalance });
 
   const tokens = useMemo(
     () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),
@@ -145,7 +145,11 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         onExposeFilterControls={handleExposeFilterControls}
         onNetworkFilterChange={handleNetworkFilterChange}
       />
-      <ScrollView contentContainerStyle={{ paddingBottom: bottomOffset }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: bottomOffset,
+        }}
+      >
         {hasNoResults && hasActiveFilters ? (
           <Box twClassName="items-center py-8 px-4">
             <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">

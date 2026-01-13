@@ -5,6 +5,8 @@ import { BridgeToken } from '../../types';
 import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
 import { BigNumber } from 'ethers';
+import { BigNumber as BigNumberJS } from 'bignumber.js';
+import { isNumberValue } from '../../../../../util/number';
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
@@ -27,6 +29,25 @@ const normalizeAmount = (value: string, decimals: number): string => {
   return value;
 };
 
+export const formatEffectiveGasFee = (
+  effectiveGasFee: string,
+  decimals: number,
+) => {
+  // Truncate to token.decimals to avoid parseUnits overflow
+  const decimalIndex = effectiveGasFee.indexOf('.');
+  return decimalIndex === -1
+    ? effectiveGasFee
+    : effectiveGasFee.slice(0, decimalIndex + 1 + decimals);
+};
+
+export const transformEffectiveToAtomic = (
+  effectiveGasFee: string,
+  decimals: number,
+) => {
+  const formattedFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+  return parseUnits(formattedFee, decimals);
+};
+
 const useIsInsufficientBalance = ({
   amount,
   token,
@@ -36,7 +57,8 @@ const useIsInsufficientBalance = ({
   const minSolBalance = useSelector(selectMinSolBalance);
 
   const bestQuote = quotes?.recommendedQuote;
-  const { gasIncluded } = bestQuote?.quote ?? {};
+  const { gasIncluded, gasIncluded7702, gasSponsored } = bestQuote?.quote ?? {};
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
@@ -59,7 +81,8 @@ const useIsInsufficientBalance = ({
     !hasValidDecimals ||
     !token ||
     !latestAtomicBalance ||
-    !!gasIncluded
+    !!isGasless ||
+    !!gasSponsored
   ) {
     return false;
   }
@@ -68,21 +91,48 @@ const useIsInsufficientBalance = ({
     normalizeAmount(amount, token.decimals),
     token.decimals,
   );
-  const isSOL =
-    token.chainId &&
-    isSolanaChainId(token.chainId) &&
-    isNativeAddress(token.address);
+
+  const isNativeToken = token.chainId && isNativeAddress(token.address);
+  const isSOL = isNativeToken && isSolanaChainId(token.chainId);
+
+  // Calculate gas fees if needed for native token source
+  // For ERC-20 tokens (USDC, DAI, etc.), gas is checked separately in useHasSufficientGas
+  // For native tokens (ETH, MATIC, etc.), gas comes from the SAME balance we're spending,
+  // so we need to ensure: balance >= sourceAmount + gasAmount
+  let atomicGasFee = BigNumber.from(0);
+  if (isNativeToken && !isGasless) {
+    const gasAmount = bestQuote?.gasFee?.effective?.amount;
+    const effectiveGasFee = isNumberValue(gasAmount)
+      ? // we guard against null and undefined values of gasAmount when checked isNumberValue
+        new BigNumberJS(gasAmount as string | number).toFixed()
+      : null;
+
+    if (effectiveGasFee) {
+      atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        token.decimals,
+      );
+    }
+  }
 
   let isInsufficientBalance = false;
 
   if (isSOL) {
-    // For SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
+    // SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
     const minSolBalanceLamports = parseUnits(minSolBalance, token.decimals);
     const remainingBalance = latestAtomicBalance.sub(inputAmount);
     isInsufficientBalance =
       isInsufficientBalance || remainingBalance.lt(minSolBalanceLamports);
+  } else if (isNativeToken && !isGasless && atomicGasFee.gt(0)) {
+    // Native tokens (ETH, MATIC, etc.): check balance >= sourceAmount + gasAmount
+    // Example: User has 1 ETH, wants to send 1 ETH, needs 0.01 ETH gas = insufficient
+    const totalRequired = inputAmount.add(atomicGasFee);
+    isInsufficientBalance =
+      isInsufficientBalance || totalRequired.gt(latestAtomicBalance);
   } else {
-    // For non-SOL: just check if inputAmount > balance
+    // ERC-20 tokens or gasless transactions: check balance >= sourceAmount only
+    // Example: User has 100 USDC, wants to send 50 USDC = sufficient
+    // (Gas check happens separately in useHasSufficientGas for ERC-20 tokens)
     isInsufficientBalance =
       isInsufficientBalance || inputAmount.gt(latestAtomicBalance);
   }

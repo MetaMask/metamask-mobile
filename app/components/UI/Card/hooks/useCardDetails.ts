@@ -63,14 +63,21 @@ const useCardDetails = () => {
     }, [sdk, isAuthenticated]);
 
   // Use cache wrapper for card details
+  const cacheResult = useWrapWithCache(
+    'card-details',
+    fetchCardDetailsInternal,
+    {
+      cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
+      fetchOnMount: false,
+    },
+  );
+
   const {
     data: cardDetailsData,
     isLoading,
     error,
     fetchData: fetchCardDetails,
-  } = useWrapWithCache('card-details', fetchCardDetailsInternal, {
-    cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
-  });
+  } = cacheResult;
 
   // Poll logic to check if card is provisioned
   // max polling attempts is 10, polling interval is 2 seconds
@@ -124,7 +131,7 @@ const useCardDetails = () => {
     cardDetails: cardDetailsData?.cardDetails ?? null,
     warning: cardDetailsData?.warning ?? null,
     isLoading,
-    error: error ? CardErrorType.UNKNOWN_ERROR : null,
+    error,
     isLoadingPollCardStatusUntilProvisioned:
       state.isLoadingPollCardStatusUntilProvisioned,
     fetchCardDetails,

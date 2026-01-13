@@ -91,6 +91,9 @@ jest.mock('../../../Rewards/utils', () => ({
 jest.mock('../../../Rewards/hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
 }));
+jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
+}));
 jest.mock('@metamask/design-tokens', () => ({
   brandColor: {
     black: '#000000',

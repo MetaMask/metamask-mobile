@@ -2,18 +2,22 @@ import {
   calculateFundingCountdown,
   calculate24hHighLow,
   getAssetIconUrl,
+  getAssetIconUrls,
   escapeRegex,
   compileMarketPattern,
   matchesMarketPattern,
   shouldIncludeMarket,
   validateMarketPattern,
+  getPerpsDisplaySymbol,
+  filterMarketsByQuery,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
+import type { PerpsMarketData } from '../controllers/types';
 import { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('../constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
-  HIP3_ASSET_ICONS_BASE_URL:
+  METAMASK_PERPS_ICONS_BASE_URL:
     'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
 }));
 
@@ -351,24 +355,20 @@ describe('marketUtils', () => {
       expect(result).toBe('https://app.hyperliquid.xyz/coins/BTC.svg');
     });
 
-    it('returns GitHub URL for HIP-3 asset with colon replaced by underscore', () => {
+    it('returns HyperLiquid URL for HIP-3 asset with market:symbol format', () => {
       const symbol = 'xyz:TSLA';
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
     });
 
-    it('returns GitHub URL for HIP-3 asset with different DEX prefix', () => {
+    it('returns HyperLiquid URL for HIP-3 asset with different DEX prefix', () => {
       const symbol = 'abc:XYZ100';
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Aabc_XYZ100.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/abc:XYZ100.svg');
     });
 
     it('removes k prefix for specified assets', () => {
@@ -410,9 +410,78 @@ describe('marketUtils', () => {
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
+    });
+  });
+
+  describe('getAssetIconUrls', () => {
+    it('returns primary and fallback URLs for regular asset', () => {
+      const symbol = 'BTC';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/BTC.svg',
+      });
+    });
+
+    it('returns primary and fallback URLs for HIP-3 asset', () => {
+      const symbol = 'xyz:TSLA';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:xyz_TSLA.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg',
+      });
+    });
+
+    it('returns null for empty symbol', () => {
+      const symbol = '';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toBeNull();
+    });
+
+    it('removes k prefix for specified assets', () => {
+      const symbol = 'kBONK';
+      const kPrefixAssets = new Set(['KBONK']);
+
+      const result = getAssetIconUrls(symbol, kPrefixAssets);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BONK.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/BONK.svg',
+      });
+    });
+
+    it('uppercases lowercase symbols for regular assets', () => {
+      const symbol = 'eth';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/ETH.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/ETH.svg',
+      });
+    });
+
+    it('formats HIP-3 assets with hip3 prefix and underscore separator', () => {
+      const symbol = 'ABC:xyz100';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:abc_XYZ100.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/abc:XYZ100.svg',
+      });
     });
   });
 
@@ -759,6 +828,227 @@ describe('marketUtils', () => {
           'Market pattern contains invalid characters',
         );
       });
+    });
+  });
+
+  describe('getPerpsDisplaySymbol', () => {
+    describe('hip3 assets with DEX prefix', () => {
+      it('strips hip3 prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC');
+
+        expect(result).toBe('BTC');
+      });
+
+      it('strips xyz DEX prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('xyz:TSLA');
+
+        expect(result).toBe('TSLA');
+      });
+
+      it('strips abc DEX prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('abc:AAPL');
+
+        expect(result).toBe('AAPL');
+      });
+
+      it('strips prefix with numbers', () => {
+        const result = getPerpsDisplaySymbol('dex1:MARKET1');
+
+        expect(result).toBe('MARKET1');
+      });
+
+      it('strips prefix with hyphens', () => {
+        const result = getPerpsDisplaySymbol('dex-name:MARKET');
+
+        expect(result).toBe('MARKET');
+      });
+
+      it('strips prefix with underscores', () => {
+        const result = getPerpsDisplaySymbol('dex_name:MARKET');
+
+        expect(result).toBe('MARKET');
+      });
+
+      it('handles multiple colons by taking first occurrence', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC:USD');
+
+        expect(result).toBe('BTC:USD');
+      });
+    });
+
+    describe('regular assets without DEX prefix', () => {
+      it('returns BTC unchanged', () => {
+        const result = getPerpsDisplaySymbol('BTC');
+
+        expect(result).toBe('BTC');
+      });
+
+      it('returns ETH unchanged', () => {
+        const result = getPerpsDisplaySymbol('ETH');
+
+        expect(result).toBe('ETH');
+      });
+
+      it('returns SOL unchanged', () => {
+        const result = getPerpsDisplaySymbol('SOL');
+
+        expect(result).toBe('SOL');
+      });
+
+      it('returns multi-character symbol unchanged', () => {
+        const result = getPerpsDisplaySymbol('BONK');
+
+        expect(result).toBe('BONK');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns empty string for empty input', () => {
+        const result = getPerpsDisplaySymbol('');
+
+        expect(result).toBe('');
+      });
+
+      it('returns null for null input', () => {
+        const result = getPerpsDisplaySymbol(null as unknown as string);
+
+        expect(result).toBe(null);
+      });
+
+      it('returns undefined for undefined input', () => {
+        const result = getPerpsDisplaySymbol(undefined as unknown as string);
+
+        expect(result).toBe(undefined);
+      });
+
+      it('returns symbol unchanged when colon is at start', () => {
+        const result = getPerpsDisplaySymbol(':BTC');
+
+        expect(result).toBe(':BTC');
+      });
+
+      it('returns symbol unchanged when colon is at end', () => {
+        const result = getPerpsDisplaySymbol('BTC:');
+
+        expect(result).toBe('BTC:');
+      });
+
+      it('returns symbol unchanged when only colon', () => {
+        const result = getPerpsDisplaySymbol(':');
+
+        expect(result).toBe(':');
+      });
+
+      it('handles symbols with special characters after colon', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC-PERP');
+
+        expect(result).toBe('BTC-PERP');
+      });
+
+      it('handles symbols with numbers after colon', () => {
+        const result = getPerpsDisplaySymbol('hip3:1INCH');
+
+        expect(result).toBe('1INCH');
+      });
+
+      it('handles lowercase symbols', () => {
+        const result = getPerpsDisplaySymbol('hip3:btc');
+
+        expect(result).toBe('btc');
+      });
+
+      it('handles mixed case symbols', () => {
+        const result = getPerpsDisplaySymbol('Hip3:BtC');
+
+        expect(result).toBe('BtC');
+      });
+    });
+
+    describe('preserves display format', () => {
+      it('preserves lowercase after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:tsla');
+
+        expect(result).toBe('tsla');
+      });
+
+      it('preserves uppercase after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:TSLA');
+
+        expect(result).toBe('TSLA');
+      });
+
+      it('preserves mixed case after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:TsLa');
+
+        expect(result).toBe('TsLa');
+      });
+    });
+  });
+
+  describe('filterMarketsByQuery', () => {
+    const mockMarkets: Partial<PerpsMarketData>[] = [
+      { symbol: 'BTC', name: 'Bitcoin' },
+      { symbol: 'ETH', name: 'Ethereum' },
+      { symbol: 'xyz:TSLA', name: 'Tesla Stock' },
+    ];
+
+    it('returns all markets when query is empty or whitespace', () => {
+      const result1 = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '',
+      );
+      const result2 = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '   ',
+      );
+
+      expect(result1).toEqual(mockMarkets);
+      expect(result2).toEqual(mockMarkets);
+    });
+
+    it('filters markets by symbol case-insensitively', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'btc',
+      );
+
+      expect(result).toEqual([mockMarkets[0]]);
+    });
+
+    it('filters markets by name case-insensitively', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'ethereum',
+      );
+
+      expect(result).toEqual([mockMarkets[1]]);
+    });
+
+    it('filters markets by partial matches in symbol or name', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'Stock',
+      );
+
+      expect(result).toEqual([mockMarkets[2]]);
+    });
+
+    it('returns empty array when no markets match query', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'NonExistent',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('trims whitespace from query before matching', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '  BTC  ',
+      );
+
+      expect(result).toEqual([mockMarkets[0]]);
     });
   });
 });

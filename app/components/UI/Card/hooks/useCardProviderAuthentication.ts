@@ -33,6 +33,8 @@ const getErrorMessage = (error: unknown): string => {
         return strings(
           'card.card_authentication.errors.invalid_email_or_password',
         );
+      case CardErrorType.ACCOUNT_DISABLED:
+        return error.message;
       case CardErrorType.SERVER_ERROR:
         return strings('card.card_authentication.errors.server_error');
       case CardErrorType.UNKNOWN_ERROR:
@@ -51,7 +53,7 @@ interface UseCardProviderAuthenticationResponse {
     email: string;
     password: string;
     otpCode?: string;
-  }) => Promise<CardLoginResponse | void>;
+  }) => Promise<CardLoginResponse>;
   loading: boolean;
   error: string | null;
   clearError: () => void;
@@ -91,6 +93,7 @@ const useCardProviderAuthentication =
         }
 
         try {
+          setOtpError(null);
           setOtpLoading(true);
           await sdk.sendOtpLogin({
             userId: params.userId,
@@ -111,7 +114,7 @@ const useCardProviderAuthentication =
         email: string;
         password: string;
         otpCode?: string;
-      }): Promise<CardLoginResponse | void> => {
+      }): Promise<CardLoginResponse> => {
         if (!sdk) {
           throw new Error('Card SDK not initialized');
         }
@@ -120,6 +123,7 @@ const useCardProviderAuthentication =
         const { codeVerifier, codeChallenge } = await generatePKCEPair();
 
         try {
+          setError(null);
           setLoading(true);
           const initiateResponse = await sdk.initiateCardProviderAuthentication(
             {
@@ -136,11 +140,7 @@ const useCardProviderAuthentication =
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
           });
 
-          if (
-            loginResponse.isOtpRequired ||
-            loginResponse.verificationState === 'PENDING' ||
-            loginResponse.phase
-          ) {
+          if (loginResponse.isOtpRequired || loginResponse.phase) {
             return loginResponse;
           }
 
@@ -172,6 +172,8 @@ const useCardProviderAuthentication =
           setError(null);
           dispatch(setIsAuthenticatedAction(true));
           dispatch(setUserCardLocation(params.location));
+
+          return loginResponse;
         } catch (err) {
           const errorMessage = getErrorMessage(err);
           setError(errorMessage);

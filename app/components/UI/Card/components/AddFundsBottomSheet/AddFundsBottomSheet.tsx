@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -23,7 +22,7 @@ import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -31,14 +30,16 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
   priorityToken?: CardTokenAllowance;
@@ -52,7 +53,6 @@ export const createAddFundsModalNavigationDetails =
 
 const AddFundsBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { priorityToken } = useParams<AddFundsModalNavigationDetails>();
 
   const { isDepositEnabled } = useDepositEnabled();
@@ -63,6 +63,8 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToDeposit } = useRampNavigation();
+  const buttonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -80,7 +82,7 @@ const AddFundsBottomSheet: React.FC = () => {
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(...createDepositNavigationDetails());
+      goToDeposit();
     });
     trackEvent(
       createEventBuilder(
@@ -96,6 +98,10 @@ const AddFundsBottomSheet: React.FC = () => {
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: 'DEPOSIT',
           region: rampGeodetectedRegion,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
         })
         .build(),
     );
@@ -106,10 +112,11 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    navigation,
+    goToDeposit,
     trackEvent,
     createEventBuilder,
     priorityToken,
+    buttonClickData,
   ]);
 
   const options = [
@@ -125,13 +132,16 @@ const AddFundsBottomSheet: React.FC = () => {
       label: strings('card.add_funds_bottomsheet.swap'),
       description: strings('card.add_funds_bottomsheet.swap_description', {
         symbol: priorityToken?.symbol,
+        chainName: mapCaipChainIdToChainName(
+          priorityToken?.caipChainId ?? 'eip155:59144',
+        ),
       }),
       icon: IconName.SwapHorizontal,
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
       enabled:
-        AppConstants.SWAPS.ACTIVE &&
-        isSwapsAllowed(
+        AppConstants.BRIDGE.ACTIVE &&
+        isBridgeAllowed(
           safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
         ),
     },

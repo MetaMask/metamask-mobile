@@ -6,9 +6,9 @@ import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelecti
 import { NftList } from './nft-list';
 import { Nft } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSendContext } from '../../context/send-context';
 
 const mockGotToSendScreen = jest.fn();
-const mockUpdateAsset = jest.fn();
 
 jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
   useSendScreenNavigation: () => ({
@@ -17,9 +17,7 @@ jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
 }));
 
 jest.mock('../../context/send-context', () => ({
-  useSendContext: () => ({
-    updateAsset: mockUpdateAsset,
-  }),
+  useSendContext: jest.fn(),
 }));
 
 jest.mock('../UI/nft', () => {
@@ -81,8 +79,16 @@ const manyNfts: Nft[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 describe('NftList', () => {
+  const mockUpdateAsset = jest.fn();
+  const mockUseSendContext = jest.mocked(useSendContext);
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+      asset: undefined,
+    } as unknown as ReturnType<typeof useSendContext>);
   });
 
   describe('nft rendering', () => {
@@ -116,6 +122,20 @@ describe('NftList', () => {
 
       expect(mockUpdateAsset).toHaveBeenCalledWith(mockNfts[0]);
       expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.RECIPIENT);
+    });
+
+    it('calls updateTo when there is an existing asset selected', () => {
+      const mockUpdateTo = jest.fn();
+      mockUseSendContext.mockReturnValue({
+        updateAsset: mockUpdateAsset,
+        updateTo: mockUpdateTo,
+        asset: mockNfts[0],
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const { getByTestId } = render(<NftList nfts={mockNfts} />);
+
+      fireEvent.press(getByTestId('nft-Cool NFT #1'));
+      expect(mockUpdateTo).toHaveBeenCalledWith('');
     });
 
     it('calls updateAsset and navigates to amount screen when ERC1155 nft is pressed', () => {

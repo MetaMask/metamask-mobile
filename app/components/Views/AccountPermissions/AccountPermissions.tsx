@@ -89,6 +89,8 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -561,7 +563,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
-    const handleUserActions = (action: USER_INTENT) => {
+    const handleUserActions = async (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           hideSheet(() => {
@@ -598,10 +600,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.ConnectHW: {
           navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+          const connectedDeviceCount = await getConnectedDevicesCount();
           trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-            ).build(),
+            createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+              .addProperties({
+                device_type: HardwareDeviceTypes.QR,
+                connected_device_count: connectedDeviceCount,
+              })
+              .build(),
           );
 
           break;

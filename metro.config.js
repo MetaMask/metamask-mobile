@@ -49,10 +49,20 @@ module.exports = function (baseConfig) {
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
-  const maxWorkers = Math.ceil(
-    os.availableParallelism() *
-      Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
-  );
+  // Also forces maxWorkers value to be no less than 2, ensuring
+  // worker code runs concurrently and not on the main Metro process
+  //
+  // CI Override: Set METRO_MAX_WORKERS env var to limit workers on constrained runners
+  // Example: METRO_MAX_WORKERS=4 for 48GB runners to prevent OOM kills
+  const maxWorkers = process.env.METRO_MAX_WORKERS
+    ? Math.max(2, parseInt(process.env.METRO_MAX_WORKERS, 10))
+    : Math.ceil(
+        Math.max(
+          2,
+          os.availableParallelism() *
+            Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+        ),
+      );
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {

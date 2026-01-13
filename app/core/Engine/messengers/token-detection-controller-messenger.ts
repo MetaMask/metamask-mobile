@@ -8,6 +8,7 @@ import {
   TokenDetectionControllerMessenger,
 } from '@metamask/assets-controllers';
 import { RootMessenger } from '../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 /**
  * Get the messenger for the token detection controller. This is scoped to the
@@ -30,26 +31,26 @@ export function getTokenDetectionControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
+      'AccountsController:getAccount',
       'AccountsController:getSelectedAccount',
+      'KeyringController:getState',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByNetworkClientId',
       'NetworkController:getState',
-      'KeyringController:getState',
-      'PreferencesController:getState',
-      'TokenListController:getState',
       'TokensController:getState',
       'TokensController:addDetectedTokens',
-      'AccountsController:getAccount',
+      'TokenListController:getState',
+      'PreferencesController:getState',
       'TokensController:addTokens',
       'NetworkController:findNetworkClientIdByChainId',
     ],
     events: [
+      'AccountsController:selectedEvmAccountChange',
       'KeyringController:lock',
       'KeyringController:unlock',
-      'PreferencesController:stateChange',
       'NetworkController:networkDidChange',
       'TokenListController:stateChange',
-      'AccountsController:selectedEvmAccountChange',
+      'PreferencesController:stateChange',
       'TransactionController:transactionConfirmed',
     ],
     messenger,
@@ -58,7 +59,8 @@ export function getTokenDetectionControllerMessenger(
 }
 
 type AllowedInitializationActions =
-  AssetsContractControllerGetBalancesInSingleCallAction;
+  | AssetsContractControllerGetBalancesInSingleCallAction
+  | AnalyticsControllerActions;
 
 type AllowedInitializationEvents = never;
 
@@ -87,7 +89,10 @@ export function getTokenDetectionControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AssetsContractController:getBalancesInSingleCall'],
+    actions: [
+      'AssetsContractController:getBalancesInSingleCall',
+      'AnalyticsController:trackEvent',
+    ],
     events: [],
     messenger,
   });

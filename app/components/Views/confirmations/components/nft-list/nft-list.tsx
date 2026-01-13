@@ -20,7 +20,11 @@ interface NftListProps {
 
 export function NftList({ nfts }: NftListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { updateAsset } = useSendContext();
+  const {
+    updateAsset,
+    asset: existingSelectedAsset,
+    updateTo,
+  } = useSendContext();
   const { captureAssetSelected } = useAssetSelectionMetrics();
   const [visibleNftCount, setVisibleNftCount] = useState(NFT_COUNT_PER_PAGE);
 
@@ -32,13 +36,26 @@ export function NftList({ nfts }: NftListProps) {
       );
       captureAssetSelected(nft, position.toString());
       updateAsset(nft);
+
+      // Reset the to address when a new asset is selected
+      if (existingSelectedAsset) {
+        updateTo('');
+      }
+
       if (nft.standard === 'ERC1155') {
         gotToSendScreen(Routes.SEND.AMOUNT);
       } else {
         gotToSendScreen(Routes.SEND.RECIPIENT);
       }
     },
-    [captureAssetSelected, gotToSendScreen, nfts, updateAsset],
+    [
+      captureAssetSelected,
+      existingSelectedAsset,
+      gotToSendScreen,
+      nfts,
+      updateAsset,
+      updateTo,
+    ],
   );
 
   const handleShowMore = useCallback(() => {

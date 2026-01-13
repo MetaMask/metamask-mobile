@@ -1,4 +1,3 @@
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -9,7 +8,6 @@ import Engine from '../../../core/Engine';
 
 // Mock the feature flags
 jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   getDecimalChainId: jest.fn(() => '1'),
 }));
 
@@ -83,10 +81,6 @@ const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
-const mockIsRemoveGlobalNetworkSelectorEnabled =
-  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-    typeof isRemoveGlobalNetworkSelectorEnabled
-  >;
 
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -128,8 +122,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       getMetaMetricsId: jest.fn(),
     });
 
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-
     // Mock the event builder
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
@@ -137,7 +129,7 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+  describe('Network enablement functionality', () => {
     // Common test configurations
     const verifyControllersAvailable = () => {
       expect(
@@ -157,38 +149,13 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       expect(mockSelectNetwork).toBeDefined();
     };
 
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
-      it('should call selectNetwork', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(mockSelectNetwork).toBeDefined();
-        verifyHookSetup();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        verifyControllersAvailable();
-      });
+    it('should call selectNetwork', () => {
+      expect(mockSelectNetwork).toBeDefined();
+      verifyHookSetup();
     });
 
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should not call selectNetwork', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(mockSelectNetwork).toBeDefined();
-        verifyHookSetup();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        verifyControllersAvailable();
-      });
+    it('should have proper hook setup', () => {
+      verifyControllersAvailable();
     });
   });
 

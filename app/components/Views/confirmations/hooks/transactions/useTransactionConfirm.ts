@@ -1,10 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { RootState } from '../../../../../reducers';
 import { resetTransaction } from '../../../../../actions/transaction';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -13,12 +10,12 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { hasTransactionType } from '../../utils/transaction';
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 
@@ -36,22 +33,24 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, type } = transactionMetadata ?? {};
+  const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
+    transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
-  const shouldUseSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, chainId),
-  );
+  const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
+    useGaslessSupportedSmartTransactions();
+
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
   const waitForResult =
-    !shouldUseSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
@@ -64,24 +63,42 @@ export function useTransactionConfirm() {
       updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
       updatedMetadata.txParams.maxPriorityFeePerGas =
         selectedGasFeeToken.maxPriorityFeePerGas;
-    },
-    [selectedGasFeeToken],
-  );
 
-  const { value: chainSupportsSendBundle } = useAsyncResult(
-    async () => (chainId ? isSendBundleSupported(chainId) : false),
-    [chainId],
+      // If the gasless flow is not supported (e.g. stx is disabled by the user,
+      // or 7702 is not supported in the chain), we override the
+      // `isGasFeeSponsored` flag to `false` so the transaction meta object in
+      // state has the correct value for the transaction details on the activity
+      // list to not show as sponsored. One limitation on the activity list will
+      // be that pre-populated transactions on fresh installs will not show as
+      // sponsored even if they were because this is not easily observable onchain
+      // for all cases.
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
+    },
+    [
+      selectedGasFeeToken,
+      isGasFeeTokenIgnoredIfBalance,
+      isGaslessSupported,
+      transactionMetadata?.isGasFeeSponsored,
+    ],
   );
 
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
       updatedMetadata.isExternalSign = true;
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [selectedGasFeeToken],
+    [
+      isGasFeeTokenIgnoredIfBalance,
+      isGaslessSupported,
+      selectedGasFeeToken,
+      transactionMetadata?.isGasFeeSponsored,
+    ],
   );
 
   const onConfirm = useCallback(async () => {
@@ -91,7 +108,7 @@ export function useTransactionConfirm() {
 
     const updatedMetadata = cloneDeep(transactionMetadata);
 
-    if (shouldUseSmartTransaction && chainSupportsSendBundle) {
+    if (isGaslessSupportedSTX) {
       handleSmartTransaction(updatedMetadata);
     } else if (selectedGasFeeToken) {
       handleGasless7702(updatedMetadata);
@@ -115,6 +132,13 @@ export function useTransactionConfirm() {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    } else if (type === TransactionType.musdConversion) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -126,22 +150,17 @@ export function useTransactionConfirm() {
 
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
-
-    // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
   }, [
-    chainSupportsSendBundle,
     chainId,
     dispatch,
     handleGasless7702,
     handleSmartTransaction,
     isFullScreenConfirmation,
+    isGaslessSupportedSTX,
     navigation,
     onRequestConfirm,
     selectedGasFeeToken,
-    shouldUseSmartTransaction,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,

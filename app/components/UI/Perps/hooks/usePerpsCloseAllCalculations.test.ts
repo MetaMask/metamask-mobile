@@ -145,7 +145,7 @@ describe('usePerpsCloseAllCalculations', () => {
   });
 
   describe('Total Margin Calculation', () => {
-    it('calculates total margin including P&L for single position', () => {
+    it('calculates total margin excluding P&L for single position', () => {
       // Arrange
       const positions = [
         createMockPosition({
@@ -161,7 +161,7 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       // Assert
-      expect(result.current.totalMargin).toBe(1100); // 1000 + 100
+      expect(result.current.totalMargin).toBe(1000); // Only marginUsed, PnL excluded
     });
 
     it('calculates total margin for multiple positions', () => {
@@ -189,10 +189,10 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       // Assert
-      expect(result.current.totalMargin).toBe(1550); // (1000+100) + (500-50)
+      expect(result.current.totalMargin).toBe(1500); // 1000 + 500, PnL excluded
     });
 
-    it('handles negative P&L correctly', () => {
+    it('excludes negative P&L from margin calculation', () => {
       // Arrange
       const positions = [
         createMockPosition({
@@ -208,7 +208,47 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       // Assert
-      expect(result.current.totalMargin).toBe(800); // 1000 - 200
+      expect(result.current.totalMargin).toBe(1000); // Only marginUsed, negative PnL excluded
+    });
+
+    it('excludes positive P&L from margin calculation', () => {
+      // Arrange
+      const positions = [
+        createMockPosition({
+          marginUsed: '500',
+          unrealizedPnl: '250',
+        }),
+      ];
+      const priceData = { BTC: { price: '52000' } };
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
+      );
+
+      // Assert
+      expect(result.current.totalMargin).toBe(500); // Only marginUsed, positive PnL excluded
+      expect(result.current.totalPnl).toBe(250); // PnL is tracked separately
+    });
+
+    it('calculates total margin with zero P&L', () => {
+      // Arrange
+      const positions = [
+        createMockPosition({
+          marginUsed: '800',
+          unrealizedPnl: '0',
+        }),
+      ];
+      const priceData = { BTC: { price: '50000' } };
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
+      );
+
+      // Assert
+      expect(result.current.totalMargin).toBe(800); // Only marginUsed
+      expect(result.current.totalPnl).toBe(0);
     });
   });
 
@@ -778,10 +818,12 @@ describe('usePerpsCloseAllCalculations', () => {
         expect(result.current.isLoading).toBe(false);
       });
       // Total fee recalculated: 25 + 25 = 50
-      expect(result.current.receiveAmount).toBe(1050); // (1000 + 100) - 50
+      // Receive amount: 1000 (margin only, PnL excluded) - 50 (fees) = 950
+      expect(result.current.receiveAmount).toBe(950);
+      expect(result.current.totalPnl).toBe(100); // PnL tracked separately
     });
 
-    it('handles negative receive amount when fees exceed margin', async () => {
+    it('returns zero receive amount when fees equal margin', async () => {
       // Arrange
       const positions = [
         createMockPosition({
@@ -807,7 +849,53 @@ describe('usePerpsCloseAllCalculations', () => {
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
-      expect(result.current.receiveAmount).toBe(-50); // (100 - 50) - 100
+      // Receive amount: 100 (margin only) - 100 (fees) = 0
+      expect(result.current.receiveAmount).toBe(0);
+      expect(result.current.totalPnl).toBe(-50); // PnL tracked separately
+    });
+
+    it('calculates receive amount excluding P&L for multiple positions', async () => {
+      // Arrange
+      const positions = [
+        createMockPosition({
+          coin: 'BTC',
+          marginUsed: '2000',
+          unrealizedPnl: '300',
+        }),
+        createMockPosition({
+          coin: 'ETH',
+          marginUsed: '1500',
+          unrealizedPnl: '-100',
+        }),
+      ];
+      const priceData = {
+        BTC: { price: '51000' },
+        ETH: { price: '3000' },
+      };
+      mockCalculateFees.mockResolvedValue(
+        createMockFeeResult({
+          feeAmount: 150,
+          metamaskFeeAmount: 100,
+          protocolFeeAmount: 50,
+        }),
+      );
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      // Total margin: 2000 + 1500 = 3500 (PnL excluded)
+      // Total fees: 150 + 150 = 300 (two positions)
+      // Receive amount: 3500 - 300 = 3200
+      expect(result.current.totalMargin).toBe(3500);
+      expect(result.current.totalPnl).toBe(200); // 300 - 100
+      expect(result.current.totalFees).toBe(300);
+      expect(result.current.receiveAmount).toBe(3200);
     });
   });
 

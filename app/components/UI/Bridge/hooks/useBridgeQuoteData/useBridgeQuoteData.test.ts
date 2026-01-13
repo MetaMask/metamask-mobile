@@ -25,12 +25,6 @@ jest.mock('../../utils/quoteUtils', () => ({
   shouldRefreshQuote: jest.fn(),
 }));
 
-const mockSelectPrimaryCurrency = jest.fn();
-jest.mock('../../../../../selectors/settings', () => ({
-  ...jest.requireActual('../../../../../selectors/settings'),
-  selectPrimaryCurrency: () => mockSelectPrimaryCurrency(),
-}));
-
 // Mock the bridge-controller module
 jest.mock('@metamask/bridge-controller', () => {
   const actual = jest.requireActual('@metamask/bridge-controller');
@@ -90,7 +84,6 @@ describe('useBridgeQuoteData', () => {
     (isQuoteExpired as jest.Mock).mockReturnValue(false);
     (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
     (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
-    mockSelectPrimaryCurrency.mockReturnValue('ETH');
     mockUseIsInsufficientBalance.mockReturnValue(false);
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
   });
@@ -108,8 +101,21 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
     };
 
+    // destToken must match the quote's destAsset.assetId for destTokenAmount to be calculated
+    // The address should be in CAIP format to match the quote's assetId
+    const bridgeReducerOverrides = {
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
     const testState = createBridgeTestState({
       bridgeControllerOverrides,
+      bridgeReducerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
@@ -139,11 +145,12 @@ describe('useBridgeQuoteData', () => {
   });
 
   it.each([
-    [true, false],
-    [false, true],
+    [true, false, false],
+    [false, true, false],
+    [false, false, true],
   ])(
-    'returns shouldShowPriceImpactWarning=true when priceImpact exceeds threshold and gasIncluded=%s',
-    (gasIncluded, shouldShowPriceImpactWarning) => {
+    'returns shouldShowPriceImpactWarning based on priceImpact exceeding threshold when gasIncluded=%s and gasIncluded7702=%s',
+    (gasIncluded, gasIncluded7702, shouldShowPriceImpactWarning) => {
       // Set up mock for this specific test
       (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
         () => ({
@@ -153,6 +160,7 @@ describe('useBridgeQuoteData', () => {
               ...mockQuoteWithMetadata.quote,
               priceData: { priceImpact: '0.20' },
               gasIncluded,
+              gasIncluded7702,
             },
           },
           alternativeQuotes: [],
@@ -217,6 +225,45 @@ describe('useBridgeQuoteData', () => {
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
     });
+  });
+
+  it('returns undefined destTokenAmount when quote destAsset does not match selected destToken', () => {
+    // Set up mock with a quote for a different destination token (ETH) than what's selected (USDC)
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata, // This quote is for Solana USDC
+      alternativeQuotes: [],
+    }));
+
+    const bridgeControllerOverrides = {
+      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotesLoadingStatus: null,
+      quoteFetchError: null,
+    };
+
+    // Selected destToken is ETH on mainnet, which doesn't match the quote's destAsset (Solana USDC)
+    // This simulates the race condition when user changes destination token
+    const bridgeReducerOverrides = {
+      destToken: {
+        symbol: 'ETH',
+        chainId: CHAIN_IDS.MAINNET,
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // destTokenAmount should be undefined because quote's destAsset doesn't match selected destToken
+    // This prevents showing incorrect amounts when switching destination tokens
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.destTokenAmount).toBeUndefined();
   });
 
   it('handles expired quotes correctly', () => {
@@ -329,52 +376,6 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('formats network fee in ETH currency', () => {
-    mockSelectPrimaryCurrency.mockReturnValue('ETH');
-
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
-        },
-      },
-      alternativeQuotes: [],
-    }));
-
-    const testState = createBridgeTestState({});
-
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
-
-    expect(result.current.formattedQuoteData?.networkFee).toBe('0.01 ETH');
-  });
-
-  it('formats network fee in USD currency', () => {
-    mockSelectPrimaryCurrency.mockReturnValue('USD');
-
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
-        },
-      },
-      alternativeQuotes: [],
-    }));
-
-    const testState = createBridgeTestState({});
-
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
-
-    expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
-  });
-
   it('returns undefined when activeQuote is undefined', () => {
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
       recommendedQuote: undefined,
@@ -448,7 +449,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.formattedQuoteData?.networkFee).toBe('-');
   });
 
-  it('formats network fee with valid totalNetworkFee data', () => {
+  it('formats network fee with fiat formatter for normal values', () => {
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
       recommendedQuote: {
         ...mockQuoteWithMetadata,
@@ -466,56 +467,70 @@ describe('useBridgeQuoteData', () => {
       state: testState,
     });
 
-    // The exact format will depend on the locale and formatter, but we can check it's not '-'
-    expect(result.current.formattedQuoteData?.networkFee).not.toBe('-');
-  });
-
-  it('formats network fee in ETH currency when primary currency is not specified', () => {
-    mockSelectPrimaryCurrency.mockReturnValue(undefined);
-
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
-        },
-      },
-      alternativeQuotes: [],
-    }));
-
-    const testState = createBridgeTestState({});
-
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
-
-    // Should default to ETH format when primary currency is not specified
-    expect(result.current.formattedQuoteData?.networkFee).toContain('ETH');
-  });
-
-  it('formats network fee in USD currency when primary currency is not ETH', () => {
-    mockSelectPrimaryCurrency.mockReturnValue('GBP');
-
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
-        },
-      },
-      alternativeQuotes: [],
-    }));
-
-    const testState = createBridgeTestState({});
-
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
-
-    // Should use USD format when primary currency is not ETH
     expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
+  });
+
+  it('formats network fee as "<$0.01" when value is less than 0.01', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.0001',
+          valueInCurrency: '0.005',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('<$0.01');
+  });
+
+  it('formats network fee normally when value is exactly 0.01', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.0001',
+          valueInCurrency: '0.01',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('$0.01');
+  });
+
+  it('formats network fee normally when value is 0', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0',
+          valueInCurrency: '0',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('$0');
   });
 
   // Additional coverage tests
@@ -637,7 +652,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -737,7 +753,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };
@@ -775,7 +792,8 @@ describe('useBridgeQuoteData', () => {
       destToken: {
         symbol: 'USDC',
         chainId: SolScope.Mainnet,
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         decimals: 6,
       },
     };

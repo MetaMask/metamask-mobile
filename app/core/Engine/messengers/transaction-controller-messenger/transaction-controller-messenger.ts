@@ -12,6 +12,7 @@ import {
 } from '@metamask/network-controller';
 import {
   TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -46,6 +47,7 @@ import {
   TransactionPayControllerGetStrategyAction,
 } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import {
   Messenger,
   MessengerActions,
@@ -95,10 +97,12 @@ type InitMessengerActions =
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
-  | TransactionPayControllerGetStrategyAction;
+  | TransactionPayControllerGetStrategyAction
+  | AnalyticsControllerActions;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -146,11 +150,14 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:addTransaction',
+      'TransactionController:addTransactionBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'AnalyticsController:trackEvent',
     ],
     events: [
       'BridgeStatusController:stateChange',

@@ -18,6 +18,7 @@ import {
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-amount.styles';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
@@ -62,6 +63,20 @@ export function PredictClaimAmount() {
       >
         {formattedWinningsPnl}
       </Text>
+    </Box>
+  );
+}
+
+export function PredictClaimAmountSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box style={styles.container}>
+      <Text variant={TextVariant.HeadingLG} color={TextColor.Alternative}>
+        {strings('confirm.predict_claim.summary')}
+      </Text>
+      <Skeleton width={300} height={70} />
+      <Skeleton width={200} height={30} />
     </Box>
   );
 }

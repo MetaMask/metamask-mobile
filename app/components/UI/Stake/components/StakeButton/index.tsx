@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Pressable } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,12 +13,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
@@ -26,7 +26,6 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
@@ -34,16 +33,31 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
+import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
+///: END:ONLY_INCLUDE_IF
 
+const styles = StyleSheet.create({
+  stakeButton: {
+    flexDirection: 'row',
+  },
+  dot: {
+    marginLeft: 2,
+    marginRight: 2,
+  },
+});
 interface StakeButtonProps {
   asset: TokenI;
 }
 
+// TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
@@ -55,6 +69,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -62,10 +81,41 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(asset);
 
+  const primaryExperienceType = useSelector((state: RootState) =>
+    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
+  );
+
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronNative && isTrxStakingEnabled) {
+      trace({ name: TraceName.EarnDepositScreen });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
+          .addProperties({
+            chain_id: getDecimalChainId(asset.chainId as Hex),
+            location: EVENT_LOCATIONS.HOME_SCREEN,
+            action_type: 'deposit',
+            text: 'Earn',
+            token: asset.symbol,
+            network: network?.name,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          })
+          .build(),
+      );
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         'mainnet',
@@ -88,7 +138,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
+        newTabUrl = stakeUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -156,24 +207,41 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
   };
 
   if (
     areEarnExperiencesDisabled ||
-    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
+    (primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      !earnToken?.isETH &&
+      earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
 
+  const renderEarnButtonText = () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronNative && isTrxStakingEnabled && tronApyPercent) {
+      return `${strings('stake.earn')} ${tronApyPercent}`;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    const aprNumber = Number(earnToken?.experience?.apr);
+    const aprText =
+      Number.isFinite(aprNumber) && aprNumber > 0
+        ? ` ${aprNumber.toFixed(1)}%`
+        : '';
+    return `${strings('stake.earn')}${aprText}`;
+  };
+
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
@@ -182,10 +250,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {`${strings('stake.earn')}`}{' '}
-        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
+        {renderEarnButtonText()}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

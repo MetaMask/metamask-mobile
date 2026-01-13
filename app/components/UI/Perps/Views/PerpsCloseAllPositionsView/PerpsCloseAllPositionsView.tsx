@@ -24,6 +24,7 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
+  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
@@ -76,6 +77,10 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
+
+  // Check opt-in status for rewards
+  const { accountOptedIn, account: rewardsAccount } =
+    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
 
   // Track screen viewed event
   usePerpsEventTracking({
@@ -222,6 +227,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onPress: handleKeepButtonPress,
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
+        style: styles.footerButtonSecondary,
         disabled: isClosing,
       },
       {
@@ -235,7 +241,12 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         danger: true,
       },
     ],
-    [handleKeepButtonPress, handleCloseAll, isClosing],
+    [
+      handleKeepButtonPress,
+      handleCloseAll,
+      isClosing,
+      styles.footerButtonSecondary,
+    ],
   );
 
   // Show loading state while fetching positions
@@ -334,6 +345,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             isLoadingFees={calculations.isLoading}
             isLoadingRewards={calculations.isLoading}
             hasRewardsError={calculations.hasError}
+            accountOptedIn={accountOptedIn}
+            rewardsAccount={rewardsAccount}
             enableTooltips={false}
           />
         )}

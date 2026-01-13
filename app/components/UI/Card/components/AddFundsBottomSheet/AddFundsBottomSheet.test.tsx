@@ -3,22 +3,25 @@ import { fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
 // Mock hooks first - must be hoisted before imports
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
+jest.mock('../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
@@ -28,8 +31,8 @@ jest.mock('../../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../Swaps/utils', () => ({
-  isSwapsAllowed: jest.fn(),
+jest.mock('../../../Bridge/utils', () => ({
+  isBridgeAllowed: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({
@@ -59,6 +62,18 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
 }));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
@@ -73,6 +88,17 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (params?: any) => [stackId, { screen: screenName, params }],
   ),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -135,11 +161,15 @@ describe('AddFundsBottomSheet', () => {
       openSwaps: mockOpenSwaps,
     });
 
+    (useRampNavigation as jest.Mock).mockReturnValue({
+      goToDeposit: mockGoToDeposit,
+    });
+
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: true,
     });
 
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
 
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -168,7 +198,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = setupComponent();
 
@@ -179,7 +209,7 @@ describe('AddFundsBottomSheet', () => {
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: false,
     });
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = setupComponent();
 
@@ -212,6 +242,18 @@ describe('AddFundsBottomSheet', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
     );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Deposit',
+        location: 'CardHome',
+        chain_id_destination: '59144',
+        ramp_type: 'DEPOSIT',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      }),
+    );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadDepositExperience,
@@ -229,7 +271,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('does not render swap option when priority token is null', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     const { queryByTestId } = setupComponent(undefined);
 
     const swapOption = queryByTestId(
@@ -292,9 +334,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createDepositNavigationDetails(),
-    );
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('renders component correctly', () => {

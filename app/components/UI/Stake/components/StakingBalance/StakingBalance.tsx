@@ -53,13 +53,14 @@ import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureF
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
+import { useTheme } from '../../../../../util/theme';
 
 export interface StakingBalanceProps {
   asset: TokenI;
 }
 
 const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const theme = useTheme();
 
   const [
     hasSentViewingStakingRewardsMetric,
@@ -73,6 +74,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
+  const { styles } = useStyles(styleSheet, { theme });
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,
@@ -198,7 +200,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           isPooledStakingEnabled && (
             <StakingCta
               chainId={asset.chainId as Hex}
-              style={styles.stakingCta}
               estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
                 inputFormat: CommonPercentageInputUnits.PERCENTAGE,
                 outputFormat: PercentageOutputFormat.PERCENT_SIGN,
@@ -209,7 +210,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
         <StakingButtons
           asset={asset}
-          style={styles.buttonsContainer}
+          style={
+            hasStakedPositions || hasClaimableWei
+              ? undefined
+              : styles.buttonsContainer
+          }
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
         />
@@ -255,7 +260,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           </View>
         </AssetElement>
       )}
-
       <View style={styles.container}>{renderStakingContent()}</View>
       <View style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />

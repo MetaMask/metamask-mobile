@@ -25,6 +25,27 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: jest.fn(),
   }),
+  useRoute: jest.fn(() => ({
+    key: 'test-route',
+    name: 'TestRoute',
+    params: {},
+  })),
+}));
+
+jest.mock('../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../hooks/tokens/useAddToken', () => ({
+  useAddToken: jest.fn(),
+}));
+
+jest.mock('../info/custom-amount-info', () => ({
+  CustomAmountInfo: () => {
+    const { Text } = jest.requireActual('react-native');
+    return <Text testID="custom-amount-info">Custom Amount Info</Text>;
+  },
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');
@@ -147,7 +168,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Standard Account')).toBeTruthy();
+    expect(getByText('Standard account')).toBeTruthy();
   });
 
   it('renders SwitchAccountType for smart account type - upgrade confirmations', () => {

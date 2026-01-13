@@ -33,7 +33,6 @@ const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
 
 describe('useCardDetails', () => {
   const mockGetCardDetails = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -53,7 +52,7 @@ describe('useCardDetails', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -64,11 +63,8 @@ describe('useCardDetails', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockReturnValue(mockCacheReturn);
@@ -102,7 +98,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: cardDetailsResult,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -121,7 +117,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -150,26 +146,30 @@ describe('useCardDetails', () => {
       expect(mockUseWrapWithCache).toHaveBeenCalledWith(
         'card-details',
         expect.any(Function),
-        { cacheDuration: 60000 }, // AUTHENTICATED_CACHE_DURATION
+        {
+          cacheDuration: 60000, // AUTHENTICATED_CACHE_DURATION
+          fetchOnMount: false, // Manual fetch control
+        },
       );
     });
   });
 
   describe('Error Handling', () => {
-    it('maps useWrapWithCache error to UNKNOWN_ERROR', () => {
+    it('returns error state from useWrapWithCache', () => {
       // Given: useWrapWithCache has error
+      const mockError = new Error('Test error');
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: true,
+        error: mockError,
         fetchData: mockFetchData,
       });
 
       // When: Hook is rendered
       const { result } = renderHook(() => useCardDetails());
 
-      // Then: Maps to UNKNOWN_ERROR
-      expect(result.current.error).toBe(CardErrorType.UNKNOWN_ERROR);
+      // Then: Returns error object
+      expect(result.current.error).toBe(mockError);
       expect(result.current.cardDetails).toBeNull();
     });
 
@@ -246,11 +246,8 @@ describe('useCardDetails', () => {
     it('returns null when SDK is not available', async () => {
       // Given: No SDK available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useCardDetails());
@@ -383,7 +380,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: cardDetailsResult,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -424,7 +421,8 @@ describe('useCardDetails', () => {
       // Then: Returns true, calls fetchCardDetails, and updates loading state
       expect(pollResult).toBe(true);
       expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchData).toHaveBeenCalledTimes(1); // Refresh after provisioning
+      // pollCardStatusUntilProvisioned refreshes card details once after provisioning
+      expect(mockFetchData).toHaveBeenCalledTimes(1);
       expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(
         false,
       );
@@ -551,11 +549,8 @@ describe('useCardDetails', () => {
     it('returns false when SDK is not available', async () => {
       // Given: No SDK available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useCardDetails());

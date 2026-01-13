@@ -11,26 +11,31 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTokenAmount } from '../useTokenAmount';
 import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import {
   TransactionPayQuote,
+  TransactionPayRequiredToken,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from './useTransactionPayData';
+import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { useAccountTokens } from '../send/useAccountTokens';
+import { AssetType } from '../../types/token';
 
 jest.mock('./useTransactionPayToken');
-jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('./useTransactionPayAvailableTokens');
+jest.mock('../send/useAccountTokens');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
@@ -72,14 +77,23 @@ function runHook({ type }: { type?: TransactionType } = {}) {
 
 describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
-  const useAutomaticTransactionPayTokenMock = jest.mocked(
-    useAutomaticTransactionPayToken,
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
   );
+
+  const useTransactionPayAvailableTokensMock = jest.mocked(
+    useTransactionPayAvailableTokens,
+  );
+
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
+  );
+
+  const useAccountTokensMock = jest.mocked(useAccountTokens);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -89,19 +103,27 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop as never,
     });
 
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: TOKEN_AMOUNT_MOCK,
-    } as ReturnType<typeof useTokenAmount>);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountHuman: TOKEN_AMOUNT_MOCK,
+      } as TransactionPayRequiredToken,
+    ]);
 
     updateConfirmationMetricMock.mockReturnValue({
       type: 'test',
     } as never);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useAccountTokensMock.mockReturnValue([]);
 
-    useAutomaticTransactionPayTokenMock.mockReturnValue({
-      count: 5,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {},
+      {},
+      {},
+      {},
+      {},
+    ] as AssetType[]);
   });
 
   it('does not update metrics if no pay token selected', async () => {
@@ -192,7 +214,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'perps_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },
@@ -220,7 +242,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'predict_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },
@@ -274,7 +296,7 @@ describe('useTransactionPayMetrics', () => {
   it('includes quote metrics', async () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
-        sourceNetwork: { usd: '1.5', fiat: '1.6' },
+        sourceNetwork: { estimate: { usd: '1.5', fiat: '1.6' } },
         targetNetwork: { usd: '2.5', fiat: '2.6' },
         provider: { usd: '0.5', fiat: '0.6' },
       },
@@ -296,6 +318,200 @@ describe('useTransactionPayMetrics', () => {
         }),
         sensitiveProperties: {},
       },
+    });
+  });
+
+  describe('mm_pay_quote_requested', () => {
+    it('is false initially', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_requested: false,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is true when loading starts', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_requested: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
+  describe('mm_pay_quote_loaded', () => {
+    it('is true when has quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_loaded: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is true when has quotes even while loading new quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_loaded: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('is false when no quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_quote_loaded: false,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
+  describe('mm_pay_chain_highest_balance_caip', () => {
+    it('is null when no tokens', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useAccountTokensMock.mockReturnValue([]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_chain_highest_balance_caip: null,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('returns CAIP chainId with highest balance', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useAccountTokensMock.mockReturnValue([
+        { chainId: '0x1', fiat: { balance: 100 } },
+        { chainId: '0x1', fiat: { balance: 50 } },
+        { chainId: '0x38', fiat: { balance: 200 } },
+        { chainId: '0x89', fiat: { balance: 30 } },
+      ] as AssetType[]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_chain_highest_balance_caip: 'eip155:56',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('preserves CAIP chainId if already in CAIP format', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useAccountTokensMock.mockReturnValue([
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          fiat: { balance: 500 },
+        },
+        { chainId: '0x1', fiat: { balance: 100 } },
+      ] as AssetType[]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_chain_highest_balance_caip:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          }),
+          sensitiveProperties: {},
+        },
+      });
     });
   });
 });

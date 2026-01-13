@@ -15,6 +15,16 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import {
+  channel,
+  runtimeVersion,
+  isEmbeddedLaunch,
+  isEnabled as isOTAUpdatesEnabled,
+  updateId,
+  checkAutomatically,
+} from 'expo-updates';
+import { connect } from 'react-redux';
+import { getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -27,6 +37,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -92,12 +103,13 @@ const foxImage = require('../../../../images/branding/fox.png'); // eslint-disab
 /**
  * View that contains app information
  */
-export default class AppInformation extends PureComponent {
+class AppInformation extends PureComponent {
   static propTypes = {
     /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
+    preinstalledSnaps: PropTypes.array,
   };
 
   state = {
@@ -184,6 +196,11 @@ export default class AppInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const otaUpdateMessage =
+      __DEV__ || isEmbeddedLaunch
+        ? 'This app is running from built-in code or in development mode'
+        : 'This app is running an update';
+
     return (
       <SafeAreaView
         style={styles.wrapper}
@@ -202,27 +219,56 @@ export default class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            <Text style={styles.versionInfo}>
+              {getFullVersion(this.state.appInfo)}
+            </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 
-            {this.state.showEnvironmentInfo ? (
+            {this.state.showEnvironmentInfo && (
               <>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
-
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
+                </Text>
+                {isOTAUpdatesEnabled && (
+                  <>
+                    <Text style={styles.branchInfo}>
+                      {`Update ID: ${updateId || 'N/A'}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update Channel: ${channel}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Check Automatically: ${checkAutomatically}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                  </>
+                )}
+
+                {this.props.preinstalledSnaps.map((snap) => (
+                  <Text key={snap.name} style={styles.branchInfo}>
+                    {snap.name}: {snap.version} ({snap.status})
+                  </Text>
+                ))}
               </>
-            ) : null}
+            )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
@@ -267,3 +313,9 @@ export default class AppInformation extends PureComponent {
 }
 
 AppInformation.contextType = ThemeContext;
+
+const mapStateToProps = (state) => ({
+  preinstalledSnaps: getPreinstalledSnapsMetadata(state),
+});
+
+export default connect(mapStateToProps)(AppInformation);

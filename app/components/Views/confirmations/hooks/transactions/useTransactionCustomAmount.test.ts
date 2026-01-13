@@ -21,6 +21,7 @@ import {
   TransactionPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
+import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
@@ -29,6 +30,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
+jest.mock('../metrics/useConfirmationMetricEvents');
 
 jest.useFakeTimers();
 
@@ -85,10 +87,15 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const useConfirmationMetricEventsMock = jest.mocked(
+    useConfirmationMetricEvents,
+  );
 
   const updateTokenAmountMock: ReturnType<
     typeof useUpdateTokenAmount
   >['updateTokenAmount'] = jest.fn();
+
+  const setConfirmationMetricMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -110,6 +117,9 @@ describe('useTransactionCustomAmount', () => {
     useParamsMock.mockReturnValue({});
     useTransactionRequiredTokensMock.mockReturnValue([]);
     usePredictBalanceMock.mockReturnValue({ balance: 0 } as never);
+    useConfirmationMetricEventsMock.mockReturnValue({
+      setConfirmationMetric: setConfirmationMetricMock,
+    } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -244,6 +254,34 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.isInputChanged).toBe(true);
   });
 
+  it('sets manual metric when updatePendingAmount is called', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: 'manual',
+      },
+    });
+  });
+
+  it('sets percentage metric when updatePendingAmountPercentage is called', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(50);
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: '50%',
+      },
+    });
+  });
+
   it('returns hasInput as true after amount changed and debounce', async () => {
     const { result } = runHook();
 
@@ -294,7 +332,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1061.72');
+      expect(result.current.amountFiat).toBe('530.86');
     });
 
     it('minus buffers if 100', async () => {
@@ -342,8 +380,6 @@ describe('useTransactionCustomAmount', () => {
         {},
       ] as TransactionPayRequiredToken[]);
 
-      useParamsMock.mockReturnValue({ amount: '43.21' });
-
       const { result } = runHook();
 
       await act(async () => {
@@ -368,7 +404,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
     });
 
-    it('to percentage of predict balance', async () => {
+    it('to percentage of predict balance converted to USD', async () => {
       usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
 
       const { result } = runHook({
@@ -381,7 +417,23 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1858.12');
+      expect(result.current.amountFiat).toBe('3716.25');
+    });
+
+    it('to total predict balance with no buffers if 100', async () => {
+      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('8642.46');
     });
   });
 });

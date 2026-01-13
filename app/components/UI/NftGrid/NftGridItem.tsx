@@ -12,27 +12,29 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import CollectibleMedia from '../CollectibleMedia';
 
-const debouncedNavigation = debounce((navigation, collectible) => {
-  navigation.navigate('NftDetails', { collectible });
+const debouncedNavigation = debounce((navigation, collectible, source) => {
+  navigation.navigate('NftDetails', { collectible, source });
 }, 0);
 
 const NftGridItem = ({
   item,
   onLongPress,
+  source,
 }: {
   item: Nft;
   onLongPress: (nft: Nft) => void;
+  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
 
   const onPress = useCallback(() => {
-    debouncedNavigation(navigation, item);
-  }, [navigation, item]);
+    debouncedNavigation(navigation, item, source);
+  }, [navigation, item, source]);
 
   return (
     <Pressable
-      style={tw.style('self-stretch ')}
+      style={tw.style('self-stretch mb-3')}
       onPress={onPress}
       onLongPress={() => onLongPress(item)}
       testID={`collectible-${item.name}-${item.tokenId}`}

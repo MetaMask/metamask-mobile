@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import Text from '../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -19,7 +17,7 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
@@ -72,17 +70,14 @@ export default function NetworkListBottomSheet({
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <BottomSheetHeader
+      <HeaderCenter
+        title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {
             setOpenNetworkSelector(false);
           });
         }}
-      >
-        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-          {strings('networks.select_network')}
-        </Text>
-      </BottomSheetHeader>
+      />
 
       <ScrollView>
         {Object.values(filteredNetworkConfigurations).map((network) => (

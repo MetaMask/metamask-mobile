@@ -38,6 +38,10 @@ import Keypad from '../../../../Base/Keypad';
 import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
+  DECIMAL_PRECISION_CONFIG,
+  ORDER_SLIPPAGE_CONFIG,
+} from '../../constants/perpsConfig';
+import {
   useMinimumOrderAmount,
   usePerpsClosePosition,
   usePerpsClosePositionValidation,
@@ -75,6 +79,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -89,8 +94,11 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
-  // Get market data for szDecimals
-  const { marketData } = usePerpsMarketData(position.coin);
+  // Get market data for szDecimals with automatic error toast handling
+  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
+    asset: position.coin,
+    showErrorToast: true,
+  });
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
@@ -156,17 +164,37 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
+    // During loading, return '0' as temporary state (not a default - intentional for loading UX)
+    if (isLoadingMarketData) {
+      return {
+        closeAmount: '0',
+        calculatedUSDString: '0.00',
+      };
+    }
+
+    // Defensive fallback if market data fails to load - prevents crashes
+    // Real szDecimals should come from market data (varies by asset)
+    const szDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS;
+
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
       positionSize: absSize,
       currentPrice: effectivePrice,
+      szDecimals,
     });
 
     return {
       closeAmount: tokenAmount.toString(),
       calculatedUSDString: formatCloseAmountUSD(usdValue),
     };
-  }, [closePercentage, absSize, effectivePrice]);
+  }, [
+    closePercentage,
+    absSize,
+    effectivePrice,
+    marketData?.szDecimals,
+    isLoadingMarketData,
+  ]);
 
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
@@ -286,6 +314,7 @@ const PerpsClosePositionView: React.FC = () => {
     remainingPositionValue,
     receiveAmount,
     isPartialClose,
+    skipValidation: isInputFocused,
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
@@ -339,6 +368,7 @@ const PerpsClosePositionView: React.FC = () => {
   const handleConfirm = async () => {
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
+    const isFullClose = closePercentage === 100;
 
     // For limit orders, validate price
     if (orderType === 'limit' && !limitPrice) {
@@ -348,12 +378,12 @@ const PerpsClosePositionView: React.FC = () => {
     // Go back immediately to close the position screen
     navigation.goBack();
 
-    await handleClosePosition(
-      livePosition,
-      sizeToClose || '',
+    await handleClosePosition({
+      position: livePosition,
+      size: sizeToClose || '',
       orderType,
-      orderType === 'limit' ? limitPrice : undefined,
-      {
+      limitPrice: orderType === 'limit' ? limitPrice : undefined,
+      trackingData: {
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
         receivedAmount: receiveAmount,
@@ -364,8 +394,18 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
       },
-      priceData[position.coin]?.price,
-    );
+      marketPrice: priceData[position.coin]?.price,
+      // Always pass slippage parameters for price context
+      // For 100% closes, omit usdAmount to bypass $10 minimum validation
+      slippage: {
+        usdAmount: isFullClose ? undefined : closingValueString,
+        priceAtCalculation: effectivePrice,
+        maxSlippageBps:
+          orderType === 'limit'
+            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+      },
+    });
   };
 
   const handleAmountPress = () => {
@@ -510,6 +550,8 @@ const PerpsClosePositionView: React.FC = () => {
       isLoadingFees={feeResults.isLoadingMetamaskFee}
       isLoadingRewards={rewardsState.isLoading}
       hasRewardsError={rewardsState.hasError}
+      accountOptedIn={rewardsState.accountOptedIn}
+      rewardsAccount={rewardsState.account}
       isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
@@ -557,7 +599,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${position.coin}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
           </Text>
         </View>
 

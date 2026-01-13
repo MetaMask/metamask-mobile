@@ -21,6 +21,10 @@ function render(props: Partial<DepositKeyboardProps> = {}) {
 }
 
 describe('DepositKeyboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('calls onChange when digit pressed', () => {
     const onChangeMock = jest.fn();
 
@@ -78,5 +82,30 @@ describe('DepositKeyboard', () => {
     expect(getByText('Test Alert')).toBeDefined();
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
     expect(queryByText('50%')).toBeNull();
+  });
+
+  it('renders doneLabel if specified', async () => {
+    const { getByText } = render({
+      doneLabel: 'Test Button',
+      hasInput: true,
+    });
+
+    expect(getByText('Test Button')).toBeDefined();
+  });
+
+  it('renders max button if hasMax', () => {
+    const { getByText } = render({
+      hasMax: true,
+    });
+
+    expect(getByText('Max')).toBeDefined();
+  });
+
+  it('renders 90% button if hasMax is false', () => {
+    const { getByText } = render({
+      hasMax: false,
+    });
+
+    expect(getByText('90%')).toBeDefined();
   });
 });

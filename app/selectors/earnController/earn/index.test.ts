@@ -32,6 +32,26 @@ import {
   MOCK_NETWORK_CONTROLLER_STATE,
 } from '../../../util/test/confirm-data-helpers';
 
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
+import { getVersion } from 'react-native-device-info';
+// eslint-disable-next-line import/no-namespace
+import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   __esModule: true,
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
@@ -225,6 +245,10 @@ const mockState = {
             )]: { ...MOCK_RATE, price: 0.00040123 },
           },
         },
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [],
       },
     },
   },
@@ -671,6 +695,123 @@ describe('Earn Controller Selectors', () => {
       expect(result.outputToken?.address.toLowerCase()).toBe(
         MOCK_LENDING_MARKET_USDT.outputToken.address.toLowerCase(),
       );
+    });
+  });
+
+  describe('selectPrimaryEarnExperienceTypeForAsset', () => {
+    let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockHasMinimumRequiredVersion = jest.spyOn(
+        remoteFeatureFlagModule,
+        'hasMinimumRequiredVersion',
+      );
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      (getVersion as jest.MockedFunction<typeof getVersion>).mockReturnValue(
+        '1.0.0',
+      );
+    });
+
+    afterEach(() => {
+      mockHasMinimumRequiredVersion?.mockRestore();
+    });
+
+    const createBaseState = (remoteFlags: Record<string, unknown>) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: remoteFlags,
+            cacheTimestamp: 0,
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: '',
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {},
+              selectedAccountGroup: null,
+            },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: 'eip155:1',
+            multichainNetworkConfigurationsByChainId: {},
+            networksWithTransactionActivity: {},
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {},
+          },
+          EarnController: {
+            pooled_staking: {
+              isEligible: false,
+            },
+          },
+          TokenBalancesController: {
+            tokenBalances: {},
+          },
+          TokenRatesController: {
+            marketData: {},
+          },
+          AccountTrackerController: {
+            accountsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurationsByChainId: {},
+            networksMetadata: {},
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [],
+          },
+        },
+      },
+      settings: {
+        showFiatOnTestnets: false,
+      },
+    });
+
+    const tronNativeAsset = {
+      address: 'TTrxNative',
+      chainId: 'tron:0x2b6653dc',
+      ticker: 'TRX',
+      symbol: 'TRX',
+      isNative: true,
+      isETH: false,
+      isStaked: false,
+      decimals: 6,
+      balance: '0',
+    } as const;
+
+    it('returns pooled staking for TRX when metadata is missing and flag is enabled', () => {
+      const state = createBaseState({
+        trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
+      });
+
+      const result = earnSelectors.selectPrimaryEarnExperienceTypeForAsset(
+        state as unknown as RootState,
+        tronNativeAsset as unknown as TokenI,
+      );
+
+      expect(result).toBe(EARN_EXPERIENCES.POOLED_STAKING);
+    });
+
+    it('returns undefined for TRX when flag is disabled', () => {
+      const state = createBaseState({
+        trxStakingEnabled: { enabled: false, minimumVersion: '0.0.0' },
+      });
+
+      const result = earnSelectors.selectPrimaryEarnExperienceTypeForAsset(
+        state as unknown as RootState,
+        tronNativeAsset as unknown as TokenI,
+      );
+
+      expect(result).toBeUndefined();
     });
   });
 });

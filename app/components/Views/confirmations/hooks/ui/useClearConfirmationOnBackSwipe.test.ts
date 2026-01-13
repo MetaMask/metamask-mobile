@@ -132,10 +132,22 @@ describe('useClearConfirmationOnBackSwipe', () => {
       expect(mockBackHandlerRemove).toHaveBeenCalledTimes(1);
     });
 
-    it('does not set up iOS gesture listener', () => {
+    it('adds a gestureEnd listener when mounted', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
-      expect(mockAddListener).not.toHaveBeenCalled();
+      expect(mockAddListener).toHaveBeenCalledTimes(1);
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'gestureEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('calls onReject when gestureEnd event is triggered', () => {
+      renderHook(() => useClearConfirmationOnBackSwipe());
+      const gestureEndCallback = mockAddListener.mock.calls[0][1];
+      gestureEndCallback();
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
   });
 });

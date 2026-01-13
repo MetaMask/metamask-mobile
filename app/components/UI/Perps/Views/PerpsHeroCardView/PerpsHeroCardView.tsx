@@ -60,6 +60,8 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
+import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -82,10 +84,14 @@ const PerpsHeroCardView: React.FC = () => {
   const params = route.params as {
     position: Position;
     marketPrice?: string;
+    source?: string;
   };
-  const { position, marketPrice } = params;
+  const { position, marketPrice, source } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+
+  // Fetch season status to populate seasonId (required by useReferralDetails)
+  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
@@ -128,6 +134,29 @@ const PerpsHeroCardView: React.FC = () => {
   const handleTabChange = useCallback((obj: { i: number }) => {
     setCurrentTab(obj.i);
   }, []);
+
+  // Track PnL hero card screen viewed
+  // Determine entry point: asset_screen or close_toast
+  const entryPoint =
+    source === PerpsEventValues.SOURCE.CLOSE_TOAST
+      ? PerpsEventValues.SOURCE.CLOSE_TOAST
+      : PerpsEventValues.SOURCE.PERP_ASSET_SCREEN;
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.PNL_HERO_CARD,
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]:
+        data.direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.SOURCE]: entryPoint,
+      [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
+      [PerpsEventProperties.PNL_PERCENT]: data.roe,
+    },
+  });
 
   const { styles } = useStyles(styleSheet, {
     isLong: data.isLong,
@@ -185,7 +214,7 @@ const PerpsHeroCardView: React.FC = () => {
               style={styles.assetName}
               testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
             >
-              {data.asset}
+              {getPerpsDisplaySymbol(data.asset)}
             </Text>
             <View
               style={styles.directionBadge}

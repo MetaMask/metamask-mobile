@@ -175,7 +175,7 @@ describe('Approve', () => {
       fireEvent.press(await findByTestId('view-transaction-details'));
     });
 
-    expect(await findByText('Transaction Details')).toBeTruthy();
+    expect(await findByText('Transaction details')).toBeTruthy();
     expect(await findByText('Approve asset:')).toBeTruthy();
     expect(await findByText('undefined (#1110)')).toBeTruthy();
   });
@@ -214,7 +214,7 @@ describe('Approve', () => {
     );
   });
 
-  it('displays the latest nonce from transaction.transaction when showCustomNonce is true', async () => {
+  it('fetches network nonce on component mount', async () => {
     const getNetworkNonceSpy = jest.spyOn(
       TransactionController,
       'getNetworkNonce',
@@ -222,9 +222,7 @@ describe('Approve', () => {
 
     const storeWithTransaction = mockStore(
       merge({}, store.getState(), {
-        settings: {
-          showCustomNonce: true,
-        },
+        settings: {},
         engine: {
           backgroundState: {
             TransactionController: {
@@ -243,7 +241,7 @@ describe('Approve', () => {
           },
         },
         transaction: {
-          mode: 'edit', // Add mode to transaction state
+          mode: 'edit',
         },
       }),
     );

@@ -17,7 +17,7 @@ exports[`MainNavigator should match snapshot when browser is not infullscreen mo
     testID="tab-bar-item-Activity"
   />
   <View
-    testID="tab-bar-item-Setting"
+    testID="tab-bar-item-Rewards"
   />
 </View>
 `;

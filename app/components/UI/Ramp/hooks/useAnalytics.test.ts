@@ -8,6 +8,7 @@ jest.mock('../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),
+      updateDataRecordingFlag: jest.fn(),
     }),
   },
 }));
@@ -24,10 +25,12 @@ describe('useAnalytics', () => {
   it('calls trackEvent for non-anonymous params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
-    const testEvent = 'BUY_BUTTON_CLICKED';
+    const testEvent = 'RAMPS_BUTTON_CLICKED';
     const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
+      ramp_type: 'BUY',
+      region: 'US',
     } as const;
 
     result.current(testEvent, testEventParams);

@@ -19,7 +19,6 @@ import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmation
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
@@ -144,14 +143,14 @@ describe('Footer', () => {
     });
   });
 
-  it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Get Signature')).toBeTruthy();
+    expect(getByText('Get signature')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {
@@ -182,7 +181,7 @@ describe('Footer', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk Disclosure'));
+    fireEvent.press(getByText('Risk disclosure'));
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );
@@ -252,26 +251,6 @@ describe('Footer', () => {
     expect(
       queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeNull();
-  });
-
-  it('renders predict claim footer if transaction type matches', () => {
-    const { getByTestId } = renderWithProvider(<Footer />, {
-      state: merge({}, stakingDepositConfirmationState, {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  type: TransactionType.predictClaim,
-                },
-              ],
-            },
-          },
-        },
-      }),
-    });
-
-    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   describe('Confirm Alert Modal', () => {

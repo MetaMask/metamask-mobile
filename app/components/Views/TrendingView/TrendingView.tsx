@@ -1,138 +1,264 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { createStackNavigator } from '@react-navigation/stack';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
-  ButtonIcon,
-  ButtonIconSize,
   IconName,
+  Icon,
+  IconSize,
+  IconColor,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Browser from '../Browser';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
+import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  lastTrendingScreenRef,
-  updateLastTrendingScreen,
-} from '../../Nav/Main/MainNavigator';
+import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
+import Section, { RefreshConfig } from './components/Sections/Section';
 
-const Stack = createStackNavigator();
-
-// Wrapper component to intercept navigation
-const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
-  const navigation = useNavigation();
-
-  // Create a custom navigation object that intercepts navigate calls
-  const customNavigation = useMemo(() => {
-    const originalNavigate = navigation.navigate.bind(navigation);
-
-    return {
-      ...navigation,
-      navigate: (routeName: string, params?: object) => {
-        // If trying to navigate to TRENDING_VIEW, go back in stack instead
-        if (routeName === Routes.TRENDING_VIEW) {
-          navigation.goBack();
-        } else {
-          originalNavigate(routeName, params);
-        }
-      },
-    };
-  }, [navigation]);
-
-  return <Browser navigation={customNavigation} route={route} />;
-};
-
-const TrendingFeed: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const { isEnabled } = useMetrics();
-
-  // Update state when returning to TrendingFeed
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      updateLastTrendingScreen('TrendingFeed');
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
-      state.security.dataCollectionForMarketing,
+/**
+ * Custom hook to track boolean state for each section
+ * Returns the Set of sections with that state and callbacks to update them
+ */
+const useSectionStateTracker = () => {
+  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
+    new Set(),
   );
 
-  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-    metamaskEntry: 'mobile',
-    metricsEnabled: isEnabled(),
-    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+  const callbacks = useMemo(() => {
+    const result = {} as Record<SectionId, (isActive: boolean) => void>;
+
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      result[section.id] = (isActive: boolean) => {
+        setActiveSections((currentSections) => {
+          const updatedSections = new Set(currentSections);
+
+          if (isActive) {
+            updatedSections.add(section.id);
+          } else {
+            updatedSections.delete(section.id);
+          }
+
+          return updatedSections;
+        });
+      };
+    });
+
+    return result;
+  }, []);
+
+  return { sectionsWithState: activeSections, callbacks };
+};
+
+export const ExploreFeed: React.FC = () => {
+  const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
+  const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshConfig, setRefreshConfig] = useState<RefreshConfig>({
+    trigger: 0,
+    silentRefresh: true,
   });
 
+  // Track which sections have empty data and which are loading
+  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
+    useSectionStateTracker();
+
+  const {
+    sectionsWithState: loadingSections,
+    callbacks: loadingStateCallbacks,
+  } = useSectionStateTracker();
+
+  const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // REMOVED FOR NOW (https://consensys.slack.com/archives/C07NF2K42LE/p1766152712027759?thread_ts=1766135783.241539&cid=C07NF2K42LE)
+  // Trigger refresh only when navigating to an already-mounted screen
+  // useEffect(() => {
+  //   const params = route.params as { refresh?: boolean } | undefined;
+
+  //   // Skip refresh on first mount
+  //   if (isFirstMount.current) {
+  //     isFirstMount.current = false;
+  //     return;
+  //   }
+
+  //   if (params?.refresh === true) {
+  //     // Silent refresh - don't show skeletons
+  //     setRefreshConfig((prev) => ({
+  //       trigger: prev.trigger + 1,
+  //       silentRefresh: false,
+  //     }));
+  //   }
+  // }, [route.params]);
+
+  // Initialize session and enable AppState listener on mount
+  useEffect(() => {
+    // Enable AppState listener to detect app backgrounding
+    sessionManager.enableAppStateListener();
+
+    // Start session
+    sessionManager.startSession('trending_feed');
+
+    return () => {
+      // End session and disable listener on unmount
+      sessionManager.endSession();
+      sessionManager.disableAppStateListener();
+    };
+  }, [sessionManager]);
+
+  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
+
+  const browserTabsCount = useSelector(
+    (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
+  );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+
   const handleBrowserPress = useCallback(() => {
-    updateLastTrendingScreen('TrendingBrowser');
-    navigation.navigate('TrendingBrowser', {
-      newTabUrl: portfolioUrl.href,
-      timestamp: Date.now(),
-      fromTrending: true,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
+      },
     });
   }, [navigation, portfolioUrl.href]);
 
+  const handleSearchPress = useCallback(() => {
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
+
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Pull-to-refresh - show skeletons
+    setRefreshConfig((prev) => ({
+      trigger: prev.trigger + 1,
+      silentRefresh: true,
+    }));
+  }, []);
+
+  // Show loading indicator when any section is loading during silent refresh
+  const isAnySectionLoading = loadingSections.size > 0;
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3 bg-default border-b border-muted">
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+      <Box twClassName="px-4 py-3 flex-row items-center justify-between">
+        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
+        {!refreshConfig.silentRefresh && isAnySectionLoading && (
+          <ActivityIndicator size="small" color={colors.icon.default} />
+        )}
+      </Box>
 
-        <Box flexDirection={BoxFlexDirection.Row}>
-          <ButtonIcon
-            iconName={IconName.Explore}
-            size={ButtonIconSize.Lg}
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          />
+      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+        <Box twClassName="flex-1">
+          <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
+
+        <TouchableOpacity
+          onPress={handleBrowserPress}
+          testID="trending-view-browser-button"
+        >
+          <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
+            {browserTabsCount > 0 ? (
+              <Text
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
+              >
+                {browserTabsCount}
+              </Text>
+            ) : (
+              <Icon
+                name={IconName.Explore}
+                size={IconSize.Lg}
+                color={IconColor.IconAlternative}
+              />
+            )}
+          </Box>
+        </TouchableOpacity>
       </Box>
 
-      <Box
-        twClassName="flex-1 bg-default px-5"
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-muted text-center"
-          testID="trending-view-coming-soon"
+      {isBasicFunctionalityEnabled ? (
+        <ScrollView
+          style={tw.style('flex-1 px-4')}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.icon.default}
+              colors={[colors.primary.default]}
+            />
+          }
         >
-          {strings('trending.coming_soon')}
-        </Text>
-      </Box>
+          <QuickActions emptySections={emptySections} />
+
+          {HOME_SECTIONS_ARRAY.map((section) => {
+            // Hide section visually but keep mounted so it can report when data arrives
+            const isHidden = emptySections.has(section.id);
+
+            const sectionComponent = (
+              <Section
+                sectionId={section.id}
+                refreshConfig={refreshConfig}
+                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
+              />
+            );
+
+            return (
+              <Box
+                key={section.id}
+                twClassName={isHidden ? 'hidden' : undefined}
+              >
+                <SectionHeader sectionId={section.id} />
+                {section.SectionWrapper ? (
+                  <section.SectionWrapper>
+                    {sectionComponent}
+                  </section.SectionWrapper>
+                ) : (
+                  sectionComponent
+                )}
+              </Box>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <BasicFunctionalityEmptyState />
+      )}
     </Box>
   );
 };
-
-const TrendingView: React.FC = () => {
-  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
-
-  return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-    </Stack.Navigator>
-  );
-};
-
-export default TrendingView;

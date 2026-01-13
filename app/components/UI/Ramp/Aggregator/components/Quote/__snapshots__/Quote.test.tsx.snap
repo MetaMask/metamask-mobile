@@ -1,0 +1,311 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
+<View
+  style={
+    {
+      "opacity": 0,
+    }
+  }
+  testID="animated-view-opacity"
+>
+  <TouchableOpacity
+    accessibilityLabel="Mock Provider"
+    accessible={true}
+    activeOpacity={0.8}
+    disabled={true}
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 8,
+            "padding": 16,
+          },
+          undefined,
+          undefined,
+          {
+            "padding": 0,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "marginBottom": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 8,
+                "marginBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff1a",
+                  "borderRadius": 4,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 8,
+                }
+              }
+              testID="tagcolored"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "bold",
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                    "textTransform": "uppercase",
+                  }
+                }
+                testID="tagcolored-text"
+              >
+                Most reliable
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#457a391a",
+                  "borderRadius": 4,
+                  "height": 20,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 8,
+                }
+              }
+              testID="tagcolored"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#457a39",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "bold",
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                    "textTransform": "uppercase",
+                  }
+                }
+                testID="tagcolored-text"
+              >
+                Best rate
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            accessibilityHint="Shows provider details"
+            accessibilityLabel="Mock Provider logo"
+            disabled={true}
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                source={
+                  {
+                    "uri": "logo-url",
+                  }
+                }
+                style={
+                  {
+                    "height": 50,
+                    "width": 50,
+                  }
+                }
+              />
+              <Text
+                allowFontScaling={false}
+                selectable={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 12,
+                    },
+                    {
+                      "color": "#686e7d",
+                      "marginLeft": 8,
+                    },
+                    {
+                      "fontFamily": "Feather",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              0.005
+               
+              ETH
+            </Text>
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              ≈ 
+              $
+               
+              98 USD
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 0,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              [
+                {
+                  "marginTop": 4,
+                  "overflow": "hidden",
+                },
+                {},
+              ]
+            }
+            testID="animated-view-height"
+          >
+            <View
+              style={
+                {
+                  "marginTop": 10,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={true}
+                loading={true}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#121314",
+                    "borderRadius": 12,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "opacity": 0.5,
+                    "overflow": "hidden",
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <ActivityIndicator
+                  color="#ffffff"
+                  size="small"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;

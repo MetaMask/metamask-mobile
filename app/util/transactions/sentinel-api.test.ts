@@ -5,6 +5,7 @@ import {
   SentinelNetwork,
   getSendBundleSupportedChains,
   isSendBundleSupported,
+  clearSentinelNetworkCache,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -61,7 +62,12 @@ const MOCK_NETWORKS: Record<string, SentinelNetwork> = {
 
 describe('sentinel-api', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    clearSentinelNetworkCache();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('buildUrl', () => {
@@ -145,12 +151,151 @@ describe('sentinel-api', () => {
     });
   });
 
+  describe('caching behavior', () => {
+    it('caches network data and reuses it for subsequent calls', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      await getSentinelNetworkFlags('0x89' as Hex);
+      await isSendBundleSupported('0x1' as Hex);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches fresh data after cache is cleared', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      clearSentinelNetworkCache();
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('deduplicates concurrent requests into a single fetch', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      const results = await Promise.all([
+        getSentinelNetworkFlags('0x1' as Hex),
+        getSentinelNetworkFlags('0x89' as Hex),
+        isSendBundleSupported('0x1' as Hex),
+        getSendBundleSupportedChains(['0x1', '0x89']),
+        getSentinelNetworkFlags('0x1' as Hex),
+      ]);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(results[0]).toStrictEqual(MAINNET_BASE);
+      expect(results[1]).toStrictEqual(POLYGON_BASE);
+      expect(results[2]).toBe(true);
+      expect(results[3]).toEqual({ '0x1': true, '0x89': false });
+    });
+
+    it('fetches fresh data after cache TTL expires', async () => {
+      // Spy is restored via jest.restoreAllMocks() in afterEach
+      let mockTime = 1000;
+      jest.spyOn(Date, 'now').mockImplementation(() => mockTime);
+
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      // First call - populates cache
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Call within TTL - uses cache
+      mockTime = 1000 + 299_999; // Just under 5 minutes
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Call after TTL expires - fetches fresh
+      mockTime = 1000 + 300_001; // Just over 5 minutes
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not cache HTTP error responses and allows retry', async () => {
+      // First call returns HTTP error
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        text: async () => 'Service Unavailable',
+      } as Response);
+
+      // Second call succeeds
+      fetchMock.mockResolvedValueOnce({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      // First call throws error
+      await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
+        'Failed to fetch sentinel network flags: 503 - Service Unavailable',
+      );
+
+      // Second call retries and succeeds (error was not cached)
+      const result = await getSentinelNetworkFlags('0x1' as Hex);
+
+      expect(result).toStrictEqual(MAINNET_BASE);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('propagates HTTP error to all concurrent callers without caching', async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        text: async () => 'Internal Server Error',
+      } as Response);
+
+      // All concurrent calls receive the same error
+      const results = await Promise.allSettled([
+        getSentinelNetworkFlags('0x1' as Hex),
+        getSentinelNetworkFlags('0x89' as Hex),
+        isSendBundleSupported('0x1' as Hex),
+      ]);
+
+      expect(results[0]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+      expect(results[1]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+      expect(results[2]).toEqual({
+        status: 'rejected',
+        reason: new Error(
+          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
+        ),
+      });
+
+      // Only one fetch was made (concurrent deduplication worked)
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('isSendBundleSupported', () => {
     const mainnetHex: Hex = '0x1';
     const polygonHex: Hex = '0x89';
 
     beforeEach(() => {
-      jest.resetAllMocks();
+      jest.clearAllMocks();
     });
 
     it('returns true if network supports sendBundle', async () => {

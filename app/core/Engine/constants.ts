@@ -1,4 +1,3 @@
-import { swapsUtils } from '@metamask/swaps-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /**
@@ -10,11 +9,14 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ExecutionService',
   'NftDetectionController',
   'RewardsDataService',
+  'StorageService',
   'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'ProfileMetricsService',
+  'RampsService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -22,6 +24,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
+  'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
@@ -34,6 +37,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PhishingController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
+  'RampsController:stateChange',
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
@@ -78,20 +82,20 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
+  'ProfileMetricsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [
-  swapsUtils.ETH_CHAIN_ID,
-  swapsUtils.BSC_CHAIN_ID,
-  swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-  swapsUtils.POLYGON_CHAIN_ID,
-  swapsUtils.AVALANCHE_CHAIN_ID,
-  swapsUtils.ARBITRUM_CHAIN_ID,
-  swapsUtils.OPTIMISM_CHAIN_ID,
-  swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-  swapsUtils.LINEA_CHAIN_ID,
-  swapsUtils.BASE_CHAIN_ID,
-  swapsUtils.SEI_CHAIN_ID,
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  CHAIN_IDS.SEI,
   CHAIN_IDS.MONAD,
 ];
 

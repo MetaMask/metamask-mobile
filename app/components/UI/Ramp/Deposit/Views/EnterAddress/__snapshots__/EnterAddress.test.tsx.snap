@@ -36,85 +36,27 @@ exports[`EnterAddress Component displays form validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -169,14 +111,12 @@ exports[`EnterAddress Component displays form validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -188,8 +128,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -198,57 +138,55 @@ exports[`EnterAddress Component displays form validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -303,14 +241,12 @@ exports[`EnterAddress Component displays form validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -322,8 +258,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -589,6 +525,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -702,7 +639,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
@@ -716,7 +653,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -742,7 +679,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -824,8 +761,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -845,7 +783,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "color": "#ca3542",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 12,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -872,7 +810,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -954,8 +892,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -998,7 +937,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1079,8 +1018,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1100,7 +1040,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#ca3542",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1129,7 +1069,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1181,7 +1121,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                                 "fontSize": 16,
                                               },
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1211,7 +1151,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#ca3542",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1250,7 +1190,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1259,7 +1199,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -1323,7 +1263,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -1332,8 +1272,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1353,7 +1294,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#ca3542",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1361,7 +1302,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         }
                                       }
                                     >
-                                      Postal/Zip Code is required
+                                      Postal/zip code is required
                                     </Text>
                                   </View>
                                   <View
@@ -1382,7 +1323,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1451,7 +1392,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1483,8 +1424,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1509,6 +1451,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -1582,7 +1525,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -1596,7 +1539,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -1637,7 +1580,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1710,85 +1653,27 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1843,14 +1728,12 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -1862,8 +1745,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1872,57 +1755,55 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1977,14 +1858,12 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -1996,8 +1875,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -2263,6 +2142,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -2376,7 +2256,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
@@ -2390,7 +2270,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2416,7 +2296,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2498,8 +2378,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -2531,7 +2412,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2613,8 +2494,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -2657,7 +2539,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -2738,8 +2620,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -2773,7 +2656,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -2817,7 +2700,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             {
                                               "color": "#121314",
                                               "flex": 1,
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2871,7 +2754,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -2880,7 +2763,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -2944,7 +2827,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -2953,8 +2836,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -2988,7 +2872,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -3057,7 +2941,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3089,8 +2973,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -3115,6 +3000,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -3188,7 +3074,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -3202,7 +3088,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -3243,7 +3129,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3316,85 +3202,27 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3449,14 +3277,12 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -3468,8 +3294,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3478,57 +3304,55 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3583,14 +3407,12 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -3602,8 +3424,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3869,6 +3691,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -3982,7 +3805,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
@@ -3996,7 +3819,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -4022,7 +3845,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -4104,8 +3927,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4137,7 +3961,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -4219,8 +4043,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4263,7 +4088,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -4344,8 +4169,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4379,7 +4205,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -4431,7 +4257,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                                 "fontSize": 16,
                                               },
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -4485,7 +4311,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -4494,7 +4320,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -4558,7 +4384,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -4567,8 +4393,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4602,7 +4429,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -4671,7 +4498,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -4703,8 +4530,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4729,6 +4557,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -4802,7 +4631,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -4816,7 +4645,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -4857,7 +4686,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4930,85 +4759,27 @@ exports[`EnterAddress Component shows text input for state when region is not US
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -5063,14 +4834,12 @@ exports[`EnterAddress Component shows text input for state when region is not US
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -5082,8 +4851,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -5092,57 +4861,55 @@ exports[`EnterAddress Component shows text input for state when region is not US
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -5197,14 +4964,12 @@ exports[`EnterAddress Component shows text input for state when region is not US
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -5216,8 +4981,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -5483,6 +5248,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -5596,7 +5362,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
@@ -5610,7 +5376,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -5636,7 +5402,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -5718,8 +5484,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -5751,7 +5518,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -5833,8 +5600,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -5877,7 +5645,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -5958,8 +5726,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -5993,7 +5762,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -6074,8 +5843,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6119,7 +5889,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -6128,7 +5898,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -6192,7 +5962,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -6201,8 +5971,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6236,7 +6007,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -6305,7 +6076,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6337,8 +6108,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6363,6 +6135,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -6436,7 +6209,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -6450,7 +6223,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
                                           "lineHeight": 20,
@@ -6491,7 +6264,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

@@ -36,6 +36,7 @@ export interface PerpsBottomSheetTooltipProps {
 export type PerpsTooltipContentKey =
   | 'leverage'
   | 'liquidation_price'
+  | 'liquidation_distance'
   | 'margin'
   | 'fees'
   | 'closing_fees'
@@ -43,6 +44,7 @@ export type PerpsTooltipContentKey =
   | 'receive'
   | 'open_interest'
   | 'funding_rate'
+  | 'funding_payments'
   | 'geo_block'
   | 'estimated_pnl'
   | 'limit_price'
@@ -51,4 +53,6 @@ export type PerpsTooltipContentKey =
   | 'tpsl_count_warning'
   | 'points'
   | 'market_hours'
-  | 'after_hours_trading';
+  | 'after_hours_trading'
+  | 'oracle_price'
+  | 'spread';

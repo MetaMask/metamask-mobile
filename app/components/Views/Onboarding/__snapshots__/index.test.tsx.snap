@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Onboarding should render correctly 1`] = `
+exports[`Onboarding renders correctly 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -104,7 +104,7 @@ exports[`Onboarding should render correctly 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -143,7 +143,7 @@ exports[`Onboarding should render correctly 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -191,13 +191,13 @@ exports[`Onboarding should render correctly 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
 `;
 
-exports[`Onboarding should render correctly with android 1`] = `
+exports[`Onboarding renders correctly with android 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -301,7 +301,7 @@ exports[`Onboarding should render correctly with android 1`] = `
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -340,7 +340,7 @@ exports[`Onboarding should render correctly with android 1`] = `
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -388,13 +388,13 @@ exports[`Onboarding should render correctly with android 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
 `;
 
-exports[`Onboarding should render correctly with large device and iphoneX 1`] = `
+exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -498,7 +498,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -537,7 +537,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -585,13 +585,13 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
 `;
 
-exports[`Onboarding should render correctly with medium device and android 1`] = `
+exports[`Onboarding renders correctly with medium device and android 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -695,7 +695,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
                 style={
                   {
                     "color": "#000000",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -734,7 +734,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
                 style={
                   {
                     "color": "#FFFFFF",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -782,7 +782,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>

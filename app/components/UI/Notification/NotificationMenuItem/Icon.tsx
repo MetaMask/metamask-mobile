@@ -1,22 +1,36 @@
+import { View } from 'react-native';
+import { Image } from 'expo-image';
+import {
+  BadgeIcon,
+  IconSize,
+  BadgeStatus,
+  BadgeStatusStatus,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
-import React, { useMemo } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useCallback,
+  useMemo,
+} from 'react';
 import useStyles from '../List/useStyles';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
-import { Image } from 'expo-image';
-
 import METAMASK_FOX from '../../../../images/branding/fox.png';
-import { View } from 'react-native';
+
+export const TEST_IDS = {
+  CONTAINER: 'notification-menu-item-icon:container',
+  ICON: 'notification-menu-item-icon:icon',
+};
 
 type NotificationIconProps = Pick<
   NotificationMenuItem,
-  'image' | 'badgeIcon' | 'isRead'
->;
+  'image' | 'badgeIcon'
+> & { isRead: boolean };
 
 function MenuIcon(props: NotificationIconProps) {
+  const tw = useTailwind();
   const { styles } = useStyles();
 
   const menuIconStyles = {
@@ -34,39 +48,53 @@ function MenuIcon(props: NotificationIconProps) {
     return props.image.url;
   }, [props.image?.url]);
 
-  const imageStyles = useMemo(() => {
-    const size = source === METAMASK_FOX ? '80%' : '100%';
-    return { width: size, height: size, margin: 'auto' } as const;
-  }, [source]);
-
   return (
-    <View style={menuIconStyles.style}>
-      <Image source={source} style={imageStyles} />
+    <View style={[menuIconStyles.style, tw`p-1`]} testID={TEST_IDS.ICON}>
+      <Image source={source} style={tw`m-auto size-full`} />
     </View>
   );
 }
 
 function NotificationIcon(props: NotificationIconProps) {
+  const tw = useTailwind();
   const { styles } = useStyles();
 
-  return (
-    <React.Fragment>
-      <View style={styles.itemLogoSize}>
+  const MaybeBadgeContainer: FC<PropsWithChildren> = useCallback(
+    ({ children }) =>
+      props.badgeIcon ? (
         <BadgeWrapper
           badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
           badgeElement={
-            <Badge
-              variant={BadgeVariant.NotificationsKinds}
+            <BadgeIcon
               iconName={props.badgeIcon}
+              iconProps={{ size: IconSize.Lg }}
             />
           }
-          style={styles.badgeWrapper}
         >
-          <MenuIcon {...props} />
+          {children}
         </BadgeWrapper>
+      ) : (
+        <>{children}</>
+      ),
+    [props.badgeIcon],
+  );
+
+  const statusStyle = useMemo(
+    () => (props.isRead ? tw`self-center opacity-0` : tw`self-center`),
+    [props.isRead, tw],
+  );
+
+  return (
+    <View>
+      <View style={tw`flex-row gap-1`}>
+        <BadgeStatus status={BadgeStatusStatus.New} style={statusStyle} />
+        <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
+          <MaybeBadgeContainer>
+            <MenuIcon {...props} />
+          </MaybeBadgeContainer>
+        </View>
       </View>
-      <View style={props.isRead ? styles.readDot : styles.unreadDot} />
-    </React.Fragment>
+    </View>
   );
 }
 

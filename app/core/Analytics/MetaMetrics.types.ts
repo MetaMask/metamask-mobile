@@ -27,11 +27,6 @@ export interface IMetaMetrics {
    */
   enable(enable?: boolean): Promise<void>;
   /**
-   * Enable or disable social login data tracking
-   * @param isSocialLoginEnabled
-   */
-  enableSocialLogin(isSocialLoginEnabled?: boolean): Promise<void>;
-  /**
    * add traits to an user
    * @param userTraits
    */
@@ -71,6 +66,17 @@ export interface IMetaMetrics {
   getDeleteRegulationId(): string | undefined;
 
   isDataRecorded(): boolean;
+
+  /**
+   * Update the data recording flag if needed
+   *
+   * This method should be called after tracking events to ensure
+   * the data recording flag is properly updated for data deletion workflows.
+   *
+   * @param saveDataRecording - Whether to save the data recording flag (default: true)
+   * @deprecated This method will be removed when the data recording flag logic is migrated out of MetaMetrics as part of the MetaMetrics removal migration.
+   */
+  updateDataRecordingFlag(saveDataRecording?: boolean): void;
 
   configure(): Promise<boolean>;
 

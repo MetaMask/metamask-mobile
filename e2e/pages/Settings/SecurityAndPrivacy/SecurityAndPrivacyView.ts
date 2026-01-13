@@ -106,12 +106,6 @@ class SecurityAndPrivacy {
     );
   }
 
-  get revealPrivateKeyButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY,
-    );
-  }
-
   async tapRevealSecretRecoveryPhraseButton(): Promise<void> {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
       elemDescription: 'Reveal secret recovery phrase button',
@@ -130,15 +124,6 @@ class SecurityAndPrivacy {
     });
   }
 
-  async scrollToRevealPrivateKey(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.revealPrivateKeyButton,
-      this.scrollViewIdentifier,
-      {
-        elemDescription: 'Reveal private key button',
-      },
-    );
-  }
   async scrollToChangePasswordView(): Promise<void> {
     await Gestures.scrollToElement(
       this.changePasswordButton,

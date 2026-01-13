@@ -8,7 +8,7 @@ import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
 import getRpcMethodMiddleware from '../../../RPCMethods/RPCMethodMiddleware';
-import { Duration, inMilliseconds } from '@metamask/utils';
+import { SnapId } from '@metamask/snaps-sdk';
 
 /**
  * Initialize the Snaps execution service.
@@ -38,7 +38,7 @@ export const executionServiceInit: ControllerInitFunction<
     // Consider developing an abstract class to derived custom implementations
     // for each use case.
     const bridge = new SnapBridge({
-      snapId,
+      snapId: snapId as SnapId,
       connectionStream,
       getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
         getRpcMethodMiddleware({
@@ -68,7 +68,6 @@ export const executionServiceInit: ControllerInitFunction<
       setupSnapProvider,
       createWebView,
       removeWebView,
-      pingTimeout: inMilliseconds(5, Duration.Second),
     }),
   };
 };

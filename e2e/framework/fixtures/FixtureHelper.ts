@@ -1,16 +1,22 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
-import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
-import Ganache from '../../../app/util/test/ganache';
+import {
+  AnvilManager,
+  Hardfork,
+  DEFAULT_ANVIL_PORT,
+} from '../../seeder/anvil-manager';
+import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import {
   getFixturesServerPort,
-  getLocalTestDappPort,
-  getMockServerPort,
+  startResourceWithRetry,
+  startMultiInstanceResourceWithRetry,
+  cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
+import { dismissDevScreens } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -27,14 +33,24 @@ import {
   GanacheNodeOptions,
   TestSpecificMock,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
+import { PlatformDetector } from '../PlatformLocator';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -52,14 +68,13 @@ async function handleDapps(
   logger.debug(
     `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
   );
-  const dappBasePort = getLocalTestDappPort();
   for (let i = 0; i < dapps.length; i++) {
     const dapp = dapps[i];
     switch (dapp.dappVariant) {
       case DappVariants.TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
             dappVariant: DappVariants.TEST_DAPP,
@@ -69,7 +84,7 @@ async function handleDapps(
       case DappVariants.MULTICHAIN_TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath ||
               TestDapps[DappVariants.MULTICHAIN_TEST_DAPP].dappPath,
@@ -80,7 +95,7 @@ async function handleDapps(
       case DappVariants.SOLANA_TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
@@ -93,7 +108,14 @@ async function handleDapps(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
         );
     }
-    await dappServer[i].start();
+
+    // Dapp servers use multi-instance allocation since we can have multiple dapp servers
+    const instanceId = `dapp-server-${i}`;
+    await startMultiInstanceResourceWithRetry(
+      ResourceType.DAPP_SERVER,
+      instanceId,
+      dappServer[i],
+    );
   }
 }
 
@@ -166,7 +188,9 @@ async function handleLocalNodes(
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
 
-          await localNode.start(localNodeSpecificOptions);
+          // Set start options before starting
+          localNode.setStartOptions(localNodeSpecificOptions);
+          await startResourceWithRetry(ResourceType.ANVIL, localNode);
           localNodes.push(localNode);
           break;
 
@@ -193,7 +217,10 @@ async function handleLocalNodes(
                 defaultGanacheOptions.hardfork;
             }
           }
-          await localNode.start(localNodeSpecificOptions);
+
+          // Set start options before starting
+          localNode.setStartOptions(localNodeSpecificOptions);
+          await startResourceWithRetry(ResourceType.GANACHE, localNode);
           localNodes.push(localNode);
           break;
         case LocalNodeType.bitcoin:
@@ -247,13 +274,123 @@ async function handleDappCleanup(
 }
 
 /**
+ * Updates RPC URLs in the fixture to use actual allocated ports from PortManager.
+ * This ensures that if Anvil/Ganache got a different port than the default,
+ * the fixture will have the correct URL.
+ *
+ * @param state - The fixture state to update
+ * @returns The updated fixture state
+ */
+function updateRpcUrlsWithAllocatedPorts(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
+  const portManager = PortManager.getInstance();
+
+  const actualAnvilPort = portManager.getPort(ResourceType.ANVIL);
+  const actualGanachePort = portManager.getPort(ResourceType.GANACHE);
+
+  const networkConfigs =
+    state.state?.engine?.backgroundState?.NetworkController
+      ?.networkConfigurationsByChainId;
+  if (networkConfigs) {
+    for (const chainId of Object.keys(networkConfigs)) {
+      const config = networkConfigs[chainId];
+      if (config.rpcEndpoints) {
+        for (const endpoint of config.rpcEndpoints) {
+          if (endpoint.url) {
+            if (actualAnvilPort !== undefined) {
+              endpoint.url = endpoint.url.replace(
+                new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
+                `:${actualAnvilPort}$1`,
+              );
+            }
+            if (actualGanachePort !== undefined) {
+              endpoint.url = endpoint.url.replace(
+                new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
+                `:${actualGanachePort}$1`,
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return state;
+}
+
+/**
+ * Updates dapp URLs in PermissionController with actual allocated ports by index.
+ * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
+ */
+function updateDappUrlsWithAllocatedPorts(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
+  const portManager = PortManager.getInstance();
+  const permissionController =
+    state.state?.engine?.backgroundState?.PermissionController;
+
+  if (!permissionController?.subjects) {
+    return state;
+  }
+
+  // Serialize subjects to JSON string for easy replacement
+  let subjectsJson = JSON.stringify(permissionController.subjects);
+
+  // Update each dapp URL by index
+  let index = 0;
+  while (true) {
+    const actualPort = portManager.getMultiInstancePort(
+      ResourceType.DAPP_SERVER,
+      `dapp-server-${index}`,
+    );
+    if (actualPort === undefined) break;
+
+    const fallbackPort = FALLBACK_DAPP_SERVER_PORT + index;
+    const oldUrl = `localhost:${fallbackPort}`;
+    const newUrl = `localhost:${actualPort}`;
+
+    // Replace all occurrences
+    subjectsJson = subjectsJson.split(oldUrl).join(newUrl);
+
+    index++;
+  }
+
+  // Parse back and update
+  permissionController.subjects = JSON.parse(subjectsJson);
+  return state;
+}
+
+/**
+ * Updates mock server URLs in fixture with actual allocated port.
+ * Replaces all occurrences of localhost:8000 with the actual mock server port.
+ * This affects browser tabs and RPC endpoints that proxy through mock server.
+ */
+function updateMockServerUrlsInFixture(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
+  const portManager = PortManager.getInstance();
+  const actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
+
+  // Serialize entire fixture to JSON for easy replacement
+  let fixtureJson = JSON.stringify(state);
+
+  // Replace all mock server URLs
+  const oldUrl = `localhost:${FALLBACK_MOCKSERVER_PORT}`;
+  const newUrl = `localhost:${actualPort}`;
+
+  fixtureJson = fixtureJson.split(oldUrl).join(newUrl);
+
+  // Parse back and return
+  return JSON.parse(fixtureJson);
+}
+
+/**
  * Loads a fixture into the fixture server.
  *
- * @param {FixtureServer} fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
- * @param {Object} options - An object containing the fixture to load.
- * @param {Object} [options.fixture] - The fixture data to load. If not provided, a default fixture is created.
- * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
- * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
+ * @param fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
+ * @param options - An object containing the fixture to load.
+ * @param options.fixture - The fixture data to load. If not provided, a default fixture is created.
  */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
@@ -261,8 +398,19 @@ export const loadFixture = async (
 ) => {
   // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
   // the app will be loaded without any fixtures and will start and go through the onboarding process.
-  const state = fixture || new FixtureBuilder({ onboarding: true }).build();
-  await fixtureServer.loadJsonState(state, null);
+  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
+
+  // Update RPC URLs with actual allocated ports from PortManager
+  state = updateRpcUrlsWithAllocatedPorts(state);
+
+  // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
+  // On Android, fixture uses fallback ports which are mapped via adb reverse
+  if (await PlatformDetector.isIOS()) {
+    state = updateDappUrlsWithAllocatedPorts(state);
+    state = updateMockServerUrlsInFixture(state);
+  }
+
+  fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
   logger.debug(
     `Loading fixture into fixture server: ${fixtureServer.getServerUrl}`,
@@ -282,13 +430,16 @@ export const createMockAPIServer = async (
   mockServerInstance: MockServerE2E;
   mockServerPort: number;
 }> => {
-  const mockServerPort = getMockServerPort();
   const mockServerInstance = new MockServerE2E({
     events: DEFAULT_MOCKS,
-    port: mockServerPort,
     testSpecificMock,
   });
-  await mockServerInstance.start();
+
+  const mockServerPort = await startResourceWithRetry(
+    ResourceType.MOCK_SERVER,
+    mockServerInstance,
+  );
+
   const mockServer = mockServerInstance.server;
 
   if (testSpecificMock) {
@@ -319,10 +470,8 @@ export const createMockAPIServer = async (
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
  *
- * @param {WithFixturesOptions} options - The specific options for the test suite to run with.
- * @param {TestSuiteFunction} testSuite - The test suite function to execute after setting up the fixture.
- * @returns {Promise<void>} - A promise that resolves once the test suite completes.
- * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
+ * @param options - The specific options for the test suite to run with.
+ * @param testSuite - The test suite function to execute after setting up the fixture.
  */
 export async function withFixtures(
   options: WithFixturesOptions,
@@ -351,28 +500,46 @@ export async function withFixtures(
     useCommandQueueServer = false,
   } = options;
 
+  // Clean up any stale port forwarding from previous failed tests
+  // This ensures we start with a clean slate on Android
+  await cleanupAllAndroidPortForwarding();
+
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServerInstance, mockServerPort } =
-    await createMockAPIServer(testSpecificMock);
+  // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
+  // Resources must be started in this specific order to ensure ports are allocated
+  // before they're referenced by subsequent resources, especially in testSpecificMock.
+  //
+  // 1. Local nodes (Anvil/Ganache) - Foundation for contracts and fixtures
+  // 2. Smart contracts - Deploy to local nodes
+  // 3. Dapp servers - May reference contract addresses
+  // 4. Mock server - testSpecificMock can reference all above (dapps, nodes, contracts)
+  // 5. Fixture server - Loads state with proper port mappings
+  //
+  // WHY: testSpecificMock runs during MockServer.start() and may call:
+  // - getTestDappLocalUrl() / getDappUrl() - needs dapp ports allocated (iOS)
+  // - getGanachePort() / AnvilPort() - needs node ports allocated
+  // - Contract addresses from contractRegistry
+  // ==========================================================
 
-  // Handle local nodes
+  // Initialize resource references for cleanup
   let localNodes;
-  // Start servers based on the localNodes array
-  if (!disableLocalNodes) {
-    localNodes = await handleLocalNodes(localNodeOptions);
-  }
-
+  let contractRegistry;
   const dappServer: DappServer[] = [];
+  let mockServerInstance;
+  let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-
   let testError: Error | null = null;
 
   try {
-    // Handle smart contracts
-    let contractRegistry;
+    // Step 1: Start local nodes (Anvil/Ganache)
+    if (!disableLocalNodes) {
+      localNodes = await handleLocalNodes(localNodeOptions);
+    }
+
+    // Step 2: Deploy smart contracts (needs local nodes running)
     if (
       smartContracts &&
       smartContracts.length > 0 &&
@@ -389,6 +556,15 @@ export async function withFixtures(
       );
     }
 
+    // Step 3: Start dapp servers (may reference contract addresses)
+    if (dapps && dapps.length > 0) {
+      await handleDapps(dapps, dappServer);
+    }
+
+    // Step 4: Start mock server (testSpecificMock can reference everything above)
+    const mockServerResult = await createMockAPIServer(testSpecificMock);
+    mockServerInstance = mockServerResult.mockServerInstance;
+    mockServerPort = mockServerResult.mockServerPort;
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder;
     if (typeof fixtureOption === 'function') {
@@ -397,37 +573,51 @@ export async function withFixtures(
       resolvedFixture = fixtureOption;
     }
 
-    // Handle dapps
-    if (dapps && dapps.length > 0) {
-      await handleDapps(dapps, dappServer);
-    }
-
     // Start fixture server
-    await fixtureServer.start();
+    await startResourceWithRetry(ResourceType.FIXTURE_SERVER, fixtureServer);
     await loadFixture(fixtureServer, { fixture: resolvedFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
 
     if (useCommandQueueServer) {
-      await commandQueueServer.start();
+      await startResourceWithRetry(
+        ResourceType.COMMAND_QUEUE_SERVER,
+        commandQueueServer,
+      );
     }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
     if (restartDevice) {
+      // On Android, LaunchArguments library integration is unreliable on CI
+      // We must pass fallback ports so the app uses them and adb reverse can map them
+      // to the actual allocated ports
+      const isAndroid = device.getPlatform() === 'android';
+
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
-          fixtureServerPort: `${getFixturesServerPort()}`,
-          commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
+          fixtureServerPort: isAndroid
+            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+            : `${getFixturesServerPort()}`,
+          commandQueueServerPort: isAndroid
+            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+            : `${commandQueueServer.getServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: `${mockServerPort}`,
+          mockServerPort: isAndroid
+            ? `${FALLBACK_MOCKSERVER_PORT}`
+            : `${mockServerPort}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
         permissions,
       });
+    }
+
+    // Dismiss dev screens if running locally (not in CI)
+    if (process.env.CI !== 'true') {
+      await dismissDevScreens();
     }
 
     await testSuite({
@@ -446,7 +636,11 @@ export async function withFixtures(
       try {
         // Pass the mockServer to the endTestfn if it exists as we may want
         // to capture events before cleanup
-        await endTestfn({ mockServer: mockServerInstance.server });
+        if (mockServerInstance) {
+          await endTestfn({ mockServer: mockServerInstance.server });
+        } else {
+          await endTestfn({});
+        }
       } catch (endTestError) {
         logger.error('Error in endTestfn:', endTestError);
         cleanupErrors.push(endTestError as Error);
@@ -468,6 +662,35 @@ export async function withFixtures(
         await handleDappCleanup(dapps, dappServer);
       } catch (cleanupError) {
         logger.error('Error during dapp cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
+    if (!skipReactNativeReload) {
+      try {
+        // Disable synchronization to prevent race conditions with pending timers
+        await device.disableSynchronization();
+        await device.reloadReactNative();
+        await device.enableSynchronization();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Ensure synchronization is re-enabled even on failure
+        try {
+          await device.enableSynchronization();
+        } catch {
+          // Ignore - best effort
+        }
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+      }
+    }
+
+    if (mockServerInstance) {
+      try {
+        // Validate live requests
+        mockServerInstance.validateLiveRequests();
+      } catch (cleanupError) {
+        logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
     }
@@ -505,25 +728,6 @@ export async function withFixtures(
           cleanupErrors.push(cleanupError as Error);
         }
       }
-    }
-
-    if (!skipReactNativeReload) {
-      try {
-        // Force reload React Native to stop any lingering timers
-        await device.reloadReactNative();
-      } catch (cleanupError) {
-        logger.warn('React Native reload failed (non-critical):', cleanupError);
-        // Don't add to cleanupErrors as this is a non-critical cleanup operation
-        // The test should not fail if only React Native reload fails
-      }
-    }
-
-    try {
-      // Validate live requests
-      mockServerInstance.validateLiveRequests();
-    } catch (cleanupError) {
-      logger.error('Error during live request validation:', cleanupError);
-      cleanupErrors.push(cleanupError as Error);
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

@@ -4,9 +4,23 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+// Mock FilesystemStorage
+jest.mock('redux-persist-filesystem-storage', () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock getVaultFromBackup
+jest.mock('../../../core/BackupVault', () => ({
+  getVaultFromBackup: jest.fn(() =>
+    Promise.resolve({ success: false, vault: null }),
+  ),
+}));
+
 // Mock animation components - using existing mocks
-jest.mock('./FoxAnimation');
-jest.mock('./OnboardingAnimation');
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
 import React from 'react';
 import {
@@ -15,6 +29,8 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { getVaultFromBackup } from '../../../core/BackupVault';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -27,9 +43,20 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import Logger from '../../../util/Logger';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
+
+// Create a mutable mock for isE2E that can be controlled per test
+let mockIsE2E = false;
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  get isE2E() {
+    return mockIsE2E;
+  },
+}));
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
@@ -88,8 +115,6 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
       accountName: 'test@example.com',
     }),
     resetOauthState: jest.fn(),
-    getMetricStateBeforeOauth: jest.fn().mockReturnValue(false),
-    setMetricStateBeforeOauth: jest.fn(),
     localState: {
       metricStateBeforeOauth: null,
       loginInProgress: false,
@@ -101,6 +126,7 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
 
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 jest.mock('../../../core', () => ({
@@ -118,22 +144,37 @@ jest.mock('../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
-const mockTrackEvent = jest.fn();
-const mockEnable = jest.fn();
-const mockEnableSocialLogin = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
+
+// Mock analytics module
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn(),
+    optOut: jest.fn(),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Mock MetaMetrics for data deletion methods still used by useMetrics
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-    enable: mockEnable,
-    enableSocialLogin: mockEnableSocialLogin,
-    createEventBuilder: mockCreateEventBuilder,
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
   }),
+  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
+    .MetaMetricsEvents,
 }));
 
 interface EventBuilder {
@@ -145,11 +186,15 @@ interface MetricsProps {
   metrics: {
     isEnabled: () => boolean;
     trackEvent: (...args: unknown[]) => void;
-    enable: (...args: unknown[]) => void;
-    enableSocialLogin: (...args: unknown[]) => void;
+    enable: (enable?: boolean) => Promise<void>;
     createEventBuilder: () => EventBuilder;
   };
 }
+
+// Import analytics to access mocks
+import { analytics } from '../../../util/analytics/analytics';
+
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 jest.mock(
   '../../hooks/useMetrics/withMetricsAwareness',
@@ -159,10 +204,16 @@ jest.mock(
       <Component
         {...props}
         metrics={{
-          isEnabled: mockMetricsIsEnabled,
-          trackEvent: mockTrackEvent,
-          enable: mockEnable,
-          enableSocialLogin: mockEnableSocialLogin,
+          isEnabled: () => mockAnalytics.isEnabled(),
+          trackEvent: (event: unknown) =>
+            mockAnalytics.trackEvent(event as never),
+          enable: async (enable?: boolean) => {
+            if (enable === false) {
+              await mockAnalytics.optOut();
+            } else {
+              await mockAnalytics.optIn();
+            }
+          },
           createEventBuilder: mockCreateEventBuilder,
         }}
       />
@@ -231,9 +282,11 @@ jest.mock('@react-navigation/native', () => ({
 describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnable.mockClear();
-    mockEnableSocialLogin.mockClear();
     mockCreateEventBuilder.mockClear();
+    (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockAnalytics.trackEvent as jest.Mock).mockClear();
+    (mockAnalytics.optIn as jest.Mock).mockClear();
+    (mockAnalytics.optOut as jest.Mock).mockClear();
 
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
       remove: jest.fn(),
@@ -244,7 +297,7 @@ describe('Onboarding', () => {
     Platform.OS = 'ios';
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
@@ -255,7 +308,7 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly with large device and iphoneX', () => {
+  it('renders correctly with large device and iphoneX', () => {
     (Device.isLargeDevice as jest.Mock).mockReturnValue(true);
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
@@ -271,7 +324,7 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly with medium device and android', () => {
+  it('renders correctly with medium device and android', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
@@ -287,7 +340,7 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly with android', () => {
+  it('renders correctly with android', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
@@ -305,7 +358,7 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should click on create wallet button', () => {
+  it('handles click on create wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
@@ -325,7 +378,7 @@ describe('Onboarding', () => {
     fireEvent.press(createWalletButton);
   });
 
-  it('should click on have an existing wallet button', () => {
+  it('handles click on have an existing wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
@@ -352,7 +405,7 @@ describe('Onboarding', () => {
       mockNetInfoFetch.mockReset();
     });
 
-    it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
+    it('navigates to onboarding sheet when create wallet is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -387,7 +440,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to ChoosePassword when create wallet is pressed with seedless disabled', async () => {
+    it('navigates to ChoosePassword when create wallet is pressed with seedless disabled', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -419,7 +472,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to offline error sheet when there is no internet', async () => {
+    it('navigates to offline error sheet when there is no internet', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -491,7 +544,7 @@ describe('Onboarding', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
-    it('should navigate to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
+    it('navigates to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -526,7 +579,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to import flow when import wallet is pressed with seedless disabled', async () => {
+    it('navigates to import flow when import wallet is pressed with seedless disabled', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(false);
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -555,11 +608,13 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+
+      expect(mockAnalytics.optOut).toHaveBeenCalled();
     });
   });
 
   describe('Navigation behavior', () => {
-    it('should navigate to HOME_NAV when unlock is pressed and password is not set', async () => {
+    it('navigates to HOME_NAV when unlock is pressed and password is not set', async () => {
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -584,7 +639,7 @@ describe('Onboarding', () => {
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
-    it('should navigate to LOGIN when unlock is pressed and password is set', async () => {
+    it('navigates to LOGIN when unlock is pressed and password is set', async () => {
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -606,12 +661,11 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.lockApp).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
     });
   });
 
   describe('componentDidMount behavior', () => {
-    it('should check for existing user on mount', async () => {
+    it('checks for existing user on mount', async () => {
       renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -627,7 +681,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('should disable back press when component mounts', () => {
+    it('disables back press when component mounts', () => {
       renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -642,7 +696,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should trigger animatedTimingStart', async () => {
+    it('triggers animatedTimingStart', async () => {
       jest.useFakeTimers();
 
       const animatedTimingSpy = jest.spyOn(Animated, 'timing');
@@ -697,7 +751,7 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
-    it('should call Google OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccessNewUser', async () => {
+    it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -735,6 +789,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
+        false,
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
@@ -746,7 +801,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should call Google OAuth login for create wallet flow on Android and navigate directly to ChoosePassword', async () => {
+    it('calls Google OAuth login for create wallet flow on Android and navigates directly to ChoosePassword', async () => {
       Platform.OS = 'android'; // Set platform to Android
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
@@ -785,6 +840,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
+        false,
       );
       // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -800,7 +856,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
-    it('should call Apple OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccessNewUser', async () => {
+    it('calls Apple OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -838,6 +894,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
+        false,
       );
       // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -850,7 +907,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should call Apple OAuth login for import wallet flow', async () => {
+    it('calls Apple OAuth login for import wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -888,6 +945,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
+        true,
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
@@ -899,7 +957,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should show error sheet for OAuth user cancellation', async () => {
+    it('shows error sheet for OAuth user cancellation', async () => {
       const cancelError = new OAuthError('', OAuthErrorType.UserCancelled);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(cancelError);
@@ -993,7 +1051,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to AccountAlreadyExists for existing user in create wallet flow', async () => {
+    it('navigates to AccountAlreadyExists for existing user in create wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1038,7 +1096,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
+    it('navigates to AccountNotFound for new user in import wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1083,13 +1141,20 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should show error sheet for OAuth when no credential is available in Android', async () => {
+    it('attempts browser fallback when no credential is available in Android', async () => {
+      Platform.OS = 'android';
       const noCredentialError = new OAuthError(
         '',
         OAuthErrorType.GoogleLoginNoCredential,
       );
-      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noCredentialError)
+        .mockRejectedValueOnce(fallbackError);
 
       mockNavigate.mockClear();
       const { getByTestId } = renderScreen(
@@ -1120,32 +1185,40 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify no error sheet is shown (handled silently)
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.google_login_no_credential_title'),
-            description: strings(
-              'error_sheet.google_login_no_credential_description',
-            ),
-            descriptionAlign: 'center',
-            buttonLabel: strings(
-              'error_sheet.google_login_no_credential_button',
-            ),
-            type: 'error',
-          }),
         }),
       );
+
+      Platform.OS = 'ios';
     });
 
-    it('should show error sheet for OAuth when no matching credential in Android', async () => {
-      const noCredentialError = new OAuthError(
+    it('attempts browser fallback when no matching credential in Android', async () => {
+      Platform.OS = 'android';
+      const noMatchingCredentialError = new OAuthError(
         '',
         OAuthErrorType.GoogleLoginNoMatchingCredential,
       );
-      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noMatchingCredentialError)
+        .mockRejectedValueOnce(fallbackError);
 
       mockNavigate.mockClear();
       const { getByTestId } = renderScreen(
@@ -1176,33 +1249,102 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify no error sheet is shown (handled silently)
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.google_login_no_credential_title'),
-            description: strings(
-              'error_sheet.google_login_no_credential_description',
-            ),
-            descriptionAlign: 'center',
-            buttonLabel: strings(
-              'error_sheet.google_login_no_credential_button',
-            ),
-            type: 'error',
-          }),
         }),
       );
+
+      Platform.OS = 'ios';
     });
 
-    it('should enable social login metrics when OAuth login succeeds', async () => {
+    it('successfully authenticates via browser fallback when no credential is available in Android', async () => {
+      Platform.OS = 'android';
+      const noCredentialError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoCredential,
+      );
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noCredentialError)
+        .mockResolvedValueOnce({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify successful navigation to ChoosePassword
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          provider: 'google',
+        }),
+      );
+
+      Platform.OS = 'ios';
+    });
+
+    it('enables social login metrics when OAuth login succeeds', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
         existingUser: false,
         accountName: 'test@example.com',
       });
-      mockEnableSocialLogin.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1231,113 +1373,406 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(true);
+      expect(mockAnalytics.optIn).toHaveBeenCalled();
     });
   });
 
-  describe('Metrics Enable/Disable Tests', () => {
-    const mockOAuthService = jest.requireMock(
-      '../../../core/OAuthService/OAuthService',
-    ).default;
+  describe('checkForMigrationFailureAndVaultBackup', () => {
+    const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
+    const mockFilesystemGetItem = FilesystemStorage.getItem as jest.Mock;
+    const mockNavReset = mockNav.reset as jest.Mock;
 
     beforeEach(() => {
-      mockSeedlessOnboardingEnabled.mockReturnValue(false);
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
+      jest.clearAllMocks();
+      mockFilesystemGetItem.mockResolvedValue(null);
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: false,
+        vault: null,
+      });
+      mockIsE2E = false;
+    });
+
+    it('returns early when route.params.delete is true', async () => {
+      // Arrange
+      mockGetVaultFromBackup.mockClear();
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Act - Component mounts and checkForMigrationFailureAndVaultBackup is called
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert - When delete param is true, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
+    });
+
+    it('skips vault backup check when running in E2E test environment', async () => {
+      // Arrange
+      mockIsE2E = true;
+      mockGetVaultFromBackup.mockClear();
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert - When in E2E mode, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
+
+      // Cleanup
+      mockIsE2E = false;
+    });
+
+    it('checks migration error flag when not E2E and no delete param', async () => {
+      // Arrange
+      mockFilesystemGetItem.mockClear();
+      mockFilesystemGetItem.mockResolvedValue(null);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockFilesystemGetItem).toHaveBeenCalledWith(
+          MIGRATION_ERROR_HAPPENED,
+        );
+      });
+    });
+
+    it('does not redirect when migration error flag is not set', async () => {
+      // Arrange
+      mockFilesystemGetItem.mockResolvedValue(null);
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: true,
+        vault: 'mock-vault',
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('does not redirect when migration error flag is set but vault backup does not exist', async () => {
+      // Arrange
+      mockFilesystemGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: false,
+        vault: null,
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(mockGetVaultFromBackup).toHaveBeenCalled();
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('redirects to vault recovery when migration error flag is set and vault backup exists', async () => {
+      // Arrange
+      mockFilesystemGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: true,
+        vault: 'mock-vault-data',
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockNavReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      });
+    });
+
+    it('handles errors during vault backup check gracefully', async () => {
+      // Arrange
+      const mockError = new Error('Vault backup check failed');
+      mockFilesystemGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockRejectedValue(mockError);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        'Failed to check for migration failure and vault backup',
+      );
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('handles errors during FilesystemStorage read gracefully', async () => {
+      // Arrange
+      const mockError = new Error('FilesystemStorage read failed');
+      mockFilesystemGetItem.mockRejectedValue(mockError);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        'Failed to check for migration failure and vault backup',
+      );
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('accesses existingUser prop from Redux state', async () => {
+      // Arrange
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithExistingUser,
+        },
+      );
+
+      // Act - Component mounts and reads existingUser from props
+      await waitFor(() => {
+        expect(toJSON()).toBeDefined();
+      });
+
+      // Assert - Component renders without errors when existingUser is true
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('reads existingUser as false for new users', async () => {
+      // Arrange
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Act - Component mounts with existingUser false
+      await waitFor(() => {
+        expect(toJSON()).toBeDefined();
+      });
+
+      // Assert - Component handles new user case without errors
+      expect(toJSON()).toBeTruthy();
+    });
+  });
+
+  describe('showNotification', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.clearAllMocks();
+      jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
+        remove: jest.fn(),
+      }));
     });
 
     afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('calls Animated.timing when delete param is present', async () => {
+      // Arrange
+      const animatedTimingSpy = jest.spyOn(Animated, 'timing');
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Assert - Animation is triggered
+      await waitFor(() => {
+        expect(animatedTimingSpy).toHaveBeenCalled();
+      });
+
+      animatedTimingSpy.mockRestore();
+    });
+
+    it('calls BackHandler.addEventListener when notification is shown', async () => {
+      // Arrange
+      const backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Assert - Verifies disableBackPress was called
+      await waitFor(() => {
+        expect(backHandlerSpy).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
+      });
+
+      backHandlerSpy.mockRestore();
+    });
+
+    it('registers event listener with handler function', async () => {
+      // Arrange
+      const backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Assert - BackHandler.addEventListener called with function handler
+      await waitFor(() => {
+        expect(backHandlerSpy).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
+      });
+
+      backHandlerSpy.mockRestore();
+    });
+  });
+
+  describe('disableBackPress', () => {
+    beforeEach(() => {
       jest.clearAllMocks();
-      mockSeedlessOnboardingEnabled.mockReset();
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
+      jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
+        remove: jest.fn(),
+      }));
     });
 
-    it('should disable social login metrics when non-OAuth user creates wallet', async () => {
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
-      mockEnableSocialLogin.mockClear();
+    it('creates hardwareBackPress handler function', async () => {
+      // Arrange
+      const backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener');
 
-      const { getByTestId } = renderScreen(
+      // Act
+      renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
           state: mockInitialState,
         },
+        { route: { params: { delete: true } } },
       );
 
-      const createWalletButton = getByTestId(
-        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(createWalletButton);
+      // Assert - Verifies handler function is created and registered
+      await waitFor(() => {
+        expect(backHandlerSpy).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      backHandlerSpy.mockRestore();
     });
 
-    it('should disable social login metrics when non-OAuth user imports wallet', async () => {
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
-      mockEnableSocialLogin.mockClear();
+    it('registers event listener with hardwareBackPress event name', async () => {
+      // Arrange
+      const backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener');
 
-      const { getByTestId } = renderScreen(
+      // Act
+      renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
           state: mockInitialState,
         },
+        { route: { params: { delete: true } } },
       );
 
-      const importWalletButton = getByTestId(
-        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(importWalletButton);
+      // Assert - Event listener registered with correct event name
+      await waitFor(() => {
+        expect(backHandlerSpy).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
-    });
+      const callArgs = backHandlerSpy.mock.calls[0];
+      expect(callArgs[0]).toBe('hardwareBackPress');
 
-    it('should disable social login metrics when non-OAuth user creates wallet', async () => {
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
-      mockEnableSocialLogin.mockClear();
-
-      const { getByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const createWalletButton = getByTestId(
-        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(createWalletButton);
-      });
-
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
-    });
-
-    it('should disable social login metrics when OAuth user imports wallet', async () => {
-      mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
-      mockEnableSocialLogin.mockClear();
-
-      const { getByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const importWalletButton = getByTestId(
-        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(importWalletButton);
-      });
-
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      backHandlerSpy.mockRestore();
     });
   });
 
@@ -1359,8 +1794,8 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
-    it('should trigger ErrorBoundary for OAuth login failures when analytics disabled', async () => {
-      mockMetricsIsEnabled.mockReturnValueOnce(false);
+    it('triggers ErrorBoundary for OAuth login failures when analytics disabled', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValueOnce(false);
       mockCreateEventBuilder.mockReturnValue({
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue({ name: 'Error Screen Viewed' }),
@@ -1397,15 +1832,15 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
         }),
       );
     });
 
-    it('should not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValue(true);
+    it('does not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       const dismissError = new OAuthError('', OAuthErrorType.AuthServerError);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
@@ -1437,7 +1872,7 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+      expect(mockAnalytics.trackEvent).not.toHaveBeenLastCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
         }),

@@ -10,7 +10,9 @@ import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
-import PredictFeed from '../views/PredictFeed/PredictFeed';
+import PredictFeed from '../views/PredictFeed';
+import PredictGTMModal from '../components/PredictGTMModal';
+import { Dimensions } from 'react-native';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -28,29 +30,55 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.GTM_MODAL}
+      component={PredictGTMModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
       component={PredictAddFundsModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
     />
     <ModalStack.Screen
-      name={Routes.PREDICT.MARKET_DETAILS}
-      component={PredictMarketDetails}
+      name={Routes.PREDICT.ACTIVITY_DETAIL}
+      component={PredictActivityDetail}
       options={{
         headerShown: false,
       }}
     />
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-      component={PredictBuyPreview}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={Confirm}
+      options={{
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }}
     />
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-      component={PredictSellPreview}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.ACTIVITY_DETAIL}
-      component={PredictActivityDetail}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+      component={Confirm}
       options={{
         headerShown: false,
       }}
@@ -85,6 +113,69 @@ const PredictScreenStack = () => (
       component={Confirm}
       options={{
         headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MARKET_DETAILS}
+      component={PredictMarketDetails}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+      component={PredictBuyPreview}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+      component={PredictSellPreview}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
       }}
     />
   </Stack.Navigator>

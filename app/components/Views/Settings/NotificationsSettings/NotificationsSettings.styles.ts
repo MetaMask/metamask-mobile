@@ -4,11 +4,16 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
-    wrapper: {
-      backgroundColor: params.theme.colors.background.default,
-      flex: 1,
-      padding: 24,
+    container: {
+      paddingLeft: 16,
+      paddingRight: 16,
       paddingBottom: 48,
+    },
+    line: {
+      borderTopWidth: 1,
+      borderTopColor: params.theme.colors.border.muted,
+      marginVertical: 16,
+      marginHorizontal: -16,
     },
     heading: {
       marginTop: 16,
@@ -17,7 +22,14 @@ const styleSheet = (params: { theme: Theme }) =>
       marginTop: 16,
     },
     setting: {
-      marginVertical: 16,
+      marginTop: 16,
+    },
+    productAnnouncementContainer: {
+      marginTop: 16,
+    },
+    accountHeader: {
+      marginTop: 16,
+      marginLeft: -16,
     },
     clearHistoryConfirm: {
       marginTop: 18,

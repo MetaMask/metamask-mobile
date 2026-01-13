@@ -65,6 +65,12 @@ export const getNativeValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
+  // In order to handle the case where the amount is empty string,
+  // we return empty string so it allows to go back initial state of the amount input
+  if (amount === '') {
+    return '';
+  }
+
   if (!amount || !isValidPositiveNumericString(amount)) {
     return '0';
   }

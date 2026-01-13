@@ -1,47 +1,20 @@
-import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import { CaipChainId } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
-import { Hex } from '@metamask/utils';
-import {
-  ARBITRUM_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  BASE_CHAIN_ID,
-  BSC_CHAIN_ID,
-  ETH_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  SEI_CHAIN_ID,
-} from '@metamask/swaps-controller/dist/constants';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import {
-  formatAddressToAssetId,
+  ALLOWED_BRIDGE_CHAIN_IDS,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
-  ETH_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  BSC_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  BASE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  SEI_CHAIN_ID,
-  CHAIN_IDS.MONAD,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SolScope.Mainnet,
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-];
-
-export const isBridgeAllowed = (chainId: Hex | CaipChainId) => {
+export const isBridgeAllowed = (chainId: Hex | CaipChainId | string) => {
   if (!AppConstants.BRIDGE.ACTIVE) {
     return false;
   }
-  return ALLOWED_CHAIN_IDS.includes(chainId);
+
+  return (
+    ALLOWED_BRIDGE_CHAIN_IDS as readonly (Hex | CaipChainId | string)[]
+  ).includes(chainId);
 };
 
 export const wipeBridgeStatus = (
@@ -62,17 +35,14 @@ export const wipeBridgeStatus = (
 };
 
 export const getTokenIconUrl = (
-  address: string,
-  chainId: Hex | CaipChainId,
+  assetId: CaipAssetType | undefined,
+  isNonEvmChain: boolean,
 ) => {
-  const isEvmChain = !isNonEvmChainId(chainId);
-  const formattedAddress = isEvmChain ? address.toLowerCase() : address;
-
-  const assetId = formatAddressToAssetId(formattedAddress, chainId);
   if (!assetId) {
     return undefined;
   }
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+  const formattedAddress = isNonEvmChain ? assetId : assetId.toLowerCase();
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAddress
     .split(':')
     .join('/')}.png`;
 };

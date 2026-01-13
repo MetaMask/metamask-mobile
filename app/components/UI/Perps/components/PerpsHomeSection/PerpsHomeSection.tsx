@@ -16,6 +16,22 @@ export interface PerpsHomeSectionProps {
    */
   title: string;
   /**
+   * Optional subtitle text (e.g., P&L value and percentage)
+   */
+  subtitle?: string;
+  /**
+   * Color for subtitle text (e.g., Success for profit, Error for loss)
+   */
+  subtitleColor?: TextColor;
+  /**
+   * Optional suffix for subtitle (rendered in default color, e.g., "Unrealized PnL")
+   */
+  subtitleSuffix?: string;
+  /**
+   * Test ID for subtitle element
+   */
+  subtitleTestID?: string;
+  /**
    * Whether the section is loading
    */
   isLoading: boolean;
@@ -30,15 +46,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action label (e.g., "Close All", "See All")
-   */
-  actionLabel?: string;
-  /**
-   * Whether to show an icon instead of action label text (shows more horizontal icon)
-   */
-  showActionIcon?: boolean;
-  /**
-   * Optional action handler
+   * Optional action handler - when provided, shows ">" chevron and makes header row pressable
    */
   onActionPress?: () => void;
   /**
@@ -59,13 +67,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  header: {
+  headerContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 4,
-    marginTop: 12,
   },
   content: {
     // Content styling handled by children
@@ -88,7 +98,6 @@ const styles = StyleSheet.create({
  *   isLoading={isLoading.positions}
  *   isEmpty={positions.length === 0}
  *   showWhenEmpty={false}
- *   actionLabel="Close All"
  *   onActionPress={handleCloseAll}
  *   renderSkeleton={() => <PerpsRowSkeleton count={2} />}
  * >
@@ -98,11 +107,13 @@ const styles = StyleSheet.create({
  */
 const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   title,
+  subtitle,
+  subtitleColor = TextColor.Alternative,
+  subtitleSuffix,
+  subtitleTestID,
   isLoading,
   isEmpty,
   showWhenEmpty = false,
-  actionLabel,
-  showActionIcon = false,
   onActionPress,
   renderSkeleton,
   children,
@@ -113,34 +124,57 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
     return null;
   }
 
+  const showAction = onActionPress && !isLoading && !isEmpty;
+
+  // Title row content (pressable when action is available)
+  const titleRowContent = (
+    <>
+      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+        {title}
+      </Text>
+      {showAction && (
+        <Icon
+          name={IconName.MoreHorizontal}
+          size={IconSize.Md}
+          color={IconColor.Alternative}
+        />
+      )}
+    </>
+  );
+
   return (
     <View style={styles.section} testID={testID}>
       {/* Section Header */}
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {title}
-        </Text>
-        {(actionLabel || showActionIcon) &&
-          onActionPress &&
-          !isLoading &&
-          !isEmpty && (
-            <TouchableOpacity onPress={onActionPress}>
-              {showActionIcon ? (
-                <Icon
-                  name={IconName.MoreHorizontal}
-                  size={IconSize.Md}
-                  color={IconColor.Alternative}
-                />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {actionLabel}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
+      <View style={styles.headerContainer}>
+        {/* Title row - only this is pressable */}
+        {showAction ? (
+          <TouchableOpacity style={styles.titleRow} onPress={onActionPress}>
+            {titleRowContent}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.titleRow}>{titleRowContent}</View>
+        )}
+
+        {/* Subtitle - NOT pressable */}
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySM}
+            color={subtitleColor}
+            testID={subtitleTestID}
+          >
+            {subtitle}
+            {subtitleSuffix && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                testID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+              >
+                {' '}
+                {subtitleSuffix}
+              </Text>
+            )}
+          </Text>
+        )}
       </View>
 
       {/* Section Content */}

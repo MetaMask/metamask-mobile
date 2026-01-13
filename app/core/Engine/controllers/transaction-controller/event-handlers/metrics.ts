@@ -1,33 +1,40 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { merge } from 'lodash';
+import { createProjectLogger } from '@metamask/utils';
 
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { MetaMetrics } from '../../../../Analytics';
-import { RootExtendedMessenger } from '../../../types';
-import {
-  generateDefaultTransactionMetrics,
-  generateEvent,
-  generateRPCProperties,
-  getConfirmationMetricProperties,
-} from '../utils';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
   TransactionMetricsBuilder,
 } from '../types';
-import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
-import Engine from '../../../Engine';
-import { createProjectLogger } from '@metamask/utils';
+import { EMPTY_METRICS } from '../constants';
+import { getBaseMetricsProperties } from '../metrics_properties/base';
+import { getMetaMaskPayProperties } from '../metrics_properties/metamask-pay';
+import { getSimulationValuesProperties } from '../metrics_properties/simulation-values';
+import { getRPCMetricsProperties } from '../metrics_properties/rpc';
+import { getStxMetricsProperties } from '../metrics_properties/stx';
+import { getHashMetricsProperties } from '../metrics_properties/hash';
+import { getBatchMetricsProperties } from '../metrics_properties/batch';
+import { getGasMetricsProperties } from '../metrics_properties/gas';
 
 const log = createProjectLogger('transaction-metrics');
 
 const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
+  getBaseMetricsProperties,
+  getBatchMetricsProperties,
+  getGasMetricsProperties,
   getMetaMaskPayProperties,
+  getSimulationValuesProperties,
+  getRPCMetricsProperties,
+  getStxMetricsProperties,
+  getHashMetricsProperties,
 ];
 
-// Generic handler for simple transaction events
 const createTransactionEventHandler =
   (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
   async (
@@ -35,76 +42,55 @@ const createTransactionEventHandler =
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
     try {
-      const defaultTransactionMetricProperties =
-        await generateDefaultTransactionMetrics(
-          eventType,
-          transactionMeta,
-          transactionEventHandlerRequest,
-        );
-
-      const metrics = getBuilderMetrics({
-        defaultMetrics: defaultTransactionMetricProperties,
+      const metrics = await getBuilderMetrics({
+        builders: METRICS_BUILDERS,
+        eventType,
         request: transactionEventHandlerRequest,
         transactionMeta,
       });
 
       const event = generateEvent({
-        ...defaultTransactionMetricProperties,
+        metametricsEvent: eventType,
         ...metrics,
       });
 
       log('Event', event);
 
-      MetaMetrics.getInstance().trackEvent(event);
+      // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+      const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+        event.name,
+      )
+        .addProperties(event.properties as AnalyticsEventProperties)
+        .addSensitiveProperties(
+          event.sensitiveProperties as AnalyticsEventProperties,
+        )
+        .setSaveDataRecording(event.saveDataRecording)
+        .build();
+
+      transactionEventHandlerRequest.initMessenger.call(
+        'AnalyticsController:trackEvent',
+        analyticsEvent,
+      );
     } catch (error) {
       log('Error in transaction event handler', error);
     }
   };
 
-/**
- * Handles metrics tracking when a transaction is added to the transaction controller
- * @param transactionMeta - The transaction metadata
- * @param transactionEventHandlerRequest - The event handler request containing state and controller references
- */
 export const handleTransactionAddedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
 
-/**
- * Handles metrics tracking when a transaction is approved by the user
- * @param transactionMeta - The transaction metadata
- * @param transactionEventHandlerRequest - The event handler request containing state and controller references
- */
 export const handleTransactionApprovedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
 
-/**
- * Handles metrics tracking when a transaction is rejected by the user
- * @param transactionMeta - The transaction metadata
- * @param transactionEventHandlerRequest - The event handler request containing state and controller references
- */
 export const handleTransactionRejectedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
 
-/**
- * Handles metrics tracking when a transaction is submitted to the network
- * @param transactionMeta - The transaction metadata
- * @param transactionEventHandlerRequest - The event handler request containing state and controller references
- */
 export const handleTransactionSubmittedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
 
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.
 // Status could be derived from transactionMeta.status
-/**
- * Handles metrics tracking when a transaction is finalized (confirmed/failed/dropped)
- * This is a unified handler for all finalized transaction states, with the specific status
- * derived from transactionMeta.status
- *
- * @param transactionMeta - The transaction metadata
- * @param transactionEventHandlerRequest - The event handler request containing state and controller references
- * @returns Promise that resolves when the metrics event has been tracked
- */
 export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
@@ -121,127 +107,93 @@ export async function handleTransactionFinalizedEventForMetrics(
       return;
     }
 
-    // Generate default properties
-    const defaultTransactionMetricProperties =
-      await generateDefaultTransactionMetrics(
-        TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-        transactionMeta,
-        transactionEventHandlerRequest,
-      );
+    const eventType = TRANSACTION_EVENTS.TRANSACTION_FINALIZED;
 
-    // Generate smart transaction properties if applicable
-    let smartTransactionProperties = {
-      properties: {},
-      sensitiveProperties: {},
-    };
-
-    try {
-      const { getState, initMessenger, smartTransactionsController } =
-        transactionEventHandlerRequest;
-      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-        getState(),
-        transactionMeta.chainId,
-      );
-      if (shouldUseSmartTransaction) {
-        const smartMetrics = await getSmartTransactionMetricsProperties(
-          smartTransactionsController,
-          transactionMeta,
-          true,
-          initMessenger as unknown as RootExtendedMessenger,
-        );
-        smartTransactionProperties = {
-          properties: smartMetrics,
-          sensitiveProperties: {},
-        };
-      }
-    } catch (error) {
-      log('Error getting smart transaction metrics', error);
-    }
-
-    // Add RPC properties
-    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-
-    // Merge default, smart transaction, and RPC properties
-    const mergedEventProperties = merge(
-      {},
-      defaultTransactionMetricProperties,
-      smartTransactionProperties,
-      {
-        properties: rpcProperties.properties,
-        sensitiveProperties: rpcProperties.sensitiveProperties,
-      },
-    );
-
-    const metrics = getBuilderMetrics({
-      defaultMetrics: mergedEventProperties,
+    const metrics = await getBuilderMetrics({
+      builders: METRICS_BUILDERS,
+      eventType,
       request: transactionEventHandlerRequest,
       transactionMeta,
     });
 
-    const event = generateEvent({ ...mergedEventProperties, ...metrics });
+    const event = generateEvent({
+      metametricsEvent: eventType,
+      ...metrics,
+    });
 
     log('Finalized event', event);
 
-    MetaMetrics.getInstance().trackEvent(event);
+    // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+    const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
+      .addProperties(event.properties as AnalyticsEventProperties)
+      .addSensitiveProperties(
+        event.sensitiveProperties as AnalyticsEventProperties,
+      )
+      .setSaveDataRecording(event.saveDataRecording)
+      .build();
+
+    transactionEventHandlerRequest.initMessenger.call(
+      'AnalyticsController:trackEvent',
+      analyticsEvent,
+    );
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }
 }
 
-function retryIfEngineNotInitialized(fn: () => void): boolean {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { context } = Engine;
-    return false;
-  } catch (e) {
-    log('Transaction controller event before engine initialized');
-
-    setTimeout(() => {
-      fn();
-    }, 5000);
-
-    return true;
-  }
+function getConfirmationMetrics(
+  state: ReturnType<TransactionEventHandlerRequest['getState']>,
+  transactionId: string,
+): TransactionMetrics {
+  return (state?.confirmationMetrics?.metricsById?.[transactionId] ||
+    {}) as unknown as TransactionMetrics;
 }
 
-function getBuilderMetrics({
-  defaultMetrics,
+async function getBuilderMetrics({
+  builders,
+  eventType,
   request,
   transactionMeta,
 }: {
-  defaultMetrics: TransactionMetrics;
+  builders: TransactionMetricsBuilder[];
+  eventType: IMetaMetricsEvent;
   request: TransactionEventHandlerRequest;
   transactionMeta: TransactionMeta;
 }) {
   const metrics = {
-    properties: { ...defaultMetrics.properties },
-    sensitiveProperties: { ...defaultMetrics.sensitiveProperties },
+    properties: {},
+    sensitiveProperties: {},
   };
 
   const allTransactions =
     request.getState()?.engine?.backgroundState?.TransactionController
       ?.transactions ?? [];
 
-  const getUIMetrics = getConfirmationMetricProperties.bind(
-    null,
-    request.getState,
-  );
-
   const getState = request.getState;
 
-  for (const builder of METRICS_BUILDERS) {
-    try {
-      const currentMetrics = builder({
-        transactionMeta,
-        allTransactions,
-        getUIMetrics,
-        getState,
-      });
+  const getUIMetrics = (transactionId: string): TransactionMetrics =>
+    getConfirmationMetrics(getState(), transactionId);
 
-      merge(metrics, currentMetrics);
-    } catch (error) {
-      // Intentionally empty
-    }
+  const builderResults = await Promise.all(
+    builders.map(async (builder) => {
+      try {
+        return await builder({
+          eventType,
+          transactionMeta,
+          allTransactions,
+          getUIMetrics,
+          getState,
+          initMessenger: request.initMessenger,
+          smartTransactionsController: request.smartTransactionsController,
+        });
+      } catch (error) {
+        return EMPTY_METRICS;
+      }
+    }),
+  );
+
+  for (const currentMetrics of builderResults) {
+    merge(metrics, currentMetrics);
   }
 
   return metrics;

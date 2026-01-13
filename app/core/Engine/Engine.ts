@@ -169,10 +169,16 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
+import { storageServiceInit } from './controllers/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
+import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
+import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
+import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
@@ -188,6 +194,10 @@ export class Engine {
    * The global Engine singleton
    */
   static instance: Engine | null;
+  /**
+   * Flag to disable automatic vault backups (used during wallet reset)
+   */
+  static disableAutomaticVaultBackup = false;
   /**
    * A collection of all controller instances
    */
@@ -253,13 +263,13 @@ export class Engine {
   /**
    * Creates a CoreController instance
    */
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
+    analyticsId: string,
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
-    metaMetricsId?: string,
   ) {
-    logEngineCreation(initialState, initialKeyringState);
+    const keyringState = initialKeyringState ?? null;
+    logEngineCreation(initialState, keyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
 
@@ -271,15 +281,15 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
-      metaMetricsId,
-      initialKeyringState,
+      analyticsId,
+      initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
+        StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
@@ -357,12 +367,18 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        ProfileMetricsController: profileMetricsControllerInit,
+        ProfileMetricsService: profileMetricsServiceInit,
+        AnalyticsController: analyticsControllerInit,
+        RampsService: rampsServiceInit,
+        RampsController: rampsControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
       ...initRequest,
     });
 
+    const analyticsController = controllersByName.AnalyticsController;
     const loggingController = controllersByName.LoggingController;
     const remoteFeatureFlagController =
       controllersByName.RemoteFeatureFlagController;
@@ -389,6 +405,10 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const profileMetricsController = controllersByName.ProfileMetricsController;
+    const profileMetricsService = controllersByName.ProfileMetricsService;
+    const rampsService = controllersByName.RampsService;
+    const rampsController = controllersByName.RampsController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -467,6 +487,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
+      AnalyticsController: analyticsController,
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
@@ -535,6 +556,10 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
+      ProfileMetricsController: profileMetricsController,
+      ProfileMetricsService: profileMetricsService,
+      RampsService: rampsService,
+      RampsController: rampsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -696,6 +721,11 @@ export class Engine {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
+        // Check if automatic backups are disabled (during wallet reset)
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
         if (!state.vault) {
           return;
         }
@@ -1270,6 +1300,7 @@ export default {
       AccountTreeController,
       AddressBookController,
       AppMetadataController,
+      AnalyticsController,
       ApprovalController,
       BridgeController,
       BridgeStatusController,
@@ -1278,6 +1309,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1305,12 +1337,14 @@ export default {
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1320,6 +1354,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     } = instance.datamodel.state;
 
     return {
@@ -1331,6 +1366,7 @@ export default {
       AccountTreeController,
       AddressBookController,
       AppMetadataController,
+      AnalyticsController,
       ApprovalController,
       BridgeController,
       BridgeStatusController,
@@ -1339,6 +1375,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GatorPermissionsController,
       KeyringController,
       LoggingController,
       MultichainNetworkController,
@@ -1366,12 +1403,14 @@ export default {
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
+      RampsController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1381,6 +1420,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     };
   },
 
@@ -1410,12 +1450,11 @@ export default {
   },
 
   init(
-    state: Partial<EngineState> | undefined,
-    keyringState: KeyringControllerState | null = null,
-    metaMetricsId?: string,
+    analyticsId: string,
+    state: Partial<EngineState> | undefined = {},
+    keyringState?: KeyringControllerState | null,
   ) {
-    instance =
-      Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;
   },

@@ -12,6 +12,7 @@ import {
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';
+import { STORAGE_TYPE } from 'react-native-keychain';
 
 jest.mock('../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -37,6 +38,9 @@ jest.mock('react-native-keychain', () => ({
   setGenericPassword: jest.fn(),
   getGenericPassword: jest.fn(),
   resetGenericPassword: jest.fn(),
+  STORAGE_TYPE: {
+    AES_GCM: 'AES_GCM',
+  },
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
@@ -53,6 +57,7 @@ jest.mock('../core/Analytics', () => ({
     getInstance: jest.fn(() => ({
       addTraitsToUser: mockAddTraitsToUser,
       trackEvent: jest.fn(),
+      updateDataRecordingFlag: jest.fn(),
     })),
   },
 }));
@@ -171,7 +176,10 @@ describe('SecureKeychain - setGenericPassword', () => {
     });
 
     it('should successfully set up biometric authentication', async () => {
-      (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce({
+      jest.spyOn(SecureKeychain, 'getGenericPassword').mockResolvedValueOnce({
+        service: 'metamask',
+        username: 'metamask-user',
+        storage: STORAGE_TYPE.AES_GCM,
         password: 'encrypted_password',
       });
 

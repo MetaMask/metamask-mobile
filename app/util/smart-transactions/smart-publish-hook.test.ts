@@ -173,7 +173,6 @@ function withRequest<ReturnValue>(
       'NetworkController:getNetworkClientById',
       'TransactionController:getNonceLock',
       'TransactionController:getTransactions',
-      'TransactionController:confirmExternalTransaction',
       'TransactionController:updateTransaction',
     ],
     events: ['NetworkController:stateChange'],
@@ -286,22 +285,6 @@ describe('submitSmartTransactionHook', () => {
       delete request.transactionMeta.txParams.maxFeePerGas;
       delete request.transactionMeta.txParams.maxPriorityFeePerGas;
 
-      const result = await submitSmartTransactionHook(request);
-      expect(result).toEqual({ transactionHash: undefined });
-    });
-  });
-
-  it('falls back to regular transaction submit if it is a bridge transaction', async () => {
-    withRequest(async ({ request }) => {
-      request.transactionMeta.type = TransactionType.bridge;
-      const result = await submitSmartTransactionHook(request);
-      expect(result).toEqual({ transactionHash: undefined });
-    });
-  });
-
-  it('falls back to regular transaction submit if it is a bridgeApproval transaction', async () => {
-    withRequest(async ({ request }) => {
-      request.transactionMeta.type = TransactionType.bridgeApproval;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash: undefined });
     });

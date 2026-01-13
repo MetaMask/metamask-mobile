@@ -12,16 +12,32 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 8,
+      paddingHorizontal: 16,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    listContainer: {
+      gap: 1,
       paddingHorizontal: 16,
     },
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      padding: 12,
+      backgroundColor: colors.background.section,
+    },
+    activityItemFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    activityItemLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     leftSection: {
       flexDirection: 'row',
@@ -34,9 +50,13 @@ const styleSheet = (params: { theme: Theme }) => {
     activityInfo: {
       flex: 1,
     },
-    activityType: {
+    activityTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       marginBottom: 4,
     },
+    activityType: {},
     activityAmount: {
       color: colors.text.alternative,
     },

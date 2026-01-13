@@ -8,6 +8,10 @@ import {
   formatNumber,
   getIconName,
   formatUrl,
+  formatUTCDate,
+  formatRewardsMusdDepositPayloadDate,
+  resolveTemplate,
+  validateEmail,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -244,7 +248,7 @@ describe('formatUtils', () => {
       expect(result).toBe('1m');
     });
 
-    it('returns hours and minutes when days are zero', () => {
+    it('returns hours and minutes with double-digit values when days are zero', () => {
       // Given: 0 days, 12 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -257,7 +261,7 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return hours and minutes format
+      // Then: returns hours and minutes format
       expect(result).toBe('12h 30m');
     });
 
@@ -748,6 +752,451 @@ describe('formatUtils', () => {
           'unpkg.com',
         );
       });
+    });
+  });
+
+  describe('formatUTCDate', () => {
+    it('formats ISO date string in default locale (en-US)', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate);
+
+      // Then it should return formatted date in en-US format
+      expect(result).toMatch(/11\/11\/2025|11\.11\.2025|Nov 11, 2025/);
+    });
+
+    it('formats ISO date string with custom locale', () => {
+      // Given an ISO date string and French locale
+      const isoDate = '2025-11-11';
+      const locale = 'fr-FR';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, locale);
+
+      // Then it should return formatted date in French format
+      expect(result).toMatch(/11\/11\/2025|11\.11\.2025/);
+    });
+
+    it('formats ISO date string with custom options', () => {
+      // Given an ISO date string with custom formatting options
+      const isoDate = '2025-11-11';
+      const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      };
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US', options);
+
+      // Then it should return formatted date with long month name
+      expect(result).toBe('November 11, 2025');
+    });
+
+    it('handles dates at year boundaries correctly', () => {
+      // Given dates at year boundaries
+      const newYear = '2025-01-01';
+      const endYear = '2025-12-31';
+
+      // When formatting the dates
+      const newYearResult = formatUTCDate(newYear);
+      const endYearResult = formatUTCDate(endYear);
+
+      // Then they should be formatted correctly
+      expect(newYearResult).toMatch(/1\/1\/2025|1\.1\.2025|Jan 1, 2025/);
+      expect(endYearResult).toMatch(/12\/31\/2025|31\.12\.2025|Dec 31, 2025/);
+    });
+
+    it('prevents timezone shifts by using UTC', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US');
+
+      // Then it should always show November 11 regardless of local timezone
+      // The date should be interpreted as midnight UTC
+      expect(result).toMatch(/11/);
+    });
+
+    it('handles leap year dates correctly', () => {
+      // Given a leap year date
+      const leapYearDate = '2024-02-29';
+
+      // When formatting the date
+      const result = formatUTCDate(leapYearDate);
+
+      // Then it should format correctly
+      expect(result).toMatch(/29/);
+    });
+
+    it('uses default options when custom options are provided', () => {
+      // Given an ISO date string with partial custom options
+      const isoDate = '2025-11-11';
+      const options: Intl.DateTimeFormatOptions = {
+        month: 'short',
+      };
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US', options);
+
+      // Then it should merge with default options (year, day, timeZone)
+      expect(result).toMatch(/Nov/);
+      expect(result).toMatch(/11/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('handles different locales correctly', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting with different locales
+      const enResult = formatUTCDate(isoDate, 'en-US');
+      const deResult = formatUTCDate(isoDate, 'de-DE');
+      const jaResult = formatUTCDate(isoDate, 'ja-JP');
+
+      // Then they should be formatted according to locale conventions
+      expect(enResult).toBeTruthy();
+      expect(deResult).toBeTruthy();
+      expect(jaResult).toBeTruthy();
+      // All should contain the date components
+      expect(enResult).toMatch(/11/);
+      expect(deResult).toMatch(/11/);
+      expect(jaResult).toMatch(/11/);
+    });
+  });
+
+  describe('formatRewardsMusdDepositPayloadDate', () => {
+    it('formats ISO date string for mUSD deposit with default locale', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return formatted date with short month name
+      expect(result).toMatch(/Nov 11, 2025|11 Nov 2025/);
+    });
+
+    it('formats ISO date string for mUSD deposit with custom locale', () => {
+      // Given an ISO date string and French locale
+      const isoDate = '2025-11-11';
+      const locale = 'fr-FR';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate, locale);
+
+      // Then it should return formatted date in French format
+      expect(result).toMatch(/nov\.|nov/);
+      expect(result).toMatch(/11/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('formats date with correct format (year, short month, day)', () => {
+      // Given an ISO date string
+      const isoDate = '2025-12-25';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate, 'en-US');
+
+      // Then it should have year, short month, and day
+      expect(result).toMatch(/Dec/);
+      expect(result).toMatch(/25/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('handles dates at month boundaries', () => {
+      // Given dates at month boundaries
+      const firstOfMonth = '2025-01-01';
+      const lastOfMonth = '2025-01-31';
+
+      // When formatting the dates
+      const firstResult = formatRewardsMusdDepositPayloadDate(firstOfMonth);
+      const lastResult = formatRewardsMusdDepositPayloadDate(lastOfMonth);
+
+      // Then they should be formatted correctly
+      expect(firstResult).toMatch(/Jan/);
+      expect(firstResult).toMatch(/1/);
+      expect(lastResult).toMatch(/Jan/);
+      expect(lastResult).toMatch(/31/);
+    });
+
+    it('prevents timezone shifts by using UTC', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should always show the correct date regardless of local timezone
+      expect(result).toMatch(/Nov/);
+      expect(result).toMatch(/11/);
+    });
+
+    it('uses I18n.locale as default when no locale provided', () => {
+      // Given an ISO date string without locale
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should use the default locale from I18n
+      expect(result).toBeTruthy();
+      expect(result).toMatch(/11/);
+    });
+
+    it('returns null for undefined input', () => {
+      // Given undefined input
+      const isoDate = undefined;
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return null
+      expect(result).toBeNull();
+    });
+
+    it('returns null for empty string', () => {
+      // Given an empty string
+      const isoDate = '';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return null
+      expect(result).toBeNull();
+    });
+
+    it('returns null for non-string input', () => {
+      // Given non-string inputs
+      const numberInput = 20251111 as unknown as string;
+      const objectInput = { date: '2025-11-11' } as unknown as string;
+      const arrayInput = ['2025', '11', '11'] as unknown as string;
+
+      // When formatting the dates
+      const numberResult = formatRewardsMusdDepositPayloadDate(numberInput);
+      const objectResult = formatRewardsMusdDepositPayloadDate(objectInput);
+      const arrayResult = formatRewardsMusdDepositPayloadDate(arrayInput);
+
+      // Then they should all return null
+      expect(numberResult).toBeNull();
+      expect(objectResult).toBeNull();
+      expect(arrayResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - wrong separator', () => {
+      // Given date strings with wrong separators
+      const slashDate = '2025/11/11';
+      const dotDate = '2025.11.11';
+      const spaceDate = '2025 11 11';
+
+      // When formatting the dates
+      const slashResult = formatRewardsMusdDepositPayloadDate(slashDate);
+      const dotResult = formatRewardsMusdDepositPayloadDate(dotDate);
+      const spaceResult = formatRewardsMusdDepositPayloadDate(spaceDate);
+
+      // Then they should all return null
+      expect(slashResult).toBeNull();
+      expect(dotResult).toBeNull();
+      expect(spaceResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - wrong length', () => {
+      // Given date strings with wrong length
+      const shortDate = '2025-11';
+      const longDate = '2025-11-11-12';
+      const noSeparators = '20251111';
+
+      // When formatting the dates
+      const shortResult = formatRewardsMusdDepositPayloadDate(shortDate);
+      const longResult = formatRewardsMusdDepositPayloadDate(longDate);
+      const noSeparatorsResult =
+        formatRewardsMusdDepositPayloadDate(noSeparators);
+
+      // Then they should all return null
+      expect(shortResult).toBeNull();
+      expect(longResult).toBeNull();
+      expect(noSeparatorsResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - non-numeric characters', () => {
+      // Given date strings with non-numeric characters
+      const textDate = 'abcd-ef-gh';
+      const mixedDate = '2025-1a-11';
+      const lettersDate = 'YYYY-MM-DD';
+
+      // When formatting the dates
+      const textResult = formatRewardsMusdDepositPayloadDate(textDate);
+      const mixedResult = formatRewardsMusdDepositPayloadDate(mixedDate);
+      const lettersResult = formatRewardsMusdDepositPayloadDate(lettersDate);
+
+      // Then they should all return null
+      expect(textResult).toBeNull();
+      expect(mixedResult).toBeNull();
+      expect(lettersResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - incomplete date parts', () => {
+      // Given date strings with incomplete parts
+      const oneDigitYear = '5-11-11';
+      const oneDigitMonth = '2025-1-11';
+      const oneDigitDay = '2025-11-1';
+      const twoDigitYear = '25-11-11';
+
+      // When formatting the dates
+      const oneDigitYearResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitYear);
+      const oneDigitMonthResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitMonth);
+      const oneDigitDayResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitDay);
+      const twoDigitYearResult =
+        formatRewardsMusdDepositPayloadDate(twoDigitYear);
+
+      // Then they should all return null
+      expect(oneDigitYearResult).toBeNull();
+      expect(oneDigitMonthResult).toBeNull();
+      expect(oneDigitDayResult).toBeNull();
+      expect(twoDigitYearResult).toBeNull();
+    });
+
+    it('returns null for date with extra whitespace', () => {
+      // Given date strings with whitespace
+      const leadingSpace = ' 2025-11-11';
+      const trailingSpace = '2025-11-11 ';
+      const bothSpaces = ' 2025-11-11 ';
+
+      // When formatting the dates
+      const leadingResult = formatRewardsMusdDepositPayloadDate(leadingSpace);
+      const trailingResult = formatRewardsMusdDepositPayloadDate(trailingSpace);
+      const bothResult = formatRewardsMusdDepositPayloadDate(bothSpaces);
+
+      // Then they should all return null
+      expect(leadingResult).toBeNull();
+      expect(trailingResult).toBeNull();
+      expect(bothResult).toBeNull();
+    });
+
+    it('handles leap year dates correctly', () => {
+      // Given a leap year date
+      const leapYearDate = '2024-02-29';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(leapYearDate);
+
+      // Then it should format correctly
+      expect(result).toBeTruthy();
+      expect(result).toMatch(/Feb/);
+      expect(result).toMatch(/29/);
+      expect(result).toMatch(/2024/);
+    });
+
+    it('handles dates at year boundaries correctly', () => {
+      // Given dates at year boundaries
+      const newYear = '2025-01-01';
+      const endYear = '2025-12-31';
+
+      // When formatting the dates
+      const newYearResult = formatRewardsMusdDepositPayloadDate(newYear);
+      const endYearResult = formatRewardsMusdDepositPayloadDate(endYear);
+
+      // Then they should be formatted correctly
+      expect(newYearResult).toBeTruthy();
+      expect(newYearResult).toMatch(/Jan/);
+      expect(newYearResult).toMatch(/1/);
+      expect(endYearResult).toBeTruthy();
+      expect(endYearResult).toMatch(/Dec/);
+      expect(endYearResult).toMatch(/31/);
+    });
+
+    it('handles different locales correctly', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting with different locales
+      const enResult = formatRewardsMusdDepositPayloadDate(isoDate, 'en-US');
+      const deResult = formatRewardsMusdDepositPayloadDate(isoDate, 'de-DE');
+      const jaResult = formatRewardsMusdDepositPayloadDate(isoDate, 'ja-JP');
+
+      // Then they should be formatted according to locale conventions
+      expect(enResult).toBeTruthy();
+      expect(deResult).toBeTruthy();
+      expect(jaResult).toBeTruthy();
+      // All should contain the date components
+      expect(enResult).toMatch(/11/);
+      expect(deResult).toMatch(/11/);
+      expect(jaResult).toMatch(/11/);
+    });
+  });
+
+  describe('resolveTemplate', () => {
+    it('replaces single placeholder with provided value', () => {
+      const template = 'Hello, ${name}!';
+      const values = { name: 'Alice' };
+      expect(resolveTemplate(template, values)).toBe('Hello, Alice!');
+    });
+
+    it('replaces multiple placeholders with provided values', () => {
+      const template = 'User: ${name}, Tier: ${tier}';
+      const values = { name: 'Bob', tier: 'Gold' };
+      expect(resolveTemplate(template, values)).toBe('User: Bob, Tier: Gold');
+    });
+
+    it('leaves placeholders intact when value is missing', () => {
+      const template = 'Hello, ${name}! Tier: ${tier}';
+      const values = { name: 'Charlie' };
+      expect(resolveTemplate(template, values)).toBe(
+        'Hello, Charlie! Tier: ${tier}',
+      );
+    });
+
+    it('replaces repeated occurrences of the same placeholder', () => {
+      const template = '${name} is ${name}';
+      const values = { name: 'Dana' };
+      expect(resolveTemplate(template, values)).toBe('Dana is Dana');
+    });
+
+    it('does not replace when value is an empty string (fallback to original token)', () => {
+      const template = 'Optional: ${field}';
+      const values = { field: '' };
+      expect(resolveTemplate(template, values)).toBe('Optional: ${field}');
+    });
+
+    it('does not match non-word placeholders (e.g., dot paths)', () => {
+      const template = 'Tx: ${payload.txHash}';
+      const values = { 'payload.txHash': '0xabc' } as unknown as Record<
+        string,
+        string
+      >;
+      expect(resolveTemplate(template, values)).toBe('Tx: ${payload.txHash}');
+    });
+
+    it('returns the original string when no placeholders exist', () => {
+      const template = 'Static string with no tokens';
+      const values = { anything: 'value' };
+      expect(resolveTemplate(template, values)).toBe(
+        'Static string with no tokens',
+      );
+    });
+  });
+
+  describe('validateEmail', () => {
+    it('returns true for valid email with standard format', () => {
+      const email = 'user@example.com';
+
+      const result = validateEmail(email);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for email missing domain after @', () => {
+      const email = 'user@';
+
+      const result = validateEmail(email);
+
+      expect(result).toBe(false);
     });
   });
 });

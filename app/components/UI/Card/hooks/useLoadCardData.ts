@@ -4,10 +4,10 @@ import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
-import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
+import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { CardTokenAllowance, CardWarning } from '../types';
 
 /**
@@ -40,7 +40,6 @@ import { CardTokenAllowance, CardWarning } from '../types';
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
-  const isCardholder = useIsCardholder();
 
   // Get delegation settings (only used in authenticated mode)
   const {
@@ -79,6 +78,14 @@ const useLoadCardData = () => {
   } = useGetLatestAllowanceForPriorityToken(
     isAuthenticated ? priorityToken : null,
   );
+
+  // Get user KYC status (authenticated mode only)
+  const {
+    kycStatus,
+    isLoading: isLoadingKYCStatus,
+    error: kycStatusError,
+    fetchKYCStatus,
+  } = useGetUserKYCStatus(isAuthenticated);
 
   // Update priority token with latest allowance if available
   const priorityTokenWithLatestAllowance = useMemo(() => {
@@ -124,7 +131,8 @@ const useLoadCardData = () => {
       return (
         baseLoading ||
         isLoadingExternalWalletDetails ||
-        isLoadingLatestAllowance
+        isLoadingLatestAllowance ||
+        isLoadingKYCStatus
       );
     }
     return baseLoading;
@@ -134,24 +142,32 @@ const useLoadCardData = () => {
     isLoadingDelegationSettings,
     isLoadingExternalWalletDetails,
     isLoadingLatestAllowance,
+    isLoadingKYCStatus,
     isAuthenticated,
   ]);
 
   // Combined error state
   const error = useMemo(() => {
-    const baseError =
-      priorityTokenError || cardDetailsError || delegationSettingsError;
+    const baseError = priorityTokenError;
 
     if (isAuthenticated) {
-      return baseError || externalWalletDetailsError;
+      return (
+        baseError ||
+        externalWalletDetailsError ||
+        kycStatusError ||
+        delegationSettingsError ||
+        cardDetailsError
+      );
     }
-    return baseError;
+    // In unauthenticated mode, still check for delegation settings and card details errors
+    return baseError || delegationSettingsError || cardDetailsError;
   }, [
     priorityTokenError,
-    cardDetailsError,
     delegationSettingsError,
     externalWalletDetailsError,
+    kycStatusError,
     isAuthenticated,
+    cardDetailsError,
   ]);
 
   // Combined warning (only from priority token and card details)
@@ -164,13 +180,19 @@ const useLoadCardData = () => {
   }, [priorityTokenWarning, cardDetailsWarning]);
 
   // Manual fetch function to refresh all data
+  // Note: fetchExternalWalletDetails depends on delegationSettings, so we must
+  // ensure delegation settings is available first before fetching wallet details
   const fetchAllData = useMemo(
     () => async () => {
       if (isAuthenticated) {
+        // First, fetch delegation settings (required for external wallet details)
+        await fetchDelegationSettings();
+        // Then fetch all other data in parallel
         await Promise.all([
           fetchPriorityToken(),
           fetchCardDetails(),
           fetchExternalWalletDetails(),
+          fetchKYCStatus(),
         ]);
       } else {
         await Promise.all([fetchPriorityToken()]);
@@ -181,6 +203,8 @@ const useLoadCardData = () => {
       fetchCardDetails,
       isAuthenticated,
       fetchExternalWalletDetails,
+      fetchKYCStatus,
+      fetchDelegationSettings,
     ],
   );
 
@@ -188,11 +212,16 @@ const useLoadCardData = () => {
   const refetchAllData = useMemo(
     () => async () => {
       if (isAuthenticated) {
+        // First, refetch delegation settings (required for external wallet details)
+        // fetchExternalWalletDetails reads delegation settings from a ref, so it must
+        // run after delegation settings is available to avoid returning null.
+        await fetchDelegationSettings();
+
         await Promise.all([
-          fetchDelegationSettings(),
           fetchExternalWalletDetails(),
           fetchCardDetails(),
           fetchPriorityToken(),
+          fetchKYCStatus(),
         ]);
       } else {
         await Promise.all([fetchPriorityToken()]);
@@ -204,6 +233,7 @@ const useLoadCardData = () => {
       fetchExternalWalletDetails,
       fetchCardDetails,
       fetchPriorityToken,
+      fetchKYCStatus,
     ],
   );
 
@@ -218,13 +248,14 @@ const useLoadCardData = () => {
     externalWalletDetailsData: isAuthenticated
       ? externalWalletDetailsData
       : null,
+    // KYC status (authenticated mode only)
+    kycStatus: isAuthenticated ? kycStatus : null,
     // State flags
     isLoading,
     error,
     warning,
     isAuthenticated,
     isBaanxLoginEnabled,
-    isCardholder,
     // Fetch functions
     fetchAllData,
     refetchAllData,

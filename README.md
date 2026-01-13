@@ -1,6 +1,6 @@
-![MetaMask logo](logo.png?raw=true)
+<img alt="MetaMask logo" src="logo.png?raw=true" width="50" />
 
-# MetaMask
+# MetaMask Mobile
 
 [![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
@@ -55,7 +55,7 @@ Expo is the fastest way to start developing. With the Expo framework, developers
 
 #### Expo Environment Setup
 
-[Install node, yarn v3 and watchman.](./docs/readme/expo-environment.md)
+[Install node, yarn v4 and watchman.](./docs/readme/expo-environment.md)
 
 #### Clone the project
 

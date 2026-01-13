@@ -7,20 +7,25 @@ import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   generateTransferData,
   isSmartContractAddress,
 } from '../../../../../util/transactions';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import { SUPPORTED_SPORTS_LEAGUES } from '../../constants/sports';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
-  PriceResult,
   PredictActivity,
   PredictCategory,
   PredictMarket,
   PredictPosition,
+  PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PriceResult,
   Side,
   UnrealizedPnL,
 } from '../../types';
@@ -28,6 +33,8 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  ConnectionStatus,
+  GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
@@ -38,18 +45,18 @@ import {
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
-  SignWithdrawParams,
-  SignWithdrawResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
+  SignWithdrawParams,
+  SignWithdrawResponse,
 } from '../types';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
-  ORDER_RATE_LIMIT_MS,
-  FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
+  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
+  ORDER_RATE_LIMIT_MS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
@@ -92,15 +99,34 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
+import { PredictFeeCollection } from '../../types/flags';
+import { GameCache } from './GameCache';
+import { TeamsCache } from './TeamsCache';
+import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
   version: SignTypedDataVersion,
 ) => Promise<string>;
 
-interface RecentlySoldPosition {
-  positionId: string;
+enum OptimisticUpdateType {
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  REMOVE = 'REMOVE',
+}
+
+interface OptimisticPositionUpdate {
+  type: OptimisticUpdateType;
+  outcomeTokenId: string;
+  marketId: string;
   timestamp: number;
+
+  // For CREATE and UPDATE types
+  optimisticPosition?: PredictPosition;
+  expectedSize: number; // The expected size after the operation (0 for REMOVE)
+
+  // For REMOVE type
+  positionId?: string;
 }
 
 export class PolymarketProvider implements PredictProvider {
@@ -112,7 +138,10 @@ export class PolymarketProvider implements PredictProvider {
   #accountStateByAddress: Map<string, AccountState> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
-  #recentlySoldPositionsByAddress = new Map<string, RecentlySoldPosition[]>();
+  #optimisticPositionUpdatesByAddress = new Map<
+    string,
+    Map<string, OptimisticPositionUpdate>
+  >();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -145,8 +174,10 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarketDetails({
     marketId,
+    liveSportsLeagues = [],
   }: {
     marketId: string;
+    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
@@ -157,16 +188,33 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const [parsedMarket] = parsePolymarketEvents(
-        [event],
-        PolymarketProvider.FALLBACK_CATEGORY,
-      );
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const [parsedMarket] = parsePolymarketEvents([event], {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
       }
 
-      return parsedMarket;
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarket(parsedMarket)
+        : parsedMarket;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -211,12 +259,33 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getParsedMarketsFromPolymarketApi(params);
-      return markets;
+      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(
+          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
+        );
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const markets = await getParsedMarketsFromPolymarketApi({
+        ...params,
+        teamLookup,
+      });
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(markets)
+        : markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
@@ -377,26 +446,324 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  private addRecentlySoldPositions({
+  /**
+   * Create or update an optimistic position after a successful BUY order
+   */
+  private async createOrUpdateOptimisticPosition({
     address,
-    positionIds,
+    type,
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    spentAmount,
+    receivedAmount,
+    existingPosition,
+    preview,
   }: {
     address: string;
-    positionIds: string[];
-  }) {
-    // Delete anything older than 5 minutes to prevent
-    // list from growing too large
-    const recentlySoldPositions = (
-      this.#recentlySoldPositionsByAddress.get(address) ?? []
-    ).filter((soldPosition) => soldPosition.timestamp > Date.now() - 5 * 60000);
+    type: OptimisticUpdateType.CREATE | OptimisticUpdateType.UPDATE;
+    marketId: string;
+    outcomeId: string;
+    outcomeTokenId: string;
+    spentAmount: number;
+    receivedAmount: number;
+    existingPosition?: PredictPosition;
+    preview: OrderPreview;
+  }): Promise<void> {
+    // Defensive check: should never create optimistic updates for claimable positions
+    if (existingPosition?.claimable) {
+      DevLogger.log(
+        'PolymarketProvider: Attempted to create optimistic update on claimable position',
+        {
+          outcomeTokenId,
+          claimable: existingPosition.claimable,
+        },
+      );
+      return; // Silently return without creating optimistic update
+    }
 
-    recentlySoldPositions.push(
-      ...positionIds.map((positionId) => ({
+    // Calculate the expected final size after this purchase
+    // If there's an existing position, add to it; otherwise it's a new position
+    const currentSize = existingPosition?.size ?? 0;
+    const expectedSize = currentSize + receivedAmount;
+
+    // Calculate new position values
+    let newAmount: number;
+    let newInitialValue: number;
+    let newAvgPrice: number;
+    let newCurrentValue: number;
+    let optimisticPosition: PredictPosition;
+
+    if (existingPosition) {
+      // Update existing position
+      newAmount = existingPosition.amount + receivedAmount;
+      newInitialValue = existingPosition.initialValue + spentAmount;
+      newAvgPrice = newInitialValue / newAmount;
+      newCurrentValue = newAmount * existingPosition.price;
+
+      optimisticPosition = {
+        ...existingPosition,
+        amount: newAmount,
+        size: expectedSize,
+        initialValue: newInitialValue,
+        avgPrice: newAvgPrice,
+        currentValue: newCurrentValue,
+        cashPnl: newCurrentValue - newInitialValue,
+        percentPnl:
+          ((newCurrentValue - newInitialValue) / newInitialValue) * 100,
+        optimistic: true,
+      };
+    } else {
+      // Create new position
+      newAmount = receivedAmount;
+      newInitialValue = spentAmount;
+      newAvgPrice = spentAmount / receivedAmount;
+      newCurrentValue = receivedAmount * preview.sharePrice;
+
+      // Fetch market details for complete position data
+      let marketDetails: PredictMarket | undefined;
+      try {
+        marketDetails = await this.getMarketDetails({ marketId });
+      } catch (error) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to fetch market details for optimistic position',
+          error,
+        );
+      }
+
+      const outcome = marketDetails?.outcomes.find((o) => o.id === outcomeId);
+      const outcomeToken = outcome?.tokens.find((t) => t.id === outcomeTokenId);
+
+      optimisticPosition = {
+        id: outcomeTokenId,
+        providerId: this.providerId,
+        marketId,
+        outcomeId,
+        outcome: outcomeToken?.title ?? 'Unknown',
+        outcomeTokenId,
+        currentValue: newCurrentValue,
+        title: outcome?.title ?? 'Unknown Market',
+        icon: outcome?.image ?? marketDetails?.image ?? '',
+        amount: newAmount,
+        price: preview.sharePrice,
+        status: PredictPositionStatus.OPEN,
+        size: expectedSize,
+        outcomeIndex:
+          outcome?.tokens.findIndex((t) => t.id === outcomeTokenId) ?? 0,
+        percentPnl:
+          ((newCurrentValue - newInitialValue) / newInitialValue) * 100,
+        cashPnl: newCurrentValue - newInitialValue,
+        claimable: false,
+        initialValue: newInitialValue,
+        avgPrice: newAvgPrice,
+        endDate: marketDetails?.endDate ?? new Date().toISOString(),
+        negRisk: preview.negRisk,
+        optimistic: true,
+      };
+    }
+
+    // Store the optimistic update
+    let addressMapForUpdate =
+      this.#optimisticPositionUpdatesByAddress.get(address);
+    if (!addressMapForUpdate) {
+      addressMapForUpdate = new Map();
+      this.#optimisticPositionUpdatesByAddress.set(
+        address,
+        addressMapForUpdate,
+      );
+    }
+
+    addressMapForUpdate.set(outcomeTokenId, {
+      type,
+      outcomeTokenId,
+      marketId,
+      timestamp: Date.now(),
+      optimisticPosition,
+      expectedSize, // The size we expect to see when API confirms
+    });
+
+    DevLogger.log('PolymarketProvider: Created optimistic position update', {
+      type,
+      outcomeTokenId,
+      expectedSize,
+    });
+  }
+
+  /**
+   * Mark a position for optimistic removal after a SELL or CLAIM operation
+   */
+  private removeOptimisticPosition({
+    address,
+    positionId,
+    outcomeTokenId,
+    marketId,
+  }: {
+    address: string;
+    positionId: string;
+    outcomeTokenId: string;
+    marketId: string;
+  }): void {
+    let addressMap = this.#optimisticPositionUpdatesByAddress.get(address);
+    if (!addressMap) {
+      addressMap = new Map();
+      this.#optimisticPositionUpdatesByAddress.set(address, addressMap);
+    }
+
+    addressMap.set(outcomeTokenId, {
+      type: OptimisticUpdateType.REMOVE,
+      outcomeTokenId,
+      marketId,
+      timestamp: Date.now(),
+      positionId,
+      expectedSize: 0, // For REMOVE, we expect size to be 0 (position gone)
+    });
+
+    DevLogger.log(
+      'PolymarketProvider: Marked position for optimistic removal',
+      {
         positionId,
-        timestamp: Date.now(),
-      })),
+        outcomeTokenId,
+      },
     );
-    this.#recentlySoldPositionsByAddress.set(address, recentlySoldPositions);
+  }
+
+  /**
+   * Check if an API position has been updated to match our expected size
+   * Simple comparison: if API size matches expected size, we're done
+   */
+  private isApiPositionUpdated(
+    apiPosition: PredictPosition,
+    update: OptimisticPositionUpdate,
+  ): boolean {
+    // If API position is claimable, it's always updated since we cannot
+    // perform updates on claimable positions, other than REMOVE
+    if (apiPosition.claimable) {
+      return true;
+    }
+
+    const { expectedSize } = update;
+
+    // Use a small tolerance for floating point comparison (0.1%)
+    const sizeDiff = Math.abs(apiPosition.size - expectedSize);
+    const sizeTolerance = Math.max(expectedSize * 0.001, 0.01); // 0.1% or 0.01 minimum
+    const isUpdated = sizeDiff <= sizeTolerance;
+
+    return isUpdated;
+  }
+
+  /**
+   * Apply optimistic position updates to the API positions
+   * Handles CREATE, UPDATE, and REMOVE operations
+   */
+  private applyOptimisticPositionUpdates({
+    address,
+    positions,
+    claimable,
+    marketId,
+    outcomeId,
+  }: {
+    address: string;
+    positions: PredictPosition[];
+    claimable: boolean;
+    marketId?: string;
+    outcomeId?: string;
+  }): PredictPosition[] {
+    const optimisticUpdates =
+      this.#optimisticPositionUpdatesByAddress.get(address);
+
+    if (!optimisticUpdates || optimisticUpdates.size === 0) {
+      return positions;
+    }
+
+    const now = Date.now();
+    const TIMEOUT_MS = 1 * 60 * 1000; // 1 minute
+    const result: PredictPosition[] = [...positions];
+    const updatesToRemove: string[] = [];
+
+    // Process each optimistic update
+    optimisticUpdates.forEach((update, outcomeTokenId) => {
+      // Safety timeout: Remove updates older than TIMEOUT_MS
+      if (now - update.timestamp > TIMEOUT_MS) {
+        updatesToRemove.push(outcomeTokenId);
+        DevLogger.log(
+          'PolymarketProvider: Removing optimistic update due to timeout',
+          {
+            outcomeTokenId,
+            age: now - update.timestamp,
+          },
+        );
+        return;
+      }
+
+      // Check if this update matches the query filters
+      const matchesFilter =
+        (!outcomeId || update.outcomeTokenId === outcomeId) &&
+        (!marketId || outcomeId || update.marketId === marketId);
+
+      const apiPositionIndex = result.findIndex(
+        (p) => p.outcomeTokenId === outcomeTokenId,
+      );
+
+      switch (update.type) {
+        case OptimisticUpdateType.CREATE:
+        case OptimisticUpdateType.UPDATE: {
+          if (apiPositionIndex >= 0) {
+            const apiPosition = result[apiPositionIndex];
+
+            // Check if API position reflects our update
+            if (this.isApiPositionUpdated(apiPosition, update)) {
+              // API has been updated, remove optimistic update
+              updatesToRemove.push(outcomeTokenId);
+              DevLogger.log(
+                'PolymarketProvider: API position updated, removing optimistic update',
+                {
+                  outcomeTokenId,
+                  apiSize: apiPosition.size,
+                  expectedSize: update.expectedSize,
+                },
+              );
+            } else if (
+              update.optimisticPosition &&
+              !claimable &&
+              matchesFilter
+            ) {
+              // API not yet updated, use optimistic position (only if matches filter)
+              result[apiPositionIndex] = update.optimisticPosition;
+            }
+          } else if (update.optimisticPosition && !claimable && matchesFilter) {
+            // New position not in API yet, add optimistic position (only if matches filter)
+            result.push(update.optimisticPosition);
+          }
+          break;
+        }
+
+        case OptimisticUpdateType.REMOVE: {
+          if (apiPositionIndex >= 0) {
+            // Position still exists in API, remove it from results (optimistic removal)
+            result.splice(apiPositionIndex, 1);
+          } else {
+            // Position not in this API response
+            // This is expected - the position should be gone!
+            // Keep the optimistic update active so it filters the position from other queries
+            // It will be cleaned up by the timeout (5 minutes)
+          }
+          break;
+        }
+      }
+    });
+
+    // Clean up confirmed/timed-out updates
+    if (updatesToRemove.length > 0) {
+      updatesToRemove.forEach((tokenId) => {
+        optimisticUpdates.delete(tokenId);
+      });
+
+      if (optimisticUpdates.size === 0) {
+        this.#optimisticPositionUpdatesByAddress.delete(address);
+      }
+    }
+
+    return result;
   }
 
   public async getPositions({
@@ -405,6 +772,7 @@ export class PolymarketProvider implements PredictProvider {
     offset = 0,
     claimable = false,
     marketId,
+    outcomeId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
@@ -420,8 +788,15 @@ export class PolymarketProvider implements PredictProvider {
       user: predictAddress,
       sortBy: 'CURRENT',
       redeemable: claimable.toString(),
-      ...(marketId && { eventId: marketId }),
     });
+
+    // Use market (conditionId/outcomeId) if provided for targeted fetch
+    // This is mutually exclusive with eventId (marketId)
+    if (outcomeId) {
+      queryParams.set('market', outcomeId);
+    } else if (marketId) {
+      queryParams.set('eventId', marketId);
+    }
 
     const response = await fetch(
       `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`,
@@ -437,23 +812,21 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Failed to get positions');
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
+
     const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
     });
 
-    // NOTE: Remove positions that were recently sold. This is a workaround for
-    // Polymarket's API taking some time to update positions
-    const soldPositions =
-      this.#recentlySoldPositionsByAddress.get(address) ?? [];
-
-    const filteredPositions = parsedPositions.filter((position) => {
-      const isSold = soldPositions.some(
-        (soldPosition) => soldPosition.positionId === position.id,
-      );
-      return !isSold;
+    // Apply optimistic updates (unified for BUY/SELL/CLAIM)
+    const positionsWithOptimisticUpdates = this.applyOptimisticPositionUpdates({
+      address,
+      positions: parsedPositions,
+      claimable,
+      marketId,
+      outcomeId,
     });
 
-    return filteredPositions;
+    return positionsWithOptimisticUpdates;
   }
 
   private async fetchActivity({
@@ -474,6 +847,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const queryParams = new URLSearchParams({
         user: predictAddress,
+        excludeLostRedeems: 'true',
       });
 
       const response = await fetch(
@@ -541,7 +915,10 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & { signer?: Signer },
+    params: Omit<PreviewOrderParams, 'providerId'> & {
+      signer: Signer;
+      feeCollection?: PredictFeeCollection;
+    },
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
@@ -573,8 +950,52 @@ export class PolymarketProvider implements PredictProvider {
       positionId,
     } = preview;
 
+    // Check existing position for both BUY and SELL to validate claimable status
+    let existingPosition: PredictPosition | undefined;
     if (side === Side.BUY) {
       this.#buyOrderInProgressByAddress.set(signer.address, true);
+    }
+
+    try {
+      // Use outcomeId for efficient targeted lookup
+      const positions = await this.getPositions({
+        address: signer.address,
+        outcomeId: preview.outcomeId,
+        limit: 5,
+      });
+      existingPosition = positions.find(
+        (p) => p.outcomeTokenId === outcomeTokenId,
+      );
+
+      // Check if position is claimable - cannot place orders on claimable positions
+      // Claimable positions mean the market is closed and API has final state
+      if (existingPosition?.claimable) {
+        const error = 'Cannot place orders on claimable positions';
+        DevLogger.log(
+          'PolymarketProvider: Order blocked on claimable position',
+          {
+            error,
+            outcomeTokenId,
+            side,
+            claimable: existingPosition.claimable,
+          },
+        );
+        if (side === Side.BUY) {
+          this.#buyOrderInProgressByAddress.set(signer.address, false);
+        }
+        return {
+          success: false,
+          error,
+        } as OrderResult;
+      }
+    } catch (error) {
+      if (side === Side.BUY) {
+        this.#buyOrderInProgressByAddress.set(signer.address, false);
+      }
+      DevLogger.log(
+        'PolymarketProvider: Failed to fetch existing position',
+        error,
+      );
     }
 
     try {
@@ -691,7 +1112,7 @@ export class PolymarketProvider implements PredictProvider {
           safeAddress,
           signer,
           amount: feeAmountInUsdc,
-          to: FEE_COLLECTOR_ADDRESS,
+          to: fees.collector,
         });
       }
 
@@ -709,9 +1130,16 @@ export class PolymarketProvider implements PredictProvider {
           outcomeTokenId,
         });
         if (error.includes(`order couldn't be fully filled`)) {
-          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+          throw new Error(
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+          );
         }
-        if (error.includes(`not available in your region`)) {
+        if (
+          error.includes(`not available in your region`) ||
+          error.includes(`unable to access this provider`)
+        ) {
           throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
         }
         throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
@@ -719,10 +1147,51 @@ export class PolymarketProvider implements PredictProvider {
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
+
+        // Create optimistic position update
+        if (response.makingAmount && response.takingAmount) {
+          try {
+            const spentAmount = parseFloat(response.makingAmount);
+            const receivedAmount = parseFloat(response.takingAmount);
+
+            await this.createOrUpdateOptimisticPosition({
+              address: signer.address,
+              type: existingPosition
+                ? OptimisticUpdateType.UPDATE
+                : OptimisticUpdateType.CREATE,
+              marketId: preview.marketId,
+              outcomeId: preview.outcomeId,
+              outcomeTokenId,
+              spentAmount,
+              receivedAmount,
+              existingPosition,
+              preview,
+            });
+          } catch (optimisticError) {
+            // Log but don't fail the order
+            DevLogger.log(
+              'PolymarketProvider: Failed to create optimistic position update',
+              optimisticError,
+            );
+            Logger.error(
+              optimisticError instanceof Error
+                ? optimisticError
+                : new Error(String(optimisticError)),
+              this.getErrorContext('placeOrder:optimisticUpdate', {
+                operation: 'optimistic_position_update',
+                outcomeTokenId,
+                side,
+              }),
+            );
+          }
+        }
       } else if (positionId) {
-        this.addRecentlySoldPositions({
+        // SELL order - mark position for optimistic removal
+        this.removeOptimisticPosition({
           address: signer.address,
-          positionIds: [positionId],
+          positionId,
+          outcomeTokenId,
+          marketId: preview.marketId,
         });
       }
 
@@ -771,6 +1240,14 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
+      const signerBalance = await getBalance({ address: signer.address });
+
+      let includeTransferTransaction = false;
+
+      if (signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM) {
+        includeTransferTransaction = true;
+      }
+
       // Get safe address from cache or fetch it
       let safeAddress: string | undefined;
       try {
@@ -794,6 +1271,7 @@ export class PolymarketProvider implements PredictProvider {
           signer,
           positions,
           safeAddress,
+          includeTransferTransaction,
         });
       } catch (error) {
         throw new Error(
@@ -831,9 +1309,14 @@ export class PolymarketProvider implements PredictProvider {
     positions: PredictPosition[];
     signer: Signer;
   }) {
-    this.addRecentlySoldPositions({
-      address: signer.address,
-      positionIds: positions.map((position) => position.id),
+    // Use unified optimistic update system for claim operations
+    positions.forEach((position) => {
+      this.removeOptimisticPosition({
+        address: signer.address,
+        positionId: position.id,
+        outcomeTokenId: position.outcomeTokenId,
+        marketId: position.marketId,
+      });
     });
   }
 
@@ -870,6 +1353,32 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
     return result;
+  }
+
+  /**
+   * Set user trait for Polymarket account creation via MetaMask
+   * Fire-and-forget operation that logs errors but doesn't fail
+   */
+  private setPolymarketAccountCreatedTrait(): void {
+    MetaMetrics.getInstance()
+      .addTraitsToUser({
+        [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
+      })
+      .catch((error) => {
+        // Log error but don't fail the deposit preparation
+        Logger.error(error as Error, {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            provider: 'polymarket',
+          },
+          context: {
+            name: 'PolymarketProvider',
+            data: {
+              method: 'setPolymarketAccountCreatedTrait',
+            },
+          },
+        });
+      });
   }
 
   public async prepareDeposit(
@@ -914,6 +1423,9 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       transactions.push(deployTransaction);
+
+      // Set user trait for Polymarket account creation via MetaMask
+      this.setPolymarketAccountCreatedTrait();
     }
 
     if (!accountState.hasAllowances) {
@@ -954,9 +1466,15 @@ export class PolymarketProvider implements PredictProvider {
       type: TransactionType.predictDeposit,
     });
 
+    const chainId = CHAIN_IDS.POLYGON;
+    const isPolygonChain =
+      chainId.toLowerCase() ===
+      numberToHex(POLYGON_MAINNET_CHAIN_ID).toLowerCase();
+
     return {
-      chainId: CHAIN_IDS.POLYGON,
+      chainId,
       transactions,
+      gasFeeToken: isPolygonChain ? (collateral as Hex) : undefined,
     };
   }
 
@@ -1059,7 +1577,7 @@ export class PolymarketProvider implements PredictProvider {
       transaction: {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
-          data: callData as Hex,
+          data: callData,
         },
         type: TransactionType.predictWithdraw,
       },
@@ -1091,6 +1609,31 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedCallData,
       amount,
+    };
+  }
+
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToGame(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToMarketPrices(
+      tokenIds,
+      callback,
+    );
+  }
+
+  public getConnectionStatus(): ConnectionStatus {
+    const status = WebSocketManager.getInstance().getConnectionStatus();
+    return {
+      sportsConnected: status.sportsConnected,
+      marketConnected: status.marketConnected,
     };
   }
 }

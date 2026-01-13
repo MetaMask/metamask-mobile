@@ -1,14 +1,19 @@
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -19,45 +24,85 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
 }: PredictPositionProps) => {
+  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
   const {
     icon,
     title,
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
-  } = position;
-  const { styles } = useStyles(styleSheet, {});
+    size,
+    optimistic,
+  } = currentPosition;
 
   return (
     <TouchableOpacity
       testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
-      onPress={() => onPress?.(position)}
+      onPress={() => onPress?.(currentPosition)}
     >
       <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+        >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          ${initialValue.toFixed(2)} on {outcome} •{' '}
-          {(avgPrice * 100).toFixed(0)}¢
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          style={tw.style('font-medium')}
+        >
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-        >
-          {formatPercentage(percentPnl)}
-        </Text>
+        {optimistic ? (
+          <>
+            <Skeleton width={60} height={20} style={styles.skeletonSpacing} />
+            <Skeleton width={50} height={16} />
+          </>
+        ) : (
+          <>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-medium')}
+            >
+              {formatPrice(currentValue, { maximumDecimals: 2 })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              style={tw.style('font-medium')}
+              color={
+                percentPnl > 0
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+              }
+            >
+              {formatPercentage(percentPnl)}
+            </Text>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );
