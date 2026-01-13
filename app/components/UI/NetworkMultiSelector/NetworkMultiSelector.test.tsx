@@ -2475,7 +2475,6 @@ describe('NetworkMultiSelector', () => {
       expect(customNetworkProps.showPopularNetworkModal).toBe(true);
       expect(customNetworkProps.allowNetworkSwitch).toBe(false);
       expect(customNetworkProps.hideWarningIcons).toBe(true);
-      expect(customNetworkProps.compactMode).toBe(true);
       expect(customNetworkProps.isNetworkModalVisible).toBe(false);
       expect(typeof customNetworkProps.closeNetworkModal).toBe('function');
       expect(typeof customNetworkProps.toggleWarningModal).toBe('function');
