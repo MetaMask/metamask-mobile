@@ -215,17 +215,22 @@ jobs:
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
             echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            
-            if [ "$key" = "EXPO_KEY_PRIV_B64" ]; then
-              echo "First 3 chars: ${value:0:3}..."
-              DECODED_KEY=$(echo "$value" | base64 --decode)
-              echo "::add-mask::$DECODED_KEY"
-              echo "EXPO_KEY_PRIV=$DECODED_KEY" >> "$GITHUB_ENV"
-              echo "✅ Decoded and set EXPO_KEY_PRIV from $key"
-            fi
-            
             echo "✅ Set secret for key: $key"
           done
+
+      - name: Configure Expo Key
+        shell: bash
+        run: |
+          echo "📦 Configuring EXPO key..."
+          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
+            exit 1
+          fi
+
+          # Use provided path if set, fallback to default
+          KEY_PATH="${EXPO_KEY_PRIV_B64:-/tmp/key.pem}"
+          echo "$EXPO_KEY_PRIV_B64" | base64 --decode > "$KEY_PATH"
+          echo "✅ Android keystore written to $KEY_PATH"
 
       - name: Use the exported secrets
         run: |
