@@ -20,19 +20,25 @@ export interface GameChartSeries {
  */
 export type ChartTimeframe = 'live' | '6h' | '1d' | 'max';
 
-/**
- * Props for PredictGameChart component
- */
-export interface PredictGameChartProps {
-  /** Array of chart series (max 2 for away/home teams) */
+export interface GameChartSeriesConfig {
+  label: string;
+  color: string;
+}
+
+export interface PredictGameChartContentProps {
   data: GameChartSeries[];
-  /** Whether chart data is loading */
   isLoading?: boolean;
-  /** Currently selected timeframe */
+  error?: string | null;
+  onRetry?: () => void;
   timeframe?: ChartTimeframe;
-  /** Callback when timeframe changes */
   onTimeframeChange?: (timeframe: ChartTimeframe) => void;
-  /** Test ID for component */
+  testID?: string;
+}
+
+export interface PredictGameChartProps {
+  tokenIds: [string, string];
+  seriesConfig: [GameChartSeriesConfig, GameChartSeriesConfig];
+  providerId?: string;
   testID?: string;
 }
 

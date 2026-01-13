@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import PredictGameChart from './PredictGameChart';
+import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
 
 jest.mock('react-native-svg-charts', () => {
@@ -95,7 +95,7 @@ const mockDualSeriesData: GameChartSeries[] = [
   mockHomeTeamData,
 ];
 
-describe('PredictGameChart', () => {
+describe('PredictGameChartContent (Chart UI)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -107,7 +107,7 @@ describe('PredictGameChart', () => {
   describe('Rendering', () => {
     it('renders chart with data', () => {
       const { getByTestId, getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} testID="chart" />,
+        <PredictGameChartContent data={mockDualSeriesData} testID="chart" />,
       );
 
       expect(getByTestId('chart')).toBeOnTheScreen();
@@ -116,7 +116,7 @@ describe('PredictGameChart', () => {
 
     it('renders loading state when isLoading is true', () => {
       const { getByTestId, queryByText } = renderWithProvider(
-        <PredictGameChart data={[]} isLoading testID="chart" />,
+        <PredictGameChartContent data={[]} isLoading testID="chart" />,
       );
 
       expect(getByTestId('chart')).toBeOnTheScreen();
@@ -125,7 +125,7 @@ describe('PredictGameChart', () => {
 
     it('renders empty state when no data provided', () => {
       const { getByText } = renderWithProvider(
-        <PredictGameChart data={[]} testID="chart" />,
+        <PredictGameChartContent data={[]} testID="chart" />,
       );
 
       expect(getByText('No price history available')).toBeOnTheScreen();
@@ -136,17 +136,107 @@ describe('PredictGameChart', () => {
         { label: 'Empty', color: '#000', data: [] },
       ];
       const { getByText } = renderWithProvider(
-        <PredictGameChart data={emptySeriesData} testID="chart" />,
+        <PredictGameChartContent data={emptySeriesData} testID="chart" />,
       );
 
       expect(getByText('No price history available')).toBeOnTheScreen();
     });
   });
 
+  describe('Error State', () => {
+    it('renders error state when error prop is provided', () => {
+      const { getByText, queryByTestId } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Failed to fetch price history"
+          testID="chart"
+        />,
+      );
+
+      expect(getByText('Unable to load price history')).toBeOnTheScreen();
+      expect(queryByTestId('line-chart')).not.toBeOnTheScreen();
+    });
+
+    it('renders retry button when onRetry is provided', () => {
+      const onRetry = jest.fn();
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Failed to fetch"
+          onRetry={onRetry}
+          testID="chart"
+        />,
+      );
+
+      expect(getByText('Retry')).toBeOnTheScreen();
+      expect(getByTestId('retry-button')).toBeOnTheScreen();
+    });
+
+    it('calls onRetry when retry button is pressed', () => {
+      const onRetry = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Failed to fetch"
+          onRetry={onRetry}
+          testID="chart"
+        />,
+      );
+
+      fireEvent.press(getByTestId('retry-button'));
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render retry button when onRetry is not provided', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Failed to fetch"
+          testID="chart"
+        />,
+      );
+
+      expect(queryByText('Retry')).not.toBeOnTheScreen();
+      expect(queryByTestId('retry-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders timeframe selector in error state when onTimeframeChange provided', () => {
+      const onTimeframeChange = jest.fn();
+
+      const { getByText } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Failed to fetch"
+          onTimeframeChange={onTimeframeChange}
+          testID="chart"
+        />,
+      );
+
+      expect(getByText('Live')).toBeOnTheScreen();
+      expect(getByText('6H')).toBeOnTheScreen();
+    });
+
+    it('prioritizes error state over empty state', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          error="Network error"
+          testID="chart"
+        />,
+      );
+
+      expect(getByText('Unable to load price history')).toBeOnTheScreen();
+      expect(queryByText('No price history available')).not.toBeOnTheScreen();
+    });
+  });
+
   describe('Dual Series Rendering', () => {
     it('renders both team lines with correct data', () => {
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} />,
+        <PredictGameChartContent data={mockDualSeriesData} />,
       );
 
       const charts = getAllByTestId('line-chart');
@@ -160,7 +250,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={threeSeries} />,
+        <PredictGameChartContent data={threeSeries} />,
       );
 
       const charts = getAllByTestId('line-chart');
@@ -173,7 +263,7 @@ describe('PredictGameChart', () => {
       const onTimeframeChange = jest.fn();
 
       const { getByText } = renderWithProvider(
-        <PredictGameChart
+        <PredictGameChartContent
           data={mockDualSeriesData}
           onTimeframeChange={onTimeframeChange}
         />,
@@ -187,7 +277,7 @@ describe('PredictGameChart', () => {
 
     it('does not render timeframe selector when onTimeframeChange not provided', () => {
       const { queryByText } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} />,
+        <PredictGameChartContent data={mockDualSeriesData} />,
       );
 
       expect(queryByText('Live')).not.toBeOnTheScreen();
@@ -197,7 +287,7 @@ describe('PredictGameChart', () => {
       const onTimeframeChange = jest.fn();
 
       const { getByText } = renderWithProvider(
-        <PredictGameChart
+        <PredictGameChartContent
           data={mockDualSeriesData}
           onTimeframeChange={onTimeframeChange}
         />,
@@ -212,7 +302,7 @@ describe('PredictGameChart', () => {
       const onTimeframeChange = jest.fn();
 
       const { getByText } = renderWithProvider(
-        <PredictGameChart
+        <PredictGameChartContent
           data={[]}
           isLoading
           onTimeframeChange={onTimeframeChange}
@@ -226,7 +316,7 @@ describe('PredictGameChart', () => {
   describe('Data Processing', () => {
     it('processes chart data correctly', () => {
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} />,
+        <PredictGameChartContent data={mockDualSeriesData} />,
       );
 
       const chartDataElements = getAllByTestId('chart-data');
@@ -237,7 +327,7 @@ describe('PredictGameChart', () => {
 
     it('calculates chart bounds with padding', () => {
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} />,
+        <PredictGameChartContent data={mockDualSeriesData} />,
       );
 
       const lineCharts = getAllByTestId('line-chart');
@@ -258,7 +348,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getByTestId } = renderWithProvider(
-        <PredictGameChart data={extremeData} />,
+        <PredictGameChartContent data={extremeData} />,
       );
 
       const lineChart = getByTestId('line-chart');
@@ -272,7 +362,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getByText } = renderWithProvider(
-        <PredictGameChart data={emptyData} />,
+        <PredictGameChartContent data={emptyData} />,
       );
 
       expect(getByText('No price history available')).toBeOnTheScreen();
@@ -284,7 +374,7 @@ describe('PredictGameChart', () => {
       const singlePointData: GameChartSeries[] = [mockAwayTeamData];
 
       const { getByTestId } = renderWithProvider(
-        <PredictGameChart data={singlePointData} />,
+        <PredictGameChartContent data={singlePointData} />,
       );
 
       expect(getByTestId('line-chart')).toBeOnTheScreen();
@@ -313,7 +403,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={sameValueData} />,
+        <PredictGameChartContent data={sameValueData} />,
       );
 
       const lineCharts = getAllByTestId('line-chart');
@@ -326,7 +416,7 @@ describe('PredictGameChart', () => {
   describe('Touch Interactions', () => {
     it('renders chart with pan handler setup', () => {
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={mockDualSeriesData} />,
+        <PredictGameChartContent data={mockDualSeriesData} />,
       );
 
       const lineCharts = getAllByTestId('line-chart');
@@ -339,7 +429,7 @@ describe('PredictGameChart', () => {
       const onTimeframeChange = jest.fn();
 
       renderWithProvider(
-        <PredictGameChart
+        <PredictGameChartContent
           data={mockDualSeriesData}
           onTimeframeChange={onTimeframeChange}
         />,
@@ -352,7 +442,7 @@ describe('PredictGameChart', () => {
       const onTimeframeChange = jest.fn();
 
       const { getByText } = renderWithProvider(
-        <PredictGameChart
+        <PredictGameChartContent
           data={mockDualSeriesData}
           timeframe="1d"
           onTimeframeChange={onTimeframeChange}
@@ -385,7 +475,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={largeDataset} />,
+        <PredictGameChartContent data={largeDataset} />,
       );
 
       expect(getAllByTestId('line-chart').length).toBeGreaterThanOrEqual(1);
@@ -414,7 +504,7 @@ describe('PredictGameChart', () => {
       ];
 
       const { getAllByTestId } = renderWithProvider(
-        <PredictGameChart data={inverseData} />,
+        <PredictGameChartContent data={inverseData} />,
       );
 
       const charts = getAllByTestId('line-chart');

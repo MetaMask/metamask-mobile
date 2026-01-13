@@ -1,294 +1,189 @@
-import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { PanResponder, View, StyleSheet } from 'react-native';
-import { LineChart } from 'react-native-svg-charts';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import { PredictPriceHistoryInterval } from '../../types';
+import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import PredictGameChartContent from './PredictGameChartContent';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
-import { curveStepAfter } from 'd3-shape';
-import { PredictGameChartProps } from './PredictGameChart.types';
-import TimeframeSelector from './TimeframeSelector';
-import ChartTooltip from './ChartTooltip';
-import EndpointDots from './EndpointDots';
-import { CHART_HEIGHT } from './PredictGameChart.constants';
+  PredictGameChartProps,
+  GameChartSeries,
+  GameChartDataPoint,
+  ChartTimeframe,
+} from './PredictGameChart.types';
 
-const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 10, right: 80 };
-const LINE_CURVE = curveStepAfter;
+const TIMEFRAME_TO_INTERVAL: Record<
+  ChartTimeframe,
+  PredictPriceHistoryInterval
+> = {
+  live: PredictPriceHistoryInterval.ONE_HOUR,
+  '6h': PredictPriceHistoryInterval.SIX_HOUR,
+  '1d': PredictPriceHistoryInterval.ONE_DAY,
+  max: PredictPriceHistoryInterval.MAX,
+};
+
+const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
+  live: 1,
+  '6h': 5,
+  '1d': 15,
+  max: 60,
+};
+
+const getMinuteTimestamp = (timestamp: number): number =>
+  Math.floor(timestamp / 60000) * 60000;
 
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
-  data,
-  isLoading = false,
-  timeframe = 'live',
-  onTimeframeChange,
+  tokenIds,
+  seriesConfig,
+  providerId = 'polymarket',
   testID,
 }) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-  const chartWidthRef = useRef<number>(0);
+  const [timeframe, setTimeframe] = useState<ChartTimeframe>('live');
+  const [liveChartData, setLiveChartData] = useState<GameChartSeries[]>([]);
+  const lastMinuteRef = useRef<number>(0);
+  const initialDataLoadedRef = useRef<boolean>(false);
 
-  const seriesToRender = useMemo(() => data.slice(0, 2), [data]);
-  const nonEmptySeries = useMemo(
-    () => seriesToRender.filter((series) => series.data.length > 0),
-    [seriesToRender],
-  );
-  const hasData = nonEmptySeries.length > 0;
+  const isLive = timeframe === 'live';
+  const interval = TIMEFRAME_TO_INTERVAL[timeframe];
+  const fidelity = FIDELITY_BY_TIMEFRAME[timeframe];
 
-  const { chartMin, chartMax } = useMemo(() => {
-    if (!hasData) {
-      return { chartMin: 0, chartMax: 100 };
+  const { priceHistories, isFetching, errors, refetch } =
+    usePredictPriceHistory({
+      marketIds: tokenIds,
+      interval,
+      fidelity,
+      providerId,
+      enabled: tokenIds.length === 2,
+    });
+
+  const { prices } = useLiveMarketPrices(tokenIds, {
+    enabled: isLive && tokenIds.length === 2,
+  });
+
+  const historicalChartData: GameChartSeries[] = useMemo(() => {
+    if (priceHistories.length < 2) return [];
+
+    return tokenIds.map((_tokenId, index) => {
+      const history = priceHistories[index] ?? [];
+      const config = seriesConfig[index];
+
+      return {
+        label: config.label,
+        color: config.color,
+        data: history.map((point) => ({
+          timestamp:
+            typeof point.timestamp === 'number'
+              ? point.timestamp
+              : new Date(point.timestamp).getTime(),
+          value: Number((point.price * 100).toFixed(2)),
+        })),
+      };
+    });
+  }, [priceHistories, tokenIds, seriesConfig]);
+
+  useEffect(() => {
+    if (!isLive) {
+      initialDataLoadedRef.current = false;
+      setLiveChartData([]);
+      return;
     }
 
-    const chartValues = nonEmptySeries.flatMap((series) =>
-      series.data.map((point) => point.value),
-    );
-    const minValue = Math.min(...chartValues);
-    const maxValue = Math.max(...chartValues);
-    const range = maxValue - minValue;
-    const padding = range === 0 ? Math.max(maxValue * 0.1, 1) : range * 0.1;
+    if (
+      historicalChartData.length === 2 &&
+      historicalChartData[0].data.length > 0
+    ) {
+      setLiveChartData(historicalChartData);
+      initialDataLoadedRef.current = true;
 
-    return {
-      chartMin: Math.max(0, minValue - padding),
-      chartMax: Math.min(100, maxValue + padding),
-    };
-  }, [hasData, nonEmptySeries]);
+      const lastPoint =
+        historicalChartData[0].data[historicalChartData[0].data.length - 1];
+      if (lastPoint) {
+        lastMinuteRef.current = getMinuteTimestamp(lastPoint.timestamp);
+      }
+    }
+  }, [isLive, historicalChartData]);
 
-  const primarySeries = nonEmptySeries[0] ?? seriesToRender[0];
-  const primaryData = primarySeries?.data ?? [];
-  const primaryChartData = primaryData.length
-    ? primaryData.map((point) => point.value)
-    : [50, 50];
+  const updateLiveData = useCallback(() => {
+    if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;
 
-  const handleChartLayout = useCallback(
-    (event: { nativeEvent: { layout: { width: number } } }) => {
-      chartWidthRef.current = event.nativeEvent.layout.width;
-    },
-    [],
-  );
+    const now = Date.now();
+    const currentMinute = getMinuteTimestamp(now);
 
-  const updatePosition = useCallback(
-    (xCoord: number) => {
-      if (primaryData.length === 0) return;
+    setLiveChartData((prevData) => {
+      if (prevData.length !== 2) return prevData;
 
-      const adjustedX = xCoord - CHART_CONTENT_INSET.left;
-      const chartDataWidth =
-        chartWidthRef.current -
-        CHART_CONTENT_INSET.left -
-        CHART_CONTENT_INSET.right;
+      const newData = prevData.map((series, index) => {
+        const tokenId = tokenIds[index];
+        const priceUpdate = prices.get(tokenId);
 
-      if (chartDataWidth <= 0) return;
+        if (!priceUpdate) return series;
 
-      const index = Math.round(
-        (adjustedX / chartDataWidth) * (primaryData.length - 1),
-      );
+        const newValue = Number((priceUpdate.price * 100).toFixed(2));
+        const newPoint: GameChartDataPoint = {
+          timestamp: now,
+          value: newValue,
+        };
 
-      const clampedIndex = Math.max(0, Math.min(primaryData.length - 1, index));
-      setActiveIndex(clampedIndex);
-    },
-    [primaryData.length],
-  );
+        const existingData = [...series.data];
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onStartShouldSetPanResponderCapture: () => false,
-        onMoveShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
-          const { dx, dy } = gestureState;
-          return Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5;
-        },
-        onPanResponderTerminationRequest: (_event, gestureState) => {
-          const { dx, dy } = gestureState;
-          return Math.abs(dy) > Math.abs(dx);
-        },
-        onPanResponderGrant: (event) => {
-          updatePosition(event.nativeEvent.locationX);
-        },
-        onPanResponderMove: (event, gestureState) => {
-          const { dx, dy } = gestureState;
-          if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
-            setActiveIndex(-1);
-          } else {
-            updatePosition(event.nativeEvent.locationX);
+        if (currentMinute === lastMinuteRef.current) {
+          if (existingData.length > 0) {
+            existingData[existingData.length - 1] = newPoint;
           }
-        },
-        onPanResponderRelease: () => {
-          setActiveIndex(-1);
-        },
-        onPanResponderTerminate: () => {
-          setActiveIndex(-1);
-        },
-      }),
-    [updatePosition],
-  );
+        } else {
+          existingData.push(newPoint);
+          if (existingData.length > 60) {
+            existingData.shift();
+          }
+        }
 
-  if (isLoading) {
-    return (
-      <Box twClassName="flex-1" testID={testID}>
-        <View
-          style={tw.style(
-            `h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`,
-          )}
-        />
-        {onTimeframeChange && (
-          <TimeframeSelector
-            selected={timeframe}
-            onSelect={onTimeframeChange}
-            disabled
-          />
-        )}
-      </Box>
-    );
-  }
+        return {
+          ...series,
+          data: existingData,
+        };
+      });
 
-  if (!hasData) {
-    return (
-      <Box twClassName="flex-1 justify-center items-center" testID={testID}>
-        <View
-          style={tw.style(`h-[${CHART_HEIGHT}px] justify-center items-center`)}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            No price history available
-          </Text>
-        </View>
-        {onTimeframeChange && (
-          <TimeframeSelector
-            selected={timeframe}
-            onSelect={onTimeframeChange}
-          />
-        )}
-      </Box>
-    );
-  }
+      lastMinuteRef.current = currentMinute;
+      return newData;
+    });
+  }, [isLive, prices, tokenIds]);
 
-  const overlaySeries = nonEmptySeries.slice(1);
-  const grayColor = colors.text.muted;
+  useEffect(() => {
+    updateLiveData();
+  }, [updateLiveData, prices]);
 
-  const getActiveData = (values: number[]) =>
-    values.map((v, i) => (i <= activeIndex ? v : null));
+  const handleTimeframeChange = useCallback((newTimeframe: ChartTimeframe) => {
+    setTimeframe(newTimeframe);
+  }, []);
 
-  const getInactiveData = (values: number[]) =>
-    values.map((v, i) => (i >= activeIndex ? v : null));
+  const handleRetry = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
-  const isTooltipActive = activeIndex >= 0;
+  const chartData = isLive ? liveChartData : historicalChartData;
+  const isLoading =
+    isFetching ||
+    (isLive && !initialDataLoadedRef.current && chartData.length === 0);
+
+  const hasErrors = errors.some((error) => error !== null);
+  const errorMessage = hasErrors
+    ? (errors.find((error) => error !== null) ?? null)
+    : null;
 
   return (
-    <Box twClassName="flex-1" testID={testID}>
-      <View
-        style={tw.style(`h-[${CHART_HEIGHT}px]`)}
-        {...panResponder.panHandlers}
-        onLayout={handleChartLayout}
-      >
-        {!isTooltipActive ? (
-          <>
-            <LineChart
-              style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
-              data={primaryChartData}
-              svg={{
-                stroke: primarySeries?.color || colors.primary.default,
-                strokeWidth: 2,
-              }}
-              contentInset={CHART_CONTENT_INSET}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
-            >
-              <EndpointDots nonEmptySeries={nonEmptySeries} />
-            </LineChart>
-
-            {overlaySeries.map((series, index) => (
-              <LineChart
-                key={`overlay-${index}`}
-                style={StyleSheet.absoluteFillObject}
-                data={series.data.map((point) => point.value)}
-                svg={{ stroke: series.color, strokeWidth: 2 }}
-                contentInset={CHART_CONTENT_INSET}
-                yMin={chartMin}
-                yMax={chartMax}
-                curve={LINE_CURVE}
-              />
-            ))}
-          </>
-        ) : (
-          <>
-            <LineChart
-              style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
-              data={getActiveData(primaryChartData)}
-              svg={{
-                stroke: primarySeries?.color || colors.primary.default,
-                strokeWidth: 2,
-              }}
-              contentInset={CHART_CONTENT_INSET}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
-            />
-            <LineChart
-              style={StyleSheet.absoluteFillObject}
-              data={getInactiveData(primaryChartData)}
-              svg={{ stroke: grayColor, strokeWidth: 2 }}
-              contentInset={CHART_CONTENT_INSET}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
-            />
-
-            {overlaySeries.map((series, index) => {
-              const seriesValues = series.data.map((point) => point.value);
-              return (
-                <React.Fragment key={`overlay-split-${index}`}>
-                  <LineChart
-                    style={StyleSheet.absoluteFillObject}
-                    data={getActiveData(seriesValues)}
-                    svg={{ stroke: series.color, strokeWidth: 2 }}
-                    contentInset={CHART_CONTENT_INSET}
-                    yMin={chartMin}
-                    yMax={chartMax}
-                    curve={LINE_CURVE}
-                  />
-                  <LineChart
-                    style={StyleSheet.absoluteFillObject}
-                    data={getInactiveData(seriesValues)}
-                    svg={{ stroke: grayColor, strokeWidth: 2 }}
-                    contentInset={CHART_CONTENT_INSET}
-                    yMin={chartMin}
-                    yMax={chartMax}
-                    curve={LINE_CURVE}
-                  />
-                </React.Fragment>
-              );
-            })}
-
-            <LineChart
-              style={StyleSheet.absoluteFillObject}
-              data={primaryChartData}
-              svg={{ stroke: 'transparent', strokeWidth: 0 }}
-              contentInset={CHART_CONTENT_INSET}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
-            >
-              <ChartTooltip
-                activeIndex={activeIndex}
-                primaryData={primaryData}
-                nonEmptySeries={nonEmptySeries}
-                chartWidth={chartWidthRef.current}
-                contentInset={CHART_CONTENT_INSET}
-              />
-            </LineChart>
-          </>
-        )}
-      </View>
-
-      {onTimeframeChange && (
-        <TimeframeSelector selected={timeframe} onSelect={onTimeframeChange} />
-      )}
-    </Box>
+    <PredictGameChartContent
+      data={chartData}
+      isLoading={isLoading}
+      error={errorMessage}
+      onRetry={handleRetry}
+      timeframe={timeframe}
+      onTimeframeChange={handleTimeframeChange}
+      testID={testID}
+    />
   );
 };
 
