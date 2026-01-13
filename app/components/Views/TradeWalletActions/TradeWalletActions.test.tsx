@@ -1,4 +1,4 @@
-import { act, fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -283,39 +283,6 @@ jest.mock('react-native-safe-area-context', () => {
       .mockImplementation(({ children }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
-// Mock react-native-reanimated to ensure animation callbacks execute immediately
-jest.mock('react-native-reanimated', () => {
-  const actualReanimated = jest.requireActual('react-native-reanimated/mock');
-  // Store the callback so we can trigger it manually
-  let storedCallback: ((finished: boolean) => void) | null = null;
-
-  const mockWithCallback = jest.fn((callback: (finished: boolean) => void) => {
-    storedCallback = callback;
-    // Immediately call the callback in tests
-    setTimeout(() => {
-      if (storedCallback) {
-        storedCallback(true);
-      }
-    }, 0);
-    return {};
-  });
-
-  const mockDuration = jest.fn(() => ({
-    withCallback: mockWithCallback,
-  }));
-
-  return {
-    ...actualReanimated,
-    FadeOutDown: {
-      duration: mockDuration,
-    },
-    runOnJS: jest.fn((fn: () => void) =>
-      // Execute immediately in tests
-       fn
-    ),
   };
 });
 
@@ -702,10 +669,10 @@ describe('TradeWalletActions', () => {
     const { useStakingEligibilityGuard } = jest.requireMock(
       '../../UI/Stake/hooks/useStakingEligibilityGuard',
     );
-    const mockCheckEligibilityAndRedirect = jest.fn();
+    let mockCheckEligibilityAndRedirect: jest.Mock;
 
     beforeEach(() => {
-      mockCheckEligibilityAndRedirect.mockClear();
+      mockCheckEligibilityAndRedirect = jest.fn();
       (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: true,
         checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
@@ -720,7 +687,7 @@ describe('TradeWalletActions', () => {
       ).mockReturnValue(true);
       mockCheckEligibilityAndRedirect.mockReturnValue(false);
 
-      const { getByTestId, unmount } = renderScreen(TradeWalletActions, {
+      const { getByTestId } = renderScreen(TradeWalletActions, {
         name: 'TradeWalletActions',
       });
 
@@ -728,13 +695,13 @@ describe('TradeWalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
       );
 
-      // The postCallback is executed when the component unmounts or animation exits
-      // Unmounting triggers the animation exit which calls postCallback
-      await act(async () => {
-        unmount();
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
+      await waitFor(
+        () => {
+          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+        },
+        { timeout: 1000 },
+      );
       // Should navigate to Portfolio, not to StakeModals
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeModals',
@@ -750,7 +717,7 @@ describe('TradeWalletActions', () => {
       ).mockReturnValue(true);
       mockCheckEligibilityAndRedirect.mockReturnValue(true);
 
-      const { getByTestId, unmount } = renderScreen(TradeWalletActions, {
+      const { getByTestId } = renderScreen(TradeWalletActions, {
         name: 'TradeWalletActions',
       });
 
@@ -758,16 +725,19 @@ describe('TradeWalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
       );
 
-      // The postCallback is executed when the component unmounts or animation exits
-      // Unmounting triggers the animation exit which calls postCallback
-      await act(async () => {
-        unmount();
-      });
+      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
+      await waitFor(
+        () => {
+          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+        },
+        { timeout: 1000 },
+      );
 
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-        screen: expect.any(String),
-        params: expect.any(Object),
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+          screen: expect.any(String),
+          params: expect.any(Object),
+        });
       });
     });
   });
