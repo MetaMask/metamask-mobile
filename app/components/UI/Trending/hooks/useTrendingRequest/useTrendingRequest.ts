@@ -136,11 +136,8 @@ export const useTrendingRequest = (options: {
 
   // Track if initial load has completed successfully
   const initialLoadCompleteRef = useRef(false);
-
-  // Mark initial load as complete when loading finishes successfully
   useEffect(() => {
     if (!isLoading && !initialLoadCompleteRef.current) {
-      // Only mark as complete if we have results or no error (successful load)
       if (results.length > 0 || !error) {
         initialLoadCompleteRef.current = true;
       }
