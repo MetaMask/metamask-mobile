@@ -27,7 +27,7 @@ import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
-import { PortManager, ResourceType } from './framework';
+import { Gestures, PortManager, ResourceType } from './framework';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -365,7 +365,53 @@ export const switchToSepoliaNetwork = async () => {
     logger.error('Toast is not visible');
   }
 };
+/**
+ * Dismisses development build screens.
+ * Handles "Development servers" and "Developer menu" screens.
+ * These screens are expected to appear when running locally.
+ */
+export const dismissDevScreens = async () => {
+  const port = process.env.METRO_PORT_E2E || '8081';
+  const host = process.env.METRO_HOST_E2E || 'localhost';
+  const serverUrl = `http://${host}:${port}`;
 
+  try {
+    // 1. Check for Development Servers screen
+    // We tap the server row matching the current metro port
+    const devServerRow = Matchers.getElementByText(serverUrl);
+    await Assertions.expectElementToBeVisible(devServerRow, {
+      timeout: 2000,
+      description: 'Dev Server Row should be visible',
+    });
+    await Gestures.tap(devServerRow, { elemDescription: 'Dev Server Row' });
+
+    // 2. Check for Developer Menu onboarding
+    const continueButton = Matchers.getElementByText('Continue');
+    await Assertions.expectElementToBeVisible(continueButton, {
+      timeout: 5000,
+      description: 'Dev Menu Continue Button should be visible',
+    });
+
+    // Tap Continue to proceed past the onboarding screen.
+    await Gestures.tap(continueButton, {
+      elemDescription: 'Dev Menu Continue Button',
+    });
+
+    // 3. Close the Developer Menu
+    // After tapping Continue, the Developer Menu options list appears.
+    // The user provided the ID "fast-refresh" to tap on.
+    const fastRefreshButton = Matchers.getElementByID('fast-refresh');
+    await Assertions.expectElementToBeVisible(fastRefreshButton, {
+      timeout: 5000,
+      description: 'Dev Menu Fast Refresh Button should be visible',
+    });
+    await Gestures.tap(fastRefreshButton, {
+      elemDescription: 'Dev Menu Fast Refresh Button',
+    });
+  } catch {
+    logger.error('Dev screens dismiss error');
+  }
+};
 /**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.

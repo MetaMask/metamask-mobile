@@ -92,7 +92,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     ],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+        PerpsEventValues.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
       [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
     },
   });
