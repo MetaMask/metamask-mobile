@@ -85,6 +85,11 @@ const TronStakingButtons = ({
     });
   };
 
+  // Block deposits for ineligible users unless they have an active staked position
+  if (!isEligible && !hasStakedPositions) {
+    return null;
+  }
+
   return (
     <View style={styles.balanceButtonsContainer}>
       {!hasStakedPositions && isEligible && (
