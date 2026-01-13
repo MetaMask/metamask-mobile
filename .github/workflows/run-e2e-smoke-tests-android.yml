@@ -210,7 +210,18 @@ jobs:
           path: all-test-artifacts/
           pattern: 'test-e2e-*-android-*'
 
+      - name: Check if any tests ran
+        id: check-artifacts
+        run: |
+          if [ -d "all-test-artifacts" ] && [ "$(ls -A all-test-artifacts 2>/dev/null)" ]; then
+            echo "has_artifacts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_artifacts=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️ No test artifacts found - skipping report"
+          fi
+
       - name: Post Test Report
+        if: steps.check-artifacts.outputs.has_artifacts == 'true'
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: 'Android E2E Smoke Test Results'
@@ -221,12 +232,14 @@ jobs:
           list-tests: 'failed'
 
       - name: Upload all test artifacts (XMLs + Screenshots)
+        if: steps.check-artifacts.outputs.has_artifacts == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: e2e-smoke-android-all-test-artifacts
           path: all-test-artifacts/
 
       - name: Create mobile JSON test report
+        if: steps.check-artifacts.outputs.has_artifacts == 'true'
         id: create-json-report
         continue-on-error: true
         run: |
