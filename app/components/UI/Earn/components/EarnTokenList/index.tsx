@@ -239,7 +239,7 @@ const EarnTokenList = () => {
         return parseFloat(tronApyDecimal);
       }
 
-      return parseFloat(token?.experience?.apr ?? '0');
+      return parseFloat(token?.experience?.apr || '0');
     },
     [tronApyDecimal],
   );
