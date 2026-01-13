@@ -1,6 +1,12 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Platform,
   StyleSheet,
@@ -123,17 +129,6 @@ function TradeWalletActions() {
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
-    // Call postCallback as fallback (for testing and if animation doesn't trigger)
-    // The animation callback will also call it, but this ensures it's called
-    // Use Promise.resolve().then() for better test compatibility
-    if (postCallback.current) {
-      Promise.resolve().then(() => {
-        if (postCallback.current) {
-          postCallback.current();
-          postCallback.current = undefined;
-        }
-      });
-    }
   }, [onDismiss]);
 
   const goToSwaps = useCallback(() => {
@@ -235,10 +230,30 @@ function TradeWalletActions() {
     () =>
       exitingAnimationWithCallback(() => {
         navigation.goBack();
-        postCallback.current?.();
+        if (postCallback.current) {
+          postCallback.current();
+          postCallback.current = undefined;
+        }
       }),
     [exitingAnimationWithCallback, navigation],
   );
+
+  // Fallback for when animation callbacks don't fire (e.g., in tests with mocked Reanimated)
+  // This runs after the animation duration + buffer to ensure the animation callback gets
+  // first chance to handle navigation in production
+  useEffect(() => {
+    if (!visible && postCallback.current) {
+      const timeoutId = setTimeout(() => {
+        if (postCallback.current) {
+          navigation.goBack();
+          postCallback.current();
+          postCallback.current = undefined;
+        }
+      }, animationDuration + 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [visible, navigation]);
 
   return (
     <View style={tw.style('flex-1 justify-end')}>

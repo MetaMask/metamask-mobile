@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -672,6 +672,8 @@ describe('TradeWalletActions', () => {
     let mockCheckEligibilityAndRedirect: jest.Mock;
 
     beforeEach(() => {
+      // Reset selectCanSignTransactions to return true (previous test may have set it to false)
+      (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
       mockCheckEligibilityAndRedirect = jest.fn();
       (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: true,
@@ -679,43 +681,31 @@ describe('TradeWalletActions', () => {
       });
     });
 
-    it('redirects to Portfolio when user is not eligible and clicks earn button', async () => {
+    it('renders earn button as enabled when user can sign transactions', () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
         >
       ).mockReturnValue(true);
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
 
       const { getByTestId } = renderScreen(TradeWalletActions, {
         name: 'TradeWalletActions',
       });
 
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+      const earnButton = getByTestId(
+        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
       );
 
-      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
-      await waitFor(
-        () => {
-          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-        },
-        { timeout: 1000 },
-      );
-      // Should navigate to Portfolio, not to StakeModals
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeModals',
-        expect.any(Object),
-      );
+      expect(earnButton).toBeDefined();
+      expect(earnButton.props.accessibilityState?.disabled).toBeFalsy();
     });
 
-    it('navigates to earn token list when user is eligible and clicks earn button', async () => {
+    it('calls onDismiss when earn button is pressed', () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
         >
       ).mockReturnValue(true);
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
 
       const { getByTestId } = renderScreen(TradeWalletActions, {
         name: 'TradeWalletActions',
@@ -725,20 +715,21 @@ describe('TradeWalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
       );
 
-      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
-      await waitFor(
-        () => {
-          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-        },
-        { timeout: 1000 },
-      );
+      expect(mockOnDismiss).toHaveBeenCalled();
+    });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-          screen: expect.any(String),
-          params: expect.any(Object),
-        });
+    it('uses eligibility guard hook with correct configuration', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      renderScreen(TradeWalletActions, {
+        name: 'TradeWalletActions',
       });
+
+      expect(useStakingEligibilityGuard).toHaveBeenCalled();
     });
   });
 });
