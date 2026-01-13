@@ -411,4 +411,108 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.push).toHaveBeenCalled();
     });
   });
+
+  describe('Bookmark Button Disabled State', () => {
+    it('disables bookmark button when activeUrl is empty', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('disables bookmark button when activeUrl contains only whitespace', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="   " />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('enables bookmark button when activeUrl has valid value', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="https://example.com" />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(false);
+    });
+
+    it('does not navigate when bookmark button pressed with empty URL', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Bookmark Button Disabled State', () => {
+    it('disables bookmark button when activeUrl is empty', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('disables bookmark button when activeUrl contains only whitespace', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="   " />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('enables bookmark button when activeUrl has valid value', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="https://example.com" />,
+        { state: initialState },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      expect(bookmarkButton.props.accessibilityState.disabled).toBe(false);
+    });
+
+    it('does not navigate when bookmark button pressed with empty URL', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+  });
 });

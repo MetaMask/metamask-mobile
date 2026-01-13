@@ -173,9 +173,17 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   };
 
   /**
+   * Check if bookmark button should be disabled
+   */
+  const isBookmarkDisabled = !activeUrl || activeUrl.trim() === '';
+
+  /**
    * Handle bookmark button press - add or remove bookmark
    */
   const handleBookmarkPress = () => {
+    // Don't allow bookmarking empty URLs
+    if (isBookmarkDisabled) return;
+
     if (isBookmark()) {
       const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
       const bookmarkToRemove = bookmarks.find(
@@ -190,31 +198,39 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   };
 
   const onBackPress = (): void => {
-    goBack?.();
-    trackNavigationEvent('Go Back');
+    if (goBack) {
+      goBack();
+      trackNavigationEvent('Go Back');
+    }
   };
 
   const onForwardPress = (): void => {
-    goForward?.();
-    trackNavigationEvent('Go Forward');
+    if (goForward) {
+      goForward();
+      trackNavigationEvent('Go Forward');
+    }
   };
 
   const onReloadPress = (): void => {
-    reload?.();
-    trackNavigationEvent('Reload');
-    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
+    if (reload) {
+      reload();
+      trackNavigationEvent('Reload');
+      trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
+    }
   };
 
   const onNewTabPress = (): void => {
-    openNewTab?.();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
-        .addProperties({
-          option_chosen: 'Browser Bottom Bar',
-          number_of_tabs: undefined,
-        })
-        .build(),
-    );
+    if (openNewTab) {
+      openNewTab();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+          .addProperties({
+            option_chosen: 'Browser Bottom Bar',
+            number_of_tabs: undefined,
+          })
+          .build(),
+      );
+    }
   };
 
   return (
@@ -270,6 +286,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           iconName={isBookmark() ? IconName.StarFilled : IconName.Star}
           size={ButtonIconSize.Lg}
           onPress={handleBookmarkPress}
+          isDisabled={isBookmarkDisabled}
           testID={BrowserViewSelectorsIDs.BOOKMARK_BUTTON}
         />
 

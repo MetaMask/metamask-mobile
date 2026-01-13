@@ -170,10 +170,12 @@ class Browser {
   }: {
     delay?: number;
   } = {}): Promise<void> {
-    // Tabs button removed from bottom bar
-    // Redirect to new tab button as fallback
-    await Gestures.waitAndTap(this.newTabButton, {
-      elemDescription: 'New tab button (replacing tabs button)',
+    // Tabs button moved from bottom bar to URL bar
+    const tabsButton = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_BUTTON,
+    );
+    await Gestures.waitAndTap(tabsButton, {
+      elemDescription: 'Tabs button in URL bar',
       delay,
     });
   }
