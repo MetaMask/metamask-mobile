@@ -50,7 +50,7 @@ const CustomNetwork = ({
   showCompletionMessage = true,
   hideWarningIcons = false,
   allowNetworkSwitch = true,
-  compactMode = false,
+  showActionLabels = false,
   listHeader = '',
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -185,7 +185,7 @@ const CustomNetwork = ({
             networkConfiguration.chainId === selectedChainId ? (
               <CustomText link>{strings('networks.continue')}</CustomText>
             ) : (
-              !compactMode && (
+              showActionLabels && (
                 <Text variant={TextVariant.BodyMD}>
                   {networkConfiguration.isAdded
                     ? strings('networks.switch')
@@ -194,7 +194,7 @@ const CustomNetwork = ({
               )
             )}
           </View>
-          {compactMode && (
+          {!showActionLabels && (
             <View>
               <Icon
                 style={customNetworkStyles.icon}
