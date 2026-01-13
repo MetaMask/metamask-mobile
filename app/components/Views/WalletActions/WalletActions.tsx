@@ -42,7 +42,7 @@ import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { useStakingEligibilityGuard } from '../../UI/Stake/hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,7 +68,7 @@ const WalletActions = () => {
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
+  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -78,10 +78,6 @@ const WalletActions = () => {
   );
 
   const onEarn = useCallback(async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
-
     closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
@@ -112,7 +108,6 @@ const WalletActions = () => {
     chainId,
     createEventBuilder,
     trackEvent,
-    checkEligibilityAndRedirect,
   ]);
 
   const goToSwaps = useCallback(() => {
@@ -164,6 +159,7 @@ const WalletActions = () => {
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
+      !isEarnEligible ||
       !isStablecoinLendingEnabled ||
       (earnTokens.length <= 1 &&
         earnTokens[0]?.isETH &&
@@ -172,7 +168,13 @@ const WalletActions = () => {
       return false;
     }
     return true;
-  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
+  }, [
+    isEarnEligible,
+    isStablecoinLendingEnabled,
+    earnTokens,
+    isPooledStakingEnabled,
+  ]);
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>

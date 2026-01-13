@@ -12,10 +12,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -33,7 +29,6 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useBalance from '../../hooks/useBalance';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
@@ -54,6 +49,7 @@ import PercentageChange from '../../../../../component-library/components-temp/P
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
 import { useTheme } from '../../../../../util/theme';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -73,7 +69,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
-  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
+  const { isEligible } = useStakingEligibility();
+
   const { styles } = useStyles(styleSheet, { theme });
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
@@ -142,8 +139,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     trackEvent,
   ]);
 
-  if (!isStakingSupportedChain) {
-    return <></>;
+  if (!isStakingSupportedChain || !isEligible) {
+    return null;
   }
 
   const renderStakingContent = () => {
@@ -152,17 +149,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item height={50} borderRadius={6} />
         </SkeletonPlaceholder>
-      );
-    }
-
-    if (!isEligibleForPooledStaking) {
-      return (
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={BannerAlertSeverity.Info}
-          description={strings('stake.banner_text.geo_blocked')}
-          style={styles.bannerStyles}
-        />
       );
     }
 

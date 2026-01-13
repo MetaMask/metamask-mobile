@@ -56,7 +56,6 @@ import {
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
-import { useStakingEligibilityGuard } from '../../../Stake/hooks/useStakingEligibilityGuard';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -113,7 +112,6 @@ const EarnTokenList = () => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
 
   const { apyDecimal: tronApyDecimal } = useTronStakeApy();
 
@@ -199,10 +197,6 @@ const EarnTokenList = () => {
   };
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
-
     const isReady = await prepareNetworkForToken(token);
     if (!isReady) return;
 

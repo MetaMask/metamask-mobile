@@ -101,13 +101,6 @@ jest.mock('../../../hooks/useStakingChain', () => ({
   })),
 }));
 
-jest.mock('../../../hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn().mockReturnValue({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  }),
-}));
-
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -251,124 +244,6 @@ describe('StakingButtons', () => {
         token: mockEarnTokenPair.outputToken,
       },
       screen: Routes.STAKING.UNSTAKE,
-    });
-  });
-
-  describe('eligibility guard', () => {
-    const { useStakingEligibilityGuard } = jest.requireMock(
-      '../../../hooks/useStakingEligibilityGuard',
-    );
-    const mockCheckEligibilityAndRedirect = jest.fn();
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockCheckEligibilityAndRedirect.mockClear();
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: true,
-        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
-      });
-    });
-
-    it('redirects to Portfolio when user is not eligible and clicks stake button', async () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
-
-      const { getByText } = renderWithProvider(
-        <StakingButtons
-          asset={MOCK_ETH_MAINNET_ASSET}
-          hasStakedPositions={false}
-          hasEthToUnstake={false}
-        />,
-        { state: mockInitialState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('Stake'));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      // Component should return early and not navigate to StakeScreens
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
-    });
-
-    it('redirects to Portfolio when user is not eligible and clicks unstake button', async () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
-
-      const { getByText } = renderWithProvider(
-        <StakingButtons
-          asset={MOCK_ETH_MAINNET_ASSET}
-          hasStakedPositions
-          hasEthToUnstake
-        />,
-        { state: mockInitialState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('Unstake'));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      // Component should return early and not navigate to StakeScreens
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
-    });
-
-    it('navigates to stake screen when user is eligible and clicks stake button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      const { getByText } = renderWithProvider(
-        <StakingButtons
-          asset={MOCK_ETH_MAINNET_ASSET}
-          hasStakedPositions={false}
-          hasEthToUnstake={false}
-        />,
-        { state: mockInitialState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('Stake'));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: expect.any(Object),
-      });
-    });
-
-    it('navigates to unstake screen when user is eligible and clicks unstake button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      const { getByText } = renderWithProvider(
-        <StakingButtons
-          asset={MOCK_ETH_MAINNET_ASSET}
-          hasStakedPositions
-          hasEthToUnstake
-        />,
-        { state: mockInitialState },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByText('Unstake'));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE,
-        params: expect.any(Object),
-      });
     });
   });
 });

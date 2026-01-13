@@ -19,7 +19,6 @@ import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
 import { trace, TraceName } from '../../../../../../util/trace';
-import { useStakingEligibilityGuard } from '../../../hooks/useStakingEligibilityGuard';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -43,8 +42,6 @@ const StakingButtons = ({
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isStakingSupportedChain } = useStakingChain();
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
-
   const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
@@ -58,9 +55,6 @@ const StakingButtons = ({
   );
 
   const onUnstakePress = async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnWithdrawScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
@@ -82,9 +76,6 @@ const StakingButtons = ({
   };
 
   const onStakePress = async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnDepositScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {

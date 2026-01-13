@@ -43,7 +43,7 @@ import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
-import { useStakingEligibilityGuard } from '../../../Stake/hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -83,7 +83,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { outputToken: receiptToken, earnToken } = useSelector(
     (state: RootState) => selectEarnTokenPair(state, asset),
   );
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
+  const { isEligible } = useStakingEligibility();
   const isAssetReceiptToken = useSelector((state: RootState) =>
     selectEarnOutputToken(state, asset),
   );
@@ -143,9 +143,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToWithdrawalInputScreen = async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnWithdrawScreen });
     emitLendingActionButtonMetaMetric('withdrawal');
     const networkClientId = getNetworkClientId(asset);
@@ -164,9 +161,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   };
 
   const handleNavigateToDepositInputScreen = async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnDepositScreen });
     emitLendingActionButtonMetaMetric('deposit');
     const networkClientId = getNetworkClientId(asset);
@@ -201,6 +195,9 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   }
 
   const renderCta = () => {
+    if (!isEligible) {
+      return null;
+    }
     // Favour the mUSD Conversion CTA over the lending empty state CTA
     if (hasMusdConversionCta) {
       return renderMusdConversionCta();
@@ -266,7 +263,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         )}
       {renderCta()}
       {/* Buttons */}
-      {userHasLendingPositions && (
+      {userHasLendingPositions && isEligible && (
         <View style={[styles.container, styles.buttonsContainer]}>
           {Boolean(receiptToken) && (
             <Button

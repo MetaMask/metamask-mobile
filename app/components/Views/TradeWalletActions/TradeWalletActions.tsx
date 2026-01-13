@@ -55,7 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { useStakingEligibilityGuard } from '../../UI/Stake/hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -92,8 +92,9 @@ function TradeWalletActions() {
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
+  const { isEligible: isEarnEligible } = useStakingEligibility();
+
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -123,17 +124,6 @@ function TradeWalletActions() {
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
-    // Call postCallback as fallback (for testing and if animation doesn't trigger)
-    // The animation callback will also call it, but this ensures it's called
-    // Use Promise.resolve().then() for better test compatibility
-    if (postCallback.current) {
-      Promise.resolve().then(() => {
-        if (postCallback.current) {
-          postCallback.current();
-          postCallback.current = undefined;
-        }
-      });
-    }
   }, [onDismiss]);
 
   const goToSwaps = useCallback(() => {
@@ -170,10 +160,6 @@ function TradeWalletActions() {
 
   const onEarn = useCallback(async () => {
     postCallback.current = () => {
-      if (!checkEligibilityAndRedirect()) {
-        return;
-      }
-
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         params: {
@@ -198,14 +184,7 @@ function TradeWalletActions() {
       );
     };
     handleNavigateBack();
-  }, [
-    handleNavigateBack,
-    navigate,
-    trackEvent,
-    createEventBuilder,
-    chainId,
-    checkEligibilityAndRedirect,
-  ]);
+  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -325,7 +304,7 @@ function TradeWalletActions() {
                     isDisabled={!canSignTransactions}
                   />
                 )}
-                {isEarnWalletActionEnabled && (
+                {isEarnWalletActionEnabled && isEarnEligible && (
                   <ActionListItem
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}

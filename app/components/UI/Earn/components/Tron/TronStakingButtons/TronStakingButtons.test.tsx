@@ -5,6 +5,7 @@ import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -62,11 +63,9 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../../../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn().mockReturnValue({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  }),
+jest.mock('../../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -83,12 +82,23 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   },
 }));
 
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation(() => undefined);
     mockSelectAsset.mockReset();
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
   });
 
   const baseAsset = {
@@ -161,6 +171,19 @@ describe('TronStakingButtons', () => {
     });
   });
 
+  it('does not render when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { toJSON } = render(<TronStakingButtons asset={baseAsset} />);
+
+    expect(toJSON()).toBeNull();
+  });
+
   describe('CTA section', () => {
     it('renders CTA title and description without aprText when hasStakedPositions is false', () => {
       const { getByText } = render(
@@ -196,5 +219,9 @@ describe('TronStakingButtons', () => {
 
       expect(queryByText('Stake your TRX')).toBeNull();
     });
+
+    const { toJSON } = render(<TronStakingButtons asset={baseAsset} />);
+
+    expect(toJSON()).toBeNull();
   });
 });

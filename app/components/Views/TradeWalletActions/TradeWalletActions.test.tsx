@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -19,6 +19,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
@@ -140,11 +141,9 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn().mockReturnValue({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  }),
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -265,6 +264,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 const mockOnDismiss = jest.fn();
 const mockUseParams = jest.fn();
 
@@ -289,6 +292,14 @@ jest.mock('react-native-safe-area-context', () => {
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
     mockUseParams.mockReturnValue({
       onDismiss: mockOnDismiss,
       buttonLayout: {
@@ -359,6 +370,31 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it('does not render earn button when user is not eligible', () => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
   });
 
   it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
@@ -663,82 +699,5 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  describe('eligibility guard', () => {
-    const { useStakingEligibilityGuard } = jest.requireMock(
-      '../../UI/Stake/hooks/useStakingEligibilityGuard',
-    );
-    let mockCheckEligibilityAndRedirect: jest.Mock;
-
-    beforeEach(() => {
-      mockCheckEligibilityAndRedirect = jest.fn();
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: true,
-        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
-      });
-    });
-
-    it('redirects to Portfolio when user is not eligible and clicks earn button', async () => {
-      (
-        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-          typeof selectStablecoinLendingEnabledFlag
-        >
-      ).mockReturnValue(true);
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
-
-      const { getByTestId } = renderScreen(TradeWalletActions, {
-        name: 'TradeWalletActions',
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-      );
-
-      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
-      await waitFor(
-        () => {
-          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-        },
-        { timeout: 1000 },
-      );
-      // Should navigate to Portfolio, not to StakeModals
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeModals',
-        expect.any(Object),
-      );
-    });
-
-    it('navigates to earn token list when user is eligible and clicks earn button', async () => {
-      (
-        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-          typeof selectStablecoinLendingEnabledFlag
-        >
-      ).mockReturnValue(true);
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-
-      const { getByTestId } = renderScreen(TradeWalletActions, {
-        name: 'TradeWalletActions',
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-      );
-
-      // Wait for the postCallback to be called (Promise.resolve().then() in handleNavigateBack)
-      await waitFor(
-        () => {
-          expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-        },
-        { timeout: 1000 },
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-          screen: expect.any(String),
-          params: expect.any(Object),
-        });
-      });
-    });
   });
 });

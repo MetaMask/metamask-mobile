@@ -30,7 +30,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { trace, TraceName } from '../../../../../util/trace';
-import { useStakingEligibilityGuard } from '../../../Stake/hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -56,16 +56,14 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const earnToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, token),
   );
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
+
+  const { isEligible } = useStakingEligibility();
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = async () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnDepositScreen });
     const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
@@ -127,7 +125,8 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
+  if (!isEligible || !token || _.isEmpty(token) || !isStablecoinLendingEnabled)
+    return null;
 
   return (
     <View style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>

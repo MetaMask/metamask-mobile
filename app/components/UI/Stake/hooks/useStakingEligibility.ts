@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
 import Engine from '../../../../core/Engine';
 
+// TODO: Rename to useEarnEligibility
+// TODO: Move to Earn hooks folder
 const useStakingEligibility = () => {
   const isEligible = useSelector(pooledStakingSelectors.selectEligibility);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +23,7 @@ const useStakingEligibility = () => {
   };
 
   return {
+    // A user isn't eligible when their address is part of our blocklist
     isEligible,
     isLoadingEligibility: isLoading,
     error,

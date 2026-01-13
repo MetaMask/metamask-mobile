@@ -21,6 +21,7 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../constants/testIds';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 const mockNavigate = jest.fn();
 const mockDaiMainnet: EarnTokenDetails = {
@@ -135,12 +136,14 @@ jest.mock('../../hooks/useMusdConversionTokens', () => ({
   }),
 }));
 
-jest.mock('../../../Stake/hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn().mockReturnValue({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  }),
+jest.mock('../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
@@ -183,6 +186,14 @@ describe('EarnLendingBalance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
     (
       selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
         typeof selectIsMusdConversionFlowEnabledFlag
@@ -235,6 +246,27 @@ describe('EarnLendingBalance', () => {
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
     ).toBeDefined();
+  });
+
+  it('hides lending buttons when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
+    ).toBeNull();
   });
 
   it('hides underlying token balance when asset prop is an output token', () => {
@@ -322,6 +354,44 @@ describe('EarnLendingBalance', () => {
         }),
       ),
     ).toBeDefined();
+  });
+
+  it('does not display earn empty state cta when user is not eligible', () => {
+    const mockEmptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 ADAI',
+      balanceFiatNumber: 0,
+    };
+
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(undefined);
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockEmptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
   });
 
   it('does not render when lending is disabled and token is not mUSD convertible', () => {
@@ -647,110 +717,5 @@ describe('EarnLendingBalance', () => {
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
     ).toBeOnTheScreen();
     expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
-  });
-
-  describe('eligibility guard', () => {
-    const { useStakingEligibilityGuard } = jest.requireMock(
-      '../../../Stake/hooks/useStakingEligibilityGuard',
-    );
-    const mockCheckEligibilityAndRedirect = jest.fn();
-
-    beforeEach(() => {
-      mockCheckEligibilityAndRedirect.mockClear();
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: true,
-        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
-      });
-    });
-
-    it('redirects to Portfolio when user is not eligible and clicks deposit button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
-
-      const { getByTestId } = renderWithProvider(
-        <EarnLendingBalance asset={mockDaiMainnet} />,
-        { state: mockInitialState },
-      );
-
-      const depositButton = getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(depositButton);
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      // Component should return early and not navigate to StakeScreens
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
-    });
-
-    it('redirects to Portfolio when user is not eligible and clicks withdraw button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
-
-      const { getByTestId } = renderWithProvider(
-        <EarnLendingBalance asset={mockDaiMainnet} />,
-        { state: mockInitialState },
-      );
-
-      const withdrawButton = getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(withdrawButton);
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      // Component should return early and not navigate to StakeScreens
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
-    });
-
-    it('navigates to stake screen when user is eligible and clicks deposit button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(
-        <EarnLendingBalance asset={mockDaiMainnet} />,
-        { state: mockInitialState },
-      );
-
-      const depositButton = getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(depositButton);
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: expect.any(Object),
-      });
-    });
-
-    it('navigates to stake screen when user is eligible and clicks withdraw button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(
-        <EarnLendingBalance asset={mockDaiMainnet} />,
-        { state: mockInitialState },
-      );
-
-      const withdrawButton = getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(withdrawButton);
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE,
-        params: expect.any(Object),
-      });
-    });
   });
 });

@@ -19,6 +19,7 @@ import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import Engine from '../../../../../core/Engine';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -60,12 +61,14 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
-jest.mock('../../../Stake/hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn().mockReturnValue({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  }),
+jest.mock('../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
 
 const initialState = {
   ...initialRootState,
@@ -280,6 +283,13 @@ describe('EmptyStateCta', () => {
         estimatedAnnualRewardsTokenFormatted: '4.50 USDC',
       }),
     });
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
   });
 
   it('renders correctly', () => {
@@ -423,51 +433,16 @@ describe('EmptyStateCta', () => {
     expect(toJSON()).toBeNull();
   });
 
-  describe('eligibility guard', () => {
-    const { useStakingEligibilityGuard } = jest.requireMock(
-      '../../../Stake/hooks/useStakingEligibilityGuard',
-    );
-    const mockCheckEligibilityAndRedirect = jest.fn();
-
-    beforeEach(() => {
-      mockCheckEligibilityAndRedirect.mockClear();
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: true,
-        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
-      });
+  it('does not render when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
     });
 
-    it('redirects to Portfolio when user is not eligible and clicks earn button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+    const { toJSON } = renderComponent(mockEarnToken);
 
-      const { getByText } = renderComponent(mockEarnToken);
-
-      await act(async () => {
-        fireEvent.press(getByText(strings('earn.empty_state_cta.earn')));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      // Component should return early and not navigate to StakeScreens
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
-    });
-
-    it('navigates to stake screen when user is eligible and clicks earn button', async () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(true);
-
-      const { getByText } = renderComponent(mockEarnToken);
-
-      await act(async () => {
-        fireEvent.press(getByText(strings('earn.empty_state_cta.earn')));
-      });
-
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: expect.any(String),
-        params: expect.any(Object),
-      });
-    });
+    expect(toJSON()).toBeNull();
   });
 });

@@ -28,7 +28,6 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
-import { useStakingEligibilityGuard } from '../../hooks/useStakingEligibilityGuard';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -37,6 +36,7 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 ///: END:ONLY_INCLUDE_IF
 
 const styles = StyleSheet.create({
@@ -57,7 +57,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectEvmChainId);
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
   const { isStakingSupportedChain } = useStakingChain();
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
@@ -101,9 +100,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           })
           .build(),
       );
-      if (!checkEligibilityAndRedirect()) {
-        return;
-      }
       trace({ name: TraceName.EarnDepositScreen });
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -135,9 +131,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         })
         .build(),
     );
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnDepositScreen });
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
@@ -237,10 +230,17 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 };
 
 // TODO: Rename to EarnButton and make component more generic to support lending.
-export const StakeButton = (props: StakeButtonProps) => (
-  <StakeSDKProvider>
-    <StakeButtonContent {...props} />
-  </StakeSDKProvider>
-);
+export const StakeButton = (props: StakeButtonProps) => {
+  const { isEligible } = useStakingEligibility();
+
+  if (!isEligible) {
+    return null;
+  }
+  return (
+    <StakeSDKProvider>
+      <StakeButtonContent {...props} />
+    </StakeSDKProvider>
+  );
+};
 
 export default StakeButton;

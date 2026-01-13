@@ -11,8 +11,7 @@ import {
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
-import AppConstants from '../../../../../core/AppConstants';
-import { useStakingEligibilityGuard } from '../../hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
 import { SolScope, TrxScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
@@ -171,11 +170,9 @@ jest.mock('../../../../../core/Multichain/utils', () => {
   };
 });
 
-jest.mock('../../hooks/useStakingEligibilityGuard', () => ({
-  useStakingEligibilityGuard: jest.fn(() => ({
-    isEligible: true,
-    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-  })),
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 // Update the top-level mock to use a mockImplementation that we can change
@@ -230,9 +227,20 @@ const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
   '../../../../../selectors/earnController/earn',
 ).earnSelectors.selectPrimaryEarnExperienceTypeForAsset as jest.Mock;
 
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 describe('StakeButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
   });
 
   it('renders correctly', () => {
@@ -242,30 +250,7 @@ describe('StakeButton', () => {
   });
 
   describe('Pooled-Staking', () => {
-    it('navigates to Web view when earn button is pressed and user is not eligible', async () => {
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: false,
-        checkEligibilityAndRedirect: jest.fn().mockReturnValue(false),
-      });
-      const { getByTestId } = renderComponent();
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-          params: {
-            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
-            timestamp: expect.any(Number),
-          },
-          screen: Routes.BROWSER.VIEW,
-        });
-      });
-    });
-
     it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: true,
-        checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
-      });
       const { getByTestId } = renderComponent();
 
       fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
@@ -393,50 +378,19 @@ describe('StakeButton', () => {
         });
       });
     });
+  });
 
-    it('redirects to Portfolio when TRX user is not eligible', async () => {
-      mockIsTronChainId.mockReturnValue(true);
-      const mockCheckEligibilityAndRedirect = jest.fn(() => {
-        mockNavigate(Routes.BROWSER.HOME, {
-          params: {
-            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
-            timestamp: Date.now(),
-          },
-          screen: Routes.BROWSER.VIEW,
-        });
-        return false;
-      });
-      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
-        isEligible: false,
-        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
-      });
-      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
-        EARN_EXPERIENCES.POOLED_STAKING,
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <StakeButton asset={MOCK_TRX_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-          params: {
-            newTabUrl: expect.stringContaining(AppConstants.STAKE.URL),
-            timestamp: expect.any(Number),
-          },
-          screen: Routes.BROWSER.VIEW,
-        });
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'StakeScreens',
-        expect.any(Object),
-      );
+  it('does not render button when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
     });
+
+    const { queryByTestId } = renderComponent();
+
+    expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
 
   it('does not render button when all earn experiences are disabled', () => {

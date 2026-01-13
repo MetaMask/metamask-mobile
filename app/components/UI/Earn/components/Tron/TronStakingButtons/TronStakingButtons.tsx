@@ -20,7 +20,7 @@ import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { RootState } from '../../../../../../reducers';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
-import { useStakingEligibilityGuard } from '../../../../../UI/Stake/hooks/useStakingEligibilityGuard';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -39,7 +39,7 @@ const TronStakingButtons = ({
   const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
+  const { isEligible } = useStakingEligibility();
 
   const isStakedTrx =
     asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
@@ -61,9 +61,6 @@ const TronStakingButtons = ({
   );
 
   const onStakePress = () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnDepositScreen });
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
@@ -81,15 +78,16 @@ const TronStakingButtons = ({
   };
 
   const onUnstakePress = () => {
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
     trace({ name: TraceName.EarnWithdrawScreen });
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: { token: asset },
     });
   };
+
+  if (!isEligible) {
+    return null;
+  }
 
   return (
     <View style={styles.balanceButtonsContainer}>
