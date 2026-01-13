@@ -558,12 +558,11 @@ class AuthenticationService {
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
+    const authType = await this.getType();
+
     if (
-      [
-        BIOMETRY_TYPE.FINGERPRINT,
-        BIOMETRY_TYPE.TOUCH_ID,
-        BIOMETRY_TYPE.FACE_ID,
-      ].includes(availableBiometryType) &&
+      authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
+      availableBiometryType &&
       biometryChoice
     ) {
       return {
