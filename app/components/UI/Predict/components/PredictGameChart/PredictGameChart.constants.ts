@@ -1,5 +1,5 @@
 export const CHART_HEIGHT = 200;
-export const FONT_SIZE_LABEL = 12;
+export const FONT_SIZE_LABEL = 14;
 export const FONT_SIZE_VALUE = 24;
 export const LABEL_HEIGHT = 40;
 export const MIN_LABEL_GAP = 8;

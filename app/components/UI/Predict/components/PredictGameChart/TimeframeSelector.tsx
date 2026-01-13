@@ -42,7 +42,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
             disabled={disabled}
             style={({ pressed }) =>
               tw.style(
-                'px-4 py-2 rounded-full',
+                'px-4 py-2 rounded-md flex-1',
                 isSelected ? 'bg-background-pressed' : 'bg-transparent',
                 disabled && 'opacity-50',
                 pressed && !isSelected && 'bg-background-hover',
@@ -54,6 +54,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
               color={
                 isSelected ? TextColor.TextDefault : TextColor.TextAlternative
               }
+              style={tw.style('text-center')}
             >
               {label}
             </Text>

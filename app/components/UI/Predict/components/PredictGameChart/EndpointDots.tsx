@@ -95,7 +95,7 @@ const EndpointDots: React.FC<EndpointDotsProps> = ({
             <SvgText
               x={labelX}
               y={labelY - LABEL_TEXT_OFFSET_Y}
-              fill={colors.text.alternative}
+              fill={colors.text.default}
               fontSize={FONT_SIZE_LABEL}
               fontWeight="500"
             >
