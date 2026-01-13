@@ -120,11 +120,12 @@ export default class Matchers {
   static async getElementByCSS(
     webviewID: string,
     selector: string,
+    index: number = 0,
   ): Promise<Detox.IndexableWebElement> {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView
       .element(by.web.cssSelector(selector))
-      .atIndex(0) as unknown as Detox.IndexableWebElement;
+      .atIndex(index) as unknown as Detox.IndexableWebElement;
   }
 
   /**
