@@ -46,7 +46,6 @@ const MusdConversionAssetOverviewCta = ({
 
   const { getMusdOutputChainId } = useMusdConversionTokens();
 
-  // TODO: Add tests.
   const submitCtaPressedEvent = () => {
     const { EVENT_LOCATIONS, ACTION_TYPES, MUSD_CTA_TYPES } =
       MUSD_EVENTS_CONSTANTS;

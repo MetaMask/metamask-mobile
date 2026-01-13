@@ -130,7 +130,6 @@ export const TokenListItem = React.memo(
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
-    // TODO: Add tests
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =

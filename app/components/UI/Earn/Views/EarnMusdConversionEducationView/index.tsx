@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch } from 'react-redux';
 import { View, Image, useColorScheme } from 'react-native';
@@ -72,7 +72,34 @@ const EarnMusdConversionEducationView = () => {
 
   const { ACTION_TYPES, BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-  // TODO: Add tests
+  const submitScreenViewedEvent = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED,
+      )
+        // Properties are placeholders for now.
+        .addProperties({
+          location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          timestamp: Date.now(),
+        })
+        .build(),
+    );
+  }, [
+    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    createEventBuilder,
+    trackEvent,
+  ]);
+
+  const hasSubmittedScreenViewedEventRef = useRef(false);
+
+  useEffect(() => {
+    if (hasSubmittedScreenViewedEventRef.current) {
+      return;
+    }
+    hasSubmittedScreenViewedEventRef.current = true;
+    submitScreenViewedEvent();
+  }, [submitScreenViewedEvent]);
+
   const submitContinuePressedEvent = useCallback(() => {
     trackEvent(
       createEventBuilder(

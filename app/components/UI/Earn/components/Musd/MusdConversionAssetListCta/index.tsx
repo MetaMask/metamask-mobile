@@ -74,7 +74,6 @@ const MusdConversionAssetListCta = () => {
     return strings('earn.musd_conversion.get_musd');
   }, [canConvert]);
 
-  // TODO: Add tests
   const submitCtaPressedEvent = () => {
     const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
       MUSD_EVENTS_CONSTANTS;

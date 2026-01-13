@@ -60,7 +60,6 @@ export const useMusdConversionStatus = () => {
     [networkConfigurations],
   );
 
-  // TODO: Add tests
   const submitConversionEvent = useCallback(
     (
       transactionMeta: TransactionMeta,
