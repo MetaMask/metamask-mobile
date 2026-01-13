@@ -164,8 +164,6 @@ export async function handleIntentTransaction(
     };
 
     return Engine.context.BridgeStatusController.submitIntent({
-      // TypeScript struggles with complex intersection types when modifying nested properties
-      // The runtime structure is correct - we're adding the required appDataHash field
       quoteResponse: normalizedQuoteResponse as unknown as Parameters<
         typeof Engine.context.BridgeStatusController.submitIntent
       >[0]['quoteResponse'],
