@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest, {
   ApprovalRequestType,
@@ -66,6 +66,43 @@ const InstallSnapApproval = () => {
     getPermissions(state, approvalRequest?.origin),
   );
 
+  // Get snap IDs that need user confirmation (excludes already connected and preinstalled snaps)
+  const getConnectSnapIds = useCallback(
+    (
+      request: ApprovalRequestType,
+      permissions?: Record<string, PermissionConstraint>,
+    ): string[] => {
+      const permission =
+        request?.requestData?.permissions?.[WALLET_SNAP_PERMISSION_KEY];
+      const requestedSnaps = permission?.caveats[0].value;
+      const currentSnaps =
+        permissions?.[WALLET_SNAP_PERMISSION_KEY]?.caveats?.[0].value;
+
+      let snapIds: string[];
+
+      if (!isObject(currentSnaps) && requestedSnaps) {
+        // No existing snap permissions - all requested snaps are new
+        snapIds = Object.keys(requestedSnaps);
+      } else {
+        const requestedSnapKeys = requestedSnaps
+          ? Object.keys(requestedSnaps)
+          : [];
+        const currentSnapKeys = currentSnaps ? Object.keys(currentSnaps) : [];
+        // Only show snaps that aren't already connected
+        // If all requested snaps are already connected, return empty array
+        // (don't fall back to showing all requested snaps)
+        snapIds = requestedSnapKeys.filter(
+          (snapId) => !currentSnapKeys.includes(snapId),
+        );
+      }
+
+      // Filter out preinstalled snaps - they should not trigger connection modals
+      // because they are already installed and trusted by MetaMask
+      return snapIds.filter((snapId) => !snapsMetadata[snapId]?.preinstalled);
+    },
+    [snapsMetadata],
+  );
+
   useEffect(() => {
     if (approvalRequest) {
       if (
@@ -74,6 +111,16 @@ const InstallSnapApproval = () => {
           WALLET_SNAP_PERMISSION_KEY,
         )
       ) {
+        // Check if all requested snaps are already connected or preinstalled
+        // If so, auto-approve this request to unblock the queue
+        const snapsNeedingApproval = getConnectSnapIds(
+          approvalRequest,
+          currentPermissions,
+        );
+        if (snapsNeedingApproval.length === 0) {
+          rawOnConfirm();
+          return;
+        }
         setInstallState(SnapInstallState.Confirm);
       } else if (
         approvalRequest.type === ApprovalTypes.INSTALL_SNAP &&
@@ -84,30 +131,7 @@ const InstallSnapApproval = () => {
     } else {
       setInstallState(undefined);
     }
-  }, [approvalRequest]);
-
-  const getConnectSnapIds = (
-    request: ApprovalRequestType,
-    permissions?: Record<string, PermissionConstraint>,
-  ): string[] => {
-    const permission =
-      request?.requestData?.permissions?.[WALLET_SNAP_PERMISSION_KEY];
-    const requestedSnaps = permission?.caveats[0].value;
-    const currentSnaps =
-      permissions?.[WALLET_SNAP_PERMISSION_KEY]?.caveats?.[0].value;
-
-    if (!isObject(currentSnaps) && requestedSnaps) {
-      return Object.keys(requestedSnaps);
-    }
-
-    const requestedSnapKeys = requestedSnaps ? Object.keys(requestedSnaps) : [];
-    const currentSnapKeys = currentSnaps ? Object.keys(currentSnaps) : [];
-    const dedupedSnaps = requestedSnapKeys.filter(
-      (snapId) => !currentSnapKeys.includes(snapId),
-    );
-
-    return dedupedSnaps.length > 0 ? dedupedSnaps : requestedSnapKeys;
-  };
+  }, [approvalRequest, currentPermissions, rawOnConfirm, getConnectSnapIds]);
 
   const getSnapMetadata = (snapId: string) =>
     snapsMetadata[snapId] ?? { name: stripSnapPrefix(snapId) };
