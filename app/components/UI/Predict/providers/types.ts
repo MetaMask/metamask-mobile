@@ -1,5 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
+  GameUpdate,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
@@ -8,12 +9,21 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PriceUpdate,
   Result,
   Side,
 } from '../types';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PredictFeeCollection } from '../types/flags';
+
+export type GameUpdateCallback = (update: GameUpdate) => void;
+export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+
+export interface ConnectionStatus {
+  sportsConnected: boolean;
+  marketConnected: boolean;
+}
 
 export interface GetMarketsParams {
   providerId?: string;
@@ -167,6 +177,7 @@ export interface PrepareDepositResponse {
     };
     type?: TransactionType;
   }[];
+  gasFeeToken?: Hex;
 }
 
 export interface GetPredictWalletParams {
@@ -265,4 +276,16 @@ export interface PredictProvider {
   signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
+
+  subscribeToGameUpdates?(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void;
+
+  subscribeToMarketPrices?(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void;
+
+  getConnectionStatus?(): ConnectionStatus;
 }

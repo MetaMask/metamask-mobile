@@ -7,8 +7,13 @@ import {
   type MessengerEvents,
   type MockAnyNamespace,
 } from '@metamask/messenger';
+import {
+  GasFeeEstimateLevel,
+  GasFeeEstimateType,
+} from '@metamask/transaction-controller';
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -17,6 +22,7 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import type { OrderPreview } from '../providers/types';
 import {
   PredictBalance,
@@ -78,6 +84,15 @@ jest.mock('../../../../core/Engine', () => ({
           checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
         },
       }),
+    },
+    TransactionController: {
+      estimateGas: jest.fn(),
+      estimateGasFee: jest.fn(),
+    },
+    AccountTrackerController: {
+      state: {
+        accountsByChainId: {},
+      },
     },
     RemoteFeatureFlagController: {
       state: {
@@ -2585,11 +2600,43 @@ describe('PredictController', () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: mockTransactions,
         chainId: mockChainId,
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
       });
 
       (addTransactionBatch as jest.Mock).mockResolvedValue({
         batchId: mockBatchId,
       });
+
+      Engine.context.AccountTrackerController.state.accountsByChainId = {
+        [mockChainId]: {
+          '0x1234567890123456789012345678901234567890': {
+            balance: '0x0',
+          },
+        },
+      };
+
+      Engine.context.TransactionController.estimateGas = jest
+        .fn()
+        .mockResolvedValue({ gas: '0x5208' });
+      Engine.context.TransactionController.estimateGasFee = jest
+        .fn()
+        .mockResolvedValue({
+          estimates: {
+            type: GasFeeEstimateType.FeeMarket,
+            [GasFeeEstimateLevel.Low]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+            [GasFeeEstimateLevel.Medium]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+            [GasFeeEstimateLevel.High]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+          },
+        });
 
       await withController(async ({ controller }) => {
         // When calling depositWithConfirmation
@@ -2621,6 +2668,7 @@ describe('PredictController', () => {
           disableUpgrade: true,
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
+          gasFeeToken: MATIC_CONTRACTS.collateral,
         });
       });
     });
@@ -3793,7 +3841,19 @@ describe('PredictController', () => {
         expect(result).toBeDefined();
         expect(result?.updateTransaction).toBeDefined();
 
-        const testTransaction = {
+        const testTransaction: {
+          txParams: {
+            from: string;
+            to: string;
+            data: string;
+            gas?: string;
+            gasLimit?: string;
+          };
+          assetsFiatValues?: {
+            receiving?: string;
+            sending?: string;
+          };
+        } = {
           txParams: {
             from: '0xFrom',
             to: '0xOldTarget',
@@ -3805,6 +3865,9 @@ describe('PredictController', () => {
 
         expect(testTransaction.txParams.data).toBe('0xmodifieddata');
         expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+        expect(testTransaction.assetsFiatValues).toEqual({
+          receiving: '100',
+        });
       });
     });
 
@@ -4861,6 +4924,141 @@ describe('PredictController', () => {
           },
         },
       );
+    });
+  });
+
+  describe('WebSocket subscription methods', () => {
+    describe('subscribeToGameUpdates', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToGameUpdates = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToGameUpdates,
+          ).toHaveBeenCalledWith('game123', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToGameUpdates = undefined;
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+
+      it('returns no-op function for unknown provider', () => {
+        withController(({ controller }) => {
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+            'unknown-provider',
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('subscribeToMarketPrices', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToMarketPrices = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1', 'token2'],
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToMarketPrices,
+          ).toHaveBeenCalledWith(['token1', 'token2'], mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToMarketPrices = undefined;
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('getConnectionStatus', () => {
+      it('returns connection status from provider', () => {
+        withController(({ controller }) => {
+          mockPolymarketProvider.getConnectionStatus = jest
+            .fn()
+            .mockReturnValue({
+              sportsConnected: true,
+              marketConnected: false,
+            });
+
+          const status = controller.getConnectionStatus();
+
+          expect(mockPolymarketProvider.getConnectionStatus).toHaveBeenCalled();
+          expect(status).toEqual({
+            sportsConnected: true,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.getConnectionStatus = undefined;
+
+          const status = controller.getConnectionStatus();
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status for unknown provider', () => {
+        withController(({ controller }) => {
+          const status = controller.getConnectionStatus('unknown-provider');
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
     });
   });
 });

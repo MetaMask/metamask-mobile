@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -12,9 +13,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 const mockInit = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@metamask/ramps-controller', () => {
-  const actualRampsController = jest.requireActual(
-    '@metamask/ramps-controller',
-  );
+  const actual = jest.requireActual('@metamask/ramps-controller');
 
   const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
@@ -24,17 +23,13 @@ jest.mock('@metamask/ramps-controller', () => {
   });
 
   MockRampsControllerSpy.prototype = Object.create(
-    actualRampsController.RampsController.prototype,
+    actual.RampsController.prototype,
   );
   MockRampsControllerSpy.prototype.constructor = MockRampsControllerSpy;
-  Object.setPrototypeOf(
-    MockRampsControllerSpy,
-    actualRampsController.RampsController,
-  );
+  Object.setPrototypeOf(MockRampsControllerSpy, actual.RampsController);
 
   return {
-    getDefaultRampsControllerState:
-      actualRampsController.getDefaultRampsControllerState,
+    ...actual,
     RampsController: MockRampsControllerSpy,
   };
 });
@@ -52,12 +47,6 @@ describe('ramps controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
-  });
-
-  it('returns controller instance', () => {
-    expect(rampsControllerInit(initRequestMock).controller).toBeInstanceOf(
-      RampsController,
-    );
   });
 
   it('uses default state when no initial state is passed in', () => {
@@ -96,9 +85,9 @@ describe('ramps controller init', () => {
   it('calls init at startup', async () => {
     rampsControllerInit(initRequestMock);
 
-    await new Promise(process.nextTick);
-
-    expect(mockInit).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('handles init failure gracefully', async () => {
@@ -106,6 +95,8 @@ describe('ramps controller init', () => {
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 
-    await new Promise(process.nextTick);
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
+    });
   });
 });

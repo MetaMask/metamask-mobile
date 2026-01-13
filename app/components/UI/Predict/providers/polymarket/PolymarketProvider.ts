@@ -15,6 +15,10 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
+  isLiveSportsEnabled,
+  LIVE_SPORTS_LEAGUES,
+} from '../../constants/sports';
+import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
@@ -32,6 +36,8 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  ConnectionStatus,
+  GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
@@ -45,6 +51,7 @@ import {
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -96,6 +103,9 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
+import { GameCache } from './GameCache';
+import { TeamsCache } from './TeamsCache';
+import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -179,16 +189,31 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const [parsedMarket] = parsePolymarketEvents(
-        [event],
-        PolymarketProvider.FALLBACK_CATEGORY,
-      );
+      const liveSportsEnabled = isLiveSportsEnabled();
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const [parsedMarket] = parsePolymarketEvents([event], {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
 
       if (!parsedMarket) {
         throw new Error('Failed to parse market details');
       }
 
-      return parsedMarket;
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarket(parsedMarket)
+        : parsedMarket;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -233,12 +258,30 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getParsedMarketsFromPolymarketApi(params);
-      return markets;
+      const liveSportsEnabled = isLiveSportsEnabled();
+
+      if (liveSportsEnabled) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(LIVE_SPORTS_LEAGUES);
+      }
+
+      const teamLookup = liveSportsEnabled
+        ? (
+            league: (typeof LIVE_SPORTS_LEAGUES)[number],
+            abbreviation: string,
+          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
+        : undefined;
+
+      const markets = await getParsedMarketsFromPolymarketApi({
+        ...params,
+        teamLookup,
+      });
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(markets)
+        : markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
@@ -1419,9 +1462,15 @@ export class PolymarketProvider implements PredictProvider {
       type: TransactionType.predictDeposit,
     });
 
+    const chainId = CHAIN_IDS.POLYGON;
+    const isPolygonChain =
+      chainId.toLowerCase() ===
+      numberToHex(POLYGON_MAINNET_CHAIN_ID).toLowerCase();
+
     return {
-      chainId: CHAIN_IDS.POLYGON,
+      chainId,
       transactions,
+      gasFeeToken: isPolygonChain ? (collateral as Hex) : undefined,
     };
   }
 
@@ -1556,6 +1605,31 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedCallData,
       amount,
+    };
+  }
+
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToGame(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToMarketPrices(
+      tokenIds,
+      callback,
+    );
+  }
+
+  public getConnectionStatus(): ConnectionStatus {
+    const status = WebSocketManager.getInstance().getConnectionStatus();
+    return {
+      sportsConnected: status.sportsConnected,
+      marketConnected: status.marketConnected,
     };
   }
 }

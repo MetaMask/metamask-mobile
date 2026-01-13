@@ -18,6 +18,7 @@ export const RevealSeedViewSelectorsIDs = {
   TAB_SCROLL_VIEW: 'tab-scroll-view',
   TAB_SCROLL_VIEW_TEXT: 'tab-scroll-view-text',
   TAB_SCROLL_VIEW_QR_CODE: 'tab-scroll-view-qr-code',
+  SEED_PHRASE_WARNING_ID: 'seed-phrase-warning',
 };
 
 export const RevealSeedViewSelectorsText = {
