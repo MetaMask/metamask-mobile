@@ -7344,24 +7344,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^64.0.1, @metamask/bridge-status-controller@npm:^64.4.1":
-  version: 64.4.1
-  resolution: "@metamask/bridge-status-controller@npm:64.4.1"
+"@metamask/bridge-status-controller@npm:64.0.1":
+  version: 64.0.1
+  resolution: "@metamask/bridge-status-controller@npm:64.0.1"
   dependencies:
     "@metamask/accounts-controller": "npm:^35.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/bridge-controller": "npm:^64.4.0"
-    "@metamask/controller-utils": "npm:^11.18.0"
+    "@metamask/bridge-controller": "npm:^64.0.0"
+    "@metamask/controller-utils": "npm:^11.16.0"
     "@metamask/gas-fee-controller": "npm:^26.0.0"
-    "@metamask/network-controller": "npm:^27.2.0"
+    "@metamask/network-controller": "npm:^27.0.0"
     "@metamask/polling-controller": "npm:^16.0.0"
-    "@metamask/snaps-controllers": "npm:^17.2.0"
+    "@metamask/snaps-controllers": "npm:^14.0.1"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/transaction-controller": "npm:^62.8.0"
-    "@metamask/utils": "npm:^11.9.0"
+    "@metamask/transaction-controller": "npm:^62.4.0"
+    "@metamask/utils": "npm:^11.8.1"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/e6474f5e68eda62b67ab4e623b818f910f39b93e190e82e87cb37035e4bae40144eb51b8d0d123afec28897f32b1d60fb1cc73120debd6ea1154fac847c6d85a
+  checksum: 10/9051920b3cfdf0eb0c74193dd610835cb619b304d2774996d213217ad299de04e1a535105ee6d0e1f94b9c3acc9b5bfb5d0df31f1acda5a66893e5c0fa18cf56
   languageName: node
   linkType: hard
 
@@ -9400,7 +9400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:62.9.0, @metamask/transaction-controller@npm:^62.6.0, @metamask/transaction-controller@npm:^62.7.0, @metamask/transaction-controller@npm:^62.8.0":
+"@metamask/transaction-controller@npm:62.9.0, @metamask/transaction-controller@npm:^62.4.0, @metamask/transaction-controller@npm:^62.6.0, @metamask/transaction-controller@npm:^62.7.0, @metamask/transaction-controller@npm:^62.8.0":
   version: 62.9.0
   resolution: "@metamask/transaction-controller@npm:62.9.0"
   dependencies:
