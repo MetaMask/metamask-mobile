@@ -54,9 +54,8 @@ describe('Predict Feature Flag Selectors', () => {
     });
 
     describe('remote flag precedence', () => {
-      it('returns true when remote flag enabled overrides local flag false', () => {
+      it('returns true when remote flag is enabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_ENABLED = 'false';
         const stateWithEnabledRemoteFlag = {
           engine: {
             backgroundState: {
@@ -78,9 +77,8 @@ describe('Predict Feature Flag Selectors', () => {
         expect(result).toBe(true);
       });
 
-      it('returns false when remote flag disabled overrides local flag true', () => {
+      it('returns false when remote flag is disabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_ENABLED = 'true';
         const stateWithDisabledRemoteFlag = {
           engine: {
             backgroundState: {
@@ -104,7 +102,6 @@ describe('Predict Feature Flag Selectors', () => {
 
       it('returns false when app version below minimum required version', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PREDICT_ENABLED = 'true';
         const stateWithVersionCheckFailure = {
           engine: {
             backgroundState: {
@@ -127,10 +124,8 @@ describe('Predict Feature Flag Selectors', () => {
       });
     });
 
-    describe('local flag fallback', () => {
-      it('falls back to local flag when remote flag is invalid', () => {
-        // Note: Cannot reliably test MM_PREDICT_ENABLED=true in Jest due to process.env limitations
-        // This tests the default case where the env var is not set (returns false)
+    describe('default fallback', () => {
+      it('defaults to true when remote flag is invalid', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -148,11 +143,11 @@ describe('Predict Feature Flag Selectors', () => {
         };
 
         const result = selectPredictEnabledFlag(stateWithInvalidRemoteFlag);
-        expect(result).toBe(false);
+
+        expect(result).toBe(true);
       });
 
-      it('returns false from local flag when remote flag is null', () => {
-        process.env.MM_PREDICT_ENABLED = 'false';
+      it('defaults to true when remote flag is null', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -168,18 +163,16 @@ describe('Predict Feature Flag Selectors', () => {
 
         const result = selectPredictEnabledFlag(stateWithInvalidRemoteFlag);
 
-        expect(result).toBe(false);
+        expect(result).toBe(true);
       });
 
-      it('falls back to local flag when remote feature flags are empty', () => {
-        // Note: Cannot reliably test MM_PREDICT_ENABLED=true in Jest due to process.env limitations
-        // This tests the default case where the env var is not set (returns false)
+      it('defaults to true when remote feature flags are empty', () => {
         const result = selectPredictEnabledFlag(mockedEmptyFlagsState);
-        expect(result).toBe(false);
+
+        expect(result).toBe(true);
       });
 
-      it('returns false from local flag when controller is undefined', () => {
-        process.env.MM_PREDICT_ENABLED = 'false';
+      it('defaults to true when controller is undefined', () => {
         const stateWithUndefinedController = {
           engine: {
             backgroundState: {
@@ -190,7 +183,7 @@ describe('Predict Feature Flag Selectors', () => {
 
         const result = selectPredictEnabledFlag(stateWithUndefinedController);
 
-        expect(result).toBe(false);
+        expect(result).toBe(true);
       });
     });
   });
