@@ -95,7 +95,7 @@ import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBan
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { useMerklClaim } from './hooks/useMerklClaim';
+import MerklRewards from './MerklRewards';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -219,67 +219,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
-  // State for claimable rewards (Merkl API)
-  const [claimableReward, setClaimableReward] = useState<string | null>(null);
-  const [claimableRewardFiat, setClaimableRewardFiat] = useState<string | null>(null);
-
-  // Merkl claim hook
-  const { claimRewards, isClaiming, error: claimError } = useMerklClaim();
-
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
-
-  // Fetch claimable rewards from Merkl API for AGLAMERKL token
-  useEffect(() => {
-    const isAglaMerkl = asset.address?.toLowerCase() === '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898'.toLowerCase();
-
-    if (!isAglaMerkl || !selectedAddress) {
-      return;
-    }
-
-    const fetchClaimableRewards = async () => {
-      try {
-        const response = await fetch(
-          `https://api.merkl.xyz/v4/users/${selectedAddress}/rewards?chainId=1&test=true`,
-        );
-
-        if (!response.ok) {
-          console.error('Failed to fetch Merkl rewards:', response.status);
-          return;
-        }
-
-        const data = await response.json();
-
-        // Get pending amount from [0].rewards[0].pending
-        if (data?.[0]?.rewards?.[0]?.pending) {
-          const pendingWei = data[0].rewards[0].pending;
-          // Convert from wei to token amount (assuming 18 decimals)
-          const pendingAmount = renderFromTokenMinimalUnit(pendingWei, asset.decimals || 18);
-          setClaimableReward(pendingAmount);
-
-          // Calculate fiat value if we have the exchange rate
-          if (exchangeRate && conversionRateByTicker?.[nativeCurrency]?.conversionRate) {
-            const pendingNumber = parseFloat(pendingAmount);
-            const fiatValue = balanceToFiatNumber(
-              pendingNumber,
-              conversionRateByTicker[nativeCurrency].conversionRate,
-              exchangeRate,
-            );
-            setClaimableRewardFiat(
-              isFinite(fiatValue) && fiatValue >= 0.01
-                ? addCurrencySymbol(fiatValue, currentCurrency)
-                : `< ${addCurrencySymbol('0.01', currentCurrency)}`
-            );
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching Merkl rewards:', error);
-      }
-    };
-
-    fetchClaimableRewards();
-  }, [asset.address, asset.decimals, selectedAddress, exchangeRate, nativeCurrency, conversionRateByTicker, currentCurrency]);
 
   useEffect(() => {
     const { SwapsController } = Engine.context;
@@ -762,74 +704,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
 
-          {/* Show rewards only for AGLAMERKL (Angle Merkl) tokens */}
-          {(asset.address?.toLowerCase() === '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898'.toLowerCase()) && (
-            <>
-              {/* Annual Reward Section */}
-              <View style={styles.rewardSection}>
-                <View style={styles.rewardRow}>
-                  <View style={styles.rewardLeftContent}>
-                    <View style={styles.rewardIcon}>
-                      <Text style={{ fontSize: 20 }}>📅</Text>
-                    </View>
-                    <View style={styles.rewardTextContent}>
-                      <Text style={styles.rewardTitle}>Annual reward</Text>
-                    </View>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.rewardValue}>~$20.00</Text>
-                    <Text style={{ fontSize: 18, marginLeft: 8, opacity: 0.5 }}>›</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Claimable Reward Section */}
-              {claimableReward && (
-                <View style={styles.rewardSection}>
-                  <View style={styles.rewardRow}>
-                    <View style={styles.rewardLeftContent}>
-                      <View style={styles.rewardIcon}>
-                        <Text style={{ fontSize: 20 }}>💰</Text>
-                      </View>
-                      <View style={styles.rewardTextContent}>
-                        <Text style={styles.rewardTitle}>Claimable reward</Text>
-                        <Text style={styles.rewardSubtitle}>{claimableReward} aglaMerkl</Text>
-                      </View>
-                    </View>
-                    <View style={styles.rewardFiatDisplay}>
-                      <Text style={styles.rewardFiatText}>$0.00</Text>
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {/* Claim Button */}
-              {claimableReward && (
-                <View style={styles.claimButtonContainer}>
-                  <TouchableOpacity
-                    style={[styles.claimButton, isClaiming && { opacity: 0.5 }]}
-                    onPress={async () => {
-                      try {
-                        await claimRewards();
-                      } catch (error) {
-                        console.error('Claim failed:', error);
-                      }
-                    }}
-                    disabled={isClaiming}
-                  >
-                    <Text style={styles.claimButtonText}>
-                      {isClaiming ? 'Claiming...' : 'Claim'}
-                    </Text>
-                  </TouchableOpacity>
-                  {claimError && (
-                    <Text style={{ color: 'red', marginTop: 8, fontSize: 12 }}>
-                      {claimError}
-                    </Text>
-                  )}
-                </View>
-              )}
-            </>
-          )}
+          {/* Merkl Rewards Section */}
+          <MerklRewards asset={asset} exchangeRate={exchangeRate} />
 
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
