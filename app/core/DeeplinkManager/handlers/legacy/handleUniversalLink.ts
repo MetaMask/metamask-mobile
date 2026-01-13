@@ -109,6 +109,27 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
 ] as string[];
 
+/**
+ * Helper function to track deep link analytics asynchronously without blocking
+ * @param analyticsContext - The deep link analytics context
+ */
+const trackDeepLinkAnalytics = (
+  analyticsContext: DeepLinkAnalyticsContext,
+): void => {
+  createDeepLinkUsedEventBuilder(analyticsContext)
+    .then((eventBuilder) => {
+      const event = eventBuilder.build();
+      MetaMetrics.getInstance().trackEvent(event);
+      DevLogger.log(
+        'DeepLinkAnalytics: Tracked consolidated deep link event:',
+        event,
+      );
+    })
+    .catch((error) => {
+      DevLogger.log('DeepLinkAnalytics: Failed to track analytics:', error);
+    });
+};
+
 async function handleUniversalLink({
   instance,
   handled,
@@ -271,18 +292,7 @@ async function handleUniversalLink({
     };
 
     // Track analytics asynchronously without blocking
-    createDeepLinkUsedEventBuilder(analyticsContext)
-      .then((eventBuilder) => {
-        const event = eventBuilder.build();
-        MetaMetrics.getInstance().trackEvent(event);
-        DevLogger.log(
-          'DeepLinkAnalytics: Tracked consolidated deep link event:',
-          event,
-        );
-      })
-      .catch((error) => {
-        DevLogger.log('DeepLinkAnalytics: Failed to track analytics:', error);
-      });
+    trackDeepLinkAnalytics(analyticsContext);
   }
 
   const shouldProceed =
@@ -325,21 +335,7 @@ async function handleUniversalLink({
       if (isWhitelistedUrl || isInAppSourceWithPrivateLink) {
         analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
         // Track analytics asynchronously without blocking
-        createDeepLinkUsedEventBuilder(analyticsContext)
-          .then((eventBuilder) => {
-            const event = eventBuilder.build();
-            MetaMetrics.getInstance().trackEvent(event);
-            DevLogger.log(
-              'DeepLinkAnalytics: Tracked consolidated deep link event:',
-              event,
-            );
-          })
-          .catch((error) => {
-            DevLogger.log(
-              'DeepLinkAnalytics: Failed to track analytics:',
-              error,
-            );
-          });
+        trackDeepLinkAnalytics(analyticsContext);
         resolve(true);
         return;
       }
@@ -357,27 +353,13 @@ async function handleUniversalLink({
             analyticsContext.interstitialShown = willShowInterstitial;
             analyticsContext.interstitialAction = InterstitialState.REJECTED;
             // Track analytics before early return
-            createDeepLinkUsedEventBuilder(analyticsContext)
-              .then((eventBuilder) => {
-                const event = eventBuilder.build();
-                MetaMetrics.getInstance().trackEvent(event);
-                DevLogger.log(
-                  'DeepLinkAnalytics: Tracked consolidated deep link event:',
-                  event,
-                );
-              })
-              .catch((error) => {
-                DevLogger.log(
-                  'DeepLinkAnalytics: Failed to track analytics:',
-                  error,
-                );
-              });
+            trackDeepLinkAnalytics(analyticsContext);
             resolve(false);
           },
         } as DeepLinkModalParams;
 
-        // Pass a snapshot of the context to avoid mutations affecting test expectations
-        handleDeepLinkModalDisplay(modalParams, { ...analyticsContext });
+        // Pass modal params for display
+        handleDeepLinkModalDisplay(modalParams);
         return;
       }
 
@@ -390,21 +372,7 @@ async function handleUniversalLink({
           analyticsContext.interstitialShown = willShowInterstitial;
           analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
           // Track analytics asynchronously without blocking
-          createDeepLinkUsedEventBuilder(analyticsContext)
-            .then((eventBuilder) => {
-              const event = eventBuilder.build();
-              MetaMetrics.getInstance().trackEvent(event);
-              DevLogger.log(
-                'DeepLinkAnalytics: Tracked consolidated deep link event:',
-                event,
-              );
-            })
-            .catch((error) => {
-              DevLogger.log(
-                'DeepLinkAnalytics: Failed to track analytics:',
-                error,
-              );
-            });
+          trackDeepLinkAnalytics(analyticsContext);
           resolve(true);
         },
         onBack: () => {
@@ -412,27 +380,13 @@ async function handleUniversalLink({
           analyticsContext.interstitialShown = willShowInterstitial;
           analyticsContext.interstitialAction = InterstitialState.REJECTED;
           // Track analytics before early return
-          createDeepLinkUsedEventBuilder(analyticsContext)
-            .then((eventBuilder) => {
-              const event = eventBuilder.build();
-              MetaMetrics.getInstance().trackEvent(event);
-              DevLogger.log(
-                'DeepLinkAnalytics: Tracked consolidated deep link event:',
-                event,
-              );
-            })
-            .catch((error) => {
-              DevLogger.log(
-                'DeepLinkAnalytics: Failed to track analytics:',
-                error,
-              );
-            });
+          trackDeepLinkAnalytics(analyticsContext);
           resolve(false);
         },
       } as DeepLinkModalParams;
 
-      // Pass a snapshot of the context to avoid mutations affecting test expectations
-      handleDeepLinkModalDisplay(modalParams, { ...analyticsContext });
+      // Pass modal params for display
+      handleDeepLinkModalDisplay(modalParams);
     }));
 
   // Universal links

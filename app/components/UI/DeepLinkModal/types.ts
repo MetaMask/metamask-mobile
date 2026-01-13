@@ -1,6 +1,5 @@
 import { TextStyle, ImageStyle, ViewStyle } from 'react-native';
 import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
-import { DeepLinkAnalyticsContext } from '../../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 
 // Re-export DeepLinkModalLinkType for external use
 export { DeepLinkModalLinkType };
@@ -9,7 +8,6 @@ export { DeepLinkModalLinkType };
 type CommonLinkParams = {
   linkType: DeepLinkModalLinkType;
   onBack: () => void;
-  deepLinkContext?: DeepLinkAnalyticsContext;
 };
 
 type PublicLinkParams = CommonLinkParams & {

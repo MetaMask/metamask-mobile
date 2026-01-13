@@ -859,23 +859,12 @@ describe('handleUniversalLink', () => {
         'DeepLinkManager:parse Verified signature for deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        {
-          linkType: DeepLinkModalLinkType.PRIVATE,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        },
-        {
-          url: expect.any(String),
-          route: 'test-route',
-          urlParams: expect.any(Object),
-          signatureStatus: 'valid',
-          interstitialShown: false,
-          interstitialDisabled: false,
-          interstitialAction: undefined,
-        },
-      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PRIVATE,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
       expect(handled).toHaveBeenCalled();
     });
 
@@ -895,23 +884,12 @@ describe('handleUniversalLink', () => {
         'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        {
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        },
-        {
-          url: expect.any(String),
-          route: 'test-route',
-          urlParams: expect.any(Object),
-          signatureStatus: 'invalid',
-          interstitialShown: false,
-          interstitialDisabled: false,
-          interstitialAction: undefined,
-        },
-      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
       expect(handled).toHaveBeenCalled();
     });
 
@@ -931,23 +909,12 @@ describe('handleUniversalLink', () => {
         'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        {
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        },
-        {
-          url: expect.any(String),
-          route: 'test-route',
-          urlParams: expect.any(Object),
-          signatureStatus: 'missing',
-          interstitialShown: false,
-          interstitialDisabled: false,
-          interstitialAction: undefined,
-        },
-      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
       expect(handled).toHaveBeenCalled();
     });
 
@@ -967,23 +934,12 @@ describe('handleUniversalLink', () => {
         'DeepLinkAnalytics: Tracked consolidated deep link event:',
         expect.any(Object),
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        {
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        },
-        {
-          url: expect.any(String),
-          route: 'test-route',
-          urlParams: expect.any(Object),
-          signatureStatus: 'missing',
-          interstitialShown: false,
-          interstitialDisabled: false,
-          interstitialAction: undefined,
-        },
-      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -1011,20 +967,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.INVALID,
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.INVALID,
+          onBack: expect.any(Function),
+        });
       });
     });
 
@@ -1051,20 +997,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.UNSUPPORTED,
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.UNSUPPORTED,
+          onBack: expect.any(Function),
+        });
       });
 
       it('should return INVALID link type for unsupported action without valid signature', async () => {
@@ -1085,20 +1021,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.INVALID,
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.INVALID,
+          onBack: expect.any(Function),
+        });
       });
 
       it('should return INVALID link type for unsupported action with invalid signature', async () => {
@@ -1121,20 +1047,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.INVALID,
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.INVALID,
+          onBack: expect.any(Function),
+        });
       });
     });
 
@@ -1160,22 +1076,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.PRIVATE,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PRIVATE,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
       });
 
       it('should return PUBLIC link type for supported action without signature', async () => {
@@ -1195,22 +1101,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.PUBLIC,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
       });
 
       it('should return PUBLIC link type for supported action with invalid signature', async () => {
@@ -1232,22 +1128,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.PUBLIC,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
       });
 
       it('should return PUBLIC link type for supported action with missing signature', async () => {
@@ -1267,22 +1153,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.PUBLIC,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            url: expect.any(String),
-            route: expect.any(String),
-            urlParams: expect.any(Object),
-            signatureStatus: expect.any(String),
-            interstitialShown: expect.any(Boolean),
-            interstitialDisabled: expect.any(Boolean),
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
       });
     });
   });
@@ -1362,23 +1238,12 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        {
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        },
-        {
-          url: expect.any(String),
-          route: 'test-route',
-          urlParams: expect.any(Object),
-          signatureStatus: 'missing',
-          interstitialShown: false,
-          interstitialDisabled: false,
-          interstitialAction: undefined,
-        },
-      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
       expect(handled).toHaveBeenCalled();
     });
 
@@ -1443,18 +1308,12 @@ describe('handleUniversalLink', () => {
             source: testSource,
           });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-            {
-              linkType: DeepLinkModalLinkType.PUBLIC,
-              pageTitle: 'Dapp',
-              onContinue: expect.any(Function),
-              onBack: expect.any(Function),
-            },
-            expect.objectContaining({
-              interstitialShown: false,
-              interstitialDisabled: false,
-            }),
-          );
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
           expect(handled).toHaveBeenCalled();
         },
       );
@@ -1491,18 +1350,12 @@ describe('handleUniversalLink', () => {
             source: testSource,
           });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-            {
-              linkType: DeepLinkModalLinkType.PRIVATE,
-              pageTitle: 'Dapp',
-              onContinue: expect.any(Function),
-              onBack: expect.any(Function),
-            },
-            expect.objectContaining({
-              interstitialShown: false,
-              interstitialDisabled: false,
-            }),
-          );
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
           expect(handled).toHaveBeenCalled();
         },
       );
@@ -1527,18 +1380,12 @@ describe('handleUniversalLink', () => {
             source: testSource,
           });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-            {
-              linkType: DeepLinkModalLinkType.PUBLIC,
-              pageTitle: 'Dapp',
-              onContinue: expect.any(Function),
-              onBack: expect.any(Function),
-            },
-            expect.objectContaining({
-              interstitialShown: false,
-              interstitialDisabled: false,
-            }),
-          );
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
           expect(handled).toHaveBeenCalled();
         },
       );
@@ -1564,18 +1411,12 @@ describe('handleUniversalLink', () => {
           source: nonWhitelistedSource,
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-          {
-            linkType: DeepLinkModalLinkType.PUBLIC,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          },
-          expect.objectContaining({
-            interstitialShown: false,
-            interstitialDisabled: false,
-          }),
-        );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
         expect(handled).toHaveBeenCalled();
       });
     });
@@ -1611,18 +1452,12 @@ describe('handleUniversalLink', () => {
             source: testSource,
           });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-            {
-              linkType: DeepLinkModalLinkType.PRIVATE,
-              pageTitle: 'Dapp',
-              onContinue: expect.any(Function),
-              onBack: expect.any(Function),
-            },
-            expect.objectContaining({
-              interstitialShown: false,
-              interstitialDisabled: false,
-            }),
-          );
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
           expect(handled).toHaveBeenCalled();
         },
       );
@@ -1647,18 +1482,12 @@ describe('handleUniversalLink', () => {
             source: testSource,
           });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-            {
-              linkType: DeepLinkModalLinkType.PUBLIC,
-              pageTitle: 'Dapp',
-              onContinue: expect.any(Function),
-              onBack: expect.any(Function),
-            },
-            expect.objectContaining({
-              interstitialShown: false,
-              interstitialDisabled: false,
-            }),
-          );
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
           expect(handled).toHaveBeenCalled();
         },
       );
@@ -1862,9 +1691,9 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        expect.any(Object),
         expect.objectContaining({
-          signatureStatus: 'valid',
+          linkType: DeepLinkModalLinkType.PRIVATE,
+          pageTitle: 'Dapp',
         }),
       );
     });
@@ -1896,9 +1725,9 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        expect.any(Object),
         expect.objectContaining({
-          signatureStatus: 'invalid',
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
         }),
       );
     });
@@ -1929,9 +1758,9 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
-        expect.any(Object),
         expect.objectContaining({
-          signatureStatus: 'missing',
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
         }),
       );
     });

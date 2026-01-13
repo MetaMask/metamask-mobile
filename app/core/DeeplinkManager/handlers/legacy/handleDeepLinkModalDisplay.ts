@@ -6,12 +6,8 @@ import {
 import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
-import { DeepLinkAnalyticsContext } from '../../types/deepLinkAnalytics.types';
 
-const handleDeepLinkModalDisplay = async (
-  params: DeepLinkModalParams,
-  deepLinkContext?: DeepLinkAnalyticsContext,
-) => {
+const handleDeepLinkModalDisplay = async (params: DeepLinkModalParams) => {
   // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(
     ReduxService.store.getState(),
@@ -23,10 +19,7 @@ const handleDeepLinkModalDisplay = async (
     return;
   }
   NavigationService.navigation.navigate(
-    ...createDeepLinkModalNavDetails({
-      ...params,
-      deepLinkContext,
-    }),
+    ...createDeepLinkModalNavDetails(params),
   );
 };
 
