@@ -57,4 +57,8 @@ export interface TitleLeftProps {
    * Optional test ID for the component.
    */
   testID?: string;
+  /**
+   * Optional Tailwind class name to apply to the container.
+   */
+  twClassName?: string;
 }

@@ -338,27 +338,27 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
               if (hasTakeProfit && takeProfitPrice) {
                 const tpPrice = formatPerpsFiat(parseFloat(takeProfitPrice), {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 });
                 parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
               }
 
               if (hasStopLoss && stopLossPrice) {
                 const slPrice = formatPerpsFiat(parseFloat(stopLossPrice), {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 });
                 parts.push(`${strings('perps.order.sl')} ${slPrice}`);
               }
 
               return (
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {parts.join(', ')}
                 </Text>
               );
             }
 
             return (
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('perps.auto_close.description')}
               </Text>
             );

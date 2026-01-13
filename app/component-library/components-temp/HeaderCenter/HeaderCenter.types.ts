@@ -10,8 +10,7 @@ import { HeaderBaseProps } from '../../components/HeaderBase';
 /**
  * HeaderCenter component props.
  */
-export interface HeaderCenterProps
-  extends Omit<HeaderBaseProps, 'startButtonIconProps'> {
+export interface HeaderCenterProps extends HeaderBaseProps {
   /**
    * Title text to display in the header.
    * Used as children if children prop is not provided.
@@ -23,6 +22,16 @@ export interface HeaderCenterProps
    * Props are spread to the Text component and can override default values.
    */
   titleProps?: Partial<TextProps>;
+  /**
+   * Subtitle text to display below the title.
+   * Rendered with TextVariant.BodySm and TextColor.TextAlternative by default.
+   */
+  subtitle?: string;
+  /**
+   * Additional props to pass to the subtitle Text component.
+   * Props are spread to the Text component and can override default values.
+   */
+  subtitleProps?: Partial<TextProps>;
   /**
    * Callback when the back button is pressed.
    * If provided, a back button will be rendered as startButtonIconProps.

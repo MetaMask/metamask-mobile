@@ -342,3 +342,23 @@ export interface OrderBook {
   tick_size: string;
   neg_risk: boolean;
 }
+
+export interface PolymarketApiTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string;
+  color: string;
+  alias: string;
+}
+
+export interface PolymarketApiGameEvent {
+  gameId?: string;
+  startTime?: string;
+  score?: string;
+  elapsed?: string;
+  period?: string;
+  live?: boolean;
+  ended?: boolean;
+  closed?: boolean;
+}
