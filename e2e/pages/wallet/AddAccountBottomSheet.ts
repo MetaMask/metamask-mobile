@@ -21,6 +21,12 @@ class AddAccountBottomSheet {
     );
   }
 
+  get createTronAccountButton(): DetoxElement {
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.ADD_TRON_ACCOUNT_BUTTON,
+    );
+  }
+
   get importSrpButton(): DetoxElement {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
@@ -48,6 +54,12 @@ class AddAccountBottomSheet {
   async tapAddSolanaAccount(): Promise<void> {
     await Gestures.waitAndTap(this.createSolanaAccountButton, {
       elemDescription: 'Add Solana Account button',
+    });
+  }
+
+  async tapAddTronAccount(): Promise<void> {
+    await Gestures.waitAndTap(this.createTronAccountButton, {
+      elemDescription: 'Add Tron Account button',
     });
   }
 }
