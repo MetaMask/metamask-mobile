@@ -496,7 +496,7 @@ describe('useRampsGeolocation', () => {
 
       const firstRenderFunction = result.current.fetchGeolocation;
 
-      rerender();
+      rerender(undefined);
 
       const secondRenderFunction = result.current.fetchGeolocation;
 

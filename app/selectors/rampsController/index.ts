@@ -19,14 +19,6 @@ export const selectUserRegion = createSelector(
 );
 
 /**
- * Selects the user's preferred provider from state.
- */
-export const selectPreferredProvider = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.preferredProvider ?? null,
-);
-
-/**
  * Selects the user region request state
  */
 export const selectUserRegionRequest = createRequestSelector<RootState, string>(
