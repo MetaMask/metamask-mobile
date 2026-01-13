@@ -14,8 +14,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../pages/Send/SendView';
-import AmountView from '../../../pages/Send/AmountView';
+import RedesignedSendView from '../../../pages/Send/RedesignedSendView';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -101,14 +100,13 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
         await WalletView.tapWalletSendButton();
 
-        await SendView.inputAddress(RECIPIENT);
-        await SendView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(RECIPIENT);
 
         // Do double tab here to prevent flakiness
-        await AmountView.tapMaxButton();
-        await AmountView.tapMaxButton();
+        await RedesignedSendView.tapMaxButton();
+        await RedesignedSendView.tapMaxButton();
 
-        await AmountView.tapNextButton();
+        await RedesignedSendView.pressReviewButton();
 
         // Check all expected elements are visible
         await Assertions.expectTextDisplayed('1,000 ETH');

@@ -1,7 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers';
-import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
+import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
 import { Utilities } from '../../framework';
 
 class SendView {
@@ -43,6 +42,18 @@ class SendView {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
     );
+  }
+
+  get amountInputField(): DetoxElement {
+    return Matchers.getElementByID('txn-amount-input');
+  }
+
+  get nextButton(): DetoxElement {
+    return Matchers.getElementByID('txn-amount-next-button');
+  }
+
+  get currencySwitch(): DetoxElement {
+    return Matchers.getElementByID('amount-screen-currency-switch');
   }
 
   async selectEthereumToken(): Promise<void> {
@@ -96,10 +107,31 @@ class SendView {
 
   async pressReviewButton() {
     await Utilities.waitForElementToBeEnabled(this.reviewButton);
-    await TestHelpers.delay(2000);
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
     });
+  }
+
+  async typeInTransactionAmount(amount: string): Promise<void> {
+    await Gestures.replaceText(this.amountInputField, amount, {
+      elemDescription: 'Amount Input Field',
+    });
+  }
+
+  async tapNextButton(): Promise<void> {
+    await Gestures.waitAndTap(this.nextButton, {
+      elemDescription: 'Next Button on Amount Screen',
+    });
+  }
+
+  async tapCurrencySwitch(): Promise<void> {
+    await Gestures.waitAndTap(this.currencySwitch, {
+      elemDescription: 'Currency Switch',
+    });
+  }
+
+  async tapMaxButton(): Promise<void> {
+    await this.pressAmountMaxButton();
   }
 }
 

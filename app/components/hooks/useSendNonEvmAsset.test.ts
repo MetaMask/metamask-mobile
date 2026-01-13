@@ -5,8 +5,6 @@ import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMult
 import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
-import { handleSendPageNavigation } from '../Views/confirmations/utils/send';
-import { RootState } from '../../reducers';
 
 // Mock dependencies
 jest.mock('../../core/SnapKeyring/utils/sendMultichainTransaction');
@@ -21,16 +19,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../Views/confirmations/utils/send');
 
-const RemoteFeatureFlagControllerState = {
-  RemoteFeatureFlagController: {
-    remoteFeatureFlags: {
-      sendRedesign: {
-        enabled: false,
-      },
-    },
-  },
-};
-
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
     typeof sendMultichainTransaction
@@ -40,7 +28,6 @@ const mockedIsMultichainWalletSnap =
 const mockedIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
   typeof isEvmAccountType
 >;
-const mockedHandleSendPageNavigation = jest.mocked(handleSendPageNavigation);
 
 describe('useSendNonEvmAsset', () => {
   const mockAsset = {
@@ -58,8 +45,6 @@ describe('useSendNonEvmAsset', () => {
     name: 'Ethereum',
     symbol: 'ETH',
   };
-
-  const mockCloseModal = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -84,14 +69,12 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
-            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -100,7 +83,6 @@ describe('useSendNonEvmAsset', () => {
       );
 
       expect(wasHandled).toBe(false);
-      expect(mockCloseModal).not.toHaveBeenCalled();
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
@@ -123,19 +105,14 @@ describe('useSendNonEvmAsset', () => {
               },
             },
             RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                sendRedesign: {
-                  enabled: true,
-                },
-              },
+              remoteFeatureFlags: {},
             },
           },
         },
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -156,14 +133,12 @@ describe('useSendNonEvmAsset', () => {
                 accounts: {},
               },
             },
-            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -172,7 +147,6 @@ describe('useSendNonEvmAsset', () => {
       );
 
       expect(wasHandled).toBe(false);
-      expect(mockCloseModal).not.toHaveBeenCalled();
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
@@ -203,8 +177,7 @@ describe('useSendNonEvmAsset', () => {
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -234,8 +207,7 @@ describe('useSendNonEvmAsset', () => {
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -264,11 +236,7 @@ describe('useSendNonEvmAsset', () => {
             },
           },
           RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              sendRedesign: {
-                enabled: false,
-              },
-            },
+            remoteFeatureFlags: {},
           },
         },
       },
@@ -283,8 +251,7 @@ describe('useSendNonEvmAsset', () => {
       mockedSendMultichainTransaction.mockResolvedValue(undefined);
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -293,7 +260,6 @@ describe('useSendNonEvmAsset', () => {
       );
 
       expect(wasHandled).toBe(true);
-      expect(mockCloseModal).toHaveBeenCalledTimes(1);
       expect(mockedSendMultichainTransaction).toHaveBeenCalledWith(
         'test-snap-id',
         {
@@ -320,14 +286,12 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
-            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: stateWithoutSnap },
       );
 
@@ -336,7 +300,6 @@ describe('useSendNonEvmAsset', () => {
       );
 
       expect(wasHandled).toBe(true);
-      expect(mockCloseModal).toHaveBeenCalledTimes(1);
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
@@ -344,8 +307,7 @@ describe('useSendNonEvmAsset', () => {
       mockedIsMultichainWalletSnap.mockReturnValue(false);
 
       const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        () => useSendNonEvmAsset({ asset: mockAsset }),
         { state: mockState },
       );
 
@@ -354,7 +316,6 @@ describe('useSendNonEvmAsset', () => {
       );
 
       expect(wasHandled).toBe(true);
-      expect(mockCloseModal).toHaveBeenCalledTimes(1);
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
@@ -362,25 +323,6 @@ describe('useSendNonEvmAsset', () => {
       const mockError = new Error('Transaction failed');
       mockedIsMultichainWalletSnap.mockReturnValue(true);
       mockedSendMultichainTransaction.mockRejectedValue(mockError);
-
-      const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
-        { state: mockState },
-      );
-
-      const wasHandled = await result.current.sendNonEvmAsset(
-        InitSendLocation.HomePage,
-      );
-
-      expect(wasHandled).toBe(true);
-      expect(mockCloseModal).toHaveBeenCalledTimes(1);
-      expect(mockedSendMultichainTransaction).toHaveBeenCalled();
-    });
-
-    it('should work without closeModal callback', async () => {
-      mockedIsMultichainWalletSnap.mockReturnValue(true);
-      mockedSendMultichainTransaction.mockResolvedValue(undefined);
 
       const { result } = renderHookWithProvider(
         () => useSendNonEvmAsset({ asset: mockAsset }),
@@ -393,54 +335,6 @@ describe('useSendNonEvmAsset', () => {
 
       expect(wasHandled).toBe(true);
       expect(mockedSendMultichainTransaction).toHaveBeenCalled();
-    });
-
-    it('calls handleSendPageNavigation when send redesign is enabled', async () => {
-      mockedIsMultichainWalletSnap.mockReturnValue(true);
-      mockedSendMultichainTransaction.mockResolvedValue(undefined);
-
-      const mockStateWithSendRedesignEnabled = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'non-evm-account-id',
-                accounts: {
-                  'non-evm-account-id': {
-                    id: 'non-evm-account-id',
-                    type: 'snap',
-                    metadata: {
-                      snap: {
-                        id: 'test-snap-id',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                sendRedesign: {
-                  enabled: true,
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const { result } = renderHookWithProvider(
-        () =>
-          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
-        { state: mockStateWithSendRedesignEnabled },
-      );
-
-      const wasHandled = await result.current.sendNonEvmAsset(
-        InitSendLocation.HomePage,
-      );
-
-      expect(mockedHandleSendPageNavigation).toHaveBeenCalledTimes(1);
-      expect(wasHandled).toBe(true);
     });
   });
 });

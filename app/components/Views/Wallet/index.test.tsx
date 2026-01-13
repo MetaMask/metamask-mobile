@@ -291,12 +291,9 @@ const mockInitialState = {
               'eip155:1': {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: false, // Default to false in base state
+                isUnifiedUIEnabled: false,
               },
             },
-          },
-          sendRedesign: {
-            enabled: false,
           },
         },
       },

@@ -15,8 +15,7 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../pages/Send/SendView';
-import AmountView from '../../../pages/Send/AmountView';
+import RedesignedSendView from '../../../pages/Send/RedesignedSendView';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { Mockttp } from 'mockttp';
 import {
@@ -103,11 +102,9 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
 
         await WalletView.tapWalletSendButton();
 
-        await SendView.inputAddress(RECIPIENT);
-        await SendView.tapNextButton();
-
-        await AmountView.typeInTransactionAmount(AMOUNT);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(RECIPIENT);
+        await RedesignedSendView.typeInTransactionAmount(AMOUNT);
+        await RedesignedSendView.pressReviewButton();
 
         // Check all expected elements are visible
         await Assertions.expectElementToBeVisible(

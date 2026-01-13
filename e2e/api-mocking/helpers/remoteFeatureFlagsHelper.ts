@@ -251,11 +251,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
-    sendRedesign: {
-      enabled: true,
-    },
-  },
-  {
     tokenDiscoveryBrowserEnabled: false,
   },
   {

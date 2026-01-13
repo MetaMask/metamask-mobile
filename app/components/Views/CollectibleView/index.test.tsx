@@ -14,11 +14,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          sendRedesign: {
-            enabled: false,
-          },
-        },
+        remoteFeatureFlags: {},
       },
     },
   },
