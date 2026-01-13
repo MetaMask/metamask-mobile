@@ -1,29 +1,33 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useLiveGameUpdates } from './useLiveGameUpdates';
-import { WebSocketManager } from '../providers/polymarket/WebSocketManager';
+import Engine from '../../../../core/Engine';
 import { GameUpdate } from '../types';
 
-jest.mock('../providers/polymarket/WebSocketManager');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      subscribeToGameUpdates: jest.fn(),
+      getConnectionStatus: jest.fn(),
+    },
+  },
+}));
 
 describe('useLiveGameUpdates', () => {
-  const mockSubscribeToGame = jest.fn();
-  const mockGetConnectionStatus = jest.fn();
+  const mockSubscribeToGameUpdates = Engine.context.PredictController
+    .subscribeToGameUpdates as jest.Mock;
+  const mockGetConnectionStatus = Engine.context.PredictController
+    .getConnectionStatus as jest.Mock;
   const mockUnsubscribe = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    (WebSocketManager.getInstance as jest.Mock).mockReturnValue({
-      subscribeToGame: mockSubscribeToGame,
-      getConnectionStatus: mockGetConnectionStatus.mockReturnValue({
-        sportsConnected: true,
-        marketConnected: false,
-        gameSubscriptionCount: 1,
-        priceSubscriptionCount: 0,
-      }),
+    mockSubscribeToGameUpdates.mockReturnValue(mockUnsubscribe);
+    mockGetConnectionStatus.mockReturnValue({
+      sportsConnected: true,
+      marketConnected: false,
     });
-    mockSubscribeToGame.mockReturnValue(mockUnsubscribe);
   });
 
   afterEach(() => {
@@ -34,7 +38,7 @@ describe('useLiveGameUpdates', () => {
     it('subscribes to game updates when gameId is provided', () => {
       renderHook(() => useLiveGameUpdates('game123'));
 
-      expect(mockSubscribeToGame).toHaveBeenCalledWith(
+      expect(mockSubscribeToGameUpdates).toHaveBeenCalledWith(
         'game123',
         expect.any(Function),
       );
@@ -43,13 +47,13 @@ describe('useLiveGameUpdates', () => {
     it('does not subscribe when gameId is null', () => {
       renderHook(() => useLiveGameUpdates(null));
 
-      expect(mockSubscribeToGame).not.toHaveBeenCalled();
+      expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
     });
 
     it('does not subscribe when enabled is false', () => {
       renderHook(() => useLiveGameUpdates('game123', { enabled: false }));
 
-      expect(mockSubscribeToGame).not.toHaveBeenCalled();
+      expect(mockSubscribeToGameUpdates).not.toHaveBeenCalled();
     });
 
     it('unsubscribes on unmount', () => {
@@ -66,8 +70,8 @@ describe('useLiveGameUpdates', () => {
         { initialProps: { gameId: 'game123' } },
       );
 
-      expect(mockSubscribeToGame).toHaveBeenCalledTimes(1);
-      expect(mockSubscribeToGame).toHaveBeenCalledWith(
+      expect(mockSubscribeToGameUpdates).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToGameUpdates).toHaveBeenCalledWith(
         'game123',
         expect.any(Function),
       );
@@ -75,8 +79,8 @@ describe('useLiveGameUpdates', () => {
       rerender({ gameId: 'game456' });
 
       expect(mockUnsubscribe).toHaveBeenCalled();
-      expect(mockSubscribeToGame).toHaveBeenCalledTimes(2);
-      expect(mockSubscribeToGame).toHaveBeenLastCalledWith(
+      expect(mockSubscribeToGameUpdates).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToGameUpdates).toHaveBeenLastCalledWith(
         'game456',
         expect.any(Function),
       );
@@ -86,7 +90,7 @@ describe('useLiveGameUpdates', () => {
   describe('game update handling', () => {
     it('updates gameUpdate state when callback is invoked', () => {
       let capturedCallback: (update: GameUpdate) => void = jest.fn();
-      mockSubscribeToGame.mockImplementation((_, callback) => {
+      mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
@@ -116,7 +120,7 @@ describe('useLiveGameUpdates', () => {
 
     it('updates lastUpdateTime when game update is received', () => {
       let capturedCallback: (update: GameUpdate) => void = jest.fn();
-      mockSubscribeToGame.mockImplementation((_, callback) => {
+      mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
@@ -141,13 +145,12 @@ describe('useLiveGameUpdates', () => {
       expect(result.current.lastUpdateTime).toBe(mockNow);
     });
 
-    it('handles optional turn field in game update', () => {
+    it('includes turn field when present in game update', () => {
       let capturedCallback: (update: GameUpdate) => void = jest.fn();
-      mockSubscribeToGame.mockImplementation((_, callback) => {
+      mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
-
       const { result } = renderHook(() => useLiveGameUpdates('game123'));
 
       act(() => {
@@ -166,12 +169,10 @@ describe('useLiveGameUpdates', () => {
   });
 
   describe('connection status', () => {
-    it('reflects connected status from WebSocketManager', () => {
+    it('reflects connected status from PredictController', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: true,
         marketConnected: false,
-        gameSubscriptionCount: 1,
-        priceSubscriptionCount: 0,
       });
 
       const { result } = renderHook(() => useLiveGameUpdates('game123'));
@@ -179,12 +180,10 @@ describe('useLiveGameUpdates', () => {
       expect(result.current.isConnected).toBe(true);
     });
 
-    it('reflects disconnected status from WebSocketManager', () => {
+    it('reflects disconnected status from PredictController', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: false,
         marketConnected: false,
-        gameSubscriptionCount: 0,
-        priceSubscriptionCount: 0,
       });
 
       const { result } = renderHook(() => useLiveGameUpdates('game123'));
@@ -194,8 +193,11 @@ describe('useLiveGameUpdates', () => {
 
     it('updates connection status on interval', () => {
       mockGetConnectionStatus
-        .mockReturnValueOnce({ sportsConnected: true })
-        .mockReturnValueOnce({ sportsConnected: false });
+        .mockReturnValueOnce({ sportsConnected: true, marketConnected: false })
+        .mockReturnValueOnce({
+          sportsConnected: false,
+          marketConnected: false,
+        });
 
       const { result } = renderHook(() => useLiveGameUpdates('game123'));
 
@@ -234,7 +236,7 @@ describe('useLiveGameUpdates', () => {
 
     it('resets state when disabled', () => {
       let capturedCallback: (update: GameUpdate) => void = jest.fn();
-      mockSubscribeToGame.mockImplementation((_, callback) => {
+      mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });

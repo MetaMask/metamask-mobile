@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import Engine from '../../../../core/Engine';
 import { GameUpdate } from '../types';
-import { WebSocketManager } from '../providers/polymarket/WebSocketManager';
 
 export interface UseLiveGameUpdatesOptions {
   enabled?: boolean;
@@ -40,12 +40,15 @@ export const useLiveGameUpdates = (
       return;
     }
 
-    const manager = WebSocketManager.getInstance();
-    const unsubscribe = manager.subscribeToGame(gameId, handleGameUpdate);
+    const { PredictController } = Engine.context;
+    const unsubscribe = PredictController.subscribeToGameUpdates(
+      gameId,
+      handleGameUpdate,
+    );
 
     const checkConnection = () => {
       if (!isMountedRef.current) return;
-      const status = manager.getConnectionStatus();
+      const status = PredictController.getConnectionStatus();
       setIsConnected(status.sportsConnected);
     };
 

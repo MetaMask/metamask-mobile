@@ -44,6 +44,8 @@ import {
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
+  ConnectionStatus,
+  GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -54,6 +56,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
 } from '../providers/types';
 import {
@@ -1706,10 +1709,38 @@ export class PredictController extends BaseController<
     }
   }
 
-  /**
-   * Test utility method to update state for testing purposes
-   * @param updater - Function that updates the state
-   */
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToGameUpdates) {
+      return () => undefined;
+    }
+    return provider.subscribeToGameUpdates(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToMarketPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToMarketPrices(tokenIds, callback);
+  }
+
+  public getConnectionStatus(providerId = 'polymarket'): ConnectionStatus {
+    const provider = this.providers.get(providerId);
+    if (!provider?.getConnectionStatus) {
+      return { sportsConnected: false, marketConnected: false };
+    }
+    return provider.getConnectionStatus();
+  }
+
   public updateStateForTesting(
     updater: (state: PredictControllerState) => void,
   ): void {

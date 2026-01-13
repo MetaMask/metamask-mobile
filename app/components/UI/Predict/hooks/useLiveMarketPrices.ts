@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
-import { WebSocketManager } from '../providers/polymarket/WebSocketManager';
 
 export interface UseLiveMarketPricesOptions {
   enabled?: boolean;
@@ -53,15 +53,15 @@ export const useLiveMarketPrices = (
       return;
     }
 
-    const manager = WebSocketManager.getInstance();
-    const unsubscribe = manager.subscribeToMarketPrices(
+    const { PredictController } = Engine.context;
+    const unsubscribe = PredictController.subscribeToMarketPrices(
       tokenIdsRef.current,
       handlePriceUpdates,
     );
 
     const checkConnection = () => {
       if (!isMountedRef.current) return;
-      const status = manager.getConnectionStatus();
+      const status = PredictController.getConnectionStatus();
       setIsConnected(status.marketConnected);
     };
 

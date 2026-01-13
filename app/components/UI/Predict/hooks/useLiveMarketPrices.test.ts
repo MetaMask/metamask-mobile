@@ -1,29 +1,33 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
-import { WebSocketManager } from '../providers/polymarket/WebSocketManager';
+import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
 
-jest.mock('../providers/polymarket/WebSocketManager');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      subscribeToMarketPrices: jest.fn(),
+      getConnectionStatus: jest.fn(),
+    },
+  },
+}));
 
 describe('useLiveMarketPrices', () => {
-  const mockSubscribeToMarketPrices = jest.fn();
-  const mockGetConnectionStatus = jest.fn();
+  const mockSubscribeToMarketPrices = Engine.context.PredictController
+    .subscribeToMarketPrices as jest.Mock;
+  const mockGetConnectionStatus = Engine.context.PredictController
+    .getConnectionStatus as jest.Mock;
   const mockUnsubscribe = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    (WebSocketManager.getInstance as jest.Mock).mockReturnValue({
-      subscribeToMarketPrices: mockSubscribeToMarketPrices,
-      getConnectionStatus: mockGetConnectionStatus.mockReturnValue({
-        sportsConnected: false,
-        marketConnected: true,
-        gameSubscriptionCount: 0,
-        priceSubscriptionCount: 1,
-      }),
-    });
     mockSubscribeToMarketPrices.mockReturnValue(mockUnsubscribe);
+    mockGetConnectionStatus.mockReturnValue({
+      sportsConnected: false,
+      marketConnected: true,
+    });
   });
 
   afterEach(() => {
@@ -221,12 +225,10 @@ describe('useLiveMarketPrices', () => {
   });
 
   describe('connection status', () => {
-    it('reflects connected status from WebSocketManager', () => {
+    it('reflects connected status from PredictController', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: false,
         marketConnected: true,
-        gameSubscriptionCount: 0,
-        priceSubscriptionCount: 1,
       });
 
       const { result } = renderHook(() => useLiveMarketPrices(['token1']));
@@ -234,12 +236,10 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(true);
     });
 
-    it('reflects disconnected status from WebSocketManager', () => {
+    it('reflects disconnected status from PredictController', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: false,
         marketConnected: false,
-        gameSubscriptionCount: 0,
-        priceSubscriptionCount: 0,
       });
 
       const { result } = renderHook(() => useLiveMarketPrices(['token1']));
@@ -249,8 +249,11 @@ describe('useLiveMarketPrices', () => {
 
     it('updates connection status on interval', () => {
       mockGetConnectionStatus
-        .mockReturnValueOnce({ marketConnected: true })
-        .mockReturnValueOnce({ marketConnected: false });
+        .mockReturnValueOnce({ sportsConnected: false, marketConnected: true })
+        .mockReturnValueOnce({
+          sportsConnected: false,
+          marketConnected: false,
+        });
 
       const { result } = renderHook(() => useLiveMarketPrices(['token1']));
 
