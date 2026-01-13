@@ -499,13 +499,12 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
-    // transform the status from bridgeTxHistoryItem to the status of the transaction
-    let transactionStatus = status;
-    if (bridgeTxHistoryItem && bridgeTxHistoryItem.status) {
-      transactionStatus = this.mapIntentStatusToTransactionStatus(
-        bridgeTxHistoryItem.status.status,
-      );
-    }
+    const transactionStatus =
+      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
+        ? this.mapIntentStatusToTransactionStatus(
+            bridgeTxHistoryItem.status.status,
+          )
+        : status;
 
     const renderNormalActions =
       (transactionStatus === 'submitted' ||
