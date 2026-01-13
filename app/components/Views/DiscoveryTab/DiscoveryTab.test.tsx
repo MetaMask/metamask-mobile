@@ -31,7 +31,20 @@ describe('DiscoveryTab', () => {
       tabs: [{ id: 1, url: '' }],
     },
     engine: {
-      backgroundState: {},
+      backgroundState: {
+        AccountTrackerController: {
+          accounts: {
+            '0x123': { balance: '0x0' },
+          },
+        },
+        NetworkController: {
+          providerConfig: {
+            chainId: '0x1',
+            type: 'mainnet',
+          },
+          networkConfigurations: {},
+        },
+      },
     },
   };
 

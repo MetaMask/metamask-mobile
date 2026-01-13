@@ -851,7 +851,7 @@ exports[`BrowserTab render Browser 1`] = `
               {
                 "busy": undefined,
                 "checked": undefined,
-                "disabled": false,
+                "disabled": true,
                 "expanded": undefined,
                 "selected": undefined,
               }
@@ -884,7 +884,7 @@ exports[`BrowserTab render Browser 1`] = `
                   "borderRadius": 2,
                   "height": 40,
                   "justifyContent": "center",
-                  "opacity": 1,
+                  "opacity": 0.5,
                   "width": 40,
                 },
                 undefined,
