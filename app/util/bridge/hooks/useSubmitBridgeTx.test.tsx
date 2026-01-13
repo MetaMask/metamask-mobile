@@ -86,13 +86,6 @@ jest.mock('../../../selectors/bridge', () => ({
   ),
 }));
 
-jest.mock('../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../selectors/accountsController'),
-  selectSelectedInternalAccountFormattedAddress: jest.fn(
-    () => '0x1234567890123456789012345678901234567890',
-  ),
-}));
-
 const mockHandleIntentTransaction = jest.fn();
 jest.mock('../../../lib/transaction/intent', () => ({
   handleIntentTransaction: (...args: unknown[]) =>

@@ -3,15 +3,11 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { handleIntentTransaction } from '../../../lib/transaction/intent';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const selectedAccountAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -20,7 +16,7 @@ export default function useSubmitBridgeTx() {
   }) => {
     // check whether quoteResponse is an intent transaction
     if (quoteResponse.quote.intent) {
-      return handleIntentTransaction(quoteResponse, selectedAccountAddress);
+      return handleIntentTransaction(quoteResponse, walletAddress);
     }
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
