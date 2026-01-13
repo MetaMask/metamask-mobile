@@ -736,8 +736,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderHeader = () => {
-    // Show skeleton header if no title/market data available
-    if (!title && !market?.title) {
+    if (isMarketFetching && !market) {
       return <PredictDetailsHeaderSkeleton />;
     }
 

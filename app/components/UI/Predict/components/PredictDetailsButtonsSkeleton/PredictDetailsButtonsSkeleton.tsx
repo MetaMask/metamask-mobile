@@ -7,10 +7,6 @@ interface PredictDetailsButtonsSkeletonProps {
   testID?: string;
 }
 
-/**
- * Skeleton loader component for Predict market details action buttons
- * Displays loading placeholders for Yes/No action buttons
- */
 const PredictDetailsButtonsSkeleton: React.FC<
   PredictDetailsButtonsSkeletonProps
 > = ({ testID = 'predict-details-buttons-skeleton' }) => {
@@ -18,23 +14,21 @@ const PredictDetailsButtonsSkeleton: React.FC<
 
   return (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3 mt-4">
-      {/* Buy Yes Button - Green tint */}
       <Box twClassName="flex-1">
         <Skeleton
           width="100%"
           height={48}
-          style={tw.style('rounded-lg bg-success-muted')}
-          testID={`${testID}-button-yes`}
+          style={tw.style('rounded-xl')}
+          testID={`${testID}-button-1`}
         />
       </Box>
 
-      {/* Buy No Button - Red tint */}
       <Box twClassName="flex-1">
         <Skeleton
           width="100%"
           height={48}
-          style={tw.style('rounded-lg bg-error-muted')}
-          testID={`${testID}-button-no`}
+          style={tw.style('rounded-xl')}
+          testID={`${testID}-button-2`}
         />
       </Box>
     </Box>
