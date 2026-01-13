@@ -8,7 +8,7 @@ import {
 import { merge } from 'lodash';
 import { encryptVault } from './helpers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -47,6 +47,9 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
+
+export const DEFAULT_TRON_FIXTURE_ACCOUNT =
+  'TLSLTQxPqXEHYVVAM76HsLYqiKpsN4nf2T';
 
 // AccountTreeController Wallet and Group IDs - reused across fixtures
 export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
@@ -1080,6 +1083,46 @@ class FixtureBuilder {
   }
 
   /**
+   * Adds Tron account permissions for default fixture account.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withTronAccountPermission() {
+    const caveatValue = {
+      optionalScopes: {
+        [TrxScope.Shasta]: {
+          accounts: [`${TrxScope.Shasta}:${DEFAULT_TRON_FIXTURE_ACCOUNT}`],
+        },
+        [TrxScope.Mainnet]: {
+          accounts: [`${TrxScope.Mainnet}:${DEFAULT_TRON_FIXTURE_ACCOUNT}`],
+        },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
+    const permissionConfig = {
+      [Caip25EndowmentPermissionName]: {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: Caip25EndowmentPermissionName,
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValue,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(permissionConfig),
+    );
+    return this;
+  }
+
+  /**
    * Sets the user profile key ring in the fixture's background state.
    * @param {object} userState - The user state to set.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
@@ -1837,6 +1880,35 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
+          isEvm: false,
+        },
+      },
+      isEvmSelected: false,
+    };
+
+    return this;
+  }
+
+  /**
+   * Sets up a minimal Tron fixture with mainnet configuration
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withTronFixture() {
+    const TRON_TOKEN = 'slip44:195';
+
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: TrxScope.Shasta,
+      multichainNetworkConfigurationsByChainId: {
+        [TrxScope.Shasta]: {
+          chainId: TrxScope.Shasta,
+          name: 'Tron Shasta',
+          nativeCurrency: `${TrxScope.Shasta}/${TRON_TOKEN}`,
+          isEvm: false,
+        },
+        [TrxScope.Mainnet]: {
+          chainId: TrxScope.Mainnet,
+          name: 'Tron Mainnet',
+          nativeCurrency: `${TrxScope.Mainnet}/${TRON_TOKEN}`,
           isEvm: false,
         },
       },
