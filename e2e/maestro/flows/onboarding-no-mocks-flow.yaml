@@ -8,6 +8,13 @@ tags:
     visible:
       id: ${output.onboarding.welcome.createNewWalletBtn}
     timeout: 60000
+    
+# modal shows when running on CI
+- runFlow:
+    when:
+      visible: "Use Secret Recovery Phrase" # Condition to check
+    commands:
+      - tapOn: "Use Secret Recovery Phrase"
 
 - tapOn:
     id: ${output.onboarding.welcome.createNewWalletBtn}
