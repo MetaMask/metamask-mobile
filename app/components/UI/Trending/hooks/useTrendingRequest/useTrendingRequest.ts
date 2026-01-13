@@ -13,6 +13,18 @@ import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 const POLLING_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
+ * Options for fetching trending tokens
+ */
+interface FetchOptions {
+  /**
+   * If true, the fetch will silently update results without setting loading state or error.
+   * On success: updates results
+   * On failure: does nothing (preserves existing results and error state)
+   */
+  isSilentUpdate?: boolean;
+}
+
+/**
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
@@ -57,101 +69,73 @@ export const useTrendingRequest = (options: {
 
   const [error, setError] = useState<Error | null>(null);
 
-  // Silent fetch function for polling - doesn't set loading state or error
-  const silentFetchTrendingTokens = useCallback(async () => {
-    if (!stableChainIds.length) {
-      return;
-    }
+  const fetchTrendingTokens = useCallback(
+    async (fetchOptions: FetchOptions = {}) => {
+      const { isSilentUpdate = false } = fetchOptions;
 
-    // Increment request ID to mark this as the current request
-    const currentRequestId = ++requestIdRef.current;
-
-    try {
-      const resultsToStore = await getTrendingTokens({
-        chainIds: stableChainIds,
-        sortBy,
-        minLiquidity,
-        minVolume24hUsd,
-        maxVolume24hUsd,
-        minMarketCap,
-        maxMarketCap,
-        excludeLabels: ['stable_coin', 'blue_chip'],
-      });
-      // Only update state if this is still the current request and silently update results
-      if (currentRequestId === requestIdRef.current) {
-        setResults(resultsToStore);
+      if (!stableChainIds.length) {
+        if (!isSilentUpdate) {
+          setResults([]);
+          setIsLoading(false);
+        }
+        return;
       }
-    } catch (err) {
-      // Silently fail - don't update error state or loading state during polling
-      // Only log if needed for debugging
-    }
-  }, [
-    stableChainIds,
-    sortBy,
-    minLiquidity,
-    minVolume24hUsd,
-    maxVolume24hUsd,
-    minMarketCap,
-    maxMarketCap,
-  ]);
 
-  const fetchTrendingTokens = useCallback(async () => {
-    if (!stableChainIds.length) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
+      // Increment request ID to mark this as the current request
+      const currentRequestId = ++requestIdRef.current;
 
-    // Increment request ID to mark this as the current request
-    const currentRequestId = ++requestIdRef.current;
-    setIsLoading(true);
-    setError(null);
+      if (!isSilentUpdate) {
+        setIsLoading(true);
+        setError(null);
+      }
 
-    try {
-      const resultsToStore = await getTrendingTokens({
-        chainIds: stableChainIds,
-        sortBy,
-        minLiquidity,
-        minVolume24hUsd,
-        maxVolume24hUsd,
-        minMarketCap,
-        maxMarketCap,
-        excludeLabels: ['stable_coin', 'blue_chip'],
-      });
-      // Only update state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setResults(resultsToStore);
+      try {
+        const resultsToStore = await getTrendingTokens({
+          chainIds: stableChainIds,
+          sortBy,
+          minLiquidity,
+          minVolume24hUsd,
+          maxVolume24hUsd,
+          minMarketCap,
+          maxMarketCap,
+          excludeLabels: ['stable_coin', 'blue_chip'],
+        });
+        // Only update state if this is still the current request
+        if (currentRequestId === requestIdRef.current) {
+          setResults(resultsToStore);
+        }
+      } catch (err) {
+        // Only update state if this is still the current request and not a silent update
+        if (currentRequestId === requestIdRef.current && !isSilentUpdate) {
+          setError(err as Error);
+          setResults([]);
+        }
+        // Silent updates silently fail - don't update error state or results
+      } finally {
+        // Only update loading state if this is still the current request and not a silent update
+        if (currentRequestId === requestIdRef.current && !isSilentUpdate) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      // Only update state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setError(err as Error);
-        setResults([]);
-      }
-    } finally {
-      // Only update loading state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [
-    stableChainIds,
-    sortBy,
-    minLiquidity,
-    minVolume24hUsd,
-    maxVolume24hUsd,
-    minMarketCap,
-    maxMarketCap,
-  ]);
+    },
+    [
+      stableChainIds,
+      sortBy,
+      minLiquidity,
+      minVolume24hUsd,
+      maxVolume24hUsd,
+      minMarketCap,
+      maxMarketCap,
+    ],
+  );
 
   // Automatically trigger fetch when options change
   useEffect(() => {
     fetchTrendingTokens();
   }, [fetchTrendingTokens]);
 
-  // Track if initial load has completed successfully and if polling is active
+  // Track if initial load has completed successfully
   const initialLoadCompleteRef = useRef(false);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mark initial load as complete when loading finishes successfully
   useEffect(() => {
@@ -178,24 +162,15 @@ export const useTrendingRequest = (options: {
       return;
     }
 
-    // Clear any existing interval before creating a new one
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-    }
-
     // Start polling
-    pollingIntervalRef.current = setInterval(() => {
-      silentFetchTrendingTokens();
+    const pollingInterval = setInterval(() => {
+      fetchTrendingTokens({ isSilentUpdate: true });
     }, POLLING_INTERVAL_MS);
 
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
+      clearInterval(pollingInterval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, results.length, error, silentFetchTrendingTokens]);
+  }, [isLoading, results.length, error, fetchTrendingTokens]);
 
   return {
     results,
