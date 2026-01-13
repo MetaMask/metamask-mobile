@@ -6,6 +6,7 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
+import TrendingView from '../Trending/TrendingView';
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
@@ -99,6 +100,9 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarExploreButton);
+        await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
+          description: 'Trending view search button should be visible',
+        });
       },
       {
         timeout: 10000,
