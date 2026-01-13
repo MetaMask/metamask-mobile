@@ -78,7 +78,10 @@ import {
   isAssetFromTrending,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
-import { getNativeSourceToken } from '../Bridge/utils/tokenUtils';
+import {
+  getNativeSourceToken,
+  getDefaultDestToken,
+} from '../Bridge/utils/tokenUtils';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -86,7 +89,10 @@ import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
@@ -112,8 +118,13 @@ import { BridgeToken } from '../Bridge/types';
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
  *
+ * When the asset is a native gas token (e.g., ETH), we set sourceToken to the default
+ * pair token for that chain (e.g., mUSD on mainnet) and destToken to the native token,
+ * allowing the user to swap INTO the native token.
+ *
  * When coming from the trending tokens list, the user likely wants to BUY the token,
  * so we configure the swap with the native token as source and the asset as destination.
+ *
  * Otherwise, we assume they want to SELL, so the asset is the source.
  *
  * @param asset - The token asset being viewed
@@ -121,7 +132,10 @@ import { BridgeToken } from '../Bridge/types';
  */
 export const getSwapTokens = (
   asset: TokenI,
-): { sourceToken: BridgeToken; destToken: BridgeToken | undefined } => {
+): {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+} => {
   const wantsToBuyToken = isAssetFromTrending(asset);
 
   // Build bridge token from asset
@@ -134,6 +148,15 @@ export const getSwapTokens = (
     name: asset.name,
     image: asset.image,
   };
+
+  // If the asset is a native gas token, set source to the default pair token for that chain
+  // and dest to the native token, allowing the user to swap INTO the native token
+  if (isNativeAddress(asset.address)) {
+    return {
+      sourceToken: getDefaultDestToken(bridgeToken.chainId),
+      destToken: bridgeToken,
+    };
+  }
 
   if (wantsToBuyToken) {
     return {

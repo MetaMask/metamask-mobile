@@ -1890,4 +1890,35 @@ describe('getSwapTokens', () => {
       image: trendingAssetOnPolygon.image,
     });
   });
+
+  it('returns default pair token as sourceToken and native gas token as destToken when asset is native gas token', () => {
+    const nativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+    };
+
+    const result = getSwapTokens(nativeGasToken);
+
+    // sourceToken is the default pair token for mainnet (mUSD)
+    expect(result.sourceToken).toEqual({
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      decimals: 6,
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+      chainId: MOCK_CHAIN_ID,
+    });
+    // destToken is the native gas token
+    expect(result.destToken).toEqual({
+      ...nativeGasToken,
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: nativeGasToken.decimals,
+      symbol: nativeGasToken.symbol,
+      name: nativeGasToken.name,
+      image: nativeGasToken.image,
+    });
+  });
 });
