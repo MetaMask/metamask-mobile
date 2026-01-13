@@ -288,6 +288,12 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       active: false,
     },
   },
+  {
+    rampsUnifiedBuyV2: {
+      minimumVersion: '7.63.0',
+      active: false,
+    },
+  },
 ];
 
 /**
