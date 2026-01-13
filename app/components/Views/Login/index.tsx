@@ -185,18 +185,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
-    const timeoutId = setTimeout(async () => {
-      if (await Authentication.checkIsSeedlessPasswordOutdated()) {
-        navigation.replace('Rehydrate', {
-          isSeedlessPasswordOutdated: true,
-        });
-      } else {
-        setStartFoxAnimation('Start');
-      }
-    }, 100);
+    setStartFoxAnimation('Start');
 
     return () => {
-      clearTimeout(timeoutId);
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -474,16 +465,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
-
-  // Redirect users to OAuthRehydration screen
-  useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      // User with outdated password
-      navigation.replace('Rehydrate', {
-        isSeedlessPasswordOutdated: true,
-      });
-    }
-  }, [isSeedlessPasswordOutdated, navigation]);
 
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
