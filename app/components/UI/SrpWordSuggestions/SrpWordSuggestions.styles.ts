@@ -15,6 +15,7 @@ export const createStyles = (colors: Colors) =>
         default: 48,
       }),
       backgroundColor: colors.background.section,
+      minHeight: 52,
     },
     suggestionListContent: {
       alignItems: 'center' as const,

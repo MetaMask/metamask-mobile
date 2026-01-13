@@ -38,25 +38,27 @@ describe('SrpWordSuggestions', () => {
   });
 
   describe('rendering', () => {
-    it('renders nothing when currentInputWord is empty', () => {
-      const { queryByText } = renderWithProvider(
+    it('renders empty container when currentInputWord is empty', () => {
+      const { getByTestId, queryByText } = renderWithProvider(
         <SrpWordSuggestions
           currentInputWord=""
           onSuggestionSelect={mockOnSuggestionSelect}
         />,
       );
 
+      expect(getByTestId('srp-word-suggestions')).toBeOnTheScreen();
       expect(queryByText('abandon')).toBeNull();
     });
 
-    it('renders nothing when currentInputWord is whitespace only', () => {
-      const { queryByText } = renderWithProvider(
+    it('renders empty container when currentInputWord is whitespace only', () => {
+      const { getByTestId, queryByText } = renderWithProvider(
         <SrpWordSuggestions
           currentInputWord="   "
           onSuggestionSelect={mockOnSuggestionSelect}
         />,
       );
 
+      expect(getByTestId('srp-word-suggestions')).toBeOnTheScreen();
       expect(queryByText('abandon')).toBeNull();
     });
 
@@ -91,14 +93,15 @@ describe('SrpWordSuggestions', () => {
       expect(queryByText('absent')).not.toBeOnTheScreen();
     });
 
-    it('renders nothing when no words match', () => {
-      const { queryByText } = renderWithProvider(
+    it('renders empty container when no words match', () => {
+      const { getByTestId, queryByText } = renderWithProvider(
         <SrpWordSuggestions
           currentInputWord="xyz"
           onSuggestionSelect={mockOnSuggestionSelect}
         />,
       );
 
+      expect(getByTestId('srp-word-suggestions')).toBeOnTheScreen();
       expect(queryByText('abandon')).toBeNull();
     });
 
@@ -215,6 +218,45 @@ describe('SrpWordSuggestions', () => {
       expect(getByText('account')).toBeOnTheScreen();
       expect(getByText('accuse')).toBeOnTheScreen();
       expect(queryByText('abandon')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('empty bar behavior', () => {
+    it('maintains consistent container when transitioning from suggestions to empty', () => {
+      const { getByTestId, rerender, queryByText } = renderWithProvider(
+        <SrpWordSuggestions
+          currentInputWord="ab"
+          onSuggestionSelect={mockOnSuggestionSelect}
+        />,
+      );
+
+      expect(getByTestId('srp-word-suggestions')).toBeOnTheScreen();
+      expect(queryByText('abandon')).toBeOnTheScreen();
+
+      rerender(
+        <SrpWordSuggestions
+          currentInputWord=""
+          onSuggestionSelect={mockOnSuggestionSelect}
+        />,
+      );
+
+      expect(getByTestId('srp-word-suggestions')).toBeOnTheScreen();
+      expect(queryByText('abandon')).toBeNull();
+    });
+
+    it('calls onPressIn when empty container is touched', () => {
+      const { getByTestId } = renderWithProvider(
+        <SrpWordSuggestions
+          currentInputWord=""
+          onSuggestionSelect={mockOnSuggestionSelect}
+          onPressIn={mockOnPressIn}
+        />,
+      );
+
+      const container = getByTestId('srp-word-suggestions');
+      fireEvent(container, 'touchStart');
+
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
     });
   });
 });
