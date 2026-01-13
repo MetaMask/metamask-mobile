@@ -36,7 +36,7 @@ export function getNetworkControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['ErrorReportingService:captureException'],
+    actions: [],
     events: [],
     messenger,
   });

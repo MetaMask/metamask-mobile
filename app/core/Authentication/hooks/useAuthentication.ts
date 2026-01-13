@@ -5,6 +5,7 @@ import { Authentication } from '../Authentication';
  */
 export function useAuthentication() {
   return {
+    unlockWallet: Authentication.unlockWallet,
     lockApp: Authentication.lockApp,
     reauthenticate: Authentication.reauthenticate,
     revealSRP: Authentication.revealSRP,

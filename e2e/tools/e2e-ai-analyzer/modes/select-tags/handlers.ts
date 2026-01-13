@@ -14,6 +14,7 @@ const EXCLUDED_TAGS = [
   'SmokeCard',
   'SmokeRamps',
   'SmokeMultiChainAPI',
+  'SmokeCore',
 ];
 
 /**
