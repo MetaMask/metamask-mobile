@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { Hex, CaipChainId } from '@metamask/utils';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { useBalancesByAssetId } from './index';
 import { useTokensWithBalance } from '../useTokensWithBalance';
 import {
@@ -221,6 +222,34 @@ describe('useBalancesByAssetId', () => {
         balanceFiat: undefined,
         tokenFiatAmount: undefined,
         currencyExchangeRate: undefined,
+        accountType: undefined,
+      });
+    });
+
+    it('includes accountType when token has accountType', () => {
+      const mockTokens = [
+        createMockTokenWithBalance({
+          address: '0xbtctoken',
+          balance: '1.5',
+          balanceFiat: '$45000',
+          tokenFiatAmount: 45000,
+          accountType: BtcAccountType.P2wpkh,
+        }),
+      ];
+      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+
+      const { result } = renderHook(() =>
+        useBalancesByAssetId({
+          chainIds: [MOCK_CHAIN_IDS_HEX.ethereum as Hex],
+        }),
+      );
+
+      expect(result.current.balancesByAssetId['0x1/erc20:0xbtctoken']).toEqual({
+        balance: '1.5',
+        balanceFiat: '$45000',
+        tokenFiatAmount: 45000,
+        currencyExchangeRate: 1,
+        accountType: BtcAccountType.P2wpkh,
       });
     });
   });
