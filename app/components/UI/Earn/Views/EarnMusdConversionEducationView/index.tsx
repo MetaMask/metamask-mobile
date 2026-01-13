@@ -70,17 +70,15 @@ const EarnMusdConversionEducationView = () => {
     [colorScheme],
   );
 
-  const { ACTION_TYPES, BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+  const { BUTTON_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
   const submitScreenViewedEvent = useCallback(() => {
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED,
       )
-        // Properties are placeholders for now.
         .addProperties({
           location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          timestamp: Date.now(),
         })
         .build(),
     );
@@ -107,11 +105,9 @@ const EarnMusdConversionEducationView = () => {
       )
         .addProperties({
           location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          action_type: ACTION_TYPES.BUTTON_CLICKED,
           button_type: BUTTON_TYPES.PRIMARY,
           button_text: strings('earn.musd_conversion.education.primary_button'),
           redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN, // Redirects to custom amount screen.
-          timestamp: Date.now(),
         })
         .build(),
     );
@@ -120,7 +116,6 @@ const EarnMusdConversionEducationView = () => {
     createEventBuilder,
     EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-    ACTION_TYPES.BUTTON_CLICKED,
     BUTTON_TYPES.PRIMARY,
   ]);
 
@@ -132,12 +127,10 @@ const EarnMusdConversionEducationView = () => {
       )
         .addProperties({
           location: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          action_type: ACTION_TYPES.BUTTON_CLICKED,
           button_type: BUTTON_TYPES.SECONDARY,
           button_text: strings(
             'earn.musd_conversion.education.secondary_button',
           ),
-          timestamp: Date.now(),
         })
         .build(),
     );

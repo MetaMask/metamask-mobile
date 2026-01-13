@@ -75,8 +75,7 @@ const MusdConversionAssetListCta = () => {
   }, [canConvert]);
 
   const submitCtaPressedEvent = () => {
-    const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
-      MUSD_EVENTS_CONSTANTS;
+    const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
       if (!canConvert) {
@@ -88,20 +87,16 @@ const MusdConversionAssetListCta = () => {
         : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
     };
 
-    const eventProperties = {
-      location: EVENT_LOCATIONS.HOME_SCREEN,
-      action_type: ACTION_TYPES.BUTTON_CLICKED,
-      redirects_to: getRedirectLocation(),
-      cta_type: MUSD_CTA_TYPES.PRIMARY,
-      cta_text: ctaText,
-      network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-      network_name: networkName,
-      timestamp: Date.now(),
-    };
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
-        .addProperties(eventProperties)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          network_name: networkName,
+        })
         .build(),
     );
   };

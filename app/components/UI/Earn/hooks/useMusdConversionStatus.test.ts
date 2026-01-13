@@ -757,11 +757,9 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
-        tx_id: 'test-tx-metrics-approved',
-        tx_status: TransactionStatus.approved,
-        tx_type: TransactionType.musdConversion,
-        timestamp: FIXED_NOW_MS,
-        asset_name: 'USD Coin',
+        transaction_id: 'test-tx-metrics-approved',
+        transaction_status: TransactionStatus.approved,
+        transaction_type: TransactionType.musdConversion,
         asset_symbol: 'USDC',
         network_chain_id: '0x1',
         network_name: 'Ethereum Mainnet',
@@ -803,11 +801,9 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
-        tx_id: 'test-tx-metrics-confirmed',
-        tx_status: TransactionStatus.confirmed,
-        tx_type: TransactionType.musdConversion,
-        timestamp: FIXED_NOW_MS,
-        asset_name: 'USD Coin',
+        transaction_id: 'test-tx-metrics-confirmed',
+        transaction_status: TransactionStatus.confirmed,
+        transaction_type: TransactionType.musdConversion,
         asset_symbol: 'USDC',
         network_chain_id: '0x1',
         network_name: 'Ethereum Mainnet',
@@ -849,11 +845,9 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
-        tx_id: 'test-tx-metrics-failed',
-        tx_status: TransactionStatus.failed,
-        tx_type: TransactionType.musdConversion,
-        timestamp: FIXED_NOW_MS,
-        asset_name: 'USD Coin',
+        transaction_id: 'test-tx-metrics-failed',
+        transaction_status: TransactionStatus.failed,
+        transaction_type: TransactionType.musdConversion,
         asset_symbol: 'USDC',
         network_chain_id: '0x1',
         network_name: 'Ethereum Mainnet',

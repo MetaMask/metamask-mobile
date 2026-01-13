@@ -590,8 +590,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('MetaMetrics', () => {
-    const { EVENT_LOCATIONS, ACTION_TYPES, MUSD_CTA_TYPES } =
-      MUSD_EVENTS_CONSTANTS;
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
 
     it('tracks mUSD conversion CTA clicked event when Buy mUSD is pressed', () => {
       // Arrange
@@ -623,13 +622,11 @@ describe('MusdConversionAssetListCta', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.HOME_SCREEN,
-        action_type: ACTION_TYPES.BUTTON_CLICKED,
         redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
         cta_type: MUSD_CTA_TYPES.PRIMARY,
         cta_text: strings('earn.musd_conversion.buy_musd'),
         network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         network_name: 'Ethereum Mainnet',
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -677,13 +674,11 @@ describe('MusdConversionAssetListCta', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.HOME_SCREEN,
-        action_type: ACTION_TYPES.BUTTON_CLICKED,
         redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
         cta_type: MUSD_CTA_TYPES.PRIMARY,
         cta_text: strings('earn.musd_conversion.get_musd'),
         network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         network_name: 'Ethereum Mainnet',
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -730,13 +725,11 @@ describe('MusdConversionAssetListCta', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.HOME_SCREEN,
-        action_type: ACTION_TYPES.BUTTON_CLICKED,
         redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
         cta_type: MUSD_CTA_TYPES.PRIMARY,
         cta_text: strings('earn.musd_conversion.get_musd'),
         network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         network_name: 'Ethereum Mainnet',
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);

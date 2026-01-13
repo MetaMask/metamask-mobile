@@ -295,7 +295,6 @@ describe('EarnMusdConversionEducationView', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'conversion_education_screen',
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -316,7 +315,6 @@ describe('EarnMusdConversionEducationView', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(2);
       expect(mockAddProperties).toHaveBeenNthCalledWith(2, {
         location: 'conversion_education_screen',
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
@@ -355,11 +353,9 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockAddProperties).toHaveBeenCalledTimes(1);
         expect(mockAddProperties).toHaveBeenCalledWith({
           location: 'conversion_education_screen',
-          action_type: 'button_clicked',
           button_type: 'primary',
           button_text: strings('earn.musd_conversion.education.primary_button'),
           redirects_to: 'custom_amount_screen',
-          timestamp: FIXED_NOW_MS,
         });
 
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -396,10 +392,8 @@ describe('EarnMusdConversionEducationView', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'conversion_education_screen',
-        action_type: 'button_clicked',
         button_type: 'secondary',
         button_text: strings('earn.musd_conversion.education.secondary_button'),
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);

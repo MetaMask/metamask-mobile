@@ -132,8 +132,7 @@ export const TokenListItem = React.memo(
 
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
-        const { MUSD_CTA_TYPES, ACTION_TYPES, EVENT_LOCATIONS } =
-          MUSD_EVENTS_CONSTANTS;
+        const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
         const getRedirectLocation = () =>
           hasSeenConversionEducationScreen
@@ -144,15 +143,12 @@ export const TokenListItem = React.memo(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
             .addProperties({
               location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-              action_type: ACTION_TYPES.BUTTON_CLICKED,
               redirects_to: getRedirectLocation(),
               cta_type: MUSD_CTA_TYPES.SECONDARY,
               cta_text: strings('earn.musd_conversion.convert_to_musd'),
               network_chain_id: chainId,
               network_name: networkName,
-              asset_name: asset?.name,
               asset_symbol: asset?.symbol,
-              timestamp: Date.now(),
             })
             .build(),
         );
@@ -184,7 +180,6 @@ export const TokenListItem = React.memo(
     }, [
       asset?.address,
       asset?.chainId,
-      asset?.name,
       asset?.symbol,
       chainId,
       createEventBuilder,

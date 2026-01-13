@@ -17,10 +17,6 @@ const MUSD_CTA_TYPES = {
   TERTIARY: 'musd_conversion_tertiary_cta', // Asset overview CTA
 };
 
-const ACTION_TYPES = {
-  BUTTON_CLICKED: 'button_clicked',
-};
-
 const BUTTON_TYPES = {
   PRIMARY: 'primary',
   SECONDARY: 'secondary',
@@ -30,6 +26,5 @@ export const MUSD_EVENTS_CONSTANTS = {
   EVENT_PROVIDERS,
   EVENT_LOCATIONS,
   MUSD_CTA_TYPES,
-  ACTION_TYPES,
   BUTTON_TYPES,
 };

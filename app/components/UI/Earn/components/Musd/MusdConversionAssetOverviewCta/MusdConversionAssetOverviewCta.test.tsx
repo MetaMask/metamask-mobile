@@ -370,8 +370,7 @@ describe('MusdConversionAssetOverviewCta', () => {
   });
 
   describe('MetaMetrics', () => {
-    const { EVENT_LOCATIONS, ACTION_TYPES, MUSD_CTA_TYPES } =
-      MUSD_EVENTS_CONSTANTS;
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
 
     it('tracks mUSD conversion CTA clicked event when user has not seen education screen', async () => {
       // Arrange
@@ -404,14 +403,11 @@ describe('MusdConversionAssetOverviewCta', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-        action_type: ACTION_TYPES.BUTTON_CLICKED,
         redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
         cta_type: MUSD_CTA_TYPES.TERTIARY,
         cta_text: expectedCtaText,
         network_chain_id: asset.chainId,
         network_name: 'Ethereum Mainnet',
-        timestamp: FIXED_NOW_MS,
-        asset_name: asset.name,
         asset_symbol: asset.symbol,
       });
 
@@ -450,14 +446,11 @@ describe('MusdConversionAssetOverviewCta', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-        action_type: ACTION_TYPES.BUTTON_CLICKED,
         redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
         cta_type: MUSD_CTA_TYPES.TERTIARY,
         cta_text: expectedCtaText,
         network_chain_id: asset.chainId,
         network_name: 'Ethereum Mainnet',
-        timestamp: FIXED_NOW_MS,
-        asset_name: asset.name,
         asset_symbol: asset.symbol,
       });
 

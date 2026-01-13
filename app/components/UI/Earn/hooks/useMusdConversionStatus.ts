@@ -73,11 +73,9 @@ export const useMusdConversionStatus = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED)
           .addProperties({
-            tx_id: transactionMeta.id,
-            tx_status: transactionMeta.status,
-            tx_type: transactionMeta.type,
-            timestamp: Date.now(),
-            asset_name: token.name,
+            transaction_id: transactionMeta.id,
+            transaction_status: transactionMeta.status,
+            transaction_type: transactionMeta.type,
             asset_symbol: token.symbol,
             network_chain_id: transactionMeta?.chainId,
             network_name: getNetworkName(transactionMeta?.chainId),

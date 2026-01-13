@@ -655,15 +655,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
-        action_type: 'button_clicked',
         redirects_to: 'conversion_education_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.convert_to_musd'),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
-        asset_name: usdcAsset.name,
         asset_symbol: usdcAsset.symbol,
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -716,15 +713,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
-        action_type: 'button_clicked',
         redirects_to: 'custom_amount_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.convert_to_musd'),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
-        asset_name: usdcAsset.name,
         asset_symbol: usdcAsset.symbol,
-        timestamp: FIXED_NOW_MS,
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);

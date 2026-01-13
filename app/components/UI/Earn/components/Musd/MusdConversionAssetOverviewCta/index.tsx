@@ -47,8 +47,7 @@ const MusdConversionAssetOverviewCta = ({
   const { getMusdOutputChainId } = useMusdConversionTokens();
 
   const submitCtaPressedEvent = () => {
-    const { EVENT_LOCATIONS, ACTION_TYPES, MUSD_CTA_TYPES } =
-      MUSD_EVENTS_CONSTANTS;
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
 
     const ctaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
 
@@ -61,14 +60,11 @@ const MusdConversionAssetOverviewCta = ({
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-          action_type: ACTION_TYPES.BUTTON_CLICKED,
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.TERTIARY,
           cta_text: ctaText,
           network_chain_id: asset.chainId,
           network_name: networkName,
-          timestamp: Date.now(),
-          asset_name: asset.name,
           asset_symbol: asset.symbol,
         })
         .build(),
