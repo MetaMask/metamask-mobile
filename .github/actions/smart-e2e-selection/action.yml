@@ -28,10 +28,10 @@ inputs:
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
-    value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+    value: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}
   ai_confidence:
     description: 'AI confidence score (0-100)'
-    value: ${{ steps.ai-analysis.outputs.ai_confidence }}
+    value: ${{ steps.final-outputs.outputs.ai_confidence }}
 
 runs:
   using: 'composite'
@@ -134,13 +134,26 @@ runs:
           node .github/scripts/e2e-smart-selection.mjs
         fi
 
+    - name: Set final outputs with fallback
+      id: final-outputs
+      if: always()
+      shell: bash
+      run: |
+        if [[ -n "${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}" ]]; then
+          echo "ai_e2e_test_tags=${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
+        fi
+        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
+
     - name: Display AI Analysis Outputs
+      if: always()
       shell: bash
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
-        echo "ai_e2e_test_tags: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}"
-        echo "ai_confidence: ${{ steps.ai-analysis.outputs.ai_confidence }}"
+        echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
+        echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "================================"
 
     - name: Delete previous comments
