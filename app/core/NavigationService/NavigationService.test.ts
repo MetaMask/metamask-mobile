@@ -1,9 +1,10 @@
 import NavigationService from './NavigationService';
 import Logger from '../../util/Logger';
 import type { NavigationContainerRef } from '@react-navigation/native';
+import type { RootParamList } from '../../types/navigation';
 
 describe('NavigationService', () => {
-  let mockNavigation: NavigationContainerRef;
+  let mockNavigation: NavigationContainerRef<RootParamList>;
 
   beforeEach(() => {
     // Reset any internal state
@@ -12,7 +13,7 @@ describe('NavigationService', () => {
     // Create a mock navigation
     mockNavigation = {
       navigate: jest.fn(),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<RootParamList>;
 
     // Spy on Logger
     jest.spyOn(Logger, 'error');
@@ -36,7 +37,7 @@ describe('NavigationService', () => {
 
   describe('navigation setter', () => {
     it('should throw error if navigation is invalid', () => {
-      const invalidNavigation = {} as NavigationContainerRef;
+      const invalidNavigation = {} as NavigationContainerRef<RootParamList>;
 
       expect(() => {
         NavigationService.navigation = invalidNavigation;
@@ -55,7 +56,7 @@ describe('NavigationService', () => {
     it('should validate navigation has required methods', () => {
       const incompleteNavigation = {
         // missing navigate
-      } as unknown as NavigationContainerRef;
+      } as unknown as NavigationContainerRef<RootParamList>;
 
       expect(() => {
         NavigationService.navigation = incompleteNavigation;

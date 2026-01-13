@@ -3,6 +3,7 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import ReduxService, { ReduxStore } from '../../../../redux';
 import { NavigationContainerRef } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../types/navigation';
 
 describe('handleFastOnboarding', () => {
   let mockReset: jest.Mock;
@@ -19,7 +20,7 @@ describe('handleFastOnboarding', () => {
     jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       reset: mockReset,
       navigate: mockNavigate,
-    } as unknown as NavigationContainerRef);
+    } as unknown as NavigationContainerRef<RootParamList>);
 
     // Mock ReduxService
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({

@@ -5,6 +5,7 @@ import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
+import type { RootParamList } from '../../types/navigation';
 import Engine from '../../core/Engine';
 import { Connection, ConnectionProps } from './Connection';
 import {
@@ -51,7 +52,7 @@ export interface approveHostProps {
 }
 
 export interface SDKConnectState {
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<RootParamList>;
   reconnected: boolean;
 
   // Track init status to ensure connection recovery priority and prevent double initialization.

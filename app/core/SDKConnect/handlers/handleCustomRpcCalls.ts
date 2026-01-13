@@ -5,7 +5,11 @@ import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import overwriteRPCWith from './handleRpcOverwrite';
-import { NavigationContainerRef, CommonActions } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  CommonActions,
+} from '@react-navigation/native';
+import type { RootParamList } from '../../../types/navigation';
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
@@ -27,7 +31,7 @@ export const handleCustomRpcCalls = async ({
   rpc: { id: string; method: string; params: any[] };
   store?: typeof import('../../../store').store;
   connection?: Connection;
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<RootParamList>;
 }) => {
   const { id, method, params } = rpc;
   const lcMethod = method.toLowerCase();
