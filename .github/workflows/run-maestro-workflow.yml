@@ -146,8 +146,10 @@ jobs:
           adb install ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           echo "✅ APK installed"
 
-      - name: Setup recordings directory
-        run: mkdir -p maestro-recordings
+      - name: Setup Maestro artifacts directory
+        run: |
+          # Create artifacts directory similar to Detox's e2e/artifacts/
+          mkdir -p maestro-artifacts
 
       - name: Run Maestro Test with Recording
         id: maestro-test
@@ -157,45 +159,74 @@ jobs:
           echo "📍 Branch: ${{ inputs.branch }}"
           
           # Use maestro record --local to capture video locally (no external API)
-          # Syntax: maestro record --local <flowFile> [<outputFile>]
-          # Recording will be saved even if test fails
-          if maestro record --local ${{ inputs.test-file }} maestro-recordings/test-recording.mp4; then
+          # --debug-output captures screenshots, logs, and command metadata on failure
+          # Syntax: maestro record --local [options] <flowFile> [<outputFile>]
+          if maestro record --local --debug-output maestro-artifacts ${{ inputs.test-file }} maestro-artifacts/test-recording.mp4; then
             echo "✅ Maestro test passed"
             echo "TEST_RESULT=success" >> "$GITHUB_ENV"
           else
             echo "❌ Maestro test failed"
             echo "TEST_RESULT=failure" >> "$GITHUB_ENV"
           fi
+          
+          # List artifacts for debugging
+          echo "📁 Maestro artifacts:"
+          ls -la maestro-artifacts/ || echo "No artifacts directory"
 
-      - name: Zip recordings on failure
+      - name: Rename artifacts with timestamp and test name
         if: env.TEST_RESULT == 'failure'
         run: |
-          echo "📦 Zipping test recordings..."
-          cd maestro-recordings
-          zip -r ../maestro-recordings.zip . || echo "No recordings to zip"
+          echo "📝 Renaming artifacts with timestamp and test name..."
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          TEST_NAME=$(basename "${{ inputs.test-file }}" .yaml)
+          
+          cd maestro-artifacts
+          
+          # Rename screenshots to include date, time, and test name
+          for file in screenshot*.png; do
+            if [ -f "$file" ]; then
+              mv "$file" "${TIMESTAMP}_${TEST_NAME}_${file}"
+              echo "  Renamed: $file -> ${TIMESTAMP}_${TEST_NAME}_${file}"
+            fi
+          done
+          
+          # Rename video recording to include date, time, and test name
+          if [ -f "test-recording.mp4" ]; then
+            mv "test-recording.mp4" "${TIMESTAMP}_${TEST_NAME}_recording.mp4"
+            echo "  Renamed: test-recording.mp4 -> ${TIMESTAMP}_${TEST_NAME}_recording.mp4"
+          fi
+          
+          # Rename log file
+          if [ -f "maestro.log" ]; then
+            mv "maestro.log" "${TIMESTAMP}_${TEST_NAME}_maestro.log"
+            echo "  Renamed: maestro.log -> ${TIMESTAMP}_${TEST_NAME}_maestro.log"
+          fi
+          
+          echo "📁 Renamed artifacts:"
+          ls -la
           cd ..
-          ls -la maestro-recordings.zip || echo "Zip file not created"
 
-      - name: Upload recording on failure
+      - name: Zip artifacts on failure
+        if: env.TEST_RESULT == 'failure'
+        run: |
+          echo "📦 Zipping Maestro artifacts (screenshots, recordings, logs)..."
+          cd maestro-artifacts
+          zip -r ../maestro-artifacts.zip . || echo "No artifacts to zip"
+          cd ..
+          ls -la maestro-artifacts.zip || echo "Zip file not created"
+
+      - name: Upload artifacts on failure
         if: env.TEST_RESULT == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-${{ inputs.test-suite-name }}-recording
-          path: maestro-recordings.zip
-          retention-days: 7
-          if-no-files-found: warn
-
-      - name: Upload screenshots on failure
-        if: env.TEST_RESULT == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: maestro-${{ inputs.test-suite-name }}-screenshots
-          path: ~/.maestro/tests/**/screenshot_*.png
+          name: maestro-${{ inputs.test-suite-name }}-artifacts
+          path: maestro-artifacts.zip
           retention-days: 7
           if-no-files-found: warn
 
       - name: Fail job if test failed
         if: env.TEST_RESULT == 'failure'
         run: |
-          echo "❌ Maestro test failed - see uploaded recording and screenshots for details"
+          echo "❌ Maestro test failed - see uploaded artifacts for details"
+          echo "   Artifacts include: screenshots, video recording, logs, and command metadata"
           exit 1
