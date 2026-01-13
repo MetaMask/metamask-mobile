@@ -191,13 +191,9 @@ export const ExploreFeed: React.FC = () => {
           onPress={handleBrowserPress}
           testID="trending-view-browser-button"
         >
-          <Box
-            twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]"
-          >
+          <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
             {browserTabsCount > 0 ? (
-              <Text variant={TextVariant.BodyMd}>
-                {browserTabsCount}
-              </Text>
+              <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
             ) : (
               <Icon
                 name={IconName.Explore}
