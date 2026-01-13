@@ -41,10 +41,12 @@ export const useLiveGameUpdates = (
   useEffect(() => {
     isMountedRef.current = true;
 
+    // Reset state when gameId changes to avoid stale data from previous game
+    setGameUpdate(null);
+    setLastUpdateTime(null);
+
     if (!enabled || !gameId) {
-      setGameUpdate(null);
       setIsConnected(false);
-      setLastUpdateTime(null);
       return;
     }
 

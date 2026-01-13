@@ -141,6 +141,21 @@ jest.mock('./GameCache', () => ({
   },
 }));
 
+const mockWebSocketManagerInstance = {
+  subscribeToGame: jest.fn(),
+  subscribeToMarketPrices: jest.fn(),
+  getConnectionStatus: jest.fn(),
+  disconnect: jest.fn(),
+  cleanup: jest.fn(),
+};
+
+jest.mock('./WebSocketManager', () => ({
+  WebSocketManager: {
+    getInstance: jest.fn(() => mockWebSocketManagerInstance),
+    resetInstance: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
   isSmartContractAddress: jest.fn(),
@@ -6494,6 +6509,126 @@ describe('PolymarketProvider', () => {
           provider.getMarketDetails({ marketId: 'market-1' }),
         ).rejects.toThrow('Failed to parse market details');
         expect(mockGameCacheInstance.overlayOnMarket).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('WebSocket methods', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('subscribeToGameUpdates', () => {
+      it('delegates to WebSocketManager.subscribeToGame', () => {
+        const provider = new PolymarketProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribe = jest.fn();
+        mockWebSocketManagerInstance.subscribeToGame.mockReturnValue(
+          mockUnsubscribe,
+        );
+
+        const unsubscribe = provider.subscribeToGameUpdates(
+          'game-123',
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToGame,
+        ).toHaveBeenCalledWith('game-123', mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribe);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = new PolymarketProvider();
+        const mockUnsubscribe = jest.fn();
+        mockWebSocketManagerInstance.subscribeToGame.mockReturnValue(
+          mockUnsubscribe,
+        );
+
+        const unsubscribe = provider.subscribeToGameUpdates(
+          'game-456',
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+    });
+
+    describe('subscribeToMarketPrices', () => {
+      it('delegates to WebSocketManager.subscribeToMarketPrices', () => {
+        const provider = new PolymarketProvider();
+        const mockCallback = jest.fn();
+        const mockUnsubscribe = jest.fn();
+        mockWebSocketManagerInstance.subscribeToMarketPrices.mockReturnValue(
+          mockUnsubscribe,
+        );
+
+        const unsubscribe = provider.subscribeToMarketPrices(
+          ['token-1', 'token-2'],
+          mockCallback,
+        );
+
+        expect(
+          mockWebSocketManagerInstance.subscribeToMarketPrices,
+        ).toHaveBeenCalledWith(['token-1', 'token-2'], mockCallback);
+        expect(unsubscribe).toBe(mockUnsubscribe);
+      });
+
+      it('returns unsubscribe function from WebSocketManager', () => {
+        const provider = new PolymarketProvider();
+        const mockUnsubscribe = jest.fn();
+        mockWebSocketManagerInstance.subscribeToMarketPrices.mockReturnValue(
+          mockUnsubscribe,
+        );
+
+        const unsubscribe = provider.subscribeToMarketPrices(
+          ['token-1'],
+          jest.fn(),
+        );
+
+        unsubscribe();
+
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+    });
+
+    describe('getConnectionStatus', () => {
+      it('returns connection status from WebSocketManager', () => {
+        const provider = new PolymarketProvider();
+        mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
+          sportsConnected: true,
+          marketConnected: false,
+          gameSubscriptionCount: 5,
+          priceSubscriptionCount: 10,
+        });
+
+        const status = provider.getConnectionStatus();
+
+        expect(status).toEqual({
+          sportsConnected: true,
+          marketConnected: false,
+        });
+      });
+
+      it('maps WebSocketManager status to ConnectionStatus interface', () => {
+        const provider = new PolymarketProvider();
+        mockWebSocketManagerInstance.getConnectionStatus.mockReturnValue({
+          sportsConnected: false,
+          marketConnected: true,
+          gameSubscriptionCount: 0,
+          priceSubscriptionCount: 3,
+        });
+
+        const status = provider.getConnectionStatus();
+
+        expect(status.sportsConnected).toBe(false);
+        expect(status.marketConnected).toBe(true);
+        expect(Object.keys(status)).toEqual([
+          'sportsConnected',
+          'marketConnected',
+        ]);
       });
     });
   });

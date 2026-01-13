@@ -33,7 +33,10 @@ export const useLiveMarketPrices = (
   const isMountedRef = useRef(true);
   const tokenIdsRef = useRef(tokenIds);
 
-  const tokenIdsKey = useMemo(() => [...tokenIds].sort().join(','), [tokenIds]);
+  const tokenIdsKey = useMemo(
+    () => [...tokenIds].sort((a, b) => a.localeCompare(b)).join(','),
+    [tokenIds],
+  );
 
   // Sync ref in effect to avoid render impurity (React Concurrent Mode safe)
   useEffect(() => {

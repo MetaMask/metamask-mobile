@@ -166,6 +166,37 @@ describe('useLiveGameUpdates', () => {
 
       expect(result.current.gameUpdate?.turn).toBe('SEA');
     });
+
+    it('resets gameUpdate when gameId changes to different valid value', () => {
+      let capturedCallback: (update: GameUpdate) => void = jest.fn();
+      mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const { result, rerender } = renderHook(
+        ({ gameId }) => useLiveGameUpdates(gameId),
+        { initialProps: { gameId: 'game123' } },
+      );
+
+      act(() => {
+        capturedCallback({
+          gameId: 'game123',
+          score: '21-14',
+          elapsed: '12:34',
+          period: 'Q2',
+          status: 'ongoing',
+        });
+      });
+
+      expect(result.current.gameUpdate).not.toBeNull();
+      expect(result.current.gameUpdate?.score).toBe('21-14');
+
+      rerender({ gameId: 'game456' });
+
+      expect(result.current.gameUpdate).toBeNull();
+      expect(result.current.lastUpdateTime).toBeNull();
+    });
   });
 
   describe('connection status', () => {
