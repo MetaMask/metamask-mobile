@@ -144,13 +144,9 @@ export const useTrendingRequest = (options: {
     }
   }, [isLoading, results.length, error]);
 
-  // Set up polling every 5 minutes for silent refresh
-  // Only start polling after initial load completes successfully
+  // Refresh interval effect
   useEffect(() => {
-    // Don't start polling if:
-    // - Still loading
-    // - Initial load hasn't completed successfully
-    // - Initial load failed with no results
+    // Don't poll if we are loading, or initial fetch did not return data
     if (
       isLoading ||
       !initialLoadCompleteRef.current ||
@@ -159,7 +155,6 @@ export const useTrendingRequest = (options: {
       return;
     }
 
-    // Start polling
     const pollingInterval = setInterval(() => {
       fetchTrendingTokens({ isSilentUpdate: true });
     }, POLLING_INTERVAL_MS);
