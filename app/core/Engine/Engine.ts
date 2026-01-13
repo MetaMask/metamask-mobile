@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-// TODO: Remove this comment after testing smart-e2e-selection fallback
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
