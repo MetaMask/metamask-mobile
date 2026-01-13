@@ -636,6 +636,8 @@ describe('PerpsPositionTransactionView', () => {
     const tradeAgainButton = getByText('Trade again');
     fireEvent.press(tradeAgainButton);
 
+    // PerpsPositionTransactionView passes minimal market data (symbol, name)
+    // PerpsMarketDetailsView will enrich it with full market data from usePerpsMarkets
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {

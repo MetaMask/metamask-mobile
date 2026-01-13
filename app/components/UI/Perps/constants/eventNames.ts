@@ -307,7 +307,7 @@ export const PerpsEventValues = {
     MARKET_LIST: 'market_list',
     ASSET_DETAILS: 'asset_details',
     TRADING: 'trading',
-    /** @deprecated Use PERPS_HOME instead for perps home screen */
+    /** @deprecated Use PERPS_HOME or WALLET_HOME_PERPS_TAB instead */
     HOMESCREEN: 'homescreen',
     PERPS_HOME: 'perps_home',
     WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
