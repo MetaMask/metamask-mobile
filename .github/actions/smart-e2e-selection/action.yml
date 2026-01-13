@@ -141,7 +141,7 @@ runs:
       run: |
         TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
         if [[ -n "$TAGS" ]]; then
-          echo "ai_e2e_test_tags=$TAGS" >> "$GITHUB_OUTPUT"
+          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
         else
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
