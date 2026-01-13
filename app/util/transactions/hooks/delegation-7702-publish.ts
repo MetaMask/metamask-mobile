@@ -193,6 +193,7 @@ export class Delegation7702PublishHook {
       chainId,
       data: transactionData,
       to: delegationManagerAddress,
+      txMeta: transactionMeta,
     };
 
     if (!delegationAddress) {
