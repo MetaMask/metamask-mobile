@@ -501,7 +501,7 @@ class TransactionElement extends PureComponent {
     const { value, fiatValue = false, actionKey } = transactionElement;
     // transform the status from bridgeTxHistoryItem to the status of the transaction
     let transactionStatus = status;
-    if (bridgeTxHistoryItem) {
+    if (bridgeTxHistoryItem && bridgeTxHistoryItem.status) {
       transactionStatus = this.mapIntentStatusToTransactionStatus(
         bridgeTxHistoryItem.status.status,
       );
