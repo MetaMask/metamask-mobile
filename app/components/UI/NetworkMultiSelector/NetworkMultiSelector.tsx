@@ -71,7 +71,6 @@ const CUSTOM_NETWORK_PROPS = {
   allowNetworkSwitch: false,
   hideWarningIcons: true,
   listHeader: strings('networks.additional_networks'),
-  compactMode: true,
 } as const;
 
 const NetworkMultiSelector = ({
