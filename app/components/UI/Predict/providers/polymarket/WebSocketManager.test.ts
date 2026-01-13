@@ -330,7 +330,7 @@ describe('WebSocketManager', () => {
       );
     });
 
-    it('handles malformed JSON gracefully', () => {
+    it('ignores malformed JSON messages without calling callback', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
@@ -655,7 +655,7 @@ describe('WebSocketManager', () => {
   });
 
   describe('getConnectionStatus', () => {
-    it('returns correct status', () => {
+    it('returns connection status with all fields populated', () => {
       const manager = WebSocketManager.getInstance();
 
       expect(manager.getConnectionStatus()).toEqual({
