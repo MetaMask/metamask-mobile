@@ -132,6 +132,7 @@ jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
+    addTraitsToUser: mockAddTraitsToUser,
   }),
   MetaMetricsEvents: {
     ASSET_FILTER_SELECTED: 'asset_filter_selected',
