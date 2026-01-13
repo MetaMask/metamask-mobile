@@ -139,10 +139,11 @@ runs:
       if: always()
       shell: bash
       run: |
-        if [[ -n "${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}" ]]; then
-          echo "ai_e2e_test_tags=${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}" >> "$GITHUB_OUTPUT"
+        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
+        if [[ -n "$TAGS" ]]; then
+          echo "ai_e2e_test_tags=$TAGS" >> "$GITHUB_OUTPUT"
         else
-          echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
+          echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
         echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
 
@@ -204,14 +205,10 @@ runs:
           COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
 
           All E2E tests pre-selected."
+        elif [ -f "$COMMENT_FILE" ]; then
+          COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
-          # Read analysis results from file
-          if [ -f "$COMMENT_FILE" ]; then
-            COMMENT_BODY=$(cat "$COMMENT_FILE")
-          else
-            echo "⚠️ PR comment file not found: $COMMENT_FILE - using default message"
-            COMMENT_BODY="AI analysis completed but results file was not generated."
-          fi
+          COMMENT_BODY="⚠️ **Smart E2E selection unavailable** - will run all E2E tests as a precaution, if applicable based on changed files."
         fi
 
         # Build and post comment
