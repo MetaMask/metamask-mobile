@@ -19,6 +19,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { NavigationProviderProps } from './types';
+import type { RootParamList } from '../../../types/navigation.d';
 
 /**
  * Provides the navigation context to the app
@@ -76,7 +77,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Sets the navigation ref on the NavigationService
    */
-  const setNavigationRef = (ref: NavigationContainerRef<ParamListBase>) => {
+  const setNavigationRef = (ref: NavigationContainerRef<RootParamList>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
     if (!ref) {
       return;
@@ -90,7 +91,11 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
    * TODO: Remove after migration testing is complete.
    */
   const onStateChange = __DEV__
-    ? (state: ReturnType<NavigationContainerRef<ParamListBase>['getRootState']> | undefined) => {
+    ? (
+        state:
+          | ReturnType<NavigationContainerRef<ParamListBase>['getRootState']>
+          | undefined,
+      ) => {
         if (!state) return;
 
         const routes = state.routes || [];

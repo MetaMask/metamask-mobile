@@ -1,475 +1,810 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-namespace */
 /**
  * Navigation Types for React Navigation v7
  *
- * This file defines all navigation parameter lists for the app.
+ * This file defines the RootParamList with all navigation routes and their params.
  * The global type augmentation at the bottom enables automatic typing
  * for useNavigation() calls throughout the codebase.
  *
- * @see https://reactnavigation.org/docs/typescript/
+ * IMPORTANT: This MUST use `type` and not `interface` according to React Navigation docs.
+ * @see https://reactnavigation.org/docs/typescript/?config=dynamic#type-checking-screens
  */
 
-import { NavigatorScreenParams } from '@react-navigation/native';
+import type {
+  IconColor as DSIconColor,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
+import type {
+  IconColor,
+  IconName,
+} from '../component-library/components/Icons/Icon';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountGroupId } from '@metamask/account-api';
+import type { BuyQuote } from '@consensys/native-ramps-sdk';
+import type { BasicInfoFormData } from '../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
+import type { AddressFormData } from '../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
+import type {
+  BridgeToken,
+  BridgeViewMode,
+} from '../components/UI/Bridge/types';
+import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { Transaction } from '@metamask/keyring-api';
+import type { Hex } from '@metamask/utils';
+import type { DeepLinkModalParams } from '../components/UI/DeepLinkModal';
+import type { Snap } from '@metamask/snaps-utils';
+import type { Provider } from '@consensys/on-ramp-sdk';
+import type { AccountSelectorParams } from '../components/Views/AccountSelector/AccountSelector.types';
+import type { QRTabSwitcherParams } from '../components/Views/QRTabSwitcher';
+import type { OptionsSheetParams } from '../components/UI/SelectOptionSheet/types';
+import type { AddressSelectorParams } from '../components/Views/AddressSelector/AddressSelector.types';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import type { RampIntent } from '../components/UI/Ramp/Aggregator/types';
+import type { EarnWithdrawalConfirmationViewRouteParams } from '../components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/types';
+import type { UnstakeConfirmationParams } from '../components/UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import type { SRPQuizParams } from '../components/Views/Quiz/SRPQuiz';
+import type { AccountStatusParams } from '../components/Views/AccountStatus/types';
+import type { ONBOARDING_SUCCESS_FLOW } from '../constants/onboarding';
+import type { EarnTokenDetails } from '../components/UI/Earn/types/lending.types';
+import type { NetworkSelectorRouteParams } from '../components/Views/NetworkSelector/types';
+import type { EarnInputViewRouteParams } from '../components/UI/Earn/Views/EarnInputView/EarnInputView.types';
+import type { LendingDepositViewRouteParams } from '../components/UI/Earn/Views/EarnLendingDepositConfirmationView/types';
+import type { EarnWithdrawInputViewParams } from '../components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.types';
+import type { FundActionMenuParams } from '../components/UI/FundActionMenu/FundActionMenu.types';
+import type { PerpsRouteParams } from '../components/UI/Perps/controllers/types';
+import type { PerpsOrderViewParams } from '../components/UI/Perps/Views/PerpsOrderView/types';
+import type { StakeEarningsHistoryViewParams } from '../components/UI/Stake/Views/StakeEarningsHistoryView/StakeEarningsHistoryView.types';
+import type { CollectibleModalParams } from '../components/UI/CollectibleModal/CollectibleModal.types';
+import type { DeFiProtocolPositionDetailsParams } from '../components/UI/DeFiPositions/DefiProtocolPositionDetails.types';
+import type { ConfirmTurnOnBackupAndSyncModalParams } from '../components/UI/Identity/ConfirmTurnOnBackupAndSyncModal/types';
+import type { LedgerMessageSignModalParams } from '../components/UI/LedgerModals/LedgerMessageSignModal.types';
+import type { LedgerTransactionModalParams } from '../components/UI/LedgerModals/LedgerTransactionModal.types';
+import type { QuotesParams } from '../components/UI/Ramp/Aggregator/Views/Quotes/Quotes.types';
+import type { ActivationKeyFormParams } from '../components/UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm.types';
+import type { AddAssetParams } from '../components/Views/AddAsset/AddAsset.types';
+import type { PayWithModalParams } from '../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.types';
+import type { PrivateKeyListParams } from '../components/Views/MultichainAccounts/PrivateKeyList/types';
+import type { NftDetailsParams } from '../components/Views/NftDetails/NftDetails.types';
+import type { NftOptionsParams } from '../components/Views/NftOptions/NftOptions.types';
+import type { RestoreWalletParams } from '../components/Views/RestoreWallet/RestoreWallet.types';
+import type { DeveloperOptionsParams } from '../components/Views/Settings/DeveloperOptions/DeveloperOptions.types';
+import type { BackupAndSyncSettingsParams } from '../components/Views/Settings/Identity/BackupAndSyncSettings.types';
+import type { SecuritySettingsParams } from '../components/Views/Settings/SecuritySettings/SecuritySettings.types';
+import type { ShowIpfsGatewaySheetParams } from '../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
+import type { ShowTokenIdSheetParams } from '../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
+import type { LoginParams } from '../components/Views/Login/types';
+import type { ModalConfirmationParams } from '../component-library/components/Modals/ModalConfirmation/ModalConfirmation.types';
+import type { MandatoryModalParams } from '../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
+import type { BridgeTransactionDetailsParams } from '../components/UI/Bridge/components/TransactionDetails/TransactionDetails.types';
+import type { AccountPermissionsParams } from '../components/Views/AccountPermissions/AccountPermissions.types';
+import type { AccountPermissionsConfirmRevokeAllParams } from '../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.types';
+import type { ConnectionDetailsParams } from '../components/Views/AccountPermissions/ConnectionDetails/ConnectionDetails.types';
+import type { AddNewAccountBottomSheetParams } from '../components/Views/AddNewAccount/AddNewAccountBottomSheet.types';
+import type { AssetDetailsParams } from '../components/Views/AssetDetails/AssetDetails.types';
+import type { AssetLoaderParams } from '../components/Views/AssetLoader/types';
+import type { AssetOptionsParams } from '../components/Views/AssetOptions/AssetOptions.types';
+import type { ChangeInSimulationModalParams } from '../components/Views/ChangeInSimulationModal/ChangeInSimulationModal.types';
+import type { AccountDetailsParams } from '../components/Views/MultichainAccounts/AccountDetails/AccountDetails.types';
+import type { WalletDetailsParams } from '../components/Views/MultichainAccounts/WalletDetails/WalletDetails.types';
+import type { NotificationsDetailsParams } from '../components/Views/Notifications/Details/types';
+import type { OnboardingSheetParams } from '../components/Views/OnboardingSheet/types';
+import type { OriginSpamModalParams } from '../components/Views/OriginSpamModal/OriginSpamModal.types';
+import type { MultichainRevealPrivateCredentialParams } from '../components/Views/MultichainAccounts/sheets/RevealPrivateKey/RevealPrivateKey.types';
+import type { RevealPrivateCredentialParams } from '../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
+import type { SDKSessionModalParams } from '../components/Views/SDK/SDKSessionModal/SDKSessionModal.types';
+import type { ExperimentalSettingsParams } from '../components/Views/Settings/ExperimentalSettings/ExperimentalSettings.types';
+import type { NotificationsSettingsParams } from '../components/Views/Settings/NotificationsSettings/NotificationsSettings.types';
+import type { TooltipModalParams } from '../components/Views/TooltipModal/ToolTipModal.types';
+import type { AccountConnectParams } from '../components/Views/AccountConnect/AccountConnect.types';
+import type { MarketDetailsParams } from '../components/UI/Perps/Views/PerpsMarketDetailsView';
+import type { RegionSelectorModalParams } from '../components/UI/Ramp/Deposit/Views/Modals/RegionSelectorModal/RegionSelectorModal.types';
+import type { TokenI } from '../components/UI/Tokens/types';
 
 // =============================================================================
-// MODAL STACK
+// ROOT PARAM LIST
 // =============================================================================
+// This MUST use type and not interface according to docs
+// https://reactnavigation.org/docs/typescript/?config=dynamic#type-checking-screens
 
-export type ModalStackParamList = {
+export type RootParamList = {
+  // =========================================================================
+  // Onboarding Screens
+  // =========================================================================
+  OnboardingSuccess: {
+    successFlow: ONBOARDING_SUCCESS_FLOW;
+  };
+  DefaultSettings: undefined;
+  GeneralSettings: undefined;
+  AssetsSettings: undefined;
+  SecuritySettings: SecuritySettingsParams | undefined;
+  OnboardingSuccessFlow: undefined;
+  OnboardingNav: undefined;
+  HomeNav: undefined;
+  Login: LoginParams | undefined;
+  OnboardingRootNav: undefined;
+  ImportFromSecretRecoveryPhrase: undefined;
+  OptinMetrics: {
+    onContinue: () => void;
+  };
+  OnboardingCarousel: undefined;
+  Onboarding: undefined;
+  ChoosePassword: undefined;
+  AccountBackupStep1: undefined;
+  AccountBackupStep1B: undefined;
+  ManualBackupStep1: {
+    backupFlow: boolean;
+  };
+  ManualBackupStep2: undefined;
+  ManualBackupStep3: undefined;
+  AccountStatus: AccountStatusParams;
+  AccountAlreadyExists: AccountStatusParams;
+  AccountNotFound: AccountStatusParams;
+  Rehydrate: LoginParams;
+
+  // =========================================================================
+  // Webview
+  // =========================================================================
+  Webview: NavigatorScreenParams<RootParamList> | undefined;
+  SimpleWebview: { url?: string; title?: string };
+
+  // =========================================================================
+  // QR and Tab Switcher
+  // =========================================================================
+  QRTabSwitcher: QRTabSwitcherParams;
+
+  // =========================================================================
+  // Vault Recovery
+  // =========================================================================
+  RestoreWallet: RestoreWalletParams;
+  WalletRestored: undefined;
+  WalletResetNeeded: undefined;
+
+  // =========================================================================
+  // Network Management
+  // =========================================================================
+  AddNetwork:
+    | {
+        shouldNetworkSwitchPopToWallet?: boolean;
+        shouldShowPopularNetworks?: boolean;
+        network?: string;
+        isCustomMainnet?: boolean;
+      }
+    | undefined;
+  EditNetwork:
+    | {
+        network?: string;
+      }
+    | undefined;
+
+  // =========================================================================
+  // Modal Screens
+  // =========================================================================
   WalletActions: undefined;
-  TradeWalletActions: undefined;
-  FundActionMenu: undefined;
-  DeleteWalletModal: undefined;
-  ModalConfirmation: {
-    onConfirm?: () => void;
-    onCancel?: () => void;
-    title?: string;
-    description?: string;
-  };
-  ModalMandatory: {
-    title?: string;
-    description?: string;
-    onAccept?: () => void;
-  };
-  WhatsNewModal: undefined;
+  FundActionMenu: FundActionMenuParams;
+  DeleteWalletModal:
+    | {
+        oauthLoginSuccess?: boolean;
+        isResetWallet?: boolean;
+      }
+    | undefined;
+  ModalConfirmation: ModalConfirmationParams;
+  ModalMandatory: MandatoryModalParams;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
-  DetectedTokens: undefined;
-  SRPRevealQuiz: {
-    credentialName?: string;
-  };
+  OptionsSheet: OptionsSheetParams;
+  SRPRevealQuiz: SRPQuizParams | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
   MaxBrowserTabsModal: undefined;
-  DeepLinkModal: {
-    origin?: string;
-  };
+  DeepLinkModal: DeepLinkModalParams;
   MultichainAccountDetailActions: undefined;
-  MultichainAccountsIntroModal: undefined;
-  MultichainAccountsLearnMoreBottomSheet: undefined;
-  Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal: undefined;
-  RewardsClaimBottomSheetModal: undefined;
-  RewardsIntroModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
-  RewardsReferralBottomSheetModal: undefined;
-};
 
-// =============================================================================
-// SHEET STACK
-// =============================================================================
-
-export type SheetStackParamList = {
-  AccountSelector: undefined;
-  AddressSelector: undefined;
-  AddAccount: undefined;
-  AmbiguousAddress: {
-    address?: string;
-  };
-  BasicFunctionality: undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
-  ResetNotifications: undefined;
-  SDKLoading: undefined;
-  SDKFeedback: undefined;
-  DataCollection: undefined;
-  ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
-  SDKDisconnect: {
-    channelId?: string;
-  };
-  AccountConnect: {
-    hostInfo?: unknown;
-  };
-  AccountPermissions: {
-    hostInfo?: unknown;
-  };
-  RevokeAllAccountPermissions: {
-    hostInfo?: unknown;
-  };
-  ConnectionDetails: {
-    connectionKey?: string;
-  };
-  PermittedNetworksInfoSheet: undefined;
-  NetworkSelector: undefined;
-  AccountActions: {
-    selectedAddress?: string;
-  };
-  SettingsAdvancedFiatOnTestnetsFriction: undefined;
-  ShowIpfs: undefined;
-  ShowNftDisplayMedia: undefined;
-  ShowTokenId: undefined;
-  OriginSpamModal: {
-    origin?: string;
-    onProceed?: () => void;
-    onReject?: () => void;
-  };
-  tooltipModal: {
-    title?: string;
-    tooltip?: React.ReactNode;
-  };
-  TokenSort: undefined;
-  NetworkManager: undefined;
-  ChangeInSimulationModal: undefined;
-  SelectSRP: undefined;
-  OnboardingSheet: {
-    onConfirm?: () => void;
-  };
+  // =========================================================================
+  // Sheet Screens
+  // =========================================================================
+  OnboardingSheet: OnboardingSheetParams;
   SeedphraseModal: undefined;
   SkipAccountSecurityModal: {
     onConfirm?: () => void;
     onCancel?: () => void;
   };
   SuccessErrorSheet: {
-    title?: string;
-    message?: string;
-    isError?: boolean;
     onClose?: () => void;
+    onButtonPress?: () => void;
+    title: string | React.ReactNode;
+    description: string | React.ReactNode;
+    customButton?: React.ReactNode;
+    type: 'success' | 'error';
+    icon?: IconName | DSIconName;
+    secondaryButtonLabel?: string;
+    onSecondaryButtonPress?: () => void;
+    primaryButtonLabel?: string;
+    onPrimaryButtonPress?: () => void;
+    isInteractable?: boolean;
+    closeOnPrimaryButtonPress?: boolean;
+    closeOnSecondaryButtonPress?: boolean;
+    reverseButtonOrder?: boolean;
+    descriptionAlign?: 'center' | 'left';
+    iconColor?: IconColor | DSIconColor;
   };
-  EligibilityFailedModal: undefined;
-  UnsupportedRegionModal: undefined;
-  TokenInsights: {
-    address?: string;
-    chainId?: string;
-  };
-  // Multichain Account Details sub-routes
-  MultichainAccountActions: undefined;
-  EditMultichainAccountName: {
-    address?: string;
-  };
-  LegacyEditMultichainAccountName: undefined;
-  EditWalletName: undefined;
-  ShareAddress: undefined;
-  ShareAddressQR: undefined;
-  DeleteAccount: undefined;
-  RevealPrivateCredential: undefined;
-  RevealSRPCredential: undefined;
-  SRPRevealQuizInMultichainAccountDetails: undefined;
-  SmartAccount: undefined;
-};
+  AccountSelector: AccountSelectorParams | undefined;
+  AddressSelector: AddressSelectorParams;
+  AddAccount: AddNewAccountBottomSheetParams | undefined;
+  SDKLoading: undefined;
+  SDKFeedback: undefined;
+  SDKManageConnections: SDKSessionModalParams;
+  ExperienceEnhancer: undefined;
+  DataCollection: undefined;
+  SDKDisconnect:
+    | {
+        channelId?: string;
+        account?: string;
+        accountName?: string;
+        dapp?: string;
+        accountsLength?: number;
+      }
+    | undefined;
+  AccountConnect: AccountConnectParams;
+  AccountPermissions: AccountPermissionsParams;
+  RevokeAllAccountPermissions: AccountPermissionsConfirmRevokeAllParams;
+  ConnectionDetails: ConnectionDetailsParams;
+  PermittedNetworksInfoSheet: undefined;
+  NetworkSelector: NetworkSelectorRouteParams | undefined;
+  TokenSort: undefined;
+  TokenFilter: undefined;
+  NetworkManager: undefined;
+  BasicFunctionality:
+    | {
+        caller: string;
+      }
+    | undefined;
+  ConfirmTurnOnBackupAndSync: ConfirmTurnOnBackupAndSyncModalParams;
+  ResetNotifications: undefined;
+  ReturnToDappModal: undefined;
+  AccountActions: { selectedAccount: InternalAccount };
+  SettingsAdvancedFiatOnTestnetsFriction: undefined;
+  ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
+  ShowNftDisplayMedia: undefined;
+  ShowTokenId: ShowTokenIdSheetParams;
+  AmbiguousAddress: undefined;
+  OriginSpamModal: OriginSpamModalParams;
+  ChangeInSimulationModal: ChangeInSimulationModalParams;
+  TooltipModal: TooltipModalParams;
+  SelectSRP: undefined;
 
-// =============================================================================
-// ONBOARDING STACK
-// =============================================================================
-
-export type OnboardingStackParamList = {
-  OnboardingRootNav: undefined;
-  OnboardingSuccessFlow: undefined;
-  OnboardingSuccess: undefined;
-  DefaultSettings: undefined;
-  GeneralSettings: undefined;
-  AssetsSettings: undefined;
-  SecuritySettings: undefined;
-  HomeNav: undefined;
-  Onboarding: {
-    delete?: boolean;
+  // =========================================================================
+  // Multichain Account Sheets
+  // =========================================================================
+  MultichainEditAccountName: {
+    account: InternalAccount;
   };
-  Login: undefined;
-  OnboardingNav: {
-    screen?: string;
-    params?: Record<string, unknown>;
+  ShareAddress: {
+    account: InternalAccount;
   };
-  SocialLoginSuccessNewUser: undefined;
-  ManualBackupStep1: undefined;
-  ManualBackupStep2: {
-    words?: string[];
+  ShareAddressQR: {
+    address: string;
+    networkName: string;
+    chainId: string;
+    accountName: string;
   };
-  ManualBackupStep3: {
-    words?: string[];
+  DeleteAccount: {
+    account: InternalAccount;
   };
-  ImportFromSecretRecoveryPhrase: undefined;
-  ChoosePassword: undefined;
-  OptinMetrics: undefined;
-  SocialLoginSuccessExistingUser: undefined;
-};
+  SRPRevealQuizInMultichainAccountDetails: SRPQuizParams | undefined;
+  MultichainRevealPrivateCredential: MultichainRevealPrivateCredentialParams;
 
-// =============================================================================
-// BROWSER STACK
-// =============================================================================
-
-export type BrowserStackParamList = {
-  BrowserTabHome: undefined;
-  BrowserView: {
-    url?: string;
-    newTab?: boolean;
+  // =========================================================================
+  // Asset/Token Screens
+  // =========================================================================
+  AssetHideConfirmation: {
+    onConfirm: () => void;
   };
-  AssetLoader: {
-    address?: string;
-    chainId?: string;
-  };
-  AssetView: {
-    address?: string;
-    chainId?: string;
-  };
-};
+  AssetOptions: AssetOptionsParams;
+  NftOptions: NftOptionsParams;
 
-// =============================================================================
-// WALLET STACK
-// =============================================================================
+  // =========================================================================
+  // Hardware Wallet
+  // =========================================================================
+  ConnectHardwareWalletFlow: undefined;
+  SelectHardwareWallet: undefined;
+  ConnectLedgerFlow: undefined;
+  LedgerConnect: undefined;
+  ConnectQRHardwareFlow: undefined;
+  ConnectQRHardware: undefined;
 
-export type WalletStackParamList = {
-  WalletTabHome: undefined;
-  WalletTabStackFlow: {
-    screen?: string;
-    params?: Record<string, unknown>;
-  };
-  WalletConnectSessionsView: undefined;
-  NftFullView: {
-    nft?: unknown;
-  };
-  TokensFullView: undefined;
-  TrendingTokensFullView: undefined;
-  WalletView: undefined;
-};
+  // =========================================================================
+  // Import/Private Key Screens
+  // =========================================================================
+  ImportPrivateKeyView: undefined;
+  ImportPrivateKey: undefined;
+  ImportPrivateKeySuccess: undefined;
+  ImportSRPView: undefined;
 
-// =============================================================================
-// SETTINGS STACK
-// =============================================================================
-
-export type SettingsStackParamList = {
-  SettingsView: undefined;
-  SecuritySettings: undefined;
-  AdvancedSettings: undefined;
-  ResetPassword: undefined;
-  ContactForm: {
-    mode?: 'add' | 'edit';
-    contact?: unknown;
-  };
-  DeveloperOptions: undefined;
-  ExperimentalSettings: undefined;
-  NotificationsSettings: undefined;
-  RevealPrivateCredentialView: {
-    credentialName?: string;
-    privateCredentialName?: string;
-  };
-  SDKSessionsManager: undefined;
-  BackupAndSyncSettings: undefined;
-};
-
-// =============================================================================
-// SEND FLOW
-// =============================================================================
-
-export type SendFlowParamList = {
-  SendTo: {
-    txMeta?: unknown;
-  };
-  Amount: {
-    txMeta?: unknown;
-  };
-  Confirm: {
-    txMeta?: unknown;
-  };
-  Send: undefined;
-  Recipient: undefined;
-  Asset: undefined;
-};
-
-// =============================================================================
-// WEBVIEW
-// =============================================================================
-
-export type WebviewParamList = {
-  Webview: {
-    screen?: string;
-    params?: {
-      url?: string;
-    };
-  };
-  SimpleWebview: {
-    url?: string;
-  };
-};
-
-// =============================================================================
-// BRIDGE
-// =============================================================================
-
-export type BridgeParamList = {
-  Bridge: undefined;
-  BridgeView: undefined;
-  BridgeTransactionDetails: {
-    transactionId?: string;
-  };
-};
-
-export type BridgeModalsParamList = {
-  BridgeModals: undefined;
-  BridgeSourceTokenSelector: undefined;
-  BridgeSourceNetworkSelector: undefined;
-  SlippageModal: undefined;
-  BridgeDestTokenSelector: {
-    token?: unknown;
-    networkName?: string;
-  };
-  BridgeDestNetworkSelector: undefined;
-  TransactionDetailsBlockExplorer: undefined;
-  QuoteExpiredModal: undefined;
-  BlockaidModal: undefined;
-  RecipientSelectorModal: undefined;
-};
-
-// =============================================================================
-// STAKING / EARN
-// =============================================================================
-
-export type StakingParamList = {
-  Stake: undefined;
-  StakeConfirmation: undefined;
-  Unstake: undefined;
-  UnstakeConfirmation: undefined;
-  EarningsHistory: undefined;
-  Claim: undefined;
-  LearnMore: undefined;
-  MaxInput: undefined;
-  GasImpact: undefined;
-  EarnTokenList: undefined;
-};
-
-export type EarnParamList = {
-  EarnScreens: undefined;
-  EarnLendingDepositConfirmation: undefined;
-  EarnLendingWithdrawalConfirmation: undefined;
-  EarnMusdConversionEducation: undefined;
-  EarnModals: undefined;
-  EarnLendingMaxWithdrawalModal: undefined;
-  EarnLendingLearnMoreModal: undefined;
-};
-
-// =============================================================================
-// MULTICHAIN ACCOUNTS
-// =============================================================================
-
-export type MultichainAccountsParamList = {
-  MultichainAccountDetails: {
-    address?: string;
-    accountGroup?: unknown;
-  };
+  // =========================================================================
+  // Multichain Accounts
+  // =========================================================================
+  MultichainAccountDetails: AccountDetailsParams;
   MultichainAccountGroupDetails: {
-    groupId?: string;
-    accountGroup?: unknown;
+    accountGroup: AccountGroupObject;
   };
-  MultichainWalletDetails: {
-    walletId?: string;
+  MultichainWalletDetails: WalletDetailsParams;
+  MultichainAddressList: {
+    groupId: AccountGroupId;
+    title: string;
   };
-  MultichainAddressList: undefined;
-  MultichainPrivateKeyList: undefined;
-  MultichainAccountActions: undefined;
-};
-
-// =============================================================================
-// NOTIFICATIONS
-// =============================================================================
-
-export type NotificationsParamList = {
-  NotificationsView: undefined;
-  OptIn: undefined;
-  OptInStack: undefined;
-  NotificationsDetails: {
-    notificationId?: string;
+  MultichainPrivateKeyList: PrivateKeyListParams;
+  MultichainAccountActions: {
+    accountGroup: AccountGroupObject;
   };
-};
+  SmartAccountDetails: {
+    account: InternalAccount;
+  };
 
-// =============================================================================
-// CONFIRMATIONS
-// =============================================================================
-
-export type ConfirmationsParamList = {
-  RedesignedConfirmations: undefined;
-  NoHeaderConfirmations: undefined;
+  // =========================================================================
+  // Confirmation Screens
+  // =========================================================================
   ConfirmationRequestModal: undefined;
-  ConfirmationSwitchAccountType: undefined;
-  ConfirmationPayWithModal: undefined;
-  ConfirmationPayWithNetworkModal: undefined;
+  ConfirmationSwitchAccountType: {
+    address: string;
+  };
   SmartAccountOptIn: undefined;
-};
+  ConfirmationPayWithModal: PayWithModalParams;
+  ConfirmationPayWithNetworkModal: undefined;
 
-// =============================================================================
-// RAMP / DEPOSIT
-// =============================================================================
+  // =========================================================================
+  // Main App Screens
+  // =========================================================================
+  FoxLoader: undefined;
+  LockScreen: { bioStateMachineId: string };
+  EditAccountName: {
+    selectedAccount: InternalAccount;
+  };
+  TransactionsView:
+    | {
+        redirectToOrders?: boolean;
+        redirectToPerpsTransactions?: boolean;
+      }
+    | undefined;
+  TransactionDetails: undefined;
 
-export type RampParamList = {
+  // =========================================================================
+  // Ledger Modals
+  // =========================================================================
+  LedgerTransactionModal: LedgerTransactionModalParams;
+  LedgerMessageSignModal: LedgerMessageSignModalParams;
+
+  // =========================================================================
+  // Bridge Routes
+  // =========================================================================
+  Bridge: undefined;
+  BridgeView: {
+    sourcePage: string;
+    bridgeViewMode?: BridgeViewMode;
+    sourceToken?: BridgeToken;
+    destToken?: BridgeToken;
+    sourceAmount?: string;
+  };
+  BridgeSourceTokenSelector: undefined;
+  BridgeDestTokenSelector: undefined;
+  BridgeSourceNetworkSelector: undefined;
+  BridgeDestNetworkSelector:
+    | {
+        shouldGoToTokens?: boolean;
+      }
+    | undefined;
+  SlippageModal: undefined;
+  QuoteInfoModal: undefined;
+  TransactionDetailsBlockExplorer: {
+    evmTxMeta?: TransactionMeta;
+    multiChainTx?: Transaction;
+  };
+  QuoteExpiredModal: undefined;
+  BlockaidModal: {
+    errorMessage: string;
+    errorType: 'validation' | 'simulation';
+  };
+  PriceImpactWarningModal: {
+    isGasIncluded: boolean;
+  };
+  BridgeTransactionDetails: BridgeTransactionDetailsParams;
+
+  // =========================================================================
+  // Perps Routes
+  // =========================================================================
+  Perps: NavigatorScreenParams<RootParamList> | undefined;
+  PerpsTradingView: undefined;
+  PerpsMarketListView: { source?: string } | undefined;
+  PerpsWithdraw: undefined;
+  PerpsMarketDetails:
+    | MarketDetailsParams
+    | {
+        market: unknown;
+        initialTab?: string;
+        source?: string;
+        monitoringIntent?: unknown;
+      };
+  PerpsPositions: undefined;
+  PerpsOrder: PerpsOrderViewParams;
+  PerpsClosePosition: PerpsRouteParams<'PerpsClosePosition'>;
+  PerpsTutorial: PerpsRouteParams<'PerpsTutorial'> | undefined;
+  PerpsQuoteExpiredModal: undefined;
+  PerpsBalanceModal: undefined;
+  PerpsTrendingView: { defaultMarketTypeFilter?: string } | undefined;
+  PerpsHIP3Debug: undefined;
+
+  // =========================================================================
+  // Ramp Routes
+  // =========================================================================
   Ramp: undefined;
   RampBuy: undefined;
   RampSell: undefined;
-  RampTokenSelection: undefined;
-  GetStarted: undefined;
-  BuildQuote: undefined;
-  BuildQuoteHasStarted: undefined;
-  Quotes: undefined;
-  Checkout: undefined;
-  OrderDetails: undefined;
-  SendTransaction: undefined;
   RampSettings: undefined;
-  RampActivationKeyForm: undefined;
-};
+  GetStarted: RampIntent | undefined;
+  BuildQuote:
+    | {
+        showBack?: boolean;
+        shouldRouteImmediately?: boolean;
+        animationEnabled?: boolean;
+      }
+    | undefined;
+  BuildQuoteHasStarted:
+    | {
+        animationEnabled?: boolean;
+        quote?: BuyQuote;
+      }
+    | undefined;
+  Quotes: QuotesParams;
+  Checkout: {
+    url: string;
+    customOrderId?: string;
+    provider: Provider;
+  };
+  Region:
+    | {
+        animationEnabled?: boolean;
+        quote?: BuyQuote;
+      }
+    | undefined;
+  RegionHasStarted:
+    | {
+        animationEnabled?: boolean;
+        quote?: BuyQuote;
+      }
+    | undefined;
+  BuyNetworkSwitcher: undefined;
+  OrderDetails: {
+    orderId?: string;
+    redirectToSendTransaction?: boolean;
+  };
+  RampActivationKeyForm: ActivationKeyFormParams;
+  SendTransaction: {
+    orderId: string;
+  };
 
-export type DepositParamList = {
+  // =========================================================================
+  // Deposit Routes
+  // =========================================================================
   Deposit: undefined;
-  DepositRoot: undefined;
-  BuildQuote: {
+  DepositRoot:
+    | {
+        animationEnabled?: boolean;
+        quote?: BuyQuote;
+      }
+    | undefined;
+  EnterEmail:
+    | {
+        redirectToRootAfterAuth?: boolean;
+        animationEnabled?: boolean;
+      }
+    | undefined;
+  OtpCode: {
+    email: string;
+    stateToken: string;
+    redirectToRootAfterAuth?: boolean;
     animationEnabled?: boolean;
   };
-  EnterEmail: undefined;
-  OtpCode: undefined;
-  VerifyIdentity: undefined;
-  BasicInfo: undefined;
-  EnterAddress: undefined;
-  KycProcessing: undefined;
-  OrderProcessing: undefined;
+  VerifyIdentity: { quote?: BuyQuote; animationEnabled?: boolean } | undefined;
+  BasicInfo: {
+    quote: BuyQuote;
+    previousFormData?: BasicInfoFormData & AddressFormData;
+    animationEnabled?: boolean;
+  };
+  EnterAddress: {
+    quote: BuyQuote;
+    previousFormData?: BasicInfoFormData & AddressFormData;
+    animationEnabled?: boolean;
+  };
+  KycProcessing: {
+    quote: BuyQuote;
+    kycUrl?: string;
+    animationEnabled?: boolean;
+  };
+  OrderProcessing: {
+    orderId: string;
+    animationEnabled?: boolean;
+  };
+  BankDetails: {
+    orderId: string;
+    shouldUpdate?: boolean;
+    animationEnabled?: boolean;
+  };
+  AdditionalVerification: {
+    quote: BuyQuote;
+    kycUrl: string;
+    workFlowRunId: string;
+    cryptoCurrencyChainId: string;
+    paymentMethodId: string;
+    animationEnabled?: boolean;
+  };
   DepositOrderDetails: {
-    orderId?: string;
+    orderId: string;
+    animationEnabled?: boolean;
   };
-  BankDetails: undefined;
-  AdditionalVerification: undefined;
-};
 
-// =============================================================================
-// PERPS / PREDICT
-// =============================================================================
-
-export type PerpsParamList = {
-  Perps: undefined;
-  PerpsTradingView: undefined;
-  PerpsOrder: undefined;
-  PerpsWithdraw: undefined;
-  PerpsPositions: undefined;
-  PerpsMarketListView: undefined;
-  PerpsMarketDetails: {
-    marketId?: string;
+  // =========================================================================
+  // Deposit Modal Routes
+  // =========================================================================
+  DepositTokenSelectorModal: {
+    selectedAssetId?: string;
+    handleSelectAssetId?: (assetId: string) => void;
   };
-  PerpsTrendingView: undefined;
-  PerpsTutorial: undefined;
-  PerpsClosePosition: undefined;
-  PerpsHIP3Debug: undefined;
-  PerpsTPSL: undefined;
-  PerpsAdjustMargin: undefined;
-  PerpsSelectModifyAction: undefined;
-  PerpsSelectAdjustMarginAction: undefined;
-  PerpsSelectOrderType: undefined;
-  PerpsOrderDetailsView: undefined;
-  PerpsPnlHeroCard: undefined;
-  PerpsActivity: undefined;
-  PerpsOrderBook: undefined;
-  PerpsPositionTransaction: undefined;
-  PerpsOrderTransaction: undefined;
-  PerpsFundingTransaction: undefined;
-};
-
-export type PredictParamList = {
-  Predict: undefined;
-  PredictMarketList: undefined;
-  PredictMarketDetails: {
-    marketId?: string;
+  DepositRegionSelectorModal: RegionSelectorModalParams | undefined;
+  DepositPaymentMethodSelectorModal: {
+    selectedPaymentMethodId?: string;
+    handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
   };
-  PredictActivityDetail: undefined;
-};
+  DepositUnsupportedRegionModal: undefined;
+  DepositUnsupportedStateModal: {
+    stateCode?: string;
+    stateName?: string;
+    onStateSelect: (stateCode: string) => void;
+  };
+  DepositStateSelectorModal: {
+    selectedState?: string;
+    onStateSelect: (stateCode: string) => void;
+  };
+  DepositWebviewModal: {
+    sourceUrl: string;
+    handleNavigationStateChange?: (navState: { url: string }) => void;
+  };
+  DepositKycWebviewModal: {
+    sourceUrl: string;
+    handleNavigationStateChange?: (navState: { url: string }) => void;
+    quote: BuyQuote;
+    workFlowRunId: string;
+    cryptoCurrencyChainId: string;
+    paymentMethodId: string;
+  };
+  IncompatibleAccountTokenModal: undefined;
+  SsnInfoModal: undefined;
+  DepositConfigurationModal: object | undefined;
 
-// =============================================================================
-// CARD
-// =============================================================================
+  // =========================================================================
+  // Staking Routes
+  // =========================================================================
+  Stake: EarnInputViewRouteParams;
+  StakeConfirmation: {
+    amountWei: string;
+    amountFiat: string;
+    annualRewardsToken?: string;
+    annualRewardsETH?: string;
+    annualRewardsFiat: string;
+    annualRewardRate: string;
+    chainId?: string;
+  };
+  Unstake: EarnWithdrawInputViewParams;
+  UnstakeConfirmation: UnstakeConfirmationParams;
+  EarningsHistory: StakeEarningsHistoryViewParams;
+  Claim: undefined;
+  LearnMore: {
+    chainId?: string | Hex;
+  };
+  MaxInput: {
+    handleMaxPress: () => void;
+  };
+  GasImpact: {
+    amountWei: string;
+    amountFiat: string;
+    annualRewardsToken?: string;
+    annualRewardsETH?: string;
+    annualRewardsFiat: string;
+    annualRewardRate: string;
+    estimatedGasFee: string;
+    estimatedGasFeePercentage: string;
+    chainId?: string;
+  };
+  EarnTokenList: {
+    tokenFilter: {
+      includeNativeTokens?: boolean;
+      includeStakingTokens?: boolean;
+      includeLendingTokens?: boolean;
+      includeReceiptTokens?: boolean;
+    };
+    onItemPressScreen: string;
+  };
 
-export type CardParamList = {
+  // =========================================================================
+  // Send Routes
+  // =========================================================================
+  Amount: undefined;
+  Send: undefined;
+  SendTo: undefined;
+  Recipient: undefined;
+
+  // =========================================================================
+  // Full Screen Confirmations
+  // =========================================================================
+  RedesignedConfirmations: UnstakeConfirmationParams | undefined;
+  Confirm: undefined;
+
+  // =========================================================================
+  // Main Navigator Screens
+  // =========================================================================
+  Main: undefined;
+  ReviewModal: undefined;
+  Home: undefined;
+  CollectiblesDetails: CollectibleModalParams;
+  DeprecatedNetworkDetails: undefined;
+  AssetStack: undefined;
+  Asset: TokenI & { chainId?: string; isFromSearch?: boolean };
+  AssetDetails: AssetDetailsParams;
+  SendView: undefined;
+  SendAsset: undefined;
+  SendFlowView: undefined;
+  AddBookmarkView: undefined;
+  OfflineModeView: undefined;
+  NotificationsView: undefined;
+  NftDetailsStack: undefined;
+  NftDetailsFullImageStack: undefined;
+  NftDetails: NftDetailsParams;
+  NftDetailsFullImage: NftDetailsParams;
+  PaymentRequestView: undefined;
+  Swaps:
+    | {
+        sourceToken?: string;
+        destinationToken?: string;
+        sourcePage?: string;
+      }
+    | undefined;
+  SwapsAmountView: {
+    sourceToken?: string;
+    destinationToken?: string;
+    chainId?: string;
+    sourcePage?: string;
+  };
+  SwapsQuotesView: undefined;
+  SetPasswordFlow: undefined;
+  DeFiProtocolPositionDetails: DeFiProtocolPositionDetailsParams;
+  CardRoutes: undefined;
+  StakeScreens: undefined;
+  StakeModalStack: undefined;
+
+  // =========================================================================
+  // Tab Navigator Screens
+  // =========================================================================
+  WalletTabHome: undefined;
+  WalletHome: undefined;
+  BrowserHome: undefined;
+  SettingsFlow: undefined;
+  SettingsView: undefined;
+  RewardsView: undefined;
+  ReferralRewardsView: undefined;
+
+  // =========================================================================
+  // Asset Flow Screens
+  // =========================================================================
+  WalletView:
+    | {
+        shouldSelectPerpsTab?: boolean;
+        initialTab?: string;
+      }
+    | undefined;
+  AddAsset: AddAssetParams;
+  Collectible: undefined;
+  ConfirmAddAsset: {
+    selectedAsset: {
+      address: string;
+      symbol: string;
+      decimals: number;
+      iconUrl: string;
+      name: string;
+      chainId: string;
+    }[];
+    networkName: string;
+    addTokenList: () => Promise<void>;
+  };
+
+  // =========================================================================
+  // Settings Flow Screens
+  // =========================================================================
+  Settings: undefined;
+  AdvancedSettings: undefined;
+  SDKSessionsManager: { trigger?: number } | undefined;
+  PermissionsManager: undefined;
+  NetworksSettings: undefined;
+  CompanySettings: undefined;
+  ContactsSettings: undefined;
+  ContactForm: undefined;
+  ExperimentalSettings: ExperimentalSettingsParams;
+  AccountPermissionsAsFullScreen: AccountPermissionsParams;
+  WalletConnectSessionsView: undefined;
+  ResetPassword: undefined;
+  WalletRecovery: undefined;
+  AesCryptoTestForm: undefined;
+  EnterPasswordSimple: { onPasswordSet: (password: string) => void };
+  NotificationsSettings: NotificationsSettingsParams;
+  BackupAndSyncSettings: BackupAndSyncSettingsParams | undefined;
+  DeveloperOptions: DeveloperOptionsParams | undefined;
+  RevealPrivateCredentialView: RevealPrivateCredentialParams;
+
+  // =========================================================================
+  // Notification Flow Screens
+  // =========================================================================
+  NotificationsOptInStack: undefined;
+  OptInStack: undefined;
+  OptIn: undefined;
+  NotificationsDetails: NotificationsDetailsParams;
+
+  // =========================================================================
+  // Browser Flow Screens
+  // =========================================================================
+  BrowserTabHome: undefined;
+  BrowserView: {
+    url?: string;
+    linkType?: string;
+    newTabUrl?: string;
+    existingTabId?: string;
+    timestamp?: number;
+  };
+  AssetLoader: AssetLoaderParams;
+
+  // =========================================================================
+  // Payment Flow Screens
+  // =========================================================================
+  PaymentRequest: undefined;
+  PaymentRequestSuccess: undefined;
+
+  // =========================================================================
+  // Bookmarks
+  // =========================================================================
+  AddBookmark: {
+    title: string;
+    url: string;
+    onAddBookmark: (bookmark: { name: string; url: string }) => void;
+  };
+
+  // =========================================================================
+  // Offline
+  // =========================================================================
+  OfflineMode: undefined;
+
+  // =========================================================================
+  // Perps Transaction Views
+  // =========================================================================
+  PerpsPositionTransaction: PerpsRouteParams<'PerpsPositionTransaction'>;
+  PerpsOrderTransaction: PerpsRouteParams<'PerpsOrderTransaction'>;
+  PerpsFundingTransaction: PerpsRouteParams<'PerpsFundingTransaction'>;
+
+  // =========================================================================
+  // Identity
+  // =========================================================================
+  TurnOnBackupAndSync: undefined;
+
+  // =========================================================================
+  // Earn Flow Screens
+  // =========================================================================
+  EarnScreens: undefined;
+  EarnLendingDepositConfirmation: LendingDepositViewRouteParams;
+  EarnLendingWithdrawalConfirmation: EarnWithdrawalConfirmationViewRouteParams;
+  EarnLendingMaxWithdrawalModal: undefined;
+  EarnLendingLearnMoreModal: {
+    asset: EarnTokenDetails;
+  };
+
+  // =========================================================================
+  // Card Flow Screens
+  // =========================================================================
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: undefined;
@@ -490,191 +825,160 @@ export type CardParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingWebview: undefined;
+  CardModals: undefined;
+  CardAddFundsModal: undefined;
+  CardAssetSelectionModal: undefined;
+  CardRegionSelectionModal: undefined;
+  CardConfirmModal: undefined;
+  CardMainRoutes: undefined;
+
+  // =========================================================================
+  // Snaps Routes
+  // =========================================================================
+  SnapsSettingsList: undefined;
+  SnapSettings: {
+    snap: Snap;
+  };
+
+  // =========================================================================
+  // Modal Flow Routes (Navigator containers)
+  // =========================================================================
+  RootModalFlow: NavigatorScreenParams<RootParamList> | undefined;
+  BridgeModals: NavigatorScreenParams<RootParamList> | undefined;
+  PerpsModals: NavigatorScreenParams<RootParamList> | undefined;
+  PerpsClosePositionModals: NavigatorScreenParams<RootParamList> | undefined;
+  PredictModals: NavigatorScreenParams<RootParamList> | undefined;
+  EarnModals: NavigatorScreenParams<RootParamList> | undefined;
+  StakeModals: NavigatorScreenParams<RootParamList> | undefined;
+  RampModals: NavigatorScreenParams<RootParamList> | undefined;
+  DepositModals: NavigatorScreenParams<RootParamList> | undefined;
+
+  // =========================================================================
+  // Additional Modal Screens
+  // =========================================================================
+  WhatsNewModal: undefined;
+  TradeWalletActions: {
+    onDismiss?: () => void;
+    buttonLayout?: unknown;
+  };
+  MultichainAccountsIntroModal: undefined;
+  MultichainAccountsLearnMoreBottomSheet: undefined;
+  Pna25BottomSheet: undefined;
+  RecipientSelectorModal: undefined;
+  TokenInsights: {
+    token?: unknown;
+    networkName?: string;
+  };
+  PerpsGTMModal: undefined;
+  PerpsTooltip: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsPnlHeroCard: undefined;
+  PerpsTrendingView: undefined;
+  PerpsActivity: undefined;
+  PerpsOrderBook: undefined;
+  PerpsTPSL: undefined;
+  PerpsAdjustMargin: undefined;
+  PerpsSelectModifyAction: undefined;
+  PerpsSelectAdjustMarginAction: undefined;
+  PerpsSelectOrderType: undefined;
+  PerpsOrderDetailsView: undefined;
+  PerpsHIP3Debug: undefined;
+  PredictGTMModal: undefined;
+  PredictMarketList: { entryPoint?: string } | undefined;
+  PredictUnavailable: undefined;
+  PredictBuyPreview: {
+    market: unknown;
+    outcome: unknown;
+    outcomeToken: unknown;
+    entryPoint: string;
+  };
+  PredictMarketDetails: {
+    marketId: string;
+    entryPoint: string;
+    title?: string;
+    image?: string;
+    headerShown?: boolean;
+  };
+  PredictModals: NavigatorScreenParams<RootParamList> | undefined;
+  EarnMusdConversionEducation: undefined;
+  DetectedTokensConfirmation: undefined;
+
+  // =========================================================================
+  // Additional Screen Routes
+  // =========================================================================
+  WalletTabStackFlow: NavigatorScreenParams<RootParamList> | undefined;
+  ExploreSearch: undefined;
+  RewardsDashboard: undefined;
+  RewardsSettingsView: undefined;
+  RewardsOnboardingFlow: undefined;
+  RewardsOnboardingIntro: undefined;
+  RewardsOnboarding1: undefined;
+  RewardsOnboarding2: undefined;
+  RewardsOnboarding3: undefined;
+  RewardsOnboarding4: undefined;
+  SitesFullView: undefined;
+  TrendingFeed: undefined;
+  NoHeaderConfirmations: undefined;
+  SampleFeature: undefined;
+  ReturnToDappToast: undefined;
+  LegacyEditMultichainAccountName: {
+    account: InternalAccount;
+  };
+  EditWalletName: undefined;
+  RevealSRPCredential: undefined;
+  SmartAccount: undefined;
+  AssetView: undefined;
+  QRScanner: undefined;
+  ImportSrpView: undefined;
+  RampTokenSelection: undefined;
+  EligibilityFailedModal: undefined;
+  UnsupportedRegionModal: undefined;
+  RampIncompatibleAccountTokenModal: undefined;
+  RampRegionSelectorModal: undefined;
+  RampUnsupportedRegionModal: undefined;
+  RampUnsupportedTokenModal: undefined;
+  RampPaymentMethodSelectorModal: undefined;
+  RampSettingsModal: undefined;
+  RampFiatSelectorModal: undefined;
+  RampTokenSelectorModal: undefined;
+  DepositErrorDetailsModal: undefined;
+  NftFullView: undefined;
+  SocialLoginSuccessNewUser: undefined;
+  SocialLoginSuccessExistingUser: undefined;
+
+  // =========================================================================
+  // Feature Flow Routes
+  // =========================================================================
+  FeatureFlagOverride: undefined;
+  SetPasswordFlow: undefined;
 };
 
 // =============================================================================
-// ROOT STACK - COMBINES ALL NAVIGATORS
+// NAVIGATABLE ROOT PARAM LIST
 // =============================================================================
+// Allows nested navigation with NavigatorScreenParams
 
-export type RootStackParamList = {
-  // Main screens
-  WalletView: undefined;
-  BrowserTabHome: undefined;
-  BrowserView: BrowserStackParamList['BrowserView'];
-  SettingsView: undefined;
-  TransactionsView: undefined;
-  TransactionDetails: {
-    transactionId?: string;
-  };
-
-  // Navigators (using NavigatorScreenParams for nested navigation)
-  RootModalFlow: NavigatorScreenParams<ModalStackParamList>;
-  OnboardingRootNav: NavigatorScreenParams<OnboardingStackParamList>;
-  OnboardingNav: OnboardingStackParamList['OnboardingNav'];
-
-  // Wallet
-  WalletTabHome: NavigatorScreenParams<WalletStackParamList>;
-  WalletTabStackFlow: WalletStackParamList['WalletTabStackFlow'];
-
-  // Browser
-  BrowserTabHome: NavigatorScreenParams<BrowserStackParamList>;
-
-  // Webview
-  Webview: WebviewParamList['Webview'];
-  SimpleWebview: WebviewParamList['SimpleWebview'];
-
-  // Settings
-  Settings: string;
-
-  // Send
-  SendTo: SendFlowParamList['SendTo'];
-  Amount: SendFlowParamList['Amount'];
-  Confirm: SendFlowParamList['Confirm'];
-  Send: undefined;
-
-  // Features
-  QRScanner: undefined;
-  LockScreen: undefined;
-  FoxLoader: undefined;
-
-  // Hardware Wallet
-  ConnectHardwareWalletFlow: undefined;
-  SelectHardwareWallet: undefined;
-  ConnectQRHardwareFlow: undefined;
-  ConnectLedgerFlow: undefined;
-  LedgerConnect: undefined;
-  LedgerMessageSignModal: undefined;
-  LedgerTransactionModal: undefined;
-
-  // Networks
-  AddNetwork: undefined;
-  EditNetwork: {
-    network?: string;
-    shouldNetworkSwitchPopToWallet?: boolean;
-    shouldShowPopularNetworks?: boolean;
-    trackRpcUpdateFromBanner?: boolean;
-  };
-
-  // Accounts
-  EditAccountName: undefined;
-  ImportPrivateKeyView: undefined;
-  ImportSRPView: undefined;
-
-  // Multichain Accounts
-  MultichainAccountDetails: MultichainAccountsParamList['MultichainAccountDetails'];
-  MultichainAccountGroupDetails: MultichainAccountsParamList['MultichainAccountGroupDetails'];
-  MultichainWalletDetails: MultichainAccountsParamList['MultichainWalletDetails'];
-  MultichainAddressList: undefined;
-  MultichainPrivateKeyList: undefined;
-
-  // Asset management
-  AssetHideConfirmation: {
-    asset?: unknown;
-  };
-  AssetOptions: {
-    asset?: unknown;
-  };
-  NftOptions: {
-    nft?: unknown;
-  };
-  DetectedTokens: undefined;
-  DetectedTokensConfirmation: {
-    tokens?: unknown[];
-  };
-
-  // Confirmations
-  RedesignedConfirmations: undefined;
-  NoHeaderConfirmations: undefined;
-  ConfirmationRequestModal: undefined;
-
-  // Staking/Earn
-  Stake: undefined;
-  EarnScreens: NavigatorScreenParams<EarnParamList>;
-
-  // Bridge
-  Bridge: NavigatorScreenParams<BridgeParamList>;
-  BridgeModals: NavigatorScreenParams<BridgeModalsParamList>;
-
-  // Ramp
-  Ramp: NavigatorScreenParams<RampParamList>;
-  Deposit: NavigatorScreenParams<DepositParamList>;
-
-  // Perps/Predict
-  Perps: NavigatorScreenParams<PerpsParamList>;
-  PerpsModals: undefined;
-  Predict: NavigatorScreenParams<PredictParamList>;
-  PredictModals: undefined;
-
-  // Card
-  CardScreens: NavigatorScreenParams<CardParamList>;
-  CardModals: undefined;
-
-  // Notifications
-  NotificationsView: undefined;
-  OptInStack: undefined;
-
-  // Rewards
-  RewardsView: undefined;
-  ReferralRewardsView: undefined;
-  RewardsSettingsView: undefined;
-  RewardsDashboard: undefined;
-  TrendingView: undefined;
-  TrendingFeed: undefined;
-
-  // Vault Recovery
-  RestoreWallet: undefined;
-  WalletRestored: undefined;
-  WalletResetNeeded: undefined;
-
-  // SDK
-  ReturnToDappToast: undefined;
-
-  // Misc
-  SeedphraseModal: undefined;
-  SetPasswordFlow: undefined;
-  FeatureFlagOverride: undefined;
-  SitesFullView: undefined;
-  ExploreSearch: undefined;
-  DeprecatedNetworkDetails: undefined;
-
-  // Snaps
-  SnapsSettingsList: undefined;
-  SnapSettings: {
-    snapId?: string;
-  };
-
-  // Add new account bottom sheet
-  AddNewAccountBottomSheet: {
-    accountGroup?: unknown;
-  };
-
-  // Catch-all for dynamic routes (allows any string key with any params)
-  [key: string]: undefined | Record<string, unknown> | NavigatorScreenParams<Record<string, unknown>>;
+export type NavigatableRootParamList = {
+  [K in keyof RootParamList]:
+    | RootParamList[K]
+    | NavigatorScreenParams<RootParamList>;
 };
 
 // =============================================================================
 // GLOBAL TYPE AUGMENTATION
 // =============================================================================
-// This makes useNavigation() automatically typed everywhere in the app
-// without needing to pass type parameters.
+// Specifying default types for React Navigation
+// This enables automatic typing for useNavigation(), Link, ref, etc.
+// @see https://reactnavigation.org/docs/typescript/?config=dynamic#specifying-default-types-for-usenavigation-link-ref-etc
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends NavigatableRootParamList {}
   }
 }
 
-// =============================================================================
-// HELPER TYPES
-// =============================================================================
-
-export type NavigationParams = Record<string, unknown> | undefined;
-
-// Screen props helper
-export type ScreenProps<T extends keyof RootStackParamList> = {
-  route: {
-    params: RootStackParamList[T];
-  };
-  navigation: unknown;
-};
-
+// Typed NavigationContainerRef for use with NavigationService
+export type TypedNavigationContainerRef =
+  import('@react-navigation/native').NavigationContainerRef<RootParamList>;

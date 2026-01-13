@@ -1,4 +1,4 @@
-import { ParamListBase } from '@react-navigation/native';
+import { ParamListBase, NavigatorScreenParams } from '@react-navigation/native';
 import {
   PredictActivityItem,
   PredictMarket,
@@ -21,7 +21,10 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.TRENDING;
 
 export interface PredictNavigationParamList extends ParamListBase {
-  Predict: undefined;
+  // Root predict view - accepts nested screen params for navigation through the stack
+  Predict: NavigatorScreenParams<PredictNavigationParamList> | undefined;
+  // Modal stack for predict bottom sheets
+  PredictModals: NavigatorScreenParams<PredictNavigationParamList> | undefined;
   PredictMarketList: {
     entryPoint?: PredictEntryPoint;
   };

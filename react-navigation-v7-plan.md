@@ -158,6 +158,12 @@ Bottom sheet modal stacks within features now use transparent modals:
 - [x] Added `NavigationService.popToTop()` helper method
 - [x] Fixed Notifications view close button to navigate to HomeNav
 
+**Navigate `pop: true` Default Implementation:**
+
+- [x] Enhanced `app/util/navigation/navUtils.ts` - `useNavigation` hook now wraps `navigate()` with `pop: true` by default
+- [x] Enhanced `app/core/NavigationService/NavigationService.ts` - `NavigationService.navigation.navigate()` now uses `pop: true` by default
+- [x] Fixed `useSendNavbar.tsx` - Uses `pop: true` option for back navigation
+
 ### In Progress 🔄
 
 - [ ] Fix remaining TypeScript errors
@@ -1145,13 +1151,13 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 | `mode="modal"`                              | `screenOptions={{ presentation: 'card' }}` (default) or `'transparentModal'` (bottom sheets) |
 | `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                                     |
 | `animationEnabled: false`                   | `animation: 'none'`                                                                          |
-| `navigation.navigate('Back')`               | `navigation.popTo('Back')`                                                                   |
+| `navigation.navigate('Back')`               | Use `useNavigation` from `navUtils.ts` (auto `pop: true`) or explicit `{ pop: true }`        |
 | `beforeRemove` listener                     | `usePreventRemove` hook                                                                      |
 | `dangerouslyGetState()`                     | `getState()`                                                                                 |
 | `dangerouslyGetParent()`                    | `getParent()`                                                                                |
 | `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                           |
 | `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }`            |
-| `useNavigation()` in modal callbacks        | `NavigationService.navigation?.navigate()` (global ref)                                      |
+| `useNavigation()` in modal callbacks        | `NavigationService.navigation.navigate()` (global ref, auto `pop: true`)                     |
 
 ### Screen Presentation (iOS Sheet Modal Fix)
 
@@ -1261,8 +1267,47 @@ closeBottomSheet(() => {
 // ✅ CORRECT - NavigationService works globally
 import NavigationService from '../core/NavigationService';
 closeBottomSheet(() => {
-  NavigationService.navigation?.navigate('SomeScreen');
+  NavigationService.navigation.navigate('SomeScreen'); // Uses pop: true by default
 });
+```
+
+### Navigate `pop: true` Default
+
+In v7, `navigate()` always pushes a new screen. We've enhanced our navigation utilities to add `pop: true` by default, restoring v6 behavior:
+
+**Using `useNavigation` hook (from `navUtils.ts`):**
+
+```jsx
+import { useNavigation } from '../../util/navigation/navUtils';
+
+const MyComponent = () => {
+  const navigation = useNavigation();
+
+  // Automatically uses pop: true - goes back to existing screen
+  navigation.navigate('WalletView');
+  navigation.navigate('Asset', { address: '0x...' });
+
+  // Explicitly push a new screen (v7 default behavior)
+  navigation.navigate({
+    name: 'Asset',
+    params: { address: '0x...' },
+    pop: false,
+  });
+};
+```
+
+**Using `NavigationService`:**
+
+```jsx
+import NavigationService from '../core/NavigationService';
+
+// Automatically uses pop: true
+NavigationService.navigation.navigate('WalletView');
+
+// Also available
+NavigationService.navigation.goBack();
+NavigationService.navigation.popToTop();
+NavigationService.navigation.dispatch(action);
 ```
 
 ### New Methods in v7
