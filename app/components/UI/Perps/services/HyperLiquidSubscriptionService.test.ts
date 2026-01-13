@@ -473,12 +473,16 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
+      // Wait for async operations (individual subscription setup for HIP-3 mode)
+      // Need to flush both timers and microtask queue since subscription uses fire-and-forget promises
+      await jest.runAllTimersAsync();
+      // Flush microtask queue to allow promise chains to complete
+      await Promise.resolve();
+      await jest.runAllTimersAsync();
+
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
-
-      // Wait for async operations (individual subscription setup for HIP-3 mode)
-      await jest.runAllTimersAsync();
 
       // HIP-3 mode uses individual subscriptions (clearinghouseState + openOrders)
       // and webData3 only for OI caps
