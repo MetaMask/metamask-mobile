@@ -17,6 +17,7 @@ import {
   Icon,
   IconSize,
   IconColor,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -193,12 +194,17 @@ export const ExploreFeed: React.FC = () => {
         >
           <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
             {browserTabsCount > 0 ? (
-              <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+              <Text
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
+              >
+                {browserTabsCount}
+              </Text>
             ) : (
               <Icon
                 name={IconName.Explore}
-                size={IconSize.Md}
-                color={IconColor.IconMuted}
+                size={IconSize.Lg}
+                color={IconColor.IconAlternative}
               />
             )}
           </Box>
