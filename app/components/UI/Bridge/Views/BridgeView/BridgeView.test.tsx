@@ -1539,7 +1539,7 @@ describe('BridgeView', () => {
 
       await waitFor(() => {
         // Button should be disabled when walletAddress is missing
-        expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+        expect(continueButton.props.disabled).toBe(true);
       });
 
       // Verify submitBridgeTx is not called since button is disabled
