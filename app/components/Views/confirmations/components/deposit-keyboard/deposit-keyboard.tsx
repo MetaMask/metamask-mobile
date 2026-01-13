@@ -13,7 +13,6 @@ import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
 import { noop } from 'lodash';
-import { useConfirmationMetricEvents } from '../../hooks/metrics/useConfirmationMetricEvents';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -63,31 +62,20 @@ export const DepositKeyboard = memo(
   }: DepositKeyboardProps) => {
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
-    const { setConfirmationMetric } = useConfirmationMetricEvents();
     const valueString = value.toString();
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {
-        setConfirmationMetric({
-          properties: {
-            mm_pay_amount_input_type: 'manual',
-          },
-        });
         onChange(data.value);
       },
-      [onChange, setConfirmationMetric],
+      [onChange],
     );
 
     const handlePercentagePress = useCallback(
       (percentage: number) => {
-        setConfirmationMetric({
-          properties: {
-            mm_pay_amount_input_type: `${percentage}%`,
-          },
-        });
         onPercentagePress(percentage);
       },
-      [onPercentagePress, setConfirmationMetric],
+      [onPercentagePress],
     );
 
     const buttons = useMemo(() => {
