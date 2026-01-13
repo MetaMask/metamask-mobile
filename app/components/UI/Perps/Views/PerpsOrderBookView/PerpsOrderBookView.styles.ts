@@ -139,6 +139,9 @@ const styleSheet = (params: { theme: Theme }) => {
     depthBandOptionSelected: {
       backgroundColor: colors.primary.muted,
     },
+    headerLeverage: {
+      marginLeft: 4,
+    },
   });
 };
 

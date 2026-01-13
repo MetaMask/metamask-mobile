@@ -5,11 +5,21 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Animated,
+  ScrollView,
+  Dimensions,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -22,7 +32,14 @@ import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFie
 import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
+import HeaderWithTitleLeft from '../../../../../component-library/components-temp/HeaderWithTitleLeft';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
@@ -55,6 +72,7 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
@@ -463,17 +481,59 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsMarketListHeader
-        title={title}
-        isSearchVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        onSearchClear={() => setSearchQuery('')}
-        onBack={handleBackPressed}
-        onSearchToggle={handleSearchToggle}
-        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-      />
+      {/* Header */}
+      {isSearchVisible ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="px-4 py-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName={`flex-1 bg-muted rounded-lg ${Platform.OS === 'ios' ? 'py-3' : 'py-1'} px-3 mr-2`}
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+              style={tw.style('mr-2')}
+            />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={strings('perps.search_by_token_symbol')}
+              placeholderTextColor={theme.colors.text.muted}
+              autoFocus
+              style={tw.style('flex-1 text-base text-default')}
+              testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
+              onBlur={() => Keyboard.dismiss()}
+            />
+          </Box>
+          <TouchableOpacity
+            onPress={handleSearchToggle}
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {strings('perps.cancel')}
+            </Text>
+          </TouchableOpacity>
+        </Box>
+      ) : (
+        <HeaderWithTitleLeft
+          onBack={handleBackPressed}
+          titleLeftProps={{
+            title: title || strings('perps.title'),
+          }}
+          endButtonIconProps={[
+            {
+              iconName: DesignSystemIconName.Search,
+              onPress: handleSearchToggle,
+            },
+          ]}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        />
+      )}
 
       {/* Balance Actions Component - Only show in full variant when search not visible */}
       {!isSearchVisible && showBalanceActions && variant === 'full' && (

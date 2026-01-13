@@ -23,10 +23,11 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import HeaderWithTitleLeft from '../../../../../component-library/components-temp/HeaderWithTitleLeft';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -49,7 +50,9 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import { PerpsLeverage } from '../../components/PerpsLeverage';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -341,10 +344,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return (
       <SafeAreaView style={styles.container} testID={testID}>
         {market ? (
-          <PerpsMarketHeader
-            market={market}
-            onBackPress={handleBack}
-            currentPrice={marketPrice ?? 0}
+          <HeaderWithTitleLeft
+            onBack={handleBack}
+            titleLeftProps={{
+              title: `${displaySymbol}-USD`,
+              titleAccessory: (
+                <PerpsLeverage
+                  maxLeverage={market.maxLeverage}
+                  style={styles.headerLeverage}
+                />
+              ),
+              endAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+              bottomAccessory: (
+                <LivePriceHeader
+                  symbol={market.symbol}
+                  currentPrice={marketPrice ?? 0}
+                  throttleMs={1000}
+                />
+              ),
+            }}
           />
         ) : (
           <View style={styles.header}>
@@ -375,10 +393,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     <SafeAreaView style={styles.container} testID={testID}>
       {/* Market Header */}
       {market && (
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBack}
-          currentPrice={marketPrice ?? 0}
+        <HeaderWithTitleLeft
+          onBack={handleBack}
+          titleLeftProps={{
+            title: `${displaySymbol}-USD`,
+            titleAccessory: (
+              <PerpsLeverage
+                maxLeverage={market.maxLeverage}
+                style={styles.headerLeverage}
+              />
+            ),
+            endAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+            bottomAccessory: (
+              <LivePriceHeader
+                symbol={market.symbol}
+                currentPrice={marketPrice ?? 0}
+                throttleMs={1000}
+              />
+            ),
+          }}
         />
       )}
 
@@ -555,11 +588,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           shouldNavigateBack={false}
           onClose={handleDepthBandSheetClose}
         >
-          <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.order_book.depth_band.title')}
-            </Text>
-          </BottomSheetHeader>
+          <HeaderCenter
+            title={strings('perps.order_book.depth_band.title')}
+            onClose={handleDepthBandSheetClose}
+          />
           <View style={styles.depthBandSheetContent}>
             {groupingOptions.map((value) => (
               <TouchableOpacity

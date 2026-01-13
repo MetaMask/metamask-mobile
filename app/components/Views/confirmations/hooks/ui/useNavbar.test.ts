@@ -1,12 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
-import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import useNavbar from './useNavbar';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -40,11 +38,9 @@ describe('useNavbar', () => {
     });
 
     (getNavbar as jest.Mock).mockReturnValue({
-      headerTitle: () => null,
-      headerLeft: () => null,
+      header: () => null,
     });
 
-    // Default to full screen confirmation for existing tests
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({
       isFullScreenConfirmation: true,
     });
@@ -64,15 +60,12 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: mockOnReject,
       addBackButton: true,
-      theme: expect.any(Object),
-      overrides: undefined,
     });
     expect(mockSetOptions).toHaveBeenCalledWith(
       getNavbar({
         title: mockTitle,
         onReject: mockOnReject,
         addBackButton: true,
-        theme: {} as Theme,
       }),
     );
   });
@@ -123,8 +116,6 @@ describe('useNavbar', () => {
       title: 'Updated Title',
       onReject: mockOnReject,
       addBackButton: true,
-      theme: expect.any(Object),
-      overrides: undefined,
     });
   });
 
@@ -143,49 +134,6 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: newOnReject,
       addBackButton: true,
-      theme: expect.any(Object),
-      overrides: undefined,
-    });
-  });
-
-  describe('overrides parameter', () => {
-    it('passes overrides to getNavbar when provided', () => {
-      (useFullScreenConfirmation as jest.Mock).mockReturnValue({
-        isFullScreenConfirmation: true,
-      });
-
-      const mockHeaderTitle = jest.fn();
-      const mockHeaderLeft = jest.fn();
-      const overrides = {
-        headerTitle: mockHeaderTitle,
-        headerLeft: mockHeaderLeft,
-      };
-
-      renderHook(() => useNavbar(mockTitle, true, overrides));
-
-      expect(getNavbar).toHaveBeenCalledWith({
-        title: mockTitle,
-        onReject: mockOnReject,
-        addBackButton: true,
-        theme: expect.any(Object),
-        overrides,
-      });
-    });
-
-    it('passes undefined overrides when not provided', () => {
-      (useFullScreenConfirmation as jest.Mock).mockReturnValue({
-        isFullScreenConfirmation: true,
-      });
-
-      renderHook(() => useNavbar(mockTitle, false));
-
-      expect(getNavbar).toHaveBeenCalledWith({
-        title: mockTitle,
-        onReject: mockOnReject,
-        addBackButton: false,
-        theme: expect.any(Object),
-        overrides: undefined,
-      });
     });
   });
 });

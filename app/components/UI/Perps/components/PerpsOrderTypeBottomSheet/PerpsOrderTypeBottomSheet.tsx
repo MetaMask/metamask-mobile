@@ -3,7 +3,7 @@ import { View, TouchableOpacity } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
@@ -93,11 +93,10 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       shouldNavigateBack={!externalSheetRef}
       onClose={externalSheetRef ? undefined : onClose}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.type.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.order.type.title')}
+        onClose={onClose}
+      />
 
       <View style={styles.container}>
         {orderTypes.map(({ type, title, description }) => (

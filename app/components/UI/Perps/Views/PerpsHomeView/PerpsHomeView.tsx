@@ -20,6 +20,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -47,7 +48,9 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import HeaderWithTitleLeftScrollable, {
+  useHeaderWithTitleLeftScrollable,
+} from '../../../../../component-library/components-temp/HeaderWithTitleLeftScrollable';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -75,6 +78,14 @@ const PerpsHomeView = () => {
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
+
+  // Scrollable header hook
+  const {
+    onScroll: handleScroll,
+    scrollY: headerScrollY,
+    expandedHeight,
+    setExpandedHeight,
+  } = useHeaderWithTitleLeftScrollable();
 
   // Bottom sheet state and refs
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
@@ -321,19 +332,35 @@ const PerpsHomeView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsHomeHeader
-        isSearchVisible={false}
+      {/* Collapsing Header */}
+      <HeaderWithTitleLeftScrollable
+        title={strings('perps.title')}
         onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
+        scrollY={headerScrollY}
+        onExpandedHeightChange={setExpandedHeight}
         testID="perps-home"
+        insideSafeAreaView
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: handleSearchToggle,
+          },
+        ]}
+        titleLeftProps={{
+          twClassName: 'pb-0',
+        }}
       />
 
       {/* Main Content - ScrollView with all carousels */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: expandedHeight },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions

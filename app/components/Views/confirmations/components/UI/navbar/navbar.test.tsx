@@ -1,4 +1,15 @@
 import React from 'react';
+<<<<<<< HEAD
+import { fireEvent, render } from '@testing-library/react-native';
+import { getNavbar } from './navbar';
+
+describe('getNavbar', () => {
+  it('renders the header title correctly', () => {
+    const title = 'Test Title';
+    const { getByText } = render(
+      <>{getNavbar({ title, onReject: jest.fn() }).header()}</>,
+    );
+=======
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { getNavbar } from './navbar';
@@ -6,11 +17,27 @@ import { mockTheme } from '../../../../../../util/theme';
 
 describe('getNavbar', () => {
   const mockOnReject = jest.fn();
+>>>>>>> c217cddc8aea1379736b04e10b1a119d3e2f9e61
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+<<<<<<< HEAD
+  it('calls onReject when the back button is pressed', () => {
+    const onRejectMock = jest.fn();
+    const { getByRole } = render(
+      <>
+        {getNavbar({
+          title: 'Test Title',
+          onReject: onRejectMock,
+        }).header()}
+      </>,
+    );
+
+    const backButton = getByRole('button');
+    fireEvent.press(backButton);
+=======
   describe('default behavior', () => {
     it('renders the header title correctly', () => {
       const title = 'Test Title';
@@ -24,6 +51,7 @@ describe('getNavbar', () => {
           }).headerTitle()}
         </>,
       );
+>>>>>>> c217cddc8aea1379736b04e10b1a119d3e2f9e61
 
       expect(getByText(title)).toBeOnTheScreen();
     });

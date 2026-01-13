@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -24,13 +21,6 @@ interface MarketHoursContentProps extends TooltipContentProps {
 
 const styleSheet = () =>
   StyleSheet.create({
-    iconContainer: {
-      marginTop: 16,
-      marginBottom: 16,
-    },
-    titleContainer: {
-      marginBottom: 16,
-    },
     countdownContainer: {
       marginBottom: 16,
     },
@@ -62,10 +52,6 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
   const isOpen = data?.isOpen ?? marketStatus.isOpen;
 
   // Determine which strings to use
-  const titleKey = isOpen
-    ? 'perps.tooltips.market_hours.title'
-    : 'perps.tooltips.after_hours_trading.title';
-
   const contentKey = isOpen
     ? 'perps.tooltips.market_hours.content'
     : 'perps.tooltips.after_hours_trading.content';
@@ -79,16 +65,6 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
 
   return (
     <Box testID={testID}>
-      {/* Clock Icon */}
-      <Box alignItems={BoxAlignItems.Center} style={styles.iconContainer}>
-        <Icon name={IconName.Clock} size={IconSize.Xl} />
-      </Box>
-
-      {/* Title */}
-      <Box alignItems={BoxAlignItems.Center} style={styles.titleContainer}>
-        <Text variant={TextVariant.HeadingMd}>{strings(titleKey)}</Text>
-      </Box>
-
       {/* Countdown Pill */}
       <Box alignItems={BoxAlignItems.Center} style={styles.countdownContainer}>
         <Box
