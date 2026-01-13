@@ -654,10 +654,10 @@ describe('PredictMarketDetails', () => {
         screen.getByTestId('predict-details-header-skeleton-back-button'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-content-skeleton-option-1'),
+        screen.getByTestId('predict-details-content-skeleton-line-1'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+        screen.getByTestId('predict-details-buttons-skeleton-button-1'),
       ).toBeOnTheScreen();
     });
 
