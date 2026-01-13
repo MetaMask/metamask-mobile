@@ -160,24 +160,26 @@ describe('getDepositNavbarOptions', () => {
     jest.clearAllMocks();
   });
 
-  it('returns navbar options with the correct title', () => {
+  it('returns navbar options with header function', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
+
     expect(options).toBeDefined();
-    expect(options.title).toBe('Deposit');
+    expect(options.header).toBeInstanceOf(Function);
   });
 
-  it('deposit navbar options to pop when back button is pressed', () => {
+  it('pops navigation when back button is pressed', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
-    const headerLeftComponent = options.headerLeft();
-    headerLeftComponent.props.onPress();
+    const HeaderComponent = options.header();
+    HeaderComponent.props.startButtonIconProps.onPress();
+
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
@@ -845,9 +847,8 @@ describe('getBridgeNavbar', () => {
     Device.isAndroid.mockReset();
   });
 
-  describe('Platform-specific headerLeft behavior', () => {
-    it('should render headerLeft with hidden icon on Android', () => {
-      Device.isAndroid.mockReturnValue(true);
+  describe('returns header options', () => {
+    it('returns a header function', () => {
       const { getBridgeNavbar } = require('.');
       const options = getBridgeNavbar(
         mockNavigation,
@@ -855,64 +856,8 @@ describe('getBridgeNavbar', () => {
         mockThemeColors,
       );
 
-      expect(options.headerLeft).toBeDefined();
-      expect(typeof options.headerLeft).toBe('function');
-
-      const HeaderLeftComponent = options.headerLeft();
-      expect(HeaderLeftComponent).toBeDefined();
-      expect(HeaderLeftComponent.type).toBe(View);
-    });
-
-    it('should have zero opacity on Android headerLeft', () => {
-      Device.isAndroid.mockReturnValue(true);
-      const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(
-        mockNavigation,
-        BridgeViewMode.Swap,
-        mockThemeColors,
-      );
-      const HeaderLeftComponent = options.headerLeft();
-      renderWithProvider(HeaderLeftComponent, {
-        state: { engine: { backgroundState } },
-      });
-
-      const styles = HeaderLeftComponent.props.style;
-
-      const hasHiddenOpacity = Array.isArray(styles)
-        ? styles.some((style) => style.opacity === 0)
-        : styles?.opacity === 0;
-
-      expect(hasHiddenOpacity).toBe(true);
-    });
-
-    it('should not be clickable on Android headerLeft', () => {
-      Device.isAndroid.mockReturnValue(true);
-      const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(
-        mockNavigation,
-        BridgeViewMode.Swap,
-        mockThemeColors,
-      );
-
-      const HeaderLeftComponent = options.headerLeft();
-      renderWithProvider(HeaderLeftComponent, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(HeaderLeftComponent.type).toBe(View);
-      expect(HeaderLeftComponent.props.onPress).toBeUndefined();
-    });
-
-    it('should not render headerLeft on iOS', () => {
-      Device.isAndroid.mockReturnValue(false);
-      const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(
-        mockNavigation,
-        BridgeViewMode.Swap,
-        mockThemeColors,
-      );
-
-      expect(options.headerLeft).toBeNull();
+      expect(options.header).toBeDefined();
+      expect(typeof options.header).toBe('function');
     });
   });
 
