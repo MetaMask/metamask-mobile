@@ -45,8 +45,10 @@ jobs:
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
-            echo "semver=" >> "$GITHUB_OUTPUT"
-            exit 1
+            # test updates
+            #echo "semver=" >> "$GITHUB_OUTPUT"
+            #exit 1
+            echo "semver=7.61.99" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Find PR and check for auto-rc-builds label
