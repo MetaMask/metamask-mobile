@@ -104,6 +104,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -327,24 +328,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginErr: unknown) => {
-      const loginError = loginErr as Error;
-      const loginErrorMessage = loginError.toString();
+    async (loginError: Error) => {
+      // Prioritize message property over toString for error handling
+      const loginErrorMessage = loginError.message || loginError.toString();
 
       const isWrongPasswordError =
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
       const isPasswordError =
         isWrongPasswordError ||
-        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
+        containsErrorMessage(loginError, PASSWORD_REQUIREMENTS_NOT_MET);
 
       if (isPasswordError) {
         handlePasswordError(loginErrorMessage);
         // return and skip capture error to sentry
         return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      } else if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
@@ -363,16 +364,31 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         });
 
         await handleVaultCorruption();
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      } else if (containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID)) {
         updateBiometryChoice(false);
+      } else if (
+        containsErrorMessage(
+          loginError,
+          SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+        )
+      ) {
+        // Detected seedless onboarded wallet with password that is both incorrect and outdated
+        navigation.replace(Routes.ONBOARDING.REHYDRATE, {
+          isSeedlessPasswordOutdated: true,
+        });
       } else {
         setError(loginErrorMessage);
       }
 
       setLoading(false);
-      Logger.error(loginErr as Error, 'Failed to unlock');
+      Logger.error(loginError, 'Failed to unlock');
     },
-    [handlePasswordError, handleVaultCorruption, updateBiometryChoice],
+    [
+      handlePasswordError,
+      handleVaultCorruption,
+      updateBiometryChoice,
+      navigation,
+    ],
   );
 
   const onLogin = useCallback(async () => {
