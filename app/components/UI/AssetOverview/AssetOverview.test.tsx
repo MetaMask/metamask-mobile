@@ -1795,70 +1795,99 @@ describe('AssetOverview', () => {
 });
 
 describe('getSwapTokens', () => {
-  const mockBridgeToken = {
-    address: '0x123',
-    chainId: '0x1' as const,
-    decimals: 18,
-    symbol: 'TEST',
-    name: 'Test Token',
-    image: 'https://example.com/test.png',
-  };
-
-  it('returns native token as source and bridgeToken as dest when asset is from trending', () => {
+  it('returns native token as source and asset as dest when asset is from trending', () => {
     const trendingAsset = {
       ...asset,
       isFromTrending: true,
     };
 
-    const result = getSwapTokens(trendingAsset, mockBridgeToken);
+    const result = getSwapTokens(trendingAsset);
 
-    expect(result.sourceToken).toEqual(
-      expect.objectContaining({
-        symbol: 'ETH',
-        chainId: '0x1',
-      }),
-    );
-    expect(result.destToken).toEqual(mockBridgeToken);
+    // sourceToken is the native token for the chain
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: 18,
+      image: '',
+      name: 'Ether',
+      symbol: 'ETH',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAsset,
+      address: trendingAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: trendingAsset.decimals,
+      symbol: trendingAsset.symbol,
+      name: trendingAsset.name,
+      image: trendingAsset.image,
+    });
   });
 
-  it('returns bridgeToken as source and undefined dest when asset is not from trending', () => {
+  it('returns asset as source and undefined dest when asset is not from trending', () => {
     const regularAsset = {
       ...asset,
       isFromTrending: false,
     };
 
-    const result = getSwapTokens(regularAsset, mockBridgeToken);
+    const result = getSwapTokens(regularAsset);
 
-    expect(result.sourceToken).toEqual(mockBridgeToken);
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...regularAsset,
+      address: regularAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: regularAsset.decimals,
+      symbol: regularAsset.symbol,
+      name: regularAsset.name,
+      image: regularAsset.image,
+    });
     expect(result.destToken).toBeUndefined();
   });
 
-  it('returns bridgeToken as source when asset has no isFromTrending property', () => {
-    const result = getSwapTokens(asset, mockBridgeToken);
+  it('returns asset as source when asset has no isFromTrending property', () => {
+    const result = getSwapTokens(asset);
 
-    expect(result.sourceToken).toEqual(mockBridgeToken);
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...asset,
+      address: asset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    });
     expect(result.destToken).toBeUndefined();
   });
 
   it('returns native token for the correct chain when asset is from trending on different chain', () => {
-    const polygonBridgeToken = {
-      ...mockBridgeToken,
-      chainId: '0x89' as const,
-      symbol: 'USDC',
-    };
     const trendingAssetOnPolygon = {
       ...asset,
       chainId: '0x89',
       isFromTrending: true,
     };
 
-    const result = getSwapTokens(trendingAssetOnPolygon, polygonBridgeToken);
+    const result = getSwapTokens(trendingAssetOnPolygon);
 
-    expect(result.sourceToken).toEqual(
-      expect.objectContaining({
-        chainId: '0x89',
-      }),
-    );
-    expect(result.destToken).toEqual(polygonBridgeToken);
+    // sourceToken is the native token for Polygon
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x89',
+      decimals: 18,
+      image: '',
+      name: 'Polygon',
+      symbol: 'POL',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAssetOnPolygon,
+      address: trendingAssetOnPolygon.address,
+      chainId: '0x89',
+      decimals: trendingAssetOnPolygon.decimals,
+      symbol: trendingAssetOnPolygon.symbol,
+      name: trendingAssetOnPolygon.name,
+      image: trendingAssetOnPolygon.image,
+    });
   });
 });

@@ -117,14 +117,23 @@ import { BridgeToken } from '../Bridge/types';
  * Otherwise, we assume they want to SELL, so the asset is the source.
  *
  * @param asset - The token asset being viewed
- * @param bridgeToken - The bridge-formatted token
  * @returns Object containing sourceToken and destToken for swap navigation
  */
 export const getSwapTokens = (
   asset: TokenI,
-  bridgeToken: BridgeToken,
 ): { sourceToken: BridgeToken; destToken: BridgeToken | undefined } => {
   const wantsToBuyToken = isAssetFromTrending(asset);
+
+  // Build bridge token from asset
+  const bridgeToken: BridgeToken = {
+    ...asset,
+    address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+    chainId: asset.chainId as Hex | CaipChainId,
+    decimals: asset.decimals,
+    symbol: asset.symbol,
+    name: asset.name,
+    image: asset.image,
+  };
 
   if (wantsToBuyToken) {
     return {
@@ -231,21 +240,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  // Build bridge token from asset
-  const bridgeToken: BridgeToken = useMemo(
-    () => ({
-      ...asset,
-      address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
-      chainId: asset.chainId as Hex,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    }),
-    [asset],
-  );
-
-  const { sourceToken, destToken } = getSwapTokens(asset, bridgeToken);
+  const { sourceToken, destToken } = getSwapTokens(asset);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
