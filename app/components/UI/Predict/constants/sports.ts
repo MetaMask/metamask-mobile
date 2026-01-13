@@ -9,7 +9,11 @@ import { PredictSportsLeague } from '../types';
  * 3. Add the league to this array
  * 4. Add tests for the new league's slug parsing
  */
-export const LIVE_SPORTS_LEAGUES: PredictSportsLeague[] = ['nfl'];
+export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = ['nfl'];
 
-export const isLiveSportsEnabled = (): boolean =>
-  Array.isArray(LIVE_SPORTS_LEAGUES) && LIVE_SPORTS_LEAGUES.length > 0;
+export const filterSupportedLeagues = (
+  leagues: string[],
+): PredictSportsLeague[] =>
+  leagues.filter((league): league is PredictSportsLeague =>
+    SUPPORTED_SPORTS_LEAGUES.includes(league as PredictSportsLeague),
+  );

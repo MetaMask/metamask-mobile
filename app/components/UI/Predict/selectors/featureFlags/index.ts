@@ -37,23 +37,3 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
-
-/**
- * Selector for Predict Live NFL feature enablement
- *
- * Uses version-gated feature flag `predictLiveNflEnabled` from remote config.
- * Falls back to local environment variable MM_PREDICT_LIVE_NFL_ENABLED if remote flag
- * is unavailable or invalid.
- *
- * @returns {boolean} True if feature is enabled and version requirement is met
- */
-export const selectPredictLiveNflEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_LIVE_NFL_ENABLED === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.predictLiveNflEnabled as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  },
-);
