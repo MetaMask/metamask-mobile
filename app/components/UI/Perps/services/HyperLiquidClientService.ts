@@ -203,7 +203,7 @@ export class HyperLiquidClientService {
     getChainId?: () => Promise<number>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
-    this.initialize(wallet);
+    await this.initialize(wallet);
     return this.isTestnet ? 'testnet' : 'mainnet';
   }
 
@@ -231,7 +231,7 @@ export class HyperLiquidClientService {
   /**
    * Recreate subscription client if needed (for reconnection scenarios)
    */
-  public ensureSubscriptionClient(wallet: {
+  public async ensureSubscriptionClient(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -246,12 +246,12 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     if (!this.subscriptionClient) {
       DevLogger.log(
         'HyperLiquid: Recreating subscription client after disconnect',
       );
-      this.initialize(wallet);
+      await this.initialize(wallet);
     }
   }
 

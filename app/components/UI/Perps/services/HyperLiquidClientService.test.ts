@@ -82,8 +82,20 @@ describe('HyperLiquidClientService', () => {
   let service: HyperLiquidClientService;
   let mockWallet: any;
 
+  // Use fake timers globally to ensure all intervals/timeouts can be cleared
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    // Final cleanup - ensure all mocks and timers are reset
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
     mockInfoClientCallCount = 0; // Reset InfoClient call counter
 
     // Restore default mock for transport ready
@@ -96,6 +108,17 @@ describe('HyperLiquidClientService', () => {
     };
 
     service = new HyperLiquidClientService();
+  });
+
+  afterEach(async () => {
+    // Clean up the service to stop health check monitoring and close connections
+    try {
+      await service.disconnect();
+    } catch {
+      // Ignore disconnect errors in cleanup
+    }
+    // Clear all pending timers to prevent open handles
+    jest.clearAllTimers();
   });
 
   describe('Constructor and Configuration', () => {
@@ -307,17 +330,19 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should ensure subscription client is available', () => {
-      service.initialize(mockWallet);
+    it('ensures subscription client is available', async () => {
+      await service.initialize(mockWallet);
 
-      expect(() => service.ensureSubscriptionClient(mockWallet)).not.toThrow();
+      await expect(
+        service.ensureSubscriptionClient(mockWallet),
+      ).resolves.not.toThrow();
     });
 
-    it('should reinitialize when subscription client is missing', () => {
+    it('reinitializes when subscription client is missing', async () => {
       // Start with partial initialization to simulate missing subscription client
       const uninitializedService = new HyperLiquidClientService();
 
-      uninitializedService.ensureSubscriptionClient(mockWallet);
+      await uninitializedService.ensureSubscriptionClient(mockWallet);
 
       expect(uninitializedService.isInitialized()).toBe(true);
     });
@@ -741,7 +766,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - should have fetched historical data
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
@@ -806,7 +831,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - numbers converted to strings
       expect(callback).toHaveBeenCalledWith(
@@ -859,7 +884,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Clear previous callback invocations
       callback.mockClear();
@@ -927,7 +952,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Clear previous callback invocations
       callback.mockClear();
@@ -1003,7 +1028,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       const firstCallCandles = callback.mock.calls[0][0].candles;
 
@@ -1040,7 +1065,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - callback invoked with empty candles
       expect(callback).toHaveBeenCalledWith({
@@ -1069,7 +1094,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for subscription to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Call unsubscribe
       unsubscribe();
@@ -1110,7 +1135,7 @@ describe('HyperLiquidClientService', () => {
       resolveSnapshot([]);
 
       // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - WebSocket subscription should not be created because
       // we already unsubscribed before the async chain completed
@@ -1144,7 +1169,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for snapshot to complete
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.advanceTimersByTimeAsync(50);
 
       // Unsubscribe while WebSocket is still being established
       unsubscribe();
@@ -1153,7 +1178,7 @@ describe('HyperLiquidClientService', () => {
       resolveWsSubscription({ unsubscribe: mockWsUnsubscribe });
 
       // Wait for async cleanup to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - WebSocket should be cleaned up immediately after establishing
       expect(mockWsUnsubscribe).toHaveBeenCalled();
@@ -1161,13 +1186,7 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Reconnection and Health Check', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.clearAllTimers();
-    });
-
     afterEach(() => {
-      jest.useRealTimers();
       // Restore default mock implementations that may have been changed by tests
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
       (WebSocketTransport as jest.Mock).mockImplementation(

@@ -341,7 +341,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
     // Mock client service
     mockClientService = {
-      ensureSubscriptionClient: jest.fn(),
+      ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
     } as any;

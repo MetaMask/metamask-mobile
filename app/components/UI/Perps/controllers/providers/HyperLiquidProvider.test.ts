@@ -327,7 +327,7 @@ describe('HyperLiquidProvider', () => {
       toggleTestnet: jest.fn(),
       setTestnetMode: jest.fn(),
       getNetwork: jest.fn().mockReturnValue('mainnet'),
-      ensureSubscriptionClient: jest.fn(),
+      ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(),
       setOnReconnectCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;

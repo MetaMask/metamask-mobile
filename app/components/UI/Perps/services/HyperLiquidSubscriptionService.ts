@@ -817,7 +817,7 @@ export class HyperLiquidSubscriptionService {
       }
     });
 
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
 
@@ -948,7 +948,7 @@ export class HyperLiquidSubscriptionService {
   private async createUserDataSubscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -1712,7 +1712,7 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      this.clientService.ensureSubscriptionClient(
+      await this.clientService.ensureSubscriptionClient(
         this.walletService.createWalletAdapter(),
       );
       const client = this.clientService.getSubscriptionClient();
@@ -2194,7 +2194,7 @@ export class HyperLiquidSubscriptionService {
    * to avoid redundant meta() API calls during subscription setup
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
-    this.clientService.ensureSubscriptionClient(
+    await this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
     const subscriptionClient = this.clientService.getSubscriptionClient();
