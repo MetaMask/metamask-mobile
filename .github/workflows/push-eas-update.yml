@@ -1,4 +1,4 @@
-name: Push OTA Update (EXP Build)
+name: Push OTA Update
 
 on:
   workflow_dispatch:
