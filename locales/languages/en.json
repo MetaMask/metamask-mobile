@@ -6750,10 +6750,15 @@
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",
       "title_onboarding": "Enable spending",
+      "setup_title": "Set up your card",
+      "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
+      "asset_label": "Asset",
+      "limit_label": "Limit",
+      "other_token": "Other",
       "full_access_title": "Full access",
-      "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
-      "restricted_limit_title": "Limited spending",
-      "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
+      "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
+      "restricted_limit_title": "Spending limit",
+      "restricted_limit_description": "You can only spend up to this limit. You'll pay a network fee every time this limit is updated.",
       "edit_limit": "Edit limit",
       "confirm_new_limit": "Confirm",
       "cancel": "Cancel",
@@ -6766,7 +6771,8 @@
       "select_token": "Select token",
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "on_linea": "on Linea"
     },
     "change_asset": {
       "title": "Change token and network",

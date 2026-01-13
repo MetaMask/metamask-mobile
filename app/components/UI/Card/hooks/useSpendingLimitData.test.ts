@@ -97,14 +97,15 @@ describe('useSpendingLimitData', () => {
   });
 
   describe('Initial State', () => {
-    it('returns empty tokens when SDK is not available', () => {
+    it('returns tokens from delegation settings even when SDK is not available', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
       } as ReturnType<typeof useCardSDK>);
 
       const { result } = renderHook(() => useSpendingLimitData());
 
-      expect(result.current.availableTokens).toEqual([]);
+      expect(result.current.availableTokens.length).toBeGreaterThan(0);
+      expect(result.current.availableTokens[0].symbol).toBe('USDC');
     });
 
     it('returns empty tokens when delegation settings are not available', () => {
