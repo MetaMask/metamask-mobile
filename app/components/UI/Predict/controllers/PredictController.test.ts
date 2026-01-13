@@ -4926,4 +4926,139 @@ describe('PredictController', () => {
       );
     });
   });
+
+  describe('WebSocket subscription methods', () => {
+    describe('subscribeToGameUpdates', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToGameUpdates = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToGameUpdates,
+          ).toHaveBeenCalledWith('game123', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToGameUpdates = undefined;
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+
+      it('returns no-op function for unknown provider', () => {
+        withController(({ controller }) => {
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+            'unknown-provider',
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('subscribeToMarketPrices', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToMarketPrices = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1', 'token2'],
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToMarketPrices,
+          ).toHaveBeenCalledWith(['token1', 'token2'], mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToMarketPrices = undefined;
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('getConnectionStatus', () => {
+      it('returns connection status from provider', () => {
+        withController(({ controller }) => {
+          mockPolymarketProvider.getConnectionStatus = jest
+            .fn()
+            .mockReturnValue({
+              sportsConnected: true,
+              marketConnected: false,
+            });
+
+          const status = controller.getConnectionStatus();
+
+          expect(mockPolymarketProvider.getConnectionStatus).toHaveBeenCalled();
+          expect(status).toEqual({
+            sportsConnected: true,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.getConnectionStatus = undefined;
+
+          const status = controller.getConnectionStatus();
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status for unknown provider', () => {
+        withController(({ controller }) => {
+          const status = controller.getConnectionStatus('unknown-provider');
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
+    });
+  });
 });
