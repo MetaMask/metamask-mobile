@@ -24,7 +24,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {

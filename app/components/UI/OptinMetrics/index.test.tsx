@@ -2,7 +2,6 @@ import OptinMetrics from './index.tsx';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
