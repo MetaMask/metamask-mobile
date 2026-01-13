@@ -3,14 +3,15 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
-import Browser from '../../pages/Browser/BrowserView';
-import TestDApp from '../../pages/Browser/TestDApp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
 import { Assertions } from '../../framework';
-import TrendingView from '../../pages/Trending/TrendingView';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import Browser from '../../pages/Browser/BrowserView';
+import TestDApp from '../../pages/Browser/TestDApp';
+import TrendingView from '../../pages/Trending/TrendingView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -41,7 +42,7 @@ describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
         await loginToApp();
 
         // 1. Navigate to Trending Tab
-        await TrendingView.tapTrendingTab();
+        await TabBarComponent.tapExploreButton();
 
         // 2. Verify Browser Button Visibility
         await Assertions.expectElementToBeVisible(TrendingView.browserButton, {
