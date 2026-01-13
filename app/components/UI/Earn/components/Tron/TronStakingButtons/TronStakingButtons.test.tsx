@@ -154,7 +154,9 @@ describe('TronStakingButtons', () => {
     const mockCheckEligibilityAndRedirect = jest.fn();
 
     beforeEach(() => {
+      jest.clearAllMocks();
       mockCheckEligibilityAndRedirect.mockClear();
+      mockNavigate.mockClear();
       (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: true,
         checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
@@ -162,19 +164,18 @@ describe('TronStakingButtons', () => {
     });
 
     it('redirects to Portfolio when user is not eligible and clicks stake button', () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+      const mockGuardFn = jest.fn().mockReturnValue(false);
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: false,
+        checkEligibilityAndRedirect: mockGuardFn,
+      });
 
       const { getByTestId } = render(<TronStakingButtons asset={baseAsset} />);
 
       fireEvent.press(getByTestId('stake-more-button'));
 
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      );
+      expect(mockGuardFn).toHaveBeenCalled();
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),
@@ -182,7 +183,11 @@ describe('TronStakingButtons', () => {
     });
 
     it('redirects to Portfolio when user is not eligible and clicks unstake button', () => {
-      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+      const mockGuardFn = jest.fn().mockReturnValue(false);
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: false,
+        checkEligibilityAndRedirect: mockGuardFn,
+      });
 
       const { getByTestId } = render(
         <TronStakingButtons asset={baseAsset} showUnstake />,
@@ -190,13 +195,8 @@ describe('TronStakingButtons', () => {
 
       fireEvent.press(getByTestId('unstake-button'));
 
-      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      );
+      expect(mockGuardFn).toHaveBeenCalled();
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),

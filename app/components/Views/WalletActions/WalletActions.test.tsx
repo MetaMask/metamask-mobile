@@ -626,6 +626,11 @@ describe('WalletActions', () => {
     });
 
     it('redirects to Portfolio when user is not eligible and clicks earn button', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
       mockCheckEligibilityAndRedirect.mockReturnValue(false);
 
       const { getByTestId } = renderWithProvider(<WalletActions />, {
@@ -645,6 +650,11 @@ describe('WalletActions', () => {
     });
 
     it('navigates to earn token list when user is eligible and clicks earn button', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
       mockCheckEligibilityAndRedirect.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<WalletActions />, {

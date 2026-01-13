@@ -447,13 +447,7 @@ describe('EmptyStateCta', () => {
       });
 
       expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      );
-      // Should not navigate to stake screen
+      // Component should return early and not navigate to StakeScreens
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'StakeScreens',
         expect.any(Object),

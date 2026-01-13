@@ -396,9 +396,19 @@ describe('StakeButton', () => {
 
     it('redirects to Portfolio when TRX user is not eligible', async () => {
       mockIsTronChainId.mockReturnValue(true);
+      const mockCheckEligibilityAndRedirect = jest.fn(() => {
+        mockNavigate(Routes.BROWSER.HOME, {
+          params: {
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
+            timestamp: Date.now(),
+          },
+          screen: Routes.BROWSER.VIEW,
+        });
+        return false;
+      });
       (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: false,
-        checkEligibilityAndRedirect: jest.fn().mockReturnValue(false),
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
       });
       selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
         EARN_EXPERIENCES.POOLED_STAKING,
