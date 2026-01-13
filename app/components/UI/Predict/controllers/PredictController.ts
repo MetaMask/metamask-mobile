@@ -83,8 +83,12 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
-import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
-import { PredictFeeCollection } from '../types/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_LIVE_SPORTS_FLAG,
+} from '../constants/flags';
+import { filterSupportedLeagues } from '../constants/sports';
+import { PredictFeeCollection, PredictLiveSportsFlag } from '../types/flags';
 
 /**
  * State shape for PredictController
@@ -463,9 +467,20 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const liveSportsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues)
+        : [];
+
+      const paramsWithLiveSports = { ...params, liveSportsLeagues };
+
       const allMarkets = await Promise.all(
         providerIds.map((id: string) =>
-          this.providers.get(id)?.getMarkets(params),
+          this.providers.get(id)?.getMarkets(paramsWithLiveSports),
         ),
       );
 
@@ -560,8 +575,18 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const liveSportsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues)
+        : [];
+
       const market = await provider.getMarketDetails({
         marketId: resolvedMarketId,
+        liveSportsLeagues,
       });
 
       this.update((state) => {
