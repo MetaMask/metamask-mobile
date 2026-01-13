@@ -139,6 +139,7 @@ const Routes = {
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
+    REHYDRATE: 'Rehydrate',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
