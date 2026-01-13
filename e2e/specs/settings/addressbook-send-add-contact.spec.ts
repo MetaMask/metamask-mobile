@@ -23,6 +23,7 @@ import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContac
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 
 const TEST_CONTACT = {
   address: '0x90aF68e1ec406e77C2EA0E4e6EAc9475062d6456',
@@ -125,11 +126,13 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
         // should display all EVM contacts in the send flow
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
-        await SendView.inputAddress(TEST_CONTACT.editedName[0]);
+        await RedesignedSendView.inputRecipientAddress(
+          TEST_CONTACT.editedName[0],
+        );
         await Assertions.expectTextDisplayed(TEST_CONTACT.editedName, {
           allowDuplicates: true,
         });
-        await SendView.tapCancelButton();
+        await RedesignedSendView.tapBackButton();
 
         // should remove a contact
         // Tap on Moon address

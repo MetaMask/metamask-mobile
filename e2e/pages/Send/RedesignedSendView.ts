@@ -2,6 +2,7 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
 import { Utilities } from '../../framework';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -54,6 +55,10 @@ class SendView {
 
   get currencySwitch(): DetoxElement {
     return Matchers.getElementByID('amount-screen-currency-switch');
+  }
+
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   async selectEthereumToken(): Promise<void> {
@@ -132,6 +137,12 @@ class SendView {
 
   async tapMaxButton(): Promise<void> {
     await this.pressAmountMaxButton();
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button',
+    });
   }
 }
 
