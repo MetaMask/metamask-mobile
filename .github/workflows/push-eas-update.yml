@@ -210,6 +210,8 @@ jobs:
             --query SecretString \
             --output text)
 
+          echo "Fetching secret from Secrets Manager..."
+
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
