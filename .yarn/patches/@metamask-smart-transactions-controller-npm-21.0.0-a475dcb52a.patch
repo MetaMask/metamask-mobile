@@ -1,0 +1,12 @@
+diff --git a/dist/SmartTransactionsController.cjs b/dist/SmartTransactionsController.cjs
+index ca0b0253be5aa1df02438c68ab6147077d4c36e0..ea5eb724ae67dd34d847dcbb2f30492e95d929f7 100644
+--- a/dist/SmartTransactionsController.cjs
++++ b/dist/SmartTransactionsController.cjs
+@@ -340,6 +340,7 @@ class SmartTransactionsController extends (0, polling_controller_1.StaticInterva
+             body: JSON.stringify({
+                 rawTxs: signedTransactions,
+                 rawCancelTxs: signedCanceledTransactions,
++                txMeta: transactionMeta,
+             }),
+         }));
+         const time = Date.now();
