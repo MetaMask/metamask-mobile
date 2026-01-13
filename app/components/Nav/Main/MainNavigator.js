@@ -127,7 +127,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import MetalCardClaimBottomSheet from '../../UI/Rewards/components/MetalCardClaimBottomSheet/MetalCardClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -1008,12 +1008,13 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={({ route, navigation }) => ({
-          ...getImportTokenNavbarOptions(
-            navigation,
-            strings(
+          ...getHeaderCenterNavbarOptions({
+            title: strings(
               `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             ),
-          ),
+            onBack: () => navigation.goBack(),
+            includesTopInset: true,
+          }),
           headerShown: true,
         })}
       />

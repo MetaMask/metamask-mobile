@@ -17,7 +17,7 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
@@ -70,15 +70,14 @@ export default function NetworkListBottomSheet({
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <BottomSheetHeader
+      <HeaderCenter
+        title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {
             setOpenNetworkSelector(false);
           });
         }}
-      >
-        {strings('networks.select_network')}
-      </BottomSheetHeader>
+      />
 
       <ScrollView>
         {Object.values(filteredNetworkConfigurations).map((network) => (
