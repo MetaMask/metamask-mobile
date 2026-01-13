@@ -109,7 +109,6 @@ const SRPQuiz = (props: SRPQuizProps) => {
     );
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'seed_phrase',
       shouldUpdateNav: true,
       keyringId,
     });
