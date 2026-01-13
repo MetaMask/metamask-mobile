@@ -349,27 +349,16 @@ export const setupMockEvents = async (
   mockServer: Mockttp,
   mockEvents: MockEventsObject,
 ): Promise<void> => {
-  // Setup GET mocks
-  if (mockEvents.GET) {
-    for (const mock of mockEvents.GET) {
-      await setupMockRequest(
-        mockServer,
-        {
-          requestMethod: 'GET',
-          url: mock.urlEndpoint,
-          response: mock.response,
-          responseCode: mock.responseCode,
-        },
-        mock.priority,
-      );
-    }
-  }
+  for (const [method, mocks] of Object.entries(mockEvents)) {
+    if (!mocks) continue;
 
-  // Setup POST mocks
-  if (mockEvents.POST) {
-    for (const mock of mockEvents.POST) {
-      // If requestBody is provided, use setupMockPostRequest for body matching
-      if (mock.requestBody) {
+    // Cast method to the expected type for setupMockRequest
+    // setupMockRequest will safely ignore unsupported methods if passed
+    const requestMethod = method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
+
+    for (const mock of mocks) {
+      // Special handling for POST requests with body matching
+      if (requestMethod === 'POST' && mock.requestBody) {
         await setupMockPostRequest(
           mockServer,
           mock.urlEndpoint,
@@ -382,11 +371,11 @@ export const setupMockEvents = async (
           },
         );
       } else {
-        // Otherwise use standard setupMockRequest
+        // Standard handling for all other requests (and POSTs without body matching)
         await setupMockRequest(
           mockServer,
           {
-            requestMethod: 'POST',
+            requestMethod,
             url: mock.urlEndpoint,
             response: mock.response,
             responseCode: mock.responseCode,
@@ -394,38 +383,6 @@ export const setupMockEvents = async (
           mock.priority,
         );
       }
-    }
-  }
-
-  // Setup PUT mocks
-  if (mockEvents.PUT) {
-    for (const mock of mockEvents.PUT) {
-      await setupMockRequest(
-        mockServer,
-        {
-          requestMethod: 'PUT',
-          url: mock.urlEndpoint,
-          response: mock.response,
-          responseCode: mock.responseCode,
-        },
-        mock.priority,
-      );
-    }
-  }
-
-  // Setup DELETE mocks
-  if (mockEvents.DELETE) {
-    for (const mock of mockEvents.DELETE) {
-      await setupMockRequest(
-        mockServer,
-        {
-          requestMethod: 'DELETE',
-          url: mock.urlEndpoint,
-          response: mock.response,
-          responseCode: mock.responseCode,
-        },
-        mock.priority,
-      );
     }
   }
 };

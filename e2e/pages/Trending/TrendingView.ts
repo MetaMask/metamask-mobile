@@ -1,6 +1,4 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
+import { Matchers, Gestures, Assertions } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
   TrendingViewSelectorsText,
