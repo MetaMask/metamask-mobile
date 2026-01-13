@@ -18,6 +18,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,7 +102,7 @@ class CollectibleContractOverview extends PureComponent {
     );
     this.props.newAssetTransaction(collectible);
     handleSendPageNavigation(this.props.navigation.navigate, {
-      location: 'CollectibleContractOverview',
+      location: InitSendLocation.CollectibleContractOverview,
       asset: collectible,
     });
   };

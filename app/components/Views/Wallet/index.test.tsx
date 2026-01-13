@@ -695,10 +695,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should handle onSend callback correctly without native currency', async () => {
@@ -732,10 +732,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
@@ -840,10 +840,10 @@ describe('Wallet', () => {
       await onSend();
 
       // Should still navigate even if there's an error
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
   });
 

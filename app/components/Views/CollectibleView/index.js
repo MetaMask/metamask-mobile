@@ -13,6 +13,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { handleSendPageNavigation } from '../confirmations/utils/send';
+import { InitSendLocation } from '../confirmations/constants/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,7 +86,7 @@ class CollectibleView extends PureComponent {
     } = this.props;
     this.props.newAssetTransaction(params);
     handleSendPageNavigation(this.props.navigation.navigate, {
-      location: 'CollectibleView',
+      location: InitSendLocation.CollectibleView,
       asset: params,
     });
   };
