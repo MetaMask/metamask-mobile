@@ -24,6 +24,7 @@ import { toHex } from '@metamask/controller-utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -51,6 +52,7 @@ export const useMusdCtaVisibility = () => {
   const isMusdConversionAssetOverviewEnabled = useSelector(
     selectIsMusdConversionAssetOverviewEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
   const { enabledNetworks } = useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByCustomNamespace({
@@ -153,6 +155,15 @@ export const useMusdCtaVisibility = () => {
       };
     }
 
+    // If user is geo-blocked, don't show the CTA
+    if (!isGeoEligible) {
+      return {
+        shouldShowCta: false,
+        showNetworkIcon: false,
+        selectedChainId: null,
+      };
+    }
+
     // If all networks are selected
     if (isPopularNetworksFilterSelected) {
       // Show the buy/get mUSD CTA without network icon if:
@@ -201,6 +212,7 @@ export const useMusdCtaVisibility = () => {
   }, [
     hasMusdBalanceOnAnyChain,
     hasMusdBalanceOnChain,
+    isGeoEligible,
     isMusdBuyableOnAnyChain,
     isMusdBuyableOnChain,
     isMusdGetBuyCtaEnabled,
@@ -211,6 +223,11 @@ export const useMusdCtaVisibility = () => {
   const shouldShowTokenListItemCta = useCallback(
     (asset?: TokenI) => {
       if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
+        return false;
+      }
+
+      // If user is geo-blocked, don't show the CTA
+      if (!isGeoEligible) {
         return false;
       }
 
@@ -226,6 +243,7 @@ export const useMusdCtaVisibility = () => {
     [
       hasMusdBalanceOnAnyChain,
       hasMusdBalanceOnChain,
+      isGeoEligible,
       isMusdConversionTokenListItemCtaEnabled,
       isPopularNetworksFilterSelected,
       isTokenWithCta,
@@ -238,9 +256,14 @@ export const useMusdCtaVisibility = () => {
         return false;
       }
 
+      // If user is geo-blocked, don't show the CTA
+      if (!isGeoEligible) {
+        return false;
+      }
+
       return isTokenWithCta(asset);
     },
-    [isMusdConversionAssetOverviewEnabled, isTokenWithCta],
+    [isMusdConversionAssetOverviewEnabled, isTokenWithCta, isGeoEligible],
   );
 
   return {

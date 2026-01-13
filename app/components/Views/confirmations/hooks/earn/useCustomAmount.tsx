@@ -5,6 +5,7 @@ import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 
 export interface UseCustomAmountParams {
   /**
@@ -36,10 +37,11 @@ export const useCustomAmount = ({
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const transactionMeta = useTransactionMetadataRequest();
   const isMusdConversion =
     isMusdConversionFlowEnabled &&
+    isGeoEligible &&
     hasTransactionType(transactionMeta, [TransactionType.musdConversion]);
 
   // Output amount tag logic - currently for mUSD conversion only

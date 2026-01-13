@@ -35,6 +35,7 @@ import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
+import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -84,6 +85,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
@@ -183,26 +185,19 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  return (
-    <Box
-      twClassName={
-        isHomepageRedesignV1Enabled && !isFullView
-          ? 'bg-default'
-          : 'flex-1 bg-default'
-      }
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
-      {!hasInitialLoad ? (
+  const renderTokenContent = () => {
+    if (!hasInitialLoad) {
+      return (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />
         </Box>
-      ) : sortedTokenKeys.length > 0 ? (
+      );
+    }
+
+    if (sortedTokenKeys.length > 0) {
+      return (
         <>
-          {isMusdConversionFlowEnabled && (
+          {isMusdConversionFlowEnabled && isGeoEligible && (
             <View style={isFullView ? tw`px-4` : undefined}>
               <MusdConversionAssetListCta />
             </View>
@@ -217,11 +212,30 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
             isFullView={isFullView}
           />
         </>
-      ) : (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
-        </Box>
-      )}
+      );
+    }
+
+    return (
+      <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+        <TokensEmptyState />
+      </Box>
+    );
+  };
+
+  return (
+    <Box
+      twClassName={
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'bg-default'
+          : 'flex-1 bg-default'
+      }
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <TokenListControlBar
+        goToAddToken={goToAddToken}
+        style={isFullView ? tw`px-4 pb-4` : undefined}
+      />
+      {renderTokenContent()}
       <ScamWarningModal
         showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}
