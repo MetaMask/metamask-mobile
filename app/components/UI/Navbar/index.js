@@ -50,6 +50,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
@@ -1341,85 +1342,6 @@ export function getNetworkNavbarOptions(
   };
 }
 
-/**
- * Function that returns the navigation options containing title and network indicator
- *
- * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
- */
-export function getWebviewNavbar(navigation, route, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-      alignItems: 'center',
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.icon.default,
-    },
-  });
-
-  const title = route.params?.title ?? '';
-  const share = route.params?.dispatch;
-  return {
-    headerTitle: () => (
-      <Text style={innerStyles.headerTitleStyle}>{title}</Text>
-    ),
-    headerLeft: () =>
-      Device.isAndroid() ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-          {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-        >
-          <IonicIcon
-            name="close"
-            size={38}
-            style={[innerStyles.headerIcon, styles.backIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerRight: () =>
-      Device.isAndroid() ? (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <MaterialCommunityIcon
-            name="share-variant"
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <EvilIcons
-            name="share-apple"
-            size={32}
-            style={[innerStyles.headerIcon, styles.shareIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerStyle: innerStyles.headerStyle,
-  };
-}
-
 export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -1739,19 +1661,6 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 }
 
 export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
@@ -1762,39 +1671,11 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    // Render an empty left header action that matches the dimensions of the close button.
-    // This allows us to center align the title on Android devices.
-    headerLeft: Device.isAndroid()
-      ? () => (
-          <View style={[styles.closeButton, styles.hidden]}>
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Lg}
-              color={IconColor.Muted}
-            />
-          </View>
-        )
-      : null,
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Icon name={IconName.Close} size={IconSize.Lg} />
-      </TouchableOpacity>
-    ),
-    headerStyle: innerStyles.headerStyle,
-  };
+  return getHeaderCenterNavbarOptions({
+    title,
+    onClose: () => navigation.dangerouslyGetParent()?.pop(),
+    includesTopInset: true,
+  });
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
@@ -1907,63 +1788,33 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    title,
-    headerStyle: {
-      backgroundColor: theme.colors.background.default,
-      elevation: 0,
-      shadowOpacity: 0,
-    },
-    headerTitleStyle: {
-      fontWeight: '600',
-      fontSize: 18,
-      color: theme.colors.text.default,
-    },
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: showBack
-      ? () => (
-          <ButtonIcon
-            onPress={leftAction}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Lg}
-            style={styles.headerLeftButton}
-          />
-        )
-      : showConfiguration
-        ? () => (
-            <ButtonIcon
-              onPress={onConfigurationPress}
-              iconName={IconName.Setting}
-              size={ButtonIconSize.Lg}
-              testID="deposit-configuration-menu-button"
-              style={styles.headerLeftButton}
-            />
-          )
-        : null,
-    headerRight: showClose
-      ? () => (
-          <ButtonIcon
-            style={styles.headerRightButton}
-            iconName={IconName.Close}
-            size={ButtonIconSize.Lg}
-            onPress={() => {
-              navigation.dangerouslyGetParent()?.pop();
-              onClose?.();
-            }}
-            testID="deposit-close-navbar-button"
-          />
-        )
-      : null,
+  const handleClose = () => {
+    navigation.dangerouslyGetParent()?.pop();
+    onClose?.();
   };
+
+  let startButtonIconProps;
+  if (showBack) {
+    startButtonIconProps = {
+      iconName: IconName.ArrowLeft,
+      onPress: () => navigation.pop(),
+    };
+  } else if (showConfiguration) {
+    startButtonIconProps = {
+      iconName: IconName.Setting,
+      onPress: onConfigurationPress,
+      testID: 'deposit-configuration-menu-button',
+    };
+  }
+
+  return getHeaderCenterNavbarOptions({
+    title,
+    startButtonIconProps,
+    closeButtonProps: showClose
+      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
+      : undefined,
+    includesTopInset: true,
+  });
 }
 
 export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
@@ -2217,54 +2068,5 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconColor={IconColor.Default}
       />
     ),
-  };
-}
-
-/**
- * Generic navbar with only a close button on the right
- * @param {Object} navigation - Navigation object
- * @param {Object} themeColors - Theme colors object
- * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
- * @returns {Object} - Navigation options
- */
-export function getCloseOnlyNavbar({
-  navigation,
-  themeColors,
-  backgroundColor = themeColors.background.default,
-  onClose = undefined,
-}) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerRight: {
-      marginHorizontal: 16,
-    },
-  });
-
-  const handleClosePress = () => {
-    if (onClose) {
-      onClose();
-      return;
-    }
-
-    navigation.goBack();
-  };
-
-  return {
-    headerShown: true,
-    headerTitle: () => null,
-    headerLeft: () => null,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={handleClosePress}
-        style={innerStyles.headerRight}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
   };
 }

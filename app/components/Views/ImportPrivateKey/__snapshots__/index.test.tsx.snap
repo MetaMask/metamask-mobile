@@ -315,8 +315,8 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "marginTop": 48,
                         }
                       }
                     >
@@ -667,9 +667,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 keyboardAppearance="light"
                                 multiline={true}
                                 numberOfLines={3}
-                                onBlur={[Function]}
                                 onChangeText={[Function]}
-                                onFocus={[Function]}
                                 onSubmitEditing={[Function]}
                                 placeholder="Paste your private key string"
                                 placeholderTextColor="#b7bbc8"
@@ -691,7 +689,6 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       "paddingVertical": 16,
                                       "textAlignVertical": "top",
                                     },
-                                    false,
                                     {},
                                   ]
                                 }
@@ -762,6 +759,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={false}
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}

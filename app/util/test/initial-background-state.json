@@ -742,6 +742,7 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "geolocation": null
+    "geolocation": null,
+    "requests": {}
   }
 }

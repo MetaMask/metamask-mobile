@@ -11,7 +11,7 @@ const createStyles = (
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
-      backgroundColor: colors.background.default,
+      marginTop: 48,
     },
     topOverlay: {
       flex: 1,
