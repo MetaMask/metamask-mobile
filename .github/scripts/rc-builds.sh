@@ -11,7 +11,7 @@ set -euo pipefail
 : "${COMMIT_HASH:?COMMIT_HASH environment variable must be set}"
 : "${GH_REF_NAME:?GH_REF_NAME environment variable must be set}"
 
-# Additional validation for semver format (defense in depth)
+# Additional validation for semver format
 if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Error: SEMVER must be numeric X.Y.Z format, got: ${SEMVER:-<empty>}" >&2
   exit 1
@@ -19,7 +19,7 @@ fi
 
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
 
-# Use jq to safely construct JSON payload to prevent injection attacks
+# Use jq to safely construct JSON payload
 JSON_PAYLOAD=$(jq -n \
   --arg branch "$GH_REF_NAME" \
   --arg pipeline_id "$METAMASK_WORKFLOW" \

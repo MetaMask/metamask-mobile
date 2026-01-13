@@ -30,14 +30,13 @@ jobs:
             exit 1
           fi
 
-          # Validate branch name doesn't contain dangerous characters
           BRANCH_NAME="release/${SEMVER}"
           if [[ "$BRANCH_NAME" =~ [^a-zA-Z0-9._/-] ]]; then
             echo "Error: semver contains invalid characters for branch name" >&2
             exit 1
           fi
 
-          echo "✅ Semver validation passed: ${SEMVER}"
+          echo "Semver validation passed: ${SEMVER}"
           echo "Branch name: ${BRANCH_NAME}"
 
   bump-version:
