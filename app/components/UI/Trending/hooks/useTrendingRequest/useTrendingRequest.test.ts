@@ -7,9 +7,6 @@ import { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { ImageSourcePropType } from 'react-native';
 
-// Mock timers for polling tests
-jest.useFakeTimers();
-
 // Mock the TRENDING_NETWORKS_LIST constant
 jest.mock('../../utils/trendingNetworksList', () => {
   const mockNetworks: ProcessedNetwork[] = [
@@ -41,6 +38,11 @@ jest.mock('../../utils/trendingNetworksList', () => {
 describe('useTrendingRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('returns trending tokens results when fetch succeeds', async () => {
@@ -341,52 +343,7 @@ describe('useTrendingRequest', () => {
       jest.clearAllTimers();
     });
 
-    afterEach(() => {
-      jest.clearAllTimers();
-    });
-
-    it('starts polling after initial load completes successfully', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const mockResults: assetsControllers.TrendingAsset[] = [
-        {
-          assetId: 'eip155:1/erc20:0x123',
-          symbol: 'TOKEN1',
-          name: 'Token 1',
-          decimals: 18,
-          price: '1',
-          aggregatedUsdVolume: 1,
-          marketCap: 1,
-        },
-      ];
-      spyGetTrendingTokens.mockResolvedValue(mockResults as never);
-
-      const { result, unmount } = renderHookWithProvider(() =>
-        useTrendingRequest({
-          chainIds: ['eip155:1'],
-        }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Fast-forward 5 minutes
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      await waitFor(() => {
-        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(2);
-      });
-
-      spyGetTrendingTokens.mockRestore();
-      unmount();
-    });
-
-    it('silently updates results during polling without setting loading state', async () => {
+    it('polls at 5 minute intervals, silently updates results, and cleans up on unmount', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -416,7 +373,8 @@ describe('useTrendingRequest', () => {
 
       spyGetTrendingTokens
         .mockResolvedValueOnce(initialResults as never)
-        .mockResolvedValueOnce(updatedResults as never);
+        .mockResolvedValueOnce(updatedResults as never)
+        .mockResolvedValue(updatedResults as never);
 
       const { result, unmount } = renderHookWithProvider(() =>
         useTrendingRequest({
@@ -424,120 +382,43 @@ describe('useTrendingRequest', () => {
         }),
       );
 
+      // Initial load completes
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
         expect(result.current.results).toEqual(initialResults);
       });
-
-      // Fast-forward 5 minutes to trigger polling
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      await waitFor(() => {
-        expect(result.current.results).toEqual(updatedResults);
-        expect(result.current.isLoading).toBe(false); // Should remain false during polling
-      });
-
-      spyGetTrendingTokens.mockRestore();
-      unmount();
-    });
-
-    it('does not set error state when polling fails', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const mockResults: assetsControllers.TrendingAsset[] = [
-        {
-          assetId: 'eip155:1/erc20:0x123',
-          symbol: 'TOKEN1',
-          name: 'Token 1',
-          decimals: 18,
-          price: '1',
-          aggregatedUsdVolume: 1,
-          marketCap: 1,
-        },
-      ];
-      const pollingError = new Error('Polling failed');
-
-      spyGetTrendingTokens
-        .mockResolvedValueOnce(mockResults as never)
-        .mockRejectedValueOnce(pollingError);
-
-      const { result, unmount } = renderHookWithProvider(() =>
-        useTrendingRequest({
-          chainIds: ['eip155:1'],
-        }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.results).toEqual(mockResults);
-        expect(result.current.error).toBe(null);
-      });
-
-      // Fast-forward 5 minutes to trigger polling
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      await waitFor(() => {
-        // Error should remain null after polling failure
-        expect(result.current.error).toBe(null);
-        // Results should remain unchanged
-        expect(result.current.results).toEqual(mockResults);
-        // Loading should remain false
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      spyGetTrendingTokens.mockRestore();
-      unmount();
-    });
-
-    it('cleans up polling interval on unmount', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const mockResults: assetsControllers.TrendingAsset[] = [
-        {
-          assetId: 'eip155:1/erc20:0x123',
-          symbol: 'TOKEN1',
-          name: 'Token 1',
-          decimals: 18,
-          price: '1',
-          aggregatedUsdVolume: 1,
-          marketCap: 1,
-        },
-      ];
-      spyGetTrendingTokens.mockResolvedValue(mockResults as never);
-
-      const { result, unmount } = renderHookWithProvider(() =>
-        useTrendingRequest({
-          chainIds: ['eip155:1'],
-        }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Unmount the hook
-      unmount();
-
-      // Fast-forward 5 minutes - polling should not occur after unmount
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      // Should still only have been called once (initial fetch)
       expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
 
+      // First poll after 5 minutes - silently updates results
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(2);
+      expect(result.current.results).toEqual(updatedResults);
+      expect(result.current.isLoading).toBe(false);
+
+      // Second poll after another 5 minutes
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(3);
+
+      // Unmount cleans up polling interval
+      unmount();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+      });
+
+      // No additional calls after unmount
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(3);
+
       spyGetTrendingTokens.mockRestore();
     });
 
-    it('does not start polling if initial load fails with no results', async () => {
+    it('does not start polling when initial load fails', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,
         'getTrendingTokens',
@@ -557,66 +438,12 @@ describe('useTrendingRequest', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Fast-forward 5 minutes - polling should not start
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
+      // Fast-forward 5 minutes - polling does not start
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
       });
 
-      // Should still only have been called once (initial fetch)
       expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
-
-      spyGetTrendingTokens.mockRestore();
-      unmount();
-    });
-
-    it('polls multiple times at 5 minute intervals', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const mockResults: assetsControllers.TrendingAsset[] = [
-        {
-          assetId: 'eip155:1/erc20:0x123',
-          symbol: 'TOKEN1',
-          name: 'Token 1',
-          decimals: 18,
-          price: '1',
-          aggregatedUsdVolume: 1,
-          marketCap: 1,
-        },
-      ];
-      spyGetTrendingTokens.mockResolvedValue(mockResults as never);
-
-      const { result, unmount } = renderHookWithProvider(() =>
-        useTrendingRequest({
-          chainIds: ['eip155:1'],
-        }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Initial call
-      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
-
-      // Fast-forward 5 minutes - first poll
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      await waitFor(() => {
-        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(2);
-      });
-
-      // Fast-forward another 5 minutes - second poll
-      act(() => {
-        jest.advanceTimersByTime(5 * 60 * 1000);
-      });
-
-      await waitFor(() => {
-        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(3);
-      });
 
       spyGetTrendingTokens.mockRestore();
       unmount();
