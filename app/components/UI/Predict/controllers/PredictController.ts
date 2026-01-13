@@ -473,7 +473,7 @@ export class PredictController extends BaseController<
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues)
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
@@ -581,7 +581,7 @@ export class PredictController extends BaseController<
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues)
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
       const market = await provider.getMarketDetails({
