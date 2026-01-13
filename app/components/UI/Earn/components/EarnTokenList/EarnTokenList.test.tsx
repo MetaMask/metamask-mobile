@@ -745,6 +745,69 @@ describe('EarnTokenList', () => {
       // Both USDC tokens should be shown (non-ETH tokens)
       expect(getAllByText('USDC')).toBeDefined();
     });
+
+    it('filters out ETH token when user is not eligible', () => {
+      (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      jest.spyOn(useStakingEligibilityHook, 'default').mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+          isEligible: false,
+        }),
+        error: '',
+      });
+
+      const mockTokens = [
+        {
+          ...MOCK_ETH_MAINNET_ASSET,
+          isETH: true,
+          isStaked: false,
+          balanceFormatted: '1.5 ETH',
+          balanceMinimalUnit: '1500000000000000000',
+          experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
+          experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
+        },
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          isETH: false,
+          isStaked: false,
+          balanceFormatted: '100.0 USDC',
+          balanceMinimalUnit: '100000000',
+          experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          experiences: [
+            { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+          ],
+        },
+      ];
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: mockTokens,
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { queryByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      expect(queryByText('Ethereum')).toBeNull();
+    });
   });
 
   describe('Earn Network Polling', () => {
@@ -896,6 +959,57 @@ describe('EarnTokenList', () => {
         screen: 'Stake',
         params: { token: expect.objectContaining({ symbol: 'TRX' }) },
       });
+    });
+
+    it('filters out Tron token when user is not eligible', () => {
+      mockIsTronChainId.mockImplementation(
+        (chainId: string) => chainId === TrxScope.Mainnet,
+      );
+
+      jest.spyOn(useStakingEligibilityHook, 'default').mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+          isEligible: false,
+        }),
+        error: '',
+      });
+
+      const tronToken: EarnTokenDetails = {
+        ...(mockEarnTokens[0] as EarnTokenDetails),
+        name: 'Tron',
+        symbol: 'TRX',
+        chainId: TrxScope.Mainnet as unknown as string,
+        isNative: true,
+        isETH: false,
+        balanceMinimalUnit: '1000000',
+        balanceFormatted: '1 TRX',
+      };
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: [tronToken],
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$0.00',
+        earnableTotalFiatNumber: 0,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { queryByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      expect(queryByText('Tron')).toBeNull();
     });
   });
 });

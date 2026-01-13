@@ -13,6 +13,7 @@ import { selectTronResourcesBySelectedAccountGroup } from '../../../../../select
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
@@ -51,8 +52,9 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   );
 
   const { apyPercent: tronApyPercent } = useTronStakeApy();
+  const { isEligible } = useStakingEligibility();
 
-  if (isTron && isTrxStakingEnabled) {
+  if (isTron && isTrxStakingEnabled && isEligible) {
     if (hasStakedTrxPositions && isStakedTrxAsset) {
       // sTRX row: show Unstake + Stake more
       return (

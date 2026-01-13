@@ -8,6 +8,7 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import TronStakingButtons from '../Tron/TronStakingButtons';
 import TronStakingCta from '../Tron/TronStakingButtons/TronStakingCta';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 /**
  * We mock underlying components because we only care about the conditional rendering.
@@ -89,6 +90,9 @@ jest.mock('../EarnLendingBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../Stake/hooks/useStakingEligibility');
+const mockUseStakingEligibility = useStakingEligibility as jest.Mock;
+
 jest.mock('../../hooks/useMusdConversionTokens', () => ({
   __esModule: true,
   useMusdConversionTokens: jest.fn().mockReturnValue({
@@ -107,6 +111,14 @@ describe('EarnBalance', () => {
     (
       jest.mocked(selectTronResourcesBySelectedAccountGroup) as jest.Mock
     ).mockReturnValue([]);
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+        isEligible: true,
+      }),
+      error: null,
+    });
   });
 
   describe('Ethereum Mainnet', () => {
@@ -248,6 +260,30 @@ describe('EarnBalance', () => {
       expect(props.asset).toBe(strx);
       expect(props.showUnstake).toBe(true);
       expect(props.hasStakedPositions).toBe(true);
+    });
+
+    it('renders nothing for TRX when user is not eligible', () => {
+      const trx: Partial<TokenI> = {
+        chainId: 'tron:728126428',
+        ticker: 'TRX',
+        symbol: 'TRX',
+      };
+
+      mockFlag.mockReturnValue(true);
+      mockTronResources.mockReturnValue([]);
+      mockUseStakingEligibility.mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+          isEligible: false,
+        }),
+        error: null,
+      });
+
+      renderWithProvider(<EarnBalance asset={trx as TokenI} />);
+
+      expect(TronStakingCta).not.toHaveBeenCalled();
+      expect(TronStakingButtons).not.toHaveBeenCalled();
     });
   });
 });

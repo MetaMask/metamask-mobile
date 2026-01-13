@@ -43,6 +43,7 @@ import {
   isTronChainId,
   isNonEvmChainId,
 } from '../../../../../core/Multichain/utils';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import useEarnNetworkPolling from '../../hooks/useEarnNetworkPolling';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
@@ -106,6 +107,7 @@ const EarnTokenList = () => {
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+  const { isEligible } = useStakingEligibility();
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
@@ -276,7 +278,17 @@ const EarnTokenList = () => {
     }
 
     return tokensToFilter.filter((token) => {
-      if (token.isETH && !token.isStaked && !isPooledStakingEnabled) {
+      // Filter out ETH when pooled staking is disabled or user is not eligible
+      if (token.isETH && !token.isStaked) {
+        if (!isPooledStakingEnabled || !isEligible) {
+          return false;
+        }
+      }
+
+      // Filter out Tron native tokens when user is not eligible
+      const isTrxNative =
+        Boolean(token.isNative) && isTronChainId(String(token.chainId));
+      if (isTrxNative && !isEligible) {
         return false;
       }
       return token?.chainId;
@@ -286,6 +298,7 @@ const EarnTokenList = () => {
     tokensSortedByHighestYield,
     tokensSortedByHighestBalance,
     isPooledStakingEnabled,
+    isEligible,
   ]);
 
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
