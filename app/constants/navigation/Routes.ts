@@ -159,6 +159,9 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    MODALS: {
+      REGION_SELECTOR: 'SettingsRegionSelectorModal',
+    },
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

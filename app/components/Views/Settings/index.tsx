@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,10 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { selectUserRegion } from '../../../selectors/rampsController';
+import useRampsUnifiedV2Enabled from '../../../components/UI/Ramp/hooks/useRampsUnifiedV2Enabled';
+import useRampsRegions from './hooks/useRampsRegions';
+import { createRegionSelectorModalNavigationDetails } from './RegionSelectorModal/RegionSelectorModal';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -47,6 +51,36 @@ const Settings = () => {
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const userRegion = useSelector(selectUserRegion);
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
+  const { regions } = useRampsRegions();
+
+  const regionDisplayName = useMemo(() => {
+    if (!userRegion || !regions) return null;
+
+    const regionParts = userRegion.toLowerCase().split('-');
+    const countryCode = regionParts[0];
+    const stateCode = regionParts[1];
+
+    const country = regions.find(
+      (r) => r.isoCode.toLowerCase() === countryCode,
+    );
+
+    if (!country) return null;
+
+    if (stateCode && country.states) {
+      const state = country.states.find(
+        (s) =>
+          s.stateId?.toLowerCase() === stateCode ||
+          s.id?.toLowerCase().endsWith(`-${stateCode}`),
+      );
+      if (state?.name) {
+        return `${country.name}, ${state.name}`;
+      }
+    }
+
+    return country.name;
+  }, [userRegion, regions]);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -134,6 +168,14 @@ const Settings = () => {
 
   const goToManagePermissions = () => {
     navigation.navigate('PermissionsManager');
+  };
+
+  const onPressRegion = () => {
+    if (regions) {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({ regions }),
+      );
+    }
   };
 
   const goToBrowserUrl = (url: string, title: string) => {
@@ -291,6 +333,16 @@ const Settings = () => {
           onPress={onPressOnRamp}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
+        {isRampsUnifiedV2Enabled && (
+          <SettingsDrawer
+            title={strings('app_settings.region.title')}
+            description={
+              regionDisplayName || strings('app_settings.region.description')
+            }
+            onPress={onPressRegion}
+            testID={SettingsViewSelectorsIDs.REGION}
+          />
+        )}
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
           description={strings('app_settings.experimental_desc')}

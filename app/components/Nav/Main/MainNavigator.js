@@ -14,6 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import RegionSelectorModal from '../../Views/Settings/RegionSelectorModal/RegionSelectorModal';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -537,6 +538,11 @@ const SettingsFlow = () => (
       name={Routes.SETTINGS.BACKUP_AND_SYNC}
       component={BackupAndSyncSettings}
       options={BackupAndSyncSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
+      options={{ presentation: 'modal' }}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
