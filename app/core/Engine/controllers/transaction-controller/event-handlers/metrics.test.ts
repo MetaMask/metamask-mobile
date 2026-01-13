@@ -4,6 +4,8 @@ import { merge } from 'lodash';
 import { MetaMetrics } from '../../../../Analytics';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -12,7 +14,10 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './metrics';
 import { TransactionEventHandlerRequest } from '../types';
-import { enabledSmartTransactionsState } from '../data-helpers';
+import {
+  disabledSmartTransactionsState,
+  enabledSmartTransactionsState,
+} from '../data-helpers';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -63,6 +68,19 @@ jest.mock('../metrics_properties/metamask-pay', () => ({
     },
   }),
 }));
+
+const mockSelectShouldUseSmartTransaction = jest.mocked(
+  selectShouldUseSmartTransaction,
+);
+const mockGetSmartTransactionMetricsProperties = jest.mocked(
+  getSmartTransactionMetricsProperties,
+);
+
+const mockSmartTransactionMetricsProperties = {
+  smart_transaction_timed_out: false,
+  smart_transaction_proxied: false,
+  is_smart_transaction: true,
+};
 
 describe('Transaction Metric Event Handlers', () => {
   const mockGetState = jest.fn();
@@ -211,5 +229,103 @@ describe('Transaction Metric Event Handlers', () => {
         builder_sensitive_test: true,
       }),
     );
+  });
+
+  it('includes simulation receiving total value when assetsFiatValues is set', async () => {
+    const transactionMetaWithFiatValues = {
+      ...mockTransactionMeta,
+      assetsFiatValues: {
+        receiving: '123.45',
+      },
+    } as unknown as TransactionMeta;
+
+    await handleTransactionApprovedEventForMetrics(
+      transactionMetaWithFiatValues,
+      mockTransactionMetricRequest,
+    );
+
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        simulation_receiving_assets_total_value: 123.45,
+      }),
+    );
+  });
+
+  describe('handleTransactionFinalized', () => {
+    it('adds STX metrics properties if smart transactions are enabled', async () => {
+      // Force the selector to return true
+      mockSelectShouldUseSmartTransaction.mockReturnValue(true);
+
+      // Force the mock to return the expected properties
+      mockGetSmartTransactionMetricsProperties.mockResolvedValue({
+        smart_transaction_timed_out: false,
+        smart_transaction_proxied: false,
+        is_smart_transaction: true,
+      });
+
+      await handleTransactionFinalizedEventForMetrics(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      // Check if the mock was called
+      expect(mockGetSmartTransactionMetricsProperties).toHaveBeenCalled();
+
+      // Check if addProperties was called with the STX properties
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          smart_transaction_timed_out: false,
+          smart_transaction_proxied: false,
+          is_smart_transaction: true,
+        }),
+      );
+    });
+
+    it('does not add STX metrics properties if smart transactions are not enabled', async () => {
+      // Force the selector to return false for this test
+      mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+
+      mockGetState.mockReturnValue(
+        merge({}, disabledSmartTransactionsState, {
+          confirmationMetrics: {
+            metricsById: {
+              [mockTransactionMeta.id]: {
+                properties: { test_property: 'test_value' },
+                sensitiveProperties: { sensitive_property: 'sensitive_value' },
+              },
+            },
+          },
+        }),
+      );
+
+      await handleTransactionFinalizedEventForMetrics(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalled();
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining(mockSmartTransactionMetricsProperties),
+      );
+    });
+
+    it('includes builder metrics', async () => {
+      await handleTransactionFinalizedEventForMetrics(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder_test: true,
+        }),
+      );
+
+      expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder_sensitive_test: true,
+        }),
+      );
+    });
   });
 });
