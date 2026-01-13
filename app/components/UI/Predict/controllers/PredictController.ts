@@ -44,6 +44,8 @@ import {
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
+  ConnectionStatus,
+  GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -54,6 +56,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
 } from '../providers/types';
 import {
@@ -1707,9 +1710,59 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Test utility method to update state for testing purposes
-   * @param updater - Function that updates the state
+   * Subscribes to real-time game updates via WebSocket.
+   *
+   * @param gameId - Unique identifier of the game to subscribe to
+   * @param callback - Function invoked when game state changes (score, period, status)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
    */
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToGameUpdates) {
+      return () => undefined;
+    }
+    return provider.subscribeToGameUpdates(gameId, callback);
+  }
+
+  /**
+   * Subscribes to real-time market price updates via WebSocket.
+   *
+   * @param tokenIds - Array of token IDs to subscribe to price updates for
+   * @param callback - Function invoked when prices change (includes bestBid/bestAsk)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToMarketPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToMarketPrices(tokenIds, callback);
+  }
+
+  /**
+   * Gets the current WebSocket connection status for live data feeds.
+   *
+   * @param providerId - Provider to check connection status for (default: 'polymarket')
+   * @returns Connection status for sports and market data WebSocket channels
+   */
+  public getConnectionStatus(providerId = 'polymarket'): ConnectionStatus {
+    const provider = this.providers.get(providerId);
+    if (!provider?.getConnectionStatus) {
+      return { sportsConnected: false, marketConnected: false };
+    }
+    return provider.getConnectionStatus();
+  }
+
   public updateStateForTesting(
     updater: (state: PredictControllerState) => void,
   ): void {

@@ -32,6 +32,8 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  ConnectionStatus,
+  GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
@@ -45,6 +47,7 @@ import {
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -97,6 +100,7 @@ import {
 } from './utils';
 import { PredictFeeCollection } from '../../types/flags';
 import { GameCache } from './GameCache';
+import { WebSocketManager } from './WebSocketManager';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -1563,6 +1567,31 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedCallData,
       amount,
+    };
+  }
+
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToGame(gameId, callback);
+  }
+
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToMarketPrices(
+      tokenIds,
+      callback,
+    );
+  }
+
+  public getConnectionStatus(): ConnectionStatus {
+    const status = WebSocketManager.getInstance().getConnectionStatus();
+    return {
+      sportsConnected: status.sportsConnected,
+      marketConnected: status.marketConnected,
     };
   }
 }
