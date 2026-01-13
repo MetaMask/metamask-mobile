@@ -75,6 +75,6 @@ describe('SmartAccountUpdateModal', () => {
       Engine.context.PreferencesController.setSmartAccountOptIn,
     ).toHaveBeenCalled();
     expect(queryByText('Use smart account?')).toBeNull();
-    expect(getByText('Successful!')).toBeTruthy();
+    expect(getByText('Success')).toBeTruthy();
   });
 });
