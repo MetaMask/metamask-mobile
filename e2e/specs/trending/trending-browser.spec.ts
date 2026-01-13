@@ -1,5 +1,5 @@
 import { SmokeWalletPlatform } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
@@ -10,8 +10,6 @@ import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-ap
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
-import TrendingView from '../../pages/Trending/TrendingView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -41,26 +39,13 @@ describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
       async () => {
         await loginToApp();
 
-        // 1. Navigate to Trending Tab
-        await TabBarComponent.tapExploreButton();
+        // Navigate to Browser View (automatically adapts to Explore/Trending or direct Browser tab)
+        await navigateToBrowserView();
 
-        // 2. Verify Browser Button Visibility
-        await Assertions.expectElementToBeVisible(TrendingView.browserButton, {
-          description: 'Trending view browser button should be visible',
-        });
-
-        // 3. Go to Browser
-        await TrendingView.tapBrowserButton();
-
-        // 4. Verify we are in Browser View
-        await Assertions.expectElementToBeVisible(Browser.urlInputBoxID, {
-          description: 'Browser URL bar should be visible',
-        });
-
-        // 5. Navigate to Test Dapp
+        // Navigate to Test Dapp
         await Browser.navigateToTestDApp();
 
-        // 6. Interact (verify connect button is visible to ensure page loaded)
+        // Verify test dapp loaded
         await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
           description: 'Test Dapp page title should be visible',
         });

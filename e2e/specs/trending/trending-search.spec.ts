@@ -32,7 +32,7 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         await loginToApp();
 
         // 1. Navigate to Trending Tab
-        await TabBarComponent.tapBrowser();
+        await TabBarComponent.tapExploreButton();
 
         // 2. Verify Search Bar Visibility
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {

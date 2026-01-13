@@ -6,7 +6,6 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
-import TrendingView from '../Trending/TrendingView';
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
@@ -39,37 +38,17 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
-  async navigateToBrowserView(): Promise<void> {
-    const hasExploreButton = await Utilities.isElementVisible(
-      this.tabBarExploreButton,
-      2000,
-    );
-
-    if (hasExploreButton) {
-      await this.tapExploreButton();
-      await TrendingView.tapBrowserButton();
-    } else {
-      // Fallback: Navigate directly to browser tab
-      await Utilities.executeWithRetry(
-        async () => {
-          await Gestures.waitAndTap(this.tabBarBrowserButton);
-          await Assertions.expectElementToBeVisible(BrowserView.homeButton);
-        },
-        {
-          timeout: 10000,
-          description: 'Tap Browser Button with Validation',
-        },
-      );
-    }
-
-    // Verify we're in browser view regardless of which path we took
-    await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
-      description: 'Browser URL bar should be visible after navigation',
-    });
-  }
-
   async tapBrowser(): Promise<void> {
-    await this.navigateToBrowserView();
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarBrowserButton);
+        await Assertions.expectElementToBeVisible(BrowserView.homeButton);
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Browser Button with Validation',
+      },
+    );
   }
 
   async tapHome(): Promise<void> {

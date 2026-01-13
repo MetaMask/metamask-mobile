@@ -16,7 +16,7 @@ import {
   AnvilPort,
   buildPermissions,
 } from '../../../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
@@ -75,7 +75,7 @@ async function goBackToWalletPage() {
 }
 
 async function connectTestDappToLocalhost() {
-  await TabBarComponent.tapBrowser();
+  await navigateToBrowserView();
   await BrowserView.navigateToTestDApp();
 }
 
