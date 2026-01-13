@@ -4,6 +4,11 @@ tags:
 ---
 - runFlow: ../pages/loadElements.yaml
 # - assertVisible: ${output.onboarding.welcome.text}
+- extendedWaitUntil:
+    visible:
+      id: ${output.onboarding.welcome.createNewWalletBtn}
+    timeout: 30000
+
 - tapOn:
     id: ${output.onboarding.welcome.createNewWalletBtn}
     delay: 1000
