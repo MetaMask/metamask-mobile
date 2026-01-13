@@ -140,13 +140,7 @@ const getFirstTypedMessage = (
 ) => {
   const callArgs = messenger.call.mock.calls[0];
   expect(callArgs).toBeDefined();
-  return callArgs?.[1] as {
-    from: string;
-    data: {
-      domain: { verifyingContract: string };
-      message: { appData: string };
-    };
-  };
+  return callArgs?.[1] as any;
 };
 
 describe('intent', () => {
