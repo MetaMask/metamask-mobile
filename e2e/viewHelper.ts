@@ -27,7 +27,7 @@ import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
-import { PortManager, ResourceType } from './framework';
+import { Gestures, PortManager, ResourceType } from './framework';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -365,7 +365,69 @@ export const switchToSepoliaNetwork = async () => {
     logger.error('Toast is not visible');
   }
 };
+/**
+ * Dismisses development build screens if they appear.
+ * Handles "Development servers" and "Developer menu" screens.
+ */
+export const dismissDevScreens = async () => {
+  try {
+    // 1. Handle Paste Permission Alert (System Alert)
+    // This can appear on launch in dev builds (e.g. Branch SDK checking pasteboard).
+    // try {
+    //   const allowPasteButton = await Matchers.getSystemElementByText(
+    //     'Allow Paste',
+    //   );
+    //   await allowPasteButton.tap();
+    // } catch {
+    //   // Ignore if not present
+    // }
 
+    // 2. Check for Development Servers screen
+    // We try to tap the first server row if it exists
+    const devServerRow = Matchers.getElementByText('http://localhost:8081');
+    try {
+      await Assertions.expectElementToBeVisible(devServerRow, {
+        timeout: 2000,
+      });
+      await Gestures.tap(devServerRow, { elemDescription: 'Dev Server Row' });
+    } catch {
+      // Ignore if not found
+    }
+
+    // Check for Developer Menu onboarding
+    const continueButton = Matchers.getElementByText('Continue');
+    try {
+      await Assertions.expectElementToBeVisible(continueButton, {
+        timeout: 5000,
+      });
+      // The user specified that tapping "Toggle Performance Monitor" closes the menu.
+
+      // Tap Continue to proceed past the onboarding screen.
+      await Gestures.tap(continueButton, {
+        elemDescription: 'Dev Menu Continue Button',
+      });
+
+      // After tapping Continue, the Developer Menu options list appears.
+      // The user provided the ID "fast-refresh" to tap on.
+      // This is more reliable than text matching.
+      try {
+        const fastRefreshButton = Matchers.getElementByID('fast-refresh');
+        await Assertions.expectElementToBeVisible(fastRefreshButton, {
+          timeout: 5000,
+        });
+        await Gestures.tap(fastRefreshButton, {
+          elemDescription: 'Dev Menu Fast Refresh Button',
+        });
+      } catch {
+        // Ignore if not found
+      }
+    } catch {
+      // Ignore if not found
+    }
+  } catch (error) {
+    logger.debug('No dev screens dismissed or error dismissing them', error);
+  }
+};
 /**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
