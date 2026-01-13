@@ -761,50 +761,25 @@ exports[`QuotesView should render quote screen 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
+                                        "fontSize": 16,
+                                        "textAlign": "center",
+                                        "textAlignVertical": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontSize": 16,
-                                          "textAlign": "center",
-                                          "textAlignVertical": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": undefined,
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "4": undefined,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
                                   D
@@ -910,50 +885,25 @@ exports[`QuotesView should render quote screen 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 30,
-                                        "marginVertical": 2,
+                                        "fontSize": 16,
+                                        "textAlign": "center",
+                                        "textAlignVertical": "center",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontSize": 16,
-                                          "textAlign": "center",
-                                          "textAlignVertical": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": undefined,
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "4": undefined,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
                                   U
