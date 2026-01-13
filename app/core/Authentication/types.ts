@@ -1,3 +1,18 @@
+/**
+ * Verbose error types for unlocking the wallet.
+ */
+export enum UnlockWalletErrorType {
+  INVALID_PASSWORD = 'INVALID_PASSWORD',
+  PASSWORD_NOT_SET = 'PASSWORD_NOT_SET',
+  ANDROID_PIN_DENIED = 'ANDROID_PIN_DENIED',
+  VAULT_CORRUPTION = 'VAULT_CORRUPTION',
+  UNRECOGNIZED_ERROR = 'UNRECOGNIZED_ERROR',
+  IOS_USER_CANCELLED_BIOMETRICS = 'IOS_USER_CANCELLED_BIOMETRICS',
+}
+
+/**
+ * Verbose error types for reauthenticating the wallet.
+ */
 export enum ReauthenticateErrorType {
   PASSWORD_NOT_SET_WITH_BIOMETRICS = 'PASSWORD_NOT_SET_WITH_BIOMETRICS',
   BIOMETRIC_ERROR = 'BIOMETRIC_ERROR',

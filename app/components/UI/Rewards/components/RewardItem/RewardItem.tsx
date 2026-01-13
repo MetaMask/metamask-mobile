@@ -33,8 +33,10 @@ interface RewardItemProps {
   isLast?: boolean;
   isLocked?: boolean;
   isEndOfSeasonReward?: boolean;
+  endOfSeasonClaimedDescription?: string;
   compact?: boolean;
   onPress?: (rewardId: string, seasonReward: SeasonRewardDto) => void;
+  claimCtaLabel?: string;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
@@ -43,8 +45,10 @@ const RewardItem: React.FC<RewardItemProps> = ({
   isLast = false,
   isLocked = true,
   isEndOfSeasonReward = false,
+  endOfSeasonClaimedDescription,
   compact = false,
   onPress,
+  claimCtaLabel,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const isSeasonRewardClaimExpired = useMemo(() => {
@@ -172,7 +176,8 @@ const RewardItem: React.FC<RewardItemProps> = ({
             fontWeight={FontWeight.Medium}
             twClassName="text-text-alternative"
           >
-            {strings('rewards.unlocked_rewards.claimed_label')}
+            {endOfSeasonClaimedDescription ||
+              strings('rewards.unlocked_rewards.claimed_label')}
           </Text>
         );
       } else if (isSeasonRewardClaimExpired) {
@@ -273,6 +278,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
     timeRemaining,
     renderTimeStatusIndicator,
     isSeasonRewardClaimExpired,
+    endOfSeasonClaimedDescription,
   ]);
 
   const longDescription = isLocked
@@ -403,7 +409,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
             }}
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
           >
-            {strings('rewards.unlocked_rewards.claim_label')}
+            {claimCtaLabel || strings('rewards.unlocked_rewards.claim_label')}
           </Button>
         )}
       </Box>
