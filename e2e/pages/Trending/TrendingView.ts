@@ -33,6 +33,12 @@ class TrendingView {
     return Matchers.getElementByText(TrendingViewSelectorsText.VIEW_ALL, 0);
   }
 
+  get googleSearchButton(): DetoxElement {
+    return Matchers.getElementByID(
+      TrendingViewSelectorsIDs.SEARCH_FOOTER_GOOGLE_LINK,
+    );
+  }
+
   getTokenRow(assetId: string): DetoxElement {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
@@ -108,6 +114,12 @@ class TrendingView {
         description: `Token details page title ${title} should be visible`,
       },
     );
+  }
+
+  async verifyGoogleSearchOptionVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.googleSearchButton, {
+      description: 'Google search option should be visible',
+    });
   }
 }
 

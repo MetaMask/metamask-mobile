@@ -5,6 +5,7 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_INPUT: 'explore-view-search-input',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
+  SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
 } as const;
 
 export const TrendingViewSelectorsText = {

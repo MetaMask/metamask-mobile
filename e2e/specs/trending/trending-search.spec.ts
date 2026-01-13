@@ -54,7 +54,10 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 7. Verify Cancel button is visible
+        // 7. Verify Google Search Option is visible
+        await TrendingView.verifyGoogleSearchOptionVisible();
+
+        // 8. Verify Cancel button is visible
         await Assertions.expectElementToBeVisible(
           TrendingView.searchCancelButton,
           {
@@ -62,10 +65,10 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           },
         );
 
-        // 8. Tap Cancel to exit search
+        // 9. Tap Cancel to exit search
         await TrendingView.tapSearchCancelButton();
 
-        // 9. Verify we are back to main feed (Search button visible again)
+        // 10. Verify we are back to main feed (Search button visible again)
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
           description: 'Search button should be visible again',
         });
