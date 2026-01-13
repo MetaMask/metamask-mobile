@@ -12,6 +12,13 @@ export interface UseLiveGameUpdatesResult {
   lastUpdateTime: number | null;
 }
 
+/**
+ * Hook for subscribing to real-time game updates via WebSocket.
+ *
+ * @param gameId - Game ID to subscribe to, or null to disable
+ * @param options - Configuration options (enabled: boolean)
+ * @returns Game update state, connection status, and last update timestamp
+ */
 export const useLiveGameUpdates = (
   gameId: string | null,
   options: UseLiveGameUpdatesOptions = {},
@@ -37,6 +44,7 @@ export const useLiveGameUpdates = (
     if (!enabled || !gameId) {
       setGameUpdate(null);
       setIsConnected(false);
+      setLastUpdateTime(null);
       return;
     }
 

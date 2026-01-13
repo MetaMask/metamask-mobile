@@ -13,6 +13,13 @@ export interface UseLiveMarketPricesResult {
   lastUpdateTime: number | null;
 }
 
+/**
+ * Hook for subscribing to real-time market price updates via WebSocket.
+ *
+ * @param tokenIds - Array of token IDs to subscribe to price updates for
+ * @param options - Configuration options (enabled: boolean)
+ * @returns Price map, getPrice helper, connection status, and last update timestamp
+ */
 export const useLiveMarketPrices = (
   tokenIds: string[],
   options: UseLiveMarketPricesOptions = {},
@@ -28,7 +35,10 @@ export const useLiveMarketPrices = (
 
   const tokenIdsKey = useMemo(() => [...tokenIds].sort().join(','), [tokenIds]);
 
-  tokenIdsRef.current = tokenIds;
+  // Sync ref in effect to avoid render impurity (React Concurrent Mode safe)
+  useEffect(() => {
+    tokenIdsRef.current = tokenIds;
+  }, [tokenIds]);
 
   const handlePriceUpdates = useCallback((updates: PriceUpdate[]) => {
     if (!isMountedRef.current) return;
@@ -47,9 +57,12 @@ export const useLiveMarketPrices = (
   useEffect(() => {
     isMountedRef.current = true;
 
+    // Reset prices when token set changes to avoid stale data from previous subscriptions
+    setPrices(new Map());
+
     if (!enabled || tokenIdsRef.current.length === 0) {
-      setPrices(new Map());
       setIsConnected(false);
+      setLastUpdateTime(null);
       return;
     }
 

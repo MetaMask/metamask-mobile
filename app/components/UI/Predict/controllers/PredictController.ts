@@ -1709,6 +1709,14 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Subscribes to real-time game updates via WebSocket.
+   *
+   * @param gameId - Unique identifier of the game to subscribe to
+   * @param callback - Function invoked when game state changes (score, period, status)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
+   */
   public subscribeToGameUpdates(
     gameId: string,
     callback: GameUpdateCallback,
@@ -1721,6 +1729,14 @@ export class PredictController extends BaseController<
     return provider.subscribeToGameUpdates(gameId, callback);
   }
 
+  /**
+   * Subscribes to real-time market price updates via WebSocket.
+   *
+   * @param tokenIds - Array of token IDs to subscribe to price updates for
+   * @param callback - Function invoked when prices change (includes bestBid/bestAsk)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
+   */
   public subscribeToMarketPrices(
     tokenIds: string[],
     callback: PriceUpdateCallback,
@@ -1733,6 +1749,12 @@ export class PredictController extends BaseController<
     return provider.subscribeToMarketPrices(tokenIds, callback);
   }
 
+  /**
+   * Gets the current WebSocket connection status for live data feeds.
+   *
+   * @param providerId - Provider to check connection status for (default: 'polymarket')
+   * @returns Connection status for sports and market data WebSocket channels
+   */
   public getConnectionStatus(providerId = 'polymarket'): ConnectionStatus {
     const provider = this.providers.get(providerId);
     if (!provider?.getConnectionStatus) {
