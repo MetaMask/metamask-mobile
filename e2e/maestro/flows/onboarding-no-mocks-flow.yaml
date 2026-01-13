@@ -9,19 +9,19 @@ tags:
       id: ${output.onboarding.welcome.createNewWalletBtn}
     timeout: 60000
 
-# modal shows when running on CI
-- runFlow:
-    when:
-      visible: "Use Secret Recovery Phrase" # Condition to check
-      timeout: 30000
-    commands:
-      - tapOn: "Use Secret Recovery Phrase"
-
 - tapOn:
     id: ${output.onboarding.welcome.createNewWalletBtn}
     delay: 1000
     retryTapIfNoChange: false
     waitToSettleTimeoutMs: 60000
+
+# modal shows when running on CI
+- runFlow:
+    when:
+      visible: "Use Secret Recovery Phrase" # Condition to check
+    commands:
+      - tapOn: "Use Secret Recovery Phrase"
+      
 - assertVisible: ${output.onboarding.createPassword.title}
 - tapOn:
     id: ${output.onboarding.createPassword.firstPasswordInput}
