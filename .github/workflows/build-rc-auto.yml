@@ -11,6 +11,9 @@ on:
   push:
     branches:
       - 'release/*'
+      # test updates
+      - 'rc-builds-gh-workflow'
+
 
 jobs:
   validate-and-check-label:
