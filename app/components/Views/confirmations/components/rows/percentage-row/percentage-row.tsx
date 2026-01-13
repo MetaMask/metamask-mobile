@@ -12,14 +12,18 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 
-const TX_TYPE_ROW_CONFIG: Partial<
-  Record<TransactionType, { label: string; tooltip: string }>
-> = {
-  [TransactionType.musdConversion]: {
-    label: strings('earn.bonus'),
-    tooltip: strings('earn.bonus_tooltip'),
-  },
-} as const;
+function getTxTypeRowConfig(
+  transactionType?: TransactionType,
+): { label: string; tooltip: string } | undefined {
+  if (transactionType === TransactionType.musdConversion) {
+    return {
+      label: strings('earn.bonus'),
+      tooltip: strings('earn.bonus_tooltip'),
+    };
+  }
+
+  return undefined;
+}
 
 export function PercentageRow() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -27,9 +31,7 @@ export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
 
   const transactionType = transactionMetadata?.type;
-  const rowConfig = transactionType
-    ? TX_TYPE_ROW_CONFIG[transactionType]
-    : undefined;
+  const rowConfig = getTxTypeRowConfig(transactionType);
 
   if (!rowConfig) {
     return null;
