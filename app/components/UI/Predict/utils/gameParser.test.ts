@@ -1,13 +1,11 @@
 import {
-  parseNflSlugTeams,
   parseGameSlugTeams,
-  isNflGameEvent,
+  parseScore,
   isLiveSportsEvent,
   getEventLeague,
   getGameStatus,
   formatPeriodDisplay,
   mapApiTeamToPredictTeam,
-  buildNflGameData,
   buildGameData,
 } from './gameParser';
 import {
@@ -149,102 +147,6 @@ describe('gameParser', () => {
       const result = parseGameSlugTeams('nfl-sea-den-01-12-2025', 'nfl');
 
       expect(result).toBeNull();
-    });
-  });
-
-  describe('parseNflSlugTeams (deprecated)', () => {
-    it('extracts team abbreviations from valid NFL slug', () => {
-      const result = parseNflSlugTeams('nfl-sea-den-2025-01-12');
-
-      expect(result).toEqual({
-        awayAbbreviation: 'sea',
-        homeAbbreviation: 'den',
-        dateString: '2025-01-12',
-      });
-    });
-
-    it('returns null for non-NFL slug', () => {
-      const result = parseNflSlugTeams('some-other-event');
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for invalid date format', () => {
-      const result = parseNflSlugTeams('nfl-sea-den-01-12-2025');
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for missing team abbreviation', () => {
-      const result = parseNflSlugTeams('nfl-sea--2025-01-12');
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for uppercase slug', () => {
-      const result = parseNflSlugTeams('NFL-SEA-DEN-2025-01-12');
-
-      expect(result).toBeNull();
-    });
-
-    it('extracts three-letter abbreviations', () => {
-      const result = parseNflSlugTeams('nfl-buf-nyj-2025-01-12');
-
-      expect(result).toEqual({
-        awayAbbreviation: 'buf',
-        homeAbbreviation: 'nyj',
-        dateString: '2025-01-12',
-      });
-    });
-  });
-
-  describe('isNflGameEvent (deprecated)', () => {
-    it('returns true for event with nfl tag, games tag, and valid slug', () => {
-      const event = createMockEvent();
-
-      const result = isNflGameEvent(event);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when missing nfl tag', () => {
-      const event = createMockEvent({
-        tags: [{ id: '2', label: 'Games', slug: 'games' }],
-      });
-
-      const result = isNflGameEvent(event);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when missing games tag', () => {
-      const event = createMockEvent({
-        tags: [{ id: '1', label: 'NFL', slug: 'nfl' }],
-      });
-
-      const result = isNflGameEvent(event);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for invalid slug format', () => {
-      const event = createMockEvent({
-        slug: 'some-other-market',
-      });
-
-      const result = isNflGameEvent(event);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when tags is not an array', () => {
-      const event = createMockEvent({
-        tags: undefined as unknown as [],
-      });
-
-      const result = isNflGameEvent(event);
-
-      expect(result).toBe(false);
     });
   });
 
@@ -459,7 +361,7 @@ describe('gameParser', () => {
         league: 'nfl',
         elapsed: '08:42',
         period: 'Q2',
-        score: '14-7',
+        score: { away: 14, home: 7, raw: '14-7' },
         homeTeam: denTeam,
         awayTeam: seaTeam,
       });
@@ -530,7 +432,7 @@ describe('gameParser', () => {
       expect(result?.startTime).toBe('2025-01-12T00:00:00Z');
     });
 
-    it('defaults empty strings for missing game fields', () => {
+    it('returns null for missing game fields', () => {
       const event = createMockEvent({
         gameId: 'game-123',
         score: undefined,
@@ -540,142 +442,53 @@ describe('gameParser', () => {
 
       const result = buildGameData(event, 'nfl', teamLookup);
 
-      expect(result?.score).toBe('');
-      expect(result?.elapsed).toBe('');
-      expect(result?.period).toBe('');
+      expect(result?.score).toBeNull();
+      expect(result?.elapsed).toBeNull();
+      expect(result?.period).toBeNull();
     });
   });
 
-  describe('buildNflGameData (deprecated)', () => {
-    const seaTeam: PredictSportTeam = {
-      id: 'team-sea',
-      name: 'Seattle Seahawks',
-      logo: 'https://example.com/sea.png',
-      abbreviation: 'SEA',
-      color: '#002244',
-      alias: 'Seahawks',
-    };
+  describe('parseScore', () => {
+    it('parses valid score string into away and home values', () => {
+      const result = parseScore('14-7');
 
-    const denTeam: PredictSportTeam = {
-      id: 'team-den',
-      name: 'Denver Broncos',
-      logo: 'https://example.com/den.png',
-      abbreviation: 'DEN',
-      color: '#FB4F14',
-      alias: 'Broncos',
-    };
-
-    const teamLookup = (abbr: string): PredictSportTeam | undefined => {
-      const teams: Record<string, PredictSportTeam> = {
-        sea: seaTeam,
-        den: denTeam,
-      };
-      return teams[abbr.toLowerCase()];
-    };
-
-    it('builds complete game data from event', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        startTime: '2025-01-12T18:00:00Z',
-        score: '14-7',
-        elapsed: '08:42',
-        period: 'Q2',
-        live: true,
-      });
-
-      const result = buildNflGameData(event, teamLookup);
-
-      expect(result).toEqual({
-        id: 'game-123',
-        startTime: '2025-01-12T18:00:00Z',
-        status: 'ongoing',
-        league: 'nfl',
-        elapsed: '08:42',
-        period: 'Q2',
-        score: '14-7',
-        homeTeam: denTeam,
-        awayTeam: seaTeam,
-      });
+      expect(result).toEqual({ away: 14, home: 7, raw: '14-7' });
     });
 
-    it('returns null when gameId is missing', () => {
-      const event = createMockEvent({ gameId: undefined });
-
-      const result = buildNflGameData(event, teamLookup);
+    it('returns null for undefined score', () => {
+      const result = parseScore(undefined);
 
       expect(result).toBeNull();
     });
 
-    it('returns null when slug cannot be parsed', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        slug: 'invalid-slug',
-      });
-
-      const result = buildNflGameData(event, teamLookup);
+    it('returns null for empty string', () => {
+      const result = parseScore('');
 
       expect(result).toBeNull();
     });
 
-    it('returns null when away team not found', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        slug: 'nfl-xyz-den-2025-01-12',
-      });
-
-      const result = buildNflGameData(event, teamLookup);
+    it('returns null for 0-0 score', () => {
+      const result = parseScore('0-0');
 
       expect(result).toBeNull();
     });
 
-    it('returns null when home team not found', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        slug: 'nfl-sea-xyz-2025-01-12',
-      });
-
-      const result = buildNflGameData(event, teamLookup);
+    it('returns null for invalid format without hyphen', () => {
+      const result = parseScore('147');
 
       expect(result).toBeNull();
     });
 
-    it('uses endDate as fallback for startTime', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        startTime: undefined,
-        endDate: '2025-01-12T21:00:00Z',
-      });
+    it('returns null for non-numeric values', () => {
+      const result = parseScore('abc-def');
 
-      const result = buildNflGameData(event, teamLookup);
-
-      expect(result?.startTime).toBe('2025-01-12T21:00:00Z');
+      expect(result).toBeNull();
     });
 
-    it('uses date from slug as last resort for startTime', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        startTime: undefined,
-        endDate: undefined,
-      });
+    it('parses high scores correctly', () => {
+      const result = parseScore('42-35');
 
-      const result = buildNflGameData(event, teamLookup);
-
-      expect(result?.startTime).toBe('2025-01-12T00:00:00Z');
-    });
-
-    it('defaults empty strings for missing game fields', () => {
-      const event = createMockEvent({
-        gameId: 'game-123',
-        score: undefined,
-        elapsed: undefined,
-        period: undefined,
-      });
-
-      const result = buildNflGameData(event, teamLookup);
-
-      expect(result?.score).toBe('');
-      expect(result?.elapsed).toBe('');
-      expect(result?.period).toBe('');
+      expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
     });
   });
 });

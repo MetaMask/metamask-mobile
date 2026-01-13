@@ -1,4 +1,5 @@
 import {
+  PredictGameScore,
   PredictGameStatus,
   PredictMarketGame,
   PredictSportTeam,
@@ -75,16 +76,6 @@ export function parseGameSlugTeams(
   };
 }
 
-/** @deprecated Use parseGameSlugTeams with league parameter instead */
-export function parseNflSlugTeams(slug: string): ParsedGameSlug | null {
-  return parseGameSlugTeams(slug, 'nfl');
-}
-
-/** @deprecated Use isLiveSportsEvent with LIVE_SPORTS_LEAGUES instead */
-export function isNflGameEvent(event: PolymarketApiEvent): boolean {
-  return getEventLeague(event) === 'nfl';
-}
-
 const NOT_STARTED_PERIODS = ['NS', 'NOT_STARTED', 'PRE', 'PREGAME', ''];
 const ENDED_PERIODS = ['FT', 'VFT'];
 
@@ -140,6 +131,26 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
+export function parseScore(scoreString?: string): PredictGameScore | null {
+  if (!scoreString || scoreString === '0-0') {
+    return null;
+  }
+
+  const parts = scoreString.split('-');
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const away = parseInt(parts[0], 10);
+  const home = parseInt(parts[1], 10);
+
+  if (isNaN(away) || isNaN(home)) {
+    return null;
+  }
+
+  return { away, home, raw: scoreString };
+}
+
 export function buildGameData(
   event: PolymarketApiEvent,
   league: PredictSportsLeague,
@@ -167,18 +178,10 @@ export function buildGameData(
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
     status: getGameStatus(event),
     league,
-    elapsed: event.elapsed ?? '',
-    period: event.period ?? '',
-    score: event.score ?? '',
+    elapsed: event.elapsed || null,
+    period: event.period || null,
+    score: parseScore(event.score),
     homeTeam,
     awayTeam,
   };
-}
-
-/** @deprecated Use buildGameData with league parameter instead */
-export function buildNflGameData(
-  event: PolymarketApiEvent,
-  teamLookup: (abbreviation: string) => PredictSportTeam | undefined,
-): PredictMarketGame | null {
-  return buildGameData(event, 'nfl', (_league, abbr) => teamLookup(abbr));
 }

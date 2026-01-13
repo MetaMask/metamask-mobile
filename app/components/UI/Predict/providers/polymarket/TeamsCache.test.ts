@@ -266,11 +266,13 @@ describe('TeamsCache', () => {
       expect(team).toBeUndefined();
     });
 
-    it('returns undefined for unloaded league', () => {
+    it('returns team from loaded league', () => {
       const cache = TeamsCache.getInstance();
 
-      const team = cache.getTeam('nfl' as const, 'sea');
+      const team = cache.getTeam('nfl', 'sea');
+
       expect(team).toBeDefined();
+      expect(team?.name).toBe('Seattle Seahawks');
     });
   });
 

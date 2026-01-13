@@ -1,4 +1,5 @@
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import { PredictSportsLeague } from '../../types';
 import { PolymarketApiTeam } from './types';
 import { getPolymarketEndpoints } from './utils';
@@ -86,18 +87,29 @@ export class TeamsCache {
       const response = await fetch(url);
 
       if (!response.ok) {
-        DevLogger.log(
-          `[TeamsCache] Failed to fetch teams for ${league}: ${response.status}`,
-        );
+        const errorMessage = `Failed to fetch teams for ${league}: ${response.status}`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: 'polymarket',
+          method: 'TeamsCache.fetchAndCacheTeams',
+          league,
+          statusCode: response.status,
+        });
         return;
       }
 
       const teams: PolymarketApiTeam[] = await response.json();
 
       if (!Array.isArray(teams)) {
-        DevLogger.log(
-          `[TeamsCache] Invalid response format for ${league} teams`,
-        );
+        const errorMessage = `Invalid response format for ${league} teams`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: 'polymarket',
+          method: 'TeamsCache.fetchAndCacheTeams',
+          league,
+        });
         return;
       }
 
@@ -119,6 +131,12 @@ export class TeamsCache {
         `[TeamsCache] Error fetching teams for ${league}:`,
         error instanceof Error ? error.message : 'Unknown error',
       );
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        feature: 'predict',
+        provider: 'polymarket',
+        method: 'TeamsCache.fetchAndCacheTeams',
+        league,
+      });
     }
   }
 }
