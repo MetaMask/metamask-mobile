@@ -54,19 +54,6 @@ class TabBarComponent {
   }
 
   async tapWallet(): Promise<void> {
-    // Close browser if open (app tab bar is hidden in browser)
-    try {
-      const closeBrowserButton = Matchers.getElementByID(
-        'browser-tab-close-button',
-      );
-      await Gestures.waitAndTap(closeBrowserButton, {
-        elemDescription: 'Close browser button',
-        timeout: 1000,
-      });
-    } catch {
-      // Browser not open, continue
-    }
-
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton);
@@ -107,19 +94,6 @@ class TabBarComponent {
   }
 
   async tapActivity(): Promise<void> {
-    // Close browser if open (app tab bar is hidden in browser)
-    try {
-      const closeBrowserButton = Matchers.getElementByID(
-        'browser-tab-close-button',
-      );
-      await Gestures.waitAndTap(closeBrowserButton, {
-        elemDescription: 'Close browser button',
-        timeout: 1000,
-      });
-    } catch {
-      // Browser not open, continue
-    }
-
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarActivityButton, {

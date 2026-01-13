@@ -21,6 +21,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
+import Browser from '../../../pages/Browser/BrowserView';
 
 describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -108,7 +109,8 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

@@ -276,7 +276,8 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Step 3: Approve the network addition
         await ConnectBottomSheet.tapConnectButton();
 
-        // Step 4: Return to wallet (tapWallet automatically closes browser if needed)
+        // Step 4: Close browser to reveal app tab bar, then return to wallet
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
 
         // Verify Ethereum is still the active network (preservation)

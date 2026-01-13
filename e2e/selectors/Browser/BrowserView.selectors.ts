@@ -14,6 +14,7 @@ export const BrowserViewSelectorsIDs = {
   BOOKMARK_BUTTON: 'browser-bookmark-button',
   NEW_TAB_BUTTON: 'browser-new-tab-button',
   TABS_BUTTON: 'browser-tabs-button',
+  BROWSER_CLOSE_BUTTON: 'browser-tab-close-button',
   ADD_NEW_TAB: 'tabs_add',
   CLOSE_ALL_TABS: 'tabs_close_all',
   NO_TABS_MESSAGE: 'no-tabs-message',

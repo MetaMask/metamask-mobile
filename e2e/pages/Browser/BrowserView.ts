@@ -31,6 +31,12 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
+  get closeBrowserButton(): DetoxElement {
+    return Matchers.getElementByID(
+      BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
+    );
+  }
+
   // Legacy getters for backward compatibility with existing tests
   get homeButton(): DetoxElement {
     // Home button removed, but kept for backward compatibility
@@ -155,6 +161,12 @@ class Browser {
   async tapNewTabButtonBottomBar(): Promise<void> {
     await Gestures.waitAndTap(this.newTabButton, {
       elemDescription: 'New tab button in bottom bar',
+    });
+  }
+
+  async tapCloseBrowserButton(): Promise<void> {
+    await Gestures.waitAndTap(this.closeBrowserButton, {
+      elemDescription: 'Close browser button',
     });
   }
 
