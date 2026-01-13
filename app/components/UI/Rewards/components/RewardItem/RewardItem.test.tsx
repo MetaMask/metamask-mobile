@@ -112,7 +112,7 @@ describe('RewardItem', () => {
     ).toBeDefined();
   });
 
-  it('should show claim button when reward is unlocked and unclaimed', () => {
+  it('renders claim button with default label when reward is unlocked and unclaimed', () => {
     const { getByText } = render(
       <RewardItem
         reward={mockReward}
@@ -121,6 +121,20 @@ describe('RewardItem', () => {
       />,
     );
     expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+  });
+
+  it('renders claim button with custom claimCtaLabel when provided', () => {
+    const { getByText, queryByText } = render(
+      <RewardItem
+        reward={mockReward}
+        seasonReward={mockSeasonReward}
+        isLocked={false}
+        claimCtaLabel="Custom Claim"
+      />,
+    );
+
+    expect(getByText('Custom Claim')).toBeDefined();
+    expect(queryByText('rewards.unlocked_rewards.claim_label')).toBeNull();
   });
 
   it('should not show claim button when reward is locked', () => {
@@ -311,6 +325,30 @@ describe('RewardItem', () => {
       );
 
       expect(getByText('rewards.unlocked_rewards.claimed_label')).toBeDefined();
+    });
+
+    it('displays custom endOfSeasonClaimedDescription when provided for claimed end of season reward', () => {
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const seasonRewardWithFutureClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: futureDate,
+      };
+
+      const { getByText, queryByText } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={seasonRewardWithFutureClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+          endOfSeasonClaimedDescription="Custom claimed description"
+        />,
+      );
+
+      expect(getByText('Custom claimed description')).toBeDefined();
+      expect(queryByText('rewards.unlocked_rewards.claimed_label')).toBeNull();
     });
 
     it('hides claim button for non-end-of-season reward when already claimed', () => {
