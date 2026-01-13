@@ -85,13 +85,9 @@ const TronStakingButtons = ({
     });
   };
 
-  if (!isEligible) {
-    return null;
-  }
-
   return (
     <View style={styles.balanceButtonsContainer}>
-      {!hasStakedPositions && (
+      {!hasStakedPositions && isEligible && (
         <View style={styles.ctaContent}>
           <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
             {strings('stake.stake_your_trx_cta.title')}
@@ -113,17 +109,19 @@ const TronStakingButtons = ({
             onPress={onUnstakePress}
           />
         ) : null}
-        <Button
-          testID={'stake-more-button'}
-          style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={
-            hasStakedPositions
-              ? strings('stake.stake_more')
-              : strings('stake.stake_your_trx_cta.earn_button')
-          }
-          onPress={onStakePress}
-        />
+        {isEligible && (
+          <Button
+            testID={'stake-more-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariants.Secondary}
+            label={
+              hasStakedPositions
+                ? strings('stake.stake_more')
+                : strings('stake.stake_your_trx_cta.earn_button')
+            }
+            onPress={onStakePress}
+          />
+        )}
       </View>
     </View>
   );

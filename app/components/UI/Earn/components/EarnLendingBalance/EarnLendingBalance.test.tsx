@@ -248,7 +248,7 @@ describe('EarnLendingBalance', () => {
     ).toBeDefined();
   });
 
-  it('hides lending buttons when user is not eligible', () => {
+  it('renders withdraw button and hides deposit button when user is not eligible', () => {
     mockUseStakingEligibility.mockReturnValue({
       isEligible: false,
       isLoadingEligibility: false,
@@ -256,14 +256,14 @@ describe('EarnLendingBalance', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <EarnLendingBalance asset={mockDaiMainnet} />,
       { state: mockInitialState },
     );
 
     expect(
-      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).toBeNull();
+      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).toBeDefined();
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON),
     ).toBeNull();

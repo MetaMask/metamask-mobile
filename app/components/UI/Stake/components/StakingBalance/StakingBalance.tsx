@@ -49,7 +49,6 @@ import PercentageChange from '../../../../../component-library/components-temp/P
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
 import { useTheme } from '../../../../../util/theme';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -68,8 +67,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
-
-  const { isEligible } = useStakingEligibility();
 
   const { styles } = useStyles(styleSheet, { theme });
 
@@ -139,7 +136,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     trackEvent,
   ]);
 
-  if (!isStakingSupportedChain || !isEligible) {
+  // TODO: Remove tests for button rendering when user is not eligible. This is now covered in the StakingButtons component.
+  if (!isStakingSupportedChain) {
     return null;
   }
 
@@ -154,6 +152,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
     return (
       <>
+        {/* TODO: Write test to ensure that claim banners are rendered even when user is not eligible */}
         {unstakingRequests.map(
           ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
             assetsToDisplay && (

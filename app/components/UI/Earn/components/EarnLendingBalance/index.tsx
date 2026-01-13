@@ -263,9 +263,10 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         )}
       {renderCta()}
       {/* Buttons */}
-      {userHasLendingPositions && isEligible && (
+      {userHasLendingPositions && (
         <View style={[styles.container, styles.buttonsContainer]}>
           {Boolean(receiptToken) && (
+            // TODO: Ensure tests cover that this button is still rendered when the user is not eligible.
             <Button
               variant={ButtonVariants.Secondary}
               style={styles.button}
@@ -275,16 +276,19 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
-          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              style={styles.button}
-              size={ButtonSize.Lg}
-              label={strings('earn.deposit_more')}
-              onPress={handleNavigateToDepositInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-            />
-          )}
+          {/* TODO: Ensure tests cover this button NOT being rendered when the user i not eligible */}
+          {userHasUnderlyingTokensAvailableToLend &&
+            !isAssetReceiptToken &&
+            isEligible && (
+              <Button
+                variant={ButtonVariants.Secondary}
+                style={styles.button}
+                size={ButtonSize.Lg}
+                label={strings('earn.deposit_more')}
+                onPress={handleNavigateToDepositInputScreen}
+                testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
+              />
+            )}
         </View>
       )}
       {isAssetReceiptToken && (

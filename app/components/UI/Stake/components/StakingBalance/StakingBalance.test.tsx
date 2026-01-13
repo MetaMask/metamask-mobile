@@ -233,7 +233,7 @@ describe('StakingBalance', () => {
     ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
   });
 
-  it('does not render when user is not eligible', () => {
+  it('renders claim and unstake banners when user is not eligible', () => {
     mockUseStakingEligibility.mockReturnValue({
       isEligible: false,
       isLoadingEligibility: false,
@@ -241,12 +241,20 @@ describe('StakingBalance', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
-    expect(queryByTestId('staking-balance-container')).toBeNull();
+    // Assert: component renders
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+
+    // Assert: claim/unstake banners remain visible even if ineligible
+    expect(getByTestId('unstaking-banner')).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+
+    // Assert: deposit action is gated off when ineligible
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
   it('render matches snapshot', () => {

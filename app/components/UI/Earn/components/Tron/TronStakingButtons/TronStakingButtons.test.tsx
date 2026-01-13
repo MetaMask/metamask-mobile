@@ -171,7 +171,7 @@ describe('TronStakingButtons', () => {
     });
   });
 
-  it('does not render when user is not eligible', () => {
+  it('does not render stake button when user is not eligible', () => {
     mockUseStakingEligibility.mockReturnValue({
       isEligible: false,
       isLoadingEligibility: false,
@@ -179,9 +179,24 @@ describe('TronStakingButtons', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { toJSON } = render(<TronStakingButtons asset={baseAsset} />);
+    const { queryByTestId } = render(<TronStakingButtons asset={baseAsset} />);
 
-    expect(toJSON()).toBeNull();
+    expect(queryByTestId('stake-more-button')).toBeNull();
+  });
+
+  it('renders unstake button when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = render(
+      <TronStakingButtons asset={baseAsset} showUnstake />,
+    );
+
+    expect(queryByTestId('unstake-button')).toBeOnTheScreen();
   });
 
   describe('CTA section', () => {
