@@ -182,7 +182,7 @@ jobs:
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
+    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-redesigned-ios-smoke
       - trade-ios-smoke
