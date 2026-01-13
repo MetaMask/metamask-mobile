@@ -31,12 +31,12 @@ export function PercentageRow() {
     ? TX_TYPE_ROW_CONFIG[transactionType]
     : undefined;
 
-  if (isLoading) {
-    return <InfoRowSkeleton testId="percentage-row-skeleton" />;
-  }
-
   if (!rowConfig) {
     return null;
+  }
+
+  if (isLoading) {
+    return <InfoRowSkeleton testId="percentage-row-skeleton" />;
   }
 
   const { label, tooltip } = rowConfig;
