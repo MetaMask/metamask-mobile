@@ -74,6 +74,9 @@ export type InputMethod =
   | 'percentage'
   | 'max';
 
+// Trade action type - differentiates first trade on a market from adding to existing position
+export type TradeAction = 'create_position' | 'increase_exposure';
+
 // Unified tracking data interface for analytics events (never persisted in state)
 // Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
@@ -88,6 +91,7 @@ export interface TrackingData {
   // Order-specific (used for trade operations)
   marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
+  tradeAction?: TradeAction; // 'create_position' for first trade, 'increase_exposure' for adding to existing
 
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close (calculated by hooks)

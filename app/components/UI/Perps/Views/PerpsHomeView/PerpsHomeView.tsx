@@ -30,6 +30,7 @@ import {
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
+  usePerpsHomeSectionTracking,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -92,6 +93,9 @@ const PerpsHomeView = () => {
   } = usePerpsHomeActions({
     buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
   });
+
+  // Section scroll tracking for analytics
+  const { handleSectionLayout, handleScroll } = usePerpsHomeSectionTracking();
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -346,6 +350,8 @@ const PerpsHomeView = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
@@ -405,22 +411,26 @@ const PerpsHomeView = () => {
         />
 
         {/* Crypto Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.crypto')}
-          markets={perpsMarkets}
-          marketType="crypto"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-        />
+        <View onLayout={handleSectionLayout('explore_crypto')}>
+          <PerpsMarketTypeSection
+            title={strings('perps.home.crypto')}
+            markets={perpsMarkets}
+            marketType="crypto"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+          />
+        </View>
 
         {/* Stocks & Commodities Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.stocks_and_commodities')}
-          markets={stocksAndCommoditiesMarkets}
-          marketType="stocks_and_commodities"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-        />
+        <View onLayout={handleSectionLayout('explore_stocks')}>
+          <PerpsMarketTypeSection
+            title={strings('perps.home.stocks_and_commodities')}
+            markets={stocksAndCommoditiesMarkets}
+            marketType="stocks_and_commodities"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+          />
+        </View>
 
         {/* Forex Markets List */}
         <PerpsMarketTypeSection
@@ -431,10 +441,12 @@ const PerpsHomeView = () => {
         />
 
         {/* Recent Activity List */}
-        <PerpsRecentActivityList
-          transactions={recentActivity}
-          isLoading={isLoading.activity}
-        />
+        <View onLayout={handleSectionLayout('activity')}>
+          <PerpsRecentActivityList
+            transactions={recentActivity}
+            isLoading={isLoading.activity}
+          />
+        </View>
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />

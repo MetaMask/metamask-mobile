@@ -128,6 +128,9 @@ export const PerpsEventProperties = {
   STOP_LOSS_PERCENTAGE: 'stop_loss_percentage',
   // Watchlist/Favorites properties
   FAVORITES_COUNT: 'favorites_count',
+
+  // Scroll tracking properties
+  SECTION_VIEWED: 'section_viewed',
 } as const;
 
 /**
@@ -353,6 +356,9 @@ export const PerpsEventValues = {
     REMOVE_MARGIN: 'remove_margin',
     EDIT_TP_SL: 'edit_tp_sl',
     CREATE_TP_SL: 'create_tp_sl',
+    // Trade transaction actions - differentiates new position from adding to existing
+    CREATE_POSITION: 'create_position',
+    INCREASE_EXPOSURE: 'increase_exposure',
   },
   // Risk management sources
   RISK_MANAGEMENT_SOURCE: {

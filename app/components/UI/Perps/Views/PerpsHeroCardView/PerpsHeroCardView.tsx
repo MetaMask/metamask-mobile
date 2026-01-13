@@ -158,6 +158,24 @@ const PerpsHeroCardView: React.FC = () => {
     },
   });
 
+  // Track DISPLAY_HERO_CARD UI interaction (spec requirement)
+  // Source indicates where user tapped to display the card: open_position or position_close_toast
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
+    properties: {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.DISPLAY_HERO_CARD,
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]:
+        data.direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.SOURCE]: entryPoint,
+      [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
+      [PerpsEventProperties.PNL_PERCENT]: data.roe,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {
     isLong: data.isLong,
     hasReferralCode: Boolean(rewardsReferralCode),
