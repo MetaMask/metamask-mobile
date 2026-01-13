@@ -268,6 +268,44 @@ describe('intent', () => {
       ).rejects.toThrow('Intent transaction is not supported');
     });
 
+    it('throws error when intent.order is missing', async () => {
+      const quoteResponse = createMockQuoteResponse({
+        quote: {
+          requestId: 'test-request-id',
+          srcChainId: 1,
+          destChainId: 10,
+          srcAsset: {
+            chainId: 1,
+            address: '0x123',
+            decimals: 18,
+            symbol: 'TOKEN1',
+            name: 'Token One',
+          },
+          destAsset: {
+            chainId: 10,
+            address: '0x456',
+            decimals: 18,
+            symbol: 'TOKEN2',
+            name: 'Token Two',
+          },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '2000000000000000000',
+          intent: {
+            protocol: 'cowswap',
+            settlementContract: '0x9008D19f58AAbd9eD0D60971565AA8510560ab41',
+            // order is intentionally missing
+          },
+        },
+      } as unknown as BridgeQuoteResponse);
+
+      await expect(
+        handleIntentTransaction(
+          quoteResponse,
+          '0x1234567890123456789012345678901234567890',
+        ),
+      ).rejects.toThrow('Intent order is missing from quote response');
+    });
+
     it('calls submitIntent with normalized quote response and signature', async () => {
       const mockSignature = '0xabcdef1234567890' as Hex;
       const mockSubmitResult = {

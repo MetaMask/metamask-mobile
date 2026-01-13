@@ -121,6 +121,9 @@ export async function handleIntentTransaction(
       intent.settlementContract ?? '0x9008D19f58AAbd9eD0D60971565AA8510560ab41';
 
     const order = intent.order;
+    if (!order) {
+      throw new Error('Intent order is missing from quote response');
+    }
     // TODO: this should be mapped directly inside Crosschain API
     const message: IntentOrderInput = {
       ...order,
