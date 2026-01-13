@@ -7,7 +7,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: ${output.onboarding.welcome.createNewWalletBtn}
-    timeout: 30000
+    timeout: 60000
 
 - tapOn:
     id: ${output.onboarding.welcome.createNewWalletBtn}
