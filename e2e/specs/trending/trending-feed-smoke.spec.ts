@@ -4,8 +4,6 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import Matchers from '../../framework/Matchers';
-import Assertions from '../../framework/Assertions';
 import TrendingView from '../../pages/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
@@ -36,12 +34,7 @@ describe(SmokeWalletUX('Trending Feed Smoke Test'), () => {
 
         // 2. Verify visibility of sections
         // Note: We're checking text content for headers as a proxy for section visibility
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Tokens'),
-          {
-            description: 'Tokens section header should be visible',
-          },
-        );
+        await TrendingView.verifySectionHeaderVisible('Tokens');
 
         // 3. Verify Token Item is visible (USDC from mock)
         const usdcAssetId =
@@ -53,12 +46,7 @@ describe(SmokeWalletUX('Trending Feed Smoke Test'), () => {
 
         // 5. Verify Details Page
         // "USD Coin" should be visible as title
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('USD Coin'),
-          {
-            description: 'Token details page title should be visible',
-          },
-        );
+        await TrendingView.verifyTokenDetailsTitleVisible('USD Coin');
       },
     );
   });
@@ -81,12 +69,7 @@ describe(SmokeWalletUX('Trending Feed Smoke Test'), () => {
 
         // 3. Verify Full Screen View
         // The title "Tokens" should still be visible.
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Tokens'),
-          {
-            description: 'Tokens full view title should be visible',
-          },
-        );
+        await TrendingView.verifySectionHeaderVisible('Tokens');
       },
     );
   });

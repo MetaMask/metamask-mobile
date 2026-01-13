@@ -1,30 +1,46 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import {
+  TrendingViewSelectorsIDs,
+  TrendingViewSelectorsText,
+} from '../../selectors/Trending/TrendingView.selectors';
 
 class TrendingView {
   get trendingTab(): DetoxElement {
-    return Matchers.getElementByID('tab-bar-item-Trending');
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.TAB_BAR_ITEM);
   }
 
   get searchButton(): DetoxElement {
-    return Matchers.getElementByID('explore-view-search-button');
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
 
   get browserButton(): DetoxElement {
-    return Matchers.getElementByID('trending-view-browser-button');
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
   get searchInput(): DetoxElement {
-    return Matchers.getElementByID('explore-view-search-input');
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
   get searchCancelButton(): DetoxElement {
-    return Matchers.getElementByID('explore-search-cancel-button');
+    return Matchers.getElementByID(
+      TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
+    );
+  }
+
+  get viewAllButton(): DetoxElement {
+    return Matchers.getElementByText(TrendingViewSelectorsText.VIEW_ALL, 0);
   }
 
   getTokenRow(assetId: string): DetoxElement {
-    return Matchers.getElementByID(`trending-token-row-item-${assetId}`);
+    return Matchers.getElementByID(
+      `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
+    );
+  }
+
+  getSectionHeader(title: string): DetoxElement {
+    return Matchers.getElementByText(title);
   }
 
   async tapTrendingTab(): Promise<void> {
@@ -62,8 +78,7 @@ class TrendingView {
     // Finding it reliably might require a specific testID in the app code if "View all" is generic.
     // For now, we try to find it near the section title or by index if known.
     // Ideally, app code should have testIDs like `section-header-view-all-${sectionId}`.
-    const viewAllButton = Matchers.getElementByText('View all', 0); // Simplified for now
-    await Gestures.tap(viewAllButton, {
+    await Gestures.tap(this.viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
     });
   }
@@ -78,6 +93,21 @@ class TrendingView {
     await Gestures.tap(this.getTokenRow(assetId), {
       elemDescription: `Tap token row ${assetId}`,
     });
+  }
+
+  async verifySectionHeaderVisible(title: string): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.getSectionHeader(title), {
+      description: `${title} section header should be visible`,
+    });
+  }
+
+  async verifyTokenDetailsTitleVisible(title: string): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(title),
+      {
+        description: `Token details page title ${title} should be visible`,
+      },
+    );
   }
 }
 
