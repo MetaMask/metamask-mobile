@@ -443,14 +443,21 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
+                                testID="header-title"
                               >
                                 Region not supported
                               </Text>
@@ -1039,14 +1046,21 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
+                                testID="header-title"
                               >
                                 Region not supported
                               </Text>

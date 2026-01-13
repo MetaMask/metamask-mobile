@@ -38,14 +38,21 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 16,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            {
+              "textAlign": "center",
+            },
+          ]
         }
+        testID="header-title"
       >
         Add Test Chain
       </Text>
@@ -577,14 +584,21 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 16,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            {
+              "textAlign": "center",
+            },
+          ]
         }
+        testID="header-title"
       >
         Update Test Chain
       </Text>

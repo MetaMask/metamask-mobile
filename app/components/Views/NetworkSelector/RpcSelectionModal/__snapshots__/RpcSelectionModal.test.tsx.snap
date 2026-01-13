@@ -149,21 +149,8 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             ]
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
-                "fontSize": 18,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Select RPC URL
-             
-          </Text>
+          Select RPC URL
+           
           <TouchableOpacity
             avatarProps={
               {
