@@ -112,8 +112,8 @@ export const useTrendingRequest = (options: {
         }
         // Silent updates silently fail - don't update error state or results
       } finally {
-        // Only update loading state if this is still the current request and not a silent update
-        if (currentRequestId === requestIdRef.current && !isSilentUpdate) {
+        // Only update loading state if this is still the current request
+        if (currentRequestId === requestIdRef.current) {
           setIsLoading(false);
         }
       }
