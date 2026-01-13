@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { SignatureControllerMessenger } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
