@@ -80,6 +80,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "You didn't earn rewards this season, but there's always next time.",
       'rewards.previous_season_summary.verifying_rewards':
         "We're making sure everything's correct before you claim your rewards.",
+      'rewards.claim_reward_redeem.success_description':
+        'Redeem claim success description',
+      'rewards.claim_reward_redeem.button_label': 'Redeem',
     };
     return translations[key] || key;
   }),
@@ -214,6 +217,8 @@ jest.mock('../RewardItem/RewardItem', () => {
       isLast,
       compact,
       onPress,
+      endOfSeasonClaimedDescription,
+      claimCtaLabel,
     }: {
       reward: RewardDto;
       seasonReward: SeasonRewardDto;
@@ -223,12 +228,14 @@ jest.mock('../RewardItem/RewardItem', () => {
       isLast?: boolean;
       compact?: boolean;
       onPress?: (rewardId: string, sr: SeasonRewardDto) => void;
+      endOfSeasonClaimedDescription?: string;
+      claimCtaLabel?: string;
     }) =>
       ReactActual.createElement(
         TouchableOpacity,
         {
           testID: testID || `reward-item-${reward.id}`,
-          accessibilityLabel: `isLocked:${isLocked},isEndOfSeasonReward:${isEndOfSeasonReward},isLast:${isLast},compact:${compact}`,
+          accessibilityLabel: `isLocked:${isLocked},isEndOfSeasonReward:${isEndOfSeasonReward},isLast:${isLast},compact:${compact},endOfSeasonClaimedDescription:${endOfSeasonClaimedDescription},claimCtaLabel:${claimCtaLabel}`,
           onPress: () => onPress?.(reward.id, seasonReward),
         },
         ReactActual.createElement(Text, {}, seasonReward.name),
@@ -619,6 +626,49 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
   });
 
+  it('passes redeem-specific props for METAL_CARD rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockMetalCardUnlockedReward];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-metal-card');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:Redeem claim success description',
+    );
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'claimCtaLabel:Redeem',
+    );
+  });
+
+  it('passes undefined redeem props for non-METAL_CARD rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-1');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:undefined',
+    );
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'claimCtaLabel:undefined',
+    );
+  });
+
   it('passes isEndOfSeasonReward=true to RewardItem', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
@@ -692,6 +742,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(mockNavigate).toHaveBeenCalledWith('MetalCardClaimBottomSheet', {
       rewardId: 'reward-metal-card',
       seasonRewardId: 'season-reward-metal-card',
+      title: 'Metal Card Reward',
     });
   });
 
