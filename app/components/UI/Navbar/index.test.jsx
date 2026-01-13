@@ -160,24 +160,26 @@ describe('getDepositNavbarOptions', () => {
     jest.clearAllMocks();
   });
 
-  it('returns navbar options with the correct title', () => {
+  it('returns navbar options with header function', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
+
     expect(options).toBeDefined();
-    expect(options.title).toBe('Deposit');
+    expect(options.header).toBeInstanceOf(Function);
   });
 
-  it('deposit navbar options to pop when back button is pressed', () => {
+  it('pops navigation when back button is pressed', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
-    const headerLeftComponent = options.headerLeft();
-    headerLeftComponent.props.onPress();
+    const HeaderComponent = options.header();
+    HeaderComponent.props.startButtonIconProps.onPress();
+
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
