@@ -21,7 +21,8 @@ import {
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
-describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

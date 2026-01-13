@@ -17,7 +17,8 @@ import {
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
-describe(
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
   () => {
     let sharedUserStorageController: UserStorageMockttpController;

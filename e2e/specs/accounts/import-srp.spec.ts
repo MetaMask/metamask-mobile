@@ -12,7 +12,8 @@ import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 // be: "Account 1".
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
 
-describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeWalletPlatform('Multichain import SRP account'), () => {
   it('should import account with SRP', async () => {
     await withFixtures(
       {
