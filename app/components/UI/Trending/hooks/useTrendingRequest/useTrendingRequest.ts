@@ -8,6 +8,13 @@ import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 /**
+ * Default minimum liquidity threshold in USD to filter out low-liquidity tokens.
+ * This helps prevent showing highly volatile tokens with minimal trading activity
+ * that can display extreme price swings due to their low liquidity.
+ */
+export const DEFAULT_MIN_LIQUIDITY_USD = 50000;
+
+/**
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
@@ -23,7 +30,7 @@ export const useTrendingRequest = (options: {
   const {
     chainIds: providedChainIds = [],
     sortBy = 'h24_trending',
-    minLiquidity = 0,
+    minLiquidity = DEFAULT_MIN_LIQUIDITY_USD,
     minVolume24hUsd = 0,
     maxVolume24hUsd,
     minMarketCap = 0,

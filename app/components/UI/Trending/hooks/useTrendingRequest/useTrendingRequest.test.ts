@@ -1,4 +1,7 @@
-import { useTrendingRequest } from './useTrendingRequest';
+import {
+  useTrendingRequest,
+  DEFAULT_MIN_LIQUIDITY_USD,
+} from './useTrendingRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
@@ -260,6 +263,62 @@ describe('useTrendingRequest', () => {
     expect(spyGetTrendingTokens).toHaveBeenCalledWith(
       expect.objectContaining({
         chainIds: customChainIds,
+      }),
+    );
+
+    spyGetTrendingTokens.mockRestore();
+  });
+
+  it('uses default minimum liquidity to filter low-liquidity tokens', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+      }),
+    );
+
+    await waitFor(() => {
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    });
+
+    expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        minLiquidity: DEFAULT_MIN_LIQUIDITY_USD,
+      }),
+    );
+
+    spyGetTrendingTokens.mockRestore();
+  });
+
+  it('allows overriding the default minimum liquidity', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    const customMinLiquidity = 100000;
+    renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+        minLiquidity: customMinLiquidity,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    });
+
+    expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        minLiquidity: customMinLiquidity,
       }),
     );
 
