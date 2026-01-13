@@ -217,6 +217,7 @@ jobs:
             echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
             
             if [ "$key" = "EXPO_KEY_PRIV_B64" ]; then
+              echo "First 3 chars: ${value:0:3}..."
               DECODED_KEY=$(echo "$value" | base64 --decode)
               echo "::add-mask::$DECODED_KEY"
               echo "EXPO_KEY_PRIV=$DECODED_KEY" >> "$GITHUB_ENV"
