@@ -80,6 +80,7 @@ import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderS
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -1291,6 +1292,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
     return null;
   };
+
+  if (market?.game) {
+    return (
+      <PredictGameDetailsContent
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+      />
+    );
+  }
 
   return (
     <SafeAreaView
