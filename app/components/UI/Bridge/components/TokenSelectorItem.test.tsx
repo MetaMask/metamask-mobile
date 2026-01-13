@@ -30,7 +30,6 @@ jest.mock('../../../../component-library/hooks', () => ({
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
-      nativeTokenIcon: {},
     },
   }),
 }));
@@ -62,11 +61,6 @@ jest.mock(
 
 jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
-}));
-
-jest.mock('../../../Base/TokenIcon', () => ({
-  __esModule: true,
-  default: () => null,
 }));
 
 jest.mock('../../../../component-library/base-components/TagBase', () => {
@@ -195,7 +189,7 @@ describe('TokenSelectorItem', () => {
       expect(getByText('TEST')).toBeTruthy();
     });
 
-    it('renders native token with TokenIcon when address is zero address', () => {
+    it('renders native token when address is zero address', () => {
       const token = createMockTokenWithBalance({
         address: ethers.constants.AddressZero,
         symbol: 'ETH',
