@@ -164,29 +164,29 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('143'),
-    nickname: 'Monad',
-    rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('monad-mainnet'),
+    chainId: toHex('10143'), // Monad Testnet - FIXED: was 143 (mainnet doesn't exist yet)
+    nickname: 'Monad Testnet',
+    rpcUrl: `https://testnet.monad.xyz`, // TODO: Update with correct RPC when available
+    failoverRpcUrls: [],
     ticker: 'MON',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://monadscan.com/',
+      blockExplorerUrl: 'https://testnet.monadexplorer.com',
       imageUrl: 'MON',
       imageSource: require('../../images/monad-mainnet-logo.png'),
     },
   },
   {
-    chainId: toHex('4326'),
-    nickname: 'MegaEth',
-    rpcUrl: `https://mainnet.megaeth.com/rpc`,
+    chainId: toHex('6343'), // MegaETH Testnet V2 - FIXED: was 4326 (incorrect)
+    nickname: 'MegaETH Testnet',
+    rpcUrl: `https://megaeth-testnet-v2-rpc.com`, // TODO: Update with correct RPC when available
     failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.megaeth.com',
+      blockExplorerUrl: 'https://megaeth-testnet-v2.blockscout.com',
       imageUrl: 'MEGAETH',
-      imageSource: require('../../images/megaeth-mainnet-logo.png'),
+      imageSource: require('../../images/megaeth-testnet-logo.png'), // Note: changed to testnet logo
     },
   },
 ];
@@ -356,7 +356,7 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
   readonly SEI_MAINNET: '0x531';
-  readonly MONAD_MAINNET: '0x8f';
+  readonly MONAD_TESTNET: '0x279f'; // Changed from MONAD_MAINNET: '0x8f' (mainnet doesn't exist yet)
   readonly MATCHAIN_MAINNET: '0x2ba';
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
@@ -372,7 +372,7 @@ export const NETWORK_CHAIN_ID: {
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
-  readonly MEGAETH_MAINNET: '0x10e6';
+  readonly MEGAETH_TESTNET_V2: '0x18c7'; // Changed from MEGAETH_MAINNET: '0x10e6' (incorrect chain ID)
   readonly HEMI: '0xa867';
   readonly LUKSO: '0x2a';
   readonly INJECTIVE: '0x6f0';
@@ -397,7 +397,7 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
   SEI_MAINNET: '0x531',
-  MONAD_MAINNET: '0x8f',
+  MONAD_TESTNET: '0x279f', // Changed from MONAD_MAINNET: '0x8f'
   MATCHAIN_MAINNET: '0x2ba',
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
@@ -413,7 +413,7 @@ export const NETWORK_CHAIN_ID: {
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
   XDC: '0x32',
-  MEGAETH_MAINNET: '0x10e6',
+  MEGAETH_TESTNET_V2: '0x18c7', // Changed from MEGAETH_MAINNET: '0x10e6'
   HEMI: '0xa867',
   LUKSO: '0x2a',
   INJECTIVE: '0x6f0',
@@ -443,7 +443,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.SEI_MAINNET]: require('../../images/sei.png'),
-  [NETWORK_CHAIN_ID.MONAD_MAINNET]: require('../../images/monad-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.MONAD_TESTNET]: require('../../images/monad-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
@@ -459,8 +459,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
-  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
-  [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
+  [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
   [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),

@@ -23,8 +23,21 @@ import Logger from '../../../util/Logger';
 const NON_EMPTY = 'NON_EMPTY';
 
 export const ADDITIONAL_DEFAULT_NETWORKS = [
-  ChainId['megaeth-testnet'],
-  ChainId['monad-testnet'],
+  ChainId['megaeth-testnet-v2'], // MegaETH Testnet V2 (0x18c7) - UPDATED from megaeth-testnet
+  ChainId['monad-testnet'], // Monad Testnet (0x279f)
+  // New additions for 20+ network performance testing spike
+  ChainId['fantom-mainnet'], // Fantom Opera (0xfa)
+  ChainId['gnosis-mainnet'], // Gnosis Chain (0x64)
+  ChainId['celo-mainnet'], // Celo (0xa4ec)
+  ChainId['cronos-mainnet'], // Cronos (0x19)
+  ChainId.aurora, // Aurora (0x4e454152)
+  ChainId['moonbeam-mainnet'], // Moonbeam (0x504)
+  ChainId['moonriver-mainnet'], // Moonriver (0x505)
+  ChainId['klaytn-mainnet'], // Klaytn (0x2019)
+  ChainId['avalanche-mainnet'], // Avalanche (0xa86a) - FIXED: was ChainId.AvalancheMainnet
+  ChainId['zksync-era-mainnet'], // zkSync Era (0x144) - FIXED: was ChainId.ZkSyncEraMainnet
+  ChainId['palm-mainnet'], // Palm (0x2a15c308d) - FIXED: was ChainId.PalmMainnet
+  ChainId['hypervm-mainnet'], // HyperEVM (0x3e7) - FIXED: was ChainId.HyperEvmMainnet
 ];
 
 export function getInitialNetworkControllerState(persistedState: {
@@ -91,11 +104,11 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['polygon-mainnet']
     ].name = 'Polygon';
 
-    // Remove Sei from initial state so it appears in Additional Networks section
-    // Users can add it manually, and it will be available in FEATURED_RPCS
-    delete initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['sei-mainnet']
-    ];
+    // NOTE: Sei is now included in the default networks for 20+ network performance testing
+    // Commented out to allow Sei to appear in Popular networks
+    // delete initialNetworkControllerState.networkConfigurationsByChainId[
+    //   ChainId['sei-mainnet']
+    // ];
   }
 
   return initialNetworkControllerState;

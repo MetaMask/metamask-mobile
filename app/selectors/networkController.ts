@@ -286,12 +286,17 @@ export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
 
 export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
   selectNetworkConfigurationsByCaipChainId,
-  (networkConfigurationsByChainId) =>
-    Object.values(networkConfigurationsByChainId).filter(
+  (networkConfigurationsByChainId) => {
+    console.log(
+      '[selectPopularNetworkConfigurationsByCaipChainId] networkConfigurationsByChainId',
+      networkConfigurationsByChainId,
+    );
+    return Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
         !NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
-    ),
+    );
+  },
 );
 
 export const selectNativeNetworkCurrencies = createDeepEqualSelector(

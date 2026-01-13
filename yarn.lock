@@ -7425,7 +7425,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.11.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.17.0, @metamask/controller-utils@npm:^11.3.0":
+"@metamask/controller-utils@npm:11.17.0":
   version: 11.17.0
   resolution: "@metamask/controller-utils@npm:11.17.0"
   dependencies:
@@ -7443,6 +7443,27 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
   checksum: 10/112bb651db00ad9e71689ab0e406c049e512a1d26d43043adf0faa46ce1127e77a0cdb95451045dbbc420b2a56909c1b2aecf0a971b0484ce856c760d3eb2e64
+  languageName: node
+  linkType: hard
+
+"@metamask/controller-utils@patch:@metamask/controller-utils@npm%3A11.17.0#~/.yarn/patches/@metamask-controller-utils-npm-11.17.0-4d7d642051.patch":
+  version: 11.17.0
+  resolution: "@metamask/controller-utils@patch:@metamask/controller-utils@npm%3A11.17.0#~/.yarn/patches/@metamask-controller-utils-npm-11.17.0-4d7d642051.patch::version=11.17.0&hash=b2fa2e"
+  dependencies:
+    "@metamask/eth-query": "npm:^4.0.0"
+    "@metamask/ethjs-unit": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+    "@spruceid/siwe-parser": "npm:2.1.0"
+    "@types/bn.js": "npm:^5.1.5"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    cockatiel: "npm:^3.1.2"
+    eth-ens-namehash: "npm:^2.0.8"
+    fast-deep-equal: "npm:^3.1.3"
+    lodash: "npm:^4.17.21"
+  peerDependencies:
+    "@babel/runtime": ^7.0.0
+  checksum: 10/a98ec07f5e441ad0f3ca0cc9a508bb638fe128a31020a6987b7ed24f36202183ad106ac9bd31251ca209e7ca543bee2ad5178281d63573501a8fe9d9dd16291a
   languageName: node
   linkType: hard
 
@@ -8423,7 +8444,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-controller@npm:^27.0.0, @metamask/network-controller@npm:^27.1.0":
+"@metamask/network-controller@npm:27.1.0":
   version: 27.1.0
   resolution: "@metamask/network-controller@npm:27.1.0"
   dependencies:
@@ -8451,6 +8472,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/network-controller@patch:@metamask/network-controller@npm%3A27.1.0#~/.yarn/patches/@metamask-network-controller-npm-27.1.0-4096a86509.patch":
+  version: 27.1.0
+  resolution: "@metamask/network-controller@patch:@metamask/network-controller@npm%3A27.1.0#~/.yarn/patches/@metamask-network-controller-npm-27.1.0-4096a86509.patch::version=27.1.0&hash=3c9d48"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.17.0"
+    "@metamask/error-reporting-service": "npm:^3.0.0"
+    "@metamask/eth-block-tracker": "npm:^15.0.0"
+    "@metamask/eth-json-rpc-infura": "npm:^10.3.0"
+    "@metamask/eth-json-rpc-middleware": "npm:^22.0.1"
+    "@metamask/eth-json-rpc-provider": "npm:^6.0.0"
+    "@metamask/eth-query": "npm:^4.0.0"
+    "@metamask/json-rpc-engine": "npm:^10.2.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/rpc-errors": "npm:^7.0.2"
+    "@metamask/swappable-obj-proxy": "npm:^2.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+    async-mutex: "npm:^0.5.0"
+    fast-deep-equal: "npm:^3.1.3"
+    immer: "npm:^9.0.6"
+    loglevel: "npm:^1.8.1"
+    reselect: "npm:^5.1.1"
+    uri-js: "npm:^4.4.1"
+    uuid: "npm:^8.3.2"
+  checksum: 10/208b3846cd24c8938dfaebb8b8a7fb0c91a2863764cf26e40a6fca36359c76db33b8ff361f8e1f32a0ced6d9b1accfb6f6c88db3370433a6116760b308b08593
+  languageName: node
+  linkType: hard
+
 "@metamask/network-enablement-controller@npm:3.1.0":
   version: 3.1.0
   resolution: "@metamask/network-enablement-controller@npm:3.1.0"
@@ -8471,7 +8520,7 @@ __metadata:
 
 "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch":
   version: 3.1.0
-  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch::version=3.1.0&hash=e5166e"
+  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch::version=3.1.0&hash=7c02dc"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.14.1"
@@ -8483,7 +8532,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^2.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/15d3c51ee3ec9bd2c914862915ff444a21626aaa4df15a8df3dc22df1204245e2789786af713f467fdd1b2dfded255ece55973f436c8910ad8c6bfa4439f6e95
+  checksum: 10/9ff9700ba1e5d3046974106f476c5098375516b454d4aa25fcc0407e4586447156b77fcb3e993f96fcfa6f01aea07892a1e367a655318370daf41113fa1cc279
   languageName: node
   linkType: hard
 
@@ -34162,7 +34211,7 @@ __metadata:
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
     "@metamask/composable-controller": "npm:^12.0.0"
-    "@metamask/controller-utils": "npm:^11.16.0"
+    "@metamask/controller-utils": "patch:@metamask/controller-utils@npm%3A11.17.0#~/.yarn/patches/@metamask-controller-utils-npm-11.17.0-4d7d642051.patch"
     "@metamask/core-backend": "npm:^4.1.0"
     "@metamask/delegation-controller": "npm:^1.0.0"
     "@metamask/delegation-deployments": "npm:^0.15.0"
@@ -34211,7 +34260,7 @@ __metadata:
     "@metamask/multichain-network-controller": "npm:^2.0.0"
     "@metamask/multichain-transactions-controller": "npm:^6.0.0"
     "@metamask/native-utils": "npm:^0.8.0"
-    "@metamask/network-controller": "npm:^27.1.0"
+    "@metamask/network-controller": "patch:@metamask/network-controller@npm%3A27.1.0#~/.yarn/patches/@metamask-network-controller-npm-27.1.0-4096a86509.patch"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch"
     "@metamask/notification-services-controller": "npm:^21.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
