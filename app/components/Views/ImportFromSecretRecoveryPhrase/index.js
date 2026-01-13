@@ -775,35 +775,30 @@ const ImportFromSecretRecoveryPhrase = ({
         style={styles.keyboardStickyView}
       >
         <View style={styles.stickyButtonContainer}>
-          <Button
-            loading={currentStep === 1 ? loading : false}
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
-            label={
-              currentStep === 0
-                ? strings('import_from_seed.continue')
-                : strings('import_from_seed.import_create_password_cta')
-            }
-            onPress={
-              currentStep === 0 ? handleContinueImportFlow : onPressImport
-            }
-            disabled={
-              currentStep === 0
-                ? isSRPContinueButtonDisabled || Boolean(error)
-                : isContinueButtonDisabled
-            }
-            size={ButtonSize.Lg}
-            isDisabled={
-              currentStep === 0
-                ? isSRPContinueButtonDisabled || Boolean(error)
-                : isContinueButtonDisabled
-            }
-            testID={
-              currentStep === 0
-                ? ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID
-                : ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID
-            }
-          />
+          {currentStep === 0 ? (
+            <Button
+              width={ButtonWidthTypes.Full}
+              variant={ButtonVariants.Primary}
+              label={strings('import_from_seed.continue')}
+              onPress={handleContinueImportFlow}
+              disabled={isSRPContinueButtonDisabled || Boolean(error)}
+              size={ButtonSize.Lg}
+              isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
+              testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
+            />
+          ) : (
+            <Button
+              loading={loading}
+              width={ButtonWidthTypes.Full}
+              variant={ButtonVariants.Primary}
+              label={strings('import_from_seed.import_create_password_cta')}
+              onPress={onPressImport}
+              disabled={isContinueButtonDisabled}
+              size={ButtonSize.Lg}
+              isDisabled={isContinueButtonDisabled}
+              testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+            />
+          )}
         </View>
 
         {isSrpWordSuggestionsEnabled &&

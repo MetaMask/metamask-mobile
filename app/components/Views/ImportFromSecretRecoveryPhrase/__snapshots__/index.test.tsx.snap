@@ -775,7 +775,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                             accessible={true}
                             activeOpacity={1}
                             disabled={true}
-                            loading={false}
                             onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
