@@ -2,7 +2,7 @@
 
 ## Migration Status: IN PROGRESS (Runtime Fixes Complete)
 
-**Last Updated:** January 12, 2026
+**Last Updated:** January 13, 2026
 
 ### Completed ✅
 
@@ -164,12 +164,21 @@ Bottom sheet modal stacks within features now use transparent modals:
 - [x] Enhanced `app/core/NavigationService/NavigationService.ts` - `NavigationService.navigation.navigate()` now uses `pop: true` by default
 - [x] Fixed `useSendNavbar.tsx` - Uses `pop: true` option for back navigation
 
+**`createNavigationDetails` Fix & Deprecation:**
+
+- [x] Fixed `createNavigationDetails` return type to work with v7's strict `navigate()` overloads
+  - Returns `[any, any]` tuple for compatibility with React Navigation v7
+  - Params type `T` is still checked at call site for type safety
+- [x] Deprecated `createNavigationDetails` in favor of direct navigation
+  - Added `@deprecated` JSDoc tag with migration guidance
+  - Direct `navigation.navigate(Routes.XXX, params)` provides full type safety with `RootParamList`
+
 ### In Progress 🔄
 
-- [ ] Fix remaining TypeScript errors
-  - `createNavigationDetails` return types
+- [ ] Fix remaining TypeScript errors (~143 errors)
   - `ScreenComponentType` mismatches in feature routes
   - Navigation prop type mismatches
+  - Stack navigator param list typing
 
 ### Pending Testing 🧪
 
@@ -1158,6 +1167,7 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 | `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                           |
 | `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }`            |
 | `useNavigation()` in modal callbacks        | `NavigationService.navigation.navigate()` (global ref, auto `pop: true`)                     |
+| `createNavigationDetails<T>(route)`         | **DEPRECATED** - Use `navigation.navigate(route, params)` for full type safety               |
 
 ### Screen Presentation (iOS Sheet Modal Fix)
 
@@ -1309,6 +1319,36 @@ NavigationService.navigation.goBack();
 NavigationService.navigation.popToTop();
 NavigationService.navigation.dispatch(action);
 ```
+
+### `createNavigationDetails` Deprecation
+
+The `createNavigationDetails` helper is now deprecated. Use direct navigation for full type safety:
+
+```jsx
+// ❌ DEPRECATED - createNavigationDetails pattern
+const goToScreen = createNavigationDetails < MyParams > Routes.SCREEN;
+navigation.navigate(...goToScreen({ id: '123' }));
+
+// ✅ RECOMMENDED - Direct navigation with full RootParamList type safety
+navigation.navigate(Routes.SCREEN, { id: '123' });
+
+// ✅ For nested navigation
+navigation.navigate(Routes.MODAL.ROOT, {
+  screen: Routes.MODAL.SCREEN,
+  params: { id: '123' },
+});
+```
+
+**Why deprecated:**
+
+| Aspect                 | `createNavigationDetails`       | Direct `navigate()`           |
+| ---------------------- | ------------------------------- | ----------------------------- |
+| Route name validated   | ❌ No (uses `string`)           | ✅ Yes (literal type)         |
+| Params validated       | ⚠️ Partial (caller-defined `T`) | ✅ Yes (from `RootParamList`) |
+| Type assertions        | ⚠️ Uses `[any, any]`            | ✅ None needed                |
+| React Nav v7 idiomatic | ❌ No                           | ✅ Yes                        |
+
+**Technical note:** `createNavigationDetails` now returns `[any, any]` to satisfy v7's strict `navigate()` overloads, but this bypasses type checking. Direct navigation leverages the global `RootParamList` type augmentation for full type safety.
 
 ### New Methods in v7
 

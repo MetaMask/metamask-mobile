@@ -9,10 +9,12 @@ import {
 } from '@react-navigation/native';
 import type { RootParamList } from '../../types/navigation.d';
 
-type NavigationParams = object | undefined;
-
-export type NavigationDetails<T extends NavigationParams = NavigationParams> =
-  readonly [string, T];
+/**
+ * @deprecated Use direct navigation with RootParamList types instead.
+ */
+export type NavigationDetails<
+  T extends object | undefined = object | undefined,
+> = readonly [string, T];
 
 /**
  * Navigate options for v7 compatibility
@@ -82,26 +84,37 @@ export const useNavigation = <
 };
 
 /**
- * Creates a navigation helper for use with navigation.navigate(...details()).
- * Preserves literal types for route names when used with Routes constants.
+ * @deprecated Use direct navigation instead for full type safety with RootParamList:
  *
- * @example
- * const goToWallet = createNavigationDetails(Routes.WALLET.HOME);
- * navigation.navigate(...goToWallet());
- *
- * // With params type:
- * interface MyParams { id: string }
+ * ```typescript
+ * // Instead of:
  * const goToScreen = createNavigationDetails<MyParams>(Routes.SCREEN);
  * navigation.navigate(...goToScreen({ id: '123' }));
+ *
+ * // Use:
+ * navigation.navigate(Routes.SCREEN, { id: '123' });
+ * ```
+ *
+ * Direct navigation provides:
+ * - Route name validation against RootParamList
+ * - Params validation against RootParamList[RouteName]
+ * - No type assertions needed
+ *
+ * For nested navigation:
+ * ```typescript
+ * navigation.navigate(Routes.MODAL.ROOT, {
+ *   screen: Routes.MODAL.SCREEN,
+ *   params: { id: '123' }
+ * });
+ * ```
  */
 export function createNavigationDetails<
-  T extends NavigationParams = undefined,
-  N extends keyof RootParamList = keyof RootParamList,
-  S extends string = string,
->(name: N, screen?: S) {
-  return (params?: T) => {
+  T extends object | undefined = undefined,
+>(name: string, screen?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (params?: T): [any, any] => {
     const result = screen ? { screen, params } : params;
-    return [name, result] as const as readonly [N, typeof result];
+    return [name, result];
   };
 }
 

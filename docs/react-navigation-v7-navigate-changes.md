@@ -522,6 +522,48 @@ grep -r "from '@react-navigation/native'" app/ --include="*.ts" --include="*.tsx
 
 ---
 
+## `createNavigationDetails` - DEPRECATED
+
+The `createNavigationDetails` helper function is now **deprecated**. Use direct navigation for full type safety.
+
+### Why Deprecated?
+
+| Aspect                 | `createNavigationDetails`            | Direct `navigate()`                        |
+| ---------------------- | ------------------------------------ | ------------------------------------------ |
+| Route name validated   | ❌ No (uses `string`)                | ✅ Yes (literal type from `RootParamList`) |
+| Params validated       | ⚠️ Partial (caller-defined `T` only) | ✅ Yes (from `RootParamList[RouteName]`)   |
+| Type assertions        | ⚠️ Returns `[any, any]`              | ✅ None needed                             |
+| React Nav v7 idiomatic | ❌ No                                | ✅ Yes                                     |
+
+### Migration
+
+```typescript
+// ❌ DEPRECATED
+const goToScreen = createNavigationDetails<MyParams>(Routes.SCREEN);
+navigation.navigate(...goToScreen({ id: '123' }));
+
+// ✅ RECOMMENDED - Full type safety with RootParamList
+navigation.navigate(Routes.SCREEN, { id: '123' });
+
+// ✅ For nested navigator navigation
+navigation.navigate(Routes.MODAL.ROOT, {
+  screen: Routes.MODAL.SCREEN,
+  params: { id: '123' },
+});
+```
+
+### Technical Details
+
+`createNavigationDetails` now returns `[any, any]` to satisfy React Navigation v7's strict `navigate()` overloads. This was necessary because:
+
+1. v7's `navigate()` expects tuples with **literal route names** (e.g., `["WalletView", params]`)
+2. The helper's return type was `[keyof RootParamList, T]` - a union type that doesn't match any specific literal
+3. Using `[any, any]` bypasses this check but loses type safety
+
+Direct navigation with `RootParamList` global type augmentation provides complete type checking.
+
+---
+
 ## Quick Reference
 
 | Scenario                   | v5/v6                           | v7                                                       | Status       |
