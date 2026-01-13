@@ -81,7 +81,7 @@ describe('hasMinimumRequiredVersion', () => {
   });
 
   describe('version comparison edge cases', () => {
-    it('handles patch version comparison correctly', () => {
+    it('returns true when patch version exceeds minimum version', () => {
       mockGetVersion.mockReturnValue('7.63.1');
 
       const result = hasMinimumRequiredVersion('7.63.0', true);
@@ -89,7 +89,7 @@ describe('hasMinimumRequiredVersion', () => {
       expect(result).toBe(true);
     });
 
-    it('handles minor version comparison correctly', () => {
+    it('returns true when minor version exceeds minimum version', () => {
       mockGetVersion.mockReturnValue('7.64.0');
 
       const result = hasMinimumRequiredVersion('7.63.0', true);
@@ -97,7 +97,7 @@ describe('hasMinimumRequiredVersion', () => {
       expect(result).toBe(true);
     });
 
-    it('handles major version comparison correctly', () => {
+    it('returns true when major version exceeds minimum version', () => {
       mockGetVersion.mockReturnValue('8.0.0');
 
       const result = hasMinimumRequiredVersion('7.63.0', true);
