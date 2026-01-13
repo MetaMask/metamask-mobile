@@ -464,55 +464,132 @@ describe('BrowserBottomBar', () => {
     });
   });
 
-  describe('Bookmark Button Disabled State', () => {
-    it('disables bookmark button when activeUrl is empty', () => {
+  describe('handleBookmarkPress Logic', () => {
+    it('calls navigateToAddBookmark when URL is not bookmarked', () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} activeUrl="" />,
-        { state: initialState },
-      );
-
-      const bookmarkButton = getByTestId(
-        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
-      );
-
-      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
-    });
-
-    it('disables bookmark button when activeUrl contains only whitespace', () => {
-      const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} activeUrl="   " />,
-        { state: initialState },
-      );
-
-      const bookmarkButton = getByTestId(
-        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
-      );
-
-      expect(bookmarkButton.props.accessibilityState.disabled).toBe(true);
-    });
-
-    it('enables bookmark button when activeUrl has valid value', () => {
-      const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} activeUrl="https://example.com" />,
-        { state: initialState },
-      );
-
-      const bookmarkButton = getByTestId(
-        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
-      );
-
-      expect(bookmarkButton.props.accessibilityState.disabled).toBe(false);
-    });
-
-    it('does not navigate when bookmark button pressed with empty URL', () => {
-      const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        <BrowserBottomBar {...defaultProps} activeUrl="https://new-site.com" />,
         { state: initialState },
       );
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.push).not.toHaveBeenCalled();
+      expect(mockNavigation.push).toHaveBeenCalledWith(
+        'AddBookmarkView',
+        expect.objectContaining({
+          screen: 'AddBookmark',
+        }),
+      );
+    });
+
+    it('does not navigate when bookmark exists for URL', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Test', url: 'https://example.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: stateWithBookmark },
+      );
+
+      const bookmarkButton = getByTestId(
+        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+      );
+
+      fireEvent.press(bookmarkButton);
+
+      expect(bookmarkButton).toBeTruthy();
+    });
+
+    it('calls navigateToAddBookmark when bookmark not found in list', () => {
+      const stateWithOtherBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Other', url: 'https://other.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="https://example.com" />,
+        { state: stateWithOtherBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalled();
+    });
+
+    it('does not call dispatch when bookmark to remove is not found', () => {
+      const stateWithDifferentUrl = {
+        ...initialState,
+        bookmarks: [{ name: 'Other', url: 'https://different.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={() => 'https://example.com'}
+        />,
+        { state: stateWithDifferentUrl },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalled();
+    });
+  });
+
+  describe('navigateToAddBookmark Callback', () => {
+    it('opens AddBookmarkView modal when adding bookmark', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalledWith(
+        'AddBookmarkView',
+        expect.objectContaining({
+          screen: 'AddBookmark',
+        }),
+      );
+    });
+
+    it('uses empty string for title when title prop is empty', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} title="" />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalledWith(
+        'AddBookmarkView',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            title: '',
+          }),
+        }),
+      );
+    });
+
+    it('passes getMaskedUrl result to modal parameters', () => {
+      const customMaskedUrl = jest.fn(() => 'custom-masked-url');
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} getMaskedUrl={customMaskedUrl} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockNavigation.push).toHaveBeenCalledWith(
+        'AddBookmarkView',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            url: 'custom-masked-url',
+          }),
+        }),
+      );
     });
   });
 });

@@ -370,9 +370,7 @@ export const Browser = (props) => {
   };
 
   const closeTabsView = () => {
-    if (tabs.length) {
-      setShouldShowTabs(false);
-    }
+    setShouldShowTabs(false);
   };
 
   const renderTabList = () => {

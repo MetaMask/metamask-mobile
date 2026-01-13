@@ -1,6 +1,7 @@
 import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialRootState from '../../../util/test/initial-root-state';
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -17,34 +18,22 @@ jest.mock('../TokenDiscovery', () => ({
 
 describe('DiscoveryTab', () => {
   const mockShowTabs = jest.fn();
+  const mockNewTab = jest.fn();
   const mockUpdateTabInfo = jest.fn();
 
   const defaultProps = {
     id: 1,
     showTabs: mockShowTabs,
+    newTab: mockNewTab,
     updateTabInfo: mockUpdateTabInfo,
   };
 
   const initialState = {
+    ...initialRootState,
     browser: {
+      ...initialRootState.browser,
       activeTab: 1,
       tabs: [{ id: 1, url: '' }],
-    },
-    engine: {
-      backgroundState: {
-        AccountTrackerController: {
-          accounts: {
-            '0x123': { balance: '0x0' },
-          },
-        },
-        NetworkController: {
-          providerConfig: {
-            chainId: '0x1',
-            type: 'mainnet',
-          },
-          networkConfigurations: {},
-        },
-      },
     },
   };
 
@@ -104,14 +93,8 @@ describe('DiscoveryTab', () => {
     });
 
     it('renders with all required props', () => {
-      const requiredProps = {
-        id: 1,
-        showTabs: mockShowTabs,
-        updateTabInfo: mockUpdateTabInfo,
-      };
-
       const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...requiredProps} />,
+        <DiscoveryTab {...defaultProps} />,
         { state: initialState },
       );
 
@@ -129,8 +112,15 @@ describe('DiscoveryTab', () => {
         },
       };
 
+      const propsWithAllRequired = {
+        id: 1,
+        showTabs: mockShowTabs,
+        newTab: mockNewTab,
+        updateTabInfo: mockUpdateTabInfo,
+      };
+
       const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
+        <DiscoveryTab {...propsWithAllRequired} />,
         { state: differentTabState },
       );
 

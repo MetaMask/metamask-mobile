@@ -139,13 +139,17 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           dispatch(addBookmark({ name, url: urlToAdd }));
           // iOS Spotlight integration
           if (Device.isIos()) {
+            const thumbnailUri =
+              (icon as { uri?: string })?.uri ||
+              (favicon as { uri?: string })?.uri ||
+              '';
             const item = {
               uniqueIdentifier: activeUrl,
               title: name || getMaskedUrl(urlToAdd, sessionENSNames),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [name.split(' '), urlToAdd, 'dapp'],
+              keywords: [...name.split(' '), urlToAdd, 'dapp'],
               thumbnail: {
-                uri: icon || favicon,
+                uri: thumbnailUri,
               },
             };
             try {

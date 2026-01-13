@@ -816,3 +816,5 @@ describe('Browser', () => {
 });
 
 jest.useRealTimers();
+
+jest.useRealTimers();
