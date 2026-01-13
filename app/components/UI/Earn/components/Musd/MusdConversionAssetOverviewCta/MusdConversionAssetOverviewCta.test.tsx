@@ -96,9 +96,66 @@ describe('MusdConversionAssetOverviewCta', () => {
         { state: initialRootState },
       );
 
-      expect(getByText(/Earn rewards when/)).toBeOnTheScreen();
-      expect(getByText(/you convert to/)).toBeOnTheScreen();
+      expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
+      expect(
+        getByText(/Earn a bonus every time you convert stablecoins to/),
+      ).toBeOnTheScreen();
       expect(getByText('mUSD')).toBeOnTheScreen();
+    });
+
+    it('renders close button when onDismiss is provided', () => {
+      const mockToken = createMockToken();
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={mockToken}
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render close button when onDismiss is not provided', () => {
+      const mockToken = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      expect(
+        queryByTestId(
+          EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
+    it('calls onDismiss when close button is pressed', () => {
+      const mockToken = createMockToken();
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={mockToken}
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialRootState },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON,
+        ),
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalledTimes(1);
     });
   });
 
