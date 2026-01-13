@@ -232,4 +232,38 @@ describe('TokenSelectorItem', () => {
       expect(getByText(expected)).toBeTruthy();
     });
   });
+
+  describe('text truncation', () => {
+    it('truncates long token names to 2 lines', () => {
+      const token = createMockTokenWithBalance({
+        name: 'Very Long Token Name That Should Be Truncated',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      const tokenNameElement = getByText(
+        'Very Long Token Name That Should Be Truncated',
+      );
+
+      expect(tokenNameElement.props.numberOfLines).toBe(2);
+    });
+
+    it('applies tail ellipsize mode to token names', () => {
+      const token = createMockTokenWithBalance({
+        name: 'Very Long Token Name That Should Be Truncated',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      const tokenNameElement = getByText(
+        'Very Long Token Name That Should Be Truncated',
+      );
+
+      expect(tokenNameElement.props.ellipsizeMode).toBe('tail');
+    });
+  });
 });
