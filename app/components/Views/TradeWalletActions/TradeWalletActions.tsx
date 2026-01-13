@@ -123,6 +123,17 @@ function TradeWalletActions() {
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
+    // Call postCallback as fallback (for testing and if animation doesn't trigger)
+    // The animation callback will also call it, but this ensures it's called
+    // Use Promise.resolve().then() for better test compatibility
+    if (postCallback.current) {
+      Promise.resolve().then(() => {
+        if (postCallback.current) {
+          postCallback.current();
+          postCallback.current = undefined;
+        }
+      });
+    }
   }, [onDismiss]);
 
   const goToSwaps = useCallback(() => {

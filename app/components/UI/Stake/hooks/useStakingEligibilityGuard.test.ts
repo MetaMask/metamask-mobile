@@ -40,7 +40,7 @@ describe('useStakingEligibilityGuard', () => {
   });
 
   describe('when user is eligible', () => {
-    it('should return true and not navigate', () => {
+    it('returns true and does not navigate when user is eligible', () => {
       // Arrange
       mockUseStakingEligibility.mockReturnValue({
         isEligible: true,
@@ -68,7 +68,7 @@ describe('useStakingEligibilityGuard', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('should return isEligible as true', () => {
+    it('returns isEligible as true when user is eligible', () => {
       // Arrange
       mockUseStakingEligibility.mockReturnValue({
         isEligible: true,
@@ -105,7 +105,7 @@ describe('useStakingEligibilityGuard', () => {
       });
     });
 
-    it('should return false and navigate to Portfolio with newTabUrl when no existing tab', () => {
+    it('returns false and navigates to Portfolio with newTabUrl when no existing tab', () => {
       // Arrange
       const mockState = {
         ...MOCK_EARN_STATE,
@@ -135,7 +135,7 @@ describe('useStakingEligibilityGuard', () => {
       });
     });
 
-    it('should return false and navigate to Portfolio with existingTabId when existing tab found', () => {
+    it('returns false and navigates to Portfolio with existingTabId when existing tab found', () => {
       // Arrange
       const existingTab: BrowserTab = {
         id: 'tab-123',
@@ -169,7 +169,7 @@ describe('useStakingEligibilityGuard', () => {
       });
     });
 
-    it('should find existing tab by checking if URL includes STAKE.URL', () => {
+    it('finds existing tab by checking if URL includes STAKE.URL', () => {
       // Arrange
       const stakeTab: BrowserTab = {
         id: 'stake-tab',
@@ -205,7 +205,7 @@ describe('useStakingEligibilityGuard', () => {
       });
     });
 
-    it('should return isEligible as false', () => {
+    it('returns isEligible as false when user is not eligible', () => {
       // Arrange
       const mockState = {
         ...MOCK_EARN_STATE,
@@ -224,7 +224,7 @@ describe('useStakingEligibilityGuard', () => {
       expect(result.current.isEligible).toBe(false);
     });
 
-    it('should include timestamp in navigation params', () => {
+    it('includes timestamp in navigation params', () => {
       // Arrange
       const mockTimestamp = 1234567890;
       jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
@@ -257,7 +257,7 @@ describe('useStakingEligibilityGuard', () => {
   });
 
   describe('hook memoization', () => {
-    it('should return the same checkEligibilityAndRedirect function on rerender when dependencies do not change', () => {
+    it('returns the same checkEligibilityAndRedirect function on rerender when dependencies do not change', () => {
       // Arrange
       mockUseStakingEligibility.mockReturnValue({
         isEligible: true,
@@ -287,7 +287,7 @@ describe('useStakingEligibilityGuard', () => {
       expect(firstFunction).toBe(secondFunction);
     });
 
-    it('should return a new checkEligibilityAndRedirect function when isEligible changes', () => {
+    it('returns a new checkEligibilityAndRedirect function when isEligible changes', () => {
       // Arrange
       let isEligible = true;
       mockUseStakingEligibility.mockImplementation(() => ({
@@ -321,7 +321,7 @@ describe('useStakingEligibilityGuard', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty browser tabs array', () => {
+    it('handles empty browser tabs array', () => {
       // Arrange
       mockUseStakingEligibility.mockReturnValue({
         isEligible: false,
@@ -349,7 +349,7 @@ describe('useStakingEligibilityGuard', () => {
       expect(mockBuildPortfolioUrl).toHaveBeenCalled();
     });
 
-    it('should handle multiple tabs but none matching stake URL', () => {
+    it('handles multiple tabs but none matching stake URL', () => {
       // Arrange
       mockUseStakingEligibility.mockReturnValue({
         isEligible: false,

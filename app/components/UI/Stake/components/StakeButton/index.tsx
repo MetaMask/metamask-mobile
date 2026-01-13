@@ -87,17 +87,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
-      if (!checkEligibilityAndRedirect()) {
-        return;
-      }
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
-
+      // Track analytics before eligibility check to preserve behavior
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
           .addProperties({
@@ -111,6 +101,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           })
           .build(),
       );
+      if (!checkEligibilityAndRedirect()) {
+        return;
+      }
+      trace({ name: TraceName.EarnDepositScreen });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -120,16 +120,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         'mainnet',
       );
     }
-    if (!checkEligibilityAndRedirect()) {
-      return;
-    }
-    trace({ name: TraceName.EarnDepositScreen });
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: asset,
-      },
-    });
+    // Track analytics before eligibility check to preserve behavior
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
@@ -144,6 +135,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         })
         .build(),
     );
+    if (!checkEligibilityAndRedirect()) {
+      return;
+    }
+    trace({ name: TraceName.EarnDepositScreen });
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
   };
 
   const handleLendingRedirect = async () => {
