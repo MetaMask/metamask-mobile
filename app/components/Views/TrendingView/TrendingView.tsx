@@ -171,7 +171,10 @@ export const ExploreFeed: React.FC = () => {
   const isAnySectionLoading = loadingSections.size > 0;
 
   return (
-    <Box style={{ marginTop: insets.top }} twClassName="flex-1 bg-default gap-4">
+    <Box
+      style={{ marginTop: insets.top }}
+      twClassName="flex-1 bg-default gap-4"
+    >
       <Box twClassName="px-4 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
