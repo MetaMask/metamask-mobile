@@ -1487,7 +1487,7 @@ describe('BridgeView', () => {
       });
     });
 
-    it('should not submit transaction when walletAddress is missing', async () => {
+    it('disables submit button when walletAddress is missing', async () => {
       // Mock selectSourceWalletAddress to return undefined
       jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
 
@@ -1534,20 +1534,17 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Find and press the continue button
+      // Find the continue button and verify it's disabled
       const continueButton = getByTestId('bridge-confirm-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        // Button should be disabled when walletAddress is missing
+        expect(continueButton.props.accessibilityState?.disabled).toBe(true);
       });
 
-      await act(async () => {
-        await waitFor(() => {
-          // Should not call submitBridgeTx when walletAddress is missing
-          expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-          // Should still navigate to transactions view (from finally block)
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-        });
-      });
+      // Verify submitBridgeTx is not called since button is disabled
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

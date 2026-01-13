@@ -235,7 +235,8 @@ const BridgeView = () => {
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas;
+    !hasSufficientGas ||
+    !walletAddress;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
