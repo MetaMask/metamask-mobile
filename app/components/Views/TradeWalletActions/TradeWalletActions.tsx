@@ -55,6 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { useStakingEligibilityGuard } from '../../UI/Stake/hooks/useStakingEligibilityGuard';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -92,6 +93,7 @@ function TradeWalletActions() {
   const navigation = useNavigation();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -157,6 +159,10 @@ function TradeWalletActions() {
 
   const onEarn = useCallback(async () => {
     postCallback.current = () => {
+      if (!checkEligibilityAndRedirect()) {
+        return;
+      }
+
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         params: {
@@ -181,7 +187,14 @@ function TradeWalletActions() {
       );
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
+  }, [
+    handleNavigateBack,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
+    checkEligibilityAndRedirect,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
