@@ -95,6 +95,13 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn().mockReturnValue(10),
 }));
 
+jest.mock('../../../Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 const initialState = {
   ...initialRootState,
   engine: {
@@ -895,6 +902,70 @@ describe('EarnTokenList', () => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: 'Stake',
         params: { token: expect.objectContaining({ symbol: 'TRX' }) },
+      });
+    });
+  });
+
+  describe('eligibility guard', () => {
+    const { useStakingEligibilityGuard } = jest.requireMock(
+      '../../../Stake/hooks/useStakingEligibilityGuard',
+    );
+    const mockCheckEligibilityAndRedirect = jest.fn();
+
+    beforeEach(() => {
+      mockCheckEligibilityAndRedirect.mockClear();
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: true,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+    });
+
+    it('redirects to Portfolio when user is not eligible and clicks token item', async () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Ethereum'));
+      });
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      );
+      // Should not navigate to stake screen
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeScreens',
+        expect.any(Object),
+      );
+    });
+
+    it('navigates to stake screen when user is eligible and clicks token item', async () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(true);
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Ethereum'));
+      });
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: expect.any(String),
+        params: expect.any(Object),
       });
     });
   });
