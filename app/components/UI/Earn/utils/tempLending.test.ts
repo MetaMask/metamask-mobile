@@ -13,9 +13,11 @@ import {
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
   generateLendingAllowanceIncreaseTransaction,
   generateLendingDepositTransaction,
+  generateLendingWithdrawalTransaction,
   getAaveReceiptTokenBalance,
   getAaveUserAccountData,
   getAaveV3MaxRiskAwareWithdrawalAmount,
+  getAaveV3MaxSafeWithdrawal,
   getErc20SpendingLimit,
   getLendingPoolLiquidity,
 } from './tempLending';
@@ -399,6 +401,321 @@ describe('Temp Lending Utils', () => {
       );
 
       expect(result).toBe(expectedBalance);
+    });
+  });
+
+  describe('generateLendingWithdrawalTransaction', () => {
+    const mockLendingTokenAddress = '0xdef456';
+    const mockAmountLowestDenomination = '1000000';
+    const mockActiveAccountAddress = '0xabc123';
+    const mainnetChainId = '0x1';
+    const mockEncodedWithdrawalData = '0x789abc';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (ethers.utils.Interface as unknown as jest.Mock).mockImplementation(
+        () => ({
+          encodeFunctionData: jest
+            .fn()
+            .mockReturnValue(mockEncodedWithdrawalData),
+        }),
+      );
+    });
+
+    it('generates valid withdrawal transaction parameters for mainnet', () => {
+      const result = generateLendingWithdrawalTransaction(
+        mockLendingTokenAddress,
+        mockAmountLowestDenomination,
+        mockActiveAccountAddress,
+        mainnetChainId,
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.txParams).toEqual({
+        to: CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[mainnetChainId],
+        from: mockActiveAccountAddress,
+        data: mockEncodedWithdrawalData,
+        value: '0',
+      });
+      expect(result?.txOptions).toEqual({
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId: 'mainnet',
+        origin: ORIGIN_METAMASK,
+        type: 'lendingWithdraw',
+      });
+    });
+
+    it('generates valid withdrawal transaction parameters for Linea network', () => {
+      const lineaChainId = '0xe708';
+
+      const result = generateLendingWithdrawalTransaction(
+        mockLendingTokenAddress,
+        mockAmountLowestDenomination,
+        mockActiveAccountAddress,
+        lineaChainId,
+      );
+
+      expect(result?.txParams).toEqual({
+        to: CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[lineaChainId],
+        from: mockActiveAccountAddress,
+        data: mockEncodedWithdrawalData,
+        value: '0',
+      });
+      expect(result?.txOptions).toEqual({
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId: expect.any(String),
+        origin: ORIGIN_METAMASK,
+        type: 'lendingWithdraw',
+      });
+    });
+
+    it('generates valid withdrawal transaction parameters for Arbitrum network', () => {
+      const arbitrumChainId = '0xa4b1';
+
+      const result = generateLendingWithdrawalTransaction(
+        mockLendingTokenAddress,
+        mockAmountLowestDenomination,
+        mockActiveAccountAddress,
+        arbitrumChainId,
+      );
+
+      expect(result?.txParams).toEqual({
+        to: CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[arbitrumChainId],
+        from: mockActiveAccountAddress,
+        data: mockEncodedWithdrawalData,
+        value: '0',
+      });
+    });
+
+    it('generates valid withdrawal transaction for BSC network', () => {
+      const bscChainId = '0x38';
+
+      const result = generateLendingWithdrawalTransaction(
+        mockLendingTokenAddress,
+        mockAmountLowestDenomination,
+        mockActiveAccountAddress,
+        bscChainId,
+      );
+
+      expect(result?.txParams).toEqual({
+        to: CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[bscChainId],
+        from: mockActiveAccountAddress,
+        data: mockEncodedWithdrawalData,
+        value: '0',
+      });
+    });
+  });
+
+  describe('getAaveV3MaxSafeWithdrawal', () => {
+    const mockReceiptToken = {
+      chainId: '0x1',
+      decimals: 6,
+      tokenUsdExchangeRate: 1.0,
+      balanceFormatted: '100.0',
+      balanceMinimalUnit: '100000000',
+      balanceFiat: '$100.00',
+      balanceFiatNumber: 100,
+      experiences: [],
+      symbol: 'aUSDC',
+      address: '0xdef456',
+      image: '',
+      isNative: false,
+      ticker: 'aUSDC',
+      aggregators: [],
+      name: 'Aave USDC',
+      balance: '100.0',
+      logo: '',
+      isETH: false,
+      experience: {
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        apr: '5.0',
+        estimatedAnnualRewardsFormatted: '5.0',
+        estimatedAnnualRewardsFiatNumber: 5,
+        estimatedAnnualRewardsTokenMinimalUnit: '5000000',
+        estimatedAnnualRewardsTokenFormatted: '5.0',
+        market: {
+          id: '0xdef456',
+          chainId: 1,
+          protocol: LendingProtocol.AAVE,
+          name: 'USDC Market',
+          address: '0xdef456',
+          netSupplyRate: 5.0,
+          totalSupplyRate: 5.0,
+          rewards: [],
+          tvlUnderlying: '1000000',
+          underlying: {
+            address: '0xabc789',
+            chainId: 1,
+          },
+          outputToken: {
+            address: '0xdef456',
+            chainId: 1,
+          },
+          position: {
+            id: '0xdef456-0xabc789-COLLATERAL-0',
+            chainId: 1,
+            assets: '1000000',
+            marketId: '0xdef456',
+            marketAddress: '0xdef456',
+            protocol: LendingProtocol.AAVE,
+          },
+        },
+      },
+    };
+
+    it('returns undefined when user has no debt', async () => {
+      const mockUserDataNoDebt = {
+        raw: {
+          totalCollateralBase: BigNumber.from('1000000000000000000'),
+          totalDebtBase: BigNumber.from('0'),
+          availableBorrowsBase: BigNumber.from('300000000000000000'),
+          currentLiquidationThreshold: BigNumber.from('8000'),
+          ltv: BigNumber.from('7500'),
+          healthFactor: BigNumber.from('0'),
+        },
+        formatted: {
+          totalCollateralBase: '10.0',
+          totalDebtBase: '0',
+          availableBorrowsBase: '3.0',
+          liquidationThreshold: '80.00%',
+          ltv: '75.00%',
+          healthFactor: '0',
+        },
+      };
+
+      const result = await getAaveV3MaxSafeWithdrawal(
+        mockUserDataNoDebt,
+        mockReceiptToken,
+      );
+
+      // When no debt, can withdraw everything (returns undefined to indicate no limit)
+      expect(result).toBeUndefined();
+    });
+
+    it('returns "0" when missing chainId', async () => {
+      const mockUserData = {
+        raw: {
+          totalCollateralBase: BigNumber.from('1000000000000000000'),
+          totalDebtBase: BigNumber.from('500000000000000000'),
+          availableBorrowsBase: BigNumber.from('300000000000000000'),
+          currentLiquidationThreshold: BigNumber.from('8000'),
+          ltv: BigNumber.from('7500'),
+          healthFactor: BigNumber.from('1500000000000000000'),
+        },
+        formatted: {
+          totalCollateralBase: '10.0',
+          totalDebtBase: '5.0',
+          availableBorrowsBase: '3.0',
+          liquidationThreshold: '80.00%',
+          ltv: '75.00%',
+          healthFactor: '1.5',
+        },
+      };
+
+      const tokenWithoutChainId = {
+        ...mockReceiptToken,
+        chainId: undefined,
+      };
+
+      const result = await getAaveV3MaxSafeWithdrawal(
+        mockUserData,
+        tokenWithoutChainId as unknown as typeof mockReceiptToken,
+      );
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when missing tokenUsdExchangeRate', async () => {
+      const mockUserData = {
+        raw: {
+          totalCollateralBase: BigNumber.from('1000000000000000000'),
+          totalDebtBase: BigNumber.from('500000000000000000'),
+          availableBorrowsBase: BigNumber.from('300000000000000000'),
+          currentLiquidationThreshold: BigNumber.from('8000'),
+          ltv: BigNumber.from('7500'),
+          healthFactor: BigNumber.from('1500000000000000000'),
+        },
+        formatted: {
+          totalCollateralBase: '10.0',
+          totalDebtBase: '5.0',
+          availableBorrowsBase: '3.0',
+          liquidationThreshold: '80.00%',
+          ltv: '75.00%',
+          healthFactor: '1.5',
+        },
+      };
+
+      const tokenWithoutExchangeRate = {
+        ...mockReceiptToken,
+        tokenUsdExchangeRate: undefined,
+      };
+
+      const result = await getAaveV3MaxSafeWithdrawal(
+        mockUserData,
+        tokenWithoutExchangeRate as unknown as typeof mockReceiptToken,
+      );
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when current health factor is below minimum', async () => {
+      const mockUserDataLowHealth = {
+        raw: {
+          totalCollateralBase: BigNumber.from('100000000'), // 1 USD (8 decimals)
+          totalDebtBase: BigNumber.from('80000000'), // 0.8 USD - results in HF ~1.0
+          availableBorrowsBase: BigNumber.from('0'),
+          currentLiquidationThreshold: BigNumber.from('8000'), // 80%
+          ltv: BigNumber.from('7500'),
+          healthFactor: BigNumber.from('1000000000000000000'), // 1.0
+        },
+        formatted: {
+          totalCollateralBase: '1.0',
+          totalDebtBase: '0.8',
+          availableBorrowsBase: '0',
+          liquidationThreshold: '80.00%',
+          ltv: '75.00%',
+          healthFactor: '1.0',
+        },
+      };
+
+      const result = await getAaveV3MaxSafeWithdrawal(
+        mockUserDataLowHealth,
+        mockReceiptToken,
+        2.0, // min health factor
+      );
+
+      expect(result).toBe('0');
+    });
+
+    it('calculates max withdrawal when user has debt and healthy position', async () => {
+      const mockUserDataHealthy = {
+        raw: {
+          totalCollateralBase: BigNumber.from('1000000000'), // 10 USD (8 decimals)
+          totalDebtBase: BigNumber.from('200000000'), // 2 USD
+          availableBorrowsBase: BigNumber.from('300000000'),
+          currentLiquidationThreshold: BigNumber.from('8000'), // 80%
+          ltv: BigNumber.from('7500'),
+          healthFactor: BigNumber.from('4000000000000000000'), // 4.0
+        },
+        formatted: {
+          totalCollateralBase: '10.0',
+          totalDebtBase: '2.0',
+          availableBorrowsBase: '3.0',
+          liquidationThreshold: '80.00%',
+          ltv: '75.00%',
+          healthFactor: '4.0',
+        },
+      };
+
+      const result = await getAaveV3MaxSafeWithdrawal(
+        mockUserDataHealthy,
+        mockReceiptToken,
+        2.0, // min health factor
+      );
+
+      // Should return a calculated max withdrawal amount
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
     });
   });
 

@@ -162,6 +162,7 @@ jest.mock('../../../../../selectors/multichain', () => ({
       },
     ],
   })),
+  selectAccountTokensAcrossChainsUnified: jest.fn(() => []),
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
@@ -1230,6 +1231,7 @@ describe('EarnInputView', () => {
 
           // Should navigate to redesigned confirmations instead of legacy lending deposit confirmation
           expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+            params: { loader: 'default' },
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           });
 

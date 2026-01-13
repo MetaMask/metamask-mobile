@@ -205,4 +205,26 @@ describe('Info', () => {
       getByTestId(ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT),
     ).toBeDefined();
   });
+
+  it('returns null when no approval request type', () => {
+    const stateWithNoApprovalType = {
+      ...personalSignatureConfirmationState,
+      engine: {
+        ...personalSignatureConfirmationState.engine,
+        backgroundState: {
+          ...personalSignatureConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {},
+            approvalFlows: [],
+          },
+        },
+      },
+    };
+
+    const { toJSON } = renderWithProvider(<Info />, {
+      state: stateWithNoApprovalType,
+    });
+
+    expect(toJSON()).toBeNull();
+  });
 });

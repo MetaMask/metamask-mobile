@@ -2,7 +2,6 @@ import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
@@ -10,6 +9,7 @@ import { selectTokenDisplayData } from '../../../../selectors/tokenSearchDiscove
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
 import { getEstimatedAnnualRewards } from '../utils/token';
+import { fetchTokenSnapshot } from '../utils/token-snapshot';
 
 /**
  * Represents the price of a token in a currency. Picked from @metamask/assets-controllers
@@ -98,10 +98,7 @@ const useEarnToken = (asset: TokenI | EarnTokenDetails) => {
   const getTokenSnapshot = useCallback(async (chainId: Hex, address: Hex) => {
     try {
       setIsLoadingTokenSnapshot(true);
-      await Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
-        chainId,
-        address,
-      );
+      await fetchTokenSnapshot(chainId, address);
       setIsLoadingTokenSnapshot(false);
       setTokenDisplayDataParams({ chainId, address });
     } catch (error) {

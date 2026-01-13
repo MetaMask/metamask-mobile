@@ -5694,6 +5694,7 @@
         "continue_button": "Get started"
       },
       "earn_points_daily": "Earn points daily",
+      "earn_apy": "Earn {{apy}}",
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "earn_rewards_when": "Earn rewards when",
