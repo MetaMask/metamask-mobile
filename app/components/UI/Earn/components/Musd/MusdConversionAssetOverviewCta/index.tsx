@@ -77,11 +77,11 @@ const MusdConversionAssetOverviewCta = ({
 
   const handlePress = async () => {
     try {
+      submitCtaPressedEvent();
+
       if (!asset?.address || !asset?.chainId) {
         throw new Error('Asset address or chain ID is not set');
       }
-
-      submitCtaPressedEvent();
 
       await initiateConversion({
         preferredPaymentToken: {
