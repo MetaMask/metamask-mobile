@@ -32,6 +32,7 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 const mockBioStateMachineId = '123';
 
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
@@ -39,6 +40,12 @@ jest.mock('../../core/NavigationService', () => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (screen: any, params?: any) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
+    },
+    reset: (state: {
+      index?: number;
+      routes: { name: string; params?: object }[];
+    }) => {
+      mockReset(state);
     },
   },
 }));
@@ -183,8 +190,14 @@ describe('appLockStateMachine', () => {
     generator.next();
     // Move to next step
     generator.next();
-    expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN, {
-      bioStateMachineId: mockBioStateMachineId,
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.LOCK_SCREEN,
+          params: { bioStateMachineId: mockBioStateMachineId },
+        },
+      ],
     });
   });
 });
