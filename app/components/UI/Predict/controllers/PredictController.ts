@@ -2157,6 +2157,10 @@ export class PredictController extends BaseController<
         transaction.txParams.data = callData;
         transaction.txParams.to = this.state.withdrawTransaction
           ?.predictAddress as Hex;
+        transaction.assetsFiatValues = {
+          ...transaction.assetsFiatValues,
+          receiving: String(amount),
+        };
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;
