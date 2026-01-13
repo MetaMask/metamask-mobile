@@ -34,13 +34,19 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
     fetchData: fetchDelegationSettings,
   } = useGetDelegationSettings();
 
-  // Build available tokens using shared utility
   const availableTokens = useMemo<CardTokenAllowance[]>(
     () =>
       buildTokenListFromSettings({
         delegationSettings,
         userLocation: userCardLocation,
-        getSupportedTokensByChainId: sdk?.getSupportedTokensByChainId.bind(sdk),
+        getSupportedTokensByChainId: sdk
+          ? (chainId) =>
+              sdk.getSupportedTokensByChainId(chainId) as {
+                address?: string;
+                symbol?: string;
+                name?: string;
+              }[]
+          : undefined,
         hideSolana: true,
       }),
     [sdk, delegationSettings, userCardLocation],
