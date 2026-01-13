@@ -106,7 +106,7 @@ jobs:
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: apk-cache-restore
-        uses: cirruslabs/cache@v4
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -118,7 +118,7 @@ jobs:
           key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Cache Gradle dependencies
-        uses: cirruslabs/cache@v4
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
@@ -233,7 +233,7 @@ jobs:
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-        uses: cirruslabs/cache@v4
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
