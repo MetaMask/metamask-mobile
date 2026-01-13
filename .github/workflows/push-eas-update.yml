@@ -265,8 +265,9 @@ jobs:
             exit 1
           fi
 
-          # Decode to variable and export for child processes
-          export EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          # Decode the key
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          echo "$EXPO_KEY_PRIV" >> "$GITHUB_ENV"
           echo "✅ Expo key decoded and exported"
 
       - name: Install dependencies
